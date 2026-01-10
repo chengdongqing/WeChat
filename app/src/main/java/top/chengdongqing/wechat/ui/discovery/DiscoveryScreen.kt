@@ -2,8 +2,6 @@ package top.chengdongqing.wechat.ui.discovery
 
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
-import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -60,11 +58,11 @@ fun DiscoveryScreen(
     val peers by viewModel.nearbyPeers.collectAsStateWithLifecycle()
     var isDiscovering by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
-    val bluetoothManager =
-        context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-    val bluetoothAdapter = bluetoothManager?.adapter
-    val launchBluetooth = rememberBluetoothLauncher()
+//    val context = LocalContext.current
+//    val bluetoothManager =
+//        context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+//    val bluetoothAdapter = bluetoothManager?.adapter
+//    val launchBluetooth = rememberBluetoothLauncher()
 
     Scaffold(
         topBar = {
@@ -74,14 +72,14 @@ fun DiscoveryScreen(
             // 开关雷达的按钮
             ExtendedFloatingActionButton(
                 onClick = {
-                    if (bluetoothAdapter == null) {
-                        context.showToast("此设备不支持蓝牙")
-                    } else if (!bluetoothAdapter.isEnabled) {
-                        launchBluetooth()
-                    } else {
+//                    if (bluetoothAdapter == null) {
+//                        context.showToast("此设备不支持蓝牙")
+//                    } else if (!bluetoothAdapter.isEnabled) {
+//                        launchBluetooth()
+//                    } else {
                         isDiscovering = !isDiscovering
                         viewModel.toggleDiscovery(isDiscovering)
-                    }
+//                    }
                 },
                 icon = {
                     Icon(

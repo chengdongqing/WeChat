@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import top.chengdongqing.wechat.core.util.GenericViewModelFactory
 import top.chengdongqing.wechat.data.local.DatabaseModule
 import top.chengdongqing.wechat.data.model.P2pMode
-import top.chengdongqing.wechat.data.network.BluetoothManager
+import top.chengdongqing.wechat.data.network.WifiLanManager
 import top.chengdongqing.wechat.data.repository.ChatRepositoryImpl
 import top.chengdongqing.wechat.ui.chat.ChatViewModel
 import top.chengdongqing.wechat.ui.components.PermissionWrapper
@@ -41,8 +41,9 @@ class MainActivity : ComponentActivity() {
     private val viewModel: ChatViewModel by viewModels {
         GenericViewModelFactory {
             val db = DatabaseModule.getDatabase(applicationContext)
-//            val connectionManager = WifiLanManager(applicationContext)
-            val connectionManager = BluetoothManager(applicationContext)
+            val connectionManager = WifiLanManager(applicationContext)
+//            val connectionManager = BluetoothManager(applicationContext)
+//            val connectionManager = WifiDirectManager(applicationContext)
             val repository = ChatRepositoryImpl(db.messageDao(), connectionManager)
 
             ChatViewModel(repository, connectionManager, application)

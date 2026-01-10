@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.data.model
 
+import android.net.wifi.p2p.WifiP2pDevice
+
 /**
  * p2p节点
  */
@@ -16,9 +18,16 @@ data class WifiLanPeer(
     val ip: String
 ) : P2PPeer
 
+data class WifiDirectPeer(
+    override val id: String,
+    override val name: String,
+    val mac: String?,
+    val status: Int = WifiP2pDevice.UNAVAILABLE, // WifiP2pDevice.CONNECTED, .INVITED 等
+    val ip: String? = null
+) : P2PPeer
+
 data class BluetoothPeer(
     override val id: String,
     override val name: String,
-    val macAddress: String, // 蓝牙特有的 MAC 地址
-    val isBonded: Boolean = false   // 可选：记录配对状态
+    val mac: String
 ) : P2PPeer

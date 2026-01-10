@@ -5,6 +5,7 @@ import android.net.wifi.WifiManager
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.InetSocketAddress
+import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
@@ -220,20 +221,27 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
         }
     }
 
+    private var serverSocket: ServerSocket? = null // 增加引用
+
     // --- 3. 消息接收服务器 (TCP Server) ---
     private fun startMessageServer() {
+        // 1. 启动前强制清理旧的
+        serverSocket?.close()
+        serverJob?.cancel()
+
         serverJob = scope.launch {
-            val serverSocket =
+            serverSocket =
                 aSocket(selectorManager).tcp().bind(InetSocketAddress("0.0.0.0", messagePort)) {
                     reuseAddress = true
                 }
 
             try {
+                val currentSocket = serverSocket!! // 局部变量防止并发问题
                 while (isActive) {
-                    val socket = serverSocket.accept()
+                    val clientSocket = currentSocket.accept()
                     launch {
                         try {
-                            val readChannel = socket.openReadChannel()
+                            val readChannel = clientSocket.openReadChannel()
 
                             // 1. 只读取第一行（JSON Header）
                             // 注意：发送端必须使用 channel.writeStringUtf8(json + "\n")
@@ -269,12 +277,12 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
                         } catch (e: Exception) {
                             e.printStackTrace()
                         } finally {
-                            socket.close()
+                            clientSocket.close()
                         }
                     }
                 }
             } finally {
-                serverSocket.close()
+                serverSocket?.close()
             }
         }
     }

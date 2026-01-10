@@ -46,6 +46,8 @@ class ChatRepositoryImpl(
             // 调用底层网络
             val isNetworkSuccess = connectionManager.sendText(peer, text)
 
+            println("-----isNetworkSuccess:$isNetworkSuccess,entity:$entity")
+
             if (isNetworkSuccess) {
                 // 更新数据库状态为：成功 (1)
                 messageDao.updateStatus(messageId, 1) // 1: 成功

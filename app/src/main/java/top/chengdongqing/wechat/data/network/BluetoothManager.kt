@@ -166,7 +166,7 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
         )
         val json = AppJson.instance.encodeToString(MessageEnvelope.serializer(), envelope) + "\n"
 
-        return performBluetoothWrite(btPeer.macAddress, json.toByteArray(), null)
+        return performBluetoothWrite(btPeer.mac, json.toByteArray(), null)
     }
 
     override suspend fun sendMedia(
@@ -185,7 +185,7 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
         )
         val header = AppJson.instance.encodeToString(MessageEnvelope.serializer(), envelope) + "\n"
 
-        return performBluetoothWrite(btPeer.macAddress, header.toByteArray(), file, onProgress)
+        return performBluetoothWrite(btPeer.mac, header.toByteArray(), file, onProgress)
     }
 
     // 核心写操作：建立 Socket -> 发 Header -> 发文件
@@ -328,7 +328,7 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
     override suspend fun connect(peer: P2PPeer): Boolean = withContext(Dispatchers.IO) {
         val btPeer = peer as? BluetoothPeer ?: return@withContext false
         val device =
-            bluetoothAdapter?.getRemoteDevice(btPeer.macAddress) ?: return@withContext false
+            bluetoothAdapter?.getRemoteDevice(btPeer.mac) ?: return@withContext false
 
         return@withContext try {
             // 如果未配对，尝试发起配对请求
@@ -358,8 +358,7 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
         val newPeer = BluetoothPeer(
             id = device.address,
             name = displayName,
-            macAddress = device.address,
-            isBonded = isBonded
+            mac = device.address,
         )
 
         val index = currentList.indexOfFirst { it.id == newPeer.id }

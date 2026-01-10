@@ -39,6 +39,10 @@ sealed class ChatPayload {
         val action: String, // "START_CALL", "OFFER", "ANSWER", "TYPING"
         val data: String? = null
     ) : ChatPayload()
+
+    // 1. 新增：身份信息包
+    @Serializable
+    data class Identity(val deviceId: String) : ChatPayload()
 }
 
 /**
