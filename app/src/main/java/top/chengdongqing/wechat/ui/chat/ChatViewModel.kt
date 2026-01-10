@@ -31,7 +31,7 @@ class ChatViewModel(
     init {
         // ViewModel 只负责发令：开始发现！
         // 至于怎么扫描、怎么清理离线(CleanupTimer)，那是 Manager 内部实现的细节
-        connectionManager.startDiscovery(myDeviceName)
+//        connectionManager.startDiscovery(myDeviceName)
 
         // 绑定消息接收：让网络层收到的消息直接进仓库入库
         // (注：这部分逻辑也可以放在 Repository 内部 init，看你喜好)
@@ -48,7 +48,6 @@ class ChatViewModel(
 
     fun toggleDiscovery(enable: Boolean) {
         if (enable) {
-            // myDeviceName 是我们之前通过 DeviceUtils 获取的
             connectionManager.startDiscovery(myDeviceName)
         } else {
             connectionManager.stopDiscovery()

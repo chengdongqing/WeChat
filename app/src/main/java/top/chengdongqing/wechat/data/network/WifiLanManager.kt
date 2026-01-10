@@ -237,33 +237,34 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
 
                             // 1. 只读取第一行（JSON Header）
                             // 注意：发送端必须使用 channel.writeStringUtf8(json + "\n")
-                            val headerLine = readChannel.readUTF8Line()
-                            if (!headerLine.isNullOrBlank()) {
-                                val envelope =
-                                    AppJson.instance.decodeFromString<MessageEnvelope>(headerLine)
-                                if (envelope.payload is ChatPayload.Media) {
-                                    // 2. 处理媒体文件
-                                    val payload = envelope.payload
-                                    // 建议在外部 filesDir 创建 media 文件夹，cacheDir 容易被系统清理
-                                    val mediaDir =
-                                        File(context.filesDir, "media").apply { mkdirs() }
-                                    // 为了防止重名，可以使用 envelope.id 作为文件名的一部分
-                                    val file =
-                                        File(mediaDir, "p2p_${envelope.id}_${payload.fileName}")
+                            val headerLine = readChannel.readUTF8Line() ?: return@launch
+                            println("------headerLine:$headerLine")
 
-                                    file.outputStream().use { output ->
-                                        // 3. 关键：将 readChannel 中剩余的字节流直接拷贝到文件
-                                        // copyTo 会持续读取直到发送端关闭 socket
-                                        readChannel.copyTo(output)
-                                    }
+                            val envelope =
+                                AppJson.instance.decodeFromString<MessageEnvelope>(headerLine)
 
-                                    // 更新 payload 指向新落地的本地路径
-                                    val updatedPayload = payload.copy(localPath = file.absolutePath)
-                                    _messageFlow.emit(envelope.copy(payload = updatedPayload))
-                                } else {
-                                    // 4. 普通文本消息
-                                    _messageFlow.emit(envelope)
+                            if (envelope.payload is ChatPayload.Media) {
+                                // 2. 处理媒体文件
+                                val payload = envelope.payload
+                                // 建议在外部 filesDir 创建 media 文件夹，cacheDir 容易被系统清理
+                                val mediaDir =
+                                    File(context.filesDir, "media").apply { mkdirs() }
+                                // 为了防止重名，可以使用 envelope.id 作为文件名的一部分
+                                val file =
+                                    File(mediaDir, "p2p_${envelope.id}_${payload.fileName}")
+
+                                file.outputStream().use { output ->
+                                    // 3. 关键：将 readChannel 中剩余的字节流直接拷贝到文件
+                                    // copyTo 会持续读取直到发送端关闭 socket
+                                    readChannel.copyTo(output)
                                 }
+
+                                // 更新 payload 指向新落地的本地路径
+                                val updatedPayload = payload.copy(localPath = file.absolutePath)
+                                _messageFlow.emit(envelope.copy(payload = updatedPayload))
+                            } else {
+                                // 4. 普通文本消息
+                                _messageFlow.emit(envelope)
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
