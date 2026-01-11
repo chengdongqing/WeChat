@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.data.network
 
 import android.content.Context
+import android.content.Intent
 import android.net.wifi.WifiManager
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Datagram
@@ -9,6 +10,7 @@ import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
+import io.ktor.util.cio.use
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.writeText
 import io.ktor.utils.io.jvm.javaio.copyTo
@@ -20,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +30,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.core.util.IdManager
 import top.chengdongqing.wechat.core.util.randomUUID
@@ -34,6 +38,7 @@ import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MessageEnvelope
 import top.chengdongqing.wechat.data.model.P2PPeer
 import top.chengdongqing.wechat.data.model.WifiLanPeer
+import top.chengdongqing.wechat.ui.call.CallActivity
 import java.io.File
 
 class WifiLanManager(private val context: Context) : P2pConnectionManager {
@@ -48,7 +53,10 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
     private val _peers = MutableStateFlow<List<P2PPeer>>(emptyList())
     override val peers: StateFlow<List<P2PPeer>> = _peers
 
-    private val _messageFlow = MutableSharedFlow<MessageEnvelope>()
+    private val _messageFlow = MutableSharedFlow<MessageEnvelope>(
+        replay = 1, // 缓存最近的一条，防止 Activity 启动慢导致漏掉第一个 Sdp
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     override val messageFlow: SharedFlow<MessageEnvelope> = _messageFlow
 
     private var discoveryJob: Job? = null
@@ -239,6 +247,11 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
                 val currentSocket = serverSocket!! // 局部变量防止并发问题
                 while (isActive) {
                     val clientSocket = currentSocket.accept()
+                    val remoteAddress = clientSocket.remoteAddress as? InetSocketAddress
+                    val senderIp = remoteAddress?.hostname ?: "" // 这就是对方的 IP
+
+                    println("-------senderIp:$senderIp")
+
                     launch {
                         try {
                             val readChannel = clientSocket.openReadChannel()
@@ -250,29 +263,50 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
 
                             val envelope =
                                 AppJson.instance.decodeFromString<MessageEnvelope>(headerLine)
+                            val payload = envelope.payload
 
-                            if (envelope.payload is ChatPayload.Media) {
-                                // 2. 处理媒体文件
-                                val payload = envelope.payload
-                                // 建议在外部 filesDir 创建 media 文件夹，cacheDir 容易被系统清理
-                                val mediaDir =
-                                    File(context.filesDir, "media").apply { mkdirs() }
-                                // 为了防止重名，可以使用 envelope.id 作为文件名的一部分
-                                val file =
-                                    File(mediaDir, "p2p_${envelope.id}_${payload.fileName}")
+                            when (payload) {
+                                is ChatPayload.Media -> {
+                                    // 2. 处理媒体文件
+                                    // 建议在外部 filesDir 创建 media 文件夹，cacheDir 容易被系统清理
+                                    val mediaDir =
+                                        File(context.filesDir, "media").apply { mkdirs() }
+                                    // 为了防止重名，可以使用 envelope.id 作为文件名的一部分
+                                    val file =
+                                        File(mediaDir, "p2p_${envelope.id}_${payload.fileName}")
 
-                                file.outputStream().use { output ->
-                                    // 3. 关键：将 readChannel 中剩余的字节流直接拷贝到文件
-                                    // copyTo 会持续读取直到发送端关闭 socket
-                                    readChannel.copyTo(output)
+                                    file.outputStream().use { output ->
+                                        // 3. 关键：将 readChannel 中剩余的字节流直接拷贝到文件
+                                        // copyTo 会持续读取直到发送端关闭 socket
+                                        readChannel.copyTo(output)
+                                    }
+
+                                    // 更新 payload 指向新落地的本地路径
+                                    val updatedPayload = payload.copy(localPath = file.absolutePath)
+                                    _messageFlow.emit(envelope.copy(payload = updatedPayload))
                                 }
 
-                                // 更新 payload 指向新落地的本地路径
-                                val updatedPayload = payload.copy(localPath = file.absolutePath)
-                                _messageFlow.emit(envelope.copy(payload = updatedPayload))
-                            } else {
-                                // 4. 普通文本消息
-                                _messageFlow.emit(envelope)
+                                is ChatPayload.CallAction if payload.action == "START_VIDEO" -> {
+                                    println("----信令: 收到呼叫请求，正在拉起通话界面")
+
+                                    val intent = Intent(context, CallActivity::class.java).apply {
+                                        // 1. 必须加这个 Flag，因为是从 Service/Background Context 启动 Activity
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+                                        // 2. 传递参数：对方是谁，我是被叫方
+                                        putExtra("targetIp", senderIp)
+                                        putExtra("isOfferer", false)
+                                    }
+                                    context.startActivity(intent)
+
+                                    // 同时也发给 Flow，方便聊天界面记录“通话已开始”
+                                    _messageFlow.emit(envelope)
+                                }
+
+                                else -> {
+                                    // 4. 普通文本消息
+                                    _messageFlow.emit(envelope)
+                                }
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -286,6 +320,31 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
             }
         }
     }
+
+    // 在 WifiLanManager 类中添加
+    suspend fun sendPayload(targetIp: String, payload: ChatPayload): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val socket = aSocket(selectorManager).tcp().connect(targetIp, messagePort)
+                // 构造外壳
+                val envelope = MessageEnvelope(
+                    id = randomUUID(),
+                    senderId = myId,
+                    senderName = "name",
+                    payload = payload
+                )
+                // 序列化
+                val json = AppJson.instance.encodeToString(envelope)
+
+                socket.openWriteChannel(autoFlush = true).use {
+                    writeStringUtf8(json + "\n")
+                }
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
 
     override suspend fun connect(peer: P2PPeer): Boolean = true
     override fun disconnect(peer: P2PPeer) {}

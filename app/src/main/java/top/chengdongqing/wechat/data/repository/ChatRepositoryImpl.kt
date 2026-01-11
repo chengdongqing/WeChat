@@ -11,6 +11,7 @@ import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MediaResource
 import top.chengdongqing.wechat.data.model.MessageEnvelope
 import top.chengdongqing.wechat.data.model.P2PPeer
+import top.chengdongqing.wechat.data.model.isSignal
 import top.chengdongqing.wechat.data.network.P2pConnectionManager
 
 class ChatRepositoryImpl(
@@ -119,6 +120,16 @@ class ChatRepositoryImpl(
         }
 
     override suspend fun onMessageReceived(envelope: MessageEnvelope) {
+        val payload = envelope.payload
+
+        // 1. 拦截逻辑：如果是 WebRTC 信令或通话指令，直接跳过数据库存储
+        if (payload.isSignal) {
+            // 打印个日志方便调试，然后直接返回
+            println("----收信: 检测到信令 ${payload::class.simpleName}，跳过数据库录入")
+            return
+        }
+
+        // 2. 正常消息（文本或媒体）的保存逻辑
         val entity = MessageEntity(
             id = randomUUID(),
             chatId = envelope.senderId,

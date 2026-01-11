@@ -1,5 +1,14 @@
 package top.chengdongqing.wechat.ui.components
 
+import android.Manifest
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,11 +33,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import top.chengdongqing.wechat.core.util.PermissionUtils
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.model.P2pMode
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -39,21 +49,41 @@ fun PermissionWrapper(
 ) {
     // 1. 根据当前选择的模式，获取对应的权限列表
     val permissions = remember(mode) {
-        PermissionUtils.getPermissionsForMode(mode)
+        getPermissionsForMode(mode)
     }
-
     // 2. 记住这些权限的状态
     val permissionState = rememberMultiplePermissionsState(permissions)
 
-    // 3. 逻辑分发
-    if (permissionState.allPermissionsGranted) {
-        // 只有全部授权，才显示核心聊天/传输界面
+    val context = LocalContext.current
+    val bluetoothManager =
+        context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+    val bluetoothAdapter = bluetoothManager?.adapter
+    val launchBluetooth = rememberBluetoothLauncher()
+
+    val isBluetoothReady = if (mode == P2pMode.BLUETOOTH) {
+        bluetoothAdapter?.isEnabled == true
+    } else {
+        true // 非蓝牙模式，默认蓝牙这一项是“就绪”的
+    }
+
+    if (isBluetoothReady && permissionState.allPermissionsGranted) {
+        // 只有全部准备就绪，才显示核心界面
         content()
     } else {
         // 显示针对性引导
         PermissionGuideScreen(
             mode = mode,
             onAction = {
+                if (mode == P2pMode.BLUETOOTH) {
+                    // 蓝牙模式下的特殊处理
+                    if (bluetoothAdapter == null) {
+                        context.showToast("此设备不支持蓝牙")
+                    } else if (!bluetoothAdapter.isEnabled) {
+                        launchBluetooth()
+                        return@PermissionGuideScreen
+                    }
+                }
+                // 统一处理权限请求（如果蓝牙已经开了或者不是蓝牙模式）
                 permissionState.launchMultiplePermissionRequest()
             }
         )
@@ -134,6 +164,62 @@ fun PermissionGuideScreen(
                 modifier = Modifier.padding(top = 16.dp),
                 color = MaterialTheme.colorScheme.secondary
             )
+        }
+    }
+}
+
+@Composable
+private fun rememberBluetoothLauncher(): () -> Unit {
+    val context = LocalContext.current
+    val bluetoothLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            context.showToast("蓝牙已打开")
+        }
+    }
+
+    return {
+        val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+        bluetoothLauncher.launch(intent)
+    }
+}
+
+private fun getPermissionsForMode(mode: P2pMode): List<String> {
+    return when (mode) {
+        P2pMode.WIFI_LAN -> listOf(
+            Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.CHANGE_WIFI_MULTICAST_STATE
+        )
+
+        P2pMode.WIFI_DIRECT -> {
+            val list = mutableListOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.ACCESS_WIFI_STATE
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                list.add(Manifest.permission.NEARBY_WIFI_DEVICES)
+            }
+            list
+        }
+
+        P2pMode.BLUETOOTH -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                listOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.BLUETOOTH_ADVERTISE,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            } else {
+                listOf(
+                    Manifest.permission.BLUETOOTH,
+                    Manifest.permission.BLUETOOTH_ADMIN,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -26,7 +27,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ChatInputBar(
     onTextSend: (String) -> Unit,
-    onImageSelected: (Uri) -> Unit
+    onImageSelected: (Uri) -> Unit,
+    onVideoCall: () -> Unit
 ) {
     var inputText by remember { mutableStateOf("") }
 
@@ -47,6 +49,9 @@ fun ChatInputBar(
             // 加号按钮
             IconButton(onClick = { launcher.launch("image/*") }) {
                 Icon(Icons.Default.Add, contentDescription = "选择图片")
+            }
+            IconButton(onClick = { onVideoCall() }) {
+                Icon(Icons.Default.VideoCall, contentDescription = "视频通话")
             }
 
             TextField(

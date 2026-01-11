@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.ui.chat
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,8 +22,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.data.model.WifiLanPeer
+import top.chengdongqing.wechat.ui.call.CallActivity
 import top.chengdongqing.wechat.ui.components.ChatInputBar
 import top.chengdongqing.wechat.ui.components.MessageBubble
 
@@ -42,6 +47,7 @@ fun ChatScreen(
         allMessages//.filter { it.chatId == peerId }
     }
 
+    val context = LocalContext.current
     val listState = rememberLazyListState()
 
     // 自动滚动到最新消息
@@ -73,6 +79,11 @@ fun ChatScreen(
                     if (currentPeer != null) {
                         viewModel.sendImage(currentPeer, uri)
                     }
+                },
+                onVideoCall = {
+                    if (currentPeer != null) {
+                        startCall(context, (currentPeer as WifiLanPeer).ip)
+                    }
                 }
             )
         }
@@ -90,4 +101,17 @@ fun ChatScreen(
             }
         }
     }
+}
+
+private fun startCall(context: Context, targetIp: String) {
+    val intent = Intent(context, CallActivity::class.java).apply {
+        // 传递必要参数
+        putExtra("targetIp", targetIp)
+        putExtra("isOfferer", true) // 标记你是拨打方
+
+        // 如果是从后台跳转（比如收到推送/信令），建议加上这两个 Flag
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    }
+    context.startActivity(intent)
 }

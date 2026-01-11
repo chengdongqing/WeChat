@@ -1,10 +1,5 @@
 package top.chengdongqing.wechat.ui.discovery
 
-import android.app.Activity
-import android.bluetooth.BluetoothAdapter
-import android.content.Intent
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,10 +35,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.model.P2PPeer
 import top.chengdongqing.wechat.data.model.WifiLanPeer
 import top.chengdongqing.wechat.ui.chat.ChatViewModel
@@ -58,12 +51,6 @@ fun DiscoveryScreen(
     val peers by viewModel.nearbyPeers.collectAsStateWithLifecycle()
     var isDiscovering by remember { mutableStateOf(false) }
 
-//    val context = LocalContext.current
-//    val bluetoothManager =
-//        context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-//    val bluetoothAdapter = bluetoothManager?.adapter
-//    val launchBluetooth = rememberBluetoothLauncher()
-
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("发现附近的设备") })
@@ -72,14 +59,8 @@ fun DiscoveryScreen(
             // 开关雷达的按钮
             ExtendedFloatingActionButton(
                 onClick = {
-//                    if (bluetoothAdapter == null) {
-//                        context.showToast("此设备不支持蓝牙")
-//                    } else if (!bluetoothAdapter.isEnabled) {
-//                        launchBluetooth()
-//                    } else {
-                        isDiscovering = !isDiscovering
-                        viewModel.toggleDiscovery(isDiscovering)
-//                    }
+                    isDiscovering = !isDiscovering
+                    viewModel.toggleDiscovery(isDiscovering)
                 },
                 icon = {
                     Icon(
@@ -107,23 +88,6 @@ fun DiscoveryScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun rememberBluetoothLauncher(): () -> Unit {
-    val context = LocalContext.current
-    val bluetoothLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            context.showToast("蓝牙已打开")
-        }
-    }
-
-    return {
-        val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-        bluetoothLauncher.launch(intent)
     }
 }
 

@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.annotations)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.accompanist.permissions)
+    implementation(libs.webrtc)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)

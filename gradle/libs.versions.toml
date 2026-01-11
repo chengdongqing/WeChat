@@ -13,6 +13,7 @@ material-icons-extended = "1.7.8"
 annotations = "26.0.2-1"
 desugar-jdk-libs = "2.1.5"
 accompanist-permissions = "0.37.3"
+webrtc = "137.7151.05"
 
 room = "2.8.4"
 ktor = "3.3.3"
@@ -22,6 +23,7 @@ coil = "3.3.0"
 coil-zoomable = "0.18.0"
 
 [libraries]
+webrtc = { module = "io.github.webrtc-sdk:android", version.ref = "webrtc" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

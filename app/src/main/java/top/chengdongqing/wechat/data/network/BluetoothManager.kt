@@ -382,7 +382,7 @@ private suspend fun InputStream.readRawLine(): String? = withContext(Dispatchers
     while (true) {
         val b = read() // 阻塞式读取
         if (b == -1) return@withContext if (bytes.isEmpty()) null else String(bytes.toByteArray())
-        if (b == '\n'.toInt()) break
+        if (b == '\n'.code) break
         bytes.add(b.toByte())
     }
     String(bytes.toByteArray(), Charsets.UTF_8).trim()
