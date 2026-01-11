@@ -16,9 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -26,7 +24,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.core.util.IdManager
-import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.BluetoothPeer
 import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MessageEnvelope
@@ -46,9 +43,6 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
 
     private val _peers = MutableStateFlow<List<P2PPeer>>(emptyList())
     override val peers: StateFlow<List<P2PPeer>> = _peers
-
-    private val _messageFlow = MutableSharedFlow<MessageEnvelope>()
-    override val messageFlow: SharedFlow<MessageEnvelope> = _messageFlow
 
     private var serverJob: Job? = null
 
@@ -124,7 +118,7 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
 
     // --- 1. 发现逻辑 ---
     @SuppressLint("MissingPermission")
-    override fun startDiscovery(myName: String) {
+    override fun startDiscovery(deviceName: String) {
         makeDiscoverable()
         // 开启监听服务
         startMessageServer()
@@ -155,36 +149,20 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
     }
 
     // --- 2. 消息发送逻辑 (Client) ---
-    override suspend fun sendText(peer: P2PPeer, text: String): Boolean {
+    override suspend fun sendText(peer: P2PPeer, envelope: MessageEnvelope): Boolean {
         val btPeer = peer as? BluetoothPeer ?: return false
-        val envelope = MessageEnvelope(
-            id = randomUUID(),
-            senderId = myId,
-            senderName = "MyName",
-            payload = ChatPayload.Text(text),
-            timestamp = System.currentTimeMillis()
-        )
-        val json = AppJson.instance.encodeToString(MessageEnvelope.serializer(), envelope) + "\n"
-
-        return performBluetoothWrite(btPeer.mac, json.toByteArray(), null)
+        val content = AppJson.instance.encodeToString(envelope)
+        return performBluetoothWrite(btPeer.mac, content.toByteArray(), null)
     }
 
     override suspend fun sendMedia(
         peer: P2PPeer,
-        payload: ChatPayload.Media,
+        envelope: MessageEnvelope,
         file: File,
         onProgress: suspend (Float) -> Unit
     ): Boolean {
         val btPeer = peer as? BluetoothPeer ?: return false
-        val envelope = MessageEnvelope(
-            id = randomUUID(),
-            senderId = myId,
-            senderName = "MyName",
-            payload = payload,
-            timestamp = System.currentTimeMillis()
-        )
-        val header = AppJson.instance.encodeToString(MessageEnvelope.serializer(), envelope) + "\n"
-
+        val header = AppJson.instance.encodeToString(envelope) + "\n"
         return performBluetoothWrite(btPeer.mac, header.toByteArray(), file, onProgress)
     }
 
@@ -240,7 +218,7 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
 
     // --- 3. 消息接收逻辑 (Server) ---
     @SuppressLint("MissingPermission")
-    private fun startMessageServer() {
+    override fun startMessageServer() {
         serverJob = scope.launch {
             val serverSocket =
                 bluetoothAdapter?.listenUsingRfcommWithServiceRecord("P2P_Chat", appUUID)
@@ -255,6 +233,10 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
                 serverSocket?.close()
             }
         }
+    }
+
+    override fun stopMessageServer() {
+        serverJob?.cancel()
     }
 
     private suspend fun handleIncomingConnection(socket: BluetoothSocket) {
@@ -290,10 +272,10 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
                 }
 
                 val updatedPayload = payload.copy(localPath = file.absolutePath)
-                _messageFlow.emit(envelope.copy(payload = updatedPayload))
+//                _messageFlow.emit(envelope.copy(payload = updatedPayload))
             } else {
                 // 3. 处理纯文本
-                _messageFlow.emit(envelope)
+//                _messageFlow.emit(envelope)
             }
 
             // 4. 【新增回执】所有数据处理完毕，告诉发送端：你可以安心断开了

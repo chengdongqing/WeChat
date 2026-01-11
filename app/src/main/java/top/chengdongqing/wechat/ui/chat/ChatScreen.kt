@@ -44,7 +44,7 @@ fun ChatScreen(
     // 2. 观察来自 Repository 的所有消息，并过滤出与该 Peer 的对话
     val allMessages by viewModel.messages.collectAsStateWithLifecycle(emptyList())
     val chatMessages = remember(allMessages, peerId) {
-        allMessages//.filter { it.chatId == peerId }
+        allMessages.filter { it.chatId == peerId }
     }
 
     val context = LocalContext.current
@@ -77,7 +77,7 @@ fun ChatScreen(
                 },
                 onImageSelected = { uri ->
                     if (currentPeer != null) {
-                        viewModel.sendImage(currentPeer, uri)
+                        viewModel.sendMedia(currentPeer, uri)
                     }
                 },
                 onVideoCall = {

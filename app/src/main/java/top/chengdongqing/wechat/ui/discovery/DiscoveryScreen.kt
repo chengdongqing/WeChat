@@ -30,9 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -47,20 +44,19 @@ fun DiscoveryScreen(
     viewModel: ChatViewModel,
     onNavigateToChat: (String) -> Unit // 连接成功后跳转到聊天页
 ) {
-    // 安全地收集 StateFlow，感知 Activity 生命周期
+    // collectAsStateWithLifecycle：仅在当前activity活跃时才监听数据流
     val peers by viewModel.nearbyPeers.collectAsStateWithLifecycle()
-    var isDiscovering by remember { mutableStateOf(false) }
+    val isDiscovering by viewModel.isDiscovering.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("发现附近的设备") })
         },
         floatingActionButton = {
-            // 开关雷达的按钮
+            // 扫描按钮
             ExtendedFloatingActionButton(
                 onClick = {
-                    isDiscovering = !isDiscovering
-                    viewModel.toggleDiscovery(isDiscovering)
+                    viewModel.toggleDiscovery()
                 },
                 icon = {
                     Icon(
@@ -68,8 +64,14 @@ fun DiscoveryScreen(
                         null
                     )
                 },
-                text = { Text(if (isDiscovering) "停止扫描" else "开始发现") },
-                containerColor = if (isDiscovering) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+                text = {
+                    Text(if (isDiscovering) "停止扫描" else "开始扫描")
+                },
+                containerColor = if (isDiscovering) {
+                    MaterialTheme.colorScheme.errorContainer
+                } else {
+                    MaterialTheme.colorScheme.primaryContainer
+                }
             )
         }
     ) { padding ->
@@ -81,7 +83,11 @@ fun DiscoveryScreen(
                     PeerItem(
                         peer = peer,
                         onClick = {
+                            // 停止扫描
+                            viewModel.stopDiscovery()
+                            // 连接设备
                             viewModel.connectToPeer(peer)
+                            // 跳转到聊天页面
                             onNavigateToChat(peer.id)
                         }
                     )

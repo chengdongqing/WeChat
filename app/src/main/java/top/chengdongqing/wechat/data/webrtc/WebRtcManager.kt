@@ -223,7 +223,6 @@ class WebRtcManager(
             localAudioTrack?.dispose()
 
             // 3. 关闭 PeerConnection 连接
-            peerConnection?.close()
             peerConnection?.dispose() // dispose 比 close 更彻底
             peerConnection = null
 

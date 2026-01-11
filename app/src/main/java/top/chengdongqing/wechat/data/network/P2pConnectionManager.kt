@@ -1,36 +1,58 @@
 package top.chengdongqing.wechat.data.network
 
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MessageEnvelope
 import top.chengdongqing.wechat.data.model.P2PPeer
 import java.io.File
 
 interface P2pConnectionManager {
-    // 1. 发现的人：泛型化，向上转型为 P2PPeer
+    /**
+     * 设备列表流
+     */
     val peers: StateFlow<List<P2PPeer>>
 
-    // 2. 收到的消息
-    val messageFlow: SharedFlow<MessageEnvelope>
+    /**
+     * 开始搜索设备
+     */
+    fun startDiscovery(deviceName: String)
 
-    fun startDiscovery(myName: String)
+    /**
+     * 停止搜素设备
+     */
     fun stopDiscovery()
 
-    // 3. 建立链路：传入抽象的 Peer
-    // 具体的实现类（如 WifiLanManager）会自己强转回 LanPeer 去拿 IP
+    /**
+     * 连接设备
+     */
     suspend fun connect(peer: P2PPeer): Boolean
 
-    // 4. 发消息
-    suspend fun sendText(peer: P2PPeer, text: String): Boolean
+    /**
+     * 断开连接
+     */
+    fun disconnect(peer: P2PPeer)
 
-    // 发送文件
+    /**
+     * 开始接收消息
+     */
+    fun startMessageServer()
+
+    /**
+     * 停止接收消息
+     */
+    fun stopMessageServer()
+
+    /**
+     * 发送文本消息
+     */
+    suspend fun sendText(peer: P2PPeer, envelope: MessageEnvelope): Boolean
+
+    /**
+     * 发送媒体消息
+     */
     suspend fun sendMedia(
         peer: P2PPeer,
-        payload: ChatPayload.Media,
+        envelope: MessageEnvelope,
         file: File,
-        onProgress: suspend (Float) -> Unit
+        onProgress: suspend (Float) -> Unit // 发送进度回调
     ): Boolean
-
-    fun disconnect(peer: P2PPeer)
 }

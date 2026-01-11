@@ -10,7 +10,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.core.util.ServiceLocator
 import top.chengdongqing.wechat.data.model.ChatPayload
@@ -29,6 +28,8 @@ class CallActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val dispatcher = ServiceLocator.getMessageDispatcher(this)
 
         // 1. 获取全局 Manager
         wifiLanManager = ServiceLocator.getWifiLanManager(this)
@@ -54,16 +55,12 @@ class CallActivity : ComponentActivity() {
         // 4. 监听信令 (保持原有逻辑)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                wifiLanManager.messageFlow.collect { envelope ->
-                    when (val payload = envelope.payload) {
+                dispatcher.signalingFlow.collect { payload ->
+                    when (payload) {
                         is ChatPayload.Sdp -> webRtcManager.onRemoteSessionReceived(payload)
                         is ChatPayload.Ice -> webRtcManager.onRemoteIceReceived(payload)
                         is ChatPayload.CallAction -> {
-                            if (payload.action == "HANGUP") {
-                                withContext(Dispatchers.Main) {
-                                    finish()
-                                }
-                            }
+                            if (payload.action == "HANGUP") finish()
                         }
 
                         else -> {}

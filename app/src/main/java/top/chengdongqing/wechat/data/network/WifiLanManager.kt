@@ -1,12 +1,12 @@
 package top.chengdongqing.wechat.data.network
 
 import android.content.Context
-import android.content.Intent
 import android.net.wifi.WifiManager
+import android.util.Log
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.InetSocketAddress
-import io.ktor.network.sockets.ServerSocket
+import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
@@ -14,7 +14,6 @@ import io.ktor.util.cio.use
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.writeText
 import io.ktor.utils.io.jvm.javaio.copyTo
-import io.ktor.utils.io.readText
 import io.ktor.utils.io.readUTF8Line
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
@@ -22,116 +21,165 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.core.util.IdManager
+import top.chengdongqing.wechat.core.util.ServiceLocator
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MessageEnvelope
 import top.chengdongqing.wechat.data.model.P2PPeer
 import top.chengdongqing.wechat.data.model.WifiLanPeer
-import top.chengdongqing.wechat.ui.call.CallActivity
 import java.io.File
+import java.net.DatagramPacket
+import java.net.InetAddress
+import java.net.MulticastSocket
 
+/**
+ * 单播、广播和组播：
+ * 1.单播 (Unicast): 你给某个死党打电话。只有你们两个在通话。
+ * 2.广播 (Broadcast): 你拿着大喇叭在学校操场喊：“大家来开会！”。不管想不想听，全校师生（局域网内所有设备）都会被迫收到这条信息。缺点： 吵（浪费带宽和 CPU 资源），且很多现代路由器（如公共商场、学校 WiFi）出于安全考虑会直接封杀这种“大喇叭”。
+ * 3.组播 (Multicast): 你创建了一个特定的“兴趣小组”。只有加入了这个小组的人才能听到。
+ */
 class WifiLanManager(private val context: Context) : P2pConnectionManager {
-
     private val selectorManager = SelectorManager(Dispatchers.IO)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private val broadcastPort = 9999
     private val messagePort = 8888
 
     // 接口成员实现
     private val _peers = MutableStateFlow<List<P2PPeer>>(emptyList())
     override val peers: StateFlow<List<P2PPeer>> = _peers
 
-    private val _messageFlow = MutableSharedFlow<MessageEnvelope>(
-        replay = 1, // 缓存最近的一条，防止 Activity 启动慢导致漏掉第一个 Sdp
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
-    override val messageFlow: SharedFlow<MessageEnvelope> = _messageFlow
+    private val dispatcher = ServiceLocator.getMessageDispatcher(context)
 
     private var discoveryJob: Job? = null
     private var serverJob: Job? = null
 
-    // 获取唯一设备ID，防止发现自己
+    // 获取唯一设备ID
     private val myId: String by lazy { IdManager(context).getMyId() }
+
+    // 自定义UDP协议前缀
+    private val protocolPrefix = "UDP_WeChat"
+
+    // 发送组播的间隔
+    private val discoveryInterval = 3000L
+
+    // 自定义组播地址
+    private val multicastIp = "239.10.10.10"
+    private val multicastPort = 9999
+
+    override fun startDiscovery(deviceName: String) {
+        // 权限与状态前置检查
+        ensureMulticastLock()
+        stopDiscovery()
+
+        discoveryJob = scope.launch(Dispatchers.IO) {
+            // 发送组播
+            launch { runMulticastSender(deviceName) }
+            // 搜索组播
+            launch { runMulticastReceiver() }
+        }
+    }
+
+    private suspend fun runMulticastSender(myName: String) {
+        val sendSocket = aSocket(selectorManager).udp().bind {
+            broadcast = true
+        }
+        val groupAddress = InetSocketAddress(multicastIp, multicastPort)
+        // 定义协议信息并作为数据包的内容
+        val msg = "$protocolPrefix|$myId|$myName"
+
+        // 每3秒发送一次
+        sendSocket.use { socket ->
+            while (currentCoroutineContext().isActive) {
+                try {
+                    // 构建数据包
+                    val datagram = Datagram(buildPacket { writeText(msg) }, groupAddress)
+                    // 发送数据包
+                    socket.send(datagram)
+                } catch (e: Exception) {
+                    Log.e("UDP", "Send failed", e)
+                }
+                delay(discoveryInterval)
+            }
+        }
+    }
+
+    private suspend fun runMulticastReceiver() {
+        val receiveSocket = MulticastSocket(multicastPort).apply {
+            reuseAddress = true
+        }
+        val groupAddress = InetAddress.getByName(multicastIp)
+
+        // 持续监听所有数据包
+        receiveSocket.use { socket ->
+            // 加入组播（订阅指定频道）
+            socket.joinGroup(groupAddress)
+            // 数据缓冲池
+            val buffer = ByteArray(1024)
+
+            try {
+                while (currentCoroutineContext().isActive) {
+                    // 接收数据包（会阻塞直到收到包）
+                    val packet = DatagramPacket(buffer, buffer.size)
+                    socket.receive(packet)
+                    // 数据解码
+                    val text = packet.data.decodeToString(0, packet.length)
+                    val remoteIp = packet.address.hostAddress ?: ""
+                    // 数据解析
+                    parseDiscoveryMsg(text, remoteIp)
+                }
+            } catch (e: Exception) {
+                Log.e("UDP", "Receive failed", e)
+            } finally {
+                // 通知路由器停止转发，避免流量浪费或下次不可预知的冲突
+                socket.leaveGroup(groupAddress)
+            }
+        }
+    }
+
+    private fun parseDiscoveryMsg(text: String, remoteIp: String) {
+        // 判断是否符合协议规则
+        if (text.startsWith("$protocolPrefix|")) {
+            val parts = text.split("|")
+            if (parts.size >= 3) {
+                val (_, id, name) = parts
+                // 过滤自己发的数据包
+                if (id != myId) {
+                    updatePeerList(WifiLanPeer(id, name, remoteIp))
+                }
+            }
+        }
+    }
 
     private val multicastLock by lazy {
         (context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager)
             .createMulticastLock("p2p_wifi_lock")
     }
 
-    // --- 1. 发现逻辑 ---
-    override fun startDiscovery(myName: String) {
-        if (!multicastLock.isHeld) multicastLock.acquire() // 必须申请锁
+    /**
+     * 申请“组播锁”，确保设备能够发送和接收广播数据
+     * 为了省电，系统默认可能会拦截组播/广播包
+     */
+    private fun ensureMulticastLock() {
+        if (!multicastLock.isHeld) {
+            multicastLock.acquire()
+        }
+    }
 
-        stopDiscovery()
-        startMessageServer()
-
-        discoveryJob = scope.launch {
-            // --- 1. 发送逻辑 (Sender) ---
-            launch {
-                // 注意：这里 bind() 不带参数，让系统随机分配发送端口
-                val sendSocket = aSocket(selectorManager).udp().bind {
-                    broadcast = true
-                }
-                val broadcastAddr = InetSocketAddress("255.255.255.255", broadcastPort)
-
-                try {
-                    while (isActive) {
-                        val protocolMsg = "P2P_HI|$myId|$myName"
-                        sendSocket.send(
-                            Datagram(
-                                buildPacket { writeText(protocolMsg) },
-                                broadcastAddr
-                            )
-                        )
-                        delay(3000)
-                    }
-                } finally {
-                    sendSocket.close()
-                }
-            }
-
-            // --- 2. 接收逻辑 (Receiver) ---
-            launch {
-                // 只有监听端需要绑定到 9999 端口
-                val receiveSocket = aSocket(selectorManager).udp()
-                    .bind(InetSocketAddress("0.0.0.0", broadcastPort)) {
-                        reuseAddress = true // 允许地址重用，防止退出后立即重启报错
-                    }
-
-                try {
-                    while (isActive) {
-                        val datagram = receiveSocket.receive()
-                        val text = datagram.packet.readText()
-                        // 注意：使用 hostString 避免触发反向 DNS 解析，性能更好
-                        val remoteIp = (datagram.address as InetSocketAddress).hostname
-
-                        if (text.startsWith("P2P_HI|")) {
-                            val parts = text.split("|")
-                            if (parts.size >= 3) {
-                                val id = parts[1]
-                                val name = parts[2]
-                                if (id != myId) {
-                                    updatePeerList(WifiLanPeer(id, name, remoteIp))
-                                }
-                            }
-                        }
-                    }
-                } finally {
-                    receiveSocket.close()
-                }
-            }
+    /**
+     * 释放组播锁
+     */
+    private fun releaseMulticastLock() {
+        if (multicastLock.isHeld) {
+            multicastLock.release()
         }
     }
 
@@ -141,39 +189,26 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
         if (index == -1) {
             current.add(newPeer)
         } else {
-            current[index] = newPeer // 更新 IP
+            current[index] = newPeer
         }
         _peers.value = current
     }
 
     override fun stopDiscovery() {
         discoveryJob?.cancel()
-        serverJob?.cancel()
-        _peers.value = emptyList()
+        releaseMulticastLock()
     }
 
-    // --- 2. 消息发送逻辑 (TCP Client) ---
-    override suspend fun sendText(peer: P2PPeer, text: String): Boolean {
+    override suspend fun sendText(peer: P2PPeer, envelope: MessageEnvelope): Boolean {
         val lanPeer = peer as? WifiLanPeer ?: return false
-        // 构造信封并序列化为 JSON
-        val envelope = MessageEnvelope(
-            id = randomUUID(),
-            senderId = myId,
-            senderName = "MyName", // 建议从传参拿
-            payload = ChatPayload.Text(text),
-            timestamp = System.currentTimeMillis()
-        )
-        val jsonStr = AppJson.instance.encodeToString(MessageEnvelope.serializer(), envelope)
+        val content = AppJson.instance.encodeToString(envelope)
 
         return try {
-            val socket = aSocket(selectorManager).tcp().connect(lanPeer.ip, messagePort)
-            val writeChannel = socket.openWriteChannel(autoFlush = true)
-
-            // 记得加 \n，因为接收端用的是 readUTF8Line()
-            writeChannel.writeStringUtf8(jsonStr + "\n")
-            writeChannel.flushAndClose()
-
-            socket.close()
+            aSocket(selectorManager).tcp().connect(lanPeer.ip, messagePort).use { socket ->
+                val writeChannel = socket.openWriteChannel(autoFlush = true)
+                writeChannel.writeStringUtf8(content + "\n")
+                writeChannel.flushAndClose()
+            }
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -184,44 +219,33 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
     // 模拟发送文件的核心逻辑
     override suspend fun sendMedia(
         peer: P2PPeer,
-        payload: ChatPayload.Media,
+        envelope: MessageEnvelope,
         file: File,
         onProgress: suspend (Float) -> Unit
     ): Boolean {
         val lanPeer = peer as? WifiLanPeer ?: return false
-
-        // 构造信封并序列化为 JSON
-        val envelope = MessageEnvelope(
-            id = randomUUID(),
-            senderId = myId,
-            senderName = "MyName", // 建议从传参拿
-            payload = payload,
-            timestamp = System.currentTimeMillis()
-        )
+        val header = AppJson.instance.encodeToString(envelope)
 
         return try {
-            val socket = aSocket(selectorManager).tcp().connect(lanPeer.ip, messagePort)
-            val writeChannel = socket.openWriteChannel(autoFlush = false)
-            // 1. 发送 JSON Header
-            val header = AppJson.instance.encodeToString(envelope) + "\n"
-            writeChannel.writeStringUtf8(header)
-            writeChannel.flush()
+            aSocket(selectorManager).tcp().connect(lanPeer.ip, messagePort).use { socket ->
+                val writeChannel = socket.openWriteChannel(autoFlush = false)
+                writeChannel.writeStringUtf8(header + "\n")
+                writeChannel.flush()
 
-            // 3. 直接将文件流写入 Channel (Ktor 提供的高效方式)
-            file.inputStream().use { input ->
-                val buffer = ByteArray(1024 * 8)
-                var totalSent = 0L
-                while (true) {
-                    val read = input.read(buffer)
-                    if (read == -1) break
-                    writeChannel.writeFully(buffer, 0, read)
-                    totalSent += read
-                    onProgress(totalSent.toFloat() / file.length())
-                    writeChannel.flush()
+                file.inputStream().use { input ->
+                    val buffer = ByteArray(1024 * 8)
+                    var totalSent = 0L
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read == -1) break
+                        writeChannel.writeFully(buffer, 0, read)
+                        // 计算发送进度
+                        totalSent += read
+                        onProgress(totalSent.toFloat() / file.length())
+                        writeChannel.flush()
+                    }
                 }
             }
-
-            socket.close()
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -229,99 +253,84 @@ class WifiLanManager(private val context: Context) : P2pConnectionManager {
         }
     }
 
-    private var serverSocket: ServerSocket? = null // 增加引用
+    override fun startMessageServer() {
+        stopMessageServer()
 
-    // --- 3. 消息接收服务器 (TCP Server) ---
-    private fun startMessageServer() {
-        // 1. 启动前强制清理旧的
-        serverSocket?.close()
-        serverJob?.cancel()
-
-        serverJob = scope.launch {
-            serverSocket =
-                aSocket(selectorManager).tcp().bind(InetSocketAddress("0.0.0.0", messagePort)) {
-                    reuseAddress = true
-                }
+        serverJob = scope.launch(Dispatchers.IO) {
+            // 开启一个TCP Socket；0.0.0.0代表监听本地所有类型的网卡（如Wi-Fi、蜂窝网络等）
+            val socketAddress = InetSocketAddress("0.0.0.0", messagePort)
+            val serverSocket = aSocket(selectorManager).tcp().bind(socketAddress) {
+                reuseAddress = true
+            }
 
             try {
-                val currentSocket = serverSocket!! // 局部变量防止并发问题
-                while (isActive) {
-                    val clientSocket = currentSocket.accept()
-                    val remoteAddress = clientSocket.remoteAddress as? InetSocketAddress
-                    val senderIp = remoteAddress?.hostname ?: "" // 这就是对方的 IP
-
-                    println("-------senderIp:$senderIp")
-
-                    launch {
-                        try {
-                            val readChannel = clientSocket.openReadChannel()
-
-                            // 1. 只读取第一行（JSON Header）
-                            // 注意：发送端必须使用 channel.writeStringUtf8(json + "\n")
-                            val headerLine = readChannel.readUTF8Line() ?: return@launch
-                            println("------headerLine:$headerLine")
-
-                            val envelope =
-                                AppJson.instance.decodeFromString<MessageEnvelope>(headerLine)
-                            val payload = envelope.payload
-
-                            when (payload) {
-                                is ChatPayload.Media -> {
-                                    // 2. 处理媒体文件
-                                    // 建议在外部 filesDir 创建 media 文件夹，cacheDir 容易被系统清理
-                                    val mediaDir =
-                                        File(context.filesDir, "media").apply { mkdirs() }
-                                    // 为了防止重名，可以使用 envelope.id 作为文件名的一部分
-                                    val file =
-                                        File(mediaDir, "p2p_${envelope.id}_${payload.fileName}")
-
-                                    file.outputStream().use { output ->
-                                        // 3. 关键：将 readChannel 中剩余的字节流直接拷贝到文件
-                                        // copyTo 会持续读取直到发送端关闭 socket
-                                        readChannel.copyTo(output)
-                                    }
-
-                                    // 更新 payload 指向新落地的本地路径
-                                    val updatedPayload = payload.copy(localPath = file.absolutePath)
-                                    _messageFlow.emit(envelope.copy(payload = updatedPayload))
-                                }
-
-                                is ChatPayload.CallAction if payload.action == "START_VIDEO" -> {
-                                    println("----信令: 收到呼叫请求，正在拉起通话界面")
-
-                                    val intent = Intent(context, CallActivity::class.java).apply {
-                                        // 1. 必须加这个 Flag，因为是从 Service/Background Context 启动 Activity
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-                                        // 2. 传递参数：对方是谁，我是被叫方
-                                        putExtra("targetIp", senderIp)
-                                        putExtra("isOfferer", false)
-                                    }
-                                    context.startActivity(intent)
-
-                                    // 同时也发给 Flow，方便聊天界面记录“通话已开始”
-                                    _messageFlow.emit(envelope)
-                                }
-
-                                else -> {
-                                    // 4. 普通文本消息
-                                    _messageFlow.emit(envelope)
-                                }
-                            }
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        } finally {
-                            clientSocket.close()
+                serverSocket.use { socket ->
+                    while (isActive) {
+                        val clientSocket = socket.accept()
+                        // 每一个新的连接都开启一个独立协程处理
+                        launch {
+                            handleClientConnection(clientSocket)
                         }
                     }
                 }
-            } finally {
-                serverSocket?.close()
+            } catch (e: Exception) {
+                if (isActive) Log.e("TCP", "Server error: ${e.message}")
             }
         }
     }
 
-    // 在 WifiLanManager 类中添加
+    /**
+     * 处理客户端连接
+     */
+    private suspend fun handleClientConnection(clientSocket: Socket) {
+        val remoteAddress = clientSocket.remoteAddress as? InetSocketAddress
+        val senderIp = remoteAddress?.hostname ?: ""
+
+        clientSocket.use { socket ->
+            try {
+                // 打开一个读取数据的通道
+                val readChannel = socket.openReadChannel()
+                // 读取第一行
+                val headerLine = readChannel.readUTF8Line() ?: return
+
+                println("----headerLine:$headerLine")
+
+                // 解析信封
+                var envelope = try {
+                    AppJson.instance.decodeFromString<MessageEnvelope>(headerLine)
+                } catch (e: Exception) {
+                    // 可能会有局域网内其它App误撞端口导致数据无法解析等
+                    Log.e("TCP", "JSON decode error: ${e.message}")
+                    return
+                }.copy(senderIp = senderIp)
+
+                // 处理文件流
+                val payload = envelope.payload
+                if (payload is ChatPayload.Media) {
+                    // 创建文件夹
+                    val mediaDir = File(context.filesDir, "media").apply { mkdirs() }
+                    // 创建文件
+                    val file = File(mediaDir, "${envelope.id}_${payload.fileName}")
+                    // 拷贝数据到文件
+                    file.outputStream().use { output ->
+                        readChannel.copyTo(output, payload.size)
+                    }
+                    // 更新文件路径
+                    envelope = envelope.copy(payload = payload.copy(localPath = file.absolutePath))
+                }
+
+                // 分发消息
+                dispatcher.dispatch(envelope)
+            } catch (e: Exception) {
+                Log.e("TCP", "Handle client error: ${e.message}")
+            }
+        }
+    }
+
+    override fun stopMessageServer() {
+        serverJob?.cancel()
+    }
+
     suspend fun sendPayload(targetIp: String, payload: ChatPayload): Boolean =
         withContext(Dispatchers.IO) {
             try {

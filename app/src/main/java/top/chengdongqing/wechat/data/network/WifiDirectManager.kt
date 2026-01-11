@@ -23,9 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -56,9 +54,6 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
     // 状态管理
     private val _peers = MutableStateFlow<List<P2PPeer>>(emptyList())
     override val peers: StateFlow<List<P2PPeer>> = _peers
-
-    private val _messageFlow = MutableSharedFlow<MessageEnvelope>()
-    override val messageFlow: SharedFlow<MessageEnvelope> = _messageFlow
 
     private var serverJob: Job? = null
     private var isGo = false
@@ -160,7 +155,7 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
 
     // --- 2. 发现与连接逻辑 ---
 
-    override fun startDiscovery(myName: String) {
+    override fun startDiscovery(deviceName: String) {
         manager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() { /* 扫描启动成功 */
                 println("----扫描启动成功")
@@ -203,9 +198,7 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
         stopMessageServer()
     }
 
-    // --- 3. 消息发送 (TCP Client) ---
-
-    override suspend fun sendText(peer: P2PPeer, text: String): Boolean {
+    override suspend fun sendText(peer: P2PPeer, envelope: MessageEnvelope): Boolean {
         // 在 P2P 中，如果我是 GC，目标 IP 就是 GO 地址；
         // 如果我是 GO，目标 IP 需要通过之前的交互记录（Wi-Fi Direct 不直接暴露客户端 IP）
         // 简化逻辑：假设目前是 1对1 且发送给 Group Owner
@@ -214,30 +207,16 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
         println("------targetIP:$targetIp，isGo:${isGo}, groupOwnerAddress:${groupOwnerAddress}, peer:${peer}")
         if (targetIp == null) return false
 
-        val envelope = MessageEnvelope(
-            id = randomUUID(),
-            senderId = myId,
-            senderName = Build.MODEL,
-            payload = ChatPayload.Text(text),
-            timestamp = System.currentTimeMillis()
-        )
         return transmit(targetIp, envelope, null, null)
     }
 
     override suspend fun sendMedia(
         peer: P2PPeer,
-        payload: ChatPayload.Media,
+        envelope: MessageEnvelope,
         file: File,
         onProgress: suspend (Float) -> Unit
     ): Boolean {
         val targetIp = getTargetIp(peer) ?: return false
-        val envelope = MessageEnvelope(
-            id = randomUUID(),
-            senderId = myId,
-            senderName = Build.MODEL,
-            payload = payload,
-            timestamp = System.currentTimeMillis()
-        )
         return transmit(targetIp, envelope, file, onProgress)
     }
 
@@ -293,7 +272,7 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
 
     // --- 4. 接收服务器 (TCP Server) ---
 
-    private fun startMessageServer() {
+    override fun startMessageServer() {
         serverJob?.cancel()
         serverJob = scope.launch {
             val serverSocket =
@@ -342,11 +321,11 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
                             readChannel.copyTo(output)
                         }
                         val updatedPayload = envelope.payload.copy(localPath = file.absolutePath)
-                        _messageFlow.emit(envelope.copy(payload = updatedPayload))
+//                        _messageFlow.emit(envelope.copy(payload = updatedPayload))
                     }
 
                     else -> {
-                        _messageFlow.emit(envelope)
+//                        _messageFlow.emit(envelope)
                     }
                 }
             } catch (e: Exception) {
@@ -366,9 +345,8 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
         }
     }
 
-    private fun stopMessageServer() {
+    override fun stopMessageServer() {
         serverJob?.cancel()
-        serverJob = null
     }
 
     private fun getTargetIp(peer: P2PPeer): String? {

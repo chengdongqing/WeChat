@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.core.util.ImageUtils.decodeBase64ToBitmap
 import top.chengdongqing.wechat.core.util.formatTime
 import top.chengdongqing.wechat.data.local.MessageEntity
@@ -41,11 +39,7 @@ fun MessageBubble(message: MessageEntity) {
         if (message.isFromMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
     val textColor =
         if (message.isFromMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
-
-    // 提前解析 Payload
-    val payload = remember(message.payloadJson) {
-        runCatching { AppJson.instance.decodeFromString<ChatPayload>(message.payloadJson) }.getOrNull()
-    }
+    val payload = message.payload
 
     Column(
         modifier = Modifier
@@ -75,7 +69,7 @@ fun MessageBubble(message: MessageEntity) {
 
                     else -> {
                         // 解析失败或未知类型的保底显示
-                        Text(text = message.payloadJson, color = textColor)
+                        Text(text = message.payload.toString(), color = textColor)
                     }
                 }
 

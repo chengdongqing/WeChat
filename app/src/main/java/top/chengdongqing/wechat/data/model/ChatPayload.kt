@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import top.chengdongqing.wechat.core.util.randomUUID
 
 @Serializable
 sealed class ChatPayload {
@@ -9,6 +10,12 @@ sealed class ChatPayload {
     // 1. 文本消息
     @Serializable
     data class Text(val content: String) : ChatPayload()
+
+    @Serializable
+    data class EncryptedText(
+        val ciphertext: String, // 密文
+        val iv: String          // 初始化向量
+    ) : ChatPayload()
 
     // 2. 表情消息 (微信表情通常是 ID，自定义表情是图片)
     @Serializable
@@ -24,6 +31,14 @@ sealed class ChatPayload {
         val localPath: String? = null,    // 本地路径
         val thumbBase64: String? = null,  // 缩略图（Base64编码，建议控制在10KB以内）
         val duration: Long? = null        // 语音或视频的时长（毫秒）
+    ) : ChatPayload()
+
+    @Serializable
+    data class EncryptedMedia(
+        val mediaType: String,      // "IMAGE", "VIDEO", "AUDIO"
+        val ciphertextPath: String, // 加密后的文件路径或 URL
+        val iv: String,             // 依旧需要 IV
+        val fileName: String        // 文件名
     ) : ChatPayload()
 
     // 4. 位置消息
@@ -65,9 +80,10 @@ val ChatPayload.isSignal: Boolean
  */
 @Serializable
 data class MessageEnvelope(
-    val id: String, // 建议用 UUID
-    val senderId: String, // 设备的唯一标识 (MAC 地址或自定义 ID)
+    val id: String = randomUUID(),
+    val senderId: String,
     val senderName: String,
+    val senderIp: String? = null,
     val payload: ChatPayload,
     val timestamp: Long = System.currentTimeMillis()
 )
