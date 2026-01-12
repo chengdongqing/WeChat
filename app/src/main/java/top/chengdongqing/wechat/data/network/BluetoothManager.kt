@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.ParcelUuid
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,9 +22,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.core.util.IdManager
+import top.chengdongqing.wechat.core.util.ServiceLocator
+import top.chengdongqing.wechat.core.util.getDeviceName
 import top.chengdongqing.wechat.data.model.BluetoothPeer
 import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MessageEnvelope
@@ -31,55 +35,90 @@ import top.chengdongqing.wechat.data.model.P2PPeer
 import java.io.File
 import java.io.InputStream
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
-class BluetoothManager(private val context: Context) : P2pConnectionManager {
+/**
+ * 蓝牙通信
+ * 这里包含启用发现、搜索设备、连接设备、消息发送/接收等处理
+ */
+class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pConnectionManager {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
-        (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager?)?.adapter
+        val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+        manager?.adapter
     }
 
-    // 蓝牙通信协议的唯一标识 (UUID)
-    private val appUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // SPP服务
+    // 蓝牙通信协议的唯一标识
+    private val appUUID = UUID.fromString("00001101-0000-1000-8000-00815F9B34FB")
+    private val bufferSize = 1024 * 16 // 16KB
 
     private val _peers = MutableStateFlow<List<P2PPeer>>(emptyList())
     override val peers: StateFlow<List<P2PPeer>> = _peers
 
-    private var serverJob: Job? = null
+    // 设备信息
+    private val deviceId: String by lazy { IdManager(context).getDeviceId() }
+    private val deviceName by lazy { context.getDeviceName() }
 
-    // 获取唯一设备ID，防止发现自己
-    private val myId: String by lazy { IdManager(context).getMyId() }
+    // 消息调度器
+    private val messageDispatcher = ServiceLocator.getMessageDispatcher(context)
 
-    // 1. 定义广播接收器
+    // 消息接收服务
+    private var messageServerJob: Job? = null
+
+    @SuppressLint("MissingPermission")
+    override fun startDiscovery() {
+        stopDiscovery()
+        makeDiscoverable()
+
+        // 注册广播监听
+        val filter = IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_FOUND)
+            addAction(BluetoothDevice.ACTION_UUID)
+        }
+        context.registerReceiver(bluetoothReceiver, filter)
+
+        if (bluetoothAdapter?.isDiscovering == true) {
+            bluetoothAdapter?.cancelDiscovery()
+        }
+        // 开始扫描设备
+        bluetoothAdapter?.startDiscovery()
+    }
+
+    /**
+     * 启用蓝牙发现
+     */
+    private fun makeDiscoverable(seconds: Int = 30) {
+        val intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
+            putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, seconds)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    }
+
+    /**
+     * 定义广播接收器
+     */
     @SuppressLint("MissingPermission")
     private val bluetoothReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            println("----BT_LOG: 收到广播 Action = ${intent.action}")
+            val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableExtra(
+                    BluetoothDevice.EXTRA_DEVICE,
+                    BluetoothDevice::class.java
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+            }
 
             when (intent.action) {
+                // 当发现设备
                 BluetoothDevice.ACTION_FOUND -> {
-                    val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent.getParcelableExtra(
-                            BluetoothDevice.EXTRA_DEVICE,
-                            BluetoothDevice::class.java
-                        )
-                    } else {
-                        @Suppress("DEPRECATION")
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    }
-                    println("----BT_LOG: 发现设备 -> ${device?.name} | ${device?.address} | id:${device?.uuids}")
+                    // 发送获取uuid的请求
                     device?.fetchUuidsWithSdp()
                 }
-
+                // 当uuid回调
                 BluetoothDevice.ACTION_UUID -> {
-                    val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent.getParcelableExtra(
-                            BluetoothDevice.EXTRA_DEVICE,
-                            BluetoothDevice::class.java
-                        )
-                    } else {
-                        @Suppress("DEPRECATION")
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    }
                     val uuids = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         intent.getParcelableArrayExtra(
                             BluetoothDevice.EXTRA_UUID,
@@ -90,177 +129,227 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
                         intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID)
                     }
 
-                    println("----uuids:${uuids}")
-
                     uuids?.forEach { uuid ->
+                        // 判断是否符合协议
                         if (uuid.toString().equals(appUUID.toString(), ignoreCase = true)) {
-                            println("----BT_LOG: 确认过眼神，是装了 App 的设备: ${device?.name},id:${device?.uuids}")
-                            device?.let { updatePeerList(it) }
+                            device?.name?.let {
+                                scope.launch {
+                                    resolveIdentity(device)
+                                }
+                            }
                         }
                     }
-                }
-
-                BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
-                    // 搜索结束逻辑
                 }
             }
         }
     }
 
-    private fun makeDiscoverable() {
-        val discoverableIntent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
-            putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 120)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        // 注意：这需要 Context 启动 Activity，建议在 UI 层触发
-        context.startActivity(discoverableIntent)
-    }
+    private val getIdentityCode = "GET_IDENTITY"
 
-    // --- 1. 发现逻辑 ---
+    // 存储正在解析中的设备，防止广播多次触发导致重复连接
+    private val resolvingDevices = ConcurrentHashMap<String, Boolean>()
+
+    /**
+     * 获取设备身份信息
+     */
     @SuppressLint("MissingPermission")
-    override fun startDiscovery(deviceName: String) {
-        makeDiscoverable()
-        // 开启监听服务
-        startMessageServer()
-
-        // 扫描逻辑 (此处简化，通常使用 BluetoothLeScanner 或 BroadcastReceiver 监听搜索结果)
-        // 蓝牙搜索到设备后调用 updatePeerList(BluetoothPeer(...))
-        // 注册广播监听搜寻结果
-        val filter = IntentFilter().apply {
-            addAction(BluetoothDevice.ACTION_UUID)
-            addAction(BluetoothDevice.ACTION_FOUND)
-            addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
-            addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-        }
-        context.registerReceiver(bluetoothReceiver, filter)
-
-        // 3. 必须先取消之前的扫描，否则第二次启动必报 false
-        if (bluetoothAdapter?.isDiscovering == true) {
-            bluetoothAdapter?.cancelDiscovery()
+    private suspend fun resolveIdentity(device: BluetoothDevice) = withContext(Dispatchers.IO) {
+        if (resolvingDevices[device.address] == true) {
+            return@withContext
         }
 
-        val success = bluetoothAdapter?.startDiscovery() ?: false
-        println("----BT_LOG: 启动扫描是否成功: $success")
+        try {
+            println("---resolveIdentity-1")
+            // 尝试连接对方的监听端口
+            device.createInsecureRfcommSocketToServiceRecord(appUUID).use { socket ->
+                println("---resolveIdentity-2")
+                // 设置连接超时，不能让扫描卡死
+                withTimeout(3000) {
+                    socket.connect()
+                    println("---resolveIdentity-3")
+                    val output = socket.outputStream
+                    val input = socket.inputStream
 
-        // 4. 先把已经配对的设备填进去，这样不用搜也能看到
-        bluetoothAdapter?.bondedDevices?.forEach { device ->
-            updatePeerList(device)
+                    // 发送请求指令
+                    val request = "$getIdentityCode\n"
+                    output.write(request.toByteArray())
+                    output.flush()
+                    println("---resolveIdentity-4")
+
+                    // 读取对方返回的数据
+                    val text = input.readRawLine() ?: return@withTimeout
+
+                    println("----parseProtocol:$text")
+
+                    // 数据解析
+                    if (parseProtocol(text, device)) {
+                        resolvingDevices[device.address] = true
+                    }
+
+                    output.write(1)
+                }
+            }
+        } catch (_: Exception) {
+            Log.d("BT", "身份解析失败: ${device.address}")
         }
     }
 
-    // --- 2. 消息发送逻辑 (Client) ---
-    override suspend fun sendText(peer: P2PPeer, envelope: MessageEnvelope): Boolean {
-        val btPeer = peer as? BluetoothPeer ?: return false
-        val content = AppJson.instance.encodeToString(envelope)
-        return performBluetoothWrite(btPeer.mac, content.toByteArray(), null)
+    /**
+     * 解析协议
+     */
+    private fun parseProtocol(text: String, device: BluetoothDevice): Boolean {
+        val peer = super.decodeIdentity(text) ?: return false
+
+        _peers.upsert(
+            BluetoothPeer(
+                peer.id,
+                peer.name,
+                device.address,
+                device.bondState == BluetoothDevice.BOND_BONDED,
+            )
+        ) { it.id }
+        return true
     }
+
+    override suspend fun sendText(peer: P2PPeer, envelope: MessageEnvelope): Boolean =
+        withContext(Dispatchers.IO) {
+            val btPeer = peer as? BluetoothPeer ?: return@withContext false
+            val content = AppJson.instance.encodeToString(envelope) + "\n"
+
+            performSend(btPeer.mac, content.toByteArray(), null, null)
+        }
 
     override suspend fun sendMedia(
         peer: P2PPeer,
         envelope: MessageEnvelope,
         file: File,
         onProgress: suspend (Float) -> Unit
-    ): Boolean {
-        val btPeer = peer as? BluetoothPeer ?: return false
+    ): Boolean = withContext(Dispatchers.IO) {
+        val btPeer = peer as? BluetoothPeer ?: return@withContext false
         val header = AppJson.instance.encodeToString(envelope) + "\n"
-        return performBluetoothWrite(btPeer.mac, header.toByteArray(), file, onProgress)
+
+        performSend(btPeer.mac, header.toByteArray(), file, onProgress)
     }
 
-    // 核心写操作：建立 Socket -> 发 Header -> 发文件
-    private suspend fun performBluetoothWrite(
+    /**
+     * 处理发送逻辑
+     */
+    private suspend fun performSend(
         address: String,
         header: ByteArray,
         file: File?,
-        onProgress: (suspend (Float) -> Unit)? = null
+        onProgress: (suspend (Float) -> Unit)?
     ): Boolean {
         val device = bluetoothAdapter?.getRemoteDevice(address) ?: return false
-        var socket: BluetoothSocket? = null
+
         return try {
-            socket = device.createRfcommSocketToServiceRecord(appUUID)
-            socket.connect()
-            val output = socket.outputStream
-            val input = socket.inputStream // 拿输入流准备收 ACK
+            // 建立连接
+            device.createRfcommSocketToServiceRecord(appUUID).use { socket ->
+                socket.connect()
+                val output = socket.outputStream
+                val input = socket.inputStream
 
-            // 1. 发送 Header
-            output.write(header)
+                // 发送 Header
+                output.write(header)
+                output.flush()
 
-            // 2. 发送二进制
-            file?.let {
-                it.inputStream().use { fileInput ->
-                    val buffer = ByteArray(16384) // 蓝牙可以稍微加大点 buffer 提高效率
-                    var totalSent = 0L
-                    val fileLength = it.length()
-                    while (true) {
-                        val read = fileInput.read(buffer)
-                        if (read == -1) break
-                        output.write(buffer, 0, read)
-                        totalSent += read
-                        onProgress?.invoke(totalSent.toFloat() / fileLength)
+                // 如果有文件，发送 Body (Binary)
+                file?.let { it ->
+                    val totalSize = it.length()
+                    var sentSize = 0L
+                    it.inputStream().use { fileIn ->
+                        val buffer = ByteArray(bufferSize)
+                        var read: Int
+                        while (fileIn.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
+
+                            sentSize += read
+                            val progress = sentSize.toFloat() / totalSize
+                            onProgress?.invoke(progress)
+                        }
                     }
                 }
-            }
-            output.flush()
+                output.flush()
 
-            // 3. --- 关键：等待接收端的 ACK ---
-            // 我们阻塞在这里，直到接收端写回一个字节，或者连接断开
-            val ack = withTimeoutOrNull(10000) { // 设置 10 秒超时
-                input.read()
+                // 等待回复接收完毕 (ACK)
+                withTimeoutOrNull(5000) {
+                    input.read()
+                } != -1
             }
-
-            ack != -1 // 如果读到 -1 说明还没收到 ACK 对方就断了
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("BluetoothManager", "Write failed to $address", e)
             false
-        } finally {
-            socket?.close()
         }
     }
 
-    // --- 3. 消息接收逻辑 (Server) ---
     @SuppressLint("MissingPermission")
     override fun startMessageServer() {
-        serverJob = scope.launch {
-            val serverSocket =
-                bluetoothAdapter?.listenUsingRfcommWithServiceRecord("P2P_Chat", appUUID)
-            try {
+        stopMessageServer()
+
+        messageServerJob = scope.launch(Dispatchers.IO) {
+            // 注册蓝牙 SDP 服务并开启监听，利用 UUID 匹配机制实现 P2P 握手
+            val serverSocket = try {
+                bluetoothAdapter?.listenUsingRfcommWithServiceRecord("WeChat", appUUID)
+            } catch (e: Exception) {
+                Log.e("BluetoothManager", "无法创建监听端口", e)
+                return@launch
+            }
+
+            serverSocket?.use { server ->
                 while (isActive) {
-                    val socket = serverSocket?.accept() ?: break
-                    launch {
-                        handleIncomingConnection(socket)
+                    val clientSocket = try {
+                        server.accept() // 阻塞等待
+                    } catch (e: Exception) {
+                        if (isActive) {
+                            Log.e("BluetoothManager", "接受连接失败，尝试继续监听...", e)
+                            delay(200) // 稍作停顿，防止硬件故障导致的死循环 CPU 占用
+                            continue // 继续下一次 accept
+                        } else break
                     }
+
+                    // 每一个新的连接都开启一个独立协程处理
+                    launch { clientSocket.handleIncomingConnection() }
                 }
-            } finally {
-                serverSocket?.close()
             }
         }
     }
 
-    override fun stopMessageServer() {
-        serverJob?.cancel()
-    }
-
-    private suspend fun handleIncomingConnection(socket: BluetoothSocket) {
+    private suspend fun BluetoothSocket.handleIncomingConnection() = this.use { s ->
         try {
-            val input = socket.inputStream
-            val output = socket.outputStream
+            val input = s.inputStream
+            val output = s.outputStream
 
-            // 1. 【修复】禁用 BufferedReader，改为手动读取字节直到换行符
-            // 这样可以确保只读走 JSON，不碰后面的二进制流
-            val headerLine = input.readRawLine() ?: return
-            println("------headerLine:$headerLine")
+            // 读取 Header
+            val headerLine = input.readRawLine() ?: return@use
 
-            val envelope = AppJson.instance.decodeFromString<MessageEnvelope>(headerLine)
+            println("---handleIncomingConnection:$headerLine")
 
-            // 2. 处理媒体文件
+            // 发送身份信息
+            if (headerLine == getIdentityCode) {
+                val identity = super.encodeIdentity(deviceId, deviceName)
+                output.write(identity.toByteArray())
+                output.flush()
+
+                // 等待回复接收完毕 (ACK)
+                withTimeoutOrNull(5000) {
+                    input.read()
+                } != -1
+                return@use
+            }
+
+            var envelope = AppJson.instance.decodeFromString<MessageEnvelope>(headerLine)
+
+            // 处理媒体文件
             if (envelope.payload is ChatPayload.Media) {
                 val payload = envelope.payload
-                val mediaDir = File(context.filesDir, "media").apply { mkdirs() }
-                val file = File(mediaDir, "bt_${envelope.id}_${payload.fileName}")
+                val file = File(
+                    File(context.filesDir, "media").apply { mkdirs() },
+                    "bt_${envelope.id}_${payload.fileName}"
+                )
 
                 file.outputStream().use { fileOut ->
-                    val buffer = ByteArray(8192)
+                    val buffer = ByteArray(bufferSize)
                     var totalRead = 0L
-                    // 【修复】精确控制读取长度，不多读也不少读
                     while (totalRead < payload.size) {
                         val remaining =
                             (payload.size - totalRead).coerceAtMost(buffer.size.toLong()).toInt()
@@ -270,25 +359,18 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
                         totalRead += read
                     }
                 }
-
-                val updatedPayload = payload.copy(localPath = file.absolutePath)
-//                _messageFlow.emit(envelope.copy(payload = updatedPayload))
-            } else {
-                // 3. 处理纯文本
-//                _messageFlow.emit(envelope)
+                envelope = envelope.copy(payload = payload.copy(localPath = file.absolutePath))
             }
 
-            // 4. 【新增回执】所有数据处理完毕，告诉发送端：你可以安心断开了
+            // 分发消息
+            messageDispatcher.dispatch(envelope)
+
+            // 回传 ACK
             output.write(1)
             output.flush()
-
+            delay(100) // 确保硬件缓冲区发出
         } catch (e: Exception) {
-            println("------蓝牙接收出错: ${e.message}")
-            e.printStackTrace()
-        } finally {
-            // 给 ACK 一点点物理传输时间再关 Socket
-            delay(200)
-            socket.close()
+            Log.e("BT", "Handle incoming failed", e)
         }
     }
 
@@ -296,76 +378,50 @@ class BluetoothManager(private val context: Context) : P2pConnectionManager {
     override fun stopDiscovery() {
         try {
             context.unregisterReceiver(bluetoothReceiver)
-        } catch (e: Exception) {
-            // 忽略未注册异常
+        } catch (_: Exception) {
         }
         if (bluetoothAdapter?.isDiscovering == true) {
             bluetoothAdapter?.cancelDiscovery()
         }
-        serverJob?.cancel()
-        _peers.value = emptyList()
+    }
+
+    override fun stopMessageServer() {
+        messageServerJob?.cancel()
     }
 
     @SuppressLint("MissingPermission")
-    override suspend fun connect(peer: P2PPeer): Boolean = withContext(Dispatchers.IO) {
-        val btPeer = peer as? BluetoothPeer ?: return@withContext false
-        val device =
-            bluetoothAdapter?.getRemoteDevice(btPeer.mac) ?: return@withContext false
+    override suspend fun connect(peer: P2PPeer): Boolean {
+        val device = bluetoothAdapter?.getRemoteDevice((peer as BluetoothPeer).mac) ?: return false
 
-        return@withContext try {
-            // 如果未配对，尝试发起配对请求
-            if (device.bondState == BluetoothDevice.BOND_NONE) {
-                device.createBond()
-                // 这里可以简单等待配对成功，或者让用户在系统弹窗确认
-                false
-            } else {
-                true // 已配对，可以进行后续发送
-            }
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    override fun disconnect(peer: P2PPeer) {}
-
-    @SuppressLint("MissingPermission")
-    private fun updatePeerList(device: BluetoothDevice) {
-        val currentList = _peers.value.toMutableList()
-
-        // 构造 Peer 对象，并包含配对状态
-        val isBonded = device.bondState == BluetoothDevice.BOND_BONDED
-        val displayName =
-            if (isBonded) "[已配对] ${device.name ?: "未知"}" else (device.name ?: device.address)
-
-        val newPeer = BluetoothPeer(
-            id = device.address,
-            name = displayName,
-            mac = device.address,
-        )
-
-        val index = currentList.indexOfFirst { it.id == newPeer.id }
-        if (index == -1) {
-            currentList.add(newPeer)
+        return if (device.bondState == BluetoothDevice.BOND_NONE) {
+            // 请求配对
+            device.createBond()
         } else {
-            currentList[index] = newPeer
+            true
         }
-
-        // 按配对状态排序：已配对的排在前面
-        // _peers.value = currentList.sortedByDescending { it.name.contains("[已配对]") }
-        _peers.value = currentList
     }
+
+    override suspend fun sendPayload(targetIp: String, payload: ChatPayload): Boolean = false
+    override fun disconnect(peer: P2PPeer) {}
 }
 
 /**
- * 从输入流中读取一行，直到遇到换行符，且不使用缓冲区，避免干扰后续二进制流
+ * 从输入流中读取一行，直到遇到换行符
+ * 不使用缓冲区，避免干扰后续二进制流
  */
-private suspend fun InputStream.readRawLine(): String? = withContext(Dispatchers.IO) {
+private fun InputStream.readRawLine(): String? {
     val bytes = mutableListOf<Byte>()
     while (true) {
         val b = read() // 阻塞式读取
-        if (b == -1) return@withContext if (bytes.isEmpty()) null else String(bytes.toByteArray())
+        if (b == -1) {
+            return if (bytes.isEmpty()) {
+                null
+            } else {
+                String(bytes.toByteArray())
+            }
+        }
         if (b == '\n'.code) break
         bytes.add(b.toByte())
     }
-    String(bytes.toByteArray(), Charsets.UTF_8).trim()
+    return String(bytes.toByteArray(), Charsets.UTF_8).trim()
 }

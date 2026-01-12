@@ -1,14 +1,15 @@
 package top.chengdongqing.wechat.ui.components
 
 import android.Manifest
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.net.wifi.WifiManager
 import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,12 +31,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import top.chengdongqing.wechat.core.util.showToast
@@ -47,44 +55,77 @@ fun PermissionWrapper(
     mode: P2pMode,
     content: @Composable () -> Unit
 ) {
-    // 1. 根据当前选择的模式，获取对应的权限列表
-    val permissions = remember(mode) {
-        getPermissionsForMode(mode)
-    }
-    // 2. 记住这些权限的状态
-    val permissionState = rememberMultiplePermissionsState(permissions)
-
     val context = LocalContext.current
-    val bluetoothManager =
-        context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-    val bluetoothAdapter = bluetoothManager?.adapter
-    val launchBluetooth = rememberBluetoothLauncher()
+    val permissions = remember(mode) { getPermissionsForMode(mode) }
+    val permissionState = rememberMultiplePermissionsState(permissions)
+    var isHardwareReady by remember { mutableStateOf(false) }
 
-    val isBluetoothReady = if (mode == P2pMode.BLUETOOTH) {
-        bluetoothAdapter?.isEnabled == true
-    } else {
-        true // 非蓝牙模式，默认蓝牙这一项是“就绪”的
+    val bluetoothAdapter =
+        (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+    val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+
+    // 封装检查逻辑
+    val checkHardwareStatus = {
+        val btReady = if (mode == P2pMode.BLUETOOTH) {
+            bluetoothAdapter?.isEnabled == true
+        } else true
+
+        val wifiReady = if (mode != P2pMode.BLUETOOTH) {
+            wifiManager?.isWifiEnabled == true
+        } else true
+
+        isHardwareReady = btReady && wifiReady
     }
 
-    if (isBluetoothReady && permissionState.allPermissionsGranted) {
-        // 只有全部准备就绪，才显示核心界面
+    // 监听生命周期（从设置页回来时触发刷新）
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, mode) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                checkHardwareStatus()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    // 注册广播接收器，实现秒级实时响应
+    DisposableEffect(mode) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                checkHardwareStatus()
+            }
+        }
+        val filter = IntentFilter().apply {
+            if (mode == P2pMode.BLUETOOTH) addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+            else addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
+        }
+        context.registerReceiver(receiver, filter)
+        onDispose { context.unregisterReceiver(receiver) }
+    }
+
+    if (isHardwareReady && permissionState.allPermissionsGranted) {
         content()
     } else {
-        // 显示针对性引导
         PermissionGuideScreen(
             mode = mode,
             onAction = {
                 if (mode == P2pMode.BLUETOOTH) {
-                    // 蓝牙模式下的特殊处理
                     if (bluetoothAdapter == null) {
                         context.showToast("此设备不支持蓝牙")
                     } else if (!bluetoothAdapter.isEnabled) {
-                        launchBluetooth()
-                        return@PermissionGuideScreen
+                        context.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+
                     }
+
+                } else {
+                    if (wifiManager == null) {
+                        context.showToast("此设备不支持Wi-Fi")
+                    } else if (wifiManager.isWifiEnabled) {
+                        context.startActivity(Intent(Settings.ACTION_WIFI_SETTINGS))
+                    }
+                    permissionState.launchMultiplePermissionRequest()
                 }
-                // 统一处理权限请求（如果蓝牙已经开了或者不是蓝牙模式）
-                permissionState.launchMultiplePermissionRequest()
             }
         )
     }
@@ -165,23 +206,6 @@ fun PermissionGuideScreen(
                 color = MaterialTheme.colorScheme.secondary
             )
         }
-    }
-}
-
-@Composable
-private fun rememberBluetoothLauncher(): () -> Unit {
-    val context = LocalContext.current
-    val bluetoothLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) {
-        if (it.resultCode == Activity.RESULT_OK) {
-            context.showToast("蓝牙已打开")
-        }
-    }
-
-    return {
-        val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-        bluetoothLauncher.launch(intent)
     }
 }
 

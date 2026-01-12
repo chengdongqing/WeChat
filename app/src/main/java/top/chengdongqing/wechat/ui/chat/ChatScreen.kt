@@ -38,7 +38,7 @@ fun ChatScreen(
     onBack: () -> Unit
 ) {
     // 1. 获取当前聊天的对象信息（用于标题栏显示名字）
-    val peers by viewModel.nearbyPeers.collectAsStateWithLifecycle()
+    val peers by viewModel.peers.collectAsStateWithLifecycle()
     val currentPeer = remember(peers, peerId) { peers.find { it.id == peerId } }
 
     // 2. 观察来自 Repository 的所有消息，并过滤出与该 Peer 的对话

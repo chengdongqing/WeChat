@@ -9,7 +9,7 @@ import androidx.room.TypeConverters
 import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.data.model.ChatPayload
 
-@Database(entities = [MessageEntity::class], version = 2, exportSchema = true)
+@Database(entities = [MessageEntity::class], version = 1, exportSchema = true)
 @TypeConverters(ChatPayloadConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun messageDao(): MessageDao

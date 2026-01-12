@@ -42,10 +42,9 @@ import top.chengdongqing.wechat.ui.chat.ChatViewModel
 @Composable
 fun DiscoveryScreen(
     viewModel: ChatViewModel,
-    onNavigateToChat: (String) -> Unit // 连接成功后跳转到聊天页
+    onNavigateToChat: (String) -> Unit
 ) {
-    // collectAsStateWithLifecycle：仅在当前activity活跃时才监听数据流
-    val peers by viewModel.nearbyPeers.collectAsStateWithLifecycle()
+    val peers by viewModel.peers.collectAsStateWithLifecycle()
     val isDiscovering by viewModel.isDiscovering.collectAsStateWithLifecycle()
 
     Scaffold(

@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.data.model.P2PPeer
 import top.chengdongqing.wechat.data.model.WifiDirectPeer
 import java.io.File
 
-class WifiDirectManager(private val context: Context) : P2pConnectionManager {
+class WifiDirectManager(private val context: Context) : AbstractP2pManger(), P2pConnectionManager {
 
     private val manager: WifiP2pManager? =
         context.getSystemService(Context.WIFI_P2P_SERVICE) as? WifiP2pManager
@@ -49,7 +49,7 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private val messagePort = 8888
-    private val myId: String by lazy { IdManager(context).getMyId() }
+    private val myId: String by lazy { IdManager(context).getDeviceId() }
 
     // 状态管理
     private val _peers = MutableStateFlow<List<P2PPeer>>(emptyList())
@@ -155,7 +155,7 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
 
     // --- 2. 发现与连接逻辑 ---
 
-    override fun startDiscovery(deviceName: String) {
+    override fun startDiscovery() {
         manager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() { /* 扫描启动成功 */
                 println("----扫描启动成功")
@@ -348,6 +348,11 @@ class WifiDirectManager(private val context: Context) : P2pConnectionManager {
     override fun stopMessageServer() {
         serverJob?.cancel()
     }
+
+    override suspend fun sendPayload(
+        targetIp: String,
+        payload: ChatPayload
+    ): Boolean = false
 
     private fun getTargetIp(peer: P2PPeer): String? {
         // 在 Wi-Fi Direct 中，GC 永远知道 GO 的地址（通常是 192.168.49.1）

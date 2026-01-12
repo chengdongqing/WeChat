@@ -29,5 +29,6 @@ data class WifiDirectPeer(
 data class BluetoothPeer(
     override val id: String,
     override val name: String,
-    val mac: String
+    val mac: String,
+    val isBonded: Boolean = false // 配对状态
 ) : P2PPeer

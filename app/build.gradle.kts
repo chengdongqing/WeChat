@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.accompanist.permissions)
     implementation(libs.webrtc)
+    implementation(libs.datastore.preferences)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)

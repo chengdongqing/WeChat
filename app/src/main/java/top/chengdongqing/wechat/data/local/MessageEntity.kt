@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.local
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import top.chengdongqing.wechat.data.model.ChatPayload
+import top.chengdongqing.wechat.data.model.MessageEnvelope
 
 @Entity(tableName = "messages")
 data class MessageEntity(
@@ -17,4 +18,25 @@ data class MessageEntity(
     val status: Int = 0,        // 0: 发送中, 1: 成功, 2: 失败, 3: 已撤回
     val progress: Float = 1f,  // 新增：0.0 ~ 1.0
     val timestamp: Long = System.currentTimeMillis(),       // 发送时间
-)
+) {
+    companion object {
+        fun fromEnvelope(envelope: MessageEnvelope): MessageEntity {
+            val type = when (envelope.payload) {
+                is ChatPayload.Media -> "MEDIA"
+                is ChatPayload.Text -> "TEXT"
+                else -> "OTHER"
+            }
+            return MessageEntity(
+                id = envelope.id,
+                chatId = envelope.senderId,
+                senderId = envelope.senderId,
+                senderName = envelope.senderName,
+                payload = envelope.payload,
+                msgType = type,
+                isFromMe = false,
+                status = 1,
+                timestamp = envelope.timestamp
+            )
+        }
+    }
+}

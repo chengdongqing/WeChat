@@ -27,24 +27,24 @@ class ChatViewModel(
     application: Application
 ) : AndroidViewModel(application) {
     // 设备列表流
-    val nearbyPeers = connectionManager.peers
+    val peers = connectionManager.peers
 
     // 消息列表流
     val messages = repository.messages
 
-    // 是否扫描中
+    // 扫描状态
     private val _isDiscovering = MutableStateFlow(false)
     val isDiscovering = _isDiscovering.asStateFlow()
 
-    // 扫描自动结束定时器
+    // 扫描定时器
     private var discoveryTimeoutJob: Job? = null
 
     // 设备id和name
-    private val deviceId by lazy { IdManager(application).getMyId() }
+    private val deviceId by lazy { IdManager(application).getDeviceId() }
     private val deviceName by lazy { application.getDeviceName() }
 
     init {
-        // 启动消息接收程序
+        // 自动启动消息接收服务
         connectionManager.startMessageServer()
     }
 
@@ -60,11 +60,11 @@ class ChatViewModel(
     }
 
     /**
-     * 开始扫描设备
+     * 开始扫描
      */
     fun startDiscovery() {
         _isDiscovering.value = true
-        connectionManager.startDiscovery(deviceName)
+        connectionManager.startDiscovery()
 
         // 开启自动停止计时
         discoveryTimeoutJob?.cancel()
@@ -75,7 +75,7 @@ class ChatViewModel(
     }
 
     /**
-     * 停止扫描设备
+     * 停止扫描
      */
     fun stopDiscovery() {
         discoveryTimeoutJob?.cancel()
@@ -83,6 +83,9 @@ class ChatViewModel(
         _isDiscovering.value = false
     }
 
+    /**
+     * 发送文本信息
+     */
     fun sendText(peer: P2PPeer, text: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val payload = ChatPayload.Text(content = text)
@@ -91,13 +94,14 @@ class ChatViewModel(
                 senderName = deviceName,
                 payload = payload
             )
-            val result = repository.sendText(peer, envelope)
-            result.onFailure {
-                // 处理 UI 反馈，比如弹一个 Toast
-            }
+
+            repository.sendText(peer, envelope)
         }
     }
 
+    /**
+     * 发送媒体信息
+     */
     fun sendMedia(peer: P2PPeer, uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             // 获取媒体文件信息
@@ -115,19 +119,17 @@ class ChatViewModel(
                 senderName = deviceName,
                 payload = payload
             )
-            val result = repository.sendMedia(peer, envelope, mediaResource.file)
-            result.onFailure {
-                // 处理 UI 反馈，比如弹一个 Toast
-            }
+
+            repository.sendMedia(peer, envelope, mediaResource.file)
         }
     }
 
+    /**
+     * 连接设备
+     */
     fun connectToPeer(peer: P2PPeer) {
-        viewModelScope.launch {
-            val success = connectionManager.connect(peer)
-            if (success) {
-                // TODO 连接成功后的逻辑，比如跳转页面或显示连接状态
-            }
+        viewModelScope.launch(Dispatchers.IO) {
+            connectionManager.connect(peer)
         }
     }
 

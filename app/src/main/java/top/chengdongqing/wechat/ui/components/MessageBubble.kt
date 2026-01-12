@@ -22,12 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
-import top.chengdongqing.wechat.core.util.ImageUtils.decodeBase64ToBitmap
+import top.chengdongqing.wechat.core.util.base64ToBitmap
 import top.chengdongqing.wechat.core.util.formatTime
 import top.chengdongqing.wechat.data.local.MessageEntity
 import top.chengdongqing.wechat.data.model.ChatPayload
@@ -90,12 +87,9 @@ fun MessageBubble(message: MessageEntity) {
 @Composable
 fun MediaContent(payload: ChatPayload.Media, message: MessageEntity) {
     Box(contentAlignment = Alignment.Center) {
-        // 1. 图片展示层
+        // 缩略图
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(payload.localPath ?: decodeBase64ToBitmap(payload.thumbBase64)) // 优先本地图，其次缩略图
-                .crossfade(true)
-                .build(),
+            model = payload.thumbBase64?.base64ToBitmap() ?: payload.localPath,
             contentDescription = null,
             modifier = Modifier
                 .sizeIn(maxWidth = 200.dp, maxHeight = 200.dp)
@@ -105,7 +99,7 @@ fun MediaContent(payload: ChatPayload.Media, message: MessageEntity) {
             alpha = if (message.status == 0) 0.6f else 1f
         )
 
-        // 2. 进度/状态层
+        // 进度/状态
         if (message.status == 0) { // 发送中或下载中
             Box(
                 modifier = Modifier

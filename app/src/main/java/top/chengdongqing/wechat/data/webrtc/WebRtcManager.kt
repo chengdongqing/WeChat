@@ -15,84 +15,98 @@ import org.webrtc.MediaConstraints
 import org.webrtc.MediaStream
 import org.webrtc.PeerConnection
 import org.webrtc.PeerConnectionFactory
+import org.webrtc.Priority
 import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoCapturer
 import org.webrtc.VideoTrack
+import top.chengdongqing.wechat.core.util.getBestSupportedResolution
 import top.chengdongqing.wechat.data.model.ChatPayload
 
 class WebRtcManager(
     private val context: Context,
-    private val onSignalingMessage: (ChatPayload) -> Unit // 回调给 WifiLanManager 发送
+    private val onSignalingMessage: (ChatPayload) -> Unit
 ) {
     private val eglBase = EglBase.create() // EGL 上下文，用于视频硬件加速
-    val eglContext: EglBase.Context = eglBase.eglBaseContext // 供 Compose AndroidView 使用
+    val eglContext: EglBase.Context = eglBase.eglBaseContext // 供 AndroidView 使用
     private val factory: PeerConnectionFactory by lazy { createFactory() }
     private var peerConnection: PeerConnection? = null
 
-    // 渲染器引用（由 Activity 传入）
+    // 渲染器引用
     private var localSink: SurfaceViewRenderer? = null
     private var remoteSink: SurfaceViewRenderer? = null
 
-    // --- 在这里定义你需要 dispose 的变量 ---
+    // 需要手动销毁的对象
     private var videoCapturer: VideoCapturer? = null
     private var localVideoTrack: VideoTrack? = null
     private var localAudioTrack: AudioTrack? = null
-    // ------------------------------------
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
-    // 初始化工厂
     private fun createFactory(): PeerConnectionFactory {
+        // webrtc库的全局初始化：加载本地c++库，初始化某些硬件加速组件的基础环境
         PeerConnectionFactory.initialize(
             PeerConnectionFactory.InitializationOptions.builder(context)
                 .createInitializationOptions()
         )
+
         return PeerConnectionFactory.builder()
-            .setVideoEncoderFactory(DefaultVideoEncoderFactory(eglBase.eglBaseContext, true, true))
+            // 视频编码配置
+            .setVideoEncoderFactory(
+                DefaultVideoEncoderFactory(
+                    eglBase.eglBaseContext, // 支持硬件加速
+                    true, // 启用VP8编码
+                    true // 启用H.264高级配置
+                )
+            )
+            // 视频解码配置
             .setVideoDecoderFactory(DefaultVideoDecoderFactory(eglBase.eglBaseContext))
             .createPeerConnectionFactory()
     }
 
-    private var isVideoInitialized = false // 增加状态锁
-
-    // --- 外部调用 A: 初始化预览 ---
+    /**
+     * 初始化视频预览
+     */
     fun initVideoViews(local: SurfaceViewRenderer, remote: SurfaceViewRenderer) {
-        if (isVideoInitialized) return // 如果初始化过，直接跳过
-
         localSink = local
         remoteSink = remote
 
         // 启动本地摄像头和音频
         startLocalStreaming()
-
-        // 将本地视频轨道“画”到本地渲染器上
+        // 将摄像头采集的数据流添加到视频轨道
         localVideoTrack?.addSink(local)
-
-        isVideoInitialized = true
     }
 
     private fun startLocalStreaming() {
+        // 创建视频源：设置为摄像头，而不是屏幕共享
         val videoSource = factory.createVideoSource(false)
+        // 创建一个OpenGL线程
         val helper = SurfaceTextureHelper.create("CaptureThread", eglBase.eglBaseContext)
+        // 创建视频捕获器
         videoCapturer = createVideoCapturer()
         videoCapturer?.initialize(helper, context, videoSource.capturerObserver)
-        videoCapturer?.startCapture(2560, 1220, 60)
-
+        // 获取摄像头最佳分辨率
+        val bestResolution = context.getBestSupportedResolution(true)
+        println("---------bestResolution:$bestResolution")
+        // 设置采样参数：宽、高、帧率
+        videoCapturer?.startCapture(bestResolution.width, bestResolution.height, 60)
+        // 创建视频轨道
         localVideoTrack = factory.createVideoTrack("VIDEO_101", videoSource)
+        // 将视频轨道接入视图渲染器
         localVideoTrack?.addSink(localSink)
 
-        // 创建音轨
+        // 创建音频源
         val audioSource = factory.createAudioSource(MediaConstraints())
+        // 创建音频轨道
         localAudioTrack = factory.createAudioTrack("AUDIO_101", audioSource)
-
-        // 2. 核心：一旦音轨准备好，立即调整系统音频设置
+        // 调整系统音频设置
         adjustAudioSettings(isStart = true)
 
-        // 提前准备 PeerConnection
+        // 初始化webrtc核心对象
         setupPeerConnection()
+        // 此处告诉webrtc：将来建立连接后，将这条视频轨道和音频轨道发送给对方
         peerConnection?.addTrack(localVideoTrack, listOf("stream1"))
         peerConnection?.addTrack(localAudioTrack, listOf("stream1"))
     }
@@ -128,7 +142,22 @@ class WebRtcManager(
         })
     }
 
-    // --- 外部调用 B: 拨号 ---
+    private fun updateVideoBitrate() {
+        val senders = peerConnection?.senders
+        val videoSender = senders?.find { it.track()?.kind() == "video" }
+        videoSender?.let { sender ->
+            val parameters = sender.parameters
+            for (encoding in parameters.encodings) {
+                encoding.maxBitrateBps = 8_000_000 // 8Mbps
+                encoding.minBitrateBps = 2_000_000 // 2Mbps
+                encoding.maxFramerate = 60
+                // 设置优先级为高，保证资源优先给视频
+                encoding.networkPriority = Priority.HIGH
+            }
+            sender.parameters = parameters
+        }
+    }
+
     fun startCall() {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
@@ -137,10 +166,13 @@ class WebRtcManager(
 
         peerConnection?.createOffer(object : SimpleSdpObserver() {
             override fun onCreateSuccess(desc: SessionDescription?) {
-                desc?.let {
-                    peerConnection?.setLocalDescription(this, it)
+                desc?.let { sdp ->
+                    // 设置本地描述
+                    peerConnection?.setLocalDescription(this, sdp)
                     // 发送 Offer 给对方
-                    onSignalingMessage(ChatPayload.Sdp(it.description, it.type.canonicalForm()))
+                    onSignalingMessage(ChatPayload.Sdp(sdp.description, sdp.type.canonicalForm()))
+                    // 设置画质
+                    updateVideoBitrate()
                 }
             }
         }, constraints)

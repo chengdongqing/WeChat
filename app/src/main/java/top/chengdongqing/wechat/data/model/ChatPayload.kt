@@ -56,7 +56,7 @@ sealed class ChatPayload {
     // --- 2. 状态信令 (替代之前的 Signal) ---
     @Serializable
     data class CallAction(val action: String) :
-        ChatPayload() // "START_VOICE", "START_VIDEO", "HANGUP", "BUSY"
+        ChatPayload() // "START_VOICE", "START_VIDEO", "HANGUP"
 
     // --- 3. WebRTC 核心信令 ---
     @Serializable

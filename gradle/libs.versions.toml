@@ -9,12 +9,13 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.2"
 composeBom = "2025.12.01"
+
 material-icons-extended = "1.7.8"
 annotations = "26.0.2-1"
 desugar-jdk-libs = "2.1.5"
 accompanist-permissions = "0.37.3"
 webrtc = "137.7151.05"
-
+datastore = "1.2.0"
 room = "2.8.4"
 ktor = "3.3.3"
 kotlinxSerialization = "1.9.0"
@@ -23,7 +24,6 @@ coil = "3.3.0"
 coil-zoomable = "0.18.0"
 
 [libraries]
-webrtc = { module = "io.github.webrtc-sdk:android", version.ref = "webrtc" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -41,26 +41,24 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material-icons-extended" } # icon扩展库
-android-desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar-jdk-libs" } # 官方脱糖库，对低版本支持Java 8+ API
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-permissions" } # 简化权限请求
 
-# Room 数据库
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material-icons-extended" }
+android-desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar-jdk-libs" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist-permissions" }
+webrtc = { module = "io.github.webrtc-sdk:android", version.ref = "webrtc" }
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
-# Kotlin 序列化
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-# Ktor 核心与 Sockets
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
 ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
-androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
-# 加载图片
-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" } # colil核心库
-coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" } # 加载网络图片
-coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coil" } # 加载视频帧
-coil-zoomable = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "coil-zoomable" } # 图片缩放/加载大图
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coil" }
+coil-zoomable = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "coil-zoomable" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
