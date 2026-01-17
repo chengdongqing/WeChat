@@ -22,7 +22,7 @@ object ServiceLocator {
     fun getMessageDispatcher(context: Context): MessageDispatcher {
         return dispatcher ?: synchronized(this) {
             val db = DatabaseModule.getDatabase(context)
-            MessageDispatcherImpl(context, db.messageDao()).also { dispatcher = it }
+            MessageDispatcherImpl(db.messageDao()).also { dispatcher = it }
         }
     }
 }

@@ -1,47 +1,47 @@
 package top.chengdongqing.wechat.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import top.chengdongqing.wechat.ui.chat.ChatScreen
-import top.chengdongqing.wechat.ui.chat.ChatViewModel
+import top.chengdongqing.wechat.ui.chatdetail.ChatDetailScreen
+import top.chengdongqing.wechat.ui.chatlist.ChatListScreen
+import top.chengdongqing.wechat.ui.contacts.ContactScreen
 import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
+import top.chengdongqing.wechat.ui.me.MeScreen
 
 @Composable
-fun AppNavigation(viewModel: ChatViewModel) {
-    val navController = rememberNavController()
-
+fun AppNavigation(navController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navController,
-        startDestination = "discovery"
+        startDestination = Screen.MainShell.route
     ) {
-        // 发现设备页
-        composable("discovery") {
-            DiscoveryScreen(
-                viewModel = viewModel,
-                onNavigateToChat = { peerId ->
-                    navController.navigate("chat/$peerId")
-                }
-            )
+        composable(Screen.MainShell.route) {
+            MainShell()
         }
-
-        // 聊天对话页
+        composable(Screen.Chats.route) {
+            ChatListScreen()
+        }
+        composable(Screen.Contacts.route) {
+            ContactScreen()
+        }
+        composable(Screen.Discovery.route) {
+            DiscoveryScreen()
+        }
+        composable(Screen.Me.route) {
+            MeScreen()
+        }
         composable(
-            route = "chat/{peerId}",
+            route = Screen.ChatDetail.route,
             arguments = listOf(
                 navArgument("peerId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val peerId = backStackEntry.arguments?.getString("peerId") ?: ""
-
-            ChatScreen(
-                viewModel = viewModel,
-                peerId = peerId,
-                onBack = { navController.popBackStack() }
-            )
+            ChatDetailScreen(peerId)
         }
     }
 }

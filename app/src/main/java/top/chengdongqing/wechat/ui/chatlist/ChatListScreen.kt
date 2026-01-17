@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.discovery
+package top.chengdongqing.wechat.ui.chatlist
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -8,10 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 @Composable
-fun DiscoveryScreen() {
+fun ChatListScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Yellow)
+            .background(Color.Red)
     )
 }

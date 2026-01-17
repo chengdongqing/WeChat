@@ -37,7 +37,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.WeChat">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -49,7 +48,7 @@
             android:name=".ui.call.CallActivity"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullSensor"
             android:showWhenLocked="true"
             android:turnScreenOn="true" />
     </application>

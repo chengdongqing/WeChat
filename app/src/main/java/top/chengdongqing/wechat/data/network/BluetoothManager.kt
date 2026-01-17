@@ -5,11 +5,15 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
-import android.content.BroadcastReceiver
+import android.bluetooth.le.AdvertiseCallback
+import android.bluetooth.le.AdvertiseData
+import android.bluetooth.le.AdvertiseSettings
+import android.bluetooth.le.BluetoothLeAdvertiser
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.os.Build
 import android.os.ParcelUuid
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -22,7 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.core.util.IdManager
@@ -35,7 +38,6 @@ import top.chengdongqing.wechat.data.model.P2PPeer
 import java.io.File
 import java.io.InputStream
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 蓝牙通信
@@ -56,7 +58,7 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
     override val peers: StateFlow<List<P2PPeer>> = _peers
 
     // 设备信息
-    private val deviceId: String by lazy { IdManager(context).getDeviceId() }
+    private val deviceId: String by lazy { IdManager(context).getDeviceId().take(6) }
     private val deviceName by lazy { context.getDeviceName() }
 
     // 消息调度器
@@ -68,147 +70,77 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
     @SuppressLint("MissingPermission")
     override fun startDiscovery() {
         stopDiscovery()
-        makeDiscoverable()
+        startBleAdvertising() // 同时让自己也处于可发现状态
 
-        // 注册广播监听
-        val filter = IntentFilter().apply {
-            addAction(BluetoothDevice.ACTION_FOUND)
-            addAction(BluetoothDevice.ACTION_UUID)
-        }
-        context.registerReceiver(bluetoothReceiver, filter)
+        val scanner = bluetoothAdapter?.bluetoothLeScanner
+        val filters = listOf(
+            ScanFilter.Builder().setServiceUuid(ParcelUuid(appUUID)).build()
+        )
+        val settings = ScanSettings.Builder()
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+            .build()
 
-        if (bluetoothAdapter?.isDiscovering == true) {
-            bluetoothAdapter?.cancelDiscovery()
-        }
-        // 开始扫描设备
-        bluetoothAdapter?.startDiscovery()
+        scanner?.startScan(filters, settings, bleScanCallback)
     }
 
-    /**
-     * 启用蓝牙发现
-     */
-    private fun makeDiscoverable(seconds: Int = 30) {
-        val intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
-            putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, seconds)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
-    }
-
-    /**
-     * 定义广播接收器
-     */
     @SuppressLint("MissingPermission")
-    private val bluetoothReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getParcelableExtra(
-                    BluetoothDevice.EXTRA_DEVICE,
-                    BluetoothDevice::class.java
+    private val bleScanCallback = object : ScanCallback() {
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            val device = result.device
+            val record = result.scanRecord ?: return
+            val identityBytes = record.getManufacturerSpecificData(0x1234) ?: return
+            val peer = super@BluetoothManager.decodeIdentity(String(identityBytes)) ?: return
+
+            _peers.upsert(
+                BluetoothPeer(
+                    id = peer.id,
+                    name = peer.name,
+                    mac = device.address
                 )
-            } else {
-                @Suppress("DEPRECATION")
-                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-            }
-
-            when (intent.action) {
-                // 当发现设备
-                BluetoothDevice.ACTION_FOUND -> {
-                    // 发送获取uuid的请求
-                    device?.fetchUuidsWithSdp()
-                }
-                // 当uuid回调
-                BluetoothDevice.ACTION_UUID -> {
-                    val uuids = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent.getParcelableArrayExtra(
-                            BluetoothDevice.EXTRA_UUID,
-                            ParcelUuid::class.java
-                        )
-                    } else {
-                        @Suppress("DEPRECATION")
-                        intent.getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID)
-                    }
-
-                    uuids?.forEach { uuid ->
-                        // 判断是否符合协议
-                        if (uuid.toString().equals(appUUID.toString(), ignoreCase = true)) {
-                            device?.name?.let {
-                                scope.launch {
-                                    resolveIdentity(device)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            ) { it.id }
         }
     }
 
-    private val getIdentityCode = "GET_IDENTITY"
+    // 在类中添加
+    private var bleAdvertiser: BluetoothLeAdvertiser? = null
 
-    // 存储正在解析中的设备，防止广播多次触发导致重复连接
-    private val resolvingDevices = ConcurrentHashMap<String, Boolean>()
-
-    /**
-     * 获取设备身份信息
-     */
     @SuppressLint("MissingPermission")
-    private suspend fun resolveIdentity(device: BluetoothDevice) = withContext(Dispatchers.IO) {
-        if (resolvingDevices[device.address] == true) {
-            return@withContext
-        }
+    private fun startBleAdvertising() {
+        bleAdvertiser = bluetoothAdapter?.bluetoothLeAdvertiser
 
-        try {
-            println("---resolveIdentity-1")
-            // 尝试连接对方的监听端口
-            device.createInsecureRfcommSocketToServiceRecord(appUUID).use { socket ->
-                println("---resolveIdentity-2")
-                // 设置连接超时，不能让扫描卡死
-                withTimeout(3000) {
-                    socket.connect()
-                    println("---resolveIdentity-3")
-                    val output = socket.outputStream
-                    val input = socket.inputStream
+        val settings = AdvertiseSettings.Builder()
+            .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
+            .setConnectable(true)
+            .build()
 
-                    // 发送请求指令
-                    val request = "$getIdentityCode\n"
-                    output.write(request.toByteArray())
-                    output.flush()
-                    println("---resolveIdentity-4")
+        // 1. 主广播包：只放 UUID，确保别人能过滤到你
+        val advertiseData = AdvertiseData.Builder()
+            .setIncludeDeviceName(false)
+            .addServiceUuid(ParcelUuid(appUUID))
+            .build()
 
-                    // 读取对方返回的数据
-                    val text = input.readRawLine() ?: return@withTimeout
+        // 2. 扫描响应包：放你的自定义 identity 数据
+        val identityBytes = super.encodeIdentity(deviceId, deviceName).toByteArray(Charsets.UTF_8)
+        val scanResponseData = AdvertiseData.Builder()
+            .addManufacturerData(0x1234, identityBytes)
+            .build()
 
-                    println("----parseProtocol:$text")
-
-                    // 数据解析
-                    if (parseProtocol(text, device)) {
-                        resolvingDevices[device.address] = true
-                    }
-
-                    output.write(1)
-                }
-            }
-        } catch (_: Exception) {
-            Log.d("BT", "身份解析失败: ${device.address}")
-        }
+        bleAdvertiser?.startAdvertising(
+            settings,
+            advertiseData,
+            scanResponseData,
+            advertiseCallback
+        )
     }
 
-    /**
-     * 解析协议
-     */
-    private fun parseProtocol(text: String, device: BluetoothDevice): Boolean {
-        val peer = super.decodeIdentity(text) ?: return false
+    private val advertiseCallback = object : AdvertiseCallback() {
+        override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
+            Log.d("BT", "BLE 广播启动成功")
+        }
 
-        _peers.upsert(
-            BluetoothPeer(
-                peer.id,
-                peer.name,
-                device.address,
-                device.bondState == BluetoothDevice.BOND_BONDED,
-            )
-        ) { it.id }
-        return true
+        override fun onStartFailure(errorCode: Int) {
+            Log.d("BT", "BLE 广播启动失败,code:$errorCode")
+        }
     }
 
     override suspend fun sendText(peer: P2PPeer, envelope: MessageEnvelope): Boolean =
@@ -216,7 +148,7 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
             val btPeer = peer as? BluetoothPeer ?: return@withContext false
             val content = AppJson.instance.encodeToString(envelope) + "\n"
 
-            performSend(btPeer.mac, content.toByteArray(), null, null)
+            performSend(btPeer.mac, content, null, null)
         }
 
     override suspend fun sendMedia(
@@ -228,7 +160,7 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
         val btPeer = peer as? BluetoothPeer ?: return@withContext false
         val header = AppJson.instance.encodeToString(envelope) + "\n"
 
-        performSend(btPeer.mac, header.toByteArray(), file, onProgress)
+        performSend(btPeer.mac, header, file, onProgress)
     }
 
     /**
@@ -236,7 +168,7 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
      */
     private suspend fun performSend(
         address: String,
-        header: ByteArray,
+        header: String,
         file: File?,
         onProgress: (suspend (Float) -> Unit)?
     ): Boolean {
@@ -250,7 +182,7 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
                 val input = socket.inputStream
 
                 // 发送 Header
-                output.write(header)
+                output.write(header.toByteArray())
                 output.flush()
 
                 // 如果有文件，发送 Body (Binary)
@@ -289,7 +221,7 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
         messageServerJob = scope.launch(Dispatchers.IO) {
             // 注册蓝牙 SDP 服务并开启监听，利用 UUID 匹配机制实现 P2P 握手
             val serverSocket = try {
-                bluetoothAdapter?.listenUsingRfcommWithServiceRecord("WeChat", appUUID)
+                bluetoothAdapter?.listenUsingRfcommWithServiceRecord(super.protocolPrefix, appUUID)
             } catch (e: Exception) {
                 Log.e("BluetoothManager", "无法创建监听端口", e)
                 return@launch
@@ -321,22 +253,6 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
 
             // 读取 Header
             val headerLine = input.readRawLine() ?: return@use
-
-            println("---handleIncomingConnection:$headerLine")
-
-            // 发送身份信息
-            if (headerLine == getIdentityCode) {
-                val identity = super.encodeIdentity(deviceId, deviceName)
-                output.write(identity.toByteArray())
-                output.flush()
-
-                // 等待回复接收完毕 (ACK)
-                withTimeoutOrNull(5000) {
-                    input.read()
-                } != -1
-                return@use
-            }
-
             var envelope = AppJson.instance.decodeFromString<MessageEnvelope>(headerLine)
 
             // 处理媒体文件
@@ -377,11 +293,24 @@ class BluetoothManager(private val context: Context) : AbstractP2pManger(), P2pC
     @SuppressLint("MissingPermission")
     override fun stopDiscovery() {
         try {
-            context.unregisterReceiver(bluetoothReceiver)
-        } catch (_: Exception) {
-        }
-        if (bluetoothAdapter?.isDiscovering == true) {
-            bluetoothAdapter?.cancelDiscovery()
+            // 2. 停止经典蓝牙的搜索 (Discovery)
+            if (bluetoothAdapter?.isDiscovering == true) {
+                bluetoothAdapter?.cancelDiscovery()
+            }
+
+            // 3. 停止 BLE 扫描 (重点)
+            val scanner = bluetoothAdapter?.bluetoothLeScanner
+            // 这里的 bleScanCallback 必须是 startDiscovery 中使用的同一个实例
+            scanner?.stopScan(bleScanCallback)
+
+            // 4. 停止 BLE 广播 (可选)
+            // 注意：如果你希望别人还能搜到你，就不停广播；
+            // 如果想彻底“隐身”或者退出发现页，就停止。
+            bleAdvertiser?.stopAdvertising(advertiseCallback)
+
+            Log.d("BT", "Discovery and Advertising fully stopped.")
+        } catch (e: Exception) {
+            Log.e("BT", "Error while stopping discovery", e)
         }
     }
 

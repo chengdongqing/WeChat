@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.core.protocol
 
-import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,10 +36,7 @@ interface MessageDispatcher {
     fun dispatch(envelope: MessageEnvelope)
 }
 
-class MessageDispatcherImpl(
-    private val context: Context,
-    private val messageDao: MessageDao
-) : MessageDispatcher {
+class MessageDispatcherImpl(private val messageDao: MessageDao) : MessageDispatcher {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override val chatFlow = MutableSharedFlow<MessageEnvelope>(replay = 1)

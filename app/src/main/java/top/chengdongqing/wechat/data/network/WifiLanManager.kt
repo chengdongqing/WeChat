@@ -230,7 +230,7 @@ class WifiLanManager(private val context: Context) : AbstractP2pManger(), P2pCon
                 file?.let {
                     val fileLength = it.length()
                     var totalSent = 0L
-                    val buffer = ByteArray(1024 * 64) // 64KB
+                    val buffer = ByteArray(1024 * 256) // 256KB
 
                     it.inputStream().use { input ->
                         while (true) {
