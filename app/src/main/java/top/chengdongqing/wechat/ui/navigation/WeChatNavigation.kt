@@ -11,16 +11,17 @@ import top.chengdongqing.wechat.ui.chatdetail.ChatDetailScreen
 import top.chengdongqing.wechat.ui.chatlist.ChatListScreen
 import top.chengdongqing.wechat.ui.contacts.ContactScreen
 import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
+import top.chengdongqing.wechat.ui.main.WeChatScaffold
 import top.chengdongqing.wechat.ui.me.MeScreen
 
 @Composable
-fun AppNavigation(navController: NavHostController = rememberNavController()) {
+fun WeChatNavigation(navController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navController,
-        startDestination = Screen.MainShell.route
+        startDestination = Screen.WeChatScaffold.route
     ) {
-        composable(Screen.MainShell.route) {
-            MainShell()
+        composable(Screen.WeChatScaffold.route) {
+            WeChatScaffold()
         }
         composable(Screen.Chats.route) {
             ChatListScreen()

@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import top.chengdongqing.wechat.ui.navigation.AppNavigation
+import top.chengdongqing.wechat.ui.navigation.WeChatNavigation
 import top.chengdongqing.wechat.ui.splash.SplashScreen
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
@@ -41,7 +41,7 @@ fun MainEntry() {
                 showSplash = false
             })
         } else {
-            AppNavigation()
+            WeChatNavigation()
         }
     }
 }

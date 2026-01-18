@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 
@@ -31,7 +30,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
                 animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing)
             )
         }
-        delay(2000)
+//        delay(1000)
         onTimeout()
     }
 

@@ -1,24 +1,45 @@
 package top.chengdongqing.wechat.ui.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material.icons.filled.Explore
-import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.annotation.DrawableRes
+import top.chengdongqing.wechat.R
 
 sealed class Screen(
     val route: String,
     val label: String,
-    val icon: ImageVector? = null // 二级页面可能没有图标
+    @get:DrawableRes val iconResId: Int? = null,
+    @get:DrawableRes val selectedIconResId: Int? = null
 ) {
-    object MainShell : Screen("main_shell", "主界面")
+    object WeChatScaffold : Screen("wechat_scaffold", "主界面")
 
     // 主Tab页面
-    object Chats : Screen("chats", "消息", Icons.Default.ChatBubble)
-    object Contacts : Screen("contacts", "通讯录", Icons.Default.People)
-    object Discovery : Screen("discovery", "发现", Icons.Default.Explore)
-    object Me : Screen("me", "我", Icons.Default.Person)
+    object Chats :
+        Screen(
+            "chats",
+            "微信",
+            R.drawable.ic_tab_chats_outline,
+            R.drawable.ic_tab_chats_filled
+        )
+
+    object Contacts : Screen(
+        "contacts",
+        "通讯录",
+        R.drawable.ic_tab_contacts_outline,
+        R.drawable.ic_tab_contacts_filled
+    )
+
+    object Discovery : Screen(
+        "discovery",
+        "发现",
+        R.drawable.ic_tab_discover_outline,
+        R.drawable.ic_tab_discover_filled
+    )
+
+    object Me : Screen(
+        "me",
+        "我",
+        R.drawable.ic_tab_me_outline,
+        R.drawable.ic_tab_me_filled
+    )
 
     // 二级页面
     object ChatDetail : Screen("chat_detail/{peerId}", "聊天详情")
