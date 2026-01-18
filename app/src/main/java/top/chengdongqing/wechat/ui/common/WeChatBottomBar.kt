@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.main
+package top.chengdongqing.wechat.ui.common
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.ui.navigation.bottomTabItems
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun BottomBar(
+fun WeChatBottomBar(
     pagerState: PagerState,
     onTabSelected: (Int) -> Unit
 ) {

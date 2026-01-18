@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.main
+package top.chengdongqing.wechat.ui.common
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -21,8 +21,11 @@ fun WeChatScaffold() {
     val scope = rememberCoroutineScope()
 
     Scaffold(
+        topBar = {
+            WeChatTopBar()
+        },
         bottomBar = {
-            BottomBar(
+            WeChatBottomBar(
                 pagerState = pagerState,
                 onTabSelected = { index ->
                     scope.launch {

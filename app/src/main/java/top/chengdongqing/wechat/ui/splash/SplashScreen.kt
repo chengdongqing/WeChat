@@ -41,7 +41,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.splash),
+            painter = painterResource(id = R.drawable.img_splash),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
