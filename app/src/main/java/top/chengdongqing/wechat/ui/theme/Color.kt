@@ -11,7 +11,7 @@ val White = Color(0xFFFFFFFF)
 val Black = Color(0xFF000000)
 
 // 亮色模式下的特定色值
-val WeChatBgLight = Color(0xFFF7F7F7)
+val WeChatBgLight = Color(0xFFEDEDED)
 val TextPrimaryLight = Color(0xFF181818)
 val DividerLight = Color(0x1A000000) // 10% 透明度的黑
 val TabBarBgLight = Color(0xFFF7F7F7)

@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.ui.navigation.bottomTabItems
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun WeChatBottomBar(
+fun BottomBar(
     pagerState: PagerState,
     onTabSelected: (Int) -> Unit
 ) {

@@ -9,7 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import top.chengdongqing.wechat.ui.chatdetail.ChatDetailScreen
 import top.chengdongqing.wechat.ui.chatlist.ChatListScreen
-import top.chengdongqing.wechat.ui.common.WeChatScaffold
+import top.chengdongqing.wechat.ui.common.WeScaffold
 import top.chengdongqing.wechat.ui.contacts.ContactScreen
 import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.ui.me.MeScreen
@@ -21,7 +21,7 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
         startDestination = Screen.WeChatScaffold.route
     ) {
         composable(Screen.WeChatScaffold.route) {
-            WeChatScaffold()
+            WeScaffold()
         }
         composable(Screen.Chats.route) {
             ChatListScreen()
