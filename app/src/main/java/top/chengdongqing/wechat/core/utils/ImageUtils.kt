@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.util
+package top.chengdongqing.wechat.core.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

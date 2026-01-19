@@ -21,6 +21,8 @@ kotlinxSerialization = "1.9.0"
 navigationCompose = "2.9.6"
 coil = "3.3.0"
 coilZoomable = "0.18.0"
+camera = "1.5.2"
+mlkit = "17.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -57,6 +59,10 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coil" }
 coil-zoomable = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "coilZoomable" }
+camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" } # 简化相机调用
+camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera" } # 相机生命周期管理
+camera-view = { module = "androidx.camera:camera-view", version.ref = "camera" } # 相机视图容器
+mlkit-barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkit" } # 二维码识别（基于机器学习）
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -69,3 +75,4 @@ room = { id = "androidx.room", version.ref = "room" }
 room = ["room-runtime", "room-ktx", "room-compiler"]
 ktor = ["ktor-server-core", "ktor-server-cio", "ktor-network"]
 coil = ["coil-compose", "coil-network", "coil-video"]
+camera = ["camera-camera2", "camera-lifecycle", "camera-view"]

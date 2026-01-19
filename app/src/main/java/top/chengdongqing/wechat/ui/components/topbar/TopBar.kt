@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.common
+package top.chengdongqing.wechat.ui.components.topbar
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
@@ -20,29 +20,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.util.weClickable
+import top.chengdongqing.wechat.core.utils.weClickable
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun TopBar(
+fun WeTopBar(
     title: String,
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     Surface(
-        color = WeChatTheme.colorScheme.backgroundDefault,
+        color = WeChatTheme.colorScheme.background,
         modifier = Modifier.fillMaxWidth()
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding() // 自动处理系统顶栏高度
-                .height(56.dp)
+                .height(50.dp)
                 .padding(horizontal = 10.dp),
             contentAlignment = Alignment.Center
         ) {
             if (onBack != null) {
-                TopBarIconButton(
+                WeTopBarIcon(
                     modifier = Modifier.align(Alignment.CenterStart),
                     iconResId = R.drawable.ic_back_outline,
                     description = "返回",
@@ -52,7 +52,7 @@ fun TopBar(
             Text(
                 text = title,
                 fontSize = 17.sp,
-                fontWeight = FontWeight.Black,
+                fontWeight = FontWeight.Bold,
                 color = WeChatTheme.colorScheme.textPrimary
             )
             Row(
@@ -66,7 +66,7 @@ fun TopBar(
 }
 
 @Composable
-fun TopBarIconButton(
+fun WeTopBarIcon(
     modifier: Modifier = Modifier,
     @DrawableRes iconResId: Int,
     description: String? = null,
@@ -74,14 +74,14 @@ fun TopBarIconButton(
 ) {
     Box(
         modifier = modifier
-            .size(48.dp)
+            .size(40.dp)
             .weClickable(onClick = { onClick?.invoke() }),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(iconResId),
             contentDescription = description,
-            modifier = Modifier.size(26.dp),
+            modifier = Modifier.size(24.dp),
             tint = WeChatTheme.colorScheme.textPrimary
         )
     }

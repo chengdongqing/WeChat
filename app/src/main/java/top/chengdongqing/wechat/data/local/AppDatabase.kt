@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import top.chengdongqing.wechat.core.util.AppJson
+import top.chengdongqing.wechat.core.utils.AppJson
 import top.chengdongqing.wechat.data.model.ChatPayload
 
 @Database(entities = [MessageEntity::class], version = 1, exportSchema = true)

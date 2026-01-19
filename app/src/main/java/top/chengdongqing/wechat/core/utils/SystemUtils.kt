@@ -1,9 +1,15 @@
-package top.chengdongqing.wechat.core.util
+package top.chengdongqing.wechat.core.utils
 
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.widget.Toast
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,5 +61,17 @@ private fun deleteDirContent(dir: File?): Boolean {
         true
     } else {
         false
+    }
+}
+
+@Composable
+fun rememberStatusBarHeight(): Dp {
+    val density = LocalDensity.current
+    val statusBars = WindowInsets.statusBars
+
+    return remember {
+        with(density) {
+            statusBars.getTop(this).toDp()
+        }
     }
 }

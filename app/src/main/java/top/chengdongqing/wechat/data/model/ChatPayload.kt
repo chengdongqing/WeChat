@@ -2,7 +2,7 @@ package top.chengdongqing.wechat.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.utils.randomUUID
 
 @Serializable
 sealed class ChatPayload {

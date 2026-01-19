@@ -27,11 +27,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.util.AppJson
-import top.chengdongqing.wechat.core.util.IdManager
-import top.chengdongqing.wechat.core.util.ServiceLocator
-import top.chengdongqing.wechat.core.util.getDeviceName
-import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.utils.AppJson
+import top.chengdongqing.wechat.core.utils.IdManager
+import top.chengdongqing.wechat.core.utils.ServiceLocator
+import top.chengdongqing.wechat.core.utils.getDeviceName
+import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MessageEnvelope
 import top.chengdongqing.wechat.data.model.P2PPeer

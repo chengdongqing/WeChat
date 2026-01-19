@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -17,6 +18,13 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_IMAGES"
+        tools:ignore="PhotoAndVideoPolicy" />
+    <uses-permission
+        android:name="android.permission.READ_MEDIA_VIDEO"
+        tools:ignore="PhotoAndVideoPolicy" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -44,12 +52,29 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ui.components.qrcode.scanner.QrCodeScannerActivity"
+            android:theme="@style/Theme.WeChat" />
+        <activity
+            android:name=".ui.components.media.preview.MediaPreviewActivity"
+            android:theme="@style/Theme.WeChat" />
+        <activity
+            android:name=".ui.components.media.picker.MediaPickerActivity"
+            android:theme="@style/Theme.WeChat" />
+
+        <activity
             android:name=".ui.call.CallActivity"
             android:exported="true"
             android:launchMode="singleInstance"
-            android:screenOrientation="fullSensor"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true" />
-    </application>
+            android:showOnLockScreen="true" />
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+    </application>
 </manifest>

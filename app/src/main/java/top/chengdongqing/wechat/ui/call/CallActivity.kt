@@ -10,7 +10,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.webrtc.SurfaceViewRenderer
-import top.chengdongqing.wechat.core.util.ServiceLocator
+import top.chengdongqing.wechat.core.utils.ServiceLocator
 import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.network.P2pConnectionManager
 import top.chengdongqing.wechat.data.webrtc.WebRtcManager

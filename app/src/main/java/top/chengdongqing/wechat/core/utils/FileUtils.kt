@@ -1,9 +1,11 @@
-package top.chengdongqing.wechat.core.util
+package top.chengdongqing.wechat.core.utils
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.ThumbnailUtils
 import android.net.Uri
+import androidx.core.content.FileProvider
 import top.chengdongqing.wechat.data.model.MediaResource
 import java.io.File
 
@@ -71,4 +73,30 @@ private fun Context.getFileName(uri: Uri): String {
         }
     }
     return name
+}
+
+/**
+ * 分享文件
+ */
+fun Context.shareContent(content: Any, mimeType: String, title: String = "分享文件") {
+    val shareUri: Uri = when (content) {
+        is File -> getFileProviderUri(content)
+        is Uri -> content
+        else -> throw IllegalArgumentException("不支持的内容类型: ${content::class.java}")
+    }
+
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = mimeType
+        putExtra(Intent.EXTRA_STREAM, shareUri)
+        // 授予临时访问权限
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    startActivity(Intent.createChooser(intent, title))
+}
+
+/**
+ * 获取隔离的文件uri
+ */
+fun Context.getFileProviderUri(file: File): Uri {
+    return FileProvider.getUriForFile(this, "$packageName.provider", file)
 }

@@ -46,7 +46,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.core.utils.showToast
 import top.chengdongqing.wechat.data.model.P2pMode
 
 @OptIn(ExperimentalPermissionsApi::class)

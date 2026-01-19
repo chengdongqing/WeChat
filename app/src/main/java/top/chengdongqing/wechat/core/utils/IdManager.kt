@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.util
+package top.chengdongqing.wechat.core.utils
 
 import android.content.Context
 import androidx.core.content.edit

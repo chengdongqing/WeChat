@@ -11,10 +11,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.util.IdManager
-import top.chengdongqing.wechat.core.util.getDeviceName
-import top.chengdongqing.wechat.core.util.prepareMediaResource
-import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.utils.IdManager
+import top.chengdongqing.wechat.core.utils.getDeviceName
+import top.chengdongqing.wechat.core.utils.prepareMediaResource
+import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MessageEnvelope
 import top.chengdongqing.wechat.data.model.P2PPeer

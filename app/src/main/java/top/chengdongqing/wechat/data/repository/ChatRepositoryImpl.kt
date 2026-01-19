@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.local.MessageDao
 import top.chengdongqing.wechat.data.local.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageEnvelope

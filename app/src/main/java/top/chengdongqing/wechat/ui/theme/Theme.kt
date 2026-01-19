@@ -1,45 +1,62 @@
 package top.chengdongqing.wechat.ui.theme
 
+import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 @Immutable
 class WeChatColorScheme(
     val primary: Color,
     val primaryPressed: Color,
-    val divider: Color,
+    // 基础表面
+    val background: Color,       // 页面底色
+    val surface: Color,          // 容器/卡片色
+    val surfaceVariant: Color,   // 次要容器色
+    // 内容色
     val textPrimary: Color,
-    val backgroundDefault: Color,
+    val textSecondary: Color,    // 副文本色
+    val divider: Color,
+    // 特定组件色
     val tabBarBackground: Color,
     val tabBarIconInactive: Color,
-    val redDot: Color = Color.Red
+    val error: Color
 )
 
-// 浅色主题配置
 private val LightColorScheme = WeChatColorScheme(
     primary = GreenPrimary,
     primaryPressed = GreenPressed,
-    divider = DividerLight,
+    background = Grey_ED,
+    surface = White,
+    surfaceVariant = Grey_F7,
     textPrimary = TextPrimaryLight,
-    backgroundDefault = WeChatBgLight,
-    tabBarBackground = TabBarBgLight,
-    tabBarIconInactive = Black
+    textSecondary = TextSecondaryLight,
+    divider = DividerLight,
+    tabBarBackground = Grey_F7,
+    tabBarIconInactive = Black,
+    error = Danger
 )
 
-// 深色主题配置
 private val DarkColorScheme = WeChatColorScheme(
     primary = GreenPrimary,
     primaryPressed = GreenPressed,
-    divider = DividerDark,
+    background = Black,
+    surface = Grey_4C,
+    surfaceVariant = Grey_2B,
     textPrimary = TextPrimaryDark,
-    backgroundDefault = WeChatBgDark,
-    tabBarBackground = TabBarBgDark,
-    tabBarIconInactive = IconInactiveDark
+    textSecondary = TextSecondaryDark,
+    divider = DividerDark,
+    tabBarBackground = Grey_19,
+    tabBarIconInactive = TabBarIconInactiveDark,
+    error = Danger
 )
 
 val LocalWeChatColorScheme = staticCompositionLocalOf { LightColorScheme }
@@ -54,11 +71,22 @@ fun WeChatTheme(
         else -> LightColorScheme
     }
 
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+        val view = LocalView.current
+        if (!view.isInEditMode) {
+            SideEffect {
+                val window = (view.context as Activity).window
+                // 设置状态栏的背景颜色为透明
+                @Suppress("DEPRECATION")
+                window.statusBarColor = Color.Transparent.toArgb()
+                // 设置为 false 表示 App 内容会延伸到状态栏和导航栏的正下方（即沉浸式）
+                WindowCompat.setDecorFitsSystemWindows(window, false)
+            }
+        }
+    }
+
     CompositionLocalProvider(LocalWeChatColorScheme provides colorScheme) {
-        MaterialTheme(
-            typography = Typography,
-            content = content
-        )
+        content()
     }
 }
 

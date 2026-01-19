@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.room)
     alias(libs.plugins.ksp)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -46,7 +47,6 @@ configure<RoomExtension> {
 }
 
 configurations.all {
-    // 排除掉冲突的旧版本注解库
     exclude(group = "com.intellij", module = "annotations")
 }
 
@@ -72,6 +72,8 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.webrtc)
     implementation(libs.datastore.preferences)
+    implementation(libs.bundles.camera)
+    implementation(libs.mlkit.barcode.scanning)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)

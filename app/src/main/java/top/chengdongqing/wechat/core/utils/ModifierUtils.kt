@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.util
+package top.chengdongqing.wechat.core.utils
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

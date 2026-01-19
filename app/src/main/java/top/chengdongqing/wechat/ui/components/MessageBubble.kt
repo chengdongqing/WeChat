@@ -24,8 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.util.base64ToBitmap
-import top.chengdongqing.wechat.core.util.formatTime
+import top.chengdongqing.wechat.core.utils.base64ToBitmap
+import top.chengdongqing.wechat.core.utils.formatTime
 import top.chengdongqing.wechat.data.local.MessageEntity
 import top.chengdongqing.wechat.data.model.ChatPayload
 
