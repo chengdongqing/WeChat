@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +47,8 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.utils.toIntOffset
+import top.chengdongqing.wechat.core.utils.weClickableWithBg
+import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
 fun WeContextMenu(
@@ -101,30 +100,33 @@ fun WeContextMenu(
 
 @Composable
 fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onTap: (Int) -> Unit) {
+    val shadowColor = WeChatTheme.colorScheme.divider
+
     Box(modifier = Modifier.padding(8.dp)) {
         Column(
             modifier = Modifier
                 .width(menuWidthDp)
                 .graphicsLayer {
                     shadowElevation = 8.dp.toPx()
-                    shape = RoundedCornerShape(4.dp)
+                    spotShadowColor = shadowColor
+                    ambientShadowColor = shadowColor
                     clip = true
                 }
-                .background(MaterialTheme.colorScheme.onBackground)
+                .background(WeChatTheme.colorScheme.background)
         ) {
             options.forEachIndexed { index, item ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(itemHeightDp)
-                        .clickable { onTap(index) }
+                        .weClickableWithBg { onTap(index) }
                         .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = item,
                         fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = WeChatTheme.colorScheme.textPrimary
                     )
                 }
             }
@@ -133,7 +135,7 @@ fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onTap:
 }
 
 @Composable
-fun rememberContextMenuState(itemWidthDp: Dp = 160.dp, itemHeightDp: Dp = 50.dp) =
+fun rememberContextMenuState(itemWidthDp: Dp = 140.dp, itemHeightDp: Dp = 50.dp) =
     remember { ContextMenuState(itemWidthDp, itemHeightDp) }
 
 @Stable

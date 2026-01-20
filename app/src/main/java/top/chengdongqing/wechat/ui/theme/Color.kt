@@ -10,6 +10,7 @@ val Danger = Color(0xFFFA5151)
 // --- 基础中性色 ---
 val White = Color(0xFFFFFFFF)
 val Black = Color(0xFF000000)
+val LinkColor = Color(0xff576B95)
 
 // --- 灰度阶梯 ---
 val Grey_F7 = Color(0xFFF7F7F7)

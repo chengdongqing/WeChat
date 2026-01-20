@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.chatlist
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,6 +15,9 @@ import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.contextmenu.WeContextMenu
 import top.chengdongqing.wechat.ui.components.contextmenu.detectWeContextMenu
 import top.chengdongqing.wechat.ui.components.contextmenu.rememberContextMenuState
+import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.ui.theme.Danger
+import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
 fun ChatListScreen() {
@@ -31,7 +35,11 @@ fun ChatListScreen() {
     }
     val contextMenuState = rememberContextMenuState()
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(WeChatTheme.colorScheme.surface)
+    ) {
         itemsIndexed(chatList) { index, chat ->
             Box(
                 modifier = Modifier
@@ -45,7 +53,34 @@ fun ChatListScreen() {
         }
     }
 
-    WeContextMenu(contextMenuState) { listIndex, menuIndex ->
+    val dialog = rememberDialogState()
 
+    WeContextMenu(contextMenuState) { listIndex, menuIndex ->
+        when (menuIndex) {
+            0 -> {
+
+            }
+
+            1 -> {
+
+            }
+
+            2 -> {
+                dialog.show(
+                    title = "不显示聊天后，聊天记录将不会被删除",
+                    content = "通过搜索聊天内容，可以找回聊天。",
+                    okText = "我知道了",
+                    onCancel = null
+                )
+            }
+
+            3 -> {
+                dialog.show(
+                    title = "删除后，将清空记录同时不显示聊天",
+                    okText = "删除",
+                    okColor = Danger
+                )
+            }
+        }
     }
 }

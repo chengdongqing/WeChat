@@ -59,7 +59,7 @@ fun ChatItem(chat: Chat) {
             Text(
                 text = chat.lastMessage,
                 fontSize = 13.sp,
-                color = Color.Black.copy(alpha = 0.4f),
+                color = WeChatTheme.colorScheme.textSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -68,13 +68,14 @@ fun ChatItem(chat: Chat) {
             Text(
                 text = chat.time,
                 fontSize = 12.sp,
-                color = Color.Black.copy(alpha = 0.3f)
+                color = WeChatTheme.colorScheme.textSecondary
             )
             Spacer(modifier = Modifier.height(4.dp))
             Icon(
                 painter = painterResource(R.drawable.ic_bellring_off),
                 contentDescription = "已开启免打扰",
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
+                tint = WeChatTheme.colorScheme.textSecondary
             )
         }
     }
