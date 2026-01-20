@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.common
+package top.chengdongqing.wechat.ui.home
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility

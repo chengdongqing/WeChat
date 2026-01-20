@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.contacts
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -31,7 +32,8 @@ fun TopFunctionList() {
     val functions = listOf(
         TopFunction("新的朋友", R.drawable.ic_add_friends_filled, Color(0xFFFA9D3B)),
         TopFunction("群聊", R.drawable.ic_group_chat_filled, Color(0xFF07C160)),
-        TopFunction("标签", R.drawable.ic_label_filled, Color(0xFF2782D7)),
+        TopFunction("标签", R.drawable.ic_tag_filled, Color(0xFF2782D7)),
+        TopFunction("公众号", R.drawable.ic_officical_account_filled, Color(0xFF2782D7)),
     )
 
     Column(
@@ -66,7 +68,7 @@ fun TopFunctionItem(function: TopFunction) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(id = function.icon),
+                painter = painterResource(id = function.iconResId),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(24.dp)
@@ -83,6 +85,6 @@ fun TopFunctionItem(function: TopFunction) {
 
 data class TopFunction(
     val title: String,
-    val icon: Int,
+    @get:DrawableRes val iconResId: Int,
     val containerColor: Color
 )

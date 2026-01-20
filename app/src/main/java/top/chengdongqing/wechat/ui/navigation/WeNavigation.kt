@@ -9,9 +9,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import top.chengdongqing.wechat.ui.chatdetail.ChatDetailScreen
 import top.chengdongqing.wechat.ui.chatlist.ChatListScreen
-import top.chengdongqing.wechat.ui.common.HomeScreen
 import top.chengdongqing.wechat.ui.contacts.ContactsScreen
 import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
+import top.chengdongqing.wechat.ui.home.HomeScreen
 import top.chengdongqing.wechat.ui.me.MeScreen
 
 @Composable

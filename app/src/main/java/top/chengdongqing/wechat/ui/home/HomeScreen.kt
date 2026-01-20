@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.common
+package top.chengdongqing.wechat.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,11 +50,10 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 @Composable
 fun HomeScreen() {
     val pagerState = rememberPagerState(
-        initialPage = 1,
+        initialPage = 2,
         pageCount = { bottomTabItems.size }
     )
     val scope = rememberCoroutineScope()
-
     val currentTab = bottomTabItems[pagerState.currentPage]
 
     Scaffold(
@@ -108,7 +107,8 @@ private fun TopBar(title: String) {
             MenuItem(R.drawable.ic_add_friends_filled, "添加朋友") { },
             MenuItem(R.drawable.ic_scan_filled, "扫一扫") {
                 scanCode()
-            }
+            },
+            MenuItem(R.drawable.ic_pay_vendor_filled, "收付款") { }
         )
     }
 

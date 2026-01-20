@@ -41,7 +41,7 @@ fun ChatItem(chat: Chat) {
             size = 20.dp
         ) {
             Image(
-                painter = painterResource(R.drawable.img_logo),
+                painter = painterResource(R.drawable.img_avatar),
                 contentDescription = null,
                 modifier = Modifier
                     .size(46.dp)
@@ -52,7 +52,7 @@ fun ChatItem(chat: Chat) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = chat.name,
-                fontSize = 17.sp,
+                fontSize = 16.sp,
                 color = WeChatTheme.colorScheme.textPrimary,
                 fontWeight = FontWeight.Medium
             )

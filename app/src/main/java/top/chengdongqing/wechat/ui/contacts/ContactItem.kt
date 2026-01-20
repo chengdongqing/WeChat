@@ -35,7 +35,7 @@ fun ContactItem(contact: Contact) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(R.drawable.img_logo),
+            painter = painterResource(R.drawable.img_avatar),
             contentDescription = null,
             modifier = Modifier
                 .size(40.dp)
