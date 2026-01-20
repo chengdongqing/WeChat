@@ -1,9 +1,9 @@
 package top.chengdongqing.wechat.ui.home
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -50,7 +50,7 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 @Composable
 fun HomeScreen() {
     val pagerState = rememberPagerState(
-        initialPage = 2,
+        initialPage = 3,
         pageCount = { bottomTabItems.size }
     )
     val scope = rememberCoroutineScope()
@@ -61,11 +61,17 @@ fun HomeScreen() {
             if (currentTab.route != "me")
                 TopBar(currentTab.label)
             else
-                Spacer(
-                    modifier = Modifier
-                        .statusBarsPadding()
-                        .height(50.dp)
-                )
+                Surface(
+                    color = WeChatTheme.colorScheme.surface,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .height(50.dp)
+                    ) {}
+                }
         },
         bottomBar = {
             BottomBar(
@@ -128,7 +134,7 @@ private fun TopBar(title: String) {
         ) {
             menuExpanded = true
         }
-        DropDownMenu(
+        QuickActions(
             expanded = menuExpanded,
             items = menuItems,
             anchorPosition = anchorPosition,

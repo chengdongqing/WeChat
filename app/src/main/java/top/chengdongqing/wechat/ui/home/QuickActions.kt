@@ -56,20 +56,20 @@ data class MenuItem(
 )
 
 @Composable
-fun DropDownMenu(
+fun QuickActions(
     expanded: Boolean,
     items: List<MenuItem>,
     anchorPosition: Offset,
     anchorSize: IntSize,
     onDismissRequest: () -> Unit
 ) {
-    var shouldShowPopup by remember { mutableStateOf(expanded) }
+    var shouldShow by remember { mutableStateOf(expanded) }
     var isVisible by remember { mutableStateOf(false) }
 
     // 同步外部状态
     LaunchedEffect(expanded) {
         if (expanded) {
-            shouldShowPopup = true
+            shouldShow = true
             delay(10) // 极短延迟确保 Popup 已挂载后再播动画
             isVisible = true
         } else {
@@ -77,7 +77,7 @@ fun DropDownMenu(
         }
     }
 
-    if (!shouldShowPopup) return
+    if (!shouldShow) return
 
     val menuWidth = 160.dp
     val density = LocalDensity.current
@@ -115,7 +115,7 @@ fun DropDownMenu(
             DisposableEffect(Unit) {
                 onDispose {
                     if (!isVisible) {
-                        shouldShowPopup = false
+                        shouldShow = false
                         onDismissRequest()
                     }
                 }
