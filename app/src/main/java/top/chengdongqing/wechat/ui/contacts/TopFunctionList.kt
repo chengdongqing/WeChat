@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
 fun TopFunctionList() {
@@ -36,7 +37,7 @@ fun TopFunctionList() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(WeChatTheme.colorScheme.surface)
     ) {
         functions.forEachIndexed { index, function ->
             TopFunctionItem(function)
@@ -75,7 +76,7 @@ fun TopFunctionItem(function: TopFunction) {
         Text(
             text = function.title,
             fontSize = 16.sp,
-            color = Color(0xFF181818)
+            color = WeChatTheme.colorScheme.textPrimary
         )
     }
 }

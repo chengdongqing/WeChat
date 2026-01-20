@@ -24,7 +24,7 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 @Composable
 fun ChatListScreen() {
     val chatList = remember {
-        generateMockChats(100)
+        generateMockChats()
     }
 
     val menus = remember {
@@ -81,7 +81,7 @@ fun ChatListScreen() {
     }
 }
 
-fun generateMockChats(count: Int): List<Chat> {
+private fun generateMockChats(count: Int = 100): List<Chat> {
     val names = listOf("张三", "李四", "王五", "Compose 交流群", "文件传输助手", "GitHub 通知")
     val messages = listOf("好的", "吃了没？", "[图片]", "有人在吗？", "代码已提交", "明天见")
 

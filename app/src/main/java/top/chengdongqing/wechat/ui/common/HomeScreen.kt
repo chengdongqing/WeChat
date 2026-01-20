@@ -50,7 +50,7 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 @Composable
 fun HomeScreen() {
     val pagerState = rememberPagerState(
-        initialPage = 0,
+        initialPage = 1,
         pageCount = { bottomTabItems.size }
     )
     val scope = rememberCoroutineScope()
@@ -108,8 +108,7 @@ private fun TopBar(title: String) {
             MenuItem(R.drawable.ic_add_friends_filled, "添加朋友") { },
             MenuItem(R.drawable.ic_scan_filled, "扫一扫") {
                 scanCode()
-            },
-            MenuItem(R.drawable.ic_pay_vendor_filled, "收付款") { }
+            }
         )
     }
 

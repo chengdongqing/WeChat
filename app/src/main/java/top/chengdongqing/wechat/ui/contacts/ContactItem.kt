@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.Contact
+import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
 fun ContactItem(contact: Contact) {
@@ -28,7 +29,7 @@ fun ContactItem(contact: Contact) {
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(Color.White)
+            .background(WeChatTheme.colorScheme.surface)
             .clickable {}
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -41,17 +42,17 @@ fun ContactItem(contact: Contact) {
                 .background(Color.LightGray, shape = RoundedCornerShape(4.dp))
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Text(text = contact.name, fontSize = 16.sp, color = Color.Black)
+        Text(text = contact.name, fontSize = 16.sp, color = WeChatTheme.colorScheme.textPrimary)
     }
 }
 
 @Composable
-fun ContactHeader(initial: String) {
+fun ContactHeader(initial: Char) {
     Text(
-        text = initial,
+        text = initial.toString(),
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF7F7F7))
+            .background(WeChatTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 4.dp),
         color = Color.Gray,
         fontSize = 14.sp
