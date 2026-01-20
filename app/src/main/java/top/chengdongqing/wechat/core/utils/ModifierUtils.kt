@@ -15,20 +15,20 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import kotlin.math.roundToInt
 
 /**
- * 点击不带水波纹
+ * 自定义点击，不带水波纹
  */
 fun Modifier.weClickable(
     onClick: () -> Unit
 ): Modifier = composed {
     this.clickable(
         interactionSource = remember { MutableInteractionSource() },
-        indication = null, // 移除水波纹
+        indication = null,
         onClick = onClick
     )
 }
 
 /**
- * 点击带自定义背景色
+ * 自定义点击，带自定义背景色
  */
 fun Modifier.weClickableWithBg(
     showBackground: Boolean = true,
@@ -36,8 +36,6 @@ fun Modifier.weClickableWithBg(
 ): Modifier = composed {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-
-    // 按下时的背景色
     val pressedColor = WeChatTheme.colorScheme.divider
 
     this

@@ -3,6 +3,8 @@ package top.chengdongqing.wechat.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -11,6 +13,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.core.view.WindowCompat
 
 @Immutable
@@ -85,8 +89,17 @@ fun WeChatTheme(
         }
     }
 
-    CompositionLocalProvider(LocalWeChatColorScheme provides colorScheme) {
-        content()
+    MaterialTheme {
+        CompositionLocalProvider(
+            LocalTextStyle provides TextStyle(
+                // 避免文本自带边距
+                platformStyle = PlatformTextStyle(false)
+            )
+        ) {
+            CompositionLocalProvider(LocalWeChatColorScheme provides colorScheme) {
+                content()
+            }
+        }
     }
 }
 

@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.Chat
 import top.chengdongqing.wechat.ui.components.badge.WeBadge
+import top.chengdongqing.wechat.ui.components.badge.toBadgeText
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
@@ -36,7 +37,7 @@ fun ChatItem(chat: Chat) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         WeBadge(
-            chat.unreadCount.takeIf { it > 0 }?.toString(),
+            chat.unreadCount.toBadgeText(),
             size = 20.dp
         ) {
             Image(

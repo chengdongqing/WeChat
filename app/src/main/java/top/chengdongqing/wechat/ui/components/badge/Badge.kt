@@ -88,3 +88,9 @@ fun WeBadge(
         }
     }
 }
+
+fun Int.toBadgeText(): String? = when {
+    this <= 0 -> null
+    this > 99 -> "99+"
+    else -> this.toString()
+}

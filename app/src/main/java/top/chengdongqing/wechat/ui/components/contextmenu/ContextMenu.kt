@@ -9,6 +9,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -30,12 +34,10 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -186,18 +188,42 @@ data class ContextMenuProps(
 )
 
 @Composable
-fun Modifier.detectWeContextMenu(onLongPress: (IntOffset) -> Unit): Modifier = composed {
+fun Modifier.weContextMenu(
+    onClick: (() -> Unit)? = null,
+    onLongClick: (IntOffset) -> Unit
+): Modifier = composed {
     var parentPosition by remember { mutableStateOf(Offset.Zero) }
-    val haptic = LocalHapticFeedback.current
+    val interactionSource = remember { MutableInteractionSource() }
 
     this
         .onGloballyPositioned {
             parentPosition = it.positionInParent()
         }
+        .indication(
+            interactionSource = interactionSource,
+            indication = ripple()
+        )
         .pointerInput(Unit) {
-            detectTapGestures(onLongPress = { touchOffset ->
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onLongPress((parentPosition + touchOffset).toIntOffset())
-            })
+            detectTapGestures(
+                onLongPress = { touchOffset ->
+                    val finalOffset = (parentPosition + touchOffset).toIntOffset()
+                    onLongClick(finalOffset)
+                },
+                onPress = { offset ->
+                    // 触发波纹
+                    val press = PressInteraction.Press(offset)
+                    interactionSource.emit(press)
+                    // 等待释放或取消
+                    val released = tryAwaitRelease()
+                    // 隐藏波纹
+                    if (released) {
+                        interactionSource.emit(PressInteraction.Release(press))
+                    } else {
+                        interactionSource.emit(PressInteraction.Cancel(press))
+                    }
+                },
+            ) {
+                onClick?.invoke()
+            }
         }
 }

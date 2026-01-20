@@ -9,7 +9,7 @@ sealed class Screen(
     @get:DrawableRes val iconResId: Int? = null,
     @get:DrawableRes val selectedIconResId: Int? = null
 ) {
-    object WeChatScaffold : Screen("wechat_scaffold", "主界面")
+    object Home : Screen("home", "首页")
 
     // 主Tab页面
     object Chats :

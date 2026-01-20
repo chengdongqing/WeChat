@@ -40,7 +40,7 @@ import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBarIcon
-import top.chengdongqing.wechat.ui.contacts.ContactScreen
+import top.chengdongqing.wechat.ui.contacts.ContactsScreen
 import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.ui.me.MeScreen
 import top.chengdongqing.wechat.ui.navigation.Screen
@@ -48,8 +48,11 @@ import top.chengdongqing.wechat.ui.navigation.bottomTabItems
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun WeScaffold() {
-    val pagerState = rememberPagerState(pageCount = { bottomTabItems.size })
+fun HomeScreen() {
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { bottomTabItems.size }
+    )
     val scope = rememberCoroutineScope()
 
     val currentTab = bottomTabItems[pagerState.currentPage]
@@ -82,7 +85,7 @@ fun WeScaffold() {
         ) { page ->
             when (bottomTabItems[page]) {
                 Screen.Chats -> ChatListScreen()
-                Screen.Contacts -> ContactScreen()
+                Screen.Contacts -> ContactsScreen()
                 Screen.Discovery -> DiscoveryScreen()
                 Screen.Me -> MeScreen()
                 else -> {}
