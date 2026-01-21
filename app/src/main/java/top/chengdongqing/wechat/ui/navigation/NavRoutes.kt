@@ -43,12 +43,7 @@ sealed class Screen(
 
     // 二级页面
     object AddFriend : Screen("add_friend", "添加朋友")
+    object RadarScan : Screen("radar_scan", "雷达扫描")
+    object PinCodeGroup : Screen("pin_code_group", "面对面建群")
     object ChatDetail : Screen("chat_detail/{peerId}", "聊天详情")
 }
-
-val bottomTabItems = listOf(
-    Screen.Chats,
-    Screen.Contacts,
-    Screen.Discovery,
-    Screen.Me
-)

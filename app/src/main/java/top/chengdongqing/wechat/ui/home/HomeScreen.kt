@@ -48,7 +48,6 @@ import top.chengdongqing.wechat.ui.contacts.ContactsScreen
 import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.ui.me.MeScreen
 import top.chengdongqing.wechat.ui.navigation.Screen
-import top.chengdongqing.wechat.ui.navigation.bottomTabItems
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
@@ -108,7 +107,6 @@ private fun TopBar(title: String, navController: NavHostController) {
     var menuExpanded by remember { mutableStateOf(false) }
     var anchorPosition by remember { mutableStateOf(Offset.Zero) }
     var anchorSize by remember { mutableStateOf(IntSize.Zero) }
-
     val scanCode = rememberScanCodeLauncher {}
 
     val menuItems = remember {
@@ -152,7 +150,7 @@ private fun TopBar(title: String, navController: NavHostController) {
 }
 
 @Composable
-fun BottomBar(
+private fun BottomBar(
     pagerState: PagerState,
     onTabSelected: (Int) -> Unit
 ) {
@@ -208,3 +206,10 @@ fun BottomBar(
         }
     }
 }
+
+private val bottomTabItems = listOf(
+    Screen.Chats,
+    Screen.Contacts,
+    Screen.Discovery,
+    Screen.Me
+)

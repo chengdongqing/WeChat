@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import top.chengdongqing.wechat.ui.addfriend.AddFriendScreen
+import top.chengdongqing.wechat.ui.addfriend.PinCodeGroupScreen
+import top.chengdongqing.wechat.ui.addfriend.RadarScanScreen
 import top.chengdongqing.wechat.ui.chatdetail.ChatDetailScreen
 import top.chengdongqing.wechat.ui.chatlist.ChatListScreen
 import top.chengdongqing.wechat.ui.contacts.ContactsScreen
@@ -64,7 +66,24 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
         }
 
         composable(Screen.AddFriend.route) {
-            AddFriendScreen {
+            AddFriendScreen(
+                onNavigateToRadar = {
+                    navController.navigate(Screen.RadarScan.route)
+                },
+                onNavigateToGroup = {
+                    navController.navigate(Screen.PinCodeGroup.route)
+                }
+            ) {
+                navController.popBackStack()
+            }
+        }
+        composable(Screen.RadarScan.route) {
+            RadarScanScreen {
+                navController.popBackStack()
+            }
+        }
+        composable(Screen.PinCodeGroup.route) {
+            PinCodeGroupScreen {
                 navController.popBackStack()
             }
         }

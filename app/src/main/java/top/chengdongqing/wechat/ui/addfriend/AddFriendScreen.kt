@@ -5,7 +5,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +37,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
+import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import kotlin.math.roundToInt
@@ -47,8 +46,12 @@ import android.graphics.Color as AndroidColor
 @Composable
 fun AddFriendScreen(
     myId: String = "wxid_888888",
+    onNavigateToRadar: () -> Unit,
+    onNavigateToGroup: () -> Unit,
     onBack: () -> Unit
 ) {
+    val scanCode = rememberScanCodeLauncher {}
+
     val options = remember {
         listOf(
             AddFriendItem(
@@ -56,19 +59,19 @@ fun AddFriendScreen(
                 R.drawable.ic_scan_outline,
                 Color(0xFF2B7CF1),
                 "扫描二维码名片"
-            ),
+            ) { scanCode() },
             AddFriendItem(
-                "雷达加朋友",
+                "雷达",
                 R.drawable.ic_radar_outline,
                 Color(0xFF7468BE),
                 "添加身边的朋友"
-            ),
+            ) { onNavigateToRadar() },
             AddFriendItem(
                 "面对面建群",
                 R.drawable.ic_group_chat_outline,
                 Color(0xFF07C160),
                 "与身边的朋友进入同一个群聊"
-            )
+            ) { onNavigateToGroup() }
         )
     }
 
@@ -91,6 +94,7 @@ fun AddFriendScreen(
                         iconResId = item.iconResId,
                         iconColor = item.iconColor,
                         height = 68.dp,
+                        onTap = item.onTap
                     )
                     if (index < options.lastIndex) {
                         WeDivider(modifier = Modifier.padding(start = 58.dp))
@@ -127,18 +131,11 @@ private fun QrCodeSection(myId: String) {
     }
 
     qrBitmap?.let {
-        Box(
-            modifier = Modifier
-                .padding(8.dp)
-                .background(Color.White, RoundedCornerShape(4.dp)) // 增加白色底色和微圆角
-                .padding(4.dp)
-        ) {
-            Image(
-                bitmap = it,
-                contentDescription = "My QR Code",
-                modifier = Modifier.size(screenWidth.dp / LocalDensity.current.density)
-            )
-        }
+        Image(
+            bitmap = it,
+            contentDescription = "My QR Code",
+            modifier = Modifier.size(screenWidth.dp / LocalDensity.current.density)
+        )
     }
 }
 
@@ -168,5 +165,6 @@ private data class AddFriendItem(
     val title: String,
     @get:DrawableRes val iconResId: Int,
     val iconColor: Color,
-    val description: String
+    val description: String,
+    val onTap: () -> Unit
 )
