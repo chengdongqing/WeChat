@@ -9,9 +9,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import top.chengdongqing.wechat.core.utils.showToast
+import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.Chat
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.contextmenu.WeContextMenu
@@ -22,7 +21,7 @@ import top.chengdongqing.wechat.ui.theme.Danger
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun ChatListScreen() {
+fun ChatListScreen(onNavigateToDetail: (friendId: String) -> Unit) {
     val chatList = remember {
         generateMockChats()
     }
@@ -30,9 +29,8 @@ fun ChatListScreen() {
     val menus = remember {
         listOf("标为未读", "置顶该聊天", "不显示该聊天", "删除该聊天")
     }
-    val contextMenuState = rememberContextMenuState()
     val dialog = rememberDialogState()
-    val context = LocalContext.current
+    val contextMenuState = rememberContextMenuState()
 
     LazyColumn(
         modifier = Modifier
@@ -47,7 +45,7 @@ fun ChatListScreen() {
                 modifier = Modifier
                     .weContextMenu(
                         onClick = {
-                            context.showToast("你好")
+                            onNavigateToDetail(chat.id)
                         }
                     ) { position ->
                         contextMenuState.show(position, menus, index)
@@ -87,7 +85,7 @@ private fun generateMockChats(count: Int = 100): List<Chat> {
 
     return List(count) { i ->
         Chat(
-            id = i,
+            id = randomUUID(),
             name = "${names[i % names.size]} $i",
             lastMessage = messages[i % messages.size],
             time = "${12}:${(10 + i % 50).toString().padStart(2, '0')}",

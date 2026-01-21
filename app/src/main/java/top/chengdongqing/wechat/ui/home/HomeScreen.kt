@@ -92,7 +92,10 @@ fun HomeScreen(navController: NavHostController) {
             modifier = Modifier.padding(innerPadding)
         ) { page ->
             when (bottomTabItems[page]) {
-                Screen.Chats -> ChatListScreen()
+                Screen.Chats -> ChatListScreen {
+                    navController.navigate(Screen.ChatDetail.createRoute(it))
+                }
+
                 Screen.Contacts -> ContactsScreen()
                 Screen.Discovery -> DiscoveryScreen()
                 Screen.Me -> MeScreen()
@@ -123,7 +126,7 @@ private fun TopBar(title: String, navController: NavHostController) {
     }
 
     WeTopBar(title = title) {
-        WeTopBarIcon(
+        ActionIcon(
             iconResId = R.drawable.ic_search_outline,
             description = "搜索"
         )

@@ -13,14 +13,14 @@ import top.chengdongqing.wechat.ui.addfriend.AddFriendScreen
 import top.chengdongqing.wechat.ui.addfriend.PinCodeGroupScreen
 import top.chengdongqing.wechat.ui.addfriend.RadarScanScreen
 import top.chengdongqing.wechat.ui.chatdetail.ChatDetailScreen
-import top.chengdongqing.wechat.ui.chatlist.ChatListScreen
-import top.chengdongqing.wechat.ui.contacts.ContactsScreen
-import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.ui.home.HomeScreen
-import top.chengdongqing.wechat.ui.me.MeScreen
 
 @Composable
 fun WeChatNavigation(navController: NavHostController = rememberNavController()) {
+    fun goBack() {
+        navController.popBackStack()
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
@@ -52,18 +52,6 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
         composable(Screen.Home.route) {
             HomeScreen(navController)
         }
-        composable(Screen.Chats.route) {
-            ChatListScreen()
-        }
-        composable(Screen.Contacts.route) {
-            ContactsScreen()
-        }
-        composable(Screen.Discovery.route) {
-            DiscoveryScreen()
-        }
-        composable(Screen.Me.route) {
-            MeScreen()
-        }
 
         composable(Screen.AddFriend.route) {
             AddFriendScreen(
@@ -73,28 +61,22 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
                 onNavigateToGroup = {
                     navController.navigate(Screen.PinCodeGroup.route)
                 }
-            ) {
-                navController.popBackStack()
-            }
+            ) { goBack() }
         }
         composable(Screen.RadarScan.route) {
-            RadarScanScreen {
-                navController.popBackStack()
-            }
+            RadarScanScreen { goBack() }
         }
         composable(Screen.PinCodeGroup.route) {
-            PinCodeGroupScreen {
-                navController.popBackStack()
-            }
+            PinCodeGroupScreen { goBack() }
         }
         composable(
             route = Screen.ChatDetail.route,
             arguments = listOf(
-                navArgument("peerId") { type = NavType.StringType }
+                navArgument("friendId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val peerId = backStackEntry.arguments?.getString("peerId") ?: ""
-            ChatDetailScreen(peerId)
+            val friendId = backStackEntry.arguments?.getString("friendId") ?: ""
+            ChatDetailScreen(friendId) { goBack() }
         }
     }
 }
