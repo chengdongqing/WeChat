@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.ui.theme.Danger
@@ -31,6 +32,7 @@ fun WeBadge(
     size: Dp = 10.dp,
     color: Color = Danger,
     alignment: Alignment = Alignment.TopEnd,
+    offset: DpOffset? = null,
     holder: (@Composable () -> Unit)? = null
 ) {
     Box {
@@ -42,29 +44,20 @@ fun WeBadge(
                 mutableStateOf(0.dp)
             }
 
-            val offsetX = when (alignment) {
-                Alignment.TopEnd,
-                Alignment.BottomEnd -> localWidth / 2
-
-                Alignment.TopCenter,
-                Alignment.BottomCenter,
-                Alignment.Center -> 0.dp
-
-                Alignment.CenterStart -> -(localWidth + 8.dp)
-                Alignment.CenterEnd -> localWidth + 8.dp
-
-                else -> -localWidth / 2
-            }
-            val offsetY = when (alignment) {
-                Alignment.BottomStart,
-                Alignment.BottomCenter,
-                Alignment.BottomEnd -> size / 2
-
-                Alignment.CenterEnd,
-                Alignment.CenterStart,
-                Alignment.Center -> 0.dp
-
-                else -> -size / 2
+            val finalOffset = offset ?: run {
+                val offsetX = when (alignment) {
+                    Alignment.TopEnd, Alignment.BottomEnd -> localWidth / 2
+                    Alignment.TopCenter, Alignment.BottomCenter, Alignment.Center -> 0.dp
+                    Alignment.CenterStart -> -(localWidth + 8.dp)
+                    Alignment.CenterEnd -> localWidth + 8.dp
+                    else -> -localWidth / 2
+                }
+                val offsetY = when (alignment) {
+                    Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd -> size / 2
+                    Alignment.CenterEnd, Alignment.CenterStart, Alignment.Center -> 0.dp
+                    else -> -size / 2
+                }
+                DpOffset(offsetX, offsetY)
             }
 
             Box(
@@ -77,7 +70,7 @@ fun WeBadge(
                             localWidth = size.width.toDp()
                         }
                     }
-                    .offset(x = offsetX, y = offsetY)
+                    .offset(x = finalOffset.x, y = finalOffset.y)
                     .clip(if (localWidth > size) RoundedCornerShape(20.dp) else CircleShape)
                     .background(color)
                     .padding(horizontal = if (localWidth > size) 6.dp else 0.dp),

@@ -29,6 +29,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +38,8 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.weClickable
 import top.chengdongqing.wechat.ui.chatlist.ChatListScreen
 import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.badge.WeBadge
+import top.chengdongqing.wechat.ui.components.badge.toBadgeText
 import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBarIcon
@@ -179,12 +182,18 @@ fun BottomBar(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            painter = painterResource(currentIconResId),
-                            contentDescription = null,
-                            modifier = Modifier.size(26.dp),
-                            tint = currentColor
-                        )
+                        WeBadge(
+                            content = if (index == 0) 6.toBadgeText() else null,
+                            size = 20.dp,
+                            offset = DpOffset(x = 12.dp, y = (-2).dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(currentIconResId),
+                                contentDescription = null,
+                                modifier = Modifier.size(26.dp),
+                                tint = currentColor
+                            )
+                        }
                         Text(
                             text = screen.label,
                             fontSize = 12.sp,

@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -37,8 +38,9 @@ fun ChatItem(chat: Chat) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         WeBadge(
-            chat.unreadCount.toBadgeText(),
-            size = 20.dp
+            content = chat.unreadCount.toBadgeText(),
+            size = 20.dp,
+            offset = DpOffset(x = 8.dp, y = (-4).dp)
         ) {
             Image(
                 painter = painterResource(R.drawable.img_avatar),

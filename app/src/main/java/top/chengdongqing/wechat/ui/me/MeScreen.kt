@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.ui.me
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
@@ -48,15 +48,15 @@ fun MeScreen() {
             UserInfoHeader()
             StatusSection()
         }
-        ListItem("服务", R.drawable.ic_pay_logo_outline, Color(0xFF07C160))
+        MenuListItem("服务", R.drawable.ic_pay_logo_outline, Color(0xFF07C160))
         Column(modifier = Modifier.background(WeChatTheme.colorScheme.surface)) {
-            ListItem("收藏", R.drawable.ic_favorites_outline, Color.Unspecified)
+            MenuListItem("收藏", R.drawable.ic_favorites_outline, Color.Unspecified)
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            ListItem("朋友圈", R.drawable.ic_album_outline, Color(0xFF2782D7))
+            MenuListItem("朋友圈", R.drawable.ic_album_outline, Color(0xFF2782D7))
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            ListItem("表情", R.drawable.ic_sticker_outline, Color(0xFFF9C018))
+            MenuListItem("表情", R.drawable.ic_sticker_outline, Color(0xFFF9C018))
         }
-        ListItem("设置", R.drawable.ic_settings_outline, Color(0xFF2782D7))
+        MenuListItem("设置", R.drawable.ic_settings_outline, Color(0xFF2782D7))
     }
 }
 
@@ -136,32 +136,5 @@ fun StatusSection() {
             Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
             Text("状态", fontSize = 12.sp, color = Color.Gray)
         }
-    }
-}
-
-@Composable
-fun ListItem(title: String, @DrawableRes iconResId: Int, iconColor: Color) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WeChatTheme.colorScheme.surface)
-            .clickable { }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            painter = painterResource(iconResId),
-            null,
-            tint = iconColor,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(title, fontSize = 16.sp, modifier = Modifier.weight(1f))
-        Icon(
-            painter = painterResource(R.drawable.ic_right_outline),
-            null,
-            tint = Color.Gray,
-            modifier = Modifier.size(24.dp)
-        )
     }
 }
