@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,11 +27,13 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 @Composable
 fun WeTopBar(
     title: String,
+    bgColor: Color = WeChatTheme.colorScheme.background,
+    textColor: Color = WeChatTheme.colorScheme.textPrimary,
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     Surface(
-        color = WeChatTheme.colorScheme.background,
+        color = bgColor,
         modifier = Modifier.fillMaxWidth()
     ) {
         Box(
@@ -46,6 +49,7 @@ fun WeTopBar(
                     modifier = Modifier.align(Alignment.CenterStart),
                     iconResId = R.drawable.ic_back_outline,
                     description = "返回",
+                    tint = textColor,
                     onClick = onBack
                 )
             }
@@ -53,7 +57,7 @@ fun WeTopBar(
                 text = title,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = WeChatTheme.colorScheme.textPrimary
+                color = textColor
             )
             Row(
                 modifier = Modifier.align(Alignment.CenterEnd),
@@ -70,6 +74,7 @@ fun WeTopBarIcon(
     modifier: Modifier = Modifier,
     @DrawableRes iconResId: Int,
     description: String? = null,
+    tint: Color = WeChatTheme.colorScheme.textPrimary,
     onClick: (() -> Unit)? = null
 ) {
     Box(
@@ -82,7 +87,7 @@ fun WeTopBarIcon(
             painter = painterResource(iconResId),
             contentDescription = description,
             modifier = Modifier.size(24.dp),
-            tint = WeChatTheme.colorScheme.textPrimary
+            tint = tint
         )
     }
 }

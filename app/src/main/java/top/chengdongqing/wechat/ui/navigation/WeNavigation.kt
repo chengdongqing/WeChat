@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.ui.me.MeScreen
 fun WeChatNavigation(navController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navController,
-        startDestination = Screen.AddFriend.route,
+        startDestination = Screen.Home.route,
         enterTransition = {
             slideIntoContainer(
                 AnimatedContentTransitionScope.SlideDirection.Left,
