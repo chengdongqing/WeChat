@@ -42,6 +42,7 @@ sealed class Screen(
     )
 
     // 二级页面
+    object AddFriend : Screen("add_friend", "添加朋友")
     object ChatDetail : Screen("chat_detail/{peerId}", "聊天详情")
 }
 

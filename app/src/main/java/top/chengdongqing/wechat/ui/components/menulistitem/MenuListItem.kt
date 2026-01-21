@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.ui.components.menulistitem
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -27,12 +29,14 @@ fun MenuListItem(
     title: String,
     @DrawableRes iconResId: Int,
     iconColor: Color = Color.Unspecified,
+    description: String? = null,
+    height: Dp = 56.dp,
     onTap: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(height)
             .background(WeChatTheme.colorScheme.surface)
             .clickable { onTap?.invoke() }
             .padding(horizontal = 16.dp),
@@ -45,12 +49,21 @@ fun MenuListItem(
             tint = iconColor
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title,
-            fontSize = 16.sp,
-            color = WeChatTheme.colorScheme.textPrimary,
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                color = WeChatTheme.colorScheme.textPrimary
+            )
+            if (!description.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    fontSize = 12.sp,
+                    color = WeChatTheme.colorScheme.textSecondary
+                )
+            }
+        }
         Icon(
             painter = painterResource(R.drawable.ic_right_outline),
             contentDescription = null,

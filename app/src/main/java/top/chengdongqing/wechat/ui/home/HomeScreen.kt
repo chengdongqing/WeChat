@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.weClickable
@@ -51,9 +52,9 @@ import top.chengdongqing.wechat.ui.navigation.bottomTabItems
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavHostController) {
     val pagerState = rememberPagerState(
-        initialPage = 3,
+        initialPage = 0,
         pageCount = { bottomTabItems.size }
     )
     val scope = rememberCoroutineScope()
@@ -62,7 +63,7 @@ fun HomeScreen() {
     Scaffold(
         topBar = {
             if (currentTab.route != "me")
-                TopBar(currentTab.label)
+                TopBar(currentTab.label, navController)
             else
                 Surface(
                     color = WeChatTheme.colorScheme.surface,
@@ -103,7 +104,7 @@ fun HomeScreen() {
 }
 
 @Composable
-private fun TopBar(title: String) {
+private fun TopBar(title: String, navController: NavHostController) {
     var menuExpanded by remember { mutableStateOf(false) }
     var anchorPosition by remember { mutableStateOf(Offset.Zero) }
     var anchorSize by remember { mutableStateOf(IntSize.Zero) }
@@ -113,7 +114,9 @@ private fun TopBar(title: String) {
     val menuItems = remember {
         listOf(
             MenuItem(R.drawable.ic_chats_filled, "发起群聊") { },
-            MenuItem(R.drawable.ic_add_friends_filled, "添加朋友") { },
+            MenuItem(R.drawable.ic_add_friends_filled, "添加朋友") {
+                navController.navigate(Screen.AddFriend.route)
+            },
             MenuItem(R.drawable.ic_scan_filled, "扫一扫") {
                 scanCode()
             },

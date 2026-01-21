@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.bundles.camera)
     implementation(libs.mlkit.barcode.scanning)
+    implementation(libs.zxing)
     implementation(libs.pinyin)
     ksp(libs.room.compiler)
 

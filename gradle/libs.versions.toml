@@ -23,6 +23,7 @@ coil = "3.3.0"
 coilZoomable = "0.18.0"
 camera = "1.5.2"
 mlkit = "17.3.0"
+zxing = "3.5.4"
 pinyin = "0.4.0"
 
 [libraries]
@@ -64,6 +65,7 @@ camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cam
 camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera" } # 相机生命周期管理
 camera-view = { module = "androidx.camera:camera-view", version.ref = "camera" } # 相机视图容器
 mlkit-barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkit" } # 二维码识别（基于机器学习）
+zxing = { module = "com.google.zxing:core", version.ref = "zxing" } # 二维码生成
 pinyin = { module = "com.github.houbb:pinyin", version.ref = "pinyin" } # 汉字转拼音
 
 [plugins]
