@@ -80,28 +80,11 @@ fun ChatBottomBar(
             // 表情按钮
             EmojiButton(inputMode, controller)
             // 发送/更多按钮
-            SendOrMoreButton(text, onSend, controller)
+            SendOrMoreButton(text, onSend, inputMode, controller)
         }
 
-        ExpandablePanel(inputMode)
-    }
-}
-
-@Composable
-private fun SendOrMoreButton(
-    text: String,
-    onSend: () -> Unit,
-    controller: InputModeController
-) {
-    AnimatedContent(targetState = text.isNotEmpty(), label = "SendBtn") { isNotEmpty ->
-        if (isNotEmpty) {
-            Box(modifier = Modifier.height(40.dp), contentAlignment = Alignment.Center) {
-                WeButton("发送", size = ButtonSize.SMALL, onClick = onSend)
-            }
-        } else {
-            ActionIcon(iconResId = R.drawable.ic_plus_circle_outline) {
-                controller.switchMode(ChatInputMode.MORE)
-            }
+        if (inputMode.isPanelMode) {
+            ExpandablePanel(inputMode)
         }
     }
 }
@@ -178,7 +161,29 @@ private fun EmojiButton(inputMode: ChatInputMode, controller: InputModeControlle
             R.drawable.ic_sticker_outline
         }
     ) {
-        controller.switchMode(ChatInputMode.EMOJI)
+        val mode = if (inputMode.isEmoji) ChatInputMode.TEXT else ChatInputMode.EMOJI
+        controller.switchMode(mode)
+    }
+}
+
+@Composable
+private fun SendOrMoreButton(
+    text: String,
+    onSend: () -> Unit,
+    inputMode: ChatInputMode,
+    controller: InputModeController
+) {
+    AnimatedContent(targetState = text.isNotEmpty(), label = "SendBtn") { isNotEmpty ->
+        if (isNotEmpty) {
+            Box(modifier = Modifier.height(40.dp), contentAlignment = Alignment.Center) {
+                WeButton("发送", size = ButtonSize.SMALL, onClick = onSend)
+            }
+        } else {
+            ActionIcon(iconResId = R.drawable.ic_plus_circle_outline) {
+                val mode = if (inputMode.isMore) ChatInputMode.TEXT else ChatInputMode.MORE
+                controller.switchMode(mode)
+            }
+        }
     }
 }
 

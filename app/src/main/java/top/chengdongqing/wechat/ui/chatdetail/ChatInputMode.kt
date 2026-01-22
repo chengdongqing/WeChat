@@ -34,6 +34,7 @@ value class ChatInputMode private constructor(@Suppress("unused") private val va
     val isText get() = this == TEXT
     val isVoice get() = this == VOICE
     val isEmoji get() = this == EMOJI
+    val isMore get() = this == MORE
     val isPanelMode get() = this == EMOJI || this == MORE
 
     // 重写 toString 方便日志调试，否则打印出来只是 PanelState(value=0)

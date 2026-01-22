@@ -30,8 +30,6 @@ import top.chengdongqing.wechat.R
 
 @Composable
 fun ExpandablePanel(inputMode: ChatInputMode, defaultHeight: Dp = 300.dp) {
-    if (!inputMode.isPanelMode) return
-
     val ime = WindowInsets.ime
     val density = LocalDensity.current
     val keyboardHeight = with(density) { ime.getBottom(this).toDp() }
