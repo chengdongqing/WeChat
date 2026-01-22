@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail
+package top.chengdongqing.wechat.ui.chatdetail.bottombar
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets

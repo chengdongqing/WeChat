@@ -16,28 +16,28 @@ sealed class Screen(
         Screen(
             "chats",
             "微信",
-            R.drawable.ic_tab_chats_outline,
+            R.drawable.ic_tab_chats_outlined,
             R.drawable.ic_tab_chats_filled
         )
 
     object Contacts : Screen(
         "contacts",
         "通讯录",
-        R.drawable.ic_tab_contacts_outline,
+        R.drawable.ic_tab_contacts_outlined,
         R.drawable.ic_tab_contacts_filled
     )
 
     object Discovery : Screen(
         "discovery",
         "发现",
-        R.drawable.ic_tab_discover_outline,
+        R.drawable.ic_tab_discover_outlined,
         R.drawable.ic_tab_discover_filled
     )
 
     object Me : Screen(
         "me",
         "我",
-        R.drawable.ic_tab_me_outline,
+        R.drawable.ic_tab_me_outlined,
         R.drawable.ic_tab_me_filled
     )
 

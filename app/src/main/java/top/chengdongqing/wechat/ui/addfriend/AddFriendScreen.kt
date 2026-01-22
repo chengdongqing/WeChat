@@ -56,19 +56,19 @@ fun AddFriendScreen(
         listOf(
             AddFriendItem(
                 "扫一扫",
-                R.drawable.ic_scan_outline,
+                R.drawable.ic_scan_outlined,
                 Color(0xFF2B7CF1),
                 "扫描二维码名片"
             ) { scanCode() },
             AddFriendItem(
                 "雷达",
-                R.drawable.ic_radar_outline,
+                R.drawable.ic_radar_outlined,
                 Color(0xFF7468BE),
                 "添加身边的朋友"
             ) { onNavigateToRadar() },
             AddFriendItem(
                 "面对面建群",
-                R.drawable.ic_group_chat_outline,
+                R.drawable.ic_group_chat_outlined,
                 Color(0xFF07C160),
                 "与身边的朋友进入同一个群聊"
             ) { onNavigateToGroup() }

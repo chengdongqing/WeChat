@@ -75,7 +75,7 @@ fun ChatItem(chat: Chat) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Icon(
-                painter = painterResource(R.drawable.ic_bellring_off),
+                painter = painterResource(R.drawable.ic_mute_outlined),
                 contentDescription = "已开启免打扰",
                 modifier = Modifier.size(16.dp),
                 tint = WeChatTheme.colorScheme.textSecondary

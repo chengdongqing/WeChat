@@ -48,7 +48,7 @@ fun WeTopBar(
             if (onBack != null) {
                 WeTopBarIcon(
                     modifier = Modifier.align(Alignment.CenterStart),
-                    iconResId = R.drawable.ic_back_outline,
+                    iconResId = R.drawable.ic_back_outlined,
                     description = "返回",
                     tint = textColor,
                     onClick = onBack

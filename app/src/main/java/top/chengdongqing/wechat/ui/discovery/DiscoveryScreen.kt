@@ -20,7 +20,7 @@ fun DiscoveryScreen() {
             .background(WeChatTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        MenuListItem("朋友圈", R.drawable.ic_moments_outline)
-        MenuListItem("搜一搜", R.drawable.ic_search_logo_outline, Danger)
+        MenuListItem("朋友圈", R.drawable.ic_moments_outlined)
+        MenuListItem("搜一搜", R.drawable.ic_search_logo_outlined, Danger)
     }
 }

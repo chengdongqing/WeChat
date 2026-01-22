@@ -35,6 +35,8 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.formatChatTime
 import top.chengdongqing.wechat.data.model.ChatMessage
+import top.chengdongqing.wechat.ui.chatdetail.bottombar.ChatBottomBar
+import top.chengdongqing.wechat.ui.chatdetail.chatbubble.ChatBubbleItem
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import java.time.Duration
 import java.time.Instant
@@ -44,7 +46,6 @@ fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-
     val chatMessages = remember { generateMockChatData() }
 
     // 键盘弹出时自动滚动到最后的消息
@@ -54,7 +55,7 @@ fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
         modifier = Modifier.imePadding(),
         topBar = {
             WeTopBar(title = "张三", onBack = onBack) {
-                ActionIcon(iconResId = R.drawable.ic_more_outline, description = "更多")
+                ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多")
             }
         },
         bottomBar = {

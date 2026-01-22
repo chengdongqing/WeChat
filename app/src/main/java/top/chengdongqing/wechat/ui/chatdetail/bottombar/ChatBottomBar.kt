@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail
+package top.chengdongqing.wechat.ui.chatdetail.bottombar
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,19 +26,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.UpdatedEffect
 import top.chengdongqing.wechat.core.utils.weClickable
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
-import top.chengdongqing.wechat.ui.theme.GreenPrimary
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -55,6 +50,25 @@ fun ChatBottomBar(
 
     // 切换到文本模式后自动弹出键盘
     FocusRequestEffect(focusRequester, inputMode.isText)
+
+    /**
+     * 处理文本删除
+     */
+    fun handleBackspace() {
+        if (text.isNotEmpty()) {
+            // 匹配末尾是否是 "[xxx]" 这种格式
+            val lastBracketIndex = text.lastIndexOf('[')
+            val lastChar = text.last()
+
+            if (lastChar == ']' && lastBracketIndex != -1) {
+                // 进一步确认括号内是否有内容，或者是否符合表情格式
+                onTextChange(text.take(lastBracketIndex))
+            } else {
+                // 普通文本，只删除最后一个字符
+                onTextChange(text.dropLast(1))
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -73,7 +87,13 @@ fun ChatBottomBar(
             // 输入框区域
             InputBox(
                 text,
-                onTextChange,
+                onTextChange = { newText ->
+                    if (newText.length < text.length) {
+                        handleBackspace()
+                    } else {
+                        onTextChange(newText)
+                    }
+                },
                 inputMode,
                 focusRequester,
             )
@@ -84,7 +104,18 @@ fun ChatBottomBar(
         }
 
         if (inputMode.isPanelMode) {
-            ExpandablePanel(inputMode)
+            ExpandablePanel(
+                inputMode,
+                onEmojiSelect = {
+                    onTextChange(text + "[${it.description}]")
+                },
+                onStickerSelect = {
+
+                },
+                onBackspace = {
+                    handleBackspace()
+                }
+            )
         }
     }
 }
@@ -96,9 +127,9 @@ private fun VoiceButton(
 ) {
     ActionIcon(
         iconResId = if (inputMode.isVoice) {
-            R.drawable.ic_keyboard_outline
+            R.drawable.ic_keyboard_outlined
         } else {
-            R.drawable.ic_voice_outline
+            R.drawable.ic_voice_outlined
         }
     ) {
         if (inputMode.isVoice) {
@@ -130,14 +161,10 @@ private fun RowScope.InputBox(
             VoiceRecordButton()
         } else {
             // 其他所有模式：都显示输入框
-            BasicTextField(
+            EmojiTextField(
                 value = text,
                 onValueChange = onTextChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                textStyle = TextStyle(fontSize = 16.sp),
-                cursorBrush = SolidColor(GreenPrimary)
+                modifier = Modifier.focusRequester(focusRequester)
             )
         }
     }
@@ -156,9 +183,9 @@ private fun VoiceRecordButton() {
 private fun EmojiButton(inputMode: ChatInputMode, controller: InputModeController) {
     ActionIcon(
         iconResId = if (inputMode.isEmoji) {
-            R.drawable.ic_keyboard_outline
+            R.drawable.ic_keyboard_outlined
         } else {
-            R.drawable.ic_sticker_outline
+            R.drawable.ic_sticker_outlined
         }
     ) {
         val mode = if (inputMode.isEmoji) ChatInputMode.TEXT else ChatInputMode.EMOJI
@@ -179,7 +206,7 @@ private fun SendOrMoreButton(
                 WeButton("发送", size = ButtonSize.SMALL, onClick = onSend)
             }
         } else {
-            ActionIcon(iconResId = R.drawable.ic_plus_circle_outline) {
+            ActionIcon(iconResId = R.drawable.ic_plus_circle_outlined) {
                 val mode = if (inputMode.isMore) ChatInputMode.TEXT else ChatInputMode.MORE
                 controller.switchMode(mode)
             }

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail
+package top.chengdongqing.wechat.ui.chatdetail.chatbubble
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement

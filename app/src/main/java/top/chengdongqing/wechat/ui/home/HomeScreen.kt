@@ -127,7 +127,7 @@ private fun TopBar(title: String, navController: NavHostController) {
 
     WeTopBar(title = title) {
         ActionIcon(
-            iconResId = R.drawable.ic_search_outline,
+            iconResId = R.drawable.ic_search_outlined,
             description = "搜索"
         )
 
@@ -136,7 +136,7 @@ private fun TopBar(title: String, navController: NavHostController) {
                 anchorPosition = layoutCoordinates.positionInParent()
                 anchorSize = layoutCoordinates.size
             },
-            iconResId = R.drawable.ic_plus_circle_outline,
+            iconResId = R.drawable.ic_plus_circle_outlined,
             description = "更多"
         ) {
             menuExpanded = true

@@ -65,7 +65,7 @@ fun MenuListItem(
             }
         }
         Icon(
-            painter = painterResource(R.drawable.ic_right_outline),
+            painter = painterResource(R.drawable.ic_right_outlined),
             contentDescription = null,
             tint = Color.Gray,
             modifier = Modifier.size(24.dp)

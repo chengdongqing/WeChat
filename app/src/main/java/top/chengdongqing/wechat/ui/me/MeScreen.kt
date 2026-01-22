@@ -48,15 +48,15 @@ fun MeScreen() {
             UserInfoHeader()
             StatusSection()
         }
-        MenuListItem("服务", R.drawable.ic_pay_logo_outline, Color(0xFF07C160))
+        MenuListItem("服务", R.drawable.ic_pay_logo_outlined, Color(0xFF07C160))
         Column(modifier = Modifier.background(WeChatTheme.colorScheme.surface)) {
-            MenuListItem("收藏", R.drawable.ic_favorites_outline, Color.Unspecified)
+            MenuListItem("收藏", R.drawable.ic_favorites_outlined, Color.Unspecified)
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            MenuListItem("朋友圈", R.drawable.ic_album_outline, Color(0xFF2782D7))
+            MenuListItem("朋友圈", R.drawable.ic_album_outlined, Color(0xFF2782D7))
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            MenuListItem("表情", R.drawable.ic_sticker_outline, Color(0xFFF9C018))
+            MenuListItem("表情", R.drawable.ic_sticker_outlined, Color(0xFFF9C018))
         }
-        MenuListItem("设置", R.drawable.ic_settings_outline, Color(0xFF2782D7))
+        MenuListItem("设置", R.drawable.ic_settings_outlined, Color(0xFF2782D7))
     }
 }
 
@@ -100,14 +100,14 @@ fun UserInfoHeader() {
         Spacer(modifier = Modifier.width(20.dp))
         Column {
             Icon(
-                painter = painterResource(R.drawable.ic_qrcode_outline),
+                painter = painterResource(R.drawable.ic_qrcode_outlined),
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
                 tint = Color(0xFF456F6F)
             )
             Spacer(modifier = Modifier.height(14.dp))
             Icon(
-                painter = painterResource(R.drawable.ic_right_outline),
+                painter = painterResource(R.drawable.ic_right_outlined),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
                 tint = Color.Gray
