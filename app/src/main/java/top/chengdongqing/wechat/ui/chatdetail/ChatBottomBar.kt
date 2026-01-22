@@ -17,18 +17,24 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.utils.UpdatedEffect
 import top.chengdongqing.wechat.core.utils.weClickable
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
+import top.chengdongqing.wechat.ui.theme.GreenPrimary
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
@@ -39,6 +45,11 @@ fun ChatBottomBar(
     onModeChange: (Boolean) -> Unit,
     onSend: () -> Unit
 ) {
+    val focusRequester = remember { FocusRequester() }
+
+    // 切换到文本模式后自动弹出键盘
+    LaunchedEffectFocusRequest(focusRequester, !isVoiceMode)
+
     Column(
         modifier = Modifier
             .navigationBarsPadding()
@@ -53,7 +64,7 @@ fun ChatBottomBar(
             // 语音/文字切换按钮
             ActionIcon(
                 iconResId = if (isVoiceMode) R.drawable.ic_keyboard_outline else R.drawable.ic_voice_outline,
-                description = "显示表情"
+                description = "切换模式"
             ) {
                 onModeChange(!isVoiceMode)
             }
@@ -78,8 +89,11 @@ fun ChatBottomBar(
                     BasicTextField(
                         value = text,
                         onValueChange = onTextChange,
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = TextStyle(fontSize = 16.sp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        textStyle = TextStyle(fontSize = 16.sp),
+                        cursorBrush = SolidColor(GreenPrimary)
                     )
                 }
             }
@@ -90,7 +104,7 @@ fun ChatBottomBar(
             AnimatedContent(targetState = text.isNotEmpty(), label = "SendButton") { isNotEmpty ->
                 if (isNotEmpty) {
                     Box(modifier = Modifier.height(40.dp), contentAlignment = Alignment.Center) {
-                        WeButton("发送", size = ButtonSize.SMALL)
+                        WeButton("发送", size = ButtonSize.SMALL, onClick = onSend)
                     }
                 } else {
                     ActionIcon(
@@ -123,5 +137,17 @@ private fun ActionIcon(
             modifier = Modifier.size(30.dp),
             tint = tint
         )
+    }
+}
+
+@Composable
+private fun LaunchedEffectFocusRequest(
+    focusRequester: FocusRequester,
+    trigger: Boolean
+) {
+    UpdatedEffect(trigger) {
+        if (trigger) {
+            focusRequester.requestFocus()
+        }
     }
 }

@@ -11,60 +11,71 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.data.model.ChatMessage
+import kotlin.math.sqrt
 
 @Composable
 fun ChatBubbleItem(
-    isFromMe: Boolean,
-    text: String,
+    message: ChatMessage,
     avatarRes: Int = R.drawable.img_avatar
 ) {
+    val isFromMe = message.isFromMe
+    val maxBubbleWidth = rememberMaxBubbleWidth()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(vertical = 8.dp),
         horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
     ) {
         if (!isFromMe) {
             Avatar(avatarRes)
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
         }
 
-        // 气泡容器
         Column(horizontalAlignment = if (isFromMe) Alignment.End else Alignment.Start) {
+            val bubbleColor = if (isFromMe) Color(0xFF95EC69) else Color.White
+
             Surface(
-                color = if (isFromMe) Color(0xFF95EC69) else Color.White,
-                shape = ChatBubbleShape(isFromMe = isFromMe),
-                modifier = Modifier.widthIn(max = 260.dp) // 限制最大宽度
+                color = bubbleColor,
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier
+                    .widthIn(max = maxBubbleWidth)
+                    .drawChatArrow(isFromMe, bubbleColor)
             ) {
-                Text(
-                    text = text,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    style = TextStyle(fontSize = 16.sp, color = Color.Black)
-                )
+                SelectionContainer {
+                    Text(
+                        text = message.text,
+                        modifier = Modifier.padding(10.dp),
+                        style = TextStyle(fontSize = 16.sp, color = Color.Black)
+                    )
+                }
             }
         }
 
         if (isFromMe) {
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Avatar(avatarRes)
         }
     }
@@ -81,36 +92,48 @@ private fun Avatar(resId: Int) {
     )
 }
 
-class ChatBubbleShape(
-    private val isFromMe: Boolean,
-    private val cornerRadius: Dp = 8.dp,
-    private val arrowWidth: Dp = 6.dp,
-    private val arrowHeight: Dp = 10.dp
-) : Shape {
-    override fun createOutline(
-        size: androidx.compose.ui.geometry.Size,
-        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
-        density: Density
-    ): Outline {
-        val path = Path()
-        val radius = with(density) { cornerRadius.toPx() }
-        val aW = with(density) { arrowWidth.toPx() }
-        val aH = with(density) { arrowHeight.toPx() }
+@Composable
+private fun rememberMaxBubbleWidth(): Dp {
+    val windowInfo = LocalWindowInfo.current
+    val screenWidth = windowInfo.containerDpSize.width
 
-        if (isFromMe) {
-            // 右侧气泡：小三角在右边
-            path.addRoundRect(RoundRect(0f, 0f, size.width - aW, size.height, CornerRadius(radius)))
-            path.moveTo(size.width - aW, 20f) // 三角起始高度
-            path.lineTo(size.width, 25f)
-            path.lineTo(size.width - aW, 30f)
-        } else {
-            // 左侧气泡：小三角在左边
-            path.addRoundRect(RoundRect(aW, 0f, size.width, size.height, CornerRadius(radius)))
-            path.moveTo(aW, 20f)
-            path.lineTo(0f, 25f)
-            path.lineTo(aW, 30f)
+    return remember {
+        screenWidth - 60.dp - 40.dp - 24.dp
+    }
+}
+
+private fun Modifier.drawChatArrow(
+    isFromMe: Boolean,
+    color: Color,
+    arrowSize: Dp = 8.dp,
+    verticalOffset: Dp = 16.dp // 距离顶部的距离
+): Modifier = this.drawWithCache {
+    // 这里的逻辑只在 Size 改变时执行一次
+    val sizePx = arrowSize.toPx()
+    val offsetPx = verticalOffset.toPx()
+    // 旋转 45 度后，顶点到中心的距离是 (边长 * √2) / 2
+    val halfDiagonal = (sizePx * sqrt(2.0) / 2.0).toFloat()
+    // 计算旋转中心
+    val pivotX = if (isFromMe) size.width - 1 else 1f
+    val pivotY = offsetPx + halfDiagonal
+    // 计算正方形的左上角位置，使其中心点与 pivot 对齐
+    val topLeft = Offset(
+        x = pivotX - sizePx / 2f,
+        y = pivotY - sizePx / 2f
+    )
+
+    onDrawBehind {
+        // 这里的逻辑在重绘时执行
+        rotate(
+            degrees = 45f,
+            pivot = Offset(pivotX, pivotY)
+        ) {
+            drawRoundRect(
+                color = color,
+                topLeft = topLeft,
+                size = Size(sizePx, sizePx),
+                cornerRadius = CornerRadius(1.dp.toPx())
+            )
         }
-        path.close()
-        return Outline.Generic(path)
     }
 }
