@@ -3,12 +3,13 @@ package top.chengdongqing.wechat.ui.chatdetail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -27,9 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -43,7 +42,6 @@ import java.time.Instant
 @Composable
 fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
     var inputText by remember { mutableStateOf("") }
-    var isVoiceMode by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
 
@@ -63,8 +61,6 @@ fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
             ChatBottomBar(
                 text = inputText,
                 onTextChange = { inputText = it },
-                isVoiceMode = isVoiceMode,
-                onModeChange = { isVoiceMode = it },
                 onSend = {
                     // 发送逻辑
                     inputText = ""
@@ -136,17 +132,16 @@ private fun TimeDivider(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LaunchedEffectKeyboardScroll(
     listState: LazyListState,
     itemCount: Int
 ) {
-    // 获取当前键盘高度
-    val imeHeight = WindowInsets.ime.getBottom(LocalDensity.current)
+    val isImeVisible = WindowInsets.isImeVisible
 
-    // 监听高度变化
-    LaunchedEffect(imeHeight) {
-        if (imeHeight > 0 && itemCount > 0) {
+    LaunchedEffect(isImeVisible) {
+        if (isImeVisible && itemCount > 0) {
             listState.scrollToItem(0)
         }
     }
@@ -156,7 +151,7 @@ private fun generateMockChatData(): List<ChatMessage> {
     val messages = mutableListOf<ChatMessage>()
     val now = Instant.now()
 
-    // 定义需要测试的时间跨度 (数量, 时间偏移单位)
+    // 定义需要测试的时间跨度
     val testBuckets = listOf(
         // 数量 | 时间偏移量
         5 to Duration.ofMinutes(2),    // 刚刚 (几分钟前)
@@ -164,7 +159,7 @@ private fun generateMockChatData(): List<ChatMessage> {
         5 to Duration.ofDays(1),       // 昨天
         5 to Duration.ofDays(3),       // 本周内 (周几)
         5 to Duration.ofDays(10),      // 今年稍早 (几月几日)
-        5 to Duration.ofDays(400)      // 往年 (2025年或更早)
+        5 to Duration.ofDays(400)      // 往年
     )
 
     val mockTexts = listOf(
@@ -192,13 +187,5 @@ private fun generateMockChatData(): List<ChatMessage> {
         }
     }
 
-    // 聊天列表通常需要按时间从旧到新排序
-    // 这样在 reverseLayout = true 的 LazyColumn 中，最新的会在最下面（index 0）
     return messages.sortedByDescending { it.timestamp }
-}
-
-@Preview
-@Composable
-private fun Preview() {
-    ChatDetailScreen("32423") { }
 }
