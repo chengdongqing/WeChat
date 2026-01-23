@@ -1,11 +1,11 @@
 package top.chengdongqing.wechat.ui.chatdetail.bottombar
 
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
@@ -21,15 +21,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.UpdatedEffect
 import top.chengdongqing.wechat.core.utils.weClickable
@@ -37,37 +38,23 @@ import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ChatBottomBar(
     text: String,
     onTextChange: (String) -> Unit,
     onSend: () -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
+    val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputModeController(focusRequester)
     val inputMode by controller.inputMode
+    val scope = rememberCoroutineScope()
 
     // 切换到文本模式后自动弹出键盘
     FocusRequestEffect(focusRequester, inputMode.isText)
 
-    /**
-     * 处理文本删除
-     */
-    fun handleBackspace() {
-        if (text.isNotEmpty()) {
-            // 匹配末尾是否是 "[xxx]" 这种格式
-            val lastBracketIndex = text.lastIndexOf('[')
-            val lastChar = text.last()
-
-            if (lastChar == ']' && lastBracketIndex != -1) {
-                // 进一步确认括号内是否有内容，或者是否符合表情格式
-                onTextChange(text.take(lastBracketIndex))
-            } else {
-                // 普通文本，只删除最后一个字符
-                onTextChange(text.dropLast(1))
-            }
-        }
+    // 拦截系统返回：展开面板时则收起面板
+    BackHandler(inputMode.isPanelMode) {
+        controller.switchMode(ChatInputMode.TEXT)
     }
 
     Column(
@@ -89,13 +76,15 @@ fun ChatBottomBar(
                 text,
                 onTextChange = { newText ->
                     if (newText.length < text.length) {
-                        handleBackspace()
+                        text.handleBackspace(focusRequester.selectionStart) { newString, _ ->
+                            onTextChange(newString)
+                        }
                     } else {
                         onTextChange(newText)
                     }
                 },
                 inputMode,
-                focusRequester,
+                focusRequester
             )
             // 表情按钮
             EmojiButton(inputMode, controller)
@@ -107,13 +96,32 @@ fun ChatBottomBar(
             ExpandablePanel(
                 inputMode,
                 onEmojiSelect = {
-                    onTextChange(text + "[${it.description}]")
+                    val insertText = "[${it.description}]"
+                    val cursorIndex = focusRequester.selectionStart
+                    val newText = StringBuilder(text)
+                        .insert(cursorIndex, insertText)
+                        .toString()
+                    onTextChange(newText)
+
+                    // 计算新的光标位置
+                    val newCursorIndex = cursorIndex + insertText.length
+                    scope.launch {
+                        delay(16)
+                        focusRequester.setSelection(newCursorIndex)
+                    }
                 },
                 onStickerSelect = {
 
                 },
                 onBackspace = {
-                    handleBackspace()
+                    text.handleBackspace(focusRequester.selectionStart) { newString, newPos ->
+                        onTextChange(newString)
+
+                        // 同步光标
+                        focusRequester.post {
+                            focusRequester.setSelection(newPos)
+                        }
+                    }
                 }
             )
         }
@@ -145,7 +153,7 @@ private fun RowScope.InputBox(
     text: String,
     onTextChange: (String) -> Unit,
     inputMode: ChatInputMode,
-    focusRequester: FocusRequester,
+    focusRequester: NativeFocusRequester
 ) {
     Box(
         modifier = Modifier
@@ -164,7 +172,7 @@ private fun RowScope.InputBox(
             EmojiTextField(
                 value = text,
                 onValueChange = onTextChange,
-                modifier = Modifier.focusRequester(focusRequester)
+                focusRequester = focusRequester
             )
         }
     }
@@ -239,13 +247,43 @@ private fun ActionIcon(
 
 @Composable
 private fun FocusRequestEffect(
-    focusRequester: FocusRequester,
+    focusRequester: NativeFocusRequester,
     trigger: Boolean
 ) {
     UpdatedEffect(trigger) {
         if (trigger) {
             focusRequester.requestFocus()
         }
+    }
+}
+
+/**
+ * 处理文本删除
+ */
+private fun String.handleBackspace(
+    selectionStart: Int,
+    onChange: (newText: String, newCursorPos: Int) -> Unit
+) {
+    if (selectionStart <= 0) return
+
+    val textBefore = substring(0, selectionStart)
+    val textAfter = substring(selectionStart)
+
+    // 匹配光标左侧紧邻的 "[xxx]"
+    // 正则：以 [ 开头，中间包含非括号字符，以 ] 结尾，且必须紧贴末尾($)
+    val emojiRegex = Regex("\\[[^\\[\\]]+]$")
+    val match = emojiRegex.find(textBefore)
+
+    if (match != null) {
+        // A：光标前是表情块，整体删除
+        val newText = textBefore.removeRange(match.range) + textAfter
+        val newCursorPos = match.range.first
+        onChange(newText, newCursorPos)
+    } else {
+        // B：普通文本，只删一个字符
+        val newText = textBefore.dropLast(1) + textAfter
+        val newCursorPos = selectionStart - 1
+        onChange(newText, newCursorPos)
     }
 }
 

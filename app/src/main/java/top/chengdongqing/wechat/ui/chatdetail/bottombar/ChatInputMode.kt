@@ -9,9 +9,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 
@@ -52,9 +49,8 @@ value class ChatInputMode private constructor(@Suppress("unused") private val va
  */
 class InputModeController(
     val inputMode: MutableState<ChatInputMode>,
-    private val focusRequester: FocusRequester,
-    private val keyboardController: SoftwareKeyboardController?,
-    private val focusManager: FocusManager
+    private val focusRequester: NativeFocusRequester,
+    private val keyboardController: SoftwareKeyboardController?
 ) {
     fun switchMode(target: ChatInputMode) {
         inputMode.value = target
@@ -67,36 +63,38 @@ class InputModeController(
     }
 
     private fun hideKeyboard() {
-        focusManager.clearFocus()
+        focusRequester.clearFocus()
         keyboardController?.hide()
     }
 
     private fun showKeyboard() {
         inputMode.value = ChatInputMode.TEXT
         focusRequester.requestFocus()
-        keyboardController?.show()
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun rememberInputModeController(
-    focusRequester: FocusRequester,
+    focusRequester: NativeFocusRequester,
     initialMode: ChatInputMode = ChatInputMode.TEXT
 ): InputModeController {
     val inputMode = remember { mutableStateOf(initialMode) }
     val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
     val isImeVisible = WindowInsets.isImeVisible
 
-    // 如果键盘弹起了，强制隐藏自定义面板
     LaunchedEffect(isImeVisible) {
+        // 如果键盘弹起了，强制隐藏自定义面板
         if (isImeVisible) {
             inputMode.value = ChatInputMode.TEXT
         }
+        // 显示表情面板时，显示输入框的光标
+        else if (inputMode.value.isEmoji) {
+            focusRequester.requestFocus(showKeyboard = false)
+        }
     }
 
-    return remember(focusRequester, keyboardController, focusManager) {
-        InputModeController(inputMode, focusRequester, keyboardController, focusManager)
+    return remember {
+        InputModeController(inputMode, focusRequester, keyboardController)
     }
 }

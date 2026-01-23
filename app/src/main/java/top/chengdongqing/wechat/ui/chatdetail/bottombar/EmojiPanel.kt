@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -30,10 +31,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.utils.repeatingClickable
 import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.data.sticker.Emojis
 import top.chengdongqing.wechat.data.sticker.Stickers
@@ -131,25 +132,18 @@ private fun EmojiGrid(onSelect: (value: Emoji) -> Unit, onBackspace: () -> Unit)
 private fun BackspaceButton(onBackspace: () -> Unit) {
     Box(
         Modifier
-            .zIndex(1f)
-            .size(102.dp, 66.dp)
-            .padding(end = 12.dp, bottom = 18.dp),
-        contentAlignment = Alignment.BottomEnd
+            .offset(x = (-12).dp, y = (-22).dp)
+            .clip(RoundedCornerShape(8.dp))
+            .repeatingClickable { onBackspace() }
+            .background(Color.White)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
-        Box(
-            Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { onBackspace() }
-                .background(Color.White)
-                .padding(12.dp, 6.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Backspace,
-                contentDescription = "回退",
-                modifier = Modifier.size(28.dp),
-                tint = Black
-            )
-        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Backspace,
+            contentDescription = "回退",
+            modifier = Modifier.size(22.dp),
+            tint = Black
+        )
     }
 }
 
