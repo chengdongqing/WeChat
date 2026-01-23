@@ -55,7 +55,7 @@ fun Modifier.weClickableWithBg(
 }
 
 /**
- * 实现长按连续触发动作的 Modifier
+ * 长按连续触发
  *
  * @param enabled 是否启用
  * @param initialDelayMillis 长按判定时间
@@ -77,7 +77,6 @@ fun Modifier.repeatingClickable(
         if (!enabled) return@pointerInput
 
         detectTapGestures(
-            onTap = { currentOnClick() },
             onPress = {
                 val job = scope.launch {
                     currentOnClick() // 按下立即触发一次
