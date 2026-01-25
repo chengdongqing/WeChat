@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat
+package top.chengdongqing.wechat.ui.chat_1
 
 import android.app.Application
 import android.net.Uri

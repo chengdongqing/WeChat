@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail.chatbubble
+package top.chengdongqing.wechat.ui.chat.session.message
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +36,7 @@ import top.chengdongqing.wechat.data.model.ChatMessage
 import kotlin.math.sqrt
 
 @Composable
-fun ChatBubbleItem(
+fun MessageItem(
     message: ChatMessage,
     avatarRes: Int = R.drawable.img_avatar
 ) {

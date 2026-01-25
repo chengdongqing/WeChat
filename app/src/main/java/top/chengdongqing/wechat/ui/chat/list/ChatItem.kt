@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatlist
+package top.chengdongqing.wechat.ui.chat.list
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

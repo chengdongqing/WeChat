@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatlist
+package top.chengdongqing.wechat.ui.chat.list
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -8,12 +8,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.overscroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import top.chengdongqing.wechat.core.utils.randomUUID
-import top.chengdongqing.wechat.data.model.Chat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.contextmenu.WeContextMenu
 import top.chengdongqing.wechat.ui.components.contextmenu.rememberContextMenuState
@@ -24,17 +25,14 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
-fun ChatListScreen(onNavigateToDetail: (friendId: String) -> Unit) {
-    val chatList = remember {
-        generateMockChats()
-    }
+fun ChatListScreen(
+    viewModel: ChatListViewModel = viewModel(),
+    onNavigateToDetail: (friendId: String) -> Unit
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val menus = remember {
-        listOf("标为未读", "置顶该聊天", "不显示该聊天", "删除该聊天")
-    }
     val dialog = rememberDialogState()
     val contextMenuState = rememberContextMenuState()
-
     val scope = rememberCoroutineScope()
     val overscrollEffect = remember { BounceOverscrollEffect(scope) }
 
@@ -46,17 +44,18 @@ fun ChatListScreen(onNavigateToDetail: (friendId: String) -> Unit) {
         overscrollEffect = overscrollEffect
     ) {
         itemsIndexed(
-            items = chatList,
+            items = state.chats,
             key = { _, chat -> chat.id }
         ) { index, chat ->
             Box(
                 modifier = Modifier
-                    .weContextMenu(
-                        onClick = {
-                            onNavigateToDetail(chat.id)
-                        }
-                    ) { position ->
-                        contextMenuState.show(position, menus, index)
+                    .weContextMenu({
+                        onNavigateToDetail(chat.id)
+                    }) { position ->
+                        val readMenu = if (chat.unreadCount > 0) "标为已读" else "标为未读"
+                        val dynamicMenus =
+                            listOf(readMenu, "置顶该聊天", "不显示该聊天", "删除该聊天")
+                        contextMenuState.show(position, dynamicMenus, index)
                     }
             ) {
                 ChatItem(chat)
@@ -65,15 +64,19 @@ fun ChatListScreen(onNavigateToDetail: (friendId: String) -> Unit) {
         }
     }
 
-    WeContextMenu(contextMenuState) { _, menuIndex ->
+    WeContextMenu(contextMenuState) { targetIndex, menuIndex ->
         when (menuIndex) {
+            0 -> viewModel.toggleReadStatus(targetIndex)
+            1 -> viewModel.stickToTop(targetIndex)
             2 -> {
                 dialog.show(
                     title = "不显示聊天后，聊天记录将不会被删除",
                     content = "通过搜索聊天内容，可以找回聊天。",
                     okText = "我知道了",
                     onCancel = null
-                )
+                ) {
+                    viewModel.hideChat(targetIndex)
+                }
             }
 
             3 -> {
@@ -81,24 +84,10 @@ fun ChatListScreen(onNavigateToDetail: (friendId: String) -> Unit) {
                     title = "删除后，将清空记录同时不显示聊天",
                     okText = "删除",
                     okColor = Danger
-                )
+                ) {
+                    viewModel.deleteChat(targetIndex)
+                }
             }
         }
-    }
-}
-
-private fun generateMockChats(count: Int = 100): List<Chat> {
-    val names = listOf("张三", "李四", "王五", "Compose 交流群", "文件传输助手", "GitHub 通知")
-    val messages = listOf("好的", "吃了没？", "[图片]", "有人在吗？", "代码已提交", "明天见")
-
-    return List(count) { i ->
-        Chat(
-            id = randomUUID(),
-            name = "${names[i % names.size]} $i",
-            lastMessage = messages[i % messages.size],
-            time = "${12}:${(10 + i % 50).toString().padStart(2, '0')}",
-            avatarRes = 0,
-            unreadCount = if (i % 9 == 0) i * 2 else 0
-        )
     }
 }

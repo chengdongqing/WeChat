@@ -1,10 +1,7 @@
-package top.chengdongqing.wechat.ui.chatdetail.bottombar
+package top.chengdongqing.wechat.ui.chat.session.input
 
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,25 +15,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
-import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
@@ -44,7 +34,7 @@ import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 import top.chengdongqing.wechat.ui.utils.weClickable
 
 @Composable
-fun ChatBottomBar(
+fun InputBar(
     text: String,
     onTextChange: (String) -> Unit,
     onSend: () -> Unit
@@ -88,7 +78,7 @@ fun ChatBottomBar(
             SendOrMoreButton(text, onSend, inputMode, controller)
         }
 
-        ExpandablePanel(
+        InputPanelHolder(
             inputMode,
             onEmojiSelect = {
                 val insertText = "[${it.description}]"
@@ -124,7 +114,7 @@ fun ChatBottomBar(
 
 @Composable
 private fun VoiceButton(
-    inputMode: ChatInputMode,
+    inputMode: InputMode,
     controller: InputModeController,
     focusRequester: NativeFocusRequester
 ) {
@@ -138,14 +128,14 @@ private fun VoiceButton(
         }
     ) {
         if (inputMode.isVoice) {
-            controller.switchMode(ChatInputMode.TEXT)
+            controller.switchMode(InputMode.Companion.TEXT)
             // 自动弹出键盘
             scope.launch {
                 delay(50)
                 focusRequester.requestFocus()
             }
         } else {
-            controller.switchMode(ChatInputMode.VOICE)
+            controller.switchMode(InputMode.Companion.VOICE)
         }
     }
 }
@@ -154,7 +144,7 @@ private fun VoiceButton(
 private fun RowScope.InputBox(
     text: String,
     onTextChange: (String) -> Unit,
-    inputMode: ChatInputMode,
+    inputMode: InputMode,
     focusRequester: NativeFocusRequester
 ) {
     Box(
@@ -181,16 +171,7 @@ private fun RowScope.InputBox(
 }
 
 @Composable
-private fun VoiceRecordButton() {
-    Text(
-        "按住 说话",
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
-}
-
-@Composable
-private fun EmojiButton(inputMode: ChatInputMode, controller: InputModeController) {
+private fun EmojiButton(inputMode: InputMode, controller: InputModeController) {
     ActionIcon(
         iconResId = if (inputMode.isEmoji) {
             R.drawable.ic_keyboard_outlined
@@ -198,7 +179,7 @@ private fun EmojiButton(inputMode: ChatInputMode, controller: InputModeControlle
             R.drawable.ic_sticker_outlined
         }
     ) {
-        val mode = if (inputMode.isEmoji) ChatInputMode.TEXT else ChatInputMode.EMOJI
+        val mode = if (inputMode.isEmoji) InputMode.Companion.TEXT else InputMode.Companion.EMOJI
         controller.switchMode(mode)
     }
 }
@@ -207,7 +188,7 @@ private fun EmojiButton(inputMode: ChatInputMode, controller: InputModeControlle
 private fun SendOrMoreButton(
     text: String,
     onSend: () -> Unit,
-    inputMode: ChatInputMode,
+    inputMode: InputMode,
     controller: InputModeController
 ) {
     AnimatedContent(targetState = text.isNotEmpty(), label = "SendBtn") { isNotEmpty ->
@@ -217,7 +198,8 @@ private fun SendOrMoreButton(
             }
         } else {
             ActionIcon(iconResId = R.drawable.ic_plus_circle_outlined) {
-                val mode = if (inputMode.isMore) ChatInputMode.TEXT else ChatInputMode.MORE
+                val mode =
+                    if (inputMode.isMore) InputMode.Companion.TEXT else InputMode.Companion.MORE
                 controller.switchMode(mode)
             }
         }
@@ -244,52 +226,6 @@ private fun ActionIcon(
             modifier = Modifier.size(30.dp),
             tint = tint
         )
-    }
-}
-
-@Composable
-private fun ExpandablePanel(
-    inputMode: ChatInputMode,
-    onEmojiSelect: (Emoji) -> Unit,
-    onStickerSelect: (String) -> Unit,
-    onBackspace: () -> Unit
-) {
-    val keyboardHeight = rememberKeyboardHeight()
-    var savedKeyboardHeight by remember { mutableStateOf(300.dp) }
-
-    LaunchedEffect(keyboardHeight) {
-        if (keyboardHeight > 0.dp && savedKeyboardHeight == 300.dp) {
-            savedKeyboardHeight = keyboardHeight
-        }
-    }
-
-    // 最终占位高度
-    val panelHeight = when {
-        inputMode.isText -> keyboardHeight
-        inputMode.isEmoji -> savedKeyboardHeight + 20.dp
-        inputMode.isMore -> savedKeyboardHeight
-        else -> 0.dp
-    }
-
-    val animatedPanelHeight by animateDpAsState(
-        targetValue = panelHeight,
-        animationSpec = tween(
-            durationMillis = 300,
-            easing = FastOutSlowInEasing
-        ),
-        label = "SmoothSwitch"
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(animatedPanelHeight)
-            .background(Color(0xFFF1F1F1))
-    ) {
-        when (inputMode) {
-            ChatInputMode.EMOJI -> EmojiPanel(onEmojiSelect, onStickerSelect, onBackspace)
-            ChatInputMode.MORE -> MorePanel()
-        }
     }
 }
 

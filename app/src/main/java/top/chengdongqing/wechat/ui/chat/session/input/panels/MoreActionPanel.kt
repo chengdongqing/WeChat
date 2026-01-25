@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail.bottombar
+package top.chengdongqing.wechat.ui.chat.session.input.panels
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -37,13 +37,13 @@ import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
-fun MorePanel(
+fun MoreActionPanel(
     modifier: Modifier = Modifier,
     onItemClick: (MoreAction) -> Unit = {}
 ) {
-    val pages = remember { MoreItems.chunked(ChunkCount) }
-    val pagerState = rememberPagerState { pages.size }
     val scope = rememberCoroutineScope()
+    val pages = remember { MoreActionItems.chunked(ChunkCount) }
+    val pagerState = rememberPagerState { pages.size }
     val overscrollEffect = remember { BounceOverscrollEffect(scope, Orientation.Horizontal) }
 
     Column(
@@ -160,7 +160,7 @@ private fun PagerIndicator(
     }
 }
 
-private val MoreItems = listOf(
+private val MoreActionItems = listOf(
     MoreItemData(MoreAction.ALBUM, "照片", R.drawable.ic_album_filled),
     MoreItemData(MoreAction.CAMERA, "拍摄", R.drawable.ic_camera_filled),
     MoreItemData(MoreAction.VIDEO_CALL, "视频通话", R.drawable.ic_video_call_filled),

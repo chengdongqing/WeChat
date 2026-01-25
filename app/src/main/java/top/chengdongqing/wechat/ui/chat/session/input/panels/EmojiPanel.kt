@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail.bottombar
+package top.chengdongqing.wechat.ui.chat.session.input.panels
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

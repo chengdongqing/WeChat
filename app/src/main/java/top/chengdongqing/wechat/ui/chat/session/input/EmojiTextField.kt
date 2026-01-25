@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail.bottombar
+package top.chengdongqing.wechat.ui.chat.session.input
 
 import android.content.Context
 import android.graphics.Bitmap

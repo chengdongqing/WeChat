@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail.bottombar
+package top.chengdongqing.wechat.ui.chat.session.input
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -26,12 +26,12 @@ import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
  */
 @Immutable // 告诉编译器这个值永远不会改变
 @JvmInline // 内联类，运行时只占用一个 Int 的空间
-value class ChatInputMode private constructor(@Suppress("unused") private val value: Int) {
+value class InputMode private constructor(@Suppress("unused") private val value: Int) {
     companion object {
-        val TEXT = ChatInputMode(0)   // 文本模式
-        val VOICE = ChatInputMode(1)  // 语音模式
-        val EMOJI = ChatInputMode(2)  // 表情面板
-        val MORE = ChatInputMode(3)   // 更多面板
+        val TEXT = InputMode(0)   // 文本模式
+        val VOICE = InputMode(1)  // 语音模式
+        val EMOJI = InputMode(2)  // 表情面板
+        val MORE = InputMode(3)   // 更多面板
     }
 
     // 快捷判断
@@ -55,25 +55,25 @@ value class ChatInputMode private constructor(@Suppress("unused") private val va
  * 输入模式控制器
  */
 class InputModeController(
-    initialMode: ChatInputMode,
+    initialMode: InputMode,
     private val focusRequester: NativeFocusRequester,
     private val keyboardController: SoftwareKeyboardController?,
     private val scope: CoroutineScope
 ) {
     private val _inputMode = mutableStateOf(initialMode)
-    val inputMode: State<ChatInputMode> = _inputMode
+    val inputMode: State<InputMode> = _inputMode
 
     /**
      * 切换输入模式
      */
-    fun switchMode(target: ChatInputMode, showKeyboard: Boolean = true) {
+    fun switchMode(target: InputMode, showKeyboard: Boolean = true) {
         val oldMode = _inputMode.value
         if (oldMode == target) return
 
         _inputMode.value = target
 
         when (target) {
-            ChatInputMode.TEXT -> {
+            InputMode.TEXT -> {
                 if (showKeyboard) {
                     focusRequester.requestFocus()
                 } else {
@@ -81,17 +81,18 @@ class InputModeController(
                 }
             }
 
-            ChatInputMode.EMOJI -> {
+            InputMode.EMOJI -> {
                 focusRequester.clearFocus()
                 keyboardController?.hide()
 
                 scope.launch {
                     delay(200)
+                    // 输入表情时也要显示光标
                     focusRequester.requestFocus(showKeyboard = false)
                 }
             }
 
-            ChatInputMode.VOICE, ChatInputMode.MORE -> {
+            InputMode.VOICE, InputMode.MORE -> {
                 focusRequester.clearFocus()
                 keyboardController?.hide()
             }
@@ -101,7 +102,7 @@ class InputModeController(
     /**
      * 仅同步状态，不触发交互
      */
-    internal fun syncMode(target: ChatInputMode) {
+    internal fun syncMode(target: InputMode) {
         _inputMode.value = target
     }
 }
@@ -110,7 +111,7 @@ class InputModeController(
 @Composable
 fun rememberInputModeController(
     focusRequester: NativeFocusRequester,
-    initialMode: ChatInputMode = ChatInputMode.TEXT
+    initialMode: InputMode = InputMode.TEXT
 ): InputModeController {
     val scope = rememberCoroutineScope()
     val isImeVisible = WindowInsets.isImeVisible
@@ -124,13 +125,13 @@ fun rememberInputModeController(
     // 键盘弹出时自动设置为文本模式
     LaunchedEffect(isImeVisible) {
         if (isImeVisible) {
-            controller.syncMode(ChatInputMode.TEXT)
+            controller.syncMode(InputMode.TEXT)
         }
     }
 
     // 返回时面板展开则执行关闭面板
     BackHandler(inputMode.isPanelMode) {
-        controller.switchMode(ChatInputMode.TEXT, showKeyboard = false)
+        controller.switchMode(InputMode.TEXT, showKeyboard = false)
     }
 
     return controller

@@ -12,7 +12,7 @@ import androidx.navigation.navArgument
 import top.chengdongqing.wechat.ui.addfriend.AddFriendScreen
 import top.chengdongqing.wechat.ui.addfriend.PinCodeGroupScreen
 import top.chengdongqing.wechat.ui.addfriend.RadarScanScreen
-import top.chengdongqing.wechat.ui.chatdetail.ChatDetailScreen
+import top.chengdongqing.wechat.ui.chat.session.ChatSessionScreen
 import top.chengdongqing.wechat.ui.home.HomeScreen
 
 @Composable
@@ -77,7 +77,7 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
             )
         ) { backStackEntry ->
             val friendId = backStackEntry.arguments?.getString("friendId") ?: ""
-            ChatDetailScreen(friendId) { goBack() }
+            ChatSessionScreen(friendId) { goBack() }
         }
     }
 }

@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.data.model.P2PPeer
 import top.chengdongqing.wechat.data.model.WifiLanPeer
-import top.chengdongqing.wechat.ui.chat.ChatViewModel
+import top.chengdongqing.wechat.ui.chat_1.ChatViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

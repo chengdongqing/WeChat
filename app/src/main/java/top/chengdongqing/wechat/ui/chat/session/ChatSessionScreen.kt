@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chatdetail
+package top.chengdongqing.wechat.ui.chat.session
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,15 +35,16 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.formatChatTime
 import top.chengdongqing.wechat.data.model.ChatMessage
-import top.chengdongqing.wechat.ui.chatdetail.bottombar.ChatBottomBar
-import top.chengdongqing.wechat.ui.chatdetail.chatbubble.ChatBubbleItem
+import top.chengdongqing.wechat.ui.chat.session.input.InputBar
+import top.chengdongqing.wechat.ui.chat.session.message.MessageItem
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 import java.time.Duration
 import java.time.Instant
+import java.util.UUID
 
 @Composable
-fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
+fun ChatSessionScreen(friendId: String, onBack: () -> Unit) {
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -60,7 +61,7 @@ fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
             }
         },
         bottomBar = {
-            ChatBottomBar(
+            InputBar(
                 text = inputText,
                 onTextChange = { inputText = it },
                 onSend = {
@@ -86,7 +87,7 @@ fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
             itemsIndexed(
                 items = chatMessages,
                 key = { _, message -> message.id }) { index, message ->
-                ChatBubbleItem(message)
+                MessageItem(message)
                 TimeDivider(chatMessages, index)
             }
         }
@@ -182,7 +183,7 @@ private fun generateMockChatData(): List<ChatMessage> {
 
             messages.add(
                 ChatMessage(
-                    id = java.util.UUID.randomUUID().toString(),
+                    id = UUID.randomUUID().toString(),
                     text = mockTexts.random(),
                     timestamp = timestamp,
                     isFromMe = (0..1).random() == 1

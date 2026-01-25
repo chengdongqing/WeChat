@@ -8,18 +8,17 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -50,7 +48,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.Black
+import top.chengdongqing.wechat.ui.theme.White
 import top.chengdongqing.wechat.ui.utils.weClickableWithBg
 import kotlin.math.roundToInt
 
@@ -104,33 +103,28 @@ fun WeContextMenu(
 
 @Composable
 fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onTap: (Int) -> Unit) {
-    val shadowColor = WeChatTheme.colorScheme.divider
-
-    Box(modifier = Modifier.padding(8.dp)) {
-        Column(
-            modifier = Modifier
-                .width(menuWidthDp)
-                .graphicsLayer {
-                    shadowElevation = 8.dp.toPx()
-                    spotShadowColor = shadowColor
-                    ambientShadowColor = shadowColor
-                    clip = true
-                }
-                .background(WeChatTheme.colorScheme.background)
-        ) {
+    Surface(
+        modifier = Modifier
+            .padding(8.dp)
+            .width(menuWidthDp),
+        color = White,
+        shadowElevation = 12.dp,
+        tonalElevation = 2.dp
+    ) {
+        Column {
             options.forEachIndexed { index, item ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(itemHeightDp)
                         .weClickableWithBg { onTap(index) }
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = item,
                         fontSize = 15.sp,
-                        color = WeChatTheme.colorScheme.textPrimary
+                        color = Black
                     )
                 }
             }
@@ -206,7 +200,7 @@ fun Modifier.weContextMenu(
             interactionSource = interactionSource,
             indication = LocalIndication.current
         )
-        .pointerInput(Unit) {
+        .pointerInput(onClick, onLongClick) {
             detectTapGestures(
                 onLongPress = { touchOffset ->
                     val finalOffset = (parentPosition + touchOffset).toIntOffset()
