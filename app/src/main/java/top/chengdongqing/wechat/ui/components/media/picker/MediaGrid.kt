@@ -35,11 +35,11 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.utils.format
 import top.chengdongqing.wechat.core.utils.loadMediaThumbnail
 import top.chengdongqing.wechat.core.utils.showToast
-import top.chengdongqing.wechat.core.utils.weClickable
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.isVideo
 import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.weClickable
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable

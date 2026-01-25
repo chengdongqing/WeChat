@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.overscroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.utils.randomUUID
@@ -19,6 +21,7 @@ import top.chengdongqing.wechat.ui.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.ui.theme.Danger
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
 fun ChatListScreen(onNavigateToDetail: (friendId: String) -> Unit) {
@@ -32,10 +35,15 @@ fun ChatListScreen(onNavigateToDetail: (friendId: String) -> Unit) {
     val dialog = rememberDialogState()
     val contextMenuState = rememberContextMenuState()
 
+    val scope = rememberCoroutineScope()
+    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(WeChatTheme.colorScheme.surface)
+            .overscroll(overscrollEffect),
+        overscrollEffect = overscrollEffect
     ) {
         itemsIndexed(
             items = chatList,

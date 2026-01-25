@@ -13,8 +13,8 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.TextWatcher
 import android.text.style.ImageSpan
+import android.util.LruCache
 import android.view.Gravity
-import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
@@ -32,7 +32,7 @@ import androidx.core.graphics.withTranslation
 import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.data.sticker.Emojis
 import top.chengdongqing.wechat.ui.theme.GreenPrimary
-import java.lang.ref.WeakReference
+import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 @Composable
 fun EmojiTextField(
@@ -44,6 +44,8 @@ fun EmojiTextField(
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
+
+    // 预计算像素值，避免在 AndroidView 中频繁计算
     val fontSizePx = with(density) { fontSizeSp.sp.toPx().toInt() }
     val cursorWidthPx = with(density) { 1.8.dp.toPx().toInt() }
     val maxHeightPx = with(density) { maxHeightDp?.toPx()?.toInt() }
@@ -52,26 +54,9 @@ fun EmojiTextField(
         modifier = Modifier.fillMaxWidth(),
         factory = { ctx ->
             AppCompatEditText(ctx).apply {
-                background = null
-                textSize = fontSizeSp.toFloat()
-                gravity = Gravity.TOP or Gravity.START
-                includeFontPadding = false // 必须关闭，否则垂直居中会偏
-                isCursorVisible = true
-                isFocusable = true
-                isFocusableInTouchMode = true
-                setPadding(0, 0, 0, 0)
-                // 设置光标颜色
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    textCursorDrawable = GradientDrawable().apply {
-                        setColor(GreenPrimary.toArgb())
-                        setSize(cursorWidthPx, 0)
-                    }
-                }
-                // 限制最大高度
-                maxHeightPx?.let {
-                    maxHeight = it
-                }
-                // 绑定聚焦管理器
+                setupConfig(fontSizeSp, cursorWidthPx, maxHeightPx)
+
+                // 绑定聚焦
                 focusRequester.bind(this)
 
                 addTextChangedListener(object : TextWatcher {
@@ -89,8 +74,8 @@ fun EmojiTextField(
                         before: Int,
                         count: Int
                     ) {
-                        // 只有非 update 块触发的变更才同步给外部
-                        if (tag != "IGNORE_UPDATE") {
+                        // 屏蔽由 update 回调引起的 Text 变更同步
+                        if (tag != TAG_IGNORE_UPDATE) {
                             onValueChange(s?.toString() ?: "")
                         }
                     }
@@ -100,37 +85,13 @@ fun EmojiTextField(
             }
         },
         update = { editText ->
-            if (editText.maxHeight != maxHeightPx && maxHeightPx != null) {
-                editText.maxHeight = maxHeightPx
+            // 只有当参数变化时才触发布局更新
+            if (editText.maxHeight != (maxHeightPx ?: Int.MAX_VALUE)) {
+                editText.maxHeight = maxHeightPx ?: Int.MAX_VALUE
             }
 
-            // 只有当文本内容真正改变时才 setText，防止失去焦点或光标乱跳
             if (editText.text.toString() != value) {
-                val oldText = editText.text.toString()
-                val oldStart = editText.selectionStart
-
-                editText.tag = "IGNORE_UPDATE"
-                val spannable = EmojiSpanUtils.decode(context, value, fontSizePx)
-                editText.setText(spannable)
-
-                // --- 核心修正点 ---
-                // 如果新文本长度增加了，且光标原本在末尾，我们需要让光标跳到新文本的末尾
-                // 或者计算出差值偏移量
-                val newLength = spannable.length
-                val lengthDelta = newLength - oldText.length
-
-                // 如果是插入操作（长度增加），光标应该向后偏移
-                val newSelection = if (lengthDelta > 0 && oldStart >= oldText.length) {
-                    newLength // 强制跳转到末尾
-                } else {
-                    // 如果是在中间插入，按比例或偏移量计算，这里简单处理：保持相对位置
-                    oldStart.coerceIn(0, newLength)
-                }
-
-                editText.setSelection(newSelection)
-                // ------------------
-
-                editText.tag = null
+                updateTextWithEmoji(editText, context, value, fontSizePx)
             }
 
             focusRequester.bind(editText)
@@ -138,9 +99,58 @@ fun EmojiTextField(
     )
 }
 
+private const val TAG_IGNORE_UPDATE = "IGNORE_UPDATE"
+
+/**
+ * EditText初始化配置
+ */
+private fun AppCompatEditText.setupConfig(fontSizeSp: Int, cursorWidth: Int, maxH: Int?) {
+    background = null
+    textSize = fontSizeSp.toFloat()
+    gravity = Gravity.TOP or Gravity.START
+    includeFontPadding = false
+    isFocusableInTouchMode = true
+    setPadding(0, 0, 0, 0)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        textCursorDrawable = GradientDrawable().apply {
+            setColor(GreenPrimary.toArgb())
+            setSize(cursorWidth, 0)
+        }
+    }
+    maxH?.let { maxHeight = it }
+}
+
+/**
+ * 文本更新与光标保持逻辑
+ */
+private fun updateTextWithEmoji(
+    editText: AppCompatEditText,
+    context: Context,
+    value: String,
+    sizePx: Int
+) {
+    val oldStart = editText.selectionStart
+    val oldLength = editText.text?.length ?: 0
+
+    editText.tag = TAG_IGNORE_UPDATE
+    val spannable = EmojiSpanUtils.decode(context, value, sizePx)
+    editText.setText(spannable)
+
+    // 若文本增长且光标在末尾，则跟进；否则保持相对位置
+    val newLength = spannable.length
+    val newSelection = if (newLength > oldLength && oldStart >= oldLength) {
+        newLength
+    } else {
+        oldStart.coerceIn(0, newLength)
+    }
+    editText.setSelection(newSelection)
+    editText.tag = null
+}
+
 private object EmojiSpanUtils {
-    // 简单的内存缓存，避免重复解码 Asset
-    private val bitmapCache = mutableMapOf<String, Bitmap>()
+    // 使用 LruCache 代替普通 Map，防止内存溢出
+    private val bitmapCache = LruCache<String, Bitmap>(30)
 
     fun decode(
         context: Context,
@@ -150,26 +160,28 @@ private object EmojiSpanUtils {
     ): Spannable {
         val spannable = SpannableStringBuilder(text)
         val pattern = Regex("\\[(.*?)]")
+        // 表情通常比文字大一圈（如 1.3倍）视觉效果更和谐
         val targetSize = (fontSizePx * 1.3f).toInt()
 
+        // 倒序替换，防止前面的替换导致后面 MatchResult 的 range 失效
         pattern.findAll(text).toList().reversed().forEach { match ->
             val description = match.groupValues[1]
             val emoji = emojis.find { it.description == description } ?: return@forEach
 
-            // 缓存 Key 包含尺寸，确保不同字号下清晰度正确
             val cacheKey = "${emoji.icon}_$targetSize"
-            val bitmap = bitmapCache.getOrPut(cacheKey) {
+            val bitmap = bitmapCache.get(cacheKey) ?: run {
                 context.assets.open(emoji.icon).use { inputStream ->
                     val raw = BitmapFactory.decodeStream(inputStream)
-                    raw.scale(targetSize, targetSize).also {
-                        if (raw != it) raw.recycle() // 及时回收原图
-                    }
-                }
+                    val scaled = raw.scale(targetSize, targetSize)
+                    if (raw != scaled) raw.recycle()
+                    scaled
+                }.also { bitmapCache.put(cacheKey, it) }
             }
 
             val drawable = bitmap.toDrawable(context.resources).apply {
                 setBounds(0, 0, targetSize, targetSize)
             }
+
             spannable.setSpan(
                 VerticalCenterImageSpan(drawable),
                 match.range.first,
@@ -181,6 +193,10 @@ private object EmojiSpanUtils {
     }
 }
 
+/**
+ * 垂直居中的 ImageSpan，确保表情在文字行内居中。
+ * 解决了 ImageSpan 默认对齐 Baseline 或 Bottom 导致的视觉偏移。
+ */
 private class VerticalCenterImageSpan(drawable: Drawable) : ImageSpan(drawable) {
     override fun getSize(
         paint: Paint, text: CharSequence?, start: Int, end: Int,
@@ -192,15 +208,12 @@ private class VerticalCenterImageSpan(drawable: Drawable) : ImageSpan(drawable) 
             val fontHeight = fontMetrics.bottom - fontMetrics.top
             val drHeight = rect.bottom - rect.top
 
-            // 如果图片比文字高，需要撑开行间距
             if (drHeight > fontHeight) {
-                // 计算差值的一半
+                // 当图片高度超过文字行高时，上下对称扩展 FontMetrics
                 val offset = (drHeight - fontHeight) / 2
-
-                // 给 bottom 和 descent 留出足够的空间（多加 2-3 像素缓冲）
                 fm.ascent = fontMetrics.ascent - offset
                 fm.top = fontMetrics.top - offset
-                fm.descent = fontMetrics.descent + offset + 2
+                fm.descent = fontMetrics.descent + offset + 2 // 增加微小缓冲防止切断
                 fm.bottom = fontMetrics.bottom + offset + 2
             }
         }
@@ -213,49 +226,11 @@ private class VerticalCenterImageSpan(drawable: Drawable) : ImageSpan(drawable) 
     ) {
         val b = drawable
         val fm = paint.fontMetricsInt
-        // 基于文字的 Baseline (y) 进行偏移，确保与文字对齐，不干扰系统对行高的判断
-        val transY = (y + fm.descent + y + fm.ascent) / 2 - b.bounds.bottom / 2
+        // 计算公式：Baseline + (Descent + Ascent) / 2 = 文本中心点，再减去图片高度的一半
+        val transY = (y + fm.descent + y + fm.ascent) / 2f - b.bounds.bottom / 2f
 
-        canvas.withTranslation(x, transY.toFloat()) {
+        canvas.withTranslation(x, transY) {
             b.draw(this)
         }
-    }
-}
-
-/**
- * 对接原生输入框的焦点管理器
- */
-class NativeFocusRequester {
-    private var editTextRef: WeakReference<AppCompatEditText>? = null
-
-    internal fun bind(editText: AppCompatEditText) {
-        editTextRef = WeakReference(editText)
-    }
-
-    val selectionStart: Int
-        get() = editTextRef?.get()?.selectionStart ?: 0
-
-    fun setSelection(index: Int) {
-        editTextRef?.get()?.setSelection(index)
-    }
-
-    fun requestFocus(showKeyboard: Boolean = true) {
-        editTextRef?.get()?.let { view ->
-            view.requestFocus()
-
-            if (showKeyboard) {
-                val imm =
-                    view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
-            }
-        }
-    }
-
-    fun clearFocus() {
-        editTextRef?.get()?.clearFocus()
-    }
-
-    fun post(action: () -> Unit) {
-        editTextRef?.get()?.post { action() }
     }
 }

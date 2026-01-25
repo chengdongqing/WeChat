@@ -1,9 +1,12 @@
-package top.chengdongqing.wechat.core.utils
+package top.chengdongqing.wechat.ui.utils
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -11,15 +14,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalHapticFeedback
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import kotlin.math.roundToInt
 
 /**
  * 自定义点击，不带水波纹
@@ -72,34 +74,53 @@ fun Modifier.repeatingClickable(
 ): Modifier = composed {
     val scope = rememberCoroutineScope()
     val currentOnClick by rememberUpdatedState(onClick)
+    val interactionSource = remember { MutableInteractionSource() }
+    val haptic = LocalHapticFeedback.current
 
-    pointerInput(enabled) {
-        if (!enabled) return@pointerInput
+    this
+        .indication(
+            interactionSource = interactionSource,
+            indication = LocalIndication.current
+        )
+        .pointerInput(enabled) {
+            if (!enabled) return@pointerInput
 
-        detectTapGestures(
-            onPress = {
-                val job = scope.launch {
-                    currentOnClick() // 按下立即触发一次
-                    delay(initialDelayMillis)
+            detectTapGestures(
+                onPress = { offset ->
+                    val press = PressInteraction.Press(offset)
+                    interactionSource.emit(press)
 
-                    var currentDelay = 150L
-                    while (isActive) {
-                        currentOnClick()
-                        delay(currentDelay)
-                        // 逐渐加速
-                        if (currentDelay > minDelayMillis) {
-                            currentDelay -= delayDecayMillis
+                    val job = scope.launch {
+                        currentOnClick() // 按下立即触发一次
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 轻微震动
+                        delay(initialDelayMillis)
+
+                        var currentDelay = initialDelayMillis
+                        while (isActive) {
+                            currentOnClick()
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 连续震动
+
+                            delay(currentDelay)
+                            // 逐渐加速
+                            if (currentDelay > minDelayMillis) {
+                                currentDelay -= delayDecayMillis
+                            }
                         }
                     }
-                }
-                try {
-                    awaitRelease() // 等待手指抬起
-                } finally {
-                    job.cancel() // 停止循环
-                }
-            }
-        )
-    }
-}
 
-fun Offset.toIntOffset() = IntOffset(x.roundToInt(), y.roundToInt())
+                    try {
+                        // 等待手指抬起
+                        val released = tryAwaitRelease()
+                        // 隐藏波纹
+                        if (released) {
+                            interactionSource.emit(PressInteraction.Release(press))
+                        } else {
+                            interactionSource.emit(PressInteraction.Cancel(press))
+                        }
+                    } finally {
+                        job.cancel() // 停止循环
+                    }
+                }
+            )
+        }
+}

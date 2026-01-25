@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,12 +35,13 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.repeatingClickable
 import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.data.sticker.Emojis
 import top.chengdongqing.wechat.data.sticker.Stickers
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.theme.Black
+import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
+import top.chengdongqing.wechat.ui.utils.repeatingClickable
 
 @Composable
 fun EmojiPanel(
@@ -103,12 +105,18 @@ private fun CategoriesTab(currentTab: Int, onTabChange: (index: Int) -> Unit) {
 
 @Composable
 private fun EmojiGrid(onSelect: (value: Emoji) -> Unit, onBackspace: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+
     Box(contentAlignment = Alignment.BottomEnd) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(8),
+            modifier = Modifier
+                .fillMaxSize()
+                .overscroll(overscrollEffect),
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize()
+            overscrollEffect = overscrollEffect
         ) {
             items(Emojis) { emoji ->
                 AsyncImage(
@@ -149,12 +157,18 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
 
 @Composable
 private fun StickersGrid(onSelect: (sticker: String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .overscroll(overscrollEffect),
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        overscrollEffect = overscrollEffect
     ) {
         items(Stickers) { sticker ->
             Box(

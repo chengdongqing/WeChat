@@ -1,16 +1,23 @@
 package top.chengdongqing.wechat.ui.chatdetail.bottombar
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 /**
  * 输入模式枚举
@@ -34,7 +41,7 @@ value class ChatInputMode private constructor(@Suppress("unused") private val va
     val isMore get() = this == MORE
     val isPanelMode get() = this == EMOJI || this == MORE
 
-    // 重写 toString 方便日志调试，否则打印出来只是 PanelState(value=0)
+    // 重写 toString 方便日志调试，否则打印出来只是 ChatInputMode(value=0)
     override fun toString(): String = when (this) {
         TEXT -> "TEXT"
         VOICE -> "VOICE"
@@ -48,28 +55,54 @@ value class ChatInputMode private constructor(@Suppress("unused") private val va
  * 输入模式控制器
  */
 class InputModeController(
-    val inputMode: MutableState<ChatInputMode>,
+    initialMode: ChatInputMode,
     private val focusRequester: NativeFocusRequester,
-    private val keyboardController: SoftwareKeyboardController?
+    private val keyboardController: SoftwareKeyboardController?,
+    private val scope: CoroutineScope
 ) {
-    fun switchMode(target: ChatInputMode) {
-        inputMode.value = target
+    private val _inputMode = mutableStateOf(initialMode)
+    val inputMode: State<ChatInputMode> = _inputMode
 
-        if (target.isText) {
-            showKeyboard()
-        } else {
-            hideKeyboard()
+    /**
+     * 切换输入模式
+     */
+    fun switchMode(target: ChatInputMode, showKeyboard: Boolean = true) {
+        val oldMode = _inputMode.value
+        if (oldMode == target) return
+
+        _inputMode.value = target
+
+        when (target) {
+            ChatInputMode.TEXT -> {
+                if (showKeyboard) {
+                    focusRequester.requestFocus()
+                } else {
+                    focusRequester.clearFocus()
+                }
+            }
+
+            ChatInputMode.EMOJI -> {
+                focusRequester.clearFocus()
+                keyboardController?.hide()
+
+                scope.launch {
+                    delay(200)
+                    focusRequester.requestFocus(showKeyboard = false)
+                }
+            }
+
+            ChatInputMode.VOICE, ChatInputMode.MORE -> {
+                focusRequester.clearFocus()
+                keyboardController?.hide()
+            }
         }
     }
 
-    private fun hideKeyboard() {
-        focusRequester.clearFocus()
-        keyboardController?.hide()
-    }
-
-    private fun showKeyboard() {
-        inputMode.value = ChatInputMode.TEXT
-        focusRequester.requestFocus()
+    /**
+     * 仅同步状态，不触发交互
+     */
+    internal fun syncMode(target: ChatInputMode) {
+        _inputMode.value = target
     }
 }
 
@@ -79,22 +112,26 @@ fun rememberInputModeController(
     focusRequester: NativeFocusRequester,
     initialMode: ChatInputMode = ChatInputMode.TEXT
 ): InputModeController {
-    val inputMode = remember { mutableStateOf(initialMode) }
-    val keyboardController = LocalSoftwareKeyboardController.current
+    val scope = rememberCoroutineScope()
     val isImeVisible = WindowInsets.isImeVisible
+    val keyboardController = LocalSoftwareKeyboardController.current
 
+    val controller = remember {
+        InputModeController(initialMode, focusRequester, keyboardController, scope)
+    }
+    val inputMode by controller.inputMode
+
+    // 键盘弹出时自动设置为文本模式
     LaunchedEffect(isImeVisible) {
-        // 如果键盘弹起了，强制隐藏自定义面板
         if (isImeVisible) {
-            inputMode.value = ChatInputMode.TEXT
-        }
-        // 显示表情面板时，显示输入框的光标
-        else if (inputMode.value.isEmoji) {
-            focusRequester.requestFocus(showKeyboard = false)
+            controller.syncMode(ChatInputMode.TEXT)
         }
     }
 
-    return remember {
-        InputModeController(inputMode, focusRequester, keyboardController)
+    // 返回时面板展开则执行关闭面板
+    BackHandler(inputMode.isPanelMode) {
+        controller.switchMode(ChatInputMode.TEXT, showKeyboard = false)
     }
+
+    return controller
 }

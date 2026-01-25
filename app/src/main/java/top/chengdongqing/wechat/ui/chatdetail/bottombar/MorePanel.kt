@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.ui.chatdetail.bottombar
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
 fun MorePanel(
@@ -39,6 +43,8 @@ fun MorePanel(
 ) {
     val pages = remember { MoreItems.chunked(ChunkCount) }
     val pagerState = rememberPagerState { pages.size }
+    val scope = rememberCoroutineScope()
+    val overscrollEffect = remember { BounceOverscrollEffect(scope, Orientation.Horizontal) }
 
     Column(
         modifier = modifier
@@ -51,8 +57,9 @@ fun MorePanel(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(240.dp)
-                .padding(top = 28.dp),
-            key = { it }
+                .padding(top = 28.dp)
+                .overscroll(overscrollEffect),
+            overscrollEffect = overscrollEffect
         ) { pageIndex ->
             MorePanelGrid(
                 items = pages[pageIndex],
@@ -78,7 +85,7 @@ private fun MorePanelGrid(
     FlowRow(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 6.dp),
+            .padding(horizontal = 12.dp),
         maxItemsInEachRow = 4,
         horizontalArrangement = Arrangement.SpaceAround,
         verticalArrangement = Arrangement.SpaceAround

@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +38,7 @@ import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.ui.chatdetail.bottombar.ChatBottomBar
 import top.chengdongqing.wechat.ui.chatdetail.chatbubble.ChatBubbleItem
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
+import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 import java.time.Duration
 import java.time.Instant
 
@@ -45,6 +47,7 @@ fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
+    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
     val chatMessages = remember { generateMockChatData() }
 
     // 键盘弹出时自动滚动到最后的消息
@@ -73,10 +76,12 @@ fun ChatDetailScreen(friendId: String, onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFFF3F3F3)),
+                .background(Color(0xFFF3F3F3))
+                .overscroll(overscrollEffect),
             contentPadding = PaddingValues(10.dp),
             reverseLayout = true, // 新消息在底部，旧消息在顶部；键盘弹出时列表会自动推上去
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.Top,
+            overscrollEffect = overscrollEffect
         ) {
             itemsIndexed(
                 items = chatMessages,

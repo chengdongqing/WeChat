@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
@@ -20,7 +21,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -34,10 +34,12 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -48,9 +50,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.core.utils.toIntOffset
-import top.chengdongqing.wechat.core.utils.weClickableWithBg
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.weClickableWithBg
+import kotlin.math.roundToInt
 
 @Composable
 fun WeContextMenu(
@@ -194,6 +196,7 @@ fun Modifier.weContextMenu(
 ): Modifier = composed {
     var parentPosition by remember { mutableStateOf(Offset.Zero) }
     val interactionSource = remember { MutableInteractionSource() }
+    val haptic = LocalHapticFeedback.current
 
     this
         .onGloballyPositioned {
@@ -201,13 +204,14 @@ fun Modifier.weContextMenu(
         }
         .indication(
             interactionSource = interactionSource,
-            indication = ripple()
+            indication = LocalIndication.current
         )
         .pointerInput(Unit) {
             detectTapGestures(
                 onLongPress = { touchOffset ->
                     val finalOffset = (parentPosition + touchOffset).toIntOffset()
                     onLongClick(finalOffset)
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 轻微震动
                 },
                 onPress = { offset ->
                     // 触发波纹
@@ -227,3 +231,5 @@ fun Modifier.weContextMenu(
             }
         }
 }
+
+private fun Offset.toIntOffset() = IntOffset(x.roundToInt(), y.roundToInt())

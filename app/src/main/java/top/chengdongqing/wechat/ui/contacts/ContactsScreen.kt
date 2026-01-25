@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,19 +25,25 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.loading.WeLoading
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
 fun ContactsScreen(viewModel: ContactsViewModel = viewModel()) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(WeChatTheme.colorScheme.background)
     ) {
-        LazyColumn(state = listState) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.overscroll(overscrollEffect),
+            overscrollEffect = overscrollEffect
+        ) {
             // 顶部固定功能项
             item { TopFunctionList() }
 

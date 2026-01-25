@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.ui.chatdetail.bottombar
 
-import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -36,13 +35,13 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.UpdatedEffect
 import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
-import top.chengdongqing.wechat.core.utils.weClickable
 import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
+import top.chengdongqing.wechat.ui.utils.weClickable
 
 @Composable
 fun ChatBottomBar(
@@ -54,14 +53,6 @@ fun ChatBottomBar(
     val controller = rememberInputModeController(focusRequester)
     val inputMode by controller.inputMode
     val scope = rememberCoroutineScope()
-
-    // 切换到文本模式后自动弹出键盘
-    FocusRequestEffect(focusRequester, inputMode.isText)
-
-    // 拦截系统返回：展开面板时则收起面板
-    BackHandler(inputMode.isPanelMode) {
-        controller.switchMode(ChatInputMode.TEXT)
-    }
 
     Column(
         modifier = Modifier
@@ -75,7 +66,7 @@ fun ChatBottomBar(
             verticalAlignment = Alignment.Bottom
         ) {
             // 语音/文字切换
-            VoiceButton(inputMode, controller)
+            VoiceButton(inputMode, controller, focusRequester)
             // 输入框区域
             InputBox(
                 text,
@@ -134,8 +125,11 @@ fun ChatBottomBar(
 @Composable
 private fun VoiceButton(
     inputMode: ChatInputMode,
-    controller: InputModeController
+    controller: InputModeController,
+    focusRequester: NativeFocusRequester
 ) {
+    val scope = rememberCoroutineScope()
+
     ActionIcon(
         iconResId = if (inputMode.isVoice) {
             R.drawable.ic_keyboard_outlined
@@ -145,6 +139,11 @@ private fun VoiceButton(
     ) {
         if (inputMode.isVoice) {
             controller.switchMode(ChatInputMode.TEXT)
+            // 自动弹出键盘
+            scope.launch {
+                delay(50)
+                focusRequester.requestFocus()
+            }
         } else {
             controller.switchMode(ChatInputMode.VOICE)
         }
@@ -290,18 +289,6 @@ private fun ExpandablePanel(
         when (inputMode) {
             ChatInputMode.EMOJI -> EmojiPanel(onEmojiSelect, onStickerSelect, onBackspace)
             ChatInputMode.MORE -> MorePanel()
-        }
-    }
-}
-
-@Composable
-private fun FocusRequestEffect(
-    focusRequester: NativeFocusRequester,
-    trigger: Boolean
-) {
-    UpdatedEffect(trigger) {
-        if (trigger) {
-            focusRequester.requestFocus()
         }
     }
 }

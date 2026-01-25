@@ -24,6 +24,7 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
     NavHost(
         navController = navController,
         startDestination = Screen.ChatDetail.createRoute("123"),
+//        startDestination = Screen.Home.route,
         enterTransition = {
             slideIntoContainer(
                 AnimatedContentTransitionScope.SlideDirection.Left,
