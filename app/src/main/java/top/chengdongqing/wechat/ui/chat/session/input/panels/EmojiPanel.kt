@@ -163,7 +163,7 @@ private fun EmojiSectionHeader(title: String) {
 @Composable
 private fun EmojiItem(emoji: Emoji, onSelect: (Emoji) -> Unit) {
     AsyncImage(
-        model = emoji.icon.asAssetPath,
+        model = emoji.iconPath.asAssetPath,
         contentDescription = emoji.description,
         modifier = Modifier
             .size(38.dp)

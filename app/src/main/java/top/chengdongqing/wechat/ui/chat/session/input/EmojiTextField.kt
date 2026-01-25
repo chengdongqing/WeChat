@@ -1,8 +1,6 @@
 package top.chengdongqing.wechat.ui.chat.session.input
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
@@ -13,7 +11,6 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.TextWatcher
 import android.text.style.ImageSpan
-import android.util.LruCache
 import android.view.Gravity
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,11 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.graphics.scale
 import androidx.core.graphics.withTranslation
-import top.chengdongqing.wechat.data.sticker.Emoji
-import top.chengdongqing.wechat.data.sticker.Emojis
 import top.chengdongqing.wechat.ui.theme.GreenPrimary
+import top.chengdongqing.wechat.ui.utils.EmojiManager
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 @Composable
@@ -134,7 +129,7 @@ private fun updateTextWithEmoji(
     val oldLength = editText.text?.length ?: 0
 
     editText.tag = TAG_IGNORE_UPDATE
-    val spannable = EmojiSpanUtils.decode(context, value, sizePx)
+    val spannable = context.decodeEmojiSpan(value, sizePx)
     editText.setText(spannable)
 
     // 若文本增长且光标在末尾，则跟进；否则保持相对位置
@@ -148,49 +143,26 @@ private fun updateTextWithEmoji(
     editText.tag = null
 }
 
-private object EmojiSpanUtils {
-    // 使用 LruCache 代替普通 Map，防止内存溢出
-    private val bitmapCache = LruCache<String, Bitmap>(30)
+/**
+ * 解析表情并占位
+ */
+private fun Context.decodeEmojiSpan(text: CharSequence, fontSizePx: Int): Spannable {
+    val spannable = SpannableStringBuilder(text)
+    val targetSize = (fontSizePx * 1.3f).toInt()
 
-    fun decode(
-        context: Context,
-        text: CharSequence,
-        fontSizePx: Int,
-        emojis: List<Emoji> = Emojis
-    ): Spannable {
-        val spannable = SpannableStringBuilder(text)
-        val pattern = Regex("\\[(.*?)]")
-        // 表情通常比文字大一圈（如 1.3倍）视觉效果更和谐
-        val targetSize = (fontSizePx * 1.3f).toInt()
-
-        // 倒序替换，防止前面的替换导致后面 MatchResult 的 range 失效
-        pattern.findAll(text).toList().reversed().forEach { match ->
-            val description = match.groupValues[1]
-            val emoji = emojis.find { it.description == description } ?: return@forEach
-
-            val cacheKey = "${emoji.icon}_$targetSize"
-            val bitmap = bitmapCache.get(cacheKey) ?: run {
-                context.assets.open(emoji.icon).use { inputStream ->
-                    val raw = BitmapFactory.decodeStream(inputStream)
-                    val scaled = raw.scale(targetSize, targetSize)
-                    if (raw != scaled) raw.recycle()
-                    scaled
-                }.also { bitmapCache.put(cacheKey, it) }
-            }
-
-            val drawable = bitmap.toDrawable(context.resources).apply {
-                setBounds(0, 0, targetSize, targetSize)
-            }
-
-            spannable.setSpan(
-                VerticalCenterImageSpan(drawable),
-                match.range.first,
-                match.range.last + 1,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
+    EmojiManager.findAllMatches(text).reversed().forEach { (emoji, range) ->
+        val bitmap = EmojiManager.getEmojiBitmap(this, emoji, targetSize)
+        val drawable = bitmap.toDrawable(resources).apply {
+            setBounds(0, 0, targetSize, targetSize)
         }
-        return spannable
+        spannable.setSpan(
+            VerticalCenterImageSpan(drawable),
+            range.first,
+            range.last + 1,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
     }
+    return spannable
 }
 
 /**

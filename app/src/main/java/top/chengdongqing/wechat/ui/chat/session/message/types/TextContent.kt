@@ -1,97 +1,88 @@
 package top.chengdongqing.wechat.ui.chat.session.message.types
 
+import android.content.Intent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.ui.utils.EmojiManager
+import top.chengdongqing.wechat.ui.utils.EmojiMap
+import top.chengdongqing.wechat.ui.utils.parseRichText
 
 @Composable
 fun TextContent(content: MessageContent.Text) {
-    SelectionContainer {
-        val annotatedString = remember(content.text) {
-            parseTextWithLinksAndEmojis(content.text)
-        }
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    val density = LocalDensity.current
 
-        ClickableText(
+    // 预计算表情大小
+    val emojiSizePx = remember(density) { with(density) { 22.dp.roundToPx() } }
+
+    // 解析富文本
+    val annotatedString = remember(content.text) {
+        parseRichText(
+            content.text,
+            onUrlClick = { url ->
+                // 使用系统浏览器打开网址
+                uriHandler.openUri(url)
+            },
+            onPhoneClick = { phone ->
+                // 跳转到系统拨号盘
+                val intent = Intent(Intent.ACTION_DIAL, "tel:$phone".toUri())
+                context.startActivity(intent)
+            }
+        )
+    }
+
+    // 表情占位替换为图片
+    val inlineContent = remember(annotatedString) {
+        annotatedString.getStringAnnotations(
+            "androidx.compose.foundation.text.inlineContent",
+            0,
+            annotatedString.length
+        )
+            .map { it.item to EmojiMap[it.item] }
+            .associate { (name, emoji) ->
+                name to InlineTextContent(
+                    Placeholder(22.sp, 22.sp, PlaceholderVerticalAlign.TextCenter)
+                ) {
+                    val bitmap = EmojiManager.getEmojiBitmap(context, emoji!!, emojiSizePx)
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = name,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+    }
+
+    SelectionContainer {
+        Text(
             text = annotatedString,
+            inlineContent = inlineContent,
             modifier = Modifier.padding(10.dp),
             style = TextStyle(
                 fontSize = 16.sp,
                 color = Color.Black,
                 lineHeight = 22.sp
-            ),
-            onClick = { offset ->
-                // 处理链接点击
-                annotatedString.getStringAnnotations("URL", offset, offset)
-                    .firstOrNull()?.let { annotation ->
-                        // 逻辑：调用系统浏览器打开 URL
-                        println("点击了链接: ${annotation.item}")
-                    }
-
-                annotatedString.getStringAnnotations("PHONE", offset, offset)
-                    .firstOrNull()?.let { annotation ->
-                        // 逻辑：拨打电话
-                        println("点击了电话: ${annotation.item}")
-                    }
-            }
+            )
         )
-    }
-}
-
-/**
- * 将纯文本解析为带样式和链接的 AnnotatedString
- */
-private fun parseTextWithLinksAndEmojis(text: String): AnnotatedString {
-    return buildAnnotatedString {
-        append(text)
-
-        // 正则匹配 URL
-        val urlPattern = Regex("(https?://[\\w-]+(\\.[\\w-]+)+(/\\S*)?)")
-        urlPattern.findAll(text).forEach { match ->
-            addStyle(
-                style = SpanStyle(
-                    color = Color(0xFF576B95),
-                    textDecoration = TextDecoration.Underline
-                ),
-                start = match.range.first,
-                end = match.range.last + 1
-            )
-            addStringAnnotation(
-                tag = "URL",
-                annotation = match.value,
-                start = match.range.first,
-                end = match.range.last + 1
-            )
-        }
-
-        // 正则匹配电话号码
-        val phonePattern = Regex("(\\d{3}-\\d{8}|\\d{11})")
-        phonePattern.findAll(text).forEach { match ->
-            addStyle(
-                style = SpanStyle(color = Color(0xFF576B95)),
-                start = match.range.first,
-                end = match.range.last + 1
-            )
-            addStringAnnotation(
-                tag = "PHONE",
-                annotation = match.value,
-                start = match.range.first,
-                end = match.range.last + 1
-            )
-        }
-
-        // 3. TODO: 这里可以集成 Emoji 解析逻辑
-        // 将 [微笑] 替换为 InlineContent 图标
     }
 }
