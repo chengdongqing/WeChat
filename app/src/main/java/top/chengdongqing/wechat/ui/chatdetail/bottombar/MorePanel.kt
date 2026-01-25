@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -38,7 +37,7 @@ fun MorePanel(
     modifier: Modifier = Modifier,
     onItemClick: (MoreAction) -> Unit = {}
 ) {
-    val pages = remember { MoreItems.chunked(8) }
+    val pages = remember { MoreItems.chunked(ChunkCount) }
     val pagerState = rememberPagerState { pages.size }
 
     Column(
@@ -51,8 +50,8 @@ fun MorePanel(
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(260.dp)
-                .padding(vertical = 20.dp),
+                .height(240.dp)
+                .padding(top = 28.dp),
             key = { it }
         ) { pageIndex ->
             MorePanelGrid(
@@ -61,6 +60,7 @@ fun MorePanel(
             )
         }
         if (pages.size > 1) {
+            Spacer(modifier = Modifier.weight(1f))
             PagerIndicator(
                 count = pages.size,
                 currentPage = pagerState.currentPage,
@@ -78,7 +78,7 @@ private fun MorePanelGrid(
     FlowRow(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 6.dp, vertical = 4.dp),
+            .padding(horizontal = 6.dp),
         maxItemsInEachRow = 4,
         horizontalArrangement = Arrangement.SpaceAround,
         verticalArrangement = Arrangement.SpaceAround
@@ -88,8 +88,8 @@ private fun MorePanelGrid(
                 onItemClick(item.id)
             }
         }
-        if (items.size < 8) {
-            repeat(8 - items.size) {
+        if (items.size < ChunkCount) {
+            repeat(ChunkCount - items.size) {
                 Spacer(modifier = Modifier.size(52.dp))
             }
         }
@@ -147,7 +147,7 @@ private fun PagerIndicator(
                     .padding(horizontal = 4.dp)
                     .clip(CircleShape)
                     .background(color)
-                    .size(7.dp)
+                    .size(5.5.dp)
             )
         }
     }
@@ -166,6 +166,8 @@ private val MoreItems = listOf(
     MoreItemData(MoreAction.MUSIC, "音乐", R.drawable.ic_music_filled),
 )
 
+private const val ChunkCount = 8
+
 enum class MoreAction {
     ALBUM, CAMERA, VIDEO_CALL, LOCATION, TRANSFER, FAVORITE, VOICE, CARD, FILE, MUSIC
 }
@@ -175,9 +177,3 @@ private data class MoreItemData(
     val title: String,
     @get:DrawableRes val iconRes: Int
 )
-
-@Preview
-@Composable
-private fun Preview() {
-    MorePanel()
-}

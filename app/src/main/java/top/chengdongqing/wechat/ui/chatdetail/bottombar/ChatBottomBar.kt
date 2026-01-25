@@ -3,17 +3,17 @@ package top.chengdongqing.wechat.ui.chatdetail.bottombar
 import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,22 +21,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.UpdatedEffect
+import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
 import top.chengdongqing.wechat.core.utils.weClickable
 import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
@@ -66,7 +67,6 @@ fun ChatBottomBar(
         modifier = Modifier
             .background(Color(0xFFF7F7F7))
             .navigationBarsPadding()
-            .imePadding()
     ) {
         Row(
             modifier = Modifier
@@ -97,39 +97,37 @@ fun ChatBottomBar(
             SendOrMoreButton(text, onSend, inputMode, controller)
         }
 
-        if (inputMode.isPanelMode) {
-            ExpandablePanel(
-                inputMode,
-                onEmojiSelect = {
-                    val insertText = "[${it.description}]"
-                    val cursorIndex = focusRequester.selectionStart
-                    val newText = StringBuilder(text)
-                        .insert(cursorIndex, insertText)
-                        .toString()
-                    onTextChange(newText)
+        ExpandablePanel(
+            inputMode,
+            onEmojiSelect = {
+                val insertText = "[${it.description}]"
+                val cursorIndex = focusRequester.selectionStart
+                val newText = StringBuilder(text)
+                    .insert(cursorIndex, insertText)
+                    .toString()
+                onTextChange(newText)
 
-                    // 计算新的光标位置
-                    val newCursorIndex = cursorIndex + insertText.length
-                    scope.launch {
-                        delay(16)
-                        focusRequester.setSelection(newCursorIndex)
-                    }
-                },
-                onStickerSelect = {
+                // 计算新的光标位置
+                val newCursorIndex = cursorIndex + insertText.length
+                scope.launch {
+                    delay(16)
+                    focusRequester.setSelection(newCursorIndex)
+                }
+            },
+            onStickerSelect = {
 
-                },
-                onBackspace = {
-                    text.handleBackspace(focusRequester.selectionStart) { newString, newPos ->
-                        onTextChange(newString)
+            },
+            onBackspace = {
+                text.handleBackspace(focusRequester.selectionStart) { newString, newPos ->
+                    onTextChange(newString)
 
-                        // 同步光标
-                        focusRequester.post {
-                            focusRequester.setSelection(newPos)
-                        }
+                    // 同步光标
+                    focusRequester.post {
+                        focusRequester.setSelection(newPos)
                     }
                 }
-            )
-        }
+            }
+        )
     }
 }
 
@@ -253,28 +251,45 @@ private fun ActionIcon(
 @Composable
 private fun ExpandablePanel(
     inputMode: ChatInputMode,
-    defaultHeight: Dp = 300.dp,
     onEmojiSelect: (Emoji) -> Unit,
     onStickerSelect: (String) -> Unit,
     onBackspace: () -> Unit
 ) {
-    val ime = WindowInsets.ime
-    val density = LocalDensity.current
-    val keyboardHeight = with(density) { ime.getBottom(this).toDp() }
-    val panelHeight = remember(keyboardHeight) {
-        if (keyboardHeight > 0.dp) keyboardHeight else defaultHeight
+    val keyboardHeight = rememberKeyboardHeight()
+    var savedKeyboardHeight by remember { mutableStateOf(300.dp) }
+
+    LaunchedEffect(keyboardHeight) {
+        if (keyboardHeight > 0.dp && savedKeyboardHeight == 300.dp) {
+            savedKeyboardHeight = keyboardHeight
+        }
     }
+
+    // 最终占位高度
+    val panelHeight = when {
+        inputMode.isText -> keyboardHeight
+        inputMode.isEmoji -> savedKeyboardHeight + 20.dp
+        inputMode.isMore -> savedKeyboardHeight
+        else -> 0.dp
+    }
+
+    val animatedPanelHeight by animateDpAsState(
+        targetValue = panelHeight,
+        animationSpec = tween(
+            durationMillis = 300,
+            easing = FastOutSlowInEasing
+        ),
+        label = "SmoothSwitch"
+    )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(panelHeight)
+            .height(animatedPanelHeight)
             .background(Color(0xFFF1F1F1))
     ) {
         when (inputMode) {
             ChatInputMode.EMOJI -> EmojiPanel(onEmojiSelect, onStickerSelect, onBackspace)
             ChatInputMode.MORE -> MorePanel()
-            else -> Unit
         }
     }
 }
@@ -319,10 +334,4 @@ private fun String.handleBackspace(
         val newCursorPos = selectionStart - 1
         onChange(newText, newCursorPos)
     }
-}
-
-@Preview
-@Composable
-private fun Preview() {
-    ChatBottomBar("", {}, {})
 }

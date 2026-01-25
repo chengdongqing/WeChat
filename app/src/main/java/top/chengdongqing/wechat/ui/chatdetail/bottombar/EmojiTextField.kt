@@ -45,7 +45,7 @@ fun EmojiTextField(
     val context = LocalContext.current
     val density = LocalDensity.current
     val fontSizePx = with(density) { fontSizeSp.sp.toPx().toInt() }
-    val cursorWidthPx = with(density) { 2.dp.toPx().toInt() }
+    val cursorWidthPx = with(density) { 1.8.dp.toPx().toInt() }
     val maxHeightPx = with(density) { maxHeightDp?.toPx()?.toInt() }
 
     AndroidView(
