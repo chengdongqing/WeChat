@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.overscroll
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -61,7 +65,7 @@ fun EmojiPanel(
         WeDivider()
         HorizontalPager(pagerState) { page ->
             if (page == 0) {
-                EmojiGrid(onEmojiSelect, onBackspace)
+                EmojiGrid(onSelect = onEmojiSelect, onBackspace = onBackspace)
             } else {
                 StickersGrid(onStickerSelect)
             }
@@ -104,9 +108,13 @@ private fun CategoriesTab(currentTab: Int, onTabChange: (index: Int) -> Unit) {
 }
 
 @Composable
-private fun EmojiGrid(onSelect: (value: Emoji) -> Unit, onBackspace: () -> Unit) {
+private fun EmojiGrid(
+    recentEmojis: List<Emoji> = Emojis.take(8),
+    onSelect: (value: Emoji) -> Unit,
+    onBackspace: () -> Unit
+) {
     val scope = rememberCoroutineScope()
-    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+    val overscrollEffect = remember(scope) { BounceOverscrollEffect(scope) }
 
     Box(contentAlignment = Alignment.BottomEnd) {
         LazyVerticalGrid(
@@ -114,26 +122,56 @@ private fun EmojiGrid(onSelect: (value: Emoji) -> Unit, onBackspace: () -> Unit)
             modifier = Modifier
                 .fillMaxSize()
                 .overscroll(overscrollEffect),
-            contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 80.dp),
+            contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             overscrollEffect = overscrollEffect
         ) {
-            items(Emojis) { emoji ->
-                AsyncImage(
-                    model = emoji.icon.asAssetPath,
-                    contentDescription = emoji.description,
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .clickable { onSelect(emoji) }
-                        .padding(4.dp),
-                    contentScale = ContentScale.Inside
-                )
+            if (recentEmojis.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    EmojiSectionHeader("最近使用")
+                }
+                items(recentEmojis, key = { "recent_${it.description}" }) { emoji ->
+                    EmojiItem(emoji, onSelect)
+                }
+            }
+
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                EmojiSectionHeader("所有表情")
+            }
+            items(items = Emojis, key = { it.description }) { emoji ->
+                EmojiItem(emoji, onSelect)
             }
         }
 
+        // 退格键悬浮在右下角
         BackspaceButton(onBackspace)
     }
+}
+
+@Composable
+private fun EmojiSectionHeader(title: String) {
+    Text(
+        text = title,
+        fontSize = 12.sp,
+        color = Color.Gray,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp)
+    )
+}
+
+@Composable
+private fun EmojiItem(emoji: Emoji, onSelect: (Emoji) -> Unit) {
+    AsyncImage(
+        model = emoji.icon.asAssetPath,
+        contentDescription = emoji.description,
+        modifier = Modifier
+            .size(38.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .clickable { onSelect(emoji) }
+            .padding(4.dp),
+        contentScale = ContentScale.Inside
+    )
 }
 
 @Composable
@@ -148,7 +186,7 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Backspace,
-            contentDescription = "回退",
+            contentDescription = "退格",
             modifier = Modifier.size(22.dp),
             tint = Black
         )
@@ -170,7 +208,7 @@ private fun StickersGrid(onSelect: (sticker: String) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         overscrollEffect = overscrollEffect
     ) {
-        items(Stickers) { sticker ->
+        items(items = Stickers, key = { it }) { sticker ->
             Box(
                 Modifier
                     .aspectRatio(1f)
