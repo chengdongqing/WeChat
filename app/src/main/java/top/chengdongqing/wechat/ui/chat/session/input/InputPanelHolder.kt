@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
+import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.ui.chat.session.input.panels.EmojiPanel
 import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreActionPanel
@@ -28,7 +29,7 @@ fun InputPanelHolder(
     inputMode: InputMode,
     isPopup: Boolean = false,
     onEmojiSelect: (Emoji) -> Unit,
-    onStickerSelect: ((String) -> Unit)? = null,
+    onStickerSelect: ((MessageContent.Sticker) -> Unit)? = null,
     onBackspace: () -> Unit
 ) {
     var savedKeyboardHeight by remember { mutableStateOf(300.dp) }

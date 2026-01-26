@@ -18,9 +18,9 @@ object EmojiManager {
      * 获取表情 Bitmap
      */
     fun getEmojiBitmap(context: Context, emoji: Emoji, targetSize: Int): Bitmap {
-        val cacheKey = "${emoji.iconPath}_$targetSize"
+        val cacheKey = "${emoji.localPath}_$targetSize"
         return bitmapCache.get(cacheKey) ?: run {
-            context.assets.open(emoji.iconPath).use { stream ->
+            context.assets.open(emoji.localPath).use { stream ->
                 val raw = BitmapFactory.decodeStream(stream)
                 raw.scale(targetSize, targetSize).also {
                     if (it != raw) raw.recycle()

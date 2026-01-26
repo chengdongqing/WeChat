@@ -58,6 +58,7 @@ ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
 ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coil" }
 coil-zoomable = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "coilZoomable" }
@@ -78,5 +79,5 @@ room = { id = "androidx.room", version.ref = "room" }
 [bundles]
 room = ["room-runtime", "room-ktx", "room-compiler"]
 ktor = ["ktor-server-core", "ktor-server-cio", "ktor-network"]
-coil = ["coil-compose", "coil-network", "coil-video"]
+coil = ["coil-compose", "coil-gif", "coil-network", "coil-video"]
 camera = ["camera-camera2", "camera-lifecycle", "camera-view"]

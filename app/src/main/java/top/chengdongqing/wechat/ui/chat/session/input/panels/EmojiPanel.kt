@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.chat.session.input.panels
 
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,13 +34,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
+import coil3.decode.StaticImageDecoder
+import coil3.request.ImageRequest
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.utils.asAssetPath
+import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.data.sticker.Emojis
 import top.chengdongqing.wechat.data.sticker.Stickers
@@ -51,8 +57,8 @@ import top.chengdongqing.wechat.ui.utils.repeatingClickable
 @Composable
 fun EmojiPanel(
     emojiOnly: Boolean = false,
-    onEmojiSelect: (value: Emoji) -> Unit,
-    onStickerSelect: ((sticker: String) -> Unit)?,
+    onEmojiSelect: (Emoji) -> Unit,
+    onStickerSelect: ((MessageContent.Sticker) -> Unit)?,
     onBackspace: () -> Unit
 ) {
     val pagerState = rememberPagerState { 2 }
@@ -122,7 +128,7 @@ private fun CategoriesTab(currentTab: Int, onTabChange: (index: Int) -> Unit) {
 @Composable
 private fun EmojiGrid(
     recentEmojis: List<Emoji> = Emojis.take(8),
-    onSelect: (value: Emoji) -> Unit,
+    onSelect: (Emoji) -> Unit,
     onBackspace: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -175,7 +181,7 @@ private fun EmojiSectionHeader(title: String) {
 @Composable
 private fun EmojiItem(emoji: Emoji, onSelect: (Emoji) -> Unit) {
     AsyncImage(
-        model = emoji.iconPath.asAssetPath,
+        model = emoji.localPath.asAssetPath,
         contentDescription = emoji.description,
         modifier = Modifier
             .size(38.dp)
@@ -206,9 +212,10 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
 }
 
 @Composable
-private fun StickersGrid(onSelect: (sticker: String) -> Unit) {
+private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
     val scope = rememberCoroutineScope()
     val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+    val context = LocalContext.current
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
@@ -220,18 +227,34 @@ private fun StickersGrid(onSelect: (sticker: String) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         overscrollEffect = overscrollEffect
     ) {
-        items(items = Stickers, key = { it }) { sticker ->
+        items(items = Stickers, key = { it.stickerId }) { sticker ->
             Box(
                 Modifier
                     .aspectRatio(1f)
                     .clip(RoundedCornerShape(4.dp))
                     .clickable {
-                        onSelect(sticker)
+                        onSelect(
+                            MessageContent.Sticker(
+                                sticker.stickerId,
+                                sticker.localPath
+                            )
+                        )
                     },
                 contentAlignment = Alignment.Center
             ) {
+                val imageRequest = remember(sticker.localPath) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        ImageRequest.Builder(context)
+                            .data(sticker.localPath.asAssetPath)
+                            .decoderFactory(StaticImageDecoder.Factory())
+                            .build()
+                    } else {
+                        sticker.localPath.asAssetPath
+                    }
+                }
+
                 AsyncImage(
-                    model = sticker.asAssetPath,
+                    model = imageRequest,
                     contentDescription = null,
                     modifier = Modifier.padding(4.dp),
                     contentScale = ContentScale.Inside
@@ -240,6 +263,3 @@ private fun StickersGrid(onSelect: (sticker: String) -> Unit) {
         }
     }
 }
-
-private val String.asAssetPath: String
-    get() = "file:///android_asset/$this"

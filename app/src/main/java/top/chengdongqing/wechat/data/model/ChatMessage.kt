@@ -69,8 +69,8 @@ sealed class MessageContent(
 
     data class Sticker(
         val stickerId: String,
-        val url: String,
-        val isAnimated: Boolean = false
+        val localPath: String,
+        val description: String? = null
     ) : MessageContent(showBubble = false)
 
     data class Favorite(

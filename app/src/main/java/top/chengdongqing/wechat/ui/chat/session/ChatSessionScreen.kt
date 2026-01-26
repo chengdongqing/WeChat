@@ -50,11 +50,9 @@ fun ChatSessionScreen(
             }
         },
         bottomBar = {
-            InputBar(
-                text = state.inputText,
-                onTextChange = { viewModel.updateText(it) },
-                onSend = { viewModel.sendMessage() }
-            )
+            InputBar {
+                viewModel.sendMessage(it)
+            }
         }
     ) { innerPadding ->
         LazyColumn(

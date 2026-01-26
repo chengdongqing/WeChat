@@ -37,17 +37,14 @@ import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
-fun MoreActionPanel(
-    modifier: Modifier = Modifier,
-    onItemClick: (MoreAction) -> Unit = {}
-) {
+fun MoreActionPanel(onItemClick: (MoreAction) -> Unit = {}) {
     val scope = rememberCoroutineScope()
     val pages = remember { MoreActionItems.chunked(ChunkCount) }
     val pagerState = rememberPagerState { pages.size }
     val overscrollEffect = remember { BounceOverscrollEffect(scope, Orientation.Horizontal) }
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF7F7F7))
     ) {

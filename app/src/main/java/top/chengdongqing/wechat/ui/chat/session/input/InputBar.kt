@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
@@ -37,16 +39,14 @@ import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 import top.chengdongqing.wechat.ui.utils.rememberToggleState
 
 @Composable
-fun InputBar(
-    text: String,
-    onTextChange: (String) -> Unit,
-    onSend: () -> Unit
-) {
+fun InputBar(onSend: (MessageContent) -> Unit) {
     val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputModeController(focusRequester)
     val inputMode by controller.inputMode
     val scope = rememberCoroutineScope()
 
+    // 当前输入的内容
+    var inputText by remember { mutableStateOf("") }
     // 当前输入框行数
     var lineCount by remember { mutableIntStateOf(1) }
     // 是否启用全屏输入
@@ -54,10 +54,13 @@ fun InputBar(
         defaultValue = false,
         reverseValue = true
     )
+    val onTextChange = { newText: String ->
+        inputText = newText
+    }
 
-    val currentText = rememberUpdatedState(text)
+    val currentText = rememberUpdatedState(inputText)
     val inputManger = remember {
-        InputManger(currentText, onTextChange, focusRequester, scope)
+        InputManger(currentText, focusRequester, scope, onTextChange)
     }
 
     Column(
@@ -82,7 +85,7 @@ fun InputBar(
             )
             // 输入框区域
             InputBox(
-                text = text,
+                text = inputText,
                 inputMode = inputMode,
                 focusRequester = focusRequester,
                 onTextChange = onTextChange,
@@ -91,13 +94,16 @@ fun InputBar(
             // 表情按钮
             EmojiButton(inputMode, controller)
             // 发送/更多按钮
-            SendOrMoreButton(text, onSend, inputMode, controller)
+            SendOrMoreButton(inputText, inputMode, controller) {
+                onSend(MessageContent.Text(inputText))
+                onTextChange("")
+            }
         }
 
         InputPanelHolder(
             inputMode,
             onEmojiSelect = { inputManger.insertEmoji(it.description) },
-            onStickerSelect = {},
+            onStickerSelect = { onSend(it) },
             onBackspace = { inputManger.handleEmojiBackspace() }
         )
     }
@@ -105,7 +111,7 @@ fun InputBar(
     // 全屏输入框
     FullScreenInputPopup(
         visible = isExpanded.value,
-        text = text,
+        text = inputText,
         onTextChange = onTextChange,
         onClose = { toggleExpand() }
     )
@@ -202,9 +208,9 @@ private fun EmojiButton(inputMode: InputMode, controller: InputModeController) {
 @Composable
 private fun SendOrMoreButton(
     text: String,
-    onSend: () -> Unit,
     inputMode: InputMode,
-    controller: InputModeController
+    controller: InputModeController,
+    onSend: () -> Unit
 ) {
     AnimatedContent(targetState = text.isNotEmpty(), label = "SendBtn") { isNotEmpty ->
         if (isNotEmpty) {

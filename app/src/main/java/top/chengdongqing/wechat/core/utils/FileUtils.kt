@@ -100,3 +100,6 @@ fun Context.shareContent(content: Any, mimeType: String, title: String = "分享
 fun Context.getFileProviderUri(file: File): Uri {
     return FileProvider.getUriForFile(this, "$packageName.provider", file)
 }
+
+val String.asAssetPath: String
+    get() = "file:///android_asset/$this"

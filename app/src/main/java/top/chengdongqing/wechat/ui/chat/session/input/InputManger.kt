@@ -9,9 +9,9 @@ import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 class InputManger(
     private val text: State<String>,
-    private val onTextChange: (String) -> Unit,
     private val focusRequester: NativeFocusRequester,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val onTextChange: (String) -> Unit,
 ) {
     private val currentText
         get() = text.value

@@ -6,13 +6,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.utils.asAssetPath
 import top.chengdongqing.wechat.data.model.MessageContent
 
 @Composable
-fun StickerContent(content: MessageContent.Sticker) {
+fun ImageContent(content: MessageContent.Image) {
     AsyncImage(
-        model = content.localPath.asAssetPath,
+        model = content.url,
         contentDescription = null,
         modifier = Modifier.sizeIn(minWidth = 120.dp),
         contentScale = ContentScale.Crop

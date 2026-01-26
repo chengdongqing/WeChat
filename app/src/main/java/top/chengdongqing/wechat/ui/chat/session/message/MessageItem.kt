@@ -23,6 +23,7 @@ fun MessageItem(
     avatarRes: Int = R.drawable.img_avatar
 ) {
     val isFromMe = message.isFromMe
+    val content = message.content
 
     Row(
         modifier = Modifier
@@ -35,8 +36,11 @@ fun MessageItem(
             Spacer(modifier = Modifier.width(12.dp))
         }
 
-        ChatBubble(isFromMe = isFromMe, showArrow = true) {
-            MessageContent(message.content)
+        ChatBubble(
+            isFromMe = isFromMe,
+            showArrow = content.showBubble
+        ) {
+            MessageContent(content)
         }
 
         if (isFromMe) {

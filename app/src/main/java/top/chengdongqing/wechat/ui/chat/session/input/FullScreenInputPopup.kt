@@ -46,7 +46,7 @@ fun FullScreenInputPopup(
 
         val currentText = rememberUpdatedState(text)
         val inputManger = remember {
-            InputManger(currentText, onTextChange, focusRequester, scope)
+            InputManger(currentText, focusRequester, scope, onTextChange)
         }
 
         BackHandler {
