@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +34,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 /**
  * 滑块
@@ -118,7 +118,7 @@ fun WeSlider(
                 Modifier
                     .fillMaxWidth()
                     .height(2.dp)
-                    .background(MaterialTheme.colorScheme.outline),
+                    .background(WeChatTheme.colorScheme.divider),
                 contentAlignment = Alignment.CenterStart
             ) {
                 // 高亮线段
@@ -126,7 +126,7 @@ fun WeSlider(
                     Modifier
                         .fillMaxWidth(percent)
                         .height(2.dp)
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(WeChatTheme.colorScheme.primary)
                 )
             }
             // 手柄
@@ -134,7 +134,7 @@ fun WeSlider(
                 Modifier
                     .size(28.dp)
                     .offset(offsetX - 14.dp)
-                    .shadow(14.dp, CircleShape, spotColor = MaterialTheme.colorScheme.outline)
+                    .shadow(14.dp, CircleShape, spotColor = WeChatTheme.colorScheme.divider)
                     .background(Color.White, CircleShape)
             )
         }
@@ -144,7 +144,7 @@ fun WeSlider(
             Text(
                 text = it(value),
                 modifier = Modifier.widthIn(40.dp),
-                color = MaterialTheme.colorScheme.onSecondary,
+                color = WeChatTheme.colorScheme.textSecondary,
                 fontSize = 14.sp,
                 textAlign = TextAlign.End
             )

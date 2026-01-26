@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,19 +32,29 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.data.model.VisualMediaType
+import top.chengdongqing.wechat.data.model.isImage
 import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
+import top.chengdongqing.wechat.ui.chat.session.ScrollToDismissEffect
+import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreAction
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
+import top.chengdongqing.wechat.ui.components.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 import top.chengdongqing.wechat.ui.utils.rememberToggleState
 
 @Composable
-fun InputBar(onSend: (MessageContent) -> Unit) {
+fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageContent) -> Unit) {
     val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputModeController(focusRequester)
     val inputMode by controller.inputMode
     val scope = rememberCoroutineScope()
+
+    // 显示键盘/展开面板时，如果用户主动滚动消息列表，则收起底部
+    ScrollToDismissEffect(listState, isSending, inputMode.isPanelMode) {
+        controller.switchMode(showKeyboard = false)
+    }
 
     // 当前输入的内容
     var inputText by remember { mutableStateOf("") }
@@ -59,8 +70,48 @@ fun InputBar(onSend: (MessageContent) -> Unit) {
     }
 
     val currentText = rememberUpdatedState(inputText)
-    val inputManger = remember {
-        InputManger(currentText, focusRequester, scope, onTextChange)
+    val inputHandler = remember {
+        InputHandler(currentText, focusRequester, scope, onTextChange)
+    }
+
+    val sendTextMessage = {
+        if (inputText.isNotBlank()) {
+            onSend(MessageContent.Text(inputText))
+            onTextChange("")
+        }
+    }
+
+    val pickMedia = rememberPickMediasLauncher { items ->
+        // 将数据转换为统一的消息内容格式
+        val contents = items.map { item ->
+            if (item.isImage()) {
+                MessageContent.Image(
+                    url = item.uri.toString(),
+                    mimeType = item.mimeType,
+                    filename = item.filename,
+                    width = item.width,
+                    height = item.height
+                )
+            } else {
+                MessageContent.Video(
+                    videoUrl = item.uri.toString(),
+                    mimeType = item.mimeType,
+                    filename = item.filename,
+                    width = item.width,
+                    height = item.height,
+                    duration = item.duration
+                )
+            }
+        }
+
+        // 批量发送
+        scope.launch {
+            contents.forEach { content ->
+                onSend(content)
+                // 留一点缓冲时间
+                delay(50)
+            }
+        }
     }
 
     Column(
@@ -94,18 +145,27 @@ fun InputBar(onSend: (MessageContent) -> Unit) {
             // 表情按钮
             EmojiButton(inputMode, controller)
             // 发送/更多按钮
-            SendOrMoreButton(inputText, inputMode, controller) {
-                onSend(MessageContent.Text(inputText))
-                onTextChange("")
-            }
+            SendOrMoreButton(inputText, inputMode, controller, sendTextMessage)
         }
 
         InputPanelHolder(
             inputMode,
-            onEmojiSelect = { inputManger.insertEmoji(it.description) },
-            onStickerSelect = { onSend(it) },
-            onBackspace = { inputManger.handleEmojiBackspace() }
-        )
+            onEmojiSelect = { inputHandler.insertEmoji(it.description) },
+            onStickerSelect = onSend,
+            onBackspace = inputHandler::handleEmojiBackspace
+        ) { action ->
+            when (action) {
+                MoreAction.ALBUM -> pickMedia(VisualMediaType.IMAGE_AND_VIDEO, 9)
+                MoreAction.CAMERA -> {}
+                MoreAction.VIDEO_CALL -> {}
+                MoreAction.LOCATION -> {}
+                MoreAction.FAVORITE -> {}
+                MoreAction.VOICE -> {}
+                MoreAction.CARD -> {}
+                MoreAction.FILE -> {}
+                else -> {}
+            }
+        }
     }
 
     // 全屏输入框
@@ -113,7 +173,7 @@ fun InputBar(onSend: (MessageContent) -> Unit) {
         visible = isExpanded.value,
         text = inputText,
         onTextChange = onTextChange,
-        onClose = { toggleExpand() }
+        onClose = toggleExpand::invoke
     )
 }
 
@@ -146,7 +206,7 @@ private fun VoiceButton(
             }
         ) {
             if (inputMode.isVoice) {
-                controller.switchMode(InputMode.TEXT)
+                controller.switchMode()
                 // 自动弹出键盘
                 scope.launch {
                     delay(50)

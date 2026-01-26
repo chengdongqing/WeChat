@@ -19,7 +19,9 @@ class LocalMediaRepositoryImpl(private val context: Context) : LocalMediaReposit
                 MediaStore.Files.FileColumns.DURATION,
                 MediaStore.Files.FileColumns.DATE_ADDED,
                 MediaStore.Files.FileColumns.MEDIA_TYPE,
-                MediaStore.Files.FileColumns.MIME_TYPE
+                MediaStore.Files.FileColumns.MIME_TYPE,
+                MediaStore.Files.FileColumns.WIDTH,
+                MediaStore.Files.FileColumns.HEIGHT
             )
             val selection =
                 "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (${types.joinToString(separator = ",") { "?" }})"
@@ -43,6 +45,10 @@ class LocalMediaRepositoryImpl(private val context: Context) : LocalMediaReposit
                     cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE)
                 val mimeTypeColumn =
                     cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)
+                val widthColumn =
+                    cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH)
+                val heightColumn =
+                    cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT)
 
                 while (cursor.moveToNext()) {
                     val fileUri =
@@ -56,7 +62,9 @@ class LocalMediaRepositoryImpl(private val context: Context) : LocalMediaReposit
                             mediaType = mediaType ?: MediaType.IMAGE,
                             mimeType = cursor.getString(mimeTypeColumn),
                             duration = cursor.getLong(durationColumn),
-                            date = cursor.getLong(dateColumn)
+                            date = cursor.getLong(dateColumn),
+                            width = cursor.getInt(widthColumn),
+                            height = cursor.getInt(heightColumn)
                         )
                     )
                 }

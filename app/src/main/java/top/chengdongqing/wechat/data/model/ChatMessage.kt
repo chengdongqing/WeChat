@@ -22,6 +22,8 @@ sealed class MessageContent(
 
     data class Image(
         val url: String,
+        val mimeType: String,
+        val filename: String,
         val width: Int,
         val height: Int,
         val ratio: Float = width.toFloat() / height.toFloat()
@@ -35,8 +37,12 @@ sealed class MessageContent(
 
     data class Video(
         val videoUrl: String,
-        val coverUrl: String,
-        val duration: Long
+        val duration: Long,
+        val mimeType: String,
+        val filename: String,
+        val width: Int,
+        val height: Int,
+        val ratio: Float = width.toFloat() / height.toFloat()
     ) : MessageContent(showBubble = false)
 
     data class Location(

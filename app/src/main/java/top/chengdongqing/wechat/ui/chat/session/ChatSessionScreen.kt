@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.chat.session.input.InputBar
 import top.chengdongqing.wechat.ui.chat.session.message.MessageItem
@@ -50,8 +52,14 @@ fun ChatSessionScreen(
             }
         },
         bottomBar = {
-            InputBar {
-                viewModel.sendMessage(it)
+            InputBar(listState, state.isSending) {
+                viewModel.sendMessage(it) {
+                    scope.launch {
+                        listState.animateScrollToItem(0)
+                        delay(100)
+                        viewModel.finishScrollToLatest()
+                    }
+                }
             }
         }
     ) { innerPadding ->

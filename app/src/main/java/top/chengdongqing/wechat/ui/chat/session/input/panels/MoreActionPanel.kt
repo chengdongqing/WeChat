@@ -37,7 +37,7 @@ import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
-fun MoreActionPanel(onItemClick: (MoreAction) -> Unit = {}) {
+fun MoreActionPanel(onAction: (MoreAction) -> Unit) {
     val scope = rememberCoroutineScope()
     val pages = remember { MoreActionItems.chunked(ChunkCount) }
     val pagerState = rememberPagerState { pages.size }
@@ -60,7 +60,7 @@ fun MoreActionPanel(onItemClick: (MoreAction) -> Unit = {}) {
         ) { pageIndex ->
             MorePanelGrid(
                 items = pages[pageIndex],
-                onItemClick = onItemClick
+                onItemClick = onAction
             )
         }
         if (pages.size > 1) {
@@ -82,10 +82,10 @@ private fun MorePanelGrid(
     FlowRow(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         maxItemsInEachRow = 4,
         horizontalArrangement = Arrangement.SpaceAround,
-        verticalArrangement = Arrangement.SpaceAround
+        verticalArrangement = Arrangement.spacedBy(36.dp)
     ) {
         items.forEach { item ->
             MorePanelItem(item) {

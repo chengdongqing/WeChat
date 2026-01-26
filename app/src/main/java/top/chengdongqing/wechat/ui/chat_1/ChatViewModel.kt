@@ -108,7 +108,7 @@ class ChatViewModel(
             val mediaResource = prepareMediaResource(application, uri) ?: return@launch
             val payload = ChatPayload.Media(
                 fileId = randomUUID(),
-                fileName = mediaResource.fileName,
+                fileName = mediaResource.filename,
                 mimeType = mediaResource.mimeType,
                 size = mediaResource.size,
                 localPath = mediaResource.file.absolutePath,

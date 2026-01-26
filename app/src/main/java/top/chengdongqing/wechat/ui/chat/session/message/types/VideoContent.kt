@@ -1,0 +1,104 @@
+package top.chengdongqing.wechat.ui.chat.session.message.types
+
+import android.util.Size
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
+import coil3.compose.AsyncImage
+import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.utils.format
+import top.chengdongqing.wechat.core.utils.loadMediaThumbnail
+import top.chengdongqing.wechat.data.model.MediaItem
+import top.chengdongqing.wechat.data.model.MediaType
+import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
+import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
+import kotlin.time.Duration.Companion.milliseconds
+
+@Composable
+fun VideoContent(content: MessageContent.Video) {
+    val context = LocalContext.current
+    val targetWidth = rememberWindowFractionWidth()
+
+    val media = remember {
+        MediaItem(
+            uri = content.videoUrl.toUri(),
+            filename = content.filename,
+            mediaType = MediaType.VIDEO,
+            mimeType = content.mimeType,
+            width = content.width,
+            height = content.height,
+            duration = content.duration
+        )
+    }
+
+    // 异步加载视频缩略图
+    val thumbnail by produceState<Any?>(initialValue = null) {
+        value = context.loadMediaThumbnail(media, Size(1200, 1200))
+    }
+
+    Box(
+        modifier = Modifier
+            .heightIn(max = targetWidth)
+            .widthIn(max = targetWidth)
+            .aspectRatio(content.ratio)
+            .clickable {
+                context.previewMedias(listOf(media), 0)
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        // 视频缩略图
+        AsyncImage(
+            model = thumbnail,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        // 播放图标
+        Icon(
+            painter = painterResource(R.drawable.ic_play_arrow_filled),
+            contentDescription = "Play",
+            tint = Color.White,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .border(1.dp, Color.White, CircleShape)
+                .padding(4.dp)
+        )
+        // 视频时长
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(horizontal = 8.dp, vertical = 6.dp)
+        ) {
+            Text(
+                text = content.duration.milliseconds.format(),
+                color = Color.White,
+                fontSize = 10.sp
+            )
+        }
+    }
+}

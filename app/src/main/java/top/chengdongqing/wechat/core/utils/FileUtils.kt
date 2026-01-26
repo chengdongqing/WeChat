@@ -40,7 +40,7 @@ fun prepareMediaResource(context: Context, uri: Uri): MediaResource? {
 
         MediaResource(
             file = targetFile,
-            fileName = fileName,
+            filename = fileName,
             mimeType = mimeType,
             size = targetFile.length(),
             thumbBase64 = thumbBase64

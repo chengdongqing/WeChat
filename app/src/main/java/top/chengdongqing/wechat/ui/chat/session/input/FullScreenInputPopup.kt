@@ -45,8 +45,8 @@ fun FullScreenInputPopup(
         val scope = rememberCoroutineScope()
 
         val currentText = rememberUpdatedState(text)
-        val inputManger = remember {
-            InputManger(currentText, focusRequester, scope, onTextChange)
+        val inputHandler = remember {
+            InputHandler(currentText, focusRequester, scope, onTextChange)
         }
 
         BackHandler {
@@ -96,8 +96,8 @@ fun FullScreenInputPopup(
             InputPanelHolder(
                 inputMode,
                 isPopup = true,
-                onEmojiSelect = { inputManger.insertEmoji(it.description) },
-                onBackspace = { inputManger.handleEmojiBackspace() }
+                onEmojiSelect = { inputHandler.insertEmoji(it.description) },
+                onBackspace = { inputHandler.handleEmojiBackspace() }
             )
         }
     }

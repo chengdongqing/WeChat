@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.data.sticker.Emoji
 import top.chengdongqing.wechat.ui.chat.session.input.panels.EmojiPanel
+import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreAction
 import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreActionPanel
 
 @Composable
@@ -30,12 +32,19 @@ fun InputPanelHolder(
     isPopup: Boolean = false,
     onEmojiSelect: (Emoji) -> Unit,
     onStickerSelect: ((MessageContent.Sticker) -> Unit)? = null,
-    onBackspace: () -> Unit
+    onBackspace: () -> Unit,
+    onAction: ((MoreAction) -> Unit)? = null
 ) {
     var savedKeyboardHeight by remember { mutableStateOf(300.dp) }
     val keyboardHeight = rememberKeyboardHeight()
     val density = LocalDensity.current
     val ime = WindowInsets.ime
+
+    LaunchedEffect(keyboardHeight) {
+        if (keyboardHeight > savedKeyboardHeight) {
+            savedKeyboardHeight = keyboardHeight
+        }
+    }
 
     val panelHeight = when {
         inputMode.isText -> if (isPopup) {
@@ -72,7 +81,7 @@ fun InputPanelHolder(
                 onBackspace
             )
 
-            InputMode.MORE -> MoreActionPanel()
+            InputMode.MORE -> MoreActionPanel(onAction ?: {})
         }
     }
 }

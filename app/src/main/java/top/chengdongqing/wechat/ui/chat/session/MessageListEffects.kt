@@ -7,7 +7,11 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.data.model.ChatMessage
 
 /**
@@ -44,5 +48,30 @@ fun KeyboardScrollEffect(
         if (isImeVisible && itemCount > 0) {
             listState.scrollToItem(0)
         }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun ScrollToDismissEffect(
+    listState: LazyListState,
+    isSending: Boolean,
+    isPanelMode: Boolean,
+    onDismiss: () -> Unit
+) {
+    val currentIsImeVisible by rememberUpdatedState(WindowInsets.isImeVisible)
+    val currentIsSending by rememberUpdatedState(isSending)
+    val currentIsPanelMode by rememberUpdatedState(isPanelMode)
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .collect { isScrolling ->
+                delay(100)
+                if (isScrolling && !currentIsSending) {
+                    if (currentIsImeVisible || currentIsPanelMode) {
+                        onDismiss()
+                    }
+                }
+            }
     }
 }

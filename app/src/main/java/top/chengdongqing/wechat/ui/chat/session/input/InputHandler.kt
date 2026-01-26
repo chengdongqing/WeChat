@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.ui.utils.EMOJI_BACKSPACE_PATTERN_REGEX
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
-class InputManger(
+class InputHandler(
     private val text: State<String>,
     private val focusRequester: NativeFocusRequester,
     private val scope: CoroutineScope,

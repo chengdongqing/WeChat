@@ -66,19 +66,12 @@ class InputModeController(
     /**
      * 切换输入模式
      */
-    fun switchMode(target: InputMode, showKeyboard: Boolean = true) {
-        val oldMode = _inputMode.value
-        if (oldMode == target) return
-
+    fun switchMode(target: InputMode = InputMode.TEXT, showKeyboard: Boolean = true) {
         _inputMode.value = target
 
-        when (target) {
-            InputMode.TEXT -> {
-                if (showKeyboard) {
-                    focusRequester.requestFocus()
-                } else {
-                    focusRequester.clearFocus()
-                }
+        when {
+            target.isText && showKeyboard -> {
+                focusRequester.requestFocus()
             }
 
             else -> {

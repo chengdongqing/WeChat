@@ -13,7 +13,8 @@ import java.util.UUID
 
 data class ChatSessionState(
     val title: String = "",
-    val messages: List<ChatMessage> = emptyList()
+    val messages: List<ChatMessage> = emptyList(),
+    val isSending: Boolean = false
 )
 
 class ChatSessionViewModel(
@@ -31,7 +32,11 @@ class ChatSessionViewModel(
         _state.update { it.copy(messages = generateMockChatData(), title = "张三") }
     }
 
-    fun sendMessage(content: MessageContent) {
+    fun sendMessage(content: MessageContent, onSent: () -> Unit) {
+        _state.update {
+            it.copy(isSending = true)
+        }
+
         val newMessage = ChatMessage(
             id = randomUUID(),
             content = content,
@@ -41,6 +46,13 @@ class ChatSessionViewModel(
 
         _state.update {
             it.copy(messages = listOf(newMessage) + it.messages)
+        }
+        onSent()
+    }
+
+    fun finishScrollToLatest() {
+        _state.update {
+            it.copy(isSending = false)
         }
     }
 

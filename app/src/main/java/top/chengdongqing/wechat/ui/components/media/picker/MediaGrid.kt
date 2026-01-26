@@ -7,19 +7,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Videocam
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,7 +41,7 @@ internal fun ColumnScope.MediaGrid(state: MediaPickerState) {
     val context = LocalContext.current
 
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(100.dp),
+        columns = GridCells.Adaptive(80.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
         modifier = Modifier.weight(1f)
@@ -105,23 +99,15 @@ private fun MediaGridCell(
         )
         // 视频标识及时长
         if (media.isVideo()) {
-            Row(
+            Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(horizontal = 6.dp, vertical = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Videocam,
-                    contentDescription = "视频",
-                    tint = Color.White,
-                    modifier = Modifier.size(26.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = media.duration.milliseconds.format(),
                     color = Color.White,
-                    fontSize = 15.sp
+                    fontSize = 12.sp
                 )
             }
         }
