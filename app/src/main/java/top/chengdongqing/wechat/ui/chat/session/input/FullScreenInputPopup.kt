@@ -19,6 +19,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
@@ -65,24 +66,31 @@ fun FullScreenInputPopup(
             InputTopBar(onClose)
 
             // 全屏输入区域
-            EmojiTextField(
-                value = text,
+            Column(
                 modifier = Modifier
+                    .zIndex(1f)
                     .weight(1f)
-                    .padding(horizontal = 24.dp),
-                focusRequester = focusRequester,
-                maxHeightDp = null,
-                onValueChange = onTextChange
-            )
+                    .background(Color.White)
+            ) {
+                EmojiTextField(
+                    value = text,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 24.dp),
+                    focusRequester = focusRequester,
+                    maxHeightDp = null,
+                    onValueChange = onTextChange
+                )
 
-            // 语音和表情快捷键
-            InputActionBar(
-                isEmojiMode = inputMode.isEmoji,
-                onToggleMode = {
-                    val targetMode = if (inputMode.isEmoji) InputMode.TEXT else InputMode.EMOJI
-                    controller.switchMode(targetMode)
-                }
-            )
+                // 语音和表情快捷键
+                InputActionBar(
+                    isEmojiMode = inputMode.isEmoji,
+                    onToggleMode = {
+                        val targetMode = if (inputMode.isEmoji) InputMode.TEXT else InputMode.EMOJI
+                        controller.switchMode(targetMode)
+                    }
+                )
+            }
 
             // 面板容器
             InputPanelHolder(

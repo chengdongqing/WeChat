@@ -50,7 +50,7 @@ fun InputBar(
     // 当前输入框行数
     var lineCount by remember { mutableIntStateOf(1) }
     // 是否启用全屏输入
-    val (isFullscreenText, toggleFullscreenText) = rememberToggleState(
+    val (isExpanded, toggleExpand) = rememberToggleState(
         defaultValue = false,
         reverseValue = true
     )
@@ -78,7 +78,7 @@ fun InputBar(
                 inputMode,
                 controller,
                 focusRequester,
-                onFullscreenText = { toggleFullscreenText() }
+                onExpand = { toggleExpand() }
             )
             // 输入框区域
             InputBox(
@@ -104,10 +104,10 @@ fun InputBar(
 
     // 全屏输入框
     FullScreenInputPopup(
-        visible = isFullscreenText.value,
+        visible = isExpanded.value,
         text = text,
         onTextChange = onTextChange,
-        onClose = { toggleFullscreenText() }
+        onClose = { toggleExpand() }
     )
 }
 
@@ -117,7 +117,7 @@ private fun VoiceButton(
     inputMode: InputMode,
     controller: InputModeController,
     focusRequester: NativeFocusRequester,
-    onFullscreenText: () -> Unit
+    onExpand: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
@@ -128,7 +128,7 @@ private fun VoiceButton(
     ) {
         // 全屏输入按钮
         if (showExpandButton) {
-            CircleActionIcon(iconResId = R.drawable.ic_expend_outlined, onClick = onFullscreenText)
+            CircleActionIcon(iconResId = R.drawable.ic_expend_outlined, onClick = onExpand)
         }
 
         // 语音/文本切换按钮

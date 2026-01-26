@@ -42,9 +42,9 @@ fun EmojiTextField(
     val context = LocalContext.current
     val density = LocalDensity.current
 
-    // 预计算像素值，避免在 AndroidView 中频繁计算
-    val fontSizePx = with(density) { fontSizeSp.sp.toPx().toInt() }
+    // 预计算各像素值
     val cursorWidthPx = with(density) { 1.8.dp.toPx().toInt() }
+    val fontSizePx = with(density) { fontSizeSp.sp.toPx().toInt() }
     val maxHeightPx = with(density) { maxHeightDp?.toPx()?.toInt() }
 
     AndroidView(
@@ -73,7 +73,9 @@ fun EmojiTextField(
                     ) {
                         // 屏蔽由 update 回调引起的 Text 变更同步
                         if (tag != TAG_IGNORE_UPDATE) {
-                            onValueChange(s?.toString() ?: "")
+                            val newText = s?.toString() ?: ""
+                            onValueChange(newText)
+                            updateTextWithEmoji(this@apply, ctx, newText, fontSizePx)
                             // 初始化行数
                             post { onLineCountChange?.invoke(lineCount) }
                         }
