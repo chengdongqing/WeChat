@@ -11,10 +11,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import top.chengdongqing.wechat.core.utils.SetupStatusBarStyle
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.VisualMediaType
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.SetupStatusBarStyle
 
 class MediaPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

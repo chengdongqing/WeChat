@@ -1,37 +1,40 @@
 package top.chengdongqing.wechat.ui.chat.session.input
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.ui.chat.session.ActionIcon
+import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
-import top.chengdongqing.wechat.ui.utils.weClickable
+import top.chengdongqing.wechat.ui.utils.rememberToggleState
 
 @Composable
 fun InputBar(
@@ -44,6 +47,19 @@ fun InputBar(
     val inputMode by controller.inputMode
     val scope = rememberCoroutineScope()
 
+    // 当前输入框行数
+    var lineCount by remember { mutableIntStateOf(1) }
+    // 是否启用全屏输入
+    val (isFullscreenText, toggleFullscreenText) = rememberToggleState(
+        defaultValue = false,
+        reverseValue = true
+    )
+
+    val currentText = rememberUpdatedState(text)
+    val inputManger = remember {
+        InputManger(currentText, onTextChange, focusRequester, scope)
+    }
+
     Column(
         modifier = Modifier
             .background(Color(0xFFF7F7F7))
@@ -52,25 +68,25 @@ fun InputBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(IntrinsicSize.Min)
                 .padding(horizontal = 8.dp, vertical = 10.dp),
             verticalAlignment = Alignment.Bottom
         ) {
             // 语音/文字切换
-            VoiceButton(inputMode, controller, focusRequester)
+            VoiceButton(
+                showExpandButton = lineCount >= 3,
+                inputMode,
+                controller,
+                focusRequester,
+                onFullscreenText = { toggleFullscreenText() }
+            )
             // 输入框区域
             InputBox(
-                text,
-                onTextChange = { newText ->
-                    if (newText.length < text.length) {
-                        text.handleBackspace(focusRequester.selectionStart) { newString, _ ->
-                            onTextChange(newString)
-                        }
-                    } else {
-                        onTextChange(newText)
-                    }
-                },
-                inputMode,
-                focusRequester
+                text = text,
+                inputMode = inputMode,
+                focusRequester = focusRequester,
+                onTextChange = onTextChange,
+                onLineCountChange = { lineCount = it }
             )
             // 表情按钮
             EmojiButton(inputMode, controller)
@@ -80,62 +96,59 @@ fun InputBar(
 
         InputPanelHolder(
             inputMode,
-            onEmojiSelect = {
-                val insertText = "[${it.description}]"
-                val cursorIndex = focusRequester.selectionStart
-                val newText = StringBuilder(text)
-                    .insert(cursorIndex, insertText)
-                    .toString()
-                onTextChange(newText)
-
-                // 计算新的光标位置
-                val newCursorIndex = cursorIndex + insertText.length
-                scope.launch {
-                    delay(16)
-                    focusRequester.setSelection(newCursorIndex)
-                }
-            },
-            onStickerSelect = {
-
-            },
-            onBackspace = {
-                text.handleBackspace(focusRequester.selectionStart) { newString, newPos ->
-                    onTextChange(newString)
-
-                    // 同步光标
-                    focusRequester.post {
-                        focusRequester.setSelection(newPos)
-                    }
-                }
-            }
+            onEmojiSelect = { inputManger.insertEmoji(it.description) },
+            onStickerSelect = {},
+            onBackspace = { inputManger.handleEmojiBackspace() }
         )
     }
+
+    // 全屏输入框
+    FullScreenInputPopup(
+        visible = isFullscreenText.value,
+        text = text,
+        onTextChange = onTextChange,
+        onClose = { toggleFullscreenText() }
+    )
 }
 
 @Composable
 private fun VoiceButton(
+    showExpandButton: Boolean = false,
     inputMode: InputMode,
     controller: InputModeController,
-    focusRequester: NativeFocusRequester
+    focusRequester: NativeFocusRequester,
+    onFullscreenText: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
 
-    ActionIcon(
-        iconResId = if (inputMode.isVoice) {
-            R.drawable.ic_keyboard_outlined
-        } else {
-            R.drawable.ic_voice_outlined
-        }
+    Column(
+        modifier = Modifier.then(if (showExpandButton) Modifier.fillMaxHeight() else Modifier),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        if (inputMode.isVoice) {
-            controller.switchMode(InputMode.Companion.TEXT)
-            // 自动弹出键盘
-            scope.launch {
-                delay(50)
-                focusRequester.requestFocus()
+        // 全屏输入按钮
+        if (showExpandButton) {
+            CircleActionIcon(iconResId = R.drawable.ic_expend_outlined, onClick = onFullscreenText)
+        }
+
+        // 语音/文本切换按钮
+        ActionIcon(
+            iconResId = if (inputMode.isVoice) {
+                R.drawable.ic_keyboard_outlined
+            } else {
+                R.drawable.ic_voice_outlined
             }
-        } else {
-            controller.switchMode(InputMode.Companion.VOICE)
+        ) {
+            if (inputMode.isVoice) {
+                controller.switchMode(InputMode.TEXT)
+                // 自动弹出键盘
+                scope.launch {
+                    delay(50)
+                    focusRequester.requestFocus()
+                }
+            } else {
+                controller.switchMode(InputMode.VOICE)
+            }
         }
     }
 }
@@ -143,9 +156,10 @@ private fun VoiceButton(
 @Composable
 private fun RowScope.InputBox(
     text: String,
-    onTextChange: (String) -> Unit,
     inputMode: InputMode,
-    focusRequester: NativeFocusRequester
+    focusRequester: NativeFocusRequester,
+    onTextChange: (String) -> Unit,
+    onLineCountChange: (Int) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -163,8 +177,9 @@ private fun RowScope.InputBox(
             // 其他所有模式：都显示输入框
             EmojiTextField(
                 value = text,
+                focusRequester = focusRequester,
                 onValueChange = onTextChange,
-                focusRequester = focusRequester
+                onLineCountChange = onLineCountChange
             )
         }
     }
@@ -176,10 +191,10 @@ private fun EmojiButton(inputMode: InputMode, controller: InputModeController) {
         iconResId = if (inputMode.isEmoji) {
             R.drawable.ic_keyboard_outlined
         } else {
-            R.drawable.ic_sticker_outlined
+            R.drawable.ic_emoji_outlined
         }
     ) {
-        val mode = if (inputMode.isEmoji) InputMode.Companion.TEXT else InputMode.Companion.EMOJI
+        val mode = if (inputMode.isEmoji) InputMode.TEXT else InputMode.EMOJI
         controller.switchMode(mode)
     }
 }
@@ -199,62 +214,9 @@ private fun SendOrMoreButton(
         } else {
             ActionIcon(iconResId = R.drawable.ic_plus_circle_outlined) {
                 val mode =
-                    if (inputMode.isMore) InputMode.Companion.TEXT else InputMode.Companion.MORE
+                    if (inputMode.isMore) InputMode.TEXT else InputMode.MORE
                 controller.switchMode(mode)
             }
         }
-    }
-}
-
-@Composable
-private fun ActionIcon(
-    modifier: Modifier = Modifier,
-    @DrawableRes iconResId: Int,
-    description: String? = null,
-    tint: Color = WeChatTheme.colorScheme.textPrimary,
-    onClick: (() -> Unit)? = null
-) {
-    Box(
-        modifier = modifier
-            .size(40.dp)
-            .weClickable(onClick = { onClick?.invoke() }),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(iconResId),
-            contentDescription = description,
-            modifier = Modifier.size(30.dp),
-            tint = tint
-        )
-    }
-}
-
-/**
- * 处理文本删除
- */
-private fun String.handleBackspace(
-    selectionStart: Int,
-    onChange: (newText: String, newCursorPos: Int) -> Unit
-) {
-    if (selectionStart <= 0) return
-
-    val textBefore = substring(0, selectionStart)
-    val textAfter = substring(selectionStart)
-
-    // 匹配光标左侧紧邻的 "[xxx]"
-    // 正则：以 [ 开头，中间包含非括号字符，以 ] 结尾，且必须紧贴末尾($)
-    val emojiRegex = Regex("\\[[^\\[\\]]+]$")
-    val match = emojiRegex.find(textBefore)
-
-    if (match != null) {
-        // A：光标前是表情块，整体删除
-        val newText = textBefore.removeRange(match.range) + textAfter
-        val newCursorPos = match.range.first
-        onChange(newText, newCursorPos)
-    } else {
-        // B：普通文本，只删一个字符
-        val newText = textBefore.dropLast(1) + textAfter
-        val newCursorPos = selectionStart - 1
-        onChange(newText, newCursorPos)
     }
 }

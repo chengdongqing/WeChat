@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -49,25 +50,32 @@ import top.chengdongqing.wechat.ui.utils.repeatingClickable
 
 @Composable
 fun EmojiPanel(
+    emojiOnly: Boolean = false,
     onEmojiSelect: (value: Emoji) -> Unit,
-    onStickerSelect: (sticker: String) -> Unit,
+    onStickerSelect: ((sticker: String) -> Unit)?,
     onBackspace: () -> Unit
 ) {
     val pagerState = rememberPagerState { 2 }
     val scope = rememberCoroutineScope()
 
-    Column {
-        CategoriesTab(pagerState.currentPage) {
-            scope.launch {
-                pagerState.scrollToPage(it)
+    if (emojiOnly) {
+        EmojiGrid(onSelect = onEmojiSelect, onBackspace = onBackspace)
+    } else {
+        Column {
+            CategoriesTab(pagerState.currentPage) {
+                scope.launch {
+                    pagerState.scrollToPage(it)
+                }
             }
-        }
-        WeDivider()
-        HorizontalPager(pagerState) { page ->
-            if (page == 0) {
-                EmojiGrid(onSelect = onEmojiSelect, onBackspace = onBackspace)
-            } else {
-                StickersGrid(onStickerSelect)
+            WeDivider()
+            HorizontalPager(pagerState) { page ->
+                if (page == 0) {
+                    EmojiGrid(onSelect = onEmojiSelect, onBackspace = onBackspace)
+                } else {
+                    StickersGrid {
+                        onStickerSelect?.invoke(it)
+                    }
+                }
             }
         }
     }
@@ -77,13 +85,17 @@ fun EmojiPanel(
 private fun CategoriesTab(currentTab: Int, onTabChange: (index: Int) -> Unit) {
     val tabs = remember {
         listOf(
-            R.drawable.ic_sticker_outlined,
+            R.drawable.ic_emoji_outlined,
             R.drawable.ic_like_outlined
         )
     }
 
     Row(
-        Modifier.padding(16.dp, 8.dp),
+        modifier = Modifier
+            .zIndex(1f)
+            .fillMaxWidth()
+            .background(Color(0xFFF1F1F1))
+            .padding(16.dp, 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         tabs.forEachIndexed { index, icon ->

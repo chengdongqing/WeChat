@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import top.chengdongqing.wechat.ui.utils.SetupFullscreen
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable

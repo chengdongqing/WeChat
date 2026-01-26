@@ -37,8 +37,7 @@ fun TextContent(content: MessageContent.Text) {
 
     // 解析富文本
     val annotatedString = remember(content.text) {
-        parseRichText(
-            content.text,
+        content.text.parseRichText(
             onUrlClick = { url ->
                 // 使用系统浏览器打开网址
                 uriHandler.openUri(url)

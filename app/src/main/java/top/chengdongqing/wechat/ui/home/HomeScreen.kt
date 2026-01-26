@@ -93,7 +93,7 @@ fun HomeScreen(navController: NavHostController) {
         ) { page ->
             when (bottomTabItems[page]) {
                 Screen.Chats -> ChatListScreen {
-                    navController.navigate(Screen.ChatDetail.createRoute(it))
+                    navController.navigate(Screen.ChatSession.createRoute(it))
                 }
 
                 Screen.Contacts -> ContactsScreen()

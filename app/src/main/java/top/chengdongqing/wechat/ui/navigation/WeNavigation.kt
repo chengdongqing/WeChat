@@ -23,7 +23,7 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
 
     NavHost(
         navController = navController,
-        startDestination = Screen.ChatDetail.createRoute("123"),
+        startDestination = Screen.ChatSession.createRoute("123"),
 //        startDestination = Screen.Home.route,
         enterTransition = {
             slideIntoContainer(
@@ -71,13 +71,13 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
             PinCodeGroupScreen { goBack() }
         }
         composable(
-            route = Screen.ChatDetail.route,
+            route = Screen.ChatSession.route,
             arguments = listOf(
-                navArgument("friendId") { type = NavType.StringType }
+                navArgument("chatId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val friendId = backStackEntry.arguments?.getString("friendId") ?: ""
-            ChatSessionScreen(friendId) { goBack() }
+            val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
+            ChatSessionScreen(chatId) { goBack() }
         }
     }
 }

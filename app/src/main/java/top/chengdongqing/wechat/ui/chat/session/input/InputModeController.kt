@@ -39,7 +39,7 @@ value class InputMode private constructor(@Suppress("unused") private val value:
     val isVoice get() = this == VOICE
     val isEmoji get() = this == EMOJI
     val isMore get() = this == MORE
-    val isPanelMode get() = this == EMOJI || this == MORE
+    val isPanelMode get() = this.isEmoji || this.isMore
 
     // 重写 toString 方便日志调试，否则打印出来只是 ChatInputMode(value=0)
     override fun toString(): String = when (this) {
@@ -81,20 +81,17 @@ class InputModeController(
                 }
             }
 
-            InputMode.EMOJI -> {
+            else -> {
                 focusRequester.clearFocus()
                 keyboardController?.hide()
 
-                scope.launch {
-                    delay(200)
-                    // 输入表情时也要显示光标
-                    focusRequester.requestFocus(showKeyboard = false)
+                if (target.isEmoji) {
+                    scope.launch {
+                        delay(200)
+                        // 输入表情时显示光标
+                        focusRequester.requestFocus(showKeyboard = false)
+                    }
                 }
-            }
-
-            InputMode.VOICE, InputMode.MORE -> {
-                focusRequester.clearFocus()
-                keyboardController?.hide()
             }
         }
     }

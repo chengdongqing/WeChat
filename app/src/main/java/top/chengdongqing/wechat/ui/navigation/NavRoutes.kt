@@ -45,7 +45,7 @@ sealed class Screen(
     object AddFriend : Screen("add_friend", "添加朋友")
     object RadarScan : Screen("radar_scan", "雷达扫描")
     object PinCodeGroup : Screen("pin_code_group", "面对面建群")
-    object ChatDetail : Screen("chats/{friendId}", "聊天详情") {
+    object ChatSession : Screen("chats/{chatId}", "聊天详情") {
         fun createRoute(friendId: String) = "chats/${friendId}"
     }
 }

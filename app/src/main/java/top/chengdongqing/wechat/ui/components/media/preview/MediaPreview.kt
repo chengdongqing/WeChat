@@ -39,7 +39,6 @@ import me.saket.telephoto.zoomable.rememberZoomableState
 import top.chengdongqing.wechat.core.utils.MediaStoreUtils
 import top.chengdongqing.wechat.core.utils.MediaStoreUtils.createContentValues
 import top.chengdongqing.wechat.core.utils.MediaStoreUtils.finishPending
-import top.chengdongqing.wechat.core.utils.SetupFullscreen
 import top.chengdongqing.wechat.core.utils.copyUri
 import top.chengdongqing.wechat.core.utils.findActivity
 import top.chengdongqing.wechat.core.utils.shareContent
@@ -49,6 +48,7 @@ import top.chengdongqing.wechat.ui.components.toast.ToastIcon
 import top.chengdongqing.wechat.ui.components.toast.rememberToastState
 import top.chengdongqing.wechat.ui.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.ui.components.videoplayer.WeVideoPlayer
+import top.chengdongqing.wechat.ui.utils.SetupFullscreen
 import top.chengdongqing.weui.core.ui.components.videoplayer.rememberVideoPlayerState
 import java.io.IOException
 

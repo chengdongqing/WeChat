@@ -54,7 +54,7 @@ fun MeScreen() {
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             MenuListItem("朋友圈", R.drawable.ic_album_outlined, Color(0xFF2782D7))
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            MenuListItem("表情", R.drawable.ic_sticker_outlined, Color(0xFFF9C018))
+            MenuListItem("表情", R.drawable.ic_emoji_outlined, Color(0xFFF9C018))
         }
         MenuListItem("设置", R.drawable.ic_settings_outlined, Color(0xFF2782D7))
     }

@@ -10,17 +10,19 @@ import androidx.compose.ui.text.buildAnnotatedString
 import top.chengdongqing.wechat.data.sticker.Emojis
 
 val EMOJI_PATTERN_REGEX = Regex("\\[(.*?)]")
+val EMOJI_BACKSPACE_PATTERN_REGEX = Regex("\\[[^\\[\\]]+]$") // 以 [ 开头，中间包含非括号字符，以 ] 结尾，且必须紧贴末尾($)
 val URL_PATTERN_REGEX = Regex("(https?://[\\w-]+(\\.[\\w-]+)+(/\\S*)?)")
 val PHONE_PATTERN_REGEX = Regex("(\\d{3}-\\d{8}|\\d{11})")
 
 /**
  * 文本解析
  */
-fun parseRichText(
-    text: String,
+fun String.parseRichText(
     onUrlClick: (String) -> Unit,
     onPhoneClick: (String) -> Unit
 ): AnnotatedString {
+    val text = this
+
     return buildAnnotatedString {
         // 联合所有正则寻找匹配项
         val allMatches =

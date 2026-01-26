@@ -27,7 +27,7 @@ import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
 fun ChatSessionScreen(
-    friendId: String,
+    chatId: String,
     viewModel: ChatSessionViewModel = viewModel(),
     onBack: () -> Unit
 ) {
@@ -38,9 +38,9 @@ fun ChatSessionScreen(
     val scope = rememberCoroutineScope()
     val overscrollEffect = remember { BounceOverscrollEffect(scope) }
 
-    // 键盘弹出时自动滚动到最新的消息
+    // 当键盘弹出时，消息列表自动置底
     KeyboardScrollEffect(listState, messages.size)
-    // 当消息列表数据更新时，自动置底
+    // 当数据更新时，消息列表自动置底
     MessageDataScrollEffect(listState, messages)
 
     Scaffold(

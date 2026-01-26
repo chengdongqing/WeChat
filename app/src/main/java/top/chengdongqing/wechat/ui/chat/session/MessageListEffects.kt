@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import top.chengdongqing.wechat.data.model.ChatMessage
 
 /**
- * 当消息列表数据更新时，自动置底
+ * 当数据更新时，消息列表自动置底
  */
 @Composable
 fun MessageDataScrollEffect(
@@ -30,7 +30,7 @@ fun MessageDataScrollEffect(
 }
 
 /**
- * 当键盘弹出时，确保最新消息可见
+ * 当键盘弹出时，消息列表自动置底
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -42,7 +42,7 @@ fun KeyboardScrollEffect(
 
     LaunchedEffect(isImeVisible) {
         if (isImeVisible && itemCount > 0) {
-            listState.animateScrollToItem(0)
+            listState.scrollToItem(0)
         }
     }
 }

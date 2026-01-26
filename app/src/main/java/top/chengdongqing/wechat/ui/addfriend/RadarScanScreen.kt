@@ -35,7 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.SetupFullscreen
+import top.chengdongqing.wechat.ui.utils.SetupFullscreen
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin

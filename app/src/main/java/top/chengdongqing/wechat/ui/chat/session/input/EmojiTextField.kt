@@ -32,10 +32,12 @@ import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 @Composable
 fun EmojiTextField(
     value: String,
-    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     focusRequester: NativeFocusRequester,
     fontSizeSp: Int = 16,
-    maxHeightDp: Dp? = 120.dp
+    maxHeightDp: Dp? = 120.dp,
+    onValueChange: (String) -> Unit,
+    onLineCountChange: ((Int) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -46,7 +48,7 @@ fun EmojiTextField(
     val maxHeightPx = with(density) { maxHeightDp?.toPx()?.toInt() }
 
     AndroidView(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         factory = { ctx ->
             AppCompatEditText(ctx).apply {
                 setupConfig(fontSizeSp, cursorWidthPx, maxHeightPx)
@@ -72,6 +74,8 @@ fun EmojiTextField(
                         // 屏蔽由 update 回调引起的 Text 变更同步
                         if (tag != TAG_IGNORE_UPDATE) {
                             onValueChange(s?.toString() ?: "")
+                            // 初始化行数
+                            post { onLineCountChange?.invoke(lineCount) }
                         }
                     }
 
@@ -87,6 +91,8 @@ fun EmojiTextField(
 
             if (editText.text.toString() != value) {
                 updateTextWithEmoji(editText, context, value, fontSizePx)
+                // 更新行数
+                editText.post { onLineCountChange?.invoke(editText.lineCount) }
             }
 
             focusRequester.bind(editText)
