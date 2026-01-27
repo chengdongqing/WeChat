@@ -34,6 +34,7 @@ import top.chengdongqing.wechat.core.utils.loadMediaThumbnail
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.MediaType
 import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.ui.chat.session.LocalMediaContext
 import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
 import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
 import kotlin.time.Duration.Companion.milliseconds
@@ -41,21 +42,18 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun MediaContent(content: MessageContent.Media) {
     val context = LocalContext.current
+    val isVideo = content is MessageContent.Video
     val targetWidth = rememberWindowFractionWidth()
 
-    val isVideo = content is MessageContent.Video
-
-    val media = remember(content) {
-        MediaItem(
-            uri = content.url.toUri(),
-            filename = content.filename,
-            mediaType = if (isVideo) MediaType.VIDEO else MediaType.IMAGE,
-            mimeType = content.mimeType,
-            width = content.width,
-            height = content.height,
-            duration = if (isVideo) content.duration else 0
-        )
+    // 获取更多媒体数据，方便预览时切换
+    val mediaContext = LocalMediaContext.current
+    val (mediaItems, currentIndex) = remember(content, mediaContext) {
+        val items = mediaContext?.allMedia?.map { it.toMediaItem() }
+            ?: listOf(content.toMediaItem())
+        val index = mediaContext?.getIndexOf(content) ?: 0
+        items to index
     }
+    val media = mediaItems[currentIndex]
 
     // 异步加载缩略图
     val thumbnail by produceState<Any?>(initialValue = null, content) {
@@ -72,7 +70,7 @@ fun MediaContent(content: MessageContent.Media) {
             .widthIn(max = targetWidth)
             .aspectRatio(content.ratio)
             .clickable {
-                context.previewMedias(listOf(media), 0)
+                context.previewMedias(mediaItems, currentIndex)
             },
         contentAlignment = Alignment.Center
     ) {
@@ -113,3 +111,13 @@ fun MediaContent(content: MessageContent.Media) {
         }
     }
 }
+
+private fun MessageContent.Media.toMediaItem() = MediaItem(
+    uri = url.toUri(),
+    filename = filename,
+    mediaType = if (this is MessageContent.Video) MediaType.VIDEO else MediaType.IMAGE,
+    mimeType = mimeType,
+    width = width,
+    height = height,
+    duration = if (this is MessageContent.Video) duration else 0
+)

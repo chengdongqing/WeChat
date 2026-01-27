@@ -1,8 +1,13 @@
 package top.chengdongqing.wechat.ui.chat.session
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.ChatMessage
@@ -13,7 +18,6 @@ import java.util.UUID
 
 data class ChatSessionState(
     val title: String = "",
-    val messages: List<ChatMessage> = emptyList(),
     val isSending: Boolean = false
 )
 
@@ -21,21 +25,30 @@ class ChatSessionViewModel(
 //    private val friendId: String,
 //    private val repository: ChatRepository
 ) : ViewModel() {
-    private val _state = MutableStateFlow(ChatSessionState())
-    val state = _state.asStateFlow()
+    // 数据层：消息列表
+    private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val messages = _messages.asStateFlow()
+
+    // UI状态层
+    private val _uiState = MutableStateFlow(ChatSessionState())
+    val uiState = _uiState.asStateFlow()
+
+    // 派生状态：媒体列表（缓存）
+    val mediaList: StateFlow<List<MessageContent.Media>> = messages
+        .map { msgs -> msgs.mapNotNull { it.content as? MessageContent.Media } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
         loadInitialMessages()
     }
 
     private fun loadInitialMessages() {
-        _state.update { it.copy(messages = generateMockChatData(), title = "张三") }
+        _messages.value = generateMockChatData()
+        _uiState.update { it.copy(title = "张三") }
     }
 
     fun sendMessage(content: MessageContent, onSent: () -> Unit) {
-        _state.update {
-            it.copy(isSending = true)
-        }
+        _uiState.update { it.copy(isSending = true) }
 
         val newMessage = ChatMessage(
             id = randomUUID(),
@@ -43,15 +56,13 @@ class ChatSessionViewModel(
             timestamp = System.currentTimeMillis(),
             isFromMe = true
         )
+        _messages.update { listOf(newMessage) + it }
 
-        _state.update {
-            it.copy(messages = listOf(newMessage) + it.messages)
-        }
         onSent()
     }
 
     fun finishScrollToLatest() {
-        _state.update {
+        _uiState.update {
             it.copy(isSending = false)
         }
     }

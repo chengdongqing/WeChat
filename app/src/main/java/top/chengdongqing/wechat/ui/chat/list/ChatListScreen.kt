@@ -29,7 +29,7 @@ fun ChatListScreen(
     viewModel: ChatListViewModel = viewModel(),
     onNavigateToDetail: (friendId: String) -> Unit
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val chats by viewModel.chats.collectAsStateWithLifecycle()
 
     val dialog = rememberDialogState()
     val contextMenuState = rememberContextMenuState()
@@ -44,7 +44,7 @@ fun ChatListScreen(
         overscrollEffect = overscrollEffect
     ) {
         itemsIndexed(
-            items = state.chats,
+            items = chats,
             key = { _, chat -> chat.id }
         ) { index, chat ->
             Box(

@@ -2,38 +2,33 @@ package top.chengdongqing.wechat.ui.chat.list
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.Chat
 
-data class ChatListState(
-    val chats: List<Chat> = emptyList(),
-)
-
 class ChatListViewModel : ViewModel() {
-    private val _state = MutableStateFlow(ChatListState())
-    val state: StateFlow<ChatListState> = _state.asStateFlow()
+    private val _chats = MutableStateFlow<List<Chat>>(emptyList())
+    val chats = _chats.asStateFlow()
 
     init {
         loadChats()
     }
 
     private fun loadChats() {
-        _state.update { it.copy(chats = generateMockChats()) }
+        _chats.update { generateMockChats() }
     }
 
     /**
      * 标为已读/未读
      */
     fun toggleReadStatus(index: Int) {
-        _state.update { state ->
-            val chat = state.chats.getOrNull(index) ?: return@update state
-            val newList = state.chats.toMutableList()
+        _chats.update { chats ->
+            val chat = chats.getOrNull(index) ?: return
+            val newList = chats.toMutableList()
             val newUnreadCount = if (chat.unreadCount > 0) 0 else 1
             newList[index] = chat.copy(unreadCount = newUnreadCount)
-            state.copy(chats = newList)
+            newList
         }
     }
 

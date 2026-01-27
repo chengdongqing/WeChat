@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.input.InputBar
 import top.chengdongqing.wechat.ui.chat.session.message.MessageItem
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
@@ -33,8 +36,9 @@ fun ChatSessionScreen(
     viewModel: ChatSessionViewModel = viewModel(),
     onBack: () -> Unit
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    val messages = state.messages
+    val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -45,6 +49,14 @@ fun ChatSessionScreen(
     // 当数据更新时，消息列表自动置底
     MessageDataScrollEffect(listState, messages)
 
+    // 提供媒体上下文
+    val mediaContext = remember(mediaList) {
+        MediaContext(
+            allMedia = mediaList,
+            getIndexOf = { content -> mediaList.indexOf(content) }
+        )
+    }
+
     Scaffold(
         topBar = {
             WeTopBar(title = "张三", onBack = onBack) {
@@ -52,7 +64,7 @@ fun ChatSessionScreen(
             }
         },
         bottomBar = {
-            InputBar(listState, state.isSending) {
+            InputBar(listState, uiState.isSending) {
                 viewModel.sendMessage(it) {
                     scope.launch {
                         listState.animateScrollToItem(0)
@@ -63,25 +75,34 @@ fun ChatSessionScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(Color(0xFFF3F3F3))
-                .overscroll(overscrollEffect),
-            contentPadding = PaddingValues(10.dp),
-            reverseLayout = true, // 新消息在底部，旧消息在顶部；键盘弹出时列表会自动推上去
-            verticalArrangement = Arrangement.Top,
-            overscrollEffect = overscrollEffect
-        ) {
-            itemsIndexed(
-                items = messages,
-                key = { _, message -> message.id }
-            ) { index, message ->
-                MessageItem(message)
-                TimeDivider(messages, index)
+        CompositionLocalProvider(LocalMediaContext provides mediaContext) {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(Color(0xFFF3F3F3))
+                    .overscroll(overscrollEffect),
+                contentPadding = PaddingValues(10.dp),
+                reverseLayout = true, // 新消息在底部，旧消息在顶部；键盘弹出时列表会自动推上去
+                verticalArrangement = Arrangement.Top,
+                overscrollEffect = overscrollEffect
+            ) {
+                itemsIndexed(
+                    items = messages,
+                    key = { _, message -> message.id }
+                ) { index, message ->
+                    MessageItem(message)
+                    TimeDivider(messages, index)
+                }
             }
         }
     }
 }
+
+data class MediaContext(
+    val allMedia: List<MessageContent.Media>,
+    val getIndexOf: (MessageContent.Media) -> Int
+)
+
+val LocalMediaContext = compositionLocalOf<MediaContext?> { null }
