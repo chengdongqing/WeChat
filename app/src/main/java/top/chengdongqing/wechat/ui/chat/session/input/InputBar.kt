@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,10 +29,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.data.model.CallStatus
+import top.chengdongqing.wechat.data.model.CallType
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.data.model.VisualMediaType
 import top.chengdongqing.wechat.data.model.isImage
@@ -38,11 +43,18 @@ import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
 import top.chengdongqing.wechat.ui.chat.session.ScrollToDismissEffect
 import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreAction
+import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
+import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
+import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.ui.components.media.picker.rememberPickMediasLauncher
+import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 import top.chengdongqing.wechat.ui.utils.rememberToggleState
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 @Composable
 fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageContent) -> Unit) {
@@ -74,10 +86,13 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
         InputHandler(currentText, focusRequester, scope, onTextChange)
     }
 
+    val dialog = rememberDialogState()
     val sendTextMessage = {
         if (inputText.isNotBlank()) {
             onSend(MessageContent.Text(inputText))
             onTextChange("")
+        } else {
+            dialog.show("提示", "不能发送空白消息", onCancel = null)
         }
     }
 
@@ -112,6 +127,28 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
                 delay(50)
             }
         }
+    }
+
+    val actionSheet = rememberActionSheetState()
+    val callOptions = remember {
+        listOf(
+            ActionSheetItem("视频通话", icon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_video_call_filled),
+                    contentDescription = null,
+                    tint = WeChatTheme.colorScheme.textPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }),
+            ActionSheetItem("语音通话", icon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_voice_call_filled),
+                    contentDescription = null,
+                    tint = WeChatTheme.colorScheme.textPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
+            })
+        )
     }
 
     Column(
@@ -157,7 +194,17 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
             when (action) {
                 MoreAction.ALBUM -> pickMedia(VisualMediaType.IMAGE_AND_VIDEO, 9)
                 MoreAction.CAMERA -> {}
-                MoreAction.VIDEO_CALL -> {}
+                MoreAction.VIDEO_CALL -> {
+                    actionSheet.show(callOptions) { index ->
+                        val content = MessageContent.Call(
+                            type = if (index == 0) CallType.VIDEO else CallType.VOICE,
+                            status = CallStatus.CONNECTED,
+                            duration = (3.minutes + 26.seconds).toLong(DurationUnit.MILLISECONDS)
+                        )
+                        onSend(content)
+                    }
+                }
+
                 MoreAction.LOCATION -> {}
                 MoreAction.FAVORITE -> {}
                 MoreAction.VOICE -> {}

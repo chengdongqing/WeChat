@@ -187,7 +187,8 @@ private fun BottomBar(
                         verticalArrangement = Arrangement.Center
                     ) {
                         WeBadge(
-                            content = if (index == 0) 6.toBadgeText() else null,
+                            visible = index == 0,
+                            content = 6.toBadgeText(),
                             size = 20.dp,
                             offset = DpOffset(x = 12.dp, y = (-2).dp)
                         ) {

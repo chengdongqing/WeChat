@@ -1,5 +1,8 @@
 package top.chengdongqing.wechat.data.model
 
+import top.chengdongqing.wechat.core.utils.format
+import kotlin.time.Duration.Companion.milliseconds
+
 /**
  * 消息基础信息
  */
@@ -70,7 +73,7 @@ sealed class MessageContent(
     data class Call(
         val type: CallType,
         val status: CallStatus,
-        val durationText: String? = null
+        val duration: Long? = null
     ) : MessageContent()
 
     data class Sticker(
@@ -88,5 +91,19 @@ sealed class MessageContent(
     data object Unknown : MessageContent()
 }
 
-enum class CallType { VOICE, VIDEO }
-enum class CallStatus { CANCELLED, REJECTED, CONNECTED, MISSED }
+enum class CallType {
+    VOICE, VIDEO;
+}
+
+enum class CallStatus(val description: String, val descriptionForMe: String) {
+    CANCELLED("对方已取消", "已取消"),
+    REJECTED("对方已拒绝", "已拒绝"),
+    CONNECTED("已接通", "已接通"),
+    MISSED("未应答", "对方无应答");
+
+    companion object {
+        fun describeDuration(duration: Long): String {
+            return "通话时长 ${duration.milliseconds.format()}"
+        }
+    }
+}

@@ -28,6 +28,7 @@ import top.chengdongqing.wechat.ui.theme.Danger
 
 @Composable
 fun WeBadge(
+    visible: Boolean = true,
     content: String? = null,
     size: Dp = 10.dp,
     color: Color = Danger,
@@ -35,47 +36,52 @@ fun WeBadge(
     offset: DpOffset? = null,
     holder: (@Composable () -> Unit)? = null
 ) {
+    if (!visible) {
+        holder?.invoke()
+        return
+    }
+
     Box {
         holder?.invoke()
 
-        content?.let { content ->
-            val density = LocalDensity.current
-            var localWidth by remember {
-                mutableStateOf(0.dp)
-            }
+        val density = LocalDensity.current
+        var localWidth by remember {
+            mutableStateOf(0.dp)
+        }
 
-            val finalOffset = offset ?: run {
-                val offsetX = when (alignment) {
-                    Alignment.TopEnd, Alignment.BottomEnd -> localWidth / 2
-                    Alignment.TopCenter, Alignment.BottomCenter, Alignment.Center -> 0.dp
-                    Alignment.CenterStart -> -(localWidth + 8.dp)
-                    Alignment.CenterEnd -> localWidth + 8.dp
-                    else -> -localWidth / 2
-                }
-                val offsetY = when (alignment) {
-                    Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd -> size / 2
-                    Alignment.CenterEnd, Alignment.CenterStart, Alignment.Center -> 0.dp
-                    else -> -size / 2
-                }
-                DpOffset(offsetX, offsetY)
+        val finalOffset = offset ?: run {
+            val offsetX = when (alignment) {
+                Alignment.TopEnd, Alignment.BottomEnd -> localWidth / 2
+                Alignment.TopCenter, Alignment.BottomCenter, Alignment.Center -> 0.dp
+                Alignment.CenterStart -> -(localWidth + 8.dp)
+                Alignment.CenterEnd -> localWidth + 8.dp
+                else -> -localWidth / 2
             }
+            val offsetY = when (alignment) {
+                Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd -> size / 2
+                Alignment.CenterEnd, Alignment.CenterStart, Alignment.Center -> 0.dp
+                else -> -size / 2
+            }
+            DpOffset(offsetX, offsetY)
+        }
 
-            Box(
-                modifier = Modifier
-                    .align(alignment)
-                    .widthIn(size)
-                    .height(size)
-                    .onSizeChanged { size ->
-                        with(density) {
-                            localWidth = size.width.toDp()
-                        }
+        Box(
+            modifier = Modifier
+                .align(alignment)
+                .widthIn(size)
+                .height(size)
+                .onSizeChanged { size ->
+                    with(density) {
+                        localWidth = size.width.toDp()
                     }
-                    .offset(x = finalOffset.x, y = finalOffset.y)
-                    .clip(if (localWidth > size) RoundedCornerShape(20.dp) else CircleShape)
-                    .background(color)
-                    .padding(horizontal = if (localWidth > size) 6.dp else 0.dp),
-                contentAlignment = Alignment.Center
-            ) {
+                }
+                .offset(x = finalOffset.x, y = finalOffset.y)
+                .clip(if (localWidth > size) RoundedCornerShape(20.dp) else CircleShape)
+                .background(color)
+                .padding(horizontal = if (localWidth > size) 6.dp else 0.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            content?.let {
                 Text(text = content, color = Color.White, fontSize = 12.sp)
             }
         }

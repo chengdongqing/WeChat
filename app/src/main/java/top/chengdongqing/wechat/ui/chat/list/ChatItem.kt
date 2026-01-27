@@ -38,6 +38,7 @@ fun ChatItem(chat: Chat) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         WeBadge(
+            visible = chat.unreadCount > 0,
             content = chat.unreadCount.toBadgeText(),
             size = 20.dp,
             offset = DpOffset(x = 8.dp, y = (-4).dp)

@@ -40,7 +40,7 @@ fun MessageItem(
             isFromMe = isFromMe,
             showArrow = content.showBubble
         ) {
-            MessageContent(content)
+            MessageContent(message)
         }
 
         if (isFromMe) {

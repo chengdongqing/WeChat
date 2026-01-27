@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -29,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.popup.WePopup
+import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 data class ActionSheetItem(
     val label: String,
@@ -68,7 +68,7 @@ fun WeActionSheet(
                 ) {
                     Text(
                         text = it,
-                        color = MaterialTheme.colorScheme.onSecondary,
+                        color = WeChatTheme.colorScheme.textSecondary,
                         fontSize = 12.sp
                     )
                 }
@@ -95,20 +95,20 @@ fun WeActionSheet(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        item.icon?.let {
-                            it()
-                            Spacer(modifier = Modifier.width(6.dp))
+                        item.icon?.let { icon ->
+                            icon()
+                            Spacer(modifier = Modifier.width(10.dp))
                         }
                         Text(
                             text = item.label,
-                            color = item.color ?: MaterialTheme.colorScheme.onPrimary,
-                            fontSize = 17.sp
+                            color = item.color ?: WeChatTheme.colorScheme.textPrimary,
+                            fontSize = 16.sp
                         )
                     }
                     item.description?.let {
                         Text(
                             text = it,
-                            color = MaterialTheme.colorScheme.onSecondary,
+                            color = WeChatTheme.colorScheme.textSecondary,
                             fontSize = 12.sp
                         )
                     }
@@ -119,7 +119,7 @@ fun WeActionSheet(
                 modifier = Modifier
                     .height(8.dp)
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.outline)
+                    .background(WeChatTheme.colorScheme.surfaceVariant)
             )
 
             Column(
@@ -134,8 +134,8 @@ fun WeActionSheet(
             ) {
                 Text(
                     text = "取消",
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 17.sp
+                    color = WeChatTheme.colorScheme.textPrimary,
+                    fontSize = 16.sp
                 )
             }
         }
