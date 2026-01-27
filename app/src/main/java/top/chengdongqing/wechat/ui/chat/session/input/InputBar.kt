@@ -112,7 +112,7 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
                 )
             } else {
                 MessageContent.Video(
-                    videoUrl = item.uri.toString(),
+                    url = item.uri.toString(),
                     mimeType = item.mimeType,
                     filename = item.filename,
                     width = item.width,
@@ -147,7 +147,7 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
             )
         } else {
             MessageContent.Video(
-                videoUrl = url,
+                url = url,
                 mimeType = res.mimeType,
                 filename = res.filename,
                 width = res.width,

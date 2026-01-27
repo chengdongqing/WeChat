@@ -39,25 +39,31 @@ import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun VideoContent(content: MessageContent.Video) {
+fun MediaContent(content: MessageContent.Media) {
     val context = LocalContext.current
     val targetWidth = rememberWindowFractionWidth()
 
-    val media = remember {
+    val isVideo = content is MessageContent.Video
+
+    val media = remember(content) {
         MediaItem(
-            uri = content.videoUrl.toUri(),
+            uri = content.url.toUri(),
             filename = content.filename,
-            mediaType = MediaType.VIDEO,
+            mediaType = if (isVideo) MediaType.VIDEO else MediaType.IMAGE,
             mimeType = content.mimeType,
             width = content.width,
             height = content.height,
-            duration = content.duration
+            duration = if (isVideo) content.duration else 0
         )
     }
 
-    // 异步加载视频缩略图
-    val thumbnail by produceState<Any?>(initialValue = null) {
-        value = context.loadMediaThumbnail(uri = media.uri, isVideo = true, size = Size(1200, 1200))
+    // 异步加载缩略图
+    val thumbnail by produceState<Any?>(initialValue = null, content) {
+        value = context.loadMediaThumbnail(
+            uri = media.uri,
+            isVideo = isVideo,
+            size = Size(1200, 1200)
+        )
     }
 
     Box(
@@ -70,35 +76,40 @@ fun VideoContent(content: MessageContent.Video) {
             },
         contentAlignment = Alignment.Center
     ) {
-        // 视频缩略图
+        // 缩略图
         AsyncImage(
             model = thumbnail,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        // 播放图标
-        Icon(
-            painter = painterResource(R.drawable.ic_play_arrow_filled),
-            contentDescription = "Play",
-            tint = Color.White,
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .border(1.dp, Color.White, CircleShape)
-                .padding(4.dp)
-        )
-        // 视频时长
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(horizontal = 8.dp, vertical = 6.dp)
-        ) {
-            Text(
-                text = content.duration.milliseconds.format(),
-                color = Color.White,
-                fontSize = 10.sp
+
+        // 视频专属UI
+        if (content is MessageContent.Video) {
+            // 播放图标
+            Icon(
+                painter = painterResource(R.drawable.ic_play_arrow_filled),
+                contentDescription = "Play",
+                tint = Color.White,
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .border(1.dp, Color.White, CircleShape)
+                    .padding(4.dp)
             )
+
+            // 视频时长
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = content.duration.milliseconds.format(),
+                    color = Color.White,
+                    fontSize = 10.sp
+                )
+            }
         }
     }
 }

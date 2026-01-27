@@ -23,30 +23,40 @@ sealed class MessageContent(
 ) {
     data class Text(val text: String) : MessageContent()
 
-    data class Image(
-        val url: String,
-        val mimeType: String,
-        val filename: String,
-        val width: Int,
-        val height: Int,
-        val ratio: Float = width.toFloat() / height.toFloat()
-    ) : MessageContent(showBubble = false)
-
     data class Voice(
         val url: String,
         val duration: Int,
         val isPlayed: Boolean = false
     ) : MessageContent()
 
+    abstract class Media(
+        open val url: String,
+        open val filename: String,
+        open val mimeType: String,
+        open val width: Int,
+        open val height: Int,
+        showBubble: Boolean = false
+    ) : MessageContent(showBubble) {
+        val ratio: Float
+            get() = width.toFloat() / height.toFloat()
+    }
+
+    data class Image(
+        override val url: String,
+        override val mimeType: String,
+        override val filename: String,
+        override val width: Int,
+        override val height: Int
+    ) : Media(url, filename, mimeType, width, height)
+
     data class Video(
-        val videoUrl: String,
-        val duration: Long,
-        val mimeType: String,
-        val filename: String,
-        val width: Int,
-        val height: Int,
-        val ratio: Float = width.toFloat() / height.toFloat()
-    ) : MessageContent(showBubble = false)
+        override val url: String,
+        override val mimeType: String,
+        override val filename: String,
+        override val width: Int,
+        override val height: Int,
+        val duration: Long
+    ) : Media(url, filename, mimeType, width, height)
 
     data class Location(
         val latitude: Double,
