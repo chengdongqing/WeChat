@@ -1,13 +1,13 @@
 package top.chengdongqing.wechat.ui.utils
 
 import androidx.compose.foundation.text.appendInlineContent
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import top.chengdongqing.wechat.data.sticker.Emojis
+import top.chengdongqing.wechat.ui.theme.LinkColor
 
 val EMOJI_PATTERN_REGEX = Regex("\\[(.*?)]")
 val EMOJI_BACKSPACE_PATTERN_REGEX = Regex("\\[[^\\[\\]]+]$") // 以 [ 开头，中间包含非括号字符，以 ] 结尾，且必须紧贴末尾($)
@@ -89,9 +89,9 @@ fun String.parseRichText(
 }
 
 private val LinkStyles = TextLinkStyles(
-    style = SpanStyle(color = Color(0xFF576B95)),
+    style = SpanStyle(LinkColor),
     pressedStyle = SpanStyle(
-        color = Color(0xFF576B95),
-        background = Color(0x33576B95)
+        color = LinkColor,
+        background = LinkColor
     )
 )

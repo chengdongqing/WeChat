@@ -29,16 +29,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.utils.prepareMediaResource
 import top.chengdongqing.wechat.data.model.CallStatus
 import top.chengdongqing.wechat.data.model.CallType
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.data.model.VisualMediaType
-import top.chengdongqing.wechat.data.model.isImage
 import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
 import top.chengdongqing.wechat.ui.chat.session.ScrollToDismissEffect
@@ -47,7 +48,9 @@ import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
+import top.chengdongqing.wechat.ui.components.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.ui.components.location.picker.rememberPickLocationLauncher
 import top.chengdongqing.wechat.ui.components.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
@@ -96,10 +99,10 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
         }
     }
 
-    val pickMedia = rememberPickMediasLauncher { items ->
+    val launchMediaPicker = rememberPickMediasLauncher { items ->
         // 将数据转换为统一的消息内容格式
         val contents = items.map { item ->
-            if (item.isImage()) {
+            if (item.isImage) {
                 MessageContent.Image(
                     url = item.uri.toString(),
                     mimeType = item.mimeType,
@@ -129,6 +132,33 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
         }
     }
 
+    val context = LocalContext.current
+    val launchCamera = rememberCameraLauncher { mediaUri, mediaType ->
+        val url = mediaUri.toString()
+        val res = prepareMediaResource(context, mediaUri) ?: return@rememberCameraLauncher
+
+        val content = if (mediaType.isImage) {
+            MessageContent.Image(
+                url = url,
+                mimeType = res.mimeType,
+                filename = res.filename,
+                width = res.width,
+                height = res.height
+            )
+        } else {
+            MessageContent.Video(
+                videoUrl = url,
+                mimeType = res.mimeType,
+                filename = res.filename,
+                width = res.width,
+                height = res.height,
+                duration = res.duration
+            )
+        }
+
+        onSend(content)
+    }
+
     val actionSheet = rememberActionSheetState()
     val callOptions = remember {
         listOf(
@@ -149,6 +179,25 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
                 )
             })
         )
+    }
+
+    val locationOptions = remember {
+        listOf(
+            ActionSheetItem("发送位置"),
+            ActionSheetItem("共享实时位置")
+        )
+    }
+    val launchLocationPicker = rememberPickLocationLauncher { location ->
+        val latLng = location.latLng
+        val content = MessageContent.Location(
+            latitude = latLng.latitude,
+            longitude = latLng.longitude,
+            address = location.address ?: "",
+            poiName = location.poiName,
+            snapshotUrl = location.snapshotUri?.toString()
+        )
+
+        onSend(content)
     }
 
     Column(
@@ -192,8 +241,8 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
             onBackspace = inputHandler::handleEmojiBackspace
         ) { action ->
             when (action) {
-                MoreAction.ALBUM -> pickMedia(VisualMediaType.IMAGE_AND_VIDEO, 9)
-                MoreAction.CAMERA -> {}
+                MoreAction.ALBUM -> launchMediaPicker(VisualMediaType.IMAGE_AND_VIDEO, 9)
+                MoreAction.CAMERA -> launchCamera(VisualMediaType.IMAGE_AND_VIDEO)
                 MoreAction.VIDEO_CALL -> {
                     actionSheet.show(callOptions) { index ->
                         val content = MessageContent.Call(
@@ -205,7 +254,14 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
                     }
                 }
 
-                MoreAction.LOCATION -> {}
+                MoreAction.LOCATION -> {
+                    actionSheet.show(locationOptions) { index ->
+                        when (index) {
+                            0 -> launchLocationPicker()
+                        }
+                    }
+                }
+
                 MoreAction.FAVORITE -> {}
                 MoreAction.VOICE -> {}
                 MoreAction.CARD -> {}

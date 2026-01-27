@@ -13,10 +13,7 @@ import android.util.Size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.MediaType
-import top.chengdongqing.wechat.data.model.isImage
-import top.chengdongqing.wechat.data.model.isVideo
 import java.io.IOException
 
 object MediaStoreUtils {
@@ -83,28 +80,27 @@ object MediaStoreUtils {
  * @return 可能是 Uri (低版本图片), Bitmap (高版本或视频) 或 null
  */
 suspend fun Context.loadMediaThumbnail(
-    media: MediaItem,
+    uri: Uri,
+    isVideo: Boolean = false,
     size: Size = Size(200, 200)
 ): Any? {
     // Android 10 以下的图片，直接返回原图 Uri
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && !media.isVideo()) {
-        return media.uri
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && !isVideo) {
+        return uri
     }
 
     return withContext(Dispatchers.IO) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 // API 29+ 官方推荐的缩略图加载方式，系统会自动处理缓存
-                contentResolver.loadThumbnail(
-                    media.uri, size, null
-                )
+                contentResolver.loadThumbnail(uri, size, null)
             } else {
                 // API 29 以下视频文件需要手动提取首帧
-                loadVideoThumbnail(media.uri)
+                loadVideoThumbnail(uri)
             }
         } catch (_: IOException) {
             // 如果加载失败，降级处理：图片返回原图 Uri，视频返回 null
-            if (media.isImage()) media.uri else null
+            if (!isVideo) uri else null
         }
     }
 }

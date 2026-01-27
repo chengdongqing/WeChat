@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.mlkit.barcode.scanning)
     implementation(libs.zxing)
     implementation(libs.pinyin)
+    implementation(files("${rootProject.projectDir}/libs/AMap3DMap_11.1.060_AMapSearch_9.7.4_AMapLocation_11.1.060_20251229.aar"))
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)

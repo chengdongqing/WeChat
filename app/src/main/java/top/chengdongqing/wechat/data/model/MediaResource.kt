@@ -7,5 +7,8 @@ data class MediaResource(
     val filename: String,
     val mimeType: String,
     val size: Long,
-    val thumbBase64: String?
+    val width: Int = 0,
+    val height: Int = 0,
+    val duration: Long = 0,
+    val thumbBase64: String? = null
 )

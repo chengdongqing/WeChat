@@ -57,7 +57,7 @@ fun VideoContent(content: MessageContent.Video) {
 
     // 异步加载视频缩略图
     val thumbnail by produceState<Any?>(initialValue = null) {
-        value = context.loadMediaThumbnail(media, Size(1200, 1200))
+        value = context.loadMediaThumbnail(uri = media.uri, isVideo = true, size = Size(1200, 1200))
     }
 
     Box(

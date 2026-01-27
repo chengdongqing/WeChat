@@ -30,7 +30,6 @@ import top.chengdongqing.wechat.core.utils.format
 import top.chengdongqing.wechat.core.utils.loadMediaThumbnail
 import top.chengdongqing.wechat.core.utils.showToast
 import top.chengdongqing.wechat.data.model.MediaItem
-import top.chengdongqing.wechat.data.model.isVideo
 import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.weClickable
@@ -88,7 +87,7 @@ private fun MediaGridCell(
     ) {
         val context = LocalContext.current
         val thumbnail by produceState<Any?>(initialValue = null) {
-            value = context.loadMediaThumbnail(media)
+            value = context.loadMediaThumbnail(media.uri, media.isVideo)
         }
 
         AsyncImage(
@@ -98,7 +97,7 @@ private fun MediaGridCell(
             modifier = Modifier.matchParentSize()
         )
         // 视频标识及时长
-        if (media.isVideo()) {
+        if (media.isVideo) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)

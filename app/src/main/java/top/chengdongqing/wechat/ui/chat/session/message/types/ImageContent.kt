@@ -38,7 +38,7 @@ fun ImageContent(content: MessageContent.Image) {
     }
 
     val thumbnail by produceState<Any?>(initialValue = null) {
-        value = context.loadMediaThumbnail(media, Size(1200, 1200))
+        value = context.loadMediaThumbnail(uri = media.uri, size = Size(1200, 1200))
     }
 
     AsyncImage(

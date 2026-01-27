@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.MediaType
 import top.chengdongqing.wechat.data.model.VisualMediaType
-import top.chengdongqing.wechat.data.repository.LocalMediaRepositoryImpl
+import top.chengdongqing.wechat.data.repository.media.LocalMediaRepositoryImpl
 
 @Stable
 interface MediaPickerState {

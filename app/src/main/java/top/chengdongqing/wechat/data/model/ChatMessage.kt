@@ -19,9 +19,9 @@ data class ChatMessage(
  */
 sealed class MessageContent(
     val showBubble: Boolean = true,
-    val clickable: Boolean = true
+    val isSameBackground: Boolean = false
 ) {
-    data class Text(val text: String) : MessageContent(clickable = false)
+    data class Text(val text: String) : MessageContent()
 
     data class Image(
         val url: String,
@@ -53,22 +53,22 @@ sealed class MessageContent(
         val longitude: Double,
         val address: String,
         val poiName: String,
-        val snapshotUrl: String
-    ) : MessageContent()
+        val snapshotUrl: String?
+    ) : MessageContent(isSameBackground = true)
 
     data class UserCard(
         val userId: String,
         val name: String,
         val avatar: String,
         val weChatId: String
-    ) : MessageContent()
+    ) : MessageContent(isSameBackground = true)
 
     data class File(
         val fileName: String,
         val fileSize: Long,
         val fileType: String,
         val fileUrl: String
-    ) : MessageContent()
+    ) : MessageContent(isSameBackground = true)
 
     data class Call(
         val type: CallType,
@@ -86,7 +86,7 @@ sealed class MessageContent(
         val title: String,
         val source: String,
         val previewUrl: String? = null
-    ) : MessageContent()
+    ) : MessageContent(isSameBackground = true)
 
     data object Unknown : MessageContent()
 }

@@ -43,7 +43,6 @@ import top.chengdongqing.wechat.core.utils.copyUri
 import top.chengdongqing.wechat.core.utils.findActivity
 import top.chengdongqing.wechat.core.utils.shareContent
 import top.chengdongqing.wechat.data.model.MediaItem
-import top.chengdongqing.wechat.data.model.isVideo
 import top.chengdongqing.wechat.ui.components.toast.ToastIcon
 import top.chengdongqing.wechat.ui.components.toast.rememberToastState
 import top.chengdongqing.wechat.ui.components.videoplayer.VideoPlayerDefaults
@@ -82,7 +81,7 @@ private fun MediaPager(medias: Array<MediaItem>, pagerState: PagerState) {
     ) { index ->
         val media = medias[index]
         when {
-            media.isVideo() -> {
+            media.isVideo -> {
                 val state = rememberVideoPlayerState(videoSource = media.uri)
                 WeVideoPlayer(state) {
                     VideoPlayerDefaults.ControlBar(

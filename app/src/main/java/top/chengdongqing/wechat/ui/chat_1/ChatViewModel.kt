@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.data.model.ChatPayload
 import top.chengdongqing.wechat.data.model.MessageEnvelope
 import top.chengdongqing.wechat.data.model.P2PPeer
 import top.chengdongqing.wechat.data.network.P2pConnectionManager
-import top.chengdongqing.wechat.data.repository.ChatRepository
+import top.chengdongqing.wechat.data.repository.chat.ChatRepository
 
 class ChatViewModel(
     private val repository: ChatRepository,

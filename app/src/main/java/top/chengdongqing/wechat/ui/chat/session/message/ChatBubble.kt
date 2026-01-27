@@ -21,9 +21,10 @@ import kotlin.math.sqrt
 fun ChatBubble(
     isFromMe: Boolean,
     showArrow: Boolean,
-    content: @Composable () -> Unit
+    isSameBackground: Boolean,
+    content: @Composable () -> Unit,
 ) {
-    val bubbleColor = if (isFromMe) Color(0xFF95EC69) else Color.White
+    val bubbleColor = if (isFromMe && !isSameBackground) Color(0xFF95EC69) else Color.White
     val maxBubbleWidth = rememberMaxBubbleWidth()
 
     Surface(
@@ -31,7 +32,7 @@ fun ChatBubble(
         shape = RoundedCornerShape(4.dp),
         modifier = Modifier
             .widthIn(max = maxBubbleWidth)
-            .then(if (showArrow) Modifier.drawChatArrow(isFromMe, bubbleColor) else Modifier)
+            .then(if (showArrow) Modifier.drawBubbleArrow(isFromMe, bubbleColor) else Modifier)
     ) {
         content()
     }
@@ -50,7 +51,7 @@ private fun rememberMaxBubbleWidth(): Dp {
 /**
  * 绘制气泡箭头
  */
-private fun Modifier.drawChatArrow(
+private fun Modifier.drawBubbleArrow(
     isFromMe: Boolean,
     color: Color,
     arrowSize: Dp = 8.dp,
@@ -62,7 +63,7 @@ private fun Modifier.drawChatArrow(
     // 旋转 45 度后，顶点到中心的距离是 (边长 * √2) / 2
     val halfDiagonal = (sizePx * sqrt(2.0) / 2.0).toFloat()
     // 计算旋转中心
-    val pivotX = if (isFromMe) size.width - 1 else 1f
+    val pivotX = if (isFromMe) size.width - 1.5f else 1f
     val pivotY = offsetPx + halfDiagonal
     // 计算正方形的左上角位置，使其中心点与 pivot 对齐
     val topLeft = Offset(
@@ -80,7 +81,7 @@ private fun Modifier.drawChatArrow(
                 color = color,
                 topLeft = topLeft,
                 size = Size(sizePx, sizePx),
-                cornerRadius = CornerRadius(1.dp.toPx())
+                cornerRadius = CornerRadius(1.5.dp.toPx())
             )
         }
     }

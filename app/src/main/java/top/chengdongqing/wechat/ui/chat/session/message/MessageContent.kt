@@ -5,6 +5,7 @@ import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.message.types.CallContent
 import top.chengdongqing.wechat.ui.chat.session.message.types.ImageContent
+import top.chengdongqing.wechat.ui.chat.session.message.types.LocationContent
 import top.chengdongqing.wechat.ui.chat.session.message.types.StickerContent
 import top.chengdongqing.wechat.ui.chat.session.message.types.TextContent
 import top.chengdongqing.wechat.ui.chat.session.message.types.VideoContent
@@ -19,6 +20,7 @@ fun MessageContent(message: ChatMessage) {
         is MessageContent.Video -> VideoContent(content)
         is MessageContent.Voice -> VoiceContent(content)
         is MessageContent.Call -> CallContent(content, message.isFromMe)
+        is MessageContent.Location -> LocationContent(content)
         else -> Unit
     }
 }

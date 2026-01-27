@@ -2,12 +2,14 @@ package top.chengdongqing.wechat.core.utils
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.ThumbnailUtils
 import android.net.Uri
+import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import top.chengdongqing.wechat.data.model.MediaResource
 import java.io.File
+import java.io.FileOutputStream
 
 /**
  * 媒体文件预处理
@@ -16,26 +18,33 @@ import java.io.File
 fun prepareMediaResource(context: Context, uri: Uri): MediaResource? {
     return try {
         val resolver = context.contentResolver
-
-        // 获取基本信息
         val mimeType = resolver.getType(uri) ?: "image/jpeg"
-        val fileName = context.getFileName(uri)
 
-        // 拷贝到私有目录 (files/media),避免发送过程中被删除
+        // 尝试从数据库一次性获取元数据（文件名、宽高、时长）
+        val meta = queryMediaMetadata(context, uri)
+        val fileName = meta.name ?: "FILE_${System.currentTimeMillis()}"
+
+        // 拷贝到应用私有目录，确保传输稳定性
         val mediaDir = File(context.filesDir, "media").apply { mkdirs() }
         val targetFile = File(mediaDir, fileName)
         resolver.openInputStream(uri)?.use { input ->
             targetFile.outputStream().use { output -> input.copyTo(output) }
         } ?: return null
 
-        // 生成缩略图
-        var thumbBase64: String? = null
-        if (mimeType.startsWith("image/")) {
-            val bitmap = BitmapFactory.decodeFile(targetFile.absolutePath)
-            // 压缩成极小的缩略图 (比如 100x100)
-            val thumbBitmap = ThumbnailUtils.extractThumbnail(bitmap, 100, 100)
-            // 转为base64
-            thumbBase64 = thumbBitmap.toBase64()
+        var width = meta.width
+        var height = meta.height
+
+        // 兜底策略：如果数据库信息不全，则解析物理文件
+        val isImage = mimeType.startsWith("image/")
+        if (isImage && width <= 0) {
+            try {
+                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(targetFile.absolutePath, options)
+                width = options.outWidth
+                height = options.outHeight
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         MediaResource(
@@ -43,7 +52,9 @@ fun prepareMediaResource(context: Context, uri: Uri): MediaResource? {
             filename = fileName,
             mimeType = mimeType,
             size = targetFile.length(),
-            thumbBase64 = thumbBase64
+            width = width,
+            height = height,
+            duration = meta.duration
         )
     } catch (e: Exception) {
         e.printStackTrace()
@@ -52,27 +63,45 @@ fun prepareMediaResource(context: Context, uri: Uri): MediaResource? {
 }
 
 /**
- * 获取文件名
+ * 核心查询逻辑：合并所有字段查询
  */
-private fun Context.getFileName(uri: Uri): String {
-    var name = "IMG_${System.currentTimeMillis()}.jpg" // 默认兜底名称
+private data class TempMeta(val name: String?, val width: Int, val height: Int, val duration: Long)
 
-    // 如果是 File 类型的 Uri，直接用路径里面的文件名
+private fun queryMediaMetadata(context: Context, uri: Uri): TempMeta {
     if (uri.scheme == "file") {
-        return uri.lastPathSegment ?: name
+        return TempMeta(uri.lastPathSegment, 0, 0, 0)
     }
 
-    // 如果是 Content 类型的 Uri (相册、文件管理器)，去数据库查询文件名
-    contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-        val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-        if (nameIndex != -1 && cursor.moveToFirst()) {
-            val originalName = cursor.getString(nameIndex)
-            if (!originalName.isNullOrBlank()) {
-                name = originalName
+    val projection = arrayOf(
+        MediaStore.MediaColumns.DISPLAY_NAME,
+        MediaStore.MediaColumns.WIDTH,
+        MediaStore.MediaColumns.HEIGHT,
+        MediaStore.MediaColumns.DURATION
+    )
+
+    var name: String? = null
+    var width = 0
+    var height = 0
+    var duration = 0L
+
+    try {
+        context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nIdx = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                val wIdx = cursor.getColumnIndex(MediaStore.MediaColumns.WIDTH)
+                val hIdx = cursor.getColumnIndex(MediaStore.MediaColumns.HEIGHT)
+                val dIdx = cursor.getColumnIndex(MediaStore.MediaColumns.DURATION)
+
+                if (nIdx != -1) name = cursor.getString(nIdx)
+                if (wIdx != -1) width = cursor.getInt(wIdx)
+                if (hIdx != -1) height = cursor.getInt(hIdx)
+                if (dIdx != -1) duration = cursor.getLong(dIdx)
             }
         }
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
-    return name
+    return TempMeta(name, width, height, duration)
 }
 
 /**
@@ -103,3 +132,36 @@ fun Context.getFileProviderUri(file: File): Uri {
 
 val String.asAssetPath: String
     get() = "file:///android_asset/$this"
+
+/**
+ * 保存截图到缓存
+ */
+fun Context.saveSnapshotToCache(bitmap: Bitmap): Uri? {
+    return try {
+        // 创建 snapshots 缓存文件夹
+        val cachePath = File(cacheDir, "snapshots")
+        if (!cachePath.exists()) cachePath.mkdirs()
+
+        // 创建文件（以时间戳命名避免覆盖）
+        val fileName = "MAP_SNAPSHOT_${System.currentTimeMillis()}.jpg"
+        val file = File(cachePath, fileName)
+
+        // 写入文件
+        FileOutputStream(file).use { out ->
+            // 使用 JPEG 格式，质量设为 80-90 即可，平衡体积和清晰度
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+            out.flush()
+        }
+
+        // 通过 FileProvider 获取安全 Uri
+        this.getFileProviderUri(file)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    } finally {
+        // 回收 Bitmap 释放内存
+        if (!bitmap.isRecycled) {
+            bitmap.recycle()
+        }
+    }
+}

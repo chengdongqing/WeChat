@@ -44,9 +44,9 @@
         android:theme="@style/Theme.WeChat">
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="adjustResize"
             android:exported="true"
-            android:theme="@style/Theme.WeChat">
+            android:theme="@style/Theme.WeChat"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -61,12 +61,26 @@
         <activity
             android:name=".ui.components.media.picker.MediaPickerActivity"
             android:theme="@style/Theme.WeChat" />
+        <activity
+            android:name=".ui.components.camera.CameraActivity"
+            android:theme="@style/Theme.WeChat" />
+        <activity
+            android:name=".ui.components.location.preview.LocationPreviewActivity"
+            android:theme="@style/Theme.WeChat" />
+        <activity
+            android:name=".ui.components.location.picker.LocationPickerActivity"
+            android:theme="@style/Theme.WeChat" />
 
         <activity
             android:name=".ui.call.CallActivity"
             android:exported="true"
             android:launchMode="singleInstance"
             android:showOnLockScreen="true" />
+
+
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="3469bdc400a6b0c400160f09aac68024" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

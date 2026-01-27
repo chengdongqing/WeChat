@@ -124,3 +124,5 @@ fun Modifier.repeatingClickable(
             )
         }
 }
+
+fun Boolean?.isTrue(): Boolean = this == true
