@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.data.model
 
+import android.net.Uri
 import top.chengdongqing.wechat.core.utils.format
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -18,19 +19,20 @@ data class ChatMessage(
  * 消息内容结构
  */
 sealed class MessageContent(
-    val showBubble: Boolean = true,
+    val showUnreadDot: Boolean = false,
+    val showBubbleArrow: Boolean = true,
     val isSameBackground: Boolean = false
 ) {
     data class Text(val text: String) : MessageContent()
 
     data class Voice(
-        val url: String,
-        val duration: Int,
+        val uri: Uri,
+        val duration: Long,
         val isPlayed: Boolean = false
-    ) : MessageContent()
+    ) : MessageContent(showUnreadDot = !isPlayed)
 
     abstract class Media(
-        open val url: String,
+        open val uri: Uri,
         open val filename: String,
         open val mimeType: String,
         open val width: Int,
@@ -42,28 +44,28 @@ sealed class MessageContent(
     }
 
     data class Image(
-        override val url: String,
+        override val uri: Uri,
         override val mimeType: String,
         override val filename: String,
         override val width: Int,
         override val height: Int
-    ) : Media(url, filename, mimeType, width, height)
+    ) : Media(uri, filename, mimeType, width, height)
 
     data class Video(
-        override val url: String,
+        override val uri: Uri,
         override val mimeType: String,
         override val filename: String,
         override val width: Int,
         override val height: Int,
         val duration: Long
-    ) : Media(url, filename, mimeType, width, height)
+    ) : Media(uri, filename, mimeType, width, height)
 
     data class Location(
         val latitude: Double,
         val longitude: Double,
         val address: String,
         val poiName: String,
-        val snapshotUrl: String?
+        val snapshotUri: Uri?
     ) : MessageContent(isSameBackground = true)
 
     data class UserCard(
@@ -90,7 +92,7 @@ sealed class MessageContent(
         val stickerId: String,
         val localPath: String,
         val description: String? = null
-    ) : MessageContent(showBubble = false)
+    ) : MessageContent(showBubbleArrow = false)
 
     data class Favorite(
         val title: String,

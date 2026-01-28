@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.chat.session
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,6 +40,7 @@ fun ChatSessionScreen(
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
+    val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -50,10 +52,14 @@ fun ChatSessionScreen(
     MessageDataScrollEffect(listState, messages)
 
     // 提供媒体上下文
-    val mediaContext = remember(mediaList) {
+    val mediaContext = remember(mediaList, playingMessageId) {
         MediaContext(
             allMedia = mediaList,
-            getIndexOf = { content -> mediaList.indexOf(content) }
+            getIndexOf = { content -> mediaList.indexOf(content) },
+            playingMessageId = playingMessageId,
+            onVoiceToggle = { id, uri ->
+                viewModel.toggleVoicePlay(id, uri)
+            }
         )
     }
 
@@ -102,7 +108,9 @@ fun ChatSessionScreen(
 
 data class MediaContext(
     val allMedia: List<MessageContent.Media>,
-    val getIndexOf: (MessageContent.Media) -> Int
+    val getIndexOf: (MessageContent.Media) -> Int,
+    val playingMessageId: String? = null,
+    val onVoiceToggle: (messageId: String, uri: Uri) -> Unit = { _, _ -> }
 )
 
 val LocalMediaContext = compositionLocalOf<MediaContext?> { null }

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.input
+package top.chengdongqing.wechat.ui.chat.session.input.text
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -23,11 +23,15 @@ import androidx.compose.ui.zIndex
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
+import top.chengdongqing.wechat.ui.chat.session.input.InputHandler
+import top.chengdongqing.wechat.ui.chat.session.input.InputMode
+import top.chengdongqing.wechat.ui.chat.session.input.InputPanelHolder
+import top.chengdongqing.wechat.ui.chat.session.input.rememberInputModeController
 import top.chengdongqing.wechat.ui.components.popup.WePopup
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 @Composable
-fun FullScreenInputPopup(
+fun FullscreenInputPopup(
     visible: Boolean,
     text: String,
     onTextChange: (String) -> Unit,

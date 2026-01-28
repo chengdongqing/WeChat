@@ -14,12 +14,10 @@ import top.chengdongqing.wechat.ui.chat.session.message.types.VoiceContent
 fun MessageContent(message: ChatMessage) {
     when (val content = message.content) {
         is MessageContent.Text -> TextContent(content)
-        is MessageContent.Voice -> VoiceContent(content)
+        is MessageContent.Voice -> VoiceContent(message)
         is MessageContent.Sticker -> StickerContent(content)
-        is MessageContent.Image,
-        is MessageContent.Video -> MediaContent(content)
-
-        is MessageContent.Call -> CallContent(content, message.isFromMe)
+        is MessageContent.Image, is MessageContent.Video -> MediaContent(content)
+        is MessageContent.Call -> CallContent(message)
         is MessageContent.Location -> LocationContent(content)
         else -> Unit
     }

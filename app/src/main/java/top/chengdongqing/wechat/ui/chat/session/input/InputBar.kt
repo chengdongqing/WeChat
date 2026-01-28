@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.chat.session.input
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +45,9 @@ import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
 import top.chengdongqing.wechat.ui.chat.session.ScrollToDismissEffect
 import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreAction
+import top.chengdongqing.wechat.ui.chat.session.input.text.EmojiTextField
+import top.chengdongqing.wechat.ui.chat.session.input.text.FullscreenInputPopup
+import top.chengdongqing.wechat.ui.chat.session.input.voice.VoiceRecordButton
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
@@ -111,7 +115,7 @@ fun InputBar(
         val contents = items.map { item ->
             if (item.isImage) {
                 MessageContent.Image(
-                    url = item.uri.toString(),
+                    uri = item.uri,
                     mimeType = item.mimeType,
                     filename = item.filename,
                     width = item.width,
@@ -119,7 +123,7 @@ fun InputBar(
                 )
             } else {
                 MessageContent.Video(
-                    url = item.uri.toString(),
+                    uri = item.uri,
                     mimeType = item.mimeType,
                     filename = item.filename,
                     width = item.width,
@@ -144,12 +148,11 @@ fun InputBar(
         // 切换回文本模式
         controller.switchMode(showKeyboard = false)
 
-        val url = mediaUri.toString()
         val res = prepareMediaResource(context, mediaUri) ?: return@rememberCameraLauncher
 
         val content = if (mediaType.isImage) {
             MessageContent.Image(
-                url = url,
+                uri = mediaUri,
                 mimeType = res.mimeType,
                 filename = res.filename,
                 width = res.width,
@@ -157,7 +160,7 @@ fun InputBar(
             )
         } else {
             MessageContent.Video(
-                url = url,
+                uri = mediaUri,
                 mimeType = res.mimeType,
                 filename = res.filename,
                 width = res.width,
@@ -204,7 +207,7 @@ fun InputBar(
             longitude = latLng.longitude,
             address = location.address ?: "",
             poiName = location.poiName,
-            snapshotUrl = location.snapshotUri?.toString()
+            snapshotUri = location.snapshotUri
         )
 
         onSend(content)
@@ -236,7 +239,11 @@ fun InputBar(
                 inputMode = inputMode,
                 focusRequester = focusRequester,
                 onTextChange = onTextChange,
-                onLineCountChange = { lineCount = it }
+                onLineCountChange = { lineCount = it },
+                onVoiceSend = { uri, duration ->
+                    val content = MessageContent.Voice(uri, duration)
+                    onSend(content)
+                }
             )
             // 表情按钮
             EmojiButton(inputMode, controller)
@@ -282,7 +289,7 @@ fun InputBar(
     }
 
     // 全屏输入框
-    FullScreenInputPopup(
+    FullscreenInputPopup(
         visible = isExpanded.value,
         text = inputText,
         onTextChange = onTextChange,
@@ -315,7 +322,7 @@ private fun VoiceButton(
             iconResId = if (inputMode.isVoice) {
                 R.drawable.ic_keyboard_outlined
             } else {
-                R.drawable.ic_voice_outlined
+                R.drawable.ic_voice_circle_outlined
             }
         ) {
             if (inputMode.isVoice) {
@@ -338,7 +345,8 @@ private fun RowScope.InputBox(
     inputMode: InputMode,
     focusRequester: NativeFocusRequester,
     onTextChange: (String) -> Unit,
-    onLineCountChange: (Int) -> Unit
+    onLineCountChange: (Int) -> Unit,
+    onVoiceSend: (uri: Uri, duration: Long) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -350,7 +358,7 @@ private fun RowScope.InputBox(
     ) {
         if (inputMode.isVoice) {
             // 语音模式：显示“按住说话”
-            VoiceRecordButton()
+            VoiceRecordButton(onVoiceSend)
         } else {
             // 其他所有模式：都显示输入框
             EmojiTextField(

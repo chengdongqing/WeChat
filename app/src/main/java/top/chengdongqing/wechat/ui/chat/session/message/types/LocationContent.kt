@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -19,11 +18,8 @@ import coil3.request.ImageRequest
 import coil3.request.fallback
 import com.amap.api.maps.model.LatLng
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.randomUUID
-import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.LocationPreviewItem
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.chat.session.message.MessageItem
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.location.preview.previewLocation
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
@@ -75,7 +71,7 @@ fun LocationContent(content: MessageContent.Location) {
         // 位置快照图片
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(content.snapshotUrl)
+                .data(content.snapshotUri)
                 .fallback(R.drawable.img_location_placeholder)
                 .build(),
             contentDescription = "Location",
@@ -85,23 +81,4 @@ fun LocationContent(content: MessageContent.Location) {
             contentScale = ContentScale.Crop
         )
     }
-}
-
-@Preview
-@Composable
-private fun Prev() {
-    val content = MessageContent.Location(
-        latitude = 2323.1212,
-        longitude = 23454.45,
-        address = "汉拿山了看大家发的是的；快乐十分的首付款角度看",
-        poiName = "上海市及那段时间发的老师反馈了；但是开发了看电视",
-        snapshotUrl = ""
-    )
-    val message = ChatMessage(
-        id = randomUUID(),
-        content = content,
-        isFromMe = false,
-        timestamp = System.currentTimeMillis()
-    )
-    MessageItem(message)
 }

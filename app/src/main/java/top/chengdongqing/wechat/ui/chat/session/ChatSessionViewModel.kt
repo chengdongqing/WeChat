@@ -1,7 +1,9 @@
 package top.chengdongqing.wechat.ui.chat.session
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -9,6 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.media.VoicePlayer
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
@@ -38,6 +42,10 @@ class ChatSessionViewModel(
     val mediaList: StateFlow<List<MessageContent.Media>> = messages
         .map { messages -> messages.mapNotNull { it.content as? MessageContent.Media }.reversed() }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    private val voicePlayer = VoicePlayer()
+    private val _playingMessageId = MutableStateFlow<String?>(null)
+    val playingMessageId = _playingMessageId.asStateFlow()
 
     init {
         loadInitialMessages()
@@ -113,6 +121,81 @@ class ChatSessionViewModel(
         }
 
         return messages.sortedByDescending { it.timestamp }
+    }
+
+    fun toggleVoicePlay(messageId: String, uri: Uri) {
+        if (_playingMessageId.value == messageId) {
+            stopVoice()
+        } else {
+            startPlaying(messageId, uri)
+        }
+    }
+
+    private fun startPlaying(messageId: String, uri: Uri) {
+        _playingMessageId.value = messageId
+        markAsPlayed(messageId)
+
+        voicePlayer.play(uri) {
+            // 播放完成后尝试自动播放下一条
+            playNextUnreadVoice(messageId)
+        }
+    }
+
+    /**
+     * 更新已读状态
+     */
+    private fun markAsPlayed(messageId: String) {
+        _messages.update { currentList ->
+            val index = currentList.indexOfFirst { it.id == messageId }
+            if (index == -1) return@update currentList
+
+            val targetMsg = currentList[index]
+            val content = targetMsg.content
+
+            if (content is MessageContent.Voice && !content.isPlayed) {
+                val newList = currentList.toMutableList()
+                val newContent = content.copy(isPlayed = true)
+                newList[index] = targetMsg.copy(content = newContent)
+                newList
+            } else {
+                currentList
+            }
+        }
+    }
+
+    /**
+     * 寻找下一条未播放的语音
+     */
+    private fun playNextUnreadVoice(currentMsgId: String) {
+        val currentList = _messages.value
+        // 找到当前消息的索引
+        val currentIndex = currentList.indexOfFirst { it.id == currentMsgId }
+
+        if (currentIndex != -1) {
+            // 从当前消息开始，寻找更晚发出的语音（索引减小方向），index 越小，消息越新
+            for (i in (currentIndex - 1) downTo 0) {
+                val nextMsg = currentList[i]
+                val content = nextMsg.content
+
+                // 必须是语音消息，且从未播放过
+                if (content is MessageContent.Voice && !content.isPlayed) {
+                    viewModelScope.launch {
+                        _playingMessageId.value = null
+                        delay(250)
+                        startPlaying(nextMsg.id, content.uri)
+                    }
+                    return // 找到并开始播放后，直接退出循环
+                }
+            }
+        }
+
+        // 如果循环结束没找到满足条件的，清空播放状态
+        _playingMessageId.value = null
+    }
+
+    fun stopVoice() {
+        voicePlayer.stop()
+        _playingMessageId.value = null
     }
 
     override fun onCleared() {

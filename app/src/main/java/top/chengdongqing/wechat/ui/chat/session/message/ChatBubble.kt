@@ -5,6 +5,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
@@ -15,26 +16,34 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import top.chengdongqing.wechat.ui.components.badge.WeBadge
 import kotlin.math.sqrt
 
 @Composable
 fun ChatBubble(
     isFromMe: Boolean,
     showArrow: Boolean,
+    showDot: Boolean,
     isSameBackground: Boolean,
     content: @Composable () -> Unit,
 ) {
     val bubbleColor = if (isFromMe && !isSameBackground) Color(0xFF95EC69) else Color.White
     val maxBubbleWidth = rememberMaxBubbleWidth()
 
-    Surface(
-        color = if (showArrow) bubbleColor else Color.Transparent,
-        shape = RoundedCornerShape(4.dp),
-        modifier = Modifier
-            .widthIn(max = maxBubbleWidth)
-            .then(if (showArrow) Modifier.drawBubbleArrow(isFromMe, bubbleColor) else Modifier)
+    WeBadge(
+        visible = showDot,
+        size = 8.dp,
+        alignment = if (isFromMe) Alignment.CenterStart else Alignment.CenterEnd
     ) {
-        content()
+        Surface(
+            color = if (showArrow) bubbleColor else Color.Transparent,
+            shape = RoundedCornerShape(4.dp),
+            modifier = Modifier
+                .widthIn(max = maxBubbleWidth)
+                .then(if (showArrow) Modifier.drawBubbleArrow(isFromMe, bubbleColor) else Modifier)
+        ) {
+            content()
+        }
     }
 }
 

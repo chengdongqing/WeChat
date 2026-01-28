@@ -26,7 +26,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.format
@@ -113,7 +112,7 @@ fun MediaContent(content: MessageContent.Media) {
 }
 
 private fun MessageContent.Media.toMediaItem() = MediaItem(
-    uri = url.toUri(),
+    uri = uri,
     filename = filename,
     mediaType = if (this is MessageContent.Video) MediaType.VIDEO else MediaType.IMAGE,
     mimeType = mimeType,

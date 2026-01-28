@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.input
+package top.chengdongqing.wechat.ui.chat.session.input.text
 
 import android.content.Context
 import android.graphics.Canvas

@@ -12,9 +12,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -24,10 +23,13 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.CallStatus
 import top.chengdongqing.wechat.data.model.CallType
+import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
 
 @Composable
-fun CallContent(content: MessageContent.Call, isFromMe: Boolean) {
+fun CallContent(message: ChatMessage) {
+    val isFromMe = message.isFromMe
+    val content = message.content as MessageContent.Call
     val isVideoCall = content.type == CallType.VIDEO
     val status = content.status
 
@@ -50,8 +52,7 @@ fun CallContent(content: MessageContent.Call, isFromMe: Boolean) {
                 contentDescription = if (isVideoCall) "视频通话" else "语音通话",
                 Modifier
                     .size(22.dp)
-                    .scale(1.2f)
-                    .rotate(if (isVideoCall && isFromMe) 180f else 0f)
+                    .graphicsLayer(scaleX = if (isFromMe && isVideoCall) -1f else 1f),
             )
             Spacer(Modifier.width(12.dp))
             Text(

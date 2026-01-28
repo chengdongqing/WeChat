@@ -38,7 +38,8 @@ fun MessageItem(
 
         ChatBubble(
             isFromMe = isFromMe,
-            showArrow = content.showBubble,
+            showArrow = content.showBubbleArrow,
+            showDot = content.showUnreadDot,
             isSameBackground = content.isSameBackground
         ) {
             MessageContent(message)
