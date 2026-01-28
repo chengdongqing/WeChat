@@ -206,7 +206,6 @@ private fun LifecycleEffect(mapView: MapView, mapSaveState: Bundle) {
             // 彻底清理地图
             mapView.onPause()
             mapView.onDestroy()
-            mapView.removeAllViews()
         }
     }
 }
@@ -218,8 +217,6 @@ private fun MapView.componentCallbacks(): ComponentCallbacks2 =
         // 系统极度缺内存，无条件清理
         @Suppress("OVERRIDE_DEPRECATION")
         override fun onLowMemory() {
-            // 这里能获取到2个this：1.componentCallbacks本身；2.MapView实例
-            // 直接用this是获取当前作用域；而this@componentCallbacks可以获取到componentCallbacks的作用域
             this@componentCallbacks.onLowMemory()
         }
 
@@ -281,6 +278,7 @@ private class AMapStateImpl(private val context: Context, isDarkTheme: Boolean) 
     }
 
     override fun takeSnapshot(isSearchMode: Boolean, onComplete: (Bitmap?) -> Unit) {
+        // 临时移除当前定位点
         map.isMyLocationEnabled = false
 
         var locationMarker: Marker? = null
@@ -311,6 +309,8 @@ private class AMapStateImpl(private val context: Context, isDarkTheme: Boolean) 
 
             private fun handleComplete(bitmap: Bitmap?) {
                 onComplete(bitmap)
+
+                // 恢复地图
                 locationMarker?.remove()
                 map.isMyLocationEnabled = true
             }

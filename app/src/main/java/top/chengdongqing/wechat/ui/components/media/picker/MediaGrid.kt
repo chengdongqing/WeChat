@@ -40,7 +40,7 @@ internal fun ColumnScope.MediaGrid(state: MediaPickerState) {
     val context = LocalContext.current
 
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(80.dp),
+        columns = GridCells.Fixed(4),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
         modifier = Modifier.weight(1f)

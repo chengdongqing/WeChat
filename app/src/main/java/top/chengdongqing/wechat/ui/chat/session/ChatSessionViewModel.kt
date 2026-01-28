@@ -36,7 +36,7 @@ class ChatSessionViewModel(
 
     // 派生状态：媒体列表（缓存）
     val mediaList: StateFlow<List<MessageContent.Media>> = messages
-        .map { msgs -> msgs.mapNotNull { it.content as? MessageContent.Media } }
+        .map { messages -> messages.mapNotNull { it.content as? MessageContent.Media }.reversed() }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {

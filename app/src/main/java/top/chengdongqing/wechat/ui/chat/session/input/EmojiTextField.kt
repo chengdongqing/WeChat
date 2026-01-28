@@ -14,6 +14,7 @@ import android.text.style.ImageSpan
 import android.view.Gravity
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,7 +77,9 @@ fun EmojiTextField(
     val currentOnLineCountChange by rememberUpdatedState(onLineCountChange)
 
     AndroidView(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         factory = { ctx ->
             AppCompatEditText(ctx).apply {
                 setupConfig(fontSizeSp, cursorWidthPx, maxHeightPx)

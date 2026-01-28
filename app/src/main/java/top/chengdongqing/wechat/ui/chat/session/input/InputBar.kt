@@ -60,7 +60,11 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
 @Composable
-fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageContent) -> Unit) {
+fun InputBar(
+    listState: LazyListState,
+    isSending: Boolean,
+    onSend: (MessageContent) -> Unit
+) {
     val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputModeController(focusRequester)
     val inputMode by controller.inputMode
@@ -100,6 +104,9 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
     }
 
     val launchMediaPicker = rememberPickMediasLauncher { items ->
+        // 切换回文本模式
+        controller.switchMode(showKeyboard = false)
+
         // 将数据转换为统一的消息内容格式
         val contents = items.map { item ->
             if (item.isImage) {
@@ -134,6 +141,9 @@ fun InputBar(listState: LazyListState, isSending: Boolean, onSend: (MessageConte
 
     val context = LocalContext.current
     val launchCamera = rememberCameraLauncher { mediaUri, mediaType ->
+        // 切换回文本模式
+        controller.switchMode(showKeyboard = false)
+
         val url = mediaUri.toString()
         val res = prepareMediaResource(context, mediaUri) ?: return@rememberCameraLauncher
 
@@ -335,8 +345,7 @@ private fun RowScope.InputBox(
             .weight(1f)
             .padding(horizontal = 4.dp)
             .defaultMinSize(minHeight = 40.dp)
-            .background(Color.White, RoundedCornerShape(4.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .background(Color.White, RoundedCornerShape(4.dp)),
         contentAlignment = Alignment.CenterStart
     ) {
         if (inputMode.isVoice) {

@@ -121,7 +121,7 @@ fun rememberInputModeController(
 
     // 返回时面板展开则执行关闭面板
     BackHandler(inputMode.isPanelMode) {
-        controller.switchMode(InputMode.TEXT, showKeyboard = false)
+        controller.switchMode(showKeyboard = false)
     }
 
     return controller

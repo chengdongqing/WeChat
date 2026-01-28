@@ -51,7 +51,7 @@ fun FullScreenInputPopup(
 
         BackHandler {
             if (inputMode.isEmoji) {
-                controller.switchMode(InputMode.TEXT, showKeyboard = false)
+                controller.switchMode(showKeyboard = false)
             } else {
                 onClose()
             }
