@@ -108,7 +108,7 @@ private fun InputActionBar(isEmojiMode: Boolean, onToggleMode: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(12.dp),
         horizontalArrangement = Arrangement.End
     ) {
         // 语音输入按键

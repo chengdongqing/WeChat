@@ -4,21 +4,22 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Rect
+import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.Insets
@@ -27,6 +28,7 @@ import androidx.core.view.WindowInsetsCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.ui.utils.DpSaver
 import java.io.File
 
 /**
@@ -90,20 +92,86 @@ fun rememberStatusBarHeight(): Dp {
     }
 }
 
+/**
+ * 键盘高度测量模式
+ */
+enum class KeyboardHeightMode {
+    AUTO,   // 自动检测
+    VIEW,   // 视图测量
+    IME     // IME insets
+}
+
+/**
+ * 记忆键盘高度（完整版）
+ */
 @Composable
 fun rememberKeyboardHeight(
+    mode: KeyboardHeightMode = KeyboardHeightMode.AUTO,
     minHeightThreshold: Dp = 100.dp
 ): Dp {
     val view = LocalView.current
     val density = LocalDensity.current
+    val ime = WindowInsets.ime
+
+    val actualMode = remember(mode, view) {
+        if (mode == KeyboardHeightMode.AUTO) {
+            if (isViewInPopup(view)) {
+                KeyboardHeightMode.IME
+            } else {
+                KeyboardHeightMode.VIEW
+            }
+        } else {
+            mode
+        }
+    }
+
+    return when (actualMode) {
+        KeyboardHeightMode.IME -> {
+            // Popup 模式：实时获取 IME 高度
+            with(density) {
+                ime.getBottom(density).toDp()
+            }
+        }
+
+        KeyboardHeightMode.VIEW -> {
+            // 普通模式：使用视图测量
+            rememberViewKeyboardHeight(view, density, minHeightThreshold)
+        }
+
+        KeyboardHeightMode.AUTO -> error("Should not reach here")
+    }
+}
+
+/**
+ * 检测 View 是否在 Popup/Dialog 中
+ */
+private fun isViewInPopup(view: View): Boolean {
+    var parent = view.parent
+    while (parent != null) {
+        val className = parent.javaClass.name
+        if (className.contains("Popup", ignoreCase = true) ||
+            className.contains("Dialog", ignoreCase = true)
+        ) {
+            return true
+        }
+        parent = parent.parent
+    }
+    return false
+}
+
+/**
+ * 使用 View 测量键盘高度
+ */
+@Composable
+private fun rememberViewKeyboardHeight(
+    view: View,
+    density: Density,
+    minHeightThreshold: Dp
+): Dp {
     val minHeightPx = with(density) { minHeightThreshold.roundToPx() }
 
     var height by rememberSaveable(stateSaver = DpSaver) {
         mutableStateOf(0.dp)
-    }
-
-    val stableHeight by remember {
-        derivedStateOf { height }
     }
 
     DisposableEffect(view) {
@@ -116,14 +184,9 @@ fun rememberKeyboardHeight(
                 WindowInsetsCompat.Type.systemBars()
             ) ?: Insets.NONE
 
-            // 计算键盘高度
-            val rootHeight = view.rootView.height
-            val visibleBottom = rect.bottom
-            val systemBottom = systemBarsInsets.bottom
-            val keyboardHeightPx = rootHeight - visibleBottom - systemBottom
+            val keyboardHeightPx = view.rootView.height - rect.bottom - systemBarsInsets.bottom
 
             when {
-                // 键盘打开
                 keyboardHeightPx > minHeightPx -> {
                     val newHeight = with(density) { keyboardHeightPx.toDp() }
                     if (newHeight != height) {
@@ -131,7 +194,6 @@ fun rememberKeyboardHeight(
                     }
                 }
 
-                // 键盘关闭
                 keyboardHeightPx <= 0 && height > 0.dp -> {
                     height = 0.dp
                 }
@@ -145,10 +207,5 @@ fun rememberKeyboardHeight(
         }
     }
 
-    return stableHeight
+    return height
 }
-
-private val DpSaver = Saver<Dp, Float>(
-    save = { it.value },
-    restore = { it.dp }
-)

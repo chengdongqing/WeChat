@@ -4,21 +4,17 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
@@ -27,6 +23,7 @@ import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.input.panels.EmojiPanel
 import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreAction
 import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreActionPanel
+import top.chengdongqing.wechat.ui.utils.DpSaver
 
 @Composable
 fun InputPanelHolder(
@@ -38,14 +35,10 @@ fun InputPanelHolder(
     onBackspace: () -> Unit,
     onAction: ((MoreAction) -> Unit)? = null
 ) {
-    val density = LocalDensity.current
-    val ime = WindowInsets.ime
-
+    val keyboardHeight = rememberKeyboardHeight()
     var savedKeyboardHeight by rememberSaveable(stateSaver = DpSaver) {
         mutableStateOf(InputPanelConfig.DEFAULT_PANEL_HEIGHT)
     }
-
-    val keyboardHeight = rememberKeyboardHeight()
 
     // 最小高度限制，避免过小的键盘高度
     LaunchedEffect(keyboardHeight) {
@@ -56,10 +49,8 @@ fun InputPanelHolder(
 
     val panelHeight = calculatePanelHeight(
         inputMode = inputMode,
-        isInPopup = isInPopup,
         keyboardHeight = keyboardHeight,
-        savedKeyboardHeight = savedKeyboardHeight,
-        imeHeight = with(density) { ime.getBottom(density).toDp() }
+        savedKeyboardHeight = savedKeyboardHeight
     )
 
     val animatedPanelHeight by animateDpAsState(
@@ -99,17 +90,11 @@ fun InputPanelHolder(
  */
 private fun calculatePanelHeight(
     inputMode: InputMode,
-    isInPopup: Boolean,
     keyboardHeight: Dp,
-    savedKeyboardHeight: Dp,
-    imeHeight: Dp
+    savedKeyboardHeight: Dp
 ): Dp {
     return when {
-        inputMode.isText -> if (isInPopup) {
-            imeHeight
-        } else {
-            keyboardHeight
-        }
+        inputMode.isText -> keyboardHeight
 
         inputMode.isEmoji -> (savedKeyboardHeight + InputPanelConfig.EMOJI_PANEL_EXTRA_HEIGHT)
             .coerceAtLeast(InputPanelConfig.MIN_PANEL_HEIGHT)
@@ -131,8 +116,3 @@ private object InputPanelConfig {
     /** 表情面板额外高度 */
     val EMOJI_PANEL_EXTRA_HEIGHT = 20.dp
 }
-
-private val DpSaver = Saver<Dp, Float>(
-    save = { it.value },
-    restore = { it.dp }
-)
