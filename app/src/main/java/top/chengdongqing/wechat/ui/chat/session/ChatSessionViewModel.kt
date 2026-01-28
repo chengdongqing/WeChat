@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.update
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.ui.utils.EmojiRenderer
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -112,5 +113,10 @@ class ChatSessionViewModel(
         }
 
         return messages.sortedByDescending { it.timestamp }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        EmojiRenderer.clearCache()
     }
 }

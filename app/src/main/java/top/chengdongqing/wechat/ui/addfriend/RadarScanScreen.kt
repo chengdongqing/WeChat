@@ -27,15 +27,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.ui.utils.SetupFullscreen
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
@@ -50,11 +49,10 @@ fun RadarScanScreen(onBack: () -> Unit) {
         )
     }
 
-    SetupFullscreen()
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .clip(RectangleShape)
+            .clipToBounds()
     ) {
         Image(
             painter = painterResource(R.drawable.img_radar_bg),
@@ -76,7 +74,7 @@ private fun BackButton(onBack: () -> Unit) {
     Box(
         modifier = Modifier
             .statusBarsPadding()
-            .offset(x = 20.dp, y = 50.dp)
+            .offset(20.dp)
             .clip(RoundedCornerShape(2.dp))
             .border(1.dp, Color.Gray, RoundedCornerShape(2.dp))
             .clickable { onBack() }

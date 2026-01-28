@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.ui.chat.session.input.panels
 
 import android.os.Build
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,54 +46,98 @@ import coil3.request.ImageRequest
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.asAssetPath
+import top.chengdongqing.wechat.data.emoji.Emoji
+import top.chengdongqing.wechat.data.emoji.Emojis
+import top.chengdongqing.wechat.data.emoji.Sticker
+import top.chengdongqing.wechat.data.emoji.Stickers
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.data.sticker.Emoji
-import top.chengdongqing.wechat.data.sticker.Emojis
-import top.chengdongqing.wechat.data.sticker.Stickers
 import top.chengdongqing.wechat.ui.components.WeDivider
-import top.chengdongqing.wechat.ui.theme.Black
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 import top.chengdongqing.wechat.ui.utils.repeatingClickable
 
+/**
+ * 表情面板
+ */
 @Composable
 fun EmojiPanel(
     emojiOnly: Boolean = false,
+    recentEmojis: List<Emoji> = emptyList(),
+    onEmojiSelect: (Emoji) -> Unit,
+    onStickerSelect: ((MessageContent.Sticker) -> Unit)? = null,
+    onBackspace: () -> Unit
+) {
+    if (emojiOnly) {
+        EmojiGrid(
+            recentEmojis = recentEmojis,
+            onSelect = onEmojiSelect,
+            onBackspace = onBackspace
+        )
+    } else {
+        FullEmojiPanel(
+            recentEmojis = recentEmojis,
+            onEmojiSelect = onEmojiSelect,
+            onStickerSelect = onStickerSelect,
+            onBackspace = onBackspace
+        )
+    }
+}
+
+@Composable
+private fun FullEmojiPanel(
+    recentEmojis: List<Emoji>,
     onEmojiSelect: (Emoji) -> Unit,
     onStickerSelect: ((MessageContent.Sticker) -> Unit)?,
     onBackspace: () -> Unit
 ) {
-    val pagerState = rememberPagerState { 2 }
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { 2 }
+    )
     val scope = rememberCoroutineScope()
 
-    if (emojiOnly) {
-        EmojiGrid(onSelect = onEmojiSelect, onBackspace = onBackspace)
-    } else {
-        Column {
-            CategoriesTab(pagerState.currentPage) {
+    Column {
+        CategoriesTab(
+            currentTab = pagerState.currentPage,
+            onTabChange = { index ->
                 scope.launch {
-                    pagerState.scrollToPage(it)
+                    pagerState.animateScrollToPage(index)
                 }
             }
-            WeDivider()
-            HorizontalPager(pagerState) { page ->
-                if (page == 0) {
-                    EmojiGrid(onSelect = onEmojiSelect, onBackspace = onBackspace)
-                } else {
-                    StickersGrid {
-                        onStickerSelect?.invoke(it)
-                    }
-                }
+        )
+
+        WeDivider()
+
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            when (page) {
+                0 -> EmojiGrid(
+                    recentEmojis = recentEmojis,
+                    onSelect = onEmojiSelect,
+                    onBackspace = onBackspace
+                )
+
+                1 -> StickersGrid(
+                    onSelect = onStickerSelect ?: {}
+                )
             }
         }
     }
 }
 
+/**
+ * 选项卡导航栏
+ */
 @Composable
-private fun CategoriesTab(currentTab: Int, onTabChange: (index: Int) -> Unit) {
+private fun CategoriesTab(
+    currentTab: Int,
+    onTabChange: (index: Int) -> Unit
+) {
     val tabs = remember {
         listOf(
-            R.drawable.ic_emoji_outlined,
-            R.drawable.ic_like_outlined
+            TabItem(0, R.drawable.ic_emoji_outlined, "表情"),
+            TabItem(1, R.drawable.ic_like_outlined, "贴纸")
         )
     }
 
@@ -101,33 +146,66 @@ private fun CategoriesTab(currentTab: Int, onTabChange: (index: Int) -> Unit) {
             .zIndex(1f)
             .fillMaxWidth()
             .background(Color(0xFFF1F1F1))
-            .padding(16.dp, 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        tabs.forEachIndexed { index, icon ->
-            Box(
-                Modifier
-                    .size(46.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(if (currentTab == index) Color.White else Color.Transparent)
-                    .clickable {
-                        onTabChange(index)
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(30.dp)
-                )
-            }
+        tabs.forEach { tab ->
+            TabButton(
+                icon = tab.icon,
+                contentDescription = tab.label,
+                isSelected = currentTab == tab.index,
+                onClick = { onTabChange(tab.index) }
+            )
         }
     }
 }
 
+/**
+ * 选项卡数据类
+ */
+private data class TabItem(
+    val index: Int,
+    @get:DrawableRes val icon: Int,
+    val label: String
+)
+
+/**
+ * 选项卡按钮
+ */
+@Composable
+private fun TabButton(
+    @DrawableRes icon: Int,
+    contentDescription: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(46.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isSelected) Color.White else Color.Transparent)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = contentDescription,
+            modifier = Modifier.size(30.dp),
+            tint = Color.Black
+        )
+    }
+}
+
+/**
+ * 表情网格
+ *
+ * @param recentEmojis 最近使用的表情列表
+ * @param onSelect 表情选择回调
+ * @param onBackspace 退格键回调
+ */
 @Composable
 private fun EmojiGrid(
-    recentEmojis: List<Emoji> = Emojis.take(8),
+    recentEmojis: List<Emoji> = emptyList(),
     onSelect: (Emoji) -> Unit,
     onBackspace: () -> Unit
 ) {
@@ -140,32 +218,48 @@ private fun EmojiGrid(
             modifier = Modifier
                 .fillMaxSize()
                 .overscroll(overscrollEffect),
-            contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 80.dp),
+            contentPadding = PaddingValues(
+                start = 8.dp,
+                end = 8.dp,
+                top = 8.dp,
+                bottom = 80.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             overscrollEffect = overscrollEffect
         ) {
+            // 最近使用部分
             if (recentEmojis.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     EmojiSectionHeader("最近使用")
                 }
-                items(recentEmojis, key = { "recent_${it.description}" }) { emoji ->
-                    EmojiItem(emoji, onSelect)
+                items(
+                    items = recentEmojis,
+                    key = { "recent_${it.description}" }
+                ) { emoji ->
+                    EmojiItem(emoji = emoji, onSelect = onSelect)
                 }
             }
 
+            // 所有表情部分
             item(span = { GridItemSpan(maxLineSpan) }) {
                 EmojiSectionHeader("所有表情")
             }
-            items(items = Emojis, key = { it.description }) { emoji ->
-                EmojiItem(emoji, onSelect)
+            items(
+                items = Emojis.all,
+                key = { it.description }
+            ) { emoji ->
+                EmojiItem(emoji = emoji, onSelect = onSelect)
             }
         }
 
-        // 退格键悬浮在右下角
-        BackspaceButton(onBackspace)
+        // 退格键悬浮按钮
+        BackspaceButton(onBackspace = onBackspace)
     }
 }
 
+/**
+ * 表情分组标题
+ */
 @Composable
 private fun EmojiSectionHeader(title: String) {
     Text(
@@ -174,14 +268,24 @@ private fun EmojiSectionHeader(title: String) {
         color = Color.Gray,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 8.dp)
+            .padding(start = 8.dp, top = 8.dp, bottom = 4.dp)
     )
 }
 
+/**
+ * 单个表情项
+ */
 @Composable
-private fun EmojiItem(emoji: Emoji, onSelect: (Emoji) -> Unit) {
+private fun EmojiItem(
+    emoji: Emoji,
+    onSelect: (Emoji) -> Unit
+) {
+    val model = remember(emoji.localPath) {
+        emoji.localPath.asAssetPath
+    }
+
     AsyncImage(
-        model = emoji.localPath.asAssetPath,
+        model = model,
         contentDescription = emoji.description,
         modifier = Modifier
             .size(38.dp)
@@ -192,10 +296,13 @@ private fun EmojiItem(emoji: Emoji, onSelect: (Emoji) -> Unit) {
     )
 }
 
+/**
+ * 退格按钮（悬浮在右下角）
+ */
 @Composable
 private fun BackspaceButton(onBackspace: () -> Unit) {
     Box(
-        Modifier
+        modifier = Modifier
             .offset(x = (-12).dp, y = (-22).dp)
             .clip(RoundedCornerShape(8.dp))
             .repeatingClickable { onBackspace() }
@@ -206,16 +313,18 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
             imageVector = Icons.AutoMirrored.Filled.Backspace,
             contentDescription = "退格",
             modifier = Modifier.size(22.dp),
-            tint = Black
+            tint = Color.Black
         )
     }
 }
 
+/**
+ * 贴纸网格
+ */
 @Composable
 private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
     val scope = rememberCoroutineScope()
-    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
-    val context = LocalContext.current
+    val overscrollEffect = remember(scope) { BounceOverscrollEffect(scope) }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
@@ -227,39 +336,54 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         overscrollEffect = overscrollEffect
     ) {
-        items(items = Stickers, key = { it.stickerId }) { sticker ->
-            Box(
-                Modifier
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(4.dp))
-                    .clickable {
-                        onSelect(
-                            MessageContent.Sticker(
-                                sticker.stickerId,
-                                sticker.localPath
-                            )
-                        )
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                val imageRequest = remember(sticker.localPath) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        ImageRequest.Builder(context)
-                            .data(sticker.localPath.asAssetPath)
-                            .decoderFactory(StaticImageDecoder.Factory())
-                            .build()
-                    } else {
-                        sticker.localPath.asAssetPath
-                    }
-                }
-
-                AsyncImage(
-                    model = imageRequest,
-                    contentDescription = null,
-                    modifier = Modifier.padding(4.dp),
-                    contentScale = ContentScale.Inside
-                )
-            }
+        items(
+            items = Stickers.all,
+            key = { it.stickerId }
+        ) { sticker ->
+            StickerItem(
+                sticker = sticker,
+                onSelect = onSelect
+            )
         }
+    }
+}
+
+/**
+ * 单个贴纸项
+ */
+@Composable
+private fun StickerItem(
+    sticker: Sticker,
+    onSelect: (MessageContent.Sticker) -> Unit
+) {
+    val context = LocalContext.current
+
+    val imageRequest = remember(sticker.localPath) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ImageRequest.Builder(context)
+                .data(sticker.localPath.asAssetPath)
+                .decoderFactory(StaticImageDecoder.Factory())
+                .build()
+        } else {
+            sticker.localPath.asAssetPath
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(4.dp))
+            .clickable {
+                val stickerContent = MessageContent.Sticker(sticker.stickerId, sticker.localPath)
+                onSelect(stickerContent)
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        AsyncImage(
+            model = imageRequest,
+            contentDescription = sticker.stickerId,
+            modifier = Modifier.padding(4.dp),
+            contentScale = ContentScale.Inside
+        )
     }
 }

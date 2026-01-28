@@ -21,55 +21,67 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import top.chengdongqing.wechat.data.emoji.Emojis
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.utils.EmojiManager
-import top.chengdongqing.wechat.ui.utils.EmojiMap
 import top.chengdongqing.wechat.ui.utils.parseRichText
+import top.chengdongqing.wechat.ui.utils.toBitmap
 
 @Composable
 fun TextContent(content: MessageContent.Text) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     val density = LocalDensity.current
+    val uriHandler = LocalUriHandler.current
 
-    // 预计算表情大小
-    val emojiSizePx = remember(density) { with(density) { 22.dp.roundToPx() } }
+    val emojiSize = 22.sp
+    val emojiSizePx = with(density) { emojiSize.toPx().toInt() }
+    val emojiSizeDp = with(density) { emojiSize.toDp() }
 
     // 解析富文本
     val annotatedString = remember(content.text) {
         content.text.parseRichText(
-            onUrlClick = { url ->
-                // 使用系统浏览器打开网址
-                uriHandler.openUri(url)
-            },
+            onUrlClick = { url -> uriHandler.openUri(url) },
             onPhoneClick = { phone ->
-                // 跳转到系统拨号盘
                 val intent = Intent(Intent.ACTION_DIAL, "tel:$phone".toUri())
                 context.startActivity(intent)
             }
         )
     }
 
-    // 表情占位替换为图片
-    val inlineContent = remember(annotatedString) {
+    // 提取所有表情描述
+    val emojiDescriptions = remember(annotatedString) {
         annotatedString.getStringAnnotations(
             "androidx.compose.foundation.text.inlineContent",
             0,
             annotatedString.length
-        )
-            .map { it.item to EmojiMap[it.item] }
-            .associate { (name, emoji) ->
-                name to InlineTextContent(
-                    Placeholder(22.sp, 22.sp, PlaceholderVerticalAlign.TextCenter)
-                ) {
-                    val bitmap = EmojiManager.getEmojiBitmap(context, emoji!!, emojiSizePx)
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = name,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
+        ).map { it.item }
+    }
+
+    // 预加载所有表情 Bitmap
+    val emojiBitmaps = remember(emojiDescriptions, emojiSizePx) {
+        emojiDescriptions.mapNotNull { description ->
+            Emojis.findByDescription(description)?.let { emoji ->
+                description to emoji.toBitmap(context, emojiSizePx)
             }
+        }.toMap()
+    }
+
+    // 创建 InlineContent
+    val inlineContent = remember(emojiBitmaps, emojiSize) {
+        emojiBitmaps.mapValues { (description, bitmap) ->
+            InlineTextContent(
+                Placeholder(
+                    width = emojiSize,
+                    height = emojiSize,
+                    placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter
+                )
+            ) {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = description,
+                    modifier = Modifier.size(emojiSizeDp)
+                )
+            }
+        }
     }
 
     SelectionContainer {

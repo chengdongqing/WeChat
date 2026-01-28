@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.sticker
+package top.chengdongqing.wechat.data.emoji
 
 data class Sticker(
     val stickerId: String,
@@ -6,8 +6,8 @@ data class Sticker(
     val sortOrder: Int
 )
 
-val Stickers by lazy {
-    listOf(
+object Stickers {
+    private val rawPaths = listOf(
         "stickers/sticker_1.gif",
         "stickers/sticker_2.gif",
         "stickers/sticker_3.jpeg",
@@ -42,11 +42,17 @@ val Stickers by lazy {
         "stickers/sticker_32.gif",
         "stickers/sticker_33.gif",
         "stickers/sticker_34.gif"
-    ).mapIndexed { index, path ->
-        Sticker(
-            stickerId = path.substringAfter("/").substringBefore("."),
-            localPath = path,
-            sortOrder = index
-        )
-    }.sortedByDescending { it.sortOrder }
+    )
+
+    val all: List<Sticker> = buildStickerList()
+
+    private fun buildStickerList() = rawPaths
+        .mapIndexed { index, path ->
+            Sticker(
+                stickerId = path.substringAfter("/").substringBefore("."),
+                localPath = path,
+                sortOrder = index
+            )
+        }
+        .sortedByDescending { it.sortOrder }
 }

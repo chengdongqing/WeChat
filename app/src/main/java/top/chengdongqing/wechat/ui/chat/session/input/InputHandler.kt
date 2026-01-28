@@ -4,7 +4,6 @@ import androidx.compose.runtime.State
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.ui.utils.EMOJI_BACKSPACE_PATTERN_REGEX
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 class InputHandler(
@@ -76,3 +75,5 @@ class InputHandler(
         }
     }
 }
+
+val EMOJI_BACKSPACE_PATTERN_REGEX = Regex("\\[[^\\[\\]]+]$") // 以 [ 开头，中间包含非括号字符，以 ] 结尾，且必须紧贴末尾($)

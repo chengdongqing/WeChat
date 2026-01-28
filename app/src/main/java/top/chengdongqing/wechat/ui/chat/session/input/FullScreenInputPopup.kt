@@ -95,7 +95,7 @@ fun FullScreenInputPopup(
             // 面板容器
             InputPanelHolder(
                 inputMode,
-                isPopup = true,
+                isInPopup = true,
                 onEmojiSelect = { inputHandler.insertEmoji(it.description) },
                 onBackspace = { inputHandler.handleEmojiBackspace() }
             )
