@@ -40,6 +40,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.utils.createMediaUri
 import top.chengdongqing.wechat.core.utils.prepareMediaResource
 import top.chengdongqing.wechat.core.utils.randomUUID
@@ -73,7 +74,7 @@ import kotlin.time.DurationUnit
 fun InputBar(
     listState: LazyListState,
     isSending: Boolean,
-    onSend: (MessageContent) -> Unit
+    onSend: (content: MessageContent, onSent: (() -> Unit)?) -> Unit
 ) {
     val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputModeController(focusRequester)
@@ -101,6 +102,10 @@ fun InputBar(
     val currentText = rememberUpdatedState(inputText)
     val inputHandler = remember {
         InputHandler(currentText, focusRequester, scope, onTextChange)
+    }
+
+    val onSend = { content: MessageContent ->
+        onSend(content, null)
     }
 
     val dialog = rememberDialogState()
@@ -302,7 +307,9 @@ fun InputBar(
                 onLineCountChange = { lineCount = it },
                 onVoiceSend = { uri, duration ->
                     val content = MessageContent.Voice(uri, duration)
-                    onSend(content)
+                    onSend(content) {
+                        SoundTipPlayer.play(R.raw.after_upload_voice) // 播放提示音
+                    }
                 }
             )
             // 表情按钮

@@ -79,12 +79,13 @@ fun ChatSessionScreen(
                 }
             },
             bottomBar = {
-                InputBar(listState, uiState.isSending) {
-                    viewModel.sendMessage(it) {
+                InputBar(listState, uiState.isSending) { content, onSent ->
+                    viewModel.sendMessage(content) {
                         scope.launch {
                             listState.animateScrollToItem(0)
                             delay(100)
                             viewModel.finishScrollToLatest()
+                            onSent?.invoke()
                         }
                     }
                 }

@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.media.VoicePlayer
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.ChatMessage
@@ -136,6 +138,8 @@ class ChatSessionViewModel(
         markAsPlayed(messageId)
 
         voicePlayer.play(uri) {
+            // 播放提示音
+            SoundTipPlayer.play(R.raw.play_completed)
             // 播放完成后尝试自动播放下一条
             playNextUnreadVoice(messageId)
         }

@@ -10,6 +10,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 class QrCodeScannerActivity : ComponentActivity() {
@@ -43,6 +45,7 @@ fun rememberScanCodeLauncher(onChange: (Array<String>) -> Unit): () -> Unit {
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
+            SoundTipPlayer.play(R.raw.qrcode_completed) // 播放提示音
             result.data?.getStringArrayExtra("codes")?.let(onChange)
         }
     }
