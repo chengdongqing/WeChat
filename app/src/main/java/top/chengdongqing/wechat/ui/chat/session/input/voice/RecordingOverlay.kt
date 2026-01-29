@@ -44,7 +44,7 @@ import kotlin.math.abs
  * 录音遮罩层内容
  */
 @Composable
-internal fun RecordingOverlay(
+fun RecordingOverlay(
     recordState: RecordState,
     audioAmplitude: Float
 ) {

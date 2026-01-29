@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.chat.session.message.types
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,7 +25,6 @@ import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.location.preview.previewLocation
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
-import top.chengdongqing.wechat.ui.utils.weClickable
 
 @Composable
 fun LocationContent(content: MessageContent.Location) {
@@ -34,7 +34,7 @@ fun LocationContent(content: MessageContent.Location) {
     Column(
         modifier = Modifier
             .width(targetWidth)
-            .weClickable {
+            .clickable {
                 val location = LocationPreviewItem(
                     latLng = LatLng(
                         content.latitude,

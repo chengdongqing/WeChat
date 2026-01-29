@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -271,8 +270,7 @@ private fun RecordButtonText(recordState: RecordState) {
         } else {
             Color.Black
         },
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Medium
+        fontSize = 16.sp
     )
 }
 
@@ -307,7 +305,7 @@ private fun RecordingDialog(
 /**
  * 录音状态枚举
  */
-internal enum class RecordState {
+enum class RecordState {
     IDLE,       // 空闲
     RECORDING,  // 正常录音
     CANCEL,     // 准备取消

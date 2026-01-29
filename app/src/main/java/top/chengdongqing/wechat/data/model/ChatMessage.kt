@@ -31,6 +31,12 @@ sealed class MessageContent(
         val isPlayed: Boolean = false
     ) : MessageContent(showUnreadDot = !isPlayed)
 
+    data class Sticker(
+        val stickerId: String,
+        val localPath: String,
+        val description: String? = null
+    ) : MessageContent(showBubbleArrow = false)
+
     abstract class Media(
         open val uri: Uri,
         open val filename: String,
@@ -60,6 +66,12 @@ sealed class MessageContent(
         val duration: Long
     ) : Media(uri, filename, mimeType, width, height)
 
+    data class Call(
+        val type: CallType,
+        val status: CallStatus,
+        val duration: Long? = null
+    ) : MessageContent(showUnreadDot = status == CallStatus.MISSED)
+
     data class Location(
         val latitude: Double,
         val longitude: Double,
@@ -72,7 +84,6 @@ sealed class MessageContent(
         val userId: String,
         val name: String,
         val avatar: String,
-        val weChatId: String
     ) : MessageContent(isSameBackground = true)
 
     data class File(
@@ -81,18 +92,6 @@ sealed class MessageContent(
         val fileType: String,
         val fileUrl: String
     ) : MessageContent(isSameBackground = true)
-
-    data class Call(
-        val type: CallType,
-        val status: CallStatus,
-        val duration: Long? = null
-    ) : MessageContent()
-
-    data class Sticker(
-        val stickerId: String,
-        val localPath: String,
-        val description: String? = null
-    ) : MessageContent(showBubbleArrow = false)
 
     data class Favorite(
         val title: String,

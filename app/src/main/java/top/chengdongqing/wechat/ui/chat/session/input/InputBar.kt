@@ -37,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.prepareMediaResource
+import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.CallStatus
 import top.chengdongqing.wechat.data.model.CallType
 import top.chengdongqing.wechat.data.model.MessageContent
@@ -279,10 +280,27 @@ fun InputBar(
                     }
                 }
 
+                MoreAction.FILE -> {
+                    val content = MessageContent.File(
+                        fileName = "extra_data.b",
+                        fileSize = (6.9 * 1024 * 1024).toLong(),
+                        fileType = "file",
+                        fileUrl = ""
+                    )
+                    onSend(content)
+                }
+
+                MoreAction.CARD -> {
+                    val content = MessageContent.UserCard(
+                        userId = randomUUID(),
+                        name = "文件传输助手",
+                        avatar = ""
+                    )
+                    onSend(content)
+                }
+
                 MoreAction.FAVORITE -> {}
                 MoreAction.VOICE -> {}
-                MoreAction.CARD -> {}
-                MoreAction.FILE -> {}
                 else -> {}
             }
         }

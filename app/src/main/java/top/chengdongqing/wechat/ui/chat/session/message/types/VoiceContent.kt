@@ -30,21 +30,15 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.LocalMediaContext
-import top.chengdongqing.wechat.ui.chat.session.message.MessageItem
 import top.chengdongqing.wechat.ui.theme.Black
 import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
 import top.chengdongqing.wechat.ui.utils.weClickable
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 
 @Composable
 fun VoiceContent(message: ChatMessage) {
@@ -154,20 +148,4 @@ private fun VoiceDurationText(text: String) {
             color = Black
         )
     )
-}
-
-@Preview
-@Composable
-private fun Prev() {
-    val content = MessageContent.Voice(
-        uri = "".toUri(),
-        duration = 60.seconds.toLong(DurationUnit.SECONDS)
-    )
-    val message = ChatMessage(
-        id = randomUUID(),
-        content = content,
-        isFromMe = false,
-        timestamp = System.currentTimeMillis()
-    )
-    MessageItem(message)
 }
