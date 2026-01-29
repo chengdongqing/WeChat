@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
@@ -20,11 +21,9 @@ fun prepareMediaResource(context: Context, uri: Uri): MediaResource? {
         val resolver = context.contentResolver
         val mimeType = resolver.getType(uri) ?: "image/jpeg"
 
-        // 尝试从数据库一次性获取元数据（文件名、宽高、时长）
         val meta = queryMediaMetadata(context, uri)
         val fileName = meta.name ?: "FILE_${System.currentTimeMillis()}"
 
-        // 拷贝到应用私有目录，确保传输稳定性
         val mediaDir = File(context.filesDir, "media").apply { mkdirs() }
         val targetFile = File(mediaDir, fileName)
         resolver.openInputStream(uri)?.use { input ->
@@ -33,15 +32,47 @@ fun prepareMediaResource(context: Context, uri: Uri): MediaResource? {
 
         var width = meta.width
         var height = meta.height
+        var duration = meta.duration
 
-        // 兜底策略：如果数据库信息不全，则解析物理文件
+        // 兜底策略
         val isImage = mimeType.startsWith("image/")
+        val isVideo = mimeType.startsWith("video/")
+
+        // 图片兜底解析
         if (isImage && width <= 0) {
             try {
                 val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeFile(targetFile.absolutePath, options)
                 width = options.outWidth
                 height = options.outHeight
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // 视频兜底解析
+        if (isVideo && (width <= 0 || duration <= 0)) {
+            try {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(targetFile.absolutePath)
+
+                if (width <= 0) {
+                    width =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                            ?.toIntOrNull() ?: 0
+                }
+                if (height <= 0) {
+                    height =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                            ?.toIntOrNull() ?: 0
+                }
+                if (duration <= 0) {
+                    duration =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                            ?.toLongOrNull() ?: 0
+                }
+
+                retriever.release()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -54,7 +85,7 @@ fun prepareMediaResource(context: Context, uri: Uri): MediaResource? {
             size = targetFile.length(),
             width = width,
             height = height,
-            duration = meta.duration
+            duration = duration
         )
     } catch (e: Exception) {
         e.printStackTrace()
@@ -164,4 +195,21 @@ fun Context.saveSnapshotToCache(bitmap: Bitmap): Uri? {
             bitmap.recycle()
         }
     }
+}
+
+/**
+ * 创建媒体文件记录
+ */
+fun Context.createMediaUri(isExtensionsVideo: Boolean): Uri {
+    val directory = if (isExtensionsVideo) "videos" else "images"
+    val extension = if (isExtensionsVideo) ".mp4" else ".jpg"
+    val prefix = if (isExtensionsVideo) "VID" else "IMG"
+
+    val file = File(
+        externalCacheDir,
+        "$directory/${prefix}_${System.currentTimeMillis()}$extension"
+    ).apply {
+        parentFile?.mkdirs()
+    }
+    return FileProvider.getUriForFile(this, "${packageName}.provider", file)
 }

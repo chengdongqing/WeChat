@@ -43,8 +43,7 @@ sealed class MessageContent(
         open val mimeType: String,
         open val width: Int,
         open val height: Int,
-        showBubble: Boolean = false
-    ) : MessageContent(showBubble) {
+    ) : MessageContent(showBubbleArrow = false) {
         val ratio: Float
             get() = width.toFloat() / height.toFloat()
     }

@@ -1,4 +1,4 @@
-package top.chengdongqing.weui.core.ui.components.videoplayer
+package top.chengdongqing.wechat.ui.components.videoplayer
 
 import android.content.Context
 import android.media.AudioManager

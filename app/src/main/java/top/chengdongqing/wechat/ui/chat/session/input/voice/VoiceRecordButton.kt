@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.chat.session.input.voice
 
+import android.Manifest
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -27,8 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.ui.chat.session.LocalMediaContext
 
 /**
  * 语音录制按钮
@@ -38,6 +43,7 @@ import kotlinx.coroutines.launch
  * @param minDuration 最小录音时长（毫秒）
  * @param maxDuration 最大录音时长（毫秒）
  */
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun VoiceRecordButton(
     onSend: (uri: Uri, duration: Long) -> Unit,
@@ -45,9 +51,10 @@ fun VoiceRecordButton(
     minDuration: Long = 1000,
     maxDuration: Long = 60000
 ) {
+    val mediaContext = LocalMediaContext.current
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
 
     // ========== 状态管理 ==========
     var isRecording by remember { mutableStateOf(false) }
@@ -82,12 +89,23 @@ fun VoiceRecordButton(
         }
     }
 
+    // 录音权限管理
+    val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
                 detectDragGesturesAfterLongPress(
                     onDragStart = {
+                        // 判断录音权限
+                        if (!audioPermissionState.status.isGranted) {
+                            audioPermissionState.launchPermissionRequest()
+                            return@detectDragGesturesAfterLongPress
+                        }
+                        // 停止当前播放的语音
+                        mediaContext?.onVoiceStop?.invoke()
+
                         startRecording(audioRecorder) { success ->
                             if (success) {
                                 isRecording = true

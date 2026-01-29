@@ -47,8 +47,8 @@ import top.chengdongqing.wechat.ui.components.toast.ToastIcon
 import top.chengdongqing.wechat.ui.components.toast.rememberToastState
 import top.chengdongqing.wechat.ui.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.ui.components.videoplayer.WeVideoPlayer
+import top.chengdongqing.wechat.ui.components.videoplayer.rememberVideoPlayerState
 import top.chengdongqing.wechat.ui.utils.SetupFullscreen
-import top.chengdongqing.weui.core.ui.components.videoplayer.rememberVideoPlayerState
 import java.io.IOException
 
 @Composable

@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.ui.chat.session.input.panels
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +38,7 @@ import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
-fun MoreActionPanel(onAction: (MoreAction) -> Unit) {
+fun MoreActionPanel(onAction: (actionId: MoreAction, isLongClick: Boolean) -> Unit) {
     val scope = rememberCoroutineScope()
     val pages = remember { MoreActionItems.chunked(ChunkCount) }
     val pagerState = rememberPagerState { pages.size }
@@ -60,7 +61,7 @@ fun MoreActionPanel(onAction: (MoreAction) -> Unit) {
         ) { pageIndex ->
             MorePanelGrid(
                 items = pages[pageIndex],
-                onItemClick = onAction
+                onAction = onAction
             )
         }
         if (pages.size > 1) {
@@ -77,7 +78,7 @@ fun MoreActionPanel(onAction: (MoreAction) -> Unit) {
 @Composable
 private fun MorePanelGrid(
     items: List<MoreItemData>,
-    onItemClick: (MoreAction) -> Unit
+    onAction: (actionId: MoreAction, isLongClick: Boolean) -> Unit
 ) {
     FlowRow(
         modifier = Modifier
@@ -88,9 +89,11 @@ private fun MorePanelGrid(
         verticalArrangement = Arrangement.spacedBy(36.dp)
     ) {
         items.forEach { item ->
-            MorePanelItem(item) {
-                onItemClick(item.id)
-            }
+            MorePanelItem(
+                item = item,
+                onClick = { onAction(item.id, false) },
+                onLongClick = { onAction(item.id, true) }
+            )
         }
         if (items.size < ChunkCount) {
             repeat(ChunkCount - items.size) {
@@ -103,11 +106,15 @@ private fun MorePanelGrid(
 @Composable
 private fun MorePanelItem(
     item: MoreItemData,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(
-            onClick = onClick,
+            modifier = Modifier.combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
             shape = RoundedCornerShape(14.dp),
             color = Color.White
         ) {

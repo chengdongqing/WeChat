@@ -67,7 +67,7 @@ fun MediaContent(content: MessageContent.Media) {
         modifier = Modifier
             .heightIn(max = targetWidth)
             .widthIn(max = targetWidth)
-            .aspectRatio(content.ratio)
+            .then(if (content.ratio > 0) Modifier.aspectRatio(content.ratio) else Modifier)
             .clickable {
                 context.previewMedias(mediaItems, currentIndex)
             },

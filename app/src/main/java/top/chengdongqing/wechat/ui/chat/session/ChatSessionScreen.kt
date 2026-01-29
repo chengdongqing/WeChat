@@ -13,6 +13,7 @@ import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -20,6 +21,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
@@ -57,31 +61,35 @@ fun ChatSessionScreen(
             allMedia = mediaList,
             getIndexOf = { content -> mediaList.indexOf(content) },
             playingMessageId = playingMessageId,
-            onVoiceToggle = { id, uri ->
-                viewModel.toggleVoicePlay(id, uri)
-            }
+            onVoiceToggle = { id, uri -> viewModel.toggleVoicePlay(id, uri) },
+            onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() }
         )
     }
 
-    Scaffold(
-        topBar = {
-            WeTopBar(title = "张三", onBack = onBack) {
-                ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多")
-            }
-        },
-        bottomBar = {
-            InputBar(listState, uiState.isSending) {
-                viewModel.sendMessage(it) {
-                    scope.launch {
-                        listState.animateScrollToItem(0)
-                        delay(100)
-                        viewModel.finishScrollToLatest()
+    // 回到后台或当前页面销毁，停止播放语音
+    VoicePlayingLifecycle {
+        if (playingMessageId != null) viewModel.stopVoice()
+    }
+
+    CompositionLocalProvider(LocalMediaContext provides mediaContext) {
+        Scaffold(
+            topBar = {
+                WeTopBar(title = "张三", onBack = onBack) {
+                    ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多")
+                }
+            },
+            bottomBar = {
+                InputBar(listState, uiState.isSending) {
+                    viewModel.sendMessage(it) {
+                        scope.launch {
+                            listState.animateScrollToItem(0)
+                            delay(100)
+                            viewModel.finishScrollToLatest()
+                        }
                     }
                 }
             }
-        }
-    ) { innerPadding ->
-        CompositionLocalProvider(LocalMediaContext provides mediaContext) {
+        ) { innerPadding ->
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -106,11 +114,31 @@ fun ChatSessionScreen(
     }
 }
 
+@Composable
+private fun VoicePlayingLifecycle(onVoiceStop: () -> Unit) {
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+
+    DisposableEffect(Unit) {
+        val lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE) {
+                onVoiceStop()
+            }
+        }
+        lifecycle.addObserver(lifecycleObserver)
+
+        onDispose {
+            onVoiceStop()
+            lifecycle.removeObserver(lifecycleObserver)
+        }
+    }
+}
+
 data class MediaContext(
     val allMedia: List<MessageContent.Media>,
     val getIndexOf: (MessageContent.Media) -> Int,
-    val playingMessageId: String? = null,
-    val onVoiceToggle: (messageId: String, uri: Uri) -> Unit = { _, _ -> }
+    val playingMessageId: String?,
+    val onVoiceToggle: (messageId: String, uri: Uri) -> Unit,
+    val onVoiceStop: () -> Unit
 )
 
 val LocalMediaContext = compositionLocalOf<MediaContext?> { null }

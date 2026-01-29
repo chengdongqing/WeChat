@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.ui.chat.session.input
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,9 +35,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.utils.createMediaUri
 import top.chengdongqing.wechat.core.utils.prepareMediaResource
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.CallStatus
@@ -146,34 +151,89 @@ fun InputBar(
 
     val context = LocalContext.current
     val launchCamera = rememberCameraLauncher { mediaUri, mediaType ->
-        // 切换回文本模式
-        controller.switchMode(showKeyboard = false)
+        scope.launch(Dispatchers.IO) {
+            val res = prepareMediaResource(context, mediaUri) ?: return@launch
 
-        val res = prepareMediaResource(context, mediaUri) ?: return@rememberCameraLauncher
-
-        val content = if (mediaType.isImage) {
-            MessageContent.Image(
-                uri = mediaUri,
-                mimeType = res.mimeType,
-                filename = res.filename,
-                width = res.width,
-                height = res.height
-            )
-        } else {
-            MessageContent.Video(
-                uri = mediaUri,
-                mimeType = res.mimeType,
-                filename = res.filename,
-                width = res.width,
-                height = res.height,
-                duration = res.duration
-            )
+            withContext(Dispatchers.Main) {
+                val content = if (mediaType.isImage) {
+                    MessageContent.Image(
+                        uri = mediaUri,
+                        mimeType = res.mimeType,
+                        filename = res.filename,
+                        width = res.width,
+                        height = res.height
+                    )
+                } else {
+                    MessageContent.Video(
+                        uri = mediaUri,
+                        mimeType = res.mimeType,
+                        filename = res.filename,
+                        width = res.width,
+                        height = res.height,
+                        duration = res.duration
+                    )
+                }
+                onSend(content)
+            }
         }
-
-        onSend(content)
     }
 
     val actionSheet = rememberActionSheetState()
+
+    var capturedUri by remember { mutableStateOf<Uri?>(null) }
+    val takeMediaOptions = remember {
+        listOf(
+            ActionSheetItem("拍摄照片"),
+            ActionSheetItem("拍摄视频")
+        )
+    }
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            capturedUri?.let { uri ->
+                scope.launch(Dispatchers.IO) {
+                    val res = prepareMediaResource(context, uri) ?: return@launch
+
+                    withContext(Dispatchers.Main) {
+                        val content = MessageContent.Image(
+                            uri = uri,
+                            mimeType = res.mimeType,
+                            filename = res.filename,
+                            width = res.width,
+                            height = res.height
+                        )
+                        onSend(content)
+                    }
+                }
+            }
+        }
+    }
+    val captureVideoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CaptureVideo()
+    ) { success ->
+        if (success) {
+            capturedUri?.let { uri ->
+                scope.launch(Dispatchers.IO) {
+                    val res = prepareMediaResource(context, uri) ?: return@launch
+
+                    withContext(Dispatchers.Main) {
+                        val content = MessageContent.Video(
+                            uri = uri,
+                            mimeType = res.mimeType,
+                            filename = res.filename,
+                            width = res.width,
+                            height = res.height,
+                            duration = res.duration
+                        )
+                        onSend(content)
+                    }
+                }
+            }
+        }
+    }
+
+
     val callOptions = remember {
         listOf(
             ActionSheetItem("视频通话", icon = {
@@ -257,10 +317,31 @@ fun InputBar(
             onEmojiSelect = { inputHandler.insertEmoji(it.description) },
             onStickerSelect = onSend,
             onBackspace = inputHandler::handleEmojiBackspace
-        ) { action ->
-            when (action) {
+        ) { actionId, isLongClick ->
+            when (actionId) {
                 MoreAction.ALBUM -> launchMediaPicker(VisualMediaType.IMAGE_AND_VIDEO, 9)
-                MoreAction.CAMERA -> launchCamera(VisualMediaType.IMAGE_AND_VIDEO)
+                MoreAction.CAMERA -> {
+                    if (isLongClick) {
+                        actionSheet.show(takeMediaOptions, "调用系统相机") { index ->
+                            when (index) {
+                                0 -> {
+                                    val uri = context.createMediaUri(false)
+                                    capturedUri = uri
+                                    takePictureLauncher.launch(uri)
+                                }
+
+                                1 -> {
+                                    val uri = context.createMediaUri(true)
+                                    capturedUri = uri
+                                    captureVideoLauncher.launch(uri)
+                                }
+                            }
+                        }
+                    } else {
+                        launchCamera(VisualMediaType.IMAGE_AND_VIDEO)
+                    }
+                }
+
                 MoreAction.VIDEO_CALL -> {
                     actionSheet.show(callOptions) { index ->
                         val content = MessageContent.Call(
