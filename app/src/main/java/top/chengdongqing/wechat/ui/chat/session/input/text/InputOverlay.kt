@@ -27,8 +27,9 @@ import top.chengdongqing.wechat.ui.chat.session.input.InputHandler
 import top.chengdongqing.wechat.ui.chat.session.input.InputMode
 import top.chengdongqing.wechat.ui.chat.session.input.InputPanelHolder
 import top.chengdongqing.wechat.ui.chat.session.input.rememberInputModeController
+import top.chengdongqing.wechat.ui.components.emojitextfield.EmojiTextField
+import top.chengdongqing.wechat.ui.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.ui.components.popup.WePopup
-import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 @Composable
 fun InputOverlay(
@@ -99,7 +100,6 @@ fun InputOverlay(
             // 面板容器
             InputPanelHolder(
                 inputMode,
-                isInPopup = true,
                 onEmojiSelect = { inputHandler.insertEmoji(it.description) },
                 onBackspace = { inputHandler.handleEmojiBackspace() }
             )

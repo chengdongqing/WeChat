@@ -14,10 +14,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -123,6 +131,34 @@ fun Modifier.repeatingClickable(
                 }
             )
         }
+}
+
+/**
+ * 支持虚线边框
+ */
+fun Modifier.dashedBorder(
+    width: Dp,
+    color: Color,
+    shape: Shape = RectangleShape,
+    dashWidth: Dp = 6.dp,
+    dashGap: Dp = 4.dp
+) = this.drawWithContent {
+    drawContent()
+
+    val strokeWidth = width.toPx()
+    val dashOn = dashWidth.toPx()
+    val dashOff = dashGap.toPx()
+
+    val outline = shape.createOutline(size, layoutDirection, this)
+
+    drawOutline(
+        outline = outline,
+        color = color,
+        style = Stroke(
+            width = strokeWidth,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dashOn, dashOff), 0f)
+        )
+    )
 }
 
 fun Boolean?.isTrue(): Boolean = this == true

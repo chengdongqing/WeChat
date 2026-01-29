@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.utils
+package top.chengdongqing.wechat.ui.components.emojitextfield
 
 import android.content.Context
 import android.view.inputmethod.InputMethodManager

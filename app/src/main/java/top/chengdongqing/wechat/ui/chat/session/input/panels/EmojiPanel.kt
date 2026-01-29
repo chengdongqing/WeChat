@@ -52,7 +52,9 @@ import top.chengdongqing.wechat.data.emoji.Sticker
 import top.chengdongqing.wechat.data.emoji.Stickers
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.theme.Black
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
+import top.chengdongqing.wechat.ui.utils.dashedBorder
 import top.chengdongqing.wechat.ui.utils.repeatingClickable
 
 /**
@@ -60,13 +62,12 @@ import top.chengdongqing.wechat.ui.utils.repeatingClickable
  */
 @Composable
 fun EmojiPanel(
-    emojiOnly: Boolean = false,
-    recentEmojis: List<Emoji> = emptyList(),
+    recentEmojis: List<Emoji>,
     onEmojiSelect: (Emoji) -> Unit,
     onStickerSelect: ((MessageContent.Sticker) -> Unit)? = null,
     onBackspace: () -> Unit
 ) {
-    if (emojiOnly) {
+    if (onStickerSelect == null) {
         EmojiGrid(
             recentEmojis = recentEmojis,
             onSelect = onEmojiSelect,
@@ -205,7 +206,7 @@ private fun TabButton(
  */
 @Composable
 private fun EmojiGrid(
-    recentEmojis: List<Emoji> = emptyList(),
+    recentEmojis: List<Emoji>,
     onSelect: (Emoji) -> Unit,
     onBackspace: () -> Unit
 ) {
@@ -307,7 +308,7 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
             .clip(RoundedCornerShape(8.dp))
             .repeatingClickable { onBackspace() }
             .background(Color.White)
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Backspace,
@@ -336,6 +337,9 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         overscrollEffect = overscrollEffect
     ) {
+        item(key = "add_sticker_button") {
+            AddStickerItem {}
+        }
         items(
             items = Stickers.all,
             key = { it.stickerId }
@@ -384,6 +388,33 @@ private fun StickerItem(
             contentDescription = sticker.stickerId,
             modifier = Modifier.padding(4.dp),
             contentScale = ContentScale.Inside
+        )
+    }
+}
+
+/**
+ * 新增贴纸按钮
+ */
+@Composable
+private fun AddStickerItem(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .padding(4.dp)
+            .dashedBorder(
+                width = 1.dp,
+                color = Black,
+                shape = RoundedCornerShape(10.dp)
+            )
+            .clip(RoundedCornerShape(10.dp))
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_plus_outlined),
+            contentDescription = "Add Sticker",
+            modifier = Modifier.size(30.dp),
+            tint = Black
         )
     }
 }

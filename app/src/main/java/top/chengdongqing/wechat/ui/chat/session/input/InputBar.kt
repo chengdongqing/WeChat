@@ -51,7 +51,6 @@ import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
 import top.chengdongqing.wechat.ui.chat.session.ScrollToDismissEffect
 import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreAction
-import top.chengdongqing.wechat.ui.chat.session.input.text.EmojiTextField
 import top.chengdongqing.wechat.ui.chat.session.input.text.InputOverlay
 import top.chengdongqing.wechat.ui.chat.session.input.voice.VoiceRecordButton
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
@@ -60,10 +59,11 @@ import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
 import top.chengdongqing.wechat.ui.components.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.ui.components.emojitextfield.EmojiTextField
+import top.chengdongqing.wechat.ui.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.ui.components.location.picker.rememberPickLocationLauncher
 import top.chengdongqing.wechat.ui.components.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 import top.chengdongqing.wechat.ui.utils.rememberToggleState
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -232,7 +232,6 @@ fun InputBar(
             }
         }
     }
-
 
     val callOptions = remember {
         listOf(

@@ -4,7 +4,7 @@ import androidx.compose.runtime.State
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
+import top.chengdongqing.wechat.ui.components.emojitextfield.NativeFocusRequester
 
 class InputHandler(
     private val text: State<String>,

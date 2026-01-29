@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.input.text
+package top.chengdongqing.wechat.ui.components.emojitextfield
 
 import android.content.Context
 import android.graphics.Canvas
@@ -33,7 +33,6 @@ import androidx.core.graphics.withTranslation
 import top.chengdongqing.wechat.data.emoji.Emojis
 import top.chengdongqing.wechat.ui.theme.GreenPrimary
 import top.chengdongqing.wechat.ui.utils.EmojiRenderer
-import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 /**
  * 配置常量

@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
+import top.chengdongqing.wechat.ui.components.emojitextfield.NativeFocusRequester
 
 /**
  * 输入模式枚举

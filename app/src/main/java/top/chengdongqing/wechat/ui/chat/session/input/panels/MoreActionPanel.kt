@@ -111,11 +111,12 @@ private fun MorePanelItem(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Surface(
-            modifier = Modifier.combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier
+                .clip(RoundedCornerShape(14.dp))
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick
+                ),
             color = Color.White
         ) {
             Box(
