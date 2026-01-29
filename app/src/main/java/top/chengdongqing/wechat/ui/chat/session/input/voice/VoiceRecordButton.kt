@@ -1,13 +1,10 @@
 package top.chengdongqing.wechat.ui.chat.session.input.voice
 
 import android.net.Uri
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,128 +13,304 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
+/**
+ * 语音录制按钮
+ *
+ * @param onSend 发送语音回调 (文件URI, 录音时长毫秒)
+ * @param onConvertToText 转文字回调
+ * @param minDuration 最小录音时长（毫秒）
+ * @param maxDuration 最大录音时长（毫秒）
+ */
 @Composable
 fun VoiceRecordButton(
-    onSend: (uri: Uri, duration: Long) -> Unit
+    onSend: (uri: Uri, duration: Long) -> Unit,
+    onConvertToText: (uri: Uri, duration: Long) -> Unit,
+    minDuration: Long = 1000,
+    maxDuration: Long = 60000
 ) {
     val context = LocalContext.current
-    val recorderManager = remember { VoiceRecordManager(context) }
+    val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
 
-    var status by remember { mutableStateOf(RecordStatus.IDLE) }
-    var amplitude by remember { mutableFloatStateOf(0f) } // 振幅 (0.0 ~ 1.0)
-    var startTime by remember { mutableLongStateOf(0L) }
-    var currentPath by remember { mutableStateOf(Uri.EMPTY) }
+    // ========== 状态管理 ==========
+    var isRecording by remember { mutableStateOf(false) }
+    var recordState by remember { mutableStateOf(RecordState.IDLE) }
+    var recordDuration by remember { mutableLongStateOf(0L) }
+    var audioAmplitude by remember { mutableFloatStateOf(0f) }
+    var dragOffset by remember { mutableStateOf(Offset.Zero) }
 
-    // 振幅轮询协程
-    LaunchedEffect(status) {
-        if (status != RecordStatus.IDLE) {
-            while (isActive) {
-                amplitude = recorderManager.getAmplitude()
-                delay(100) // 100ms 更新一次声纹动画
-            }
-        } else {
-            amplitude = 0f
-        }
-    }
+    val audioRecorder = remember { AudioRecorderManager(context) }
 
-    Box(contentAlignment = Alignment.BottomCenter) {
-        // 1. 顶部覆盖层：根据状态显示声纹、取消图标或转文字图标
-        RecordOverlay(status, amplitude)
+    // ========== 录音计时器 ==========
+    // 每50ms更新一次时长和音量
+    LaunchedEffect(isRecording) {
+        if (isRecording) {
+            recordDuration = 0L
+            while (isRecording) {
+                delay(50)
+                recordDuration += 50
+                audioAmplitude = audioRecorder.getAmplitude()
 
-        // 2. 实际的按钮
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = {
-                            try {
-                                startTime = System.currentTimeMillis()
-                                val path = recorderManager.startRecording()
-                                if (path != null) {
-                                    currentPath = path.toUri()
-                                    status = RecordStatus.RECORDING
-                                }
-                            } catch (e: Exception) {
-                                // onToast("无法开启录音机")
-                            }
-
-                            // 等待手指释放
-                            val success = tryAwaitRelease()
-                            val duration = System.currentTimeMillis() - startTime
-
-                            if (success) {
-                                when (status) {
-                                    RecordStatus.RECORDING -> {
-                                        if (duration < 800) { // 微信通常是少于1秒不发
-                                            // onToast("录音时间太短")
-                                            recorderManager.cancelRecording()
-                                        } else {
-                                            recorderManager.stopRecording()
-                                            onSend(currentPath, duration)
-                                        }
-                                    }
-
-                                    RecordStatus.CANCELING -> {
-                                        recorderManager.cancelRecording()
-                                    }
-
-                                    RecordStatus.TRANSING -> {
-                                        // 这里处理转文字逻辑
-                                        recorderManager.stopRecording()
-                                        // onToast("转文字功能开发中")
-                                    }
-
-                                    else -> recorderManager.cancelRecording()
-                                }
-                            } else {
-                                recorderManager.cancelRecording()
-                            }
-                            status = RecordStatus.IDLE
-                        }
+                // 达到最大时长自动停止
+                if (recordDuration >= maxDuration) {
+                    handleRecordingComplete(
+                        audioRecorder = audioRecorder,
+                        recordDuration = recordDuration,
+                        onSend = onSend
                     )
+                    isRecording = false
+                    recordState = RecordState.IDLE
                 }
-                // 这里复用之前的 detectDragGestures 逻辑来更新 status 变量...
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDrag = { change, _ ->
-                            val yOffset = change.position.y
-                            // 向上滑动超过 150 像素进入取消/转文字判定
-                            if (yOffset < -150) {
-                                status = if (change.position.x < size.width / 2)
-                                    RecordStatus.CANCELING else RecordStatus.TRANSING
-                            } else {
-                                status = RecordStatus.RECORDING
-                            }
-                        },
-                        onDragEnd = { /* 已经在 onPress 处理了 */ }
-                    )
-                },
-            color = if (status == RecordStatus.IDLE) Color(0xFFF7F7F7) else Color(0xFFE5E5E5),
-            shape = RoundedCornerShape(8.dp),
-            shadowElevation = 1.dp
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = if (status == RecordStatus.IDLE) "按住 说话" else "松开 结束",
-                    style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                )
             }
         }
     }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = {
+                        startRecording(audioRecorder) { success ->
+                            if (success) {
+                                isRecording = true
+                                recordState = RecordState.RECORDING
+                                recordDuration = 0L
+                                audioAmplitude = 0f
+                                dragOffset = Offset.Zero
+                            }
+                        }
+                    },
+                    onDrag = { change, dragAmount ->
+                        if (isRecording) {
+                            change.consume()
+                            dragOffset += dragAmount
+
+                            // 根据手指位置更新状态
+                            recordState = calculateRecordState(
+                                dragOffset = dragOffset,
+                                density = density
+                            )
+                        }
+                    },
+                    onDragEnd = {
+                        if (isRecording) {
+                            scope.launch {
+                                handleDragEnd(
+                                    recordState = recordState,
+                                    recordDuration = recordDuration,
+                                    minDuration = minDuration,
+                                    audioRecorder = audioRecorder,
+                                    onSend = onSend,
+                                    onConvertToText = onConvertToText,
+                                    onStateChange = { newState ->
+                                        recordState = newState
+                                        isRecording = newState != RecordState.IDLE
+                                    }
+                                )
+                            }
+                        }
+                    },
+                    onDragCancel = {
+                        audioRecorder.cancelRecording()
+                        isRecording = false
+                        recordState = RecordState.IDLE
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        // 中心提示文字
+        RecordButtonText(recordState)
+    }
+
+    // ========== 录音遮罩层 ==========
+    if (isRecording && recordState != RecordState.TOO_SHORT) {
+        RecordingDialog(
+            recordState = recordState,
+            audioAmplitude = audioAmplitude
+        )
+    }
+}
+
+// ==================== 辅助函数 ====================
+
+/**
+ * 开始录音
+ */
+private fun startRecording(
+    audioRecorder: AudioRecorderManager,
+    onResult: (Boolean) -> Unit
+) {
+    val success = audioRecorder.startRecording()
+    onResult(success)
+}
+
+/**
+ * 计算录音状态
+ *
+ * 滑动检测逻辑：
+ * 1. 向上滑动超过100dp进入按钮区域
+ * 2. 向左偏移超过50dp → 取消区域
+ * 3. 向右偏移超过50dp → 转文字区域
+ * 4. 其他情况 → 正常录音
+ */
+private fun calculateRecordState(
+    dragOffset: Offset,
+    density: Density
+): RecordState {
+    val offsetYDp = with(density) { dragOffset.y.toDp() }
+    val offsetXDp = with(density) { dragOffset.x.toDp() }
+
+    return when {
+        offsetYDp < (-100).dp -> {
+            when {
+                offsetXDp < (-50).dp -> RecordState.CANCEL
+                offsetXDp > 50.dp -> RecordState.CONVERT
+                else -> RecordState.RECORDING
+            }
+        }
+
+        else -> RecordState.RECORDING
+    }
+}
+
+/**
+ * 处理拖动结束
+ */
+private suspend fun handleDragEnd(
+    recordState: RecordState,
+    recordDuration: Long,
+    minDuration: Long,
+    audioRecorder: AudioRecorderManager,
+    onSend: (Uri, Long) -> Unit,
+    onConvertToText: ((Uri, Long) -> Unit)?,
+    onStateChange: (RecordState) -> Unit
+) {
+    when (recordState) {
+        RecordState.CANCEL -> {
+            audioRecorder.cancelRecording()
+            onStateChange(RecordState.IDLE)
+        }
+
+        RecordState.CONVERT -> {
+            val uri = audioRecorder.stopRecording()
+            if (uri != null && onConvertToText != null) {
+                onConvertToText(uri, recordDuration)
+            }
+            onStateChange(RecordState.IDLE)
+        }
+
+        RecordState.RECORDING -> {
+            if (recordDuration < minDuration) {
+                // 时间太短
+                audioRecorder.cancelRecording()
+                onStateChange(RecordState.TOO_SHORT)
+                delay(1200)
+                onStateChange(RecordState.IDLE)
+            } else {
+                // 正常发送
+                val uri = audioRecorder.stopRecording()
+                if (uri != null) {
+                    onSend(uri, recordDuration)
+                }
+                onStateChange(RecordState.IDLE)
+            }
+        }
+
+        else -> {}
+    }
+}
+
+/**
+ * 处理录音完成
+ */
+private fun handleRecordingComplete(
+    audioRecorder: AudioRecorderManager,
+    recordDuration: Long,
+    onSend: (Uri, Long) -> Unit
+) {
+    val uri = audioRecorder.stopRecording()
+    if (uri != null) {
+        onSend(uri, recordDuration)
+    }
+}
+
+// ==================== UI组件 ====================
+
+/**
+ * 录音按钮文字
+ */
+@Composable
+private fun RecordButtonText(recordState: RecordState) {
+    Text(
+        text = when (recordState) {
+            RecordState.TOO_SHORT -> "说话时间太短"
+            else -> "按住 说话"
+        },
+        color = if (recordState == RecordState.TOO_SHORT) {
+            Color(0xFFFF3B30)
+        } else {
+            Color.Black
+        },
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Medium
+    )
+}
+
+/**
+ * 录音对话框（全屏）
+ */
+@Composable
+private fun RecordingDialog(
+    recordState: RecordState,
+    audioAmplitude: Float
+) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f))
+        ) {
+            RecordingOverlay(
+                recordState = recordState,
+                audioAmplitude = audioAmplitude
+            )
+        }
+    }
+}
+
+/**
+ * 录音状态枚举
+ */
+internal enum class RecordState {
+    IDLE,       // 空闲
+    RECORDING,  // 正常录音
+    CANCEL,     // 准备取消
+    CONVERT,    // 准备转文字
+    TOO_SHORT   // 时间太短
 }

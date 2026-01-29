@@ -36,7 +36,7 @@ import top.chengdongqing.wechat.ui.utils.EmojiRenderer
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 /**
- * EmojiTextField 配置常量
+ * 配置常量
  */
 private object EmojiTextFieldConfig {
     /** 默认字体大小（sp） */

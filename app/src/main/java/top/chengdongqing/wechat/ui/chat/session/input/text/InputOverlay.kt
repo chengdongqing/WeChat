@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.ui.components.popup.WePopup
 import top.chengdongqing.wechat.ui.utils.NativeFocusRequester
 
 @Composable
-fun FullscreenInputPopup(
+fun InputOverlay(
     visible: Boolean,
     text: String,
     onTextChange: (String) -> Unit,

@@ -46,7 +46,7 @@ import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
 import top.chengdongqing.wechat.ui.chat.session.ScrollToDismissEffect
 import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreAction
 import top.chengdongqing.wechat.ui.chat.session.input.text.EmojiTextField
-import top.chengdongqing.wechat.ui.chat.session.input.text.FullscreenInputPopup
+import top.chengdongqing.wechat.ui.chat.session.input.text.InputOverlay
 import top.chengdongqing.wechat.ui.chat.session.input.voice.VoiceRecordButton
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
@@ -289,7 +289,7 @@ fun InputBar(
     }
 
     // 全屏输入框
-    FullscreenInputPopup(
+    InputOverlay(
         visible = isExpanded.value,
         text = inputText,
         onTextChange = onTextChange,
@@ -358,7 +358,7 @@ private fun RowScope.InputBox(
     ) {
         if (inputMode.isVoice) {
             // 语音模式：显示“按住说话”
-            VoiceRecordButton(onVoiceSend)
+            VoiceRecordButton(onVoiceSend, onConvertToText = { _, _ -> })
         } else {
             // 其他所有模式：都显示输入框
             EmojiTextField(
