@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -19,6 +20,7 @@ import top.chengdongqing.wechat.ui.utils.SetupStatusBarStyle
 class MediaPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         val type = intent.getStringExtra("type")?.run { VisualMediaType.valueOf(this) }
             ?: VisualMediaType.IMAGE_AND_VIDEO

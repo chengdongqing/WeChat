@@ -40,7 +40,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.media.SoundTipPlayer
+import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
 import top.chengdongqing.wechat.core.utils.createMediaUri
 import top.chengdongqing.wechat.core.utils.prepareMediaResource
 import top.chengdongqing.wechat.core.utils.randomUUID
@@ -80,6 +80,7 @@ fun InputBar(
     val controller = rememberInputModeController(focusRequester)
     val inputMode by controller.inputMode
     val scope = rememberCoroutineScope()
+    val soundTipPlayer = rememberSoundTipPlayer()
 
     // 显示键盘/展开面板时，如果用户主动滚动消息列表，则收起底部
     ScrollToDismissEffect(listState, isSending, inputMode.isPanelMode) {
@@ -308,7 +309,7 @@ fun InputBar(
                 onVoiceSend = { uri, duration ->
                     val content = MessageContent.Voice(uri, duration)
                     onSend(content) {
-                        SoundTipPlayer.play(R.raw.after_upload_voice) // 播放提示音
+                        soundTipPlayer.play(R.raw.after_upload_voice) // 播放提示音
                     }
                 }
             )

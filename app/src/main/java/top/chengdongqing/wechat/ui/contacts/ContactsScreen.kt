@@ -19,8 +19,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.loading.WeLoading
@@ -28,7 +28,7 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
-fun ContactsScreen(viewModel: ContactsViewModel = viewModel()) {
+fun ContactsScreen(viewModel: ContactsViewModel = hiltViewModel()) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val state by viewModel.state.collectAsStateWithLifecycle()

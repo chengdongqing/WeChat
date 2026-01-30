@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.room)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
     id("kotlin-parcelize")
 }
 
@@ -74,6 +75,8 @@ dependencies {
     implementation(libs.annotations)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.accompanist.permissions)
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.webrtc)
     implementation(libs.datastore.preferences)
     implementation(libs.bundles.camera)
@@ -81,6 +84,8 @@ dependencies {
     implementation(libs.zxing)
     implementation(libs.pinyin)
     implementation(files("${rootProject.projectDir}/libs/AMap3DMap_11.1.060_AMapSearch_9.7.4_AMapLocation_11.1.060_20251229.aar"))
+
+    ksp(libs.hilt.compiler)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)

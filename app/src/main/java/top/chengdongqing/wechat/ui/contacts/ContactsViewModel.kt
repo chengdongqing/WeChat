@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.ui.contacts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -15,6 +16,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.PinyinUtils.getInitial
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.data.model.Contact
+import javax.inject.Inject
 
 data class ContactsState(
     val isLoading: Boolean = true,
@@ -23,7 +25,8 @@ data class ContactsState(
     val indexMap: Map<Char, Int> = emptyMap() // 索引表：保存预计算的索引位置
 )
 
-class ContactsViewModel : ViewModel() {
+@HiltViewModel
+class ContactsViewModel @Inject constructor() : ViewModel() {
     private val _state = MutableStateFlow(ContactsState())
     val state: StateFlow<ContactsState> = _state.asStateFlow()
 

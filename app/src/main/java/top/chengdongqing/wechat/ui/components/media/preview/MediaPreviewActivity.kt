@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
@@ -13,6 +14,7 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 class MediaPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         val medias = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableArrayExtra("medias", MediaItem::class.java)

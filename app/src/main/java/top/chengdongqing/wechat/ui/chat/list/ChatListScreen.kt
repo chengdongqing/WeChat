@@ -13,8 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.contextmenu.WeContextMenu
 import top.chengdongqing.wechat.ui.components.contextmenu.rememberContextMenuState
@@ -26,7 +26,7 @@ import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 
 @Composable
 fun ChatListScreen(
-    viewModel: ChatListViewModel = viewModel(),
+    viewModel: ChatListViewModel = hiltViewModel(),
     onNavigateToDetail: (friendId: String) -> Unit
 ) {
     val chats by viewModel.chats.collectAsStateWithLifecycle()

@@ -7,16 +7,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.media.SoundTipPlayer
+import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 class QrCodeScannerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         setContent {
             WeChatTheme {
@@ -41,11 +43,13 @@ class QrCodeScannerActivity : ComponentActivity() {
 @Composable
 fun rememberScanCodeLauncher(onChange: (Array<String>) -> Unit): () -> Unit {
     val context = LocalContext.current
+    val soundTipPlayer = rememberSoundTipPlayer()
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            SoundTipPlayer.play(R.raw.qrcode_completed) // 播放提示音
+            soundTipPlayer.play(R.raw.qrcode_completed) // 播放提示音
             result.data?.getStringArrayExtra("codes")?.let(onChange)
         }
     }

@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.ui.chat.session
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,15 +23,18 @@ import top.chengdongqing.wechat.ui.utils.EmojiRenderer
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
+import javax.inject.Inject
 
 data class ChatSessionState(
     val title: String = "",
     val isSending: Boolean = false
 )
 
-class ChatSessionViewModel(
+@HiltViewModel
+class ChatSessionViewModel @Inject constructor(
 //    private val friendId: String,
 //    private val repository: ChatRepository
+    private val soundTipPlayer: SoundTipPlayer
 ) : ViewModel() {
     // 数据层：消息列表
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -139,7 +143,7 @@ class ChatSessionViewModel(
 
         voicePlayer.play(uri) {
             // 播放提示音
-            SoundTipPlayer.play(R.raw.play_completed)
+            soundTipPlayer.play(R.raw.play_completed)
             // 播放完成后尝试自动播放下一条
             playNextUnreadVoice(messageId)
         }
