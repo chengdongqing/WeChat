@@ -74,18 +74,20 @@ fun ChatSessionScreen(
     CompositionLocalProvider(LocalMediaContext provides mediaContext) {
         Scaffold(
             topBar = {
-                WeTopBar(title = "张三", onBack = onBack) {
+                WeTopBar(title = uiState.title, onBack = onBack) {
                     ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多")
                 }
             },
             bottomBar = {
-                InputBar(listState, uiState.isSending) { content, onSent ->
+                InputBar(listState = listState, isSending = uiState.isSending) { content, onSent ->
                     viewModel.sendMessage(content) {
                         scope.launch {
+                            delay(100)
                             listState.animateScrollToItem(0)
                             delay(100)
-                            viewModel.finishScrollToLatest()
                             onSent?.invoke()
+
+                            viewModel.finishScrollToLatest()
                         }
                     }
                 }

@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,18 +35,24 @@ import top.chengdongqing.wechat.core.utils.showToast
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 import top.chengdongqing.wechat.ui.utils.weClickable
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 internal fun ColumnScope.MediaGrid(state: MediaPickerState) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
+        modifier = Modifier
+            .weight(1f)
+            .overscroll(overscrollEffect),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
-        modifier = Modifier.weight(1f)
+        overscrollEffect = overscrollEffect
     ) {
         itemsIndexed(state.mediaList) { index, item ->
             val selectedIndex = state.selectedMediaList.indexOf(item)

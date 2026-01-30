@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.data.model
 
 import android.net.Uri
 import top.chengdongqing.wechat.core.utils.format
+import top.chengdongqing.wechat.data.call.model.CallType
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -99,10 +100,6 @@ sealed class MessageContent(
     ) : MessageContent(isSameBackground = true)
 
     data object Unknown : MessageContent()
-}
-
-enum class CallType {
-    VOICE, VIDEO;
 }
 
 enum class CallStatus(val description: String, val descriptionForMe: String) {

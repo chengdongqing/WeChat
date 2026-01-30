@@ -12,21 +12,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
-import top.chengdongqing.wechat.ui.chat.session.input.InputHandler
 import top.chengdongqing.wechat.ui.chat.session.input.InputMode
-import top.chengdongqing.wechat.ui.chat.session.input.InputPanelHolder
-import top.chengdongqing.wechat.ui.chat.session.input.rememberInputModeController
+import top.chengdongqing.wechat.ui.chat.session.input.panel.InputPanelHolder
+import top.chengdongqing.wechat.ui.chat.session.input.rememberInputBarController
 import top.chengdongqing.wechat.ui.components.emojitextfield.EmojiTextField
 import top.chengdongqing.wechat.ui.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.ui.components.popup.WePopup
@@ -34,7 +33,7 @@ import top.chengdongqing.wechat.ui.components.popup.WePopup
 @Composable
 fun InputOverlay(
     visible: Boolean,
-    text: String,
+    inputText: String,
     onTextChange: (String) -> Unit,
     onClose: () -> Unit
 ) {
@@ -45,19 +44,19 @@ fun InputOverlay(
         onClose = onClose
     ) {
         val focusRequester = remember { NativeFocusRequester() }
-        val controller = rememberInputModeController(focusRequester)
-        val inputMode by controller.inputMode
-        val scope = rememberCoroutineScope()
+        val controller = rememberInputBarController(focusRequester)
+        val state by controller.state.collectAsStateWithLifecycle()
+        val inputMode = state.inputMode
 
-        val currentText = rememberUpdatedState(text)
-        val inputHandler = remember {
-            InputHandler(currentText, focusRequester, scope, onTextChange)
+        LaunchedEffect(inputText) {
+            controller.updateText(inputText)
         }
 
         BackHandler {
             if (inputMode.isEmoji) {
                 controller.switchMode(showKeyboard = false)
             } else {
+                onTextChange(state.inputText)
                 onClose()
             }
         }
@@ -78,13 +77,13 @@ fun InputOverlay(
                     .background(Color.White)
             ) {
                 EmojiTextField(
-                    value = text,
+                    value = state.inputText,
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 24.dp),
                     focusRequester = focusRequester,
                     maxHeightDp = null,
-                    onValueChange = onTextChange
+                    onValueChange = controller::updateText
                 )
 
                 // 语音和表情快捷键
@@ -100,8 +99,8 @@ fun InputOverlay(
             // 面板容器
             InputPanelHolder(
                 inputMode,
-                onEmojiSelect = { inputHandler.insertEmoji(it.description) },
-                onBackspace = { inputHandler.handleEmojiBackspace() }
+                onEmojiSelect = { controller.insertEmoji(it.description) },
+                onBackspace = { controller.handleEmojiBackspace() }
             )
         }
     }

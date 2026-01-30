@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.input.panels
+package top.chengdongqing.wechat.ui.chat.session.input.panel
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background

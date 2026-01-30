@@ -4,159 +4,315 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.media.SoundTipPlayer
+import top.chengdongqing.wechat.core.call.media.SoundPlayer
+import top.chengdongqing.wechat.data.call.model.AudioConfig
+import top.chengdongqing.wechat.data.call.model.CallDirection
+import top.chengdongqing.wechat.data.call.model.CallDuration
 import top.chengdongqing.wechat.data.call.model.CallState
 import top.chengdongqing.wechat.data.call.model.CallType
+import top.chengdongqing.wechat.data.call.model.CallUser
+import top.chengdongqing.wechat.data.call.model.VideoConfig
+import javax.inject.Inject
 
+/**
+ * 通话UI状态
+ */
 data class CallUiState(
     val callType: CallType = CallType.VOICE,
+    val callDirection: CallDirection = CallDirection.OUTGOING,
     val callState: CallState = CallState.Idle,
-    val durationText: String = "00:00",
-    val remoteUserName: String = "WeChat User",
-    val isMuted: Boolean = false,
-    val isSpeakerOn: Boolean = true
-)
+    val remoteUser: CallUser = CallUser("", ""),
+    val duration: CallDuration = CallDuration(),
+    val audioConfig: AudioConfig = AudioConfig(),
+    val videoConfig: VideoConfig = VideoConfig()
+) {
+    /**
+     * 是否正在通话中
+     */
+    val isCallActive: Boolean
+        get() = callState is CallState.Active
 
-// UI 一次性事件（用于关闭 Activity 或弹 Toast）
-sealed class CallUiEvent {
-    object FinishActivity : CallUiEvent()
-    data class ShowToast(val message: String) : CallUiEvent()
+    /**
+     * 是否显示本地视频预览
+     */
+    val shouldShowLocalPreview: Boolean
+        get() = callType == CallType.VIDEO &&
+                (callState is CallState.Active || callState is CallState.Connecting)
+
+    /**
+     * 是否显示远程视频
+     */
+    val shouldShowRemoteVideo: Boolean
+        get() = callType == CallType.VIDEO &&
+                callState is CallState.Active &&
+                videoConfig.isRemoteVideoEnabled
+
+    /**
+     * 获取状态文本
+     */
+    fun getStatusText(): String = when (callState) {
+        is CallState.Connecting -> "等待对方接听..."
+        is CallState.Ringing -> when (callType) {
+            CallType.VOICE -> "邀请你语音通话"
+            CallType.VIDEO -> "邀请你视频通话"
+        }
+
+        is CallState.Active -> duration.format()
+        is CallState.Ended -> "通话已结束"
+        is CallState.Failed -> "连接失败"
+        else -> ""
+    }
 }
 
+/**
+ * UI事件
+ */
+sealed class CallUiEvent {
+    /** 关闭Activity */
+    object FinishActivity : CallUiEvent()
+
+    /** 显示错误 */
+    data class ShowError(val message: String) : CallUiEvent()
+}
+
+/**
+ * 通话ViewModel
+ */
 @HiltViewModel
 class CallViewModel @Inject constructor(
-    private val soundPlayer: SoundTipPlayer,
+    private val soundPlayer: SoundPlayer,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // 内部合并所有状态
+    // UI状态
     private val _uiState = MutableStateFlow(CallUiState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<CallUiState> = _uiState.asStateFlow()
 
-    // 发送一次性指令给 Activity
-    private val _event = MutableSharedFlow<CallUiEvent>()
-    val event = _event.asSharedFlow()
+    // UI事件
+    private val _events = MutableSharedFlow<CallUiEvent>()
+    val events: SharedFlow<CallUiEvent> = _events.asSharedFlow()
 
+    // 计时器Job
     private var timerJob: Job? = null
+
+    // 铃声Job
     private var ringtoneJob: Job? = null
 
     init {
-        // 1. 从 Intent/SavedStateHandle 初始化数据
-        val type = savedStateHandle.get<String>("arg_call_type")?.let {
-            try {
-                CallType.valueOf(it)
-            } catch (e: Exception) {
-                CallType.VOICE
-            }
-        } ?: CallType.VOICE
-
-        val name = savedStateHandle.get<String>("arg_user_name") ?: "对方姓名"
-
-        _uiState.update {
-            it.copy(
-                callType = type,
-                remoteUserName = name,
-                callState = CallState.Connecting // 进入页面即开始连接
-            )
-        }
-
-        // 2. 开始呼叫逻辑
-        startRingtoneLoop()
+        initializeCallState(savedStateHandle)
     }
 
     /**
-     * 循环播放拨号音
+     * 初始化通话状态
      */
-    private fun startRingtoneLoop() {
-        ringtoneJob?.cancel()
-        ringtoneJob = viewModelScope.launch {
-            while (isActive) {
-                soundPlayer.play(R.raw.phonering)
-                delay(3000) // 每 3 秒播放一次
+    private fun initializeCallState(savedStateHandle: SavedStateHandle) {
+        val callType = savedStateHandle.getCallType()
+        val callDirection = savedStateHandle.getCallDirection()
+        val remoteUser = savedStateHandle.getRemoteUser()
+
+        _uiState.update {
+            it.copy(
+                callType = callType,
+                callDirection = callDirection,
+                remoteUser = remoteUser,
+                callState = when (callDirection) {
+                    CallDirection.OUTGOING -> CallState.Connecting
+                    CallDirection.INCOMING -> CallState.Ringing
+                }
+            )
+        }
+
+        // 根据呼叫方向启动相应流程
+        when (callDirection) {
+            CallDirection.OUTGOING -> startConnecting()
+            CallDirection.INCOMING -> startRinging()
+        }
+    }
+
+    /**
+     * 开始连接（呼出）
+     */
+    private fun startConnecting() {
+        playConnectingSound()
+
+        // 模拟对方接听（实际应由信令服务器通知）
+        viewModelScope.launch {
+            delay(3000)
+            if (_uiState.value.callState is CallState.Connecting) {
+                acceptCall()
             }
         }
     }
 
-    private fun stopRingtone() {
-        ringtoneJob?.cancel()
-        ringtoneJob = null
+    /**
+     * 开始响铃（来电）
+     */
+    private fun startRinging() {
+        playRingtone()
     }
 
     /**
      * 接听电话
      */
     fun acceptCall() {
-        stopRingtone()
-        _uiState.update { it.copy(callState = CallState.Active(System.currentTimeMillis())) }
-        startTimer()
+        stopAllSounds()
+
+        _uiState.update {
+            it.copy(callState = CallState.Active(System.currentTimeMillis()))
+        }
+
+        startCallTimer()
     }
 
     /**
-     * 挂断电话
+     * 拒接/挂断电话
      */
-    fun hangup() {
-        stopRingtone()
-        timerJob?.cancel()
+    fun rejectCall() {
+        stopAllSounds()
+        stopCallTimer()
 
         _uiState.update { it.copy(callState = CallState.Ended) }
 
         viewModelScope.launch {
-            soundPlayer.play(R.raw.playend)
-            delay(1000) // 给用户 1 秒感受“通话已结束”的 UI
-            _event.emit(CallUiEvent.FinishActivity)
+            playCallEndSound()
+            delay(1000) // 给用户1秒时间看到"通话已结束"
+            _events.emit(CallUiEvent.FinishActivity)
         }
     }
 
     /**
-     * 通话计时
+     * 切换麦克风
      */
-    private fun startTimer() {
+    fun toggleMic() {
+        _uiState.update {
+            it.copy(audioConfig = it.audioConfig.toggleMic())
+        }
+        // TODO: 实际控制音频采集
+    }
+
+    /**
+     * 切换扬声器
+     */
+    fun toggleSpeaker() {
+        _uiState.update {
+            it.copy(audioConfig = it.audioConfig.toggleSpeaker())
+        }
+        // TODO: 实际控制AudioManager
+    }
+
+    /**
+     * 切换摄像头
+     */
+    fun switchCamera() {
+        _uiState.update {
+            it.copy(videoConfig = it.videoConfig.switchCamera())
+        }
+        // TODO: 实际控制摄像头切换
+    }
+
+    /**
+     * 启动通话计时器
+     */
+    private fun startCallTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            val beginTime = System.currentTimeMillis()
             while (isActive) {
-                val seconds = (System.currentTimeMillis() - beginTime) / 1000
-                _uiState.update { it.copy(durationText = formatDuration(seconds)) }
                 delay(1000)
+                _uiState.update {
+                    it.copy(duration = it.duration.increment())
+                }
             }
         }
     }
 
     /**
-     * 开关麦克风
+     * 停止计时器
      */
-    fun toggleMic() {
-        _uiState.update { it.copy(isMuted = !it.isMuted) }
+    private fun stopCallTimer() {
+        timerJob?.cancel()
+        timerJob = null
     }
 
     /**
-     * 开关扬声器
+     * 播放连接音
      */
-    fun toggleSpeaker() {
-        _uiState.update { it.copy(isSpeakerOn = !it.isSpeakerOn) }
-        // 实际开发中此处需要调用 AudioManager 切换物理声道
+    private fun playConnectingSound() {
+        ringtoneJob?.cancel()
+        ringtoneJob = viewModelScope.launch {
+            while (isActive) {
+                soundPlayer.play(SoundPlayer.Sound.CONNECTING)
+                delay(3000)
+            }
+        }
     }
 
-    private fun formatDuration(seconds: Long): String {
-        val m = seconds / 60
-        val s = seconds % 60
-        return "%02d:%02d".format(m, s)
+    /**
+     * 播放铃声
+     */
+    private fun playRingtone() {
+        ringtoneJob?.cancel()
+        ringtoneJob = viewModelScope.launch {
+            while (isActive) {
+                soundPlayer.play(SoundPlayer.Sound.RINGING)
+                delay(3000)
+            }
+        }
+    }
+
+    /**
+     * 播放通话结束音
+     */
+    private fun playCallEndSound() {
+        viewModelScope.launch {
+            soundPlayer.play(SoundPlayer.Sound.CALL_END)
+        }
+    }
+
+    /**
+     * 停止所有声音
+     */
+    private fun stopAllSounds() {
+        ringtoneJob?.cancel()
+        ringtoneJob = null
+        soundPlayer.stop()
     }
 
     override fun onCleared() {
         super.onCleared()
-        stopRingtone()
-        timerJob?.cancel()
+        stopAllSounds()
+        stopCallTimer()
     }
+}
+
+/**
+ * SavedStateHandle扩展函数
+ */
+private fun SavedStateHandle.getCallType(): CallType {
+    return get<String>(CallActivity.EXTRA_CALL_TYPE)?.let {
+        runCatching { CallType.valueOf(it) }.getOrNull()
+    } ?: CallType.VOICE
+}
+
+private fun SavedStateHandle.getCallDirection(): CallDirection {
+    return get<String>(CallActivity.EXTRA_CALL_DIRECTION)?.let {
+        runCatching { CallDirection.valueOf(it) }.getOrNull()
+    } ?: CallDirection.OUTGOING
+}
+
+private fun SavedStateHandle.getRemoteUser(): CallUser {
+    val userId = get<String>(CallActivity.EXTRA_USER_ID) ?: ""
+    val userName = get<String>(CallActivity.EXTRA_USER_NAME) ?: "WeChat User"
+    val userAvatar = get<String>(CallActivity.EXTRA_USER_AVATAR)
+    return CallUser(userId, userName, userAvatar)
 }

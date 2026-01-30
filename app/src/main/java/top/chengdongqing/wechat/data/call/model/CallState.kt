@@ -1,13 +1,24 @@
 package top.chengdongqing.wechat.data.call.model
 
+/**
+ * 通话状态
+ */
 sealed class CallState {
-    data object Idle : CallState()
-    data object Ringing : CallState()    // 响铃（被叫）
-    data object Connecting : CallState() // 呼叫中/连接中（主叫）
+    /** 空闲状态 */
+    object Idle : CallState()
 
-    // 建议：Active 内部只放接通后的信息，如接通时间点
+    /** 连接中（呼出时） */
+    object Connecting : CallState()
+
+    /** 响铃中（来电时） */
+    object Ringing : CallState()
+
+    /** 通话中 */
     data class Active(val startTime: Long) : CallState()
 
-    data object Ended : CallState()
-    data class Error(val message: String) : CallState()
+    /** 已结束 */
+    object Ended : CallState()
+
+    /** 连接失败 */
+    data class Failed(val reason: String) : CallState()
 }

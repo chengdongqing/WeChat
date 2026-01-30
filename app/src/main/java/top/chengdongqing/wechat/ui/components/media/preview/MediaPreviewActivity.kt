@@ -17,12 +17,12 @@ class MediaPreviewActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val medias = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableArrayExtra("medias", MediaItem::class.java)
+            intent.getParcelableArrayExtra(EXTRA_MEDIA_LIST, MediaItem::class.java)
         } else {
             @Suppress("DEPRECATION", "UNCHECKED_CAST")
-            intent.getParcelableArrayExtra("medias") as? Array<MediaItem>
+            intent.getParcelableArrayExtra(EXTRA_MEDIA_LIST) as? Array<MediaItem>
         } ?: emptyArray()
-        val current = intent.getIntExtra("current", 0)
+        val current = intent.getIntExtra(EXTRA_CURRENT_INDEX, 0)
 
         setContent {
             WeChatTheme {
@@ -44,14 +44,17 @@ class MediaPreviewActivity : ComponentActivity() {
     }
 
     companion object {
+        const val EXTRA_MEDIA_LIST = "extra_media_list"
+        const val EXTRA_CURRENT_INDEX = "extra_current_index"
+
         fun newIntent(context: Context) = Intent(context, MediaPreviewActivity::class.java)
     }
 }
 
 fun Context.previewMedias(medias: List<MediaItem>, current: Int = 0) {
     val intent = MediaPreviewActivity.newIntent(this).apply {
-        putExtra("medias", medias.toTypedArray())
-        putExtra("current", current)
+        putExtra(MediaPreviewActivity.EXTRA_MEDIA_LIST, medias.toTypedArray())
+        putExtra(MediaPreviewActivity.EXTRA_CURRENT_INDEX, current)
         addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
     }
     startActivity(intent)

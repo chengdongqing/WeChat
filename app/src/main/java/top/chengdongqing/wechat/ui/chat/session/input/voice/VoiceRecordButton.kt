@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.ui.chat.session.LocalMediaContext
 /**
  * 语音录制按钮
  *
- * @param onSend 发送语音回调 (文件URI, 录音时长毫秒)
+ * @param onVoiceSend 发送语音回调 (文件URI, 录音时长毫秒)
  * @param onConvertToText 转文字回调
  * @param minDuration 最小录音时长（毫秒）
  * @param maxDuration 最大录音时长（毫秒）
@@ -46,7 +46,7 @@ import top.chengdongqing.wechat.ui.chat.session.LocalMediaContext
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun VoiceRecordButton(
-    onSend: (uri: Uri, duration: Long) -> Unit,
+    onVoiceSend: (uri: Uri, duration: Long) -> Unit,
     onConvertToText: (uri: Uri, duration: Long) -> Unit,
     minDuration: Long = 1000,
     maxDuration: Long = 60000
@@ -80,7 +80,7 @@ fun VoiceRecordButton(
                     handleRecordingComplete(
                         audioRecorder = audioRecorder,
                         recordDuration = recordDuration,
-                        onSend = onSend
+                        onSend = onVoiceSend
                     )
                     isRecording = false
                     recordState = RecordState.IDLE
@@ -136,7 +136,7 @@ fun VoiceRecordButton(
                                     recordDuration = recordDuration,
                                     minDuration = minDuration,
                                     audioRecorder = audioRecorder,
-                                    onSend = onSend,
+                                    onSend = onVoiceSend,
                                     onConvertToText = onConvertToText,
                                     onStateChange = { newState ->
                                         recordState = newState

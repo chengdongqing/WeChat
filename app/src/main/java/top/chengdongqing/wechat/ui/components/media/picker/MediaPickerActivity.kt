@@ -22,16 +22,16 @@ class MediaPickerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val type = intent.getStringExtra("type")?.run { VisualMediaType.valueOf(this) }
+        val type = intent.getStringExtra(EXTRA_MEDIA_TYPE)?.run { VisualMediaType.valueOf(this) }
             ?: VisualMediaType.IMAGE_AND_VIDEO
-        val count = intent.getIntExtra("count", 99)
+        val count = intent.getIntExtra(EXTRA_MEDIA_COUNT, 99)
 
         setContent {
             SetupStatusBarStyle(isDark = false)
             WeChatTheme(darkTheme = true) {
                 WeMediaPicker(type, count, onCancel = { finish() }) { medias ->
                     val intent = Intent().apply {
-                        putExtra("medias", medias)
+                        putExtra(EXTRA_MEDIA_LIST, medias)
                     }
                     setResult(RESULT_OK, intent)
                     finish()
@@ -41,6 +41,10 @@ class MediaPickerActivity : ComponentActivity() {
     }
 
     companion object {
+        const val EXTRA_MEDIA_TYPE = "extra_extra_media_type"
+        const val EXTRA_MEDIA_COUNT = "extra_extra_media_count"
+        const val EXTRA_MEDIA_LIST = "extra_extra_media_list"
+
         fun newIntent(context: Context) = Intent(context, MediaPickerActivity::class.java)
     }
 }
@@ -54,10 +58,13 @@ fun rememberPickMediasLauncher(onChange: (Array<MediaItem>) -> Unit): (type: Vis
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.apply {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getParcelableArrayExtra("medias", MediaItem::class.java)
+                    getParcelableArrayExtra(
+                        MediaPickerActivity.EXTRA_MEDIA_LIST,
+                        MediaItem::class.java
+                    )
                 } else {
                     @Suppress("DEPRECATION", "UNCHECKED_CAST")
-                    (getParcelableArrayExtra("medias") as? Array<MediaItem>)
+                    (getParcelableArrayExtra(MediaPickerActivity.EXTRA_MEDIA_LIST) as? Array<MediaItem>)
                 }?.let(onChange)
             }
         }
@@ -65,8 +72,8 @@ fun rememberPickMediasLauncher(onChange: (Array<MediaItem>) -> Unit): (type: Vis
 
     return { type, count ->
         val intent = MediaPickerActivity.newIntent(context).apply {
-            putExtra("type", type.toString())
-            putExtra("count", count)
+            putExtra(MediaPickerActivity.EXTRA_MEDIA_TYPE, type.toString())
+            putExtra(MediaPickerActivity.EXTRA_MEDIA_COUNT, count)
         }
         launcher.launch(intent)
     }

@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.data.call.model.CallType
 import top.chengdongqing.wechat.data.model.CallStatus
-import top.chengdongqing.wechat.data.model.CallType
 import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
 

@@ -93,13 +93,13 @@ private fun TopBar(onBack: () -> Unit) {
                     colors = listOf(Black.copy(alpha = 0.4f), Color.Transparent)
                 )
             )
+            .statusBarsPadding()
             .padding(bottom = 20.dp)
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_back_circle_filled),
             contentDescription = "返回",
             modifier = Modifier
-                .statusBarsPadding()
                 .offset(x = 14.dp, y = 16.dp)
                 .size(26.dp)
                 .weClickable { onBack() },

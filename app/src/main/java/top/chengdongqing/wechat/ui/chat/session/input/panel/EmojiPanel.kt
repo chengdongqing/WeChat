@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.input.panels
+package top.chengdongqing.wechat.ui.chat.session.input.panel
 
 import android.os.Build
 import androidx.annotation.DrawableRes
@@ -211,7 +211,7 @@ private fun EmojiGrid(
     onBackspace: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val overscrollEffect = remember(scope) { BounceOverscrollEffect(scope) }
+    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
 
     Box(contentAlignment = Alignment.BottomEnd) {
         LazyVerticalGrid(
@@ -325,7 +325,7 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
 @Composable
 private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
     val scope = rememberCoroutineScope()
-    val overscrollEffect = remember(scope) { BounceOverscrollEffect(scope) }
+    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),

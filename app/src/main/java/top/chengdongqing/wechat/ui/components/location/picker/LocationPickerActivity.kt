@@ -24,7 +24,7 @@ class LocationPickerActivity : ComponentActivity() {
             WeChatTheme {
                 WeLocationPicker(onCancel = { finish() }) { location ->
                     val intent = Intent().apply {
-                        putExtra("location", location)
+                        putExtra(EXTRA_LOCATION, location)
                     }
                     setResult(RESULT_OK, intent)
                     finish()
@@ -34,6 +34,8 @@ class LocationPickerActivity : ComponentActivity() {
     }
 
     companion object {
+        const val EXTRA_LOCATION = "extra_location"
+
         fun newIntent(context: Context) = Intent(context, LocationPickerActivity::class.java)
     }
 }
@@ -47,10 +49,14 @@ fun rememberPickLocationLauncher(onChange: (LocationItem) -> Unit): () -> Unit {
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.apply {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getParcelableExtra("location", LocationItem::class.java)?.let(onChange)
+                    getParcelableExtra(
+                        LocationPickerActivity.EXTRA_LOCATION,
+                        LocationItem::class.java
+                    )?.let(onChange)
                 } else {
                     @Suppress("DEPRECATION")
-                    (getParcelableExtra("location") as? LocationItem)?.let(onChange)
+                    (getParcelableExtra(LocationPickerActivity.EXTRA_LOCATION) as? LocationItem)
+                        ?.let(onChange)
                 }
             }
         }

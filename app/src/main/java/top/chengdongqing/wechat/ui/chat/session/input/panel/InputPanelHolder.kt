@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.input
+package top.chengdongqing.wechat.ui.chat.session.input.panel
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -21,9 +21,7 @@ import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
 import top.chengdongqing.wechat.data.emoji.Emoji
 import top.chengdongqing.wechat.data.emoji.Emojis
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.chat.session.input.panels.EmojiPanel
-import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreAction
-import top.chengdongqing.wechat.ui.chat.session.input.panels.MoreActionPanel
+import top.chengdongqing.wechat.ui.chat.session.input.InputMode
 import top.chengdongqing.wechat.ui.utils.DpSaver
 
 @Composable
@@ -33,7 +31,7 @@ fun InputPanelHolder(
     onEmojiSelect: (Emoji) -> Unit,
     onStickerSelect: ((MessageContent.Sticker) -> Unit)? = null,
     onBackspace: () -> Unit,
-    onAction: ((actionId: MoreAction, isLongClick: Boolean) -> Unit)? = null
+    onMoreAction: ((actionId: MoreAction, isLongClick: Boolean) -> Unit)? = null
 ) {
     val keyboardHeight = rememberKeyboardHeight()
     var savedKeyboardHeight by rememberSaveable(stateSaver = DpSaver) {
@@ -77,8 +75,10 @@ fun InputPanelHolder(
                 )
 
                 InputMode.MORE -> MoreActionPanel { actionId, isLongClick ->
-                    onAction?.invoke(actionId, isLongClick)
+                    onMoreAction?.invoke(actionId, isLongClick)
                 }
+
+                else -> Unit
             }
         }
     }

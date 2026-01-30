@@ -8,6 +8,8 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.data.model.MediaResource
 import java.io.File
 import java.io.FileOutputStream
@@ -16,82 +18,83 @@ import java.io.FileOutputStream
  * 媒体文件预处理
  * 返回文件元数据
  */
-fun prepareMediaResource(context: Context, uri: Uri): MediaResource? {
-    return try {
-        val resolver = context.contentResolver
-        val mimeType = resolver.getType(uri) ?: "image/jpeg"
+suspend fun prepareMediaResource(context: Context, uri: Uri): MediaResource? =
+    withContext(Dispatchers.IO) {
+        try {
+            val resolver = context.contentResolver
+            val mimeType = resolver.getType(uri) ?: "image/jpeg"
 
-        val meta = queryMediaMetadata(context, uri)
-        val fileName = meta.name ?: "FILE_${System.currentTimeMillis()}"
+            val meta = queryMediaMetadata(context, uri)
+            val fileName = meta.name ?: "FILE_${System.currentTimeMillis()}"
 
-        val mediaDir = File(context.filesDir, "media").apply { mkdirs() }
-        val targetFile = File(mediaDir, fileName)
-        resolver.openInputStream(uri)?.use { input ->
-            targetFile.outputStream().use { output -> input.copyTo(output) }
-        } ?: return null
+            val mediaDir = File(context.filesDir, "media").apply { mkdirs() }
+            val targetFile = File(mediaDir, fileName)
+            resolver.openInputStream(uri)?.use { input ->
+                targetFile.outputStream().use { output -> input.copyTo(output) }
+            } ?: return@withContext null
 
-        var width = meta.width
-        var height = meta.height
-        var duration = meta.duration
+            var width = meta.width
+            var height = meta.height
+            var duration = meta.duration
 
-        // 兜底策略
-        val isImage = mimeType.startsWith("image/")
-        val isVideo = mimeType.startsWith("video/")
+            // 兜底策略
+            val isImage = mimeType.startsWith("image/")
+            val isVideo = mimeType.startsWith("video/")
 
-        // 图片兜底解析
-        if (isImage && width <= 0) {
-            try {
-                val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(targetFile.absolutePath, options)
-                width = options.outWidth
-                height = options.outHeight
-            } catch (e: Exception) {
-                e.printStackTrace()
+            // 图片兜底解析
+            if (isImage && width <= 0) {
+                try {
+                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeFile(targetFile.absolutePath, options)
+                    width = options.outWidth
+                    height = options.outHeight
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
-        }
 
-        // 视频兜底解析
-        if (isVideo && (width <= 0 || duration <= 0)) {
-            try {
-                val retriever = MediaMetadataRetriever()
-                retriever.setDataSource(targetFile.absolutePath)
+            // 视频兜底解析
+            if (isVideo && (width <= 0 || duration <= 0)) {
+                try {
+                    val retriever = MediaMetadataRetriever()
+                    retriever.setDataSource(targetFile.absolutePath)
 
-                if (width <= 0) {
-                    width =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                            ?.toIntOrNull() ?: 0
-                }
-                if (height <= 0) {
-                    height =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-                            ?.toIntOrNull() ?: 0
-                }
-                if (duration <= 0) {
-                    duration =
-                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                            ?.toLongOrNull() ?: 0
-                }
+                    if (width <= 0) {
+                        width =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                                ?.toIntOrNull() ?: 0
+                    }
+                    if (height <= 0) {
+                        height =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                                ?.toIntOrNull() ?: 0
+                    }
+                    if (duration <= 0) {
+                        duration =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                                ?.toLongOrNull() ?: 0
+                    }
 
-                retriever.release()
-            } catch (e: Exception) {
-                e.printStackTrace()
+                    retriever.release()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
-        }
 
-        MediaResource(
-            file = targetFile,
-            filename = fileName,
-            mimeType = mimeType,
-            size = targetFile.length(),
-            width = width,
-            height = height,
-            duration = duration
-        )
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
+            MediaResource(
+                file = targetFile,
+                filename = fileName,
+                mimeType = mimeType,
+                size = targetFile.length(),
+                width = width,
+                height = height,
+                duration = duration
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
-}
 
 /**
  * 核心查询逻辑：合并所有字段查询

@@ -26,7 +26,7 @@ class QrCodeScannerActivity : ComponentActivity() {
                     onRevoked = { finish() }
                 ) { codes ->
                     val intent = Intent().apply {
-                        putExtra("codes", codes.map { it.rawValue }.toTypedArray())
+                        putExtra(EXTRA_QR_CODES, codes.map { it.rawValue }.toTypedArray())
                     }
                     setResult(RESULT_OK, intent)
                     finish()
@@ -36,6 +36,8 @@ class QrCodeScannerActivity : ComponentActivity() {
     }
 
     companion object {
+        const val EXTRA_QR_CODES = "extra_qr_codes"
+
         fun newIntent(context: Context) = Intent(context, QrCodeScannerActivity::class.java)
     }
 }
@@ -50,7 +52,7 @@ fun rememberScanCodeLauncher(onChange: (Array<String>) -> Unit): () -> Unit {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             soundTipPlayer.play(R.raw.qrcode_completed) // 播放提示音
-            result.data?.getStringArrayExtra("codes")?.let(onChange)
+            result.data?.getStringArrayExtra(QrCodeScannerActivity.EXTRA_QR_CODES)?.let(onChange)
         }
     }
 

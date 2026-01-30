@@ -16,10 +16,10 @@ class LocationPreviewActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val location = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra("location", LocationPreviewItem::class.java)
+            intent.getParcelableExtra(EXTRA_LOCATION, LocationPreviewItem::class.java)
         } else {
             @Suppress("DEPRECATION")
-            intent.getParcelableExtra("location")
+            intent.getParcelableExtra(EXTRA_LOCATION)
         }!!
 
         setContent {
@@ -32,13 +32,15 @@ class LocationPreviewActivity : ComponentActivity() {
     }
 
     companion object {
+        const val EXTRA_LOCATION = "extra_location"
+
         fun newIntent(context: Context) = Intent(context, LocationPreviewActivity::class.java)
     }
 }
 
 fun Context.previewLocation(location: LocationPreviewItem) {
     val intent = LocationPreviewActivity.newIntent(this).apply {
-        putExtra("location", location)
+        putExtra(LocationPreviewActivity.EXTRA_LOCATION, location)
     }
     startActivity(intent)
 }

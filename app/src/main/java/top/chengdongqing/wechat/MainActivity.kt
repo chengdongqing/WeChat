@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,27 +22,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+            var showSplash by remember { mutableStateOf(true) }
+
             WeChatTheme {
-                MainEntry()
+                Crossfade(
+                    targetState = showSplash,
+                    animationSpec = tween(800)
+                ) { isSplashScreen ->
+                    if (isSplashScreen) {
+                        SplashScreen(onTimeout = {
+                            showSplash = false
+                        })
+                    } else {
+                        WeChatNavigation()
+                    }
+                }
             }
-        }
-    }
-}
-
-@Composable
-fun MainEntry() {
-    var showSplash by remember { mutableStateOf(true) }
-
-    Crossfade(
-        targetState = showSplash,
-        animationSpec = tween(800)
-    ) { isSplashScreen ->
-        if (isSplashScreen) {
-            SplashScreen(onTimeout = {
-                showSplash = false
-            })
-        } else {
-            WeChatNavigation()
         }
     }
 }
