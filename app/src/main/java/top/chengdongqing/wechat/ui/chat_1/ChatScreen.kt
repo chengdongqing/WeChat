@@ -26,7 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.data.model.WifiLanPeer
-import top.chengdongqing.wechat.ui.call.CallActivity
+import top.chengdongqing.wechat.ui.call_1.CallActivity
 import top.chengdongqing.wechat.ui.components.ChatInputBar
 import top.chengdongqing.wechat.ui.components.MessageBubble
 

@@ -116,7 +116,7 @@ private fun InputActionBar(isEmojiMode: Boolean, onToggleMode: () -> Unit) {
         horizontalArrangement = Arrangement.End
     ) {
         // 语音输入按键
-        ActionIcon(iconResId = R.drawable.ic_mic_outlined) {}
+        ActionIcon(iconResId = R.drawable.ic_mic_circle_outlined) {}
 
         Spacer(Modifier.width(8.dp))
 

@@ -53,24 +53,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.components.qrcode.scanner.QrCodeScannerActivity"
-            android:theme="@style/Theme.WeChat" />
-        <activity
-            android:name=".ui.components.media.preview.MediaPreviewActivity"
-            android:theme="@style/Theme.WeChat" />
-        <activity
-            android:name=".ui.components.media.picker.MediaPickerActivity"
-            android:theme="@style/Theme.WeChat" />
-        <activity
-            android:name=".ui.components.camera.CameraActivity"
-            android:theme="@style/Theme.WeChat" />
-        <activity
-            android:name=".ui.components.location.preview.LocationPreviewActivity"
-            android:theme="@style/Theme.WeChat" />
-        <activity
-            android:name=".ui.components.location.picker.LocationPickerActivity"
-            android:theme="@style/Theme.WeChat" />
+        <activity android:name=".ui.components.qrcode.scanner.QrCodeScannerActivity" />
+        <activity android:name=".ui.components.media.preview.MediaPreviewActivity" />
+        <activity android:name=".ui.components.media.picker.MediaPickerActivity" />
+        <activity android:name=".ui.components.camera.CameraActivity" />
+        <activity android:name=".ui.components.location.preview.LocationPreviewActivity" />
+        <activity android:name=".ui.components.location.picker.LocationPickerActivity" />
+        <activity android:name=".ui.call.CallActivity" />
 
         <meta-data
             android:name="com.amap.api.v2.apikey"

@@ -48,6 +48,7 @@ import top.chengdongqing.wechat.data.model.CallStatus
 import top.chengdongqing.wechat.data.model.CallType
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.data.model.VisualMediaType
+import top.chengdongqing.wechat.ui.call.startCall
 import top.chengdongqing.wechat.ui.chat.session.ActionIcon
 import top.chengdongqing.wechat.ui.chat.session.CircleActionIcon
 import top.chengdongqing.wechat.ui.chat.session.ScrollToDismissEffect
@@ -357,6 +358,8 @@ fun InputBar(
                             duration = (3.minutes + 26.seconds).toLong(DurationUnit.MILLISECONDS)
                         )
                         onSend(content)
+
+                        context.startCall()
                     }
                 }
 

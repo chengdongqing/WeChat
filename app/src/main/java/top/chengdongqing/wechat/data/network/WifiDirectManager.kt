@@ -15,7 +15,7 @@ import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
 import io.ktor.utils.io.jvm.javaio.copyTo
-import io.ktor.utils.io.readUTF8Line
+import io.ktor.utils.io.readLineStrict
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.CoroutineScope
@@ -300,7 +300,7 @@ class WifiDirectManager(private val context: Context) : AbstractP2pManger(), P2p
 
             val readChannel = s.openReadChannel()
             try {
-                val headerLine = readChannel.readUTF8Line() ?: return
+                val headerLine = readChannel.readLineStrict() ?: return
 
                 println("-----接收-headerLine:$headerLine")
 

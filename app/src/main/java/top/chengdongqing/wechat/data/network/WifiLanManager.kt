@@ -13,7 +13,7 @@ import io.ktor.network.sockets.openWriteChannel
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.writeText
 import io.ktor.utils.io.jvm.javaio.copyTo
-import io.ktor.utils.io.readUTF8Line
+import io.ktor.utils.io.readLineStrict
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.CoroutineScope
@@ -301,7 +301,7 @@ class WifiLanManager(private val context: Context) : AbstractP2pManger(), P2pCon
             // 打开一个读取数据的通道
             val readChannel = socket.openReadChannel()
             // 读取第一行
-            val headerLine = readChannel.readUTF8Line() ?: return@use
+            val headerLine = readChannel.readLineStrict() ?: return@use
 
             // 解析信封
             var envelope = try {

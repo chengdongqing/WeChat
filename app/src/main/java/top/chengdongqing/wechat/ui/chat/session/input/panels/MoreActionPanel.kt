@@ -172,7 +172,7 @@ private val MoreActionItems = listOf(
     MoreItemData(MoreAction.LOCATION, "位置", R.drawable.ic_location_filled),
     MoreItemData(MoreAction.TRANSFER, "转账", R.drawable.ic_transfer_filled),
     MoreItemData(MoreAction.FAVORITE, "收藏", R.drawable.ic_favorites_filled),
-    MoreItemData(MoreAction.VOICE, "语音输入", R.drawable.ic_mic_filled),
+    MoreItemData(MoreAction.VOICE, "语音输入", R.drawable.ic_mic2_filled),
     MoreItemData(MoreAction.CARD, "个人名片", R.drawable.ic_person_filled),
     MoreItemData(MoreAction.FILE, "文件", R.drawable.ic_folder_filled),
     MoreItemData(MoreAction.MUSIC, "音乐", R.drawable.ic_music_filled),
