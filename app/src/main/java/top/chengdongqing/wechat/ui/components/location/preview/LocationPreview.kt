@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -24,7 +26,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,10 +44,13 @@ import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.ui.components.location.AMap
 import top.chengdongqing.wechat.ui.components.location.rememberAMapState
+import top.chengdongqing.wechat.ui.theme.Black
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.White
+import top.chengdongqing.wechat.ui.utils.weClickable
 
 @Composable
-fun WeLocationPreview(location: LocationPreviewItem) {
+fun WeLocationPreview(location: LocationPreviewItem, onBack: () -> Unit) {
     val context = LocalContext.current
     val state = rememberAMapState()
     val map = state.map
@@ -67,8 +75,36 @@ fun WeLocationPreview(location: LocationPreviewItem) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        AMap(modifier = Modifier.weight(1f), state)
+        Box(modifier = Modifier.weight(1f)) {
+            AMap(modifier = Modifier.fillMaxSize(), state)
+            TopBar(onBack)
+        }
         BottomBar(location)
+    }
+}
+
+@Composable
+private fun TopBar(onBack: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Black.copy(alpha = 0.4f), Color.Transparent)
+                )
+            )
+            .padding(bottom = 20.dp)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_back_circle_filled),
+            contentDescription = "返回",
+            modifier = Modifier
+                .statusBarsPadding()
+                .offset(x = 14.dp, y = 16.dp)
+                .size(26.dp)
+                .weClickable { onBack() },
+            tint = White
+        )
     }
 }
 

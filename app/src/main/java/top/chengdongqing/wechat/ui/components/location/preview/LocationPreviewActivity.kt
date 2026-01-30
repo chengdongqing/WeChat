@@ -24,7 +24,9 @@ class LocationPreviewActivity : ComponentActivity() {
 
         setContent {
             WeChatTheme {
-                WeLocationPreview(location)
+                WeLocationPreview(location) {
+                    finish()
+                }
             }
         }
     }

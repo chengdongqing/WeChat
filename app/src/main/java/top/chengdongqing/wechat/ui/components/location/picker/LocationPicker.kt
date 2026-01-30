@@ -28,7 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -47,6 +47,7 @@ import top.chengdongqing.wechat.ui.components.location.AMap
 import top.chengdongqing.wechat.ui.components.location.LocationControl
 import top.chengdongqing.wechat.ui.components.location.picker.locationlist.SearchableLocationList
 import top.chengdongqing.wechat.ui.components.location.rememberAMapState
+import top.chengdongqing.wechat.ui.theme.Black
 import top.chengdongqing.wechat.ui.utils.weClickable
 
 @Composable
@@ -158,7 +159,11 @@ private fun TopBar(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(elevation = 100.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Black.copy(alpha = 0.4f), Color.Transparent)
+                )
+            )
             .statusBarsPadding()
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
