@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.animation.core.SnapSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
+import me.saket.telephoto.zoomable.rememberZoomableImageState
+import me.saket.telephoto.zoomable.rememberZoomableState
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.createImageUri
 import top.chengdongqing.wechat.core.utils.prepareMediaResource
@@ -48,10 +51,13 @@ fun AvatarScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val toast = rememberToastState()
     val actionSheet = rememberActionSheetState()
+    val zoomableState = rememberZoomableState()
+    val state = rememberZoomableImageState(zoomableState)
 
     var avatarModel by remember { mutableStateOf<Any>(R.drawable.img_avatar) }
 
     val launchCropper = rememberImageCropperLauncher {
+        scope.launch { zoomableState.resetZoom(SnapSpec()) } // 重置缩放，避免被之前的缩放影响
         avatarModel = it
     }
     val launchAlbum = rememberPickMediasLauncher { medias ->
@@ -94,6 +100,7 @@ fun AvatarScreen(onBack: () -> Unit) {
         }
 
         ZoomableAsyncImage(
+            state = state,
             model = avatarModel,
             contentDescription = "头像",
             modifier = Modifier.fillMaxSize()
