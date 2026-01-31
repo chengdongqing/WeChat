@@ -3,14 +3,14 @@ package top.chengdongqing.wechat.ui.chat.session.message
 import androidx.compose.runtime.Composable
 import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.chat.session.message.types.CallContent
-import top.chengdongqing.wechat.ui.chat.session.message.types.FileContent
-import top.chengdongqing.wechat.ui.chat.session.message.types.LocationContent
-import top.chengdongqing.wechat.ui.chat.session.message.types.MediaContent
-import top.chengdongqing.wechat.ui.chat.session.message.types.StickerContent
-import top.chengdongqing.wechat.ui.chat.session.message.types.TextContent
-import top.chengdongqing.wechat.ui.chat.session.message.types.UserCardContent
-import top.chengdongqing.wechat.ui.chat.session.message.types.VoiceContent
+import top.chengdongqing.wechat.ui.chat.session.message.content.CallContent
+import top.chengdongqing.wechat.ui.chat.session.message.content.FileContent
+import top.chengdongqing.wechat.ui.chat.session.message.content.LocationContent
+import top.chengdongqing.wechat.ui.chat.session.message.content.MediaContent
+import top.chengdongqing.wechat.ui.chat.session.message.content.StickerContent
+import top.chengdongqing.wechat.ui.chat.session.message.content.TextContent
+import top.chengdongqing.wechat.ui.chat.session.message.content.UserCardContent
+import top.chengdongqing.wechat.ui.chat.session.message.content.VoiceContent
 
 @Composable
 fun MessageContent(message: ChatMessage) {

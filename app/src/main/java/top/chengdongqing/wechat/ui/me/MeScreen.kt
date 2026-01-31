@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
@@ -30,22 +32,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
+import top.chengdongqing.wechat.ui.navigation.Screen
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.weClickable
 
 @Composable
-fun MeScreen() {
+fun MeScreen(navController: NavController) {
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .background(WeChatTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Column {
-            UserInfoHeader()
+            UserInfoHeader(
+                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
+                onNavigateToQRCode = { navController.navigate(Screen.QRCode.route) }
+            )
             StatusSection()
         }
         MenuListItem("服务", R.drawable.ic_pay_logo_outlined, Color(0xFF07C160))
@@ -61,11 +72,15 @@ fun MeScreen() {
 }
 
 @Composable
-fun UserInfoHeader() {
+fun UserInfoHeader(
+    onNavigateToProfile: () -> Unit,
+    onNavigateToQRCode: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(WeChatTheme.colorScheme.surface)
+            .weClickable { onNavigateToProfile() }
             .padding(start = 24.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -102,7 +117,9 @@ fun UserInfoHeader() {
             Icon(
                 painter = painterResource(R.drawable.ic_qrcode_outlined),
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier
+                    .size(20.dp)
+                    .weClickable { onNavigateToQRCode() },
                 tint = Color(0xFF456F6F)
             )
             Spacer(modifier = Modifier.height(14.dp))

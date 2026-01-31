@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -35,11 +36,11 @@ fun ContactItem(contact: Contact) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(R.drawable.img_avatar),
+            painter = painterResource(R.drawable.img_avatar_placeholder),
             contentDescription = null,
             modifier = Modifier
                 .size(40.dp)
-                .background(Color.LightGray, shape = RoundedCornerShape(4.dp))
+                .clip(RoundedCornerShape(4.dp))
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(text = contact.name, fontSize = 16.sp, color = WeChatTheme.colorScheme.textPrimary)

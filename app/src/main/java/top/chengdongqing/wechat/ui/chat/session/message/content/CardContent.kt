@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.message.types
+package top.chengdongqing.wechat.ui.chat.session.message.content
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -31,7 +31,7 @@ fun UserCardContent(content: MessageContent.UserCard) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
-                model = R.drawable.img_avatar,
+                model = R.drawable.img_avatar_placeholder,
                 contentDescription = null,
                 modifier = Modifier
                     .size(42.dp)

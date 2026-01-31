@@ -14,17 +14,20 @@ import top.chengdongqing.wechat.ui.addfriend.PinCodeGroupScreen
 import top.chengdongqing.wechat.ui.addfriend.RadarScanScreen
 import top.chengdongqing.wechat.ui.chat.session.ChatSessionScreen
 import top.chengdongqing.wechat.ui.home.HomeScreen
+import top.chengdongqing.wechat.ui.me.profile.AvatarScreen
+import top.chengdongqing.wechat.ui.me.profile.ProfileScreen
+import top.chengdongqing.wechat.ui.me.profile.QRCodeScreen
 
 @Composable
 fun WeChatNavigation(navController: NavHostController = rememberNavController()) {
-    fun goBack() {
+    val goBack: () -> Unit = {
         navController.popBackStack()
     }
 
     NavHost(
         navController = navController,
-        startDestination = Screen.ChatSession.createRoute("123"),
-//        startDestination = Screen.Home.route,
+//        startDestination = Screen.ChatSession.createRoute("123"),
+        startDestination = Screen.Home.route,
         enterTransition = {
             slideIntoContainer(
                 AnimatedContentTransitionScope.SlideDirection.Left,
@@ -61,15 +64,17 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
                 },
                 onNavigateToGroup = {
                     navController.navigate(Screen.PinCodeGroup.route)
-                }
-            ) { goBack() }
+                },
+                onBack = goBack
+            )
         }
         composable(Screen.RadarScan.route) {
-            RadarScanScreen { goBack() }
+            RadarScanScreen(goBack)
         }
         composable(Screen.PinCodeGroup.route) {
-            PinCodeGroupScreen { goBack() }
+            PinCodeGroupScreen(goBack)
         }
+
         composable(
             route = Screen.ChatSession.route,
             arguments = listOf(
@@ -78,6 +83,16 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
         ) { backStackEntry ->
             val chatId = backStackEntry.arguments?.getString("chatId") ?: ""
             ChatSessionScreen(chatId) { goBack() }
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(navController)
+        }
+        composable(Screen.Avatar.route) {
+            AvatarScreen(goBack)
+        }
+        composable(Screen.QRCode.route) {
+            QRCodeScreen(goBack)
         }
     }
 }

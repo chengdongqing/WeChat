@@ -53,7 +53,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.components.qrcode.scanner.QrCodeScannerActivity" />
+        <activity android:name=".ui.components.qrcode.scanner.QRCodeScannerActivity" />
         <activity android:name=".ui.components.media.preview.MediaPreviewActivity" />
         <activity android:name=".ui.components.media.picker.MediaPickerActivity" />
         <activity android:name=".ui.components.camera.CameraActivity" />

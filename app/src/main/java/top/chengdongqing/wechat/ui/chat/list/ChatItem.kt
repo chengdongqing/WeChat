@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.ui.chat.list
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,11 +43,11 @@ fun ChatItem(chat: Chat) {
             offset = DpOffset(x = 8.dp, y = (-4).dp)
         ) {
             Image(
-                painter = painterResource(R.drawable.img_avatar),
+                painter = painterResource(R.drawable.img_avatar_placeholder),
                 contentDescription = null,
                 modifier = Modifier
                     .size(46.dp)
-                    .background(Color.LightGray, shape = RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(4.dp))
             )
         }
         Spacer(modifier = Modifier.width(12.dp))

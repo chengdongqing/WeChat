@@ -15,14 +15,14 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
-class QrCodeScannerActivity : ComponentActivity() {
+class QRCodeScannerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         setContent {
             WeChatTheme {
-                WeQrCodeScanner(
+                WeQRCodeScanner(
                     onRevoked = { finish() }
                 ) { codes ->
                     val intent = Intent().apply {
@@ -38,7 +38,7 @@ class QrCodeScannerActivity : ComponentActivity() {
     companion object {
         const val EXTRA_QR_CODES = "extra_qr_codes"
 
-        fun newIntent(context: Context) = Intent(context, QrCodeScannerActivity::class.java)
+        fun newIntent(context: Context) = Intent(context, QRCodeScannerActivity::class.java)
     }
 }
 
@@ -52,11 +52,11 @@ fun rememberScanCodeLauncher(onChange: (Array<String>) -> Unit): () -> Unit {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             soundTipPlayer.play(R.raw.qrcode_completed) // 播放提示音
-            result.data?.getStringArrayExtra(QrCodeScannerActivity.EXTRA_QR_CODES)?.let(onChange)
+            result.data?.getStringArrayExtra(QRCodeScannerActivity.EXTRA_QR_CODES)?.let(onChange)
         }
     }
 
     return {
-        launcher.launch(QrCodeScannerActivity.newIntent(context))
+        launcher.launch(QRCodeScannerActivity.newIntent(context))
     }
 }

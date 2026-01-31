@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.message.types
+package top.chengdongqing.wechat.ui.chat.session.message.content
 
 import android.text.format.Formatter.formatFileSize
 import androidx.compose.foundation.Image

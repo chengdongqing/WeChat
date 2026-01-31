@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.message.types
+package top.chengdongqing.wechat.ui.chat.session.message.content
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

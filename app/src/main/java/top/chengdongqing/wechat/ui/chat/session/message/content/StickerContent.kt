@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.message.types
+package top.chengdongqing.wechat.ui.chat.session.message.content
 
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable

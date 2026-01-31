@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.chat.session.message.types
+package top.chengdongqing.wechat.ui.chat.session.message.content
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer

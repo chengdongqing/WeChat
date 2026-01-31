@@ -8,7 +8,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import top.chengdongqing.wechat.core.utils.RequestCameraPermission
 
 @Composable
-fun WeQrCodeScanner(onRevoked: () -> Unit, onChange: (List<Barcode>) -> Unit) {
+fun WeQRCodeScanner(onRevoked: () -> Unit, onChange: (List<Barcode>) -> Unit) {
     val state = rememberScannerState(onChange)
 
     RequestCameraPermission(onRevoked = onRevoked) {

@@ -92,13 +92,14 @@ fun HomeScreen(navController: NavHostController) {
             modifier = Modifier.padding(innerPadding)
         ) { page ->
             when (bottomTabItems[page]) {
-                Screen.Chats -> ChatListScreen {
+                Screen.Chats -> ChatListScreen(onNavigateToDetail = {
                     navController.navigate(Screen.ChatSession.createRoute(it))
-                }
+                })
 
                 Screen.Contacts -> ContactsScreen()
                 Screen.Discovery -> DiscoveryScreen()
-                Screen.Me -> MeScreen()
+                Screen.Me -> MeScreen(navController)
+
                 else -> {}
             }
         }
