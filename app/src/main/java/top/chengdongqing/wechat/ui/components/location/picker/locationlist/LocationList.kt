@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.formatDistance
 import top.chengdongqing.wechat.data.model.LocationItem
-import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.loading.LoadMoreType
 import top.chengdongqing.wechat.ui.components.loading.WeLoadMore
 import top.chengdongqing.wechat.ui.components.loading.WeLoading

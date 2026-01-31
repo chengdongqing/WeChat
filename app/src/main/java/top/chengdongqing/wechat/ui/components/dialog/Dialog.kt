@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.LinkColor
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 

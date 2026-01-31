@@ -21,7 +21,7 @@ import com.amap.api.maps.model.LatLng
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.LocationPreviewItem
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.location.preview.previewLocation
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth

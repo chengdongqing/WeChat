@@ -2,9 +2,7 @@ package top.chengdongqing.wechat.ui.components.qrcode.generator
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -14,59 +12,53 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.unit.dp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.common.BitMatrix
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import top.chengdongqing.wechat.ui.theme.Black
 
 /**
  * 二维码组件
- *
- * @param content 编码内容
- * @param logoPainter logo图标
- * @param brush 二维码颜色，支持SolidColor和Gradient
- * @param backgroundColor 背景颜色
- * @param logoPercent logo占二维码的比例，不建议超过0.25（H级纠错上限约30%）
- * @param dotStyle 数据点样式
  */
 @Composable
 fun WeQRCode(
-    content: String,
-    modifier: Modifier = Modifier,
-    logoPainter: Painter? = null,
-    brush: Brush = SolidColor(Black),
-    backgroundColor: Color = Color.White,
-    logoPercent: Float = 0.22f,
-    dotStyle: QrDotStyle = QrDotStyle.Round
+    state: QRCodeState,
+    modifier: Modifier = Modifier
 ) {
-    val bitMatrix = remember(content) { generateQrMatrix(content) }
-    val regions = remember(bitMatrix.width, logoPercent, logoPainter) {
-        QrCodeRegions(bitMatrix.width, if (logoPainter != null) logoPercent else 0f)
+    Canvas(modifier = modifier.aspectRatio(1f)) {
+        drawQrCode(
+            state.bitMatrix, state.regions,
+            state.brush, state.dotStyle,
+            state.logoPainter, state.backgroundColor
+        )
     }
+}
 
-    Canvas(
-        modifier = modifier
-            .aspectRatio(1f)
-            .padding(16.dp) // 静区，二维码识别必需
-    ) {
-        val cellSize = size.width / bitMatrix.width
-        val dotSize = cellSize * 0.9f
+/**
+ * 绘制完整二维码
+ */
+internal fun DrawScope.drawQrCode(
+    bitMatrix: BitMatrix,
+    regions: QrCodeRegions,
+    brush: Brush,
+    dotStyle: QrDotStyle,
+    logoPainter: Painter?,
+    backgroundColor: Color
+) {
+    val cellSize = size.width / bitMatrix.width
+    val dotSize = cellSize * 0.9f
 
-        drawRect(backgroundColor)
-        drawDataDots(bitMatrix, regions, cellSize, dotSize, brush, dotStyle)
-        drawFinderPatterns(bitMatrix.width, cellSize, brush)
+    drawRect(backgroundColor)
+    drawDataDots(bitMatrix, regions, cellSize, dotSize, brush, dotStyle)
+    drawFinderPatterns(bitMatrix.width, cellSize, brush)
 
-        if (logoPainter != null) {
-            drawLogo(regions, cellSize, logoPainter, backgroundColor, brush)
-        }
+    if (logoPainter != null) {
+        drawLogo(regions, cellSize, logoPainter, backgroundColor, brush)
     }
 }
 
@@ -204,7 +196,7 @@ private fun DrawScope.drawLogo(
  * 生成二维码矩阵
  * 使用H级纠错（可遮盖约30%面积），MARGIN设为0由外层padding处理静区
  */
-private fun generateQrMatrix(content: String): BitMatrix =
+internal fun generateQrMatrix(content: String): BitMatrix =
     QRCodeWriter().encode(
         content,
         BarcodeFormat.QR_CODE,
@@ -222,7 +214,7 @@ private fun generateQrMatrix(content: String): BitMatrix =
  * @param matrixSize 矩阵边长（模块数）
  * @param logoPercent logo占二维码的比例
  */
-private class QrCodeRegions(
+internal class QrCodeRegions(
     private val matrixSize: Int,
     logoPercent: Float = 0.22f
 ) {

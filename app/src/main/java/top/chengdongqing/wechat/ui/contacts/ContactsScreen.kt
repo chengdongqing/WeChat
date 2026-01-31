@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.loading.WeLoading
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect

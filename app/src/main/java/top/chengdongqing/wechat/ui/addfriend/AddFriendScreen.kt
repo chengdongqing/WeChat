@@ -35,7 +35,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar

@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable

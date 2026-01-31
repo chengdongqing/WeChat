@@ -33,7 +33,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.randomUUID
-import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.navigation.Screen
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
@@ -48,7 +48,10 @@ fun ProfileScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            WeTopBar("个人资料", onBack = { navController.popBackStack() })
+            WeTopBar(
+                title = "个人资料",
+                onBack = { navController.popBackStack() }
+            )
         },
         containerColor = Color(0xFFEDEDED)
     ) { innerPadding ->

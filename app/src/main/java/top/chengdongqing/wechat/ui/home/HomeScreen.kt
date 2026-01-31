@@ -37,9 +37,9 @@ import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.chat.list.ChatListScreen
-import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.badge.WeBadge
 import top.chengdongqing.wechat.ui.components.badge.toBadgeText
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBarIcon

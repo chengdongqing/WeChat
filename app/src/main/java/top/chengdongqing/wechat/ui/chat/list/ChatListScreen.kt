@@ -15,11 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.ui.components.WeDivider
 import top.chengdongqing.wechat.ui.components.contextmenu.WeContextMenu
 import top.chengdongqing.wechat.ui.components.contextmenu.rememberContextMenuState
 import top.chengdongqing.wechat.ui.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.Danger
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect

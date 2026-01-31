@@ -51,7 +51,7 @@ import top.chengdongqing.wechat.data.emoji.Emojis
 import top.chengdongqing.wechat.data.emoji.Sticker
 import top.chengdongqing.wechat.data.emoji.Stickers
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.components.WeDivider
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.Black
 import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 import top.chengdongqing.wechat.ui.utils.dashedBorder

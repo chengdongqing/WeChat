@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.me.profile
+package top.chengdongqing.wechat.ui.me.profile.avatar
 
 import android.content.Context
 import android.content.res.Resources
@@ -28,10 +28,7 @@ import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.createImageUri
-import top.chengdongqing.wechat.core.utils.prepareMediaResource
 import top.chengdongqing.wechat.core.utils.saveToAlbum
-import top.chengdongqing.wechat.data.model.MediaItem
-import top.chengdongqing.wechat.data.model.MediaType
 import top.chengdongqing.wechat.data.model.VisualMediaType
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
@@ -70,7 +67,8 @@ fun AvatarScreen(onBack: () -> Unit) {
     val saveAvatar = {
         scope.launch {
             val uri = resolveAvatarUri(context, resources, avatarModel) ?: return@launch
-            val success = saveToAlbum(context, uri)
+            val success = context.saveToAlbum(uri)
+
             toast.show(
                 title = if (success) "已保存到相册" else "保存失败",
                 icon = if (success) ToastIcon.SUCCESS else ToastIcon.FAIL
@@ -113,23 +111,6 @@ private val MenuOptions = listOf(
     ActionSheetItem("拍摄新照片"),
     ActionSheetItem("保存到本地")
 )
-
-/**
- * 将Uri保存到相册
- */
-private suspend fun saveToAlbum(context: Context, uri: Uri): Boolean =
-    withContext(Dispatchers.IO) {
-        val res = prepareMediaResource(context, uri) ?: return@withContext false
-        val media = MediaItem(
-            uri = uri,
-            filename = res.filename,
-            mediaType = MediaType.IMAGE,
-            mimeType = res.mimeType,
-            width = res.width,
-            height = res.height
-        )
-        context.saveToAlbum(media)
-    }
 
 /**
  * 将头像model解析为Uri

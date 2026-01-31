@@ -172,3 +172,11 @@ suspend fun Context.saveToAlbum(media: MediaItem): Boolean = withContext(Dispatc
         false
     }
 }
+
+/**
+ * 保存媒体文件到相册
+ */
+suspend fun Context.saveToAlbum(uri: Uri): Boolean {
+    val res = prepareMediaResource(this, uri) ?: return false
+    return saveToAlbum(res.toMediaItem(uri))
+}

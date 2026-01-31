@@ -1,0 +1,254 @@
+package top.chengdongqing.wechat.ui.me.profile.qrcode
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toBitmap
+import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.utils.createImageUri
+import top.chengdongqing.wechat.core.utils.randomUUID
+import top.chengdongqing.wechat.core.utils.saveToAlbum
+import top.chengdongqing.wechat.ui.components.divider.DividerDirection
+import top.chengdongqing.wechat.ui.components.divider.WeDivider
+import top.chengdongqing.wechat.ui.components.qrcode.generator.WeQRCode
+import top.chengdongqing.wechat.ui.components.qrcode.generator.rememberQRCodeState
+import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
+import top.chengdongqing.wechat.ui.components.toast.ToastIcon
+import top.chengdongqing.wechat.ui.components.toast.rememberToastState
+import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
+import top.chengdongqing.wechat.ui.theme.LinkColor
+import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
+import top.chengdongqing.wechat.ui.utils.weClickable
+import kotlin.time.Duration
+
+data class ProfileInfo(
+    val name: String,
+    val signature: String
+)
+
+@Composable
+fun QRCodeScreen(onBack: () -> Unit) {
+    val targetWidth = rememberWindowFractionWidth(0.65f)
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+    val toast = rememberToastState()
+
+    // 样式循环切换
+    var styleIndex by remember { mutableIntStateOf(QR_CODE_STYLES.indices.random()) }
+
+    val state = rememberQRCodeState(
+        content = remember { "wxid_${randomUUID()}" },
+        logoPainter = painterResource(R.drawable.img_logo_outlined),
+        brush = QR_CODE_STYLES[styleIndex],
+        backgroundColor = Color.Transparent
+    )
+
+    val resources = LocalResources.current
+    val avatarBitmap = remember {
+        ResourcesCompat.getDrawable(resources, R.drawable.img_avatar, null)!!.toBitmap()
+    }
+    val profile = remember { ProfileInfo(name = "海盐芝士不加糖", signature = "这么近 那么美") }
+    val textMeasurer = rememberTextMeasurer()
+
+    // 用于生成图片
+    val cardRenderer = remember(profile, state, avatarBitmap) {
+        QrCardRenderer(profile, state, avatarBitmap, textMeasurer)
+    }
+
+    Scaffold(
+        topBar = {
+            WeTopBar("", onBack = onBack)
+        },
+        containerColor = Color(0xFFEDEDED)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(80.dp))
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .width(targetWidth),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                ProfileBar(profile)
+                Spacer(modifier = Modifier.height(28.dp))
+                WeQRCode(state)
+                Spacer(modifier = Modifier.height(28.dp))
+                Text(
+                    text = "扫一扫上面的二维码图案，加我为朋友。",
+                    fontSize = 12.sp,
+                    color = WeChatTheme.colorScheme.textSecondary
+                )
+            }
+
+            FooterBar(
+                onChangeStyle = {
+                    styleIndex = (styleIndex + 1) % QR_CODE_STYLES.size
+                    state.brush = QR_CODE_STYLES[styleIndex]
+                },
+                onSaveToAlbum = {
+                    toast.show(
+                        title = "正在处理...",
+                        icon = ToastIcon.LOADING,
+                        duration = Duration.INFINITE,
+                        mask = true
+                    )
+
+                    scope.launch {
+                        val bitmap = cardRenderer.generateBitmap(density = density)
+                        val uri = context.createImageUri(bitmap)
+                        val success = context.saveToAlbum(uri)
+
+                        delay(200)
+                        toast.hide()
+                        delay(200)
+                        toast.show(
+                            title = if (success) "已保存到相册" else "保存失败",
+                            icon = if (success) ToastIcon.SUCCESS else ToastIcon.FAIL
+                        )
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(42.dp))
+        }
+    }
+}
+
+@Composable
+private fun ProfileBar(profile: ProfileInfo) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            model = R.drawable.img_avatar,
+            contentDescription = "头像",
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(4.dp))
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(
+                text = profile.name,
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = WeChatTheme.colorScheme.textPrimary
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = profile.signature,
+                fontSize = 12.sp,
+                color = WeChatTheme.colorScheme.textSecondary
+            )
+        }
+    }
+}
+
+@Composable
+private fun FooterBar(onChangeStyle: () -> Unit, onSaveToAlbum: () -> Unit) {
+    val launchScanner = rememberScanCodeLauncher {}
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        LinkText("扫一扫", launchScanner)
+        FooterDivider()
+        LinkText("换个样式", onChangeStyle)
+        FooterDivider()
+        LinkText("保存图片", onSaveToAlbum)
+    }
+}
+
+@Composable
+private fun LinkText(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        fontSize = 14.sp,
+        color = LinkColor,
+        modifier = Modifier.weClickable(onClick)
+    )
+}
+
+@Composable
+private fun FooterDivider() {
+    WeDivider(
+        modifier = Modifier.height(8.dp),
+        direction = DividerDirection.VERTICAL
+    )
+}
+
+/**
+ * 二维码预设样式
+ */
+private val QR_CODE_STYLES = listOf(
+    SolidColor(Color(0xFF222222)),                          // 黑色
+    SolidColor(Color(0xFF00C35A)),                          // 微信绿
+    SolidColor(Color(0xFF1989FA)),                          // 蓝色
+    SolidColor(Color(0xFFE94E3E)),                          // 红色
+    SolidColor(Color(0xFF8D46FB)),                          // 紫色
+    Brush.linearGradient(                                   // 红→紫
+        colors = listOf(Color(0xFFE94E3E), Color(0xFF8D46FB)),
+        start = Offset.Zero,
+        end = Offset.Infinite
+    ),
+    Brush.linearGradient(                                   // 蓝→青
+        colors = listOf(Color(0xFF1989FA), Color(0xFF00C35A)),
+        start = Offset.Zero,
+        end = Offset.Infinite
+    ),
+    Brush.linearGradient(                                   // 橙→红
+        colors = listOf(Color(0xFFFF9800), Color(0xFFE94E3E)),
+        start = Offset.Zero,
+        end = Offset.Infinite
+    ),
+    Brush.linearGradient(                                   // 紫→蓝
+        colors = listOf(Color(0xFF8D46FB), Color(0xFF1989FA)),
+        start = Offset.Zero,
+        end = Offset.Infinite
+    )
+)
