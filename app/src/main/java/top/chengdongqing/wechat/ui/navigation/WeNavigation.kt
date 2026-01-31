@@ -14,9 +14,9 @@ import top.chengdongqing.wechat.ui.addfriend.PinCodeGroupScreen
 import top.chengdongqing.wechat.ui.addfriend.RadarScanScreen
 import top.chengdongqing.wechat.ui.chat.session.ChatSessionScreen
 import top.chengdongqing.wechat.ui.home.HomeScreen
-import top.chengdongqing.wechat.ui.me.profile.AvatarScreen
 import top.chengdongqing.wechat.ui.me.profile.ProfileScreen
-import top.chengdongqing.wechat.ui.me.profile.QRCodeScreen
+import top.chengdongqing.wechat.ui.me.profile.avatar.AvatarScreen
+import top.chengdongqing.wechat.ui.me.profile.qrcode.QRCodeScreen
 
 @Composable
 fun WeChatNavigation(navController: NavHostController = rememberNavController()) {
