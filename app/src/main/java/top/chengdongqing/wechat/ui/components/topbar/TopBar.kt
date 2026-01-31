@@ -28,6 +28,7 @@ import top.chengdongqing.wechat.ui.utils.weClickable
 @Composable
 fun WeTopBar(
     title: String,
+    modifier: Modifier = Modifier,
     bgColor: Color = WeChatTheme.colorScheme.background,
     textColor: Color = WeChatTheme.colorScheme.textPrimary,
     onBack: (() -> Unit)? = null,
@@ -35,7 +36,7 @@ fun WeTopBar(
 ) {
     Surface(
         color = bgColor,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
         Box(
             modifier = Modifier
