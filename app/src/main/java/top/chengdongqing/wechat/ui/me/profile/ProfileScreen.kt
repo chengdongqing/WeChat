@@ -51,12 +51,12 @@ fun ProfileScreen(navController: NavController) {
             WeTopBar("个人资料", onBack = { navController.popBackStack() })
         },
         containerColor = Color(0xFFEDEDED)
-    ) { padding ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(padding),
+                .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Column {

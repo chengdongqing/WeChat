@@ -13,6 +13,9 @@ import android.util.Size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.utils.MediaStoreUtils.createContentValues
+import top.chengdongqing.wechat.core.utils.MediaStoreUtils.finishPending
+import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.MediaType
 import java.io.IOException
 
@@ -132,6 +135,39 @@ fun ContentResolver.copyUri(from: Uri, to: Uri): Boolean {
             }
         } ?: false
     } catch (e: Exception) {
+        e.printStackTrace()
+        false
+    }
+}
+
+/**
+ * 保存媒体文件到相册
+ */
+suspend fun Context.saveToAlbum(media: MediaItem): Boolean = withContext(Dispatchers.IO) {
+    try {
+        val contentUri = MediaStoreUtils.getContentUri(media.mediaType)
+        val contentValues = createContentValues(
+            media.filename,
+            media.mimeType,
+            media.mediaType
+        )
+
+        // 插入数据库记录（此时文件是 IS_PENDING = 1 状态）
+        val tempUri =
+            contentResolver.insert(contentUri, contentValues) ?: return@withContext false
+        // 拷贝数据流
+        val isSuccess = contentResolver.copyUri(media.uri, tempUri)
+
+        if (isSuccess) {
+            // 成功：解除挂起状态，让相册可见
+            finishPending(tempUri)
+            true
+        } else {
+            // 失败：删除数据库中的占位记录，防止相册出现空白文件
+            contentResolver.delete(tempUri, null, null)
+            false
+        }
+    } catch (e: IOException) {
         e.printStackTrace()
         false
     }

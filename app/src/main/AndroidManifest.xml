@@ -56,6 +56,7 @@
         <activity android:name=".ui.components.qrcode.scanner.QRCodeScannerActivity" />
         <activity android:name=".ui.components.media.preview.MediaPreviewActivity" />
         <activity android:name=".ui.components.media.picker.MediaPickerActivity" />
+        <activity android:name=".ui.components.cropper.ImageCropperActivity" />
         <activity android:name=".ui.components.camera.CameraActivity" />
         <activity android:name=".ui.components.location.preview.LocationPreviewActivity" />
         <activity android:name=".ui.components.location.picker.LocationPickerActivity" />

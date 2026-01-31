@@ -26,7 +26,9 @@ class MediaPreviewActivity : ComponentActivity() {
 
         setContent {
             WeChatTheme {
-                WeMediaPreview(medias, current)
+                WeMediaPreview(medias, current) {
+                    finish()
+                }
             }
         }
     }

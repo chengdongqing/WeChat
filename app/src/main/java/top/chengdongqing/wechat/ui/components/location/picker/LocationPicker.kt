@@ -35,11 +35,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.amap.api.maps.model.MarkerOptions
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.createBitmapDescriptor
-import top.chengdongqing.wechat.core.utils.saveSnapshotToCache
+import top.chengdongqing.wechat.core.utils.createImageUri
 import top.chengdongqing.wechat.data.model.LocationItem
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
@@ -67,23 +66,17 @@ fun WeLocationPicker(
      * 处理位置回调
      */
     val handleConfirm = {
-        isLoading = true
-        var location = state.selectedLocation!!
-
-        scope.launch(Dispatchers.IO) {
+        scope.launch {
+            isLoading = true
             // 获取地图快照
-            mapState.takeSnapshot(state.isSearchMode) {
-                it?.let {
-                    // 保存到缓存并获取uri
-                    val snapshot = context.saveSnapshotToCache(it)
-                    location = location.copy(snapshotUri = snapshot)
-                }
-
+            mapState.takeSnapshot(state.isSearchMode)?.let { bitmap ->
+                // 保存到缓存并获取uri
+                val snapshot = context.createImageUri(bitmap)
+                val location = state.selectedLocation!!.copy(snapshotUri = snapshot)
                 onConfirm(location)
                 isLoading = false
             }
         }
-
         Unit
     }
 
@@ -110,9 +103,13 @@ fun WeLocationPicker(
 
 @Composable
 private fun BoxScope.LocationMarker(state: LocationPickerState) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     if (!state.isSearchMode) {
         val offsetY = remember { Animatable(0f) }
         val animationSpec = remember { TweenSpec<Float>(durationMillis = 300) }
+
         LaunchedEffect(state.mapCenterLatLng) {
             offsetY.animateTo(-10f, animationSpec)
             offsetY.animateTo(0f, animationSpec)
@@ -126,20 +123,22 @@ private fun BoxScope.LocationMarker(state: LocationPickerState) {
                 .offset(y = (-25).dp + offsetY.value.dp)
         )
     } else if (state.selectedLocation != null) {
-        val context = LocalContext.current
         DisposableEffect(state.selectedLocation) {
             val markerOptions = MarkerOptions().apply {
                 position(state.selectedLocation?.latLng)
-                icon(
-                    createBitmapDescriptor(
-                        context,
-                        R.drawable.ic_location_marker,
-                        160,
-                        160
+                scope.launch {
+                    icon(
+                        createBitmapDescriptor(
+                            context,
+                            R.drawable.ic_location_marker,
+                            160,
+                            160
+                        )
                     )
-                )
+                }
             }
             val marker = state.map.addMarker(markerOptions)
+
             onDispose {
                 marker?.remove()
             }

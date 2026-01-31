@@ -78,7 +78,7 @@ private fun TopBar(
     onCancel: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val actionSheetState = rememberActionSheetState()
+    val actionSheet = rememberActionSheetState()
     val typeOptions = remember {
         listOf(
             ActionSheetItem("选择图片", value = VisualMediaType.IMAGE),
@@ -111,7 +111,7 @@ private fun TopBar(
                 .clip(RoundedCornerShape(20.dp))
                 .background(WeChatTheme.colorScheme.divider)
                 .clickable(enabled = state.isTypeEnabled) {
-                    actionSheetState.show(typeOptions) { index ->
+                    actionSheet.show(typeOptions) { index ->
                         coroutineScope.launch {
                             state.refresh(typeOptions[index].value as VisualMediaType)
                         }

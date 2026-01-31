@@ -24,6 +24,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,12 +41,14 @@ import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.MapView
 import com.amap.api.maps.MapsInitializer
 import com.amap.api.maps.model.LatLng
-import com.amap.api.maps.model.Marker
 import com.amap.api.maps.model.MarkerOptions
 import com.amap.api.maps.model.MyLocationStyle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.createBitmapDescriptor
 import top.chengdongqing.wechat.core.utils.isLoaded
@@ -63,6 +66,7 @@ fun AMap(
     }
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val mapSaveState = rememberSaveable { Bundle() }
 
     // 处理生命周期
@@ -70,7 +74,7 @@ fun AMap(
     // 处理定位权限
     PermissionHandler {
         if (mapSaveState.isEmpty) {
-            setLocationArrow(state.map, context)
+            setLocationArrow(state.map, context, scope)
         }
     }
 
@@ -120,27 +124,29 @@ fun BoxScope.LocationControl(map: AMap, onClick: ((LatLng) -> Unit)? = null) {
     }
 }
 
-private fun setLocationArrow(map: AMap, context: Context) {
+private fun setLocationArrow(map: AMap, context: Context, scope: CoroutineScope) {
     map.apply {
-        myLocationStyle = MyLocationStyle().apply {
-            // 设置定位频率
-            interval(5000)
-            // 设置定位类型
-            myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
-            // 设置定位图标
-            val icon = createBitmapDescriptor(
-                context,
-                R.drawable.ic_location_rotatable,
-                90,
-                90,
-                -60f
-            )
-            myLocationIcon(icon)
-            // 去除精度圆圈
-            radiusFillColor(Color.TRANSPARENT)
-            strokeWidth(0f)
+        scope.launch {
+            myLocationStyle = MyLocationStyle().apply {
+                // 设置定位频率
+                interval(5000)
+                // 设置定位类型
+                myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
+                // 设置定位图标
+                val icon = createBitmapDescriptor(
+                    context,
+                    R.drawable.ic_location_rotatable,
+                    90,
+                    90,
+                    -60f
+                )
+                myLocationIcon(icon)
+                // 去除精度圆圈
+                radiusFillColor(Color.TRANSPARENT)
+                strokeWidth(0f)
+            }
+            isMyLocationEnabled = true
         }
-        isMyLocationEnabled = true
     }
 }
 
@@ -244,20 +250,25 @@ interface AMapState {
     /**
      * 截图
      */
-    fun takeSnapshot(isSearchMode: Boolean, onComplete: (Bitmap?) -> Unit)
+    suspend fun takeSnapshot(isSearchMode: Boolean): Bitmap?
 }
 
 @Composable
 fun rememberAMapState(): AMapState {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val isDarkTheme = isSystemInDarkTheme()
 
     return remember {
-        AMapStateImpl(context, isDarkTheme)
+        AMapStateImpl(context, scope, isDarkTheme)
     }
 }
 
-private class AMapStateImpl(private val context: Context, isDarkTheme: Boolean) : AMapState {
+private class AMapStateImpl(
+    private val context: Context,
+    private val scope: CoroutineScope,
+    isDarkTheme: Boolean
+) : AMapState {
     override val mapView: MapView
     override val map: AMap
 
@@ -277,43 +288,37 @@ private class AMapStateImpl(private val context: Context, isDarkTheme: Boolean) 
         map = mapView.map
     }
 
-    override fun takeSnapshot(isSearchMode: Boolean, onComplete: (Bitmap?) -> Unit) {
-        // 临时移除当前定位点
-        map.isMyLocationEnabled = false
+    override suspend fun takeSnapshot(isSearchMode: Boolean): Bitmap? {
+        // 准备 Marker 图标
+        val markerIcon = if (!isSearchMode) {
+            createBitmapDescriptor(context, R.drawable.ic_location_marker, 160, 160)
+        } else null
 
-        var locationMarker: Marker? = null
-        // 非搜索模式下，补齐地图上的定位 marker icon
-        if (!isSearchMode) {
-            val markerOptions = MarkerOptions().apply {
-                position(map.cameraPosition.target)
-                icon(
-                    createBitmapDescriptor(
-                        context,
-                        R.drawable.ic_location_marker,
-                        160,
-                        160
-                    )
-                )
+        // 处理截图回调
+        return suspendCancellableCoroutine { continuation ->
+            map.isMyLocationEnabled = false
+
+            val locationMarker = markerIcon?.let {
+                map.addMarker(MarkerOptions().apply {
+                    position(map.cameraPosition.target)
+                    icon(it)
+                })
             }
-            locationMarker = map.addMarker(markerOptions)
+
+            map.getMapScreenShot(object : AMap.OnMapScreenShotListener {
+                private fun cleanup(bitmap: Bitmap?) {
+                    locationMarker?.remove()
+                    map.isMyLocationEnabled = true
+                    if (continuation.isActive) {
+                        continuation.resume(bitmap) { _, _, _ ->
+                            bitmap?.recycle()
+                        }
+                    }
+                }
+
+                override fun onMapScreenShot(bitmap: Bitmap?) = cleanup(bitmap)
+                override fun onMapScreenShot(bitmap: Bitmap?, status: Int) = cleanup(bitmap)
+            })
         }
-
-        map.getMapScreenShot(object : AMap.OnMapScreenShotListener {
-            override fun onMapScreenShot(bitmap: Bitmap?) {
-                handleComplete(bitmap)
-            }
-
-            override fun onMapScreenShot(bitmap: Bitmap?, status: Int) {
-                handleComplete(bitmap)
-            }
-
-            private fun handleComplete(bitmap: Bitmap?) {
-                onComplete(bitmap)
-
-                // 恢复地图
-                locationMarker?.remove()
-                map.isMyLocationEnabled = true
-            }
-        })
     }
 }

@@ -167,43 +167,21 @@ fun Context.getFileProviderUri(file: File): Uri {
 val String.asAssetPath: String
     get() = "file:///android_asset/$this"
 
-/**
- * 保存截图到缓存
- */
-fun Context.saveSnapshotToCache(bitmap: Bitmap): Uri? {
-    return try {
-        // 创建 snapshots 缓存文件夹
-        val cachePath = File(cacheDir, "snapshots")
-        if (!cachePath.exists()) cachePath.mkdirs()
+suspend fun Context.createImageUri(bitmap: Bitmap, quality: Int = 100): Uri =
+    withContext(Dispatchers.IO) {
+        val tempFile = File.createTempFile("IMG_", ".jpg")
 
-        // 创建文件（以时间戳命名避免覆盖）
-        val fileName = "MAP_SNAPSHOT_${System.currentTimeMillis()}.jpg"
-        val file = File(cachePath, fileName)
-
-        // 写入文件
-        FileOutputStream(file).use { out ->
-            // 使用 JPEG 格式，质量设为 80-90 即可，平衡体积和清晰度
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-            out.flush()
+        FileOutputStream(tempFile).use { outputStream ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
         }
 
-        // 通过 FileProvider 获取安全 Uri
-        this.getFileProviderUri(file)
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    } finally {
-        // 回收 Bitmap 释放内存
-        if (!bitmap.isRecycled) {
-            bitmap.recycle()
-        }
+        getFileProviderUri(tempFile)
     }
-}
 
 /**
  * 创建媒体文件记录
  */
-fun Context.createMediaUri(isExtensionsVideo: Boolean): Uri {
+suspend fun Context.createMediaUri(isExtensionsVideo: Boolean): Uri = withContext(Dispatchers.IO) {
     val directory = if (isExtensionsVideo) "videos" else "images"
     val extension = if (isExtensionsVideo) ".mp4" else ".jpg"
     val prefix = if (isExtensionsVideo) "VID" else "IMG"
@@ -214,5 +192,5 @@ fun Context.createMediaUri(isExtensionsVideo: Boolean): Uri {
     ).apply {
         parentFile?.mkdirs()
     }
-    return FileProvider.getUriForFile(this, "${packageName}.provider", file)
+    FileProvider.getUriForFile(this@createMediaUri, "${packageName}.provider", file)
 }

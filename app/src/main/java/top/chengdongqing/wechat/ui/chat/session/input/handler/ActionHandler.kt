@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.createMediaUri
 import top.chengdongqing.wechat.core.utils.randomUUID
@@ -32,8 +35,9 @@ import kotlin.time.DurationUnit
  */
 class ActionHandler(
     private val context: Context,
+    private val scope: CoroutineScope,
     private val mediaLaunchers: MediaLaunchers,
-    private val actionSheetState: ActionSheetState,
+    private val actionSheet: ActionSheetState,
     private val locationLauncher: LocationLauncher,
     private val onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
 ) {
@@ -69,7 +73,7 @@ class ActionHandler(
     private fun handleCamera(isLongClick: Boolean) {
         if (isLongClick) {
             // 长按：显示系统相机选项
-            actionSheetState.show(
+            actionSheet.show(
                 options = TakeMediaOptions,
                 title = "调用系统相机"
             ) { index ->
@@ -88,13 +92,15 @@ class ActionHandler(
      * 启动系统相机
      */
     private fun launchSystemCamera(isVideo: Boolean) {
-        val uri = context.createMediaUri(isVideo)
-        mediaLaunchers.setCapturedUri(uri)
+        scope.launch {
+            val uri = context.createMediaUri(isVideo)
+            mediaLaunchers.setCapturedUri(uri)
 
-        if (isVideo) {
-            mediaLaunchers.captureVideo.launch(uri)
-        } else {
-            mediaLaunchers.takePicture.launch(uri)
+            if (isVideo) {
+                mediaLaunchers.captureVideo.launch(uri)
+            } else {
+                mediaLaunchers.takePicture.launch(uri)
+            }
         }
     }
 
@@ -102,7 +108,7 @@ class ActionHandler(
      * 处理视频通话
      */
     private fun handleVideoCall() {
-        actionSheetState.show(CallOptions) { index ->
+        actionSheet.show(CallOptions) { index ->
             // 发送通话消息
             val content = MessageContent.Call(
                 type = if (index == 0) CallType.VIDEO else CallType.VOICE,
@@ -124,7 +130,7 @@ class ActionHandler(
      * 处理位置
      */
     private fun handleLocation() {
-        actionSheetState.show(LocationOptions) { index ->
+        actionSheet.show(LocationOptions) { index ->
             when (index) {
                 0 -> locationLauncher.pickLocation()
                 1 -> handleShareLiveLocation()
@@ -226,15 +232,17 @@ fun rememberActionHandler(
     locationHandler: LocationHandler,
     onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
 ): ActionHandler {
+    val scope = rememberCoroutineScope()
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)
     val locationLauncher = rememberLocationLauncher(locationHandler)
-    val actionSheetState = rememberActionSheetState()
+    val actionSheet = rememberActionSheetState()
 
     return remember(context, mediaLaunchers) {
         ActionHandler(
             context = context,
+            scope = scope,
             mediaLaunchers = mediaLaunchers,
-            actionSheetState = actionSheetState,
+            actionSheet = actionSheet,
             locationLauncher = locationLauncher,
             onSendMessage = onSendMessage
         )

@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.ui.components.media.preview
 
-import android.content.Context
 import androidx.compose.animation.core.SnapSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +22,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,15 +30,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.saket.telephoto.zoomable.rememberZoomableState
-import top.chengdongqing.wechat.core.utils.MediaStoreUtils
-import top.chengdongqing.wechat.core.utils.MediaStoreUtils.createContentValues
-import top.chengdongqing.wechat.core.utils.MediaStoreUtils.finishPending
-import top.chengdongqing.wechat.core.utils.copyUri
-import top.chengdongqing.wechat.core.utils.findActivity
+import top.chengdongqing.wechat.core.utils.saveToAlbum
 import top.chengdongqing.wechat.core.utils.shareContent
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.ui.components.toast.ToastIcon
@@ -49,15 +41,14 @@ import top.chengdongqing.wechat.ui.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.ui.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.ui.components.videoplayer.rememberVideoPlayerState
 import top.chengdongqing.wechat.ui.utils.SetupFullscreen
-import java.io.IOException
 
 @Composable
-fun WeMediaPreview(medias: Array<MediaItem>, current: Int = 0) {
+fun WeMediaPreview(medias: Array<MediaItem>, current: Int = 0, onDismiss: () -> Unit) {
     val pagerState = rememberPagerState(current) { medias.size }
 
     SetupFullscreen()
     Box {
-        MediaPager(medias, pagerState)
+        MediaPager(medias, pagerState, onDismiss)
         PagerInfo(
             total = medias.size,
             current = pagerState.currentPage + 1
@@ -67,12 +58,7 @@ fun WeMediaPreview(medias: Array<MediaItem>, current: Int = 0) {
 }
 
 @Composable
-private fun MediaPager(medias: Array<MediaItem>, pagerState: PagerState) {
-    val context = LocalContext.current
-    val activity = remember(context) {
-        context.findActivity()
-    }
-
+private fun MediaPager(medias: Array<MediaItem>, pagerState: PagerState, onDismiss: () -> Unit) {
     HorizontalPager(
         state = pagerState,
         modifier = Modifier
@@ -96,9 +82,7 @@ private fun MediaPager(medias: Array<MediaItem>, pagerState: PagerState) {
             else -> {
                 val zoomableState = rememberZoomableState()
 
-                ImagePreview(media.uri, zoomableState) {
-                    activity?.finish()
-                }
+                ImagePreview(media.uri, zoomableState, onDismiss)
 
                 // 滑到另一页后重置当前页的缩放状态
                 if (pagerState.settledPage != index) {
@@ -166,40 +150,5 @@ private fun ActionIcon(imageVector: ImageVector, label: String?, onClick: () -> 
             tint = Color.White,
             modifier = Modifier.size(20.dp)
         )
-    }
-}
-
-/**
- * 保存媒体文件到相册
- */
-private suspend fun Context.saveToAlbum(media: MediaItem): Boolean {
-    return withContext(Dispatchers.IO) {
-        try {
-            val contentUri = MediaStoreUtils.getContentUri(media.mediaType)
-            val contentValues = createContentValues(
-                media.filename,
-                media.mimeType,
-                media.mediaType
-            )
-
-            // 插入数据库记录（此时文件是 IS_PENDING = 1 状态）
-            val tempUri =
-                contentResolver.insert(contentUri, contentValues) ?: return@withContext false
-            // 拷贝数据流
-            val isSuccess = contentResolver.copyUri(media.uri, tempUri)
-
-            if (isSuccess) {
-                // 成功：解除挂起状态，让相册可见
-                finishPending(tempUri)
-                true
-            } else {
-                // 失败：删除数据库中的占位记录，防止相册出现空白文件
-                contentResolver.delete(tempUri, null, null)
-                false
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            false
-        }
     }
 }

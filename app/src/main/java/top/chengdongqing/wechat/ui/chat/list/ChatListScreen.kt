@@ -39,7 +39,7 @@ fun ChatListScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(WeChatTheme.colorScheme.surface)
+            .background(WeChatTheme.colorScheme.background)
             .overscroll(overscrollEffect),
         overscrollEffect = overscrollEffect
     ) {
@@ -49,6 +49,7 @@ fun ChatListScreen(
         ) { index, chat ->
             Box(
                 modifier = Modifier
+                    .background(WeChatTheme.colorScheme.surface)
                     .weContextMenu({
                         onNavigateToDetail(chat.id)
                     }) { position ->
@@ -60,7 +61,9 @@ fun ChatListScreen(
             ) {
                 ChatItem(chat)
             }
-            WeDivider(modifier = Modifier.padding(start = 73.dp))
+            Box(modifier = Modifier.background(WeChatTheme.colorScheme.surface)) {
+                WeDivider(modifier = Modifier.padding(start = 73.dp))
+            }
         }
     }
 

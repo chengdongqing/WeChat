@@ -15,6 +15,8 @@ import com.amap.api.maps.model.BitmapDescriptor
 import com.amap.api.maps.model.BitmapDescriptorFactory
 import com.amap.api.maps.model.LatLng
 import com.amap.api.services.core.LatLonPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.data.model.MapType
 import java.net.URLEncoder
 
@@ -57,14 +59,14 @@ fun Context.navigateToLocation(
  * 将指定的图片资源转为地图支持的bitmap
  * 支持指定宽高、旋转角度
  */
-fun createBitmapDescriptor(
+suspend fun createBitmapDescriptor(
     context: Context,
     @DrawableRes iconId: Int,
     width: Int? = null,
     height: Int? = null,
     rotationAngle: Float? = null
-): BitmapDescriptor? {
-    val drawable = ContextCompat.getDrawable(context, iconId) ?: return null
+): BitmapDescriptor? = withContext(Dispatchers.IO) {
+    val drawable = ContextCompat.getDrawable(context, iconId) ?: return@withContext null
     val originalWidth = width ?: drawable.intrinsicWidth
     val originalHeight = height ?: drawable.intrinsicHeight
     val bitmap = createBitmap(originalWidth, originalHeight)
@@ -86,7 +88,7 @@ fun createBitmapDescriptor(
         canvas.restore()
     }
 
-    return BitmapDescriptorFactory.fromBitmap(bitmap)
+    BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
 // 判断位置是否加载完成

@@ -47,7 +47,7 @@ class CameraActivity : ComponentActivity() {
 }
 
 @Composable
-fun rememberCameraLauncher(onChange: (Uri, VisualMediaType) -> Unit): (VisualMediaType) -> Unit {
+fun rememberCameraLauncher(onChange: (Uri, VisualMediaType) -> Unit): (type: VisualMediaType) -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
