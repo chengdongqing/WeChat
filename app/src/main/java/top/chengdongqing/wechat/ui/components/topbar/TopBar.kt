@@ -29,13 +29,13 @@ import top.chengdongqing.wechat.ui.utils.weClickable
 fun WeTopBar(
     title: String,
     modifier: Modifier = Modifier,
-    bgColor: Color = WeChatTheme.colorScheme.background,
+    containerColor: Color = WeChatTheme.colorScheme.background,
     textColor: Color = WeChatTheme.colorScheme.textPrimary,
     onBack: (() -> Unit)? = null,
     actions: @Composable WeTopBarScope.() -> Unit = {}
 ) {
     Surface(
-        color = bgColor,
+        color = containerColor,
         modifier = modifier.fillMaxWidth()
     ) {
         Box(

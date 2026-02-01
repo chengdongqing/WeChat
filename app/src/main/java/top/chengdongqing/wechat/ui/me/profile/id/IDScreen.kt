@@ -34,7 +34,7 @@ fun IDScreen(onBack: () -> Unit) {
         topBar = {
             WeTopBar(
                 "",
-                bgColor = White,
+                containerColor = White,
                 onBack = onBack
             )
         },

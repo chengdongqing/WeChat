@@ -82,7 +82,7 @@ fun AvatarScreen(onBack: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .zIndex(1f),
-            bgColor = Color.Transparent,
+            containerColor = Color.Transparent,
             textColor = White,
             onBack = onBack
         ) {

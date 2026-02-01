@@ -24,13 +24,13 @@ import top.chengdongqing.wechat.ui.contacts.list.Contact
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun ContactListItem(contact: Contact) {
+fun ContactListItem(contact: Contact, onNavigateToDetail: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
             .background(WeChatTheme.colorScheme.surface)
-            .clickable {}
+            .clickable { onNavigateToDetail() }
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

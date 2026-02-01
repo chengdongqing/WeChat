@@ -21,9 +21,9 @@ import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 @Composable
 fun GenderScreen(onBack: () -> Unit) {
     val genderOptions = remember {
-        Gender.entries.filter { it != Gender.Unknow }.map { it.label to it }
+        Gender.entries.filter { it != Gender.Unknown }.map { it.label to it }
     }
-    var selectedGender by remember { mutableStateOf(Gender.Unknow) }
+    var selectedGender by remember { mutableStateOf(Gender.Unknown) }
 
     Scaffold(
         topBar = {

@@ -3,6 +3,9 @@ package top.chengdongqing.wechat.ui.chat.session
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,19 +26,23 @@ import top.chengdongqing.wechat.ui.utils.EmojiRenderer
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
-import javax.inject.Inject
 
 data class ChatSessionState(
     val title: String = "",
     val isSending: Boolean = false
 )
 
-@HiltViewModel
-class ChatSessionViewModel @Inject constructor(
-//    private val friendId: String,
+@HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
+class ChatSessionViewModel @AssistedInject constructor(
+    @Assisted private val chatId: String,
 //    private val repository: ChatRepository
     private val soundTipPlayer: SoundTipPlayer
 ) : ViewModel() {
+    @AssistedFactory
+    interface Factory {
+        fun create(chatId: String): ChatSessionViewModel
+    }
+
     // 数据层：消息列表
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()

@@ -38,9 +38,14 @@ import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
 @Composable
 fun ChatSessionScreen(
     chatId: String,
-    viewModel: ChatSessionViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
+    val viewModel: ChatSessionViewModel = hiltViewModel(
+        creationCallback = { factory: ChatSessionViewModel.Factory ->
+            factory.create(chatId)
+        }
+    )
+
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()

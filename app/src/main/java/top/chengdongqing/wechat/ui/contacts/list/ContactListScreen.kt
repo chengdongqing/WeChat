@@ -32,7 +32,10 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
 
 @Composable
-fun ContactListScreen(viewModel: ContactListViewModel = hiltViewModel()) {
+fun ContactListScreen(
+    viewModel: ContactListViewModel = hiltViewModel(),
+    onNavigateToDetail: (contactId: String) -> Unit
+) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -76,7 +79,9 @@ fun ContactListScreen(viewModel: ContactListViewModel = hiltViewModel()) {
                         Column(
                             modifier = Modifier.background(WeChatTheme.colorScheme.surface)
                         ) {
-                            ContactListItem(contact)
+                            ContactListItem(contact) {
+                                onNavigateToDetail(contact.id)
+                            }
 
                             if (index < contacts.size - 1) {
                                 WeDivider(modifier = Modifier.padding(start = 68.dp))

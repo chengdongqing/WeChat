@@ -73,7 +73,7 @@ class QrCardRenderer(
 
     /** 绘制整张卡片 */
     private fun DrawScope.drawCard(layout: CardLayout, density: Density) {
-        drawRect(Color(0xFFEDEDED))
+        drawRect(Color(0xFFFFFFFF))
 
         translate(left = layout.paddingHorizontal) {
             translate(top = layout.profileBarTop) {
