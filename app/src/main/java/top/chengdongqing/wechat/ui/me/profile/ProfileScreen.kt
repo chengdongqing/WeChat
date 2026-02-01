@@ -74,7 +74,9 @@ fun ProfileScreen(navController: NavController) {
                 ProfileItem("性别") {
                     TextContent("男")
                 }
-                ProfileItem("微信号") {
+                ProfileItem("微信号", onClick = {
+                    navController.navigate(Screen.ID.route)
+                }) {
                     TextContent("wxid_${randomUUID().take(12)}")
                 }
                 ProfileItem("我的二维码", onClick = {

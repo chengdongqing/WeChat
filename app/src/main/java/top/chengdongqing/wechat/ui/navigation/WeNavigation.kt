@@ -16,6 +16,7 @@ import top.chengdongqing.wechat.ui.chat.session.ChatSessionScreen
 import top.chengdongqing.wechat.ui.home.HomeScreen
 import top.chengdongqing.wechat.ui.me.profile.ProfileScreen
 import top.chengdongqing.wechat.ui.me.profile.avatar.AvatarScreen
+import top.chengdongqing.wechat.ui.me.profile.id.IDScreen
 import top.chengdongqing.wechat.ui.me.profile.qrcode.QRCodeScreen
 
 @Composable
@@ -93,6 +94,9 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
         }
         composable(Screen.QRCode.route) {
             QRCodeScreen(goBack)
+        }
+        composable(Screen.ID.route) {
+            IDScreen(goBack)
         }
     }
 }
