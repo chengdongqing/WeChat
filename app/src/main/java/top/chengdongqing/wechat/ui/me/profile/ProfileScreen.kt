@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.randomUUID
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.navigation.Screen

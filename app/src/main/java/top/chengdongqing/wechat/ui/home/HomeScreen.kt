@@ -48,7 +48,7 @@ import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.ui.me.MeScreen
 import top.chengdongqing.wechat.ui.navigation.Screen
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.weClickable
+import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
 fun HomeScreen(navController: NavHostController) {

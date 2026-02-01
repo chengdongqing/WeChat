@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.createMediaUri
-import top.chengdongqing.wechat.core.utils.randomUUID
+import top.chengdongqing.wechat.core.util.createMediaUri
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.call.model.CallType
 import top.chengdongqing.wechat.data.model.CallStatus
 import top.chengdongqing.wechat.data.model.MessageContent

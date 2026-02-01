@@ -37,8 +37,8 @@ import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.LocalMediaContext
 import top.chengdongqing.wechat.ui.theme.Black
-import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
-import top.chengdongqing.wechat.ui.utils.weClickable
+import top.chengdongqing.wechat.ui.util.rememberScreenFractionWidth
+import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
 fun VoiceContent(message: ChatMessage) {
@@ -52,7 +52,7 @@ fun VoiceContent(message: ChatMessage) {
         val progress = (durationSeconds / 60f).coerceIn(0f, 1f)
         0.2f + (progress * 0.2f) // min 0.2f, max 0.4f
     }
-    val targetWidth = rememberWindowFractionWidth(currentFraction)
+    val targetWidth = rememberScreenFractionWidth(currentFraction)
 
     // 是否播放中
     val isPlaying by remember(message.id, mediaContext?.playingMessageId) {

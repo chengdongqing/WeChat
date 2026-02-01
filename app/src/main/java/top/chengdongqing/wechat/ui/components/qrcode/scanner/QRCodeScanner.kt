@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.mlkit.vision.barcode.common.Barcode
-import top.chengdongqing.wechat.core.utils.RequestCameraPermission
+import top.chengdongqing.wechat.core.util.RequestCameraPermission
 
 @Composable
 fun WeQRCodeScanner(onRevoked: () -> Unit, onChange: (List<Barcode>) -> Unit) {

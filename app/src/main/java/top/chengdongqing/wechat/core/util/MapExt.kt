@@ -1,6 +1,5 @@
-package top.chengdongqing.wechat.core.utils
+package top.chengdongqing.wechat.core.util
 
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
@@ -47,12 +46,12 @@ fun Context.navigateToLocation(
         }
     }
 
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    try {
-        startActivity(intent)
-    } catch (_: ActivityNotFoundException) {
-        showToast("未安装${mapType.appName}地图")
+    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // 新任务栈标记，防止干扰当前应用回退栈
     }
+
+    runCatching { startActivity(intent) }
+        .onFailure { showToast("未安装${mapType.appName}地图") }
 }
 
 /**

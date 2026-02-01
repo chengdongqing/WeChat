@@ -45,7 +45,7 @@ import coil3.decode.StaticImageDecoder
 import coil3.request.ImageRequest
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.asAssetPath
+import top.chengdongqing.wechat.core.util.asAssetPath
 import top.chengdongqing.wechat.data.emoji.Emoji
 import top.chengdongqing.wechat.data.emoji.Emojis
 import top.chengdongqing.wechat.data.emoji.Sticker
@@ -53,9 +53,9 @@ import top.chengdongqing.wechat.data.emoji.Stickers
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.Black
-import top.chengdongqing.wechat.ui.utils.dashedBorder
-import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.ui.utils.repeatingClickable
+import top.chengdongqing.wechat.ui.util.dashedBorder
+import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.ui.util.repeatingClickable
 
 /**
  * 表情面板

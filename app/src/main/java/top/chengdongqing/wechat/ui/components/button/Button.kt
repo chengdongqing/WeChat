@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.ui.components.button
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.ui.components.loading.WeLoading
 import top.chengdongqing.wechat.ui.theme.Danger
 import top.chengdongqing.wechat.ui.theme.GreenPrimary
-import top.chengdongqing.wechat.ui.theme.TextPrimaryDark
 import top.chengdongqing.wechat.ui.theme.TextPrimaryLight
 
 enum class ButtonType {
@@ -112,16 +110,16 @@ private fun buttonColorSchemeOf(type: ButtonType): ButtonColors {
             ButtonColors(GreenPrimary, Color.White)
         }
 
-        ButtonType.Danger -> if (isSystemInDarkTheme()) {
+        ButtonType.Danger -> /*if (isSystemInDarkTheme()) {
             ButtonColors(Danger, TextPrimaryDark)
-        } else {
+        } else {*/
             ButtonColors(Color.Black.copy(0.05f), Danger)
-        }
+//        }
 
-        ButtonType.Plain -> if (isSystemInDarkTheme()) {
+        ButtonType.Plain -> /*if (isSystemInDarkTheme()) {
             ButtonColors(Color.White.copy(0.1f), TextPrimaryDark)
-        } else {
+        } else {*/
             ButtonColors(Color.Black.copy(0.05f), TextPrimaryLight)
-        }
+//        }
     }
 }

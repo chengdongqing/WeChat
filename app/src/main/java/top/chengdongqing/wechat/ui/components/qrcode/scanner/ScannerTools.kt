@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.utils.showToast
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.model.VisualMediaType
 import top.chengdongqing.wechat.ui.components.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.ui.theme.WeChatTheme

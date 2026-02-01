@@ -22,14 +22,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.formatDistance
+import top.chengdongqing.wechat.core.util.formatDistance
 import top.chengdongqing.wechat.data.model.LocationItem
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.loading.LoadMoreType
 import top.chengdongqing.wechat.ui.components.loading.WeLoadMore
 import top.chengdongqing.wechat.ui.components.loading.WeLoading
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.weClickable
+import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
 fun LocationList(

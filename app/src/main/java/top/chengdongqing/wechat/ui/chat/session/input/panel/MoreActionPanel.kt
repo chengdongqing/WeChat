@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
-import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 
 @Composable
 fun MoreActionPanel(onAction: (actionId: MoreAction, isLongClick: Boolean) -> Unit) {

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.utils
+package top.chengdongqing.wechat.ui.util
 
 import android.app.Activity
 import androidx.compose.runtime.Composable
@@ -10,7 +10,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
 @Composable
-fun SetupStatusBarStyle(isDark: Boolean = true) {
+fun StatusBarAppearanceEffect(isDark: Boolean = true) {
     val view = LocalView.current
     val window = (view.context as Activity).window
     val insetsController = remember { WindowCompat.getInsetsController(window, view) }
@@ -18,7 +18,6 @@ fun SetupStatusBarStyle(isDark: Boolean = true) {
 
     DisposableEffect(isDark) {
         insetsController.isAppearanceLightStatusBars = isDark
-
         onDispose {
             insetsController.isAppearanceLightStatusBars = initialStyle
         }
@@ -26,13 +25,13 @@ fun SetupStatusBarStyle(isDark: Boolean = true) {
 }
 
 @Composable
-fun SetupFullscreen(isFullscreen: Boolean = true) {
+fun ImmersiveModeEffect(enabled: Boolean = true) {
     val view = LocalView.current
     val window = (view.context as Activity).window
-    val insetsController = remember { WindowCompat.getInsetsController(window, view) }
+    val insetsController = WindowCompat.getInsetsController(window, view)
 
-    DisposableEffect(Unit) {
-        if (isFullscreen) {
+    DisposableEffect(enabled) {
+        if (enabled) {
             // 让状态栏区域可用于布局
             WindowCompat.setDecorFitsSystemWindows(window, false)
             // 隐藏系统状态栏、导航栏等
@@ -41,10 +40,12 @@ fun SetupFullscreen(isFullscreen: Boolean = true) {
             insetsController.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         } else {
+            WindowCompat.setDecorFitsSystemWindows(window, true)
             insetsController.show(WindowInsetsCompat.Type.systemBars())
         }
 
         onDispose {
+            WindowCompat.setDecorFitsSystemWindows(window, true)
             insetsController.show(WindowInsetsCompat.Type.systemBars())
         }
     }

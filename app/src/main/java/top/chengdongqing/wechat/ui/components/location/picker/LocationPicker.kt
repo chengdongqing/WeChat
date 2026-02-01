@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.sp
 import com.amap.api.maps.model.MarkerOptions
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.createBitmapDescriptor
-import top.chengdongqing.wechat.core.utils.createImageUri
+import top.chengdongqing.wechat.core.util.createBitmapDescriptor
+import top.chengdongqing.wechat.core.util.createImageUri
 import top.chengdongqing.wechat.data.model.LocationItem
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
@@ -47,7 +47,7 @@ import top.chengdongqing.wechat.ui.components.location.LocationControl
 import top.chengdongqing.wechat.ui.components.location.picker.locationlist.SearchableLocationList
 import top.chengdongqing.wechat.ui.components.location.rememberAMapState
 import top.chengdongqing.wechat.ui.theme.Black
-import top.chengdongqing.wechat.ui.utils.weClickable
+import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
 fun WeLocationPicker(

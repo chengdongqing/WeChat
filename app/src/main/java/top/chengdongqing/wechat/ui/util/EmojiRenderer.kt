@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.utils
+package top.chengdongqing.wechat.ui.util
 
 import android.content.Context
 import android.graphics.Bitmap

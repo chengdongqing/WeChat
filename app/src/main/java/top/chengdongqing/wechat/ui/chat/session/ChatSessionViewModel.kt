@@ -19,10 +19,10 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.media.VoicePlayer
-import top.chengdongqing.wechat.core.utils.randomUUID
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.utils.EmojiRenderer
+import top.chengdongqing.wechat.ui.util.EmojiRenderer
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID

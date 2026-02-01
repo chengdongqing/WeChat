@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.utils
+package top.chengdongqing.wechat.core.util
 
 import android.Manifest
 import android.os.Build
@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import top.chengdongqing.wechat.ui.utils.SetupFullscreen
+import top.chengdongqing.wechat.ui.util.ImmersiveModeEffect
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -82,7 +82,7 @@ fun RequestCameraPermission(
             .background(Color.Black)
     ) {
         if (permissionState.allPermissionsGranted) {
-            SetupFullscreen()
+            ImmersiveModeEffect()
             content()
         }
     }

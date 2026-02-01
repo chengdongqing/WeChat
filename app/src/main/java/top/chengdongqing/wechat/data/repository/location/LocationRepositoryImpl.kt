@@ -17,8 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.utils.toLatLng
-import top.chengdongqing.wechat.core.utils.toLatLonPoint
+import top.chengdongqing.wechat.core.util.toLatLng
+import top.chengdongqing.wechat.core.util.toLatLonPoint
 import top.chengdongqing.wechat.data.model.LocationItem
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine

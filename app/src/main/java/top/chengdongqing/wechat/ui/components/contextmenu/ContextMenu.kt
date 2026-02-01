@@ -50,7 +50,7 @@ import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.ui.theme.Black
 import top.chengdongqing.wechat.ui.theme.White
-import top.chengdongqing.wechat.ui.utils.weClickableWithBg
+import top.chengdongqing.wechat.ui.util.weClickableWithBg
 import kotlin.math.roundToInt
 
 @Composable

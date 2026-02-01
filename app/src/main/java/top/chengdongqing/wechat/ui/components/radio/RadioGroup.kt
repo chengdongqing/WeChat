@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.weClickableWithBg
+import top.chengdongqing.wechat.ui.util.weClickableWithBg
 
 @Composable
 fun <T> WeRadioGroup(

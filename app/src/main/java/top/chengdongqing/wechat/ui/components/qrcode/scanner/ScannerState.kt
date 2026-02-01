@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.mlkit.vision.barcode.common.Barcode
-import top.chengdongqing.wechat.core.utils.rememberSingleThreadExecutor
+import top.chengdongqing.wechat.core.util.rememberSingleThreadExecutor
 import java.util.concurrent.ExecutorService
 
 @Stable

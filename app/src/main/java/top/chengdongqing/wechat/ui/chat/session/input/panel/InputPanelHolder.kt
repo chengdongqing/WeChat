@@ -17,12 +17,12 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
+import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
 import top.chengdongqing.wechat.data.emoji.Emoji
 import top.chengdongqing.wechat.data.emoji.Emojis
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.input.InputMode
-import top.chengdongqing.wechat.ui.utils.DpSaver
+import top.chengdongqing.wechat.ui.util.DpSaver
 
 @Composable
 fun InputPanelHolder(

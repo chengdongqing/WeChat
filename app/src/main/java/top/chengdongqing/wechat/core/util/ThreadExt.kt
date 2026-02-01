@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.utils
+package top.chengdongqing.wechat.core.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect

@@ -13,7 +13,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.utils.prepareMediaResource
+import top.chengdongqing.wechat.core.util.prepareMediaResource
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.data.model.VisualMediaType

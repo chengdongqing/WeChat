@@ -22,7 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.randomUUID
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.components.qrcode.generator.QrDotStyle
@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.ui.components.qrcode.generator.rememberQRCodeSta
 import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
+import top.chengdongqing.wechat.ui.util.rememberScreenFractionWidth
 
 @Composable
 fun AddFriendScreen(
@@ -105,7 +105,7 @@ private fun QrCodeSection(myId: String, modifier: Modifier) {
         backgroundColor = Color.Transparent,
         dotStyle = QrDotStyle.Circle
     )
-    val targetWidth = rememberWindowFractionWidth(0.4f)
+    val targetWidth = rememberScreenFractionWidth(0.4f)
 
     Column(
         modifier = modifier.fillMaxWidth(),

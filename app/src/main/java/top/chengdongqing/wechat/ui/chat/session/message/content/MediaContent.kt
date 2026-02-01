@@ -28,21 +28,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.format
-import top.chengdongqing.wechat.core.utils.loadMediaThumbnail
+import top.chengdongqing.wechat.core.util.format
+import top.chengdongqing.wechat.core.util.loadMediaThumbnail
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.MediaType
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.LocalMediaContext
 import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
-import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
+import top.chengdongqing.wechat.ui.util.rememberScreenFractionWidth
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun MediaContent(content: MessageContent.Media) {
     val context = LocalContext.current
     val isVideo = content is MessageContent.Video
-    val targetWidth = rememberWindowFractionWidth()
+    val targetWidth = rememberScreenFractionWidth()
 
     // 获取更多媒体数据，方便预览时切换
     val mediaContext = LocalMediaContext.current

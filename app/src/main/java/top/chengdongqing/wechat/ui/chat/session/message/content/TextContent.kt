@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import top.chengdongqing.wechat.data.emoji.Emojis
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.utils.parseRichText
-import top.chengdongqing.wechat.ui.utils.toBitmap
+import top.chengdongqing.wechat.ui.util.parseRichText
+import top.chengdongqing.wechat.ui.util.toBitmap
 
 @Composable
 fun TextContent(content: MessageContent.Text) {

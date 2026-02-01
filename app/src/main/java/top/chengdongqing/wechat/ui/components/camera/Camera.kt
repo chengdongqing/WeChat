@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.utils.RequestCameraPermission
+import top.chengdongqing.wechat.core.util.RequestCameraPermission
 import top.chengdongqing.wechat.data.model.VisualMediaType
 
 @Composable

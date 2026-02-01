@@ -32,21 +32,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.rememberZoomableState
-import top.chengdongqing.wechat.core.utils.saveToAlbum
-import top.chengdongqing.wechat.core.utils.shareContent
+import top.chengdongqing.wechat.core.util.saveToAlbum
+import top.chengdongqing.wechat.core.util.shareContent
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.ui.components.toast.ToastIcon
 import top.chengdongqing.wechat.ui.components.toast.rememberToastState
 import top.chengdongqing.wechat.ui.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.ui.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.ui.components.videoplayer.rememberVideoPlayerState
-import top.chengdongqing.wechat.ui.utils.SetupFullscreen
+import top.chengdongqing.wechat.ui.util.ImmersiveModeEffect
 
 @Composable
 fun WeMediaPreview(medias: Array<MediaItem>, current: Int = 0, onDismiss: () -> Unit) {
     val pagerState = rememberPagerState(current) { medias.size }
 
-    SetupFullscreen()
+    ImmersiveModeEffect()
     Box {
         MediaPager(medias, pagerState, onDismiss)
         PagerInfo(

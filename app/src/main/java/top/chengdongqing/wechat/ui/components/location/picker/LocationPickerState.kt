@@ -19,8 +19,8 @@ import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.model.LatLng
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.utils.isLoaded
-import top.chengdongqing.wechat.core.utils.toLatLng
+import top.chengdongqing.wechat.core.util.isLoaded
+import top.chengdongqing.wechat.core.util.toLatLng
 import top.chengdongqing.wechat.data.model.LocationItem
 import top.chengdongqing.wechat.data.repository.location.LocationRepository
 import top.chengdongqing.wechat.data.repository.location.LocationRepositoryImpl

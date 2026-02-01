@@ -33,7 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.utils.RequestMediaPermission
+import top.chengdongqing.wechat.core.util.RequestMediaPermission
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.VisualMediaType
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem

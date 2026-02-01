@@ -1,5 +1,8 @@
 package top.chengdongqing.wechat.ui.components
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,8 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.utils.base64ToBitmap
-import top.chengdongqing.wechat.core.utils.formatTime
 import top.chengdongqing.wechat.data.local.MessageEntity
 import top.chengdongqing.wechat.data.model.ChatPayload
 
@@ -76,11 +77,6 @@ fun MessageBubble(message: MessageEntity) {
                 }
             }
         }
-        Text(
-            text = formatTime(message.timestamp),
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(top = 4.dp)
-        )
     }
 }
 
@@ -143,5 +139,20 @@ private fun StatusText(status: Int, textColor: Color) {
             color = if (status == 2) MaterialTheme.colorScheme.error else textColor.copy(alpha = 0.7f),
             modifier = Modifier.padding(top = 2.dp)
         )
+    }
+}
+
+/**
+ * 将 Base64 字符串解码为 Bitmap
+ */
+fun String.base64ToBitmap(): Bitmap? {
+    if (isNullOrBlank()) return null
+
+    return try {
+        val byteArray = Base64.decode(this, Base64.DEFAULT)
+        BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }

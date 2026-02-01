@@ -5,7 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import top.chengdongqing.wechat.core.utils.randomUUID
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.Chat
 import javax.inject.Inject
 

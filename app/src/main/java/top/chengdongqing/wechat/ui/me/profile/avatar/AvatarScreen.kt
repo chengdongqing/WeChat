@@ -27,8 +27,8 @@ import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.createImageUri
-import top.chengdongqing.wechat.core.utils.saveToAlbum
+import top.chengdongqing.wechat.core.util.createImageUri
+import top.chengdongqing.wechat.core.util.saveToAlbum
 import top.chengdongqing.wechat.data.model.VisualMediaType
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState

@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.randomUUID
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.ui.components.button.ButtonType
 import top.chengdongqing.wechat.ui.components.button.WeButton
 import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState

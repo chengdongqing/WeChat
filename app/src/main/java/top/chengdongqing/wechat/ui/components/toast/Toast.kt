@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.core.utils.rememberStatusBarHeight
+import top.chengdongqing.wechat.core.util.rememberStatusBarHeight
 import top.chengdongqing.wechat.ui.components.loading.WeLoading
 import top.chengdongqing.wechat.ui.theme.Grey_ED
 import kotlin.time.Duration

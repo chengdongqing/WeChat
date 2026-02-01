@@ -33,7 +33,7 @@ import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.input.InputBar
 import top.chengdongqing.wechat.ui.chat.session.message.MessageItem
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
-import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 
 @Composable
 fun ChatSessionScreen(

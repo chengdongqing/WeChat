@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.utils
+package top.chengdongqing.wechat.ui.util
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -122,10 +122,14 @@ class BounceOverscrollEffect(
         get() = animatable.value != 0f
 }
 
+/**
+ * 创建并记住一个带回弹感的滚动效果
+ */
 @Composable
-fun rememberBounceOverscrollEffect(orientation: Orientation = Orientation.Vertical): BounceOverscrollEffect {
+fun rememberBounceOverscrollEffect(
+    orientation: Orientation = Orientation.Vertical
+): BounceOverscrollEffect {
     val scope = rememberCoroutineScope()
-
     return remember {
         BounceOverscrollEffect(scope, orientation)
     }

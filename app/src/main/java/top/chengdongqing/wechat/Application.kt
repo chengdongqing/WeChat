@@ -4,7 +4,7 @@ import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import jakarta.inject.Inject
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
-import top.chengdongqing.wechat.core.utils.clearAllCache
+import top.chengdongqing.wechat.core.util.clearAllCache
 
 @HiltAndroidApp
 class WechatApplication : Application() {

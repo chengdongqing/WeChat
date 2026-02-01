@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.utils
+package top.chengdongqing.wechat.core.util
 
 import android.content.ContentResolver
 import android.content.ContentValues
@@ -13,70 +13,66 @@ import android.util.Size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.MediaStoreUtils.createContentValues
-import top.chengdongqing.wechat.core.utils.MediaStoreUtils.finishPending
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.MediaType
 import java.io.IOException
 
-object MediaStoreUtils {
-    /**
-     * 创建 MediaStore 插入所需的 ContentValues
-     * 核心逻辑：设置文件名、路径并开启 [android.provider.MediaStore.MediaColumns.IS_PENDING] 状态
-     */
-    fun Context.createContentValues(
-        filename: String,
-        mimeType: String,
-        mediaType: MediaType,
-    ): ContentValues {
-        val directory = when (mediaType) {
-            MediaType.Image -> Environment.DIRECTORY_PICTURES
-            MediaType.Video -> Environment.DIRECTORY_MOVIES
-            MediaType.Audio -> Environment.DIRECTORY_MUSIC
-            MediaType.Recording -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                Environment.DIRECTORY_RECORDINGS
-            } else {
-                Environment.DIRECTORY_MUSIC
-            }
+/**
+ * 创建 MediaStore 插入所需的 ContentValues
+ * 核心逻辑：设置文件名、路径并开启 [android.provider.MediaStore.MediaColumns.IS_PENDING] 状态
+ */
+fun Context.createMediaContentValues(
+    filename: String,
+    mimeType: String,
+    mediaType: MediaType,
+): ContentValues {
+    val directory = when (mediaType) {
+        MediaType.Image -> Environment.DIRECTORY_PICTURES
+        MediaType.Video -> Environment.DIRECTORY_MOVIES
+        MediaType.Audio -> Environment.DIRECTORY_MUSIC
+        MediaType.Recording -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Environment.DIRECTORY_RECORDINGS
+        } else {
+            Environment.DIRECTORY_MUSIC
         }
-        val appName = getString(R.string.app_name)
-        val relativePath = "$directory/$appName"
-
-        return createContentValues(filename, mimeType, relativePath)
     }
+    val appName = getString(R.string.app_name)
+    val relativePath = "$directory/$appName"
 
-    fun createContentValues(
-        filename: String,
-        mimeType: String,
-        relativePath: String,
-    ): ContentValues =
-        ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-            put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
-            put(MediaStore.MediaColumns.IS_PENDING, 1)
-        }
-
-    /**
-     * 文件写入完成后，取消挂起状态，使媒体文件在相册中可见
-     */
-    fun Context.finishPending(uri: Uri) {
-        val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.IS_PENDING, 0)
-        }
-        contentResolver.update(uri, contentValues, null, null)
-    }
-
-    /**
-     * 根据媒体类型获取对应的 MediaStore 系统表 Uri
-     */
-    fun getContentUri(mediaType: MediaType): Uri =
-        when (mediaType) {
-            MediaType.Image -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            MediaType.Video -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            MediaType.Audio, MediaType.Recording -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        }
+    return buildMediaContentValues(filename, mimeType, relativePath)
 }
+
+private fun buildMediaContentValues(
+    filename: String,
+    mimeType: String,
+    relativePath: String,
+): ContentValues =
+    ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+        put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+        put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+        put(MediaStore.MediaColumns.IS_PENDING, 1)
+    }
+
+/**
+ * 文件写入完成后，取消挂起状态，使媒体文件在相册中可见
+ */
+fun Context.finishPending(uri: Uri) {
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.IS_PENDING, 0)
+    }
+    contentResolver.update(uri, contentValues, null, null)
+}
+
+/**
+ * 根据媒体类型获取对应的 MediaStore 系统表 Uri
+ */
+fun getContentUri(mediaType: MediaType): Uri =
+    when (mediaType) {
+        MediaType.Image -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        MediaType.Video -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        MediaType.Audio, MediaType.Recording -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+    }
 
 /**
  * 加载媒体缩略图（兼容图片与视频）
@@ -145,8 +141,8 @@ fun ContentResolver.copyUri(from: Uri, to: Uri): Boolean {
  */
 suspend fun Context.saveToAlbum(media: MediaItem): Boolean = withContext(Dispatchers.IO) {
     try {
-        val contentUri = MediaStoreUtils.getContentUri(media.mediaType)
-        val contentValues = createContentValues(
+        val contentUri = getContentUri(media.mediaType)
+        val contentValues = createMediaContentValues(
             media.filename,
             media.mimeType,
             media.mediaType

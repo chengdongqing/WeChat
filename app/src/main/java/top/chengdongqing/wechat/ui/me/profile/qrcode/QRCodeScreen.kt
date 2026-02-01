@@ -41,9 +41,9 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.createImageUri
-import top.chengdongqing.wechat.core.utils.randomUUID
-import top.chengdongqing.wechat.core.utils.saveToAlbum
+import top.chengdongqing.wechat.core.util.createImageUri
+import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.util.saveToAlbum
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.ui.components.qrcode.generator.rememberQRCodeState
@@ -53,8 +53,8 @@ import top.chengdongqing.wechat.ui.components.toast.rememberToastState
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.theme.LinkColor
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
-import top.chengdongqing.wechat.ui.utils.weClickable
+import top.chengdongqing.wechat.ui.util.rememberScreenFractionWidth
+import top.chengdongqing.wechat.ui.util.weClickable
 import kotlin.time.Duration
 
 data class ProfileInfo(
@@ -64,7 +64,7 @@ data class ProfileInfo(
 
 @Composable
 fun QRCodeScreen(onBack: () -> Unit) {
-    val targetWidth = rememberWindowFractionWidth(0.65f)
+    val targetWidth = rememberScreenFractionWidth(0.65f)
     val context = LocalContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()

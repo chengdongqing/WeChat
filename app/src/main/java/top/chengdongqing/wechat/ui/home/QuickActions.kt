@@ -47,7 +47,7 @@ import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.Grey_4C
-import top.chengdongqing.wechat.ui.utils.weClickableWithBg
+import top.chengdongqing.wechat.ui.util.weClickableWithBg
 
 data class MenuItem(
     @get:DrawableRes val iconResId: Int,

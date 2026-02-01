@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.utils
+package top.chengdongqing.wechat.core.util
 
 import kotlinx.serialization.json.Json
 

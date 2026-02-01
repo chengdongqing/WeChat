@@ -34,12 +34,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
-import top.chengdongqing.wechat.core.utils.rememberKeyboardHeight
+import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
 import top.chengdongqing.wechat.data.model.LocationItem
 import top.chengdongqing.wechat.ui.components.location.picker.LocationPickerState
 import top.chengdongqing.wechat.ui.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.UpdatedEffect
+import top.chengdongqing.wechat.ui.util.LaunchedUpdateEffect
 
 @Composable
 fun SearchPanel(state: LocationPickerState) {
@@ -165,7 +165,7 @@ private fun SearchingEffect(
                 refresh(state, paging, listState, it, currentType)
             }
     }
-    UpdatedEffect(currentType) {
+    LaunchedUpdateEffect(currentType) {
         refresh(state, paging, listState, currentKeyword, currentType)
     }
 }
@@ -198,12 +198,12 @@ private fun KeyboardEffect(state: LocationPickerState) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val keyboardHeight = rememberKeyboardHeight()
 
-    UpdatedEffect(keyboardHeight) {
+    LaunchedUpdateEffect(keyboardHeight) {
         if (keyboardHeight > 0.dp) {
             state.isListExpanded = true
         }
     }
-    UpdatedEffect(state.isListExpanded) {
+    LaunchedUpdateEffect(state.isListExpanded) {
         if (!state.isListExpanded) {
             keyboardController?.hide()
         }

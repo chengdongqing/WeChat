@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.utils.formatChatTime
+import top.chengdongqing.wechat.core.util.toChatDisplayTime
 import top.chengdongqing.wechat.data.model.ChatMessage
 
 @Composable
@@ -41,7 +41,7 @@ fun TimeDivider(
         val message = messages[index]
         // 时间格式化
         val time = remember(message.timestamp) {
-            formatChatTime(message.timestamp)
+            message.timestamp.toChatDisplayTime()
         }
 
         TimeText(time)

@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.utils.asAssetPath
+import top.chengdongqing.wechat.core.util.asAssetPath
 import top.chengdongqing.wechat.data.model.MessageContent
 
 @Composable

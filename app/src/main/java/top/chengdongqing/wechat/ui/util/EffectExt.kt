@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.utils
+package top.chengdongqing.wechat.ui.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
-fun UpdatedEffect(key: Any?, block: suspend CoroutineScope.() -> Unit) {
+fun LaunchedUpdateEffect(key: Any?, block: suspend CoroutineScope.() -> Unit) {
     val updated = remember { mutableStateOf(false) }
 
     LaunchedEffect(key) {

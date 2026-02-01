@@ -13,8 +13,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.PinyinUtils.getInitial
-import top.chengdongqing.wechat.core.utils.randomUUID
+import top.chengdongqing.wechat.core.util.PinyinHelper.getInitial
+import top.chengdongqing.wechat.core.util.randomUUID
 import javax.inject.Inject
 
 data class ContactListState(

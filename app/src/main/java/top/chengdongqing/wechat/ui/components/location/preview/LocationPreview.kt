@@ -36,8 +36,8 @@ import androidx.compose.ui.unit.sp
 import com.amap.api.maps.CameraUpdateFactory
 import com.amap.api.maps.model.MarkerOptions
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.utils.createBitmapDescriptor
-import top.chengdongqing.wechat.core.utils.navigateToLocation
+import top.chengdongqing.wechat.core.util.createBitmapDescriptor
+import top.chengdongqing.wechat.core.util.navigateToLocation
 import top.chengdongqing.wechat.data.model.LocationPreviewItem
 import top.chengdongqing.wechat.data.model.MapType
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
@@ -47,7 +47,7 @@ import top.chengdongqing.wechat.ui.components.location.rememberAMapState
 import top.chengdongqing.wechat.ui.theme.Black
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.theme.White
-import top.chengdongqing.wechat.ui.utils.weClickable
+import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
 fun WeLocationPreview(location: LocationPreviewItem, onBack: () -> Unit) {

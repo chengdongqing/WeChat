@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.utils
+package top.chengdongqing.wechat.ui.util
 
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background

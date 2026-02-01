@@ -18,7 +18,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.call.model.CallState
 import top.chengdongqing.wechat.data.call.model.CallType
 import top.chengdongqing.wechat.ui.call.CallUiState
-import top.chengdongqing.wechat.ui.utils.weClickable
+import top.chengdongqing.wechat.ui.util.weClickable
 
 /**
  * 通话控制栏

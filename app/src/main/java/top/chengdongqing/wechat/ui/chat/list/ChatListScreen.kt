@@ -20,7 +20,7 @@ import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.Danger
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 
 @Composable
 fun ChatListScreen(

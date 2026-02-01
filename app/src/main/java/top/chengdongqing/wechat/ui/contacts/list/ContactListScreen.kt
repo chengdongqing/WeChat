@@ -29,7 +29,7 @@ import top.chengdongqing.wechat.ui.contacts.list.components.AlphabetIndexer
 import top.chengdongqing.wechat.ui.contacts.list.components.ContactListItem
 import top.chengdongqing.wechat.ui.contacts.list.components.TopFunctionList
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 
 @Composable
 fun ContactListScreen(

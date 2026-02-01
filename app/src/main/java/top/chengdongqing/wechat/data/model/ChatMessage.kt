@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.data.model
 
 import android.net.Uri
-import top.chengdongqing.wechat.core.utils.format
+import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.data.call.model.CallType
 import kotlin.time.Duration.Companion.milliseconds
 

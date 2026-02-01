@@ -22,7 +22,7 @@ import org.webrtc.SurfaceTextureHelper
 import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoCapturer
 import org.webrtc.VideoTrack
-import top.chengdongqing.wechat.core.utils.getBestSupportedResolution
+import top.chengdongqing.wechat.core.util.getBestSupportedResolution
 import top.chengdongqing.wechat.data.model.ChatPayload
 
 class WebRtcManager(

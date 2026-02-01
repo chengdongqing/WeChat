@@ -24,12 +24,12 @@ import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.location.preview.previewLocation
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.rememberWindowFractionWidth
+import top.chengdongqing.wechat.ui.util.rememberScreenFractionWidth
 
 @Composable
 fun LocationContent(content: MessageContent.Location) {
     val context = LocalContext.current
-    val targetWidth = rememberWindowFractionWidth(0.6f)
+    val targetWidth = rememberScreenFractionWidth(0.6f)
 
     Column(
         modifier = Modifier
