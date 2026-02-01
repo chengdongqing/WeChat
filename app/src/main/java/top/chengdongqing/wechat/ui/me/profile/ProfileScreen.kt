@@ -68,7 +68,9 @@ fun ProfileScreen(navController: NavController) {
                 }) {
                     AvatarContent()
                 }
-                ProfileItem("名字") {
+                ProfileItem("名字", onClick = {
+                    navController.navigate(Screen.Nickname.route)
+                }) {
                     TextContent("海盐芝士不加糖")
                 }
                 ProfileItem("性别") {
@@ -84,8 +86,14 @@ fun ProfileScreen(navController: NavController) {
                 }) {
                     QRCodeContent()
                 }
-                ProfileItem("签名", false) {
-                    TextContent("给时光以生命")
+                ProfileItem(
+                    label = "签名",
+                    showDivider = false,
+                    onClick = {
+                        navController.navigate(Screen.Signature.route)
+                    }
+                ) {
+                    TextContent("这么近 那么美")
                 }
             }
             ProfileItem("来电铃声", false) {}

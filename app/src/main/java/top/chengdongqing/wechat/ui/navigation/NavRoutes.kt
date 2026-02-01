@@ -53,4 +53,6 @@ sealed class Screen(
     object Avatar : Screen("profile/avatar", "头像")
     object QRCode : Screen("profile/qrcode", "我的二维码")
     object ID : Screen("profile/id", "微信号")
+    object Nickname : Screen("profile/nickname", "名字")
+    object Signature : Screen("profile/signature", "个性签名")
 }

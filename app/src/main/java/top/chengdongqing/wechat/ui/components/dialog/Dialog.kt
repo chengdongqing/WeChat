@@ -18,6 +18,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.LinkColor
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
@@ -175,7 +179,8 @@ interface DialogState {
 
 @Composable
 fun rememberDialogState(): DialogState {
-    val state = remember { DialogStateImpl() }
+    val scope = rememberCoroutineScope()
+    val state = remember { DialogStateImpl(scope) }
 
     if (state.visible) {
         state.props?.let { props ->
@@ -209,7 +214,7 @@ fun rememberDialogState(): DialogState {
     return state
 }
 
-private class DialogStateImpl : DialogState {
+private class DialogStateImpl(private val scope: CoroutineScope) : DialogState {
     override var visible by mutableStateOf(false)
     var props by mutableStateOf<DialogProps?>(null)
         private set
@@ -238,7 +243,10 @@ private class DialogStateImpl : DialogState {
     }
 
     override fun hide() {
-        visible = false
+        scope.launch {
+            delay(100)
+            visible = false
+        }
     }
 }
 
