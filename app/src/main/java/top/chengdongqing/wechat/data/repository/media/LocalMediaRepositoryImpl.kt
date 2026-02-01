@@ -59,7 +59,7 @@ class LocalMediaRepositoryImpl(private val context: Context) : LocalMediaReposit
                         MediaItem(
                             fileUri,
                             filename = cursor.getString(nameColumn),
-                            mediaType = mediaType ?: MediaType.IMAGE,
+                            mediaType = mediaType ?: MediaType.Image,
                             mimeType = cursor.getString(mimeTypeColumn),
                             duration = cursor.getLong(durationColumn),
                             date = cursor.getLong(dateColumn),

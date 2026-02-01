@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.contacts
+package top.chengdongqing.wechat.ui.contacts.list.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,16 +16,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.data.model.Contact
+import top.chengdongqing.wechat.ui.contacts.list.Contact
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun ContactItem(contact: Contact) {
+fun ContactListItem(contact: Contact) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,17 +44,4 @@ fun ContactItem(contact: Contact) {
         Spacer(modifier = Modifier.width(12.dp))
         Text(text = contact.name, fontSize = 16.sp, color = WeChatTheme.colorScheme.textPrimary)
     }
-}
-
-@Composable
-fun ContactHeader(initial: Char) {
-    Text(
-        text = initial.toString(),
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WeChatTheme.colorScheme.background)
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        color = Color.Gray,
-        fontSize = 14.sp
-    )
 }

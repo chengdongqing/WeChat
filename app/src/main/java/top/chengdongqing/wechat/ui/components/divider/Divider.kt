@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.components.divider
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -14,9 +15,9 @@ fun WeDivider(
     modifier: Modifier = Modifier,
     thickness: Dp = 0.5.dp,
     color: Color = WeChatTheme.colorScheme.divider,
-    direction: DividerDirection = DividerDirection.HORIZONTAL
+    orientation: Orientation = Orientation.Horizontal
 ) {
-    if (direction == DividerDirection.HORIZONTAL) {
+    if (orientation == Orientation.Horizontal) {
         HorizontalDivider(
             modifier = modifier,
             thickness = thickness,
@@ -29,9 +30,4 @@ fun WeDivider(
             color = color
         )
     }
-}
-
-enum class DividerDirection {
-    HORIZONTAL,
-    VERTICAL
 }

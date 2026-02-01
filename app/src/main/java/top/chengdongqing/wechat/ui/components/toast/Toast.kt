@@ -54,10 +54,10 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 enum class ToastIcon {
-    SUCCESS,
-    FAIL,
-    LOADING,
-    NONE
+    Success,
+    Fail,
+    Loading,
+    None
 }
 
 /**
@@ -74,12 +74,12 @@ enum class ToastIcon {
 fun WeToast(
     visible: Boolean,
     title: String,
-    icon: ToastIcon = ToastIcon.NONE,
+    icon: ToastIcon = ToastIcon.None,
     duration: Duration = 1500.milliseconds,
     mask: Boolean = false,
     onClose: () -> Unit
 ) {
-    val hasIcon = icon != ToastIcon.NONE
+    val hasIcon = icon != ToastIcon.None
     var localVisible by remember {
         mutableStateOf(visible)
     }
@@ -133,7 +133,7 @@ fun WeToast(
                             Modifier
                                 .toastSize(hasIcon)
                                 .clip(
-                                    if (icon != ToastIcon.NONE) {
+                                    if (icon != ToastIcon.None) {
                                         RoundedCornerShape(12.dp)
                                     } else {
                                         RoundedCornerShape(8.dp)
@@ -144,15 +144,15 @@ fun WeToast(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             when (icon) {
-                                ToastIcon.LOADING -> {
+                                ToastIcon.Loading -> {
                                     WeLoading(size = 43.dp, color = Grey_ED)
                                     Spacer(modifier = Modifier.height(10.dp))
                                 }
 
-                                ToastIcon.SUCCESS,
-                                ToastIcon.FAIL ->
+                                ToastIcon.Success,
+                                ToastIcon.Fail ->
                                     Icon(
-                                        if (icon == ToastIcon.SUCCESS) Icons.Outlined.Check else Icons.Filled.Info,
+                                        if (icon == ToastIcon.Success) Icons.Outlined.Check else Icons.Filled.Info,
                                         contentDescription = null,
                                         modifier = Modifier.size(43.dp),
                                         tint = Grey_ED
@@ -202,7 +202,7 @@ interface ToastState {
      */
     fun show(
         title: String,
-        icon: ToastIcon = ToastIcon.NONE,
+        icon: ToastIcon = ToastIcon.None,
         duration: Duration = 1500.milliseconds,
         mask: Boolean = false
     )

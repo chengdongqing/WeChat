@@ -23,7 +23,7 @@ class MediaPickerActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val type = intent.getStringExtra(EXTRA_MEDIA_TYPE)?.run { VisualMediaType.valueOf(this) }
-            ?: VisualMediaType.IMAGE_AND_VIDEO
+            ?: VisualMediaType.ImageAndVideo
         val count = intent.getIntExtra(EXTRA_MEDIA_COUNT, 99)
 
         setContent {

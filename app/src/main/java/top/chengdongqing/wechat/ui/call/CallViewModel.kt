@@ -29,8 +29,8 @@ import javax.inject.Inject
  * 通话UI状态
  */
 data class CallUiState(
-    val callType: CallType = CallType.VOICE,
-    val callDirection: CallDirection = CallDirection.OUTGOING,
+    val callType: CallType = CallType.Voice,
+    val callDirection: CallDirection = CallDirection.Outgoing,
     val callState: CallState = CallState.Idle,
     val remoteUser: CallUser = CallUser("", ""),
     val duration: CallDuration = CallDuration(),
@@ -47,14 +47,14 @@ data class CallUiState(
      * 是否显示本地视频预览
      */
     val shouldShowLocalPreview: Boolean
-        get() = callType == CallType.VIDEO &&
+        get() = callType == CallType.Video &&
                 (callState is CallState.Active || callState is CallState.Connecting)
 
     /**
      * 是否显示远程视频
      */
     val shouldShowRemoteVideo: Boolean
-        get() = callType == CallType.VIDEO &&
+        get() = callType == CallType.Video &&
                 callState is CallState.Active &&
                 videoConfig.isRemoteVideoEnabled
 
@@ -64,8 +64,8 @@ data class CallUiState(
     fun getStatusText(): String = when (callState) {
         is CallState.Connecting -> "等待对方接听..."
         is CallState.Ringing -> when (callType) {
-            CallType.VOICE -> "邀请你语音通话"
-            CallType.VIDEO -> "邀请你视频通话"
+            CallType.Voice -> "邀请你语音通话"
+            CallType.Video -> "邀请你视频通话"
         }
 
         is CallState.Active -> duration.format()
@@ -127,16 +127,16 @@ class CallViewModel @Inject constructor(
                 callDirection = callDirection,
                 remoteUser = remoteUser,
                 callState = when (callDirection) {
-                    CallDirection.OUTGOING -> CallState.Connecting
-                    CallDirection.INCOMING -> CallState.Ringing
+                    CallDirection.Outgoing -> CallState.Connecting
+                    CallDirection.Incoming -> CallState.Ringing
                 }
             )
         }
 
         // 根据呼叫方向启动相应流程
         when (callDirection) {
-            CallDirection.OUTGOING -> startConnecting()
-            CallDirection.INCOMING -> startRinging()
+            CallDirection.Outgoing -> startConnecting()
+            CallDirection.Incoming -> startRinging()
         }
     }
 
@@ -251,7 +251,7 @@ class CallViewModel @Inject constructor(
         ringtoneJob?.cancel()
         ringtoneJob = viewModelScope.launch {
             while (isActive) {
-                soundPlayer.play(SoundPlayer.Sound.CONNECTING)
+                soundPlayer.play(SoundPlayer.Sound.Connecting)
                 delay(3000)
             }
         }
@@ -264,7 +264,7 @@ class CallViewModel @Inject constructor(
         ringtoneJob?.cancel()
         ringtoneJob = viewModelScope.launch {
             while (isActive) {
-                soundPlayer.play(SoundPlayer.Sound.RINGING)
+                soundPlayer.play(SoundPlayer.Sound.Ringing)
                 delay(3000)
             }
         }
@@ -275,7 +275,7 @@ class CallViewModel @Inject constructor(
      */
     private fun playCallEndSound() {
         viewModelScope.launch {
-            soundPlayer.play(SoundPlayer.Sound.CALL_END)
+            soundPlayer.play(SoundPlayer.Sound.CallEnd)
         }
     }
 
@@ -301,13 +301,13 @@ class CallViewModel @Inject constructor(
 private fun SavedStateHandle.getCallType(): CallType {
     return get<String>(CallActivity.EXTRA_CALL_TYPE)?.let {
         runCatching { CallType.valueOf(it) }.getOrNull()
-    } ?: CallType.VOICE
+    } ?: CallType.Voice
 }
 
 private fun SavedStateHandle.getCallDirection(): CallDirection {
     return get<String>(CallActivity.EXTRA_CALL_DIRECTION)?.let {
         runCatching { CallDirection.valueOf(it) }.getOrNull()
-    } ?: CallDirection.OUTGOING
+    } ?: CallDirection.Outgoing
 }
 
 private fun SavedStateHandle.getRemoteUser(): CallUser {

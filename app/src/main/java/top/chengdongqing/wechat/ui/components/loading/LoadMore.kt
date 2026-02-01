@@ -22,15 +22,15 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 
 enum class LoadMoreType {
-    LOADING,
-    EMPTY_DATA,
-    ALL_LOADED
+    Loading,
+    EmptyData,
+    AllLoaded
 }
 
 @Composable
 fun WeLoadMore(
     modifier: Modifier = Modifier,
-    type: LoadMoreType = LoadMoreType.LOADING,
+    type: LoadMoreType = LoadMoreType.Loading,
     listState: LazyListState? = null
 ) {
     Row(
@@ -41,7 +41,7 @@ fun WeLoadMore(
         verticalAlignment = Alignment.CenterVertically
     ) {
         when (type) {
-            LoadMoreType.LOADING -> {
+            LoadMoreType.Loading -> {
                 WeLoading()
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -57,7 +57,7 @@ fun WeLoadMore(
                 }
             }
 
-            LoadMoreType.EMPTY_DATA -> {
+            LoadMoreType.EmptyData -> {
                 WeDivider(modifier = Modifier.weight(1f))
                 Text(
                     text = "暂无数据",
@@ -68,7 +68,7 @@ fun WeLoadMore(
                 WeDivider(modifier = Modifier.weight(1f))
             }
 
-            LoadMoreType.ALL_LOADED -> {
+            LoadMoreType.AllLoaded -> {
                 WeDivider(modifier = Modifier.weight(1f))
                 Box(
                     modifier = Modifier

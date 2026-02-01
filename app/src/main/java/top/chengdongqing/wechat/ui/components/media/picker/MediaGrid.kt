@@ -19,8 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,15 +33,14 @@ import top.chengdongqing.wechat.core.utils.showToast
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
+import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.ui.utils.weClickable
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 internal fun ColumnScope.MediaGrid(state: MediaPickerState) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+    val overscrollEffect = rememberBounceOverscrollEffect()
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),

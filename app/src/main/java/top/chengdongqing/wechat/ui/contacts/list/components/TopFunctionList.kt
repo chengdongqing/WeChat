@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.contacts
+package top.chengdongqing.wechat.ui.contacts.list.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -51,7 +51,7 @@ fun TopFunctionList() {
 }
 
 @Composable
-fun TopFunctionItem(function: TopFunction) {
+private fun TopFunctionItem(function: TopFunction) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -83,7 +83,7 @@ fun TopFunctionItem(function: TopFunction) {
     }
 }
 
-data class TopFunction(
+private data class TopFunction(
     val title: String,
     @get:DrawableRes val iconResId: Int,
     val containerColor: Color

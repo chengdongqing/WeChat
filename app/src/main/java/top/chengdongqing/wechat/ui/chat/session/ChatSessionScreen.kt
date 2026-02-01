@@ -33,7 +33,7 @@ import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.chat.session.input.InputBar
 import top.chengdongqing.wechat.ui.chat.session.message.MessageItem
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
-import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
+import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
 
 @Composable
 fun ChatSessionScreen(
@@ -48,7 +48,7 @@ fun ChatSessionScreen(
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+    val overscrollEffect = rememberBounceOverscrollEffect()
 
     // 当键盘弹出时，消息列表自动置底
     KeyboardScrollEffect(listState, messages.size)

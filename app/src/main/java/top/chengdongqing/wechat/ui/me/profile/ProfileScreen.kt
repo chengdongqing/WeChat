@@ -44,8 +44,6 @@ import top.chengdongqing.wechat.ui.theme.White
  */
 @Composable
 fun ProfileScreen(navController: NavController) {
-    val scrollState = rememberScrollState()
-
     Scaffold(
         topBar = {
             WeTopBar(
@@ -58,7 +56,7 @@ fun ProfileScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {

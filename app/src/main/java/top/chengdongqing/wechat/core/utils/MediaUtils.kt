@@ -30,10 +30,10 @@ object MediaStoreUtils {
         mediaType: MediaType,
     ): ContentValues {
         val directory = when (mediaType) {
-            MediaType.IMAGE -> Environment.DIRECTORY_PICTURES
-            MediaType.VIDEO -> Environment.DIRECTORY_MOVIES
-            MediaType.AUDIO -> Environment.DIRECTORY_MUSIC
-            MediaType.RECORDING -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MediaType.Image -> Environment.DIRECTORY_PICTURES
+            MediaType.Video -> Environment.DIRECTORY_MOVIES
+            MediaType.Audio -> Environment.DIRECTORY_MUSIC
+            MediaType.Recording -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 Environment.DIRECTORY_RECORDINGS
             } else {
                 Environment.DIRECTORY_MUSIC
@@ -72,9 +72,9 @@ object MediaStoreUtils {
      */
     fun getContentUri(mediaType: MediaType): Uri =
         when (mediaType) {
-            MediaType.IMAGE -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            MediaType.VIDEO -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-            MediaType.AUDIO, MediaType.RECORDING -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            MediaType.Image -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            MediaType.Video -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            MediaType.Audio, MediaType.Recording -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         }
 }
 

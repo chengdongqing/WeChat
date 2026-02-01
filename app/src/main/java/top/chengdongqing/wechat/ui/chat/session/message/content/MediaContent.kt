@@ -114,7 +114,7 @@ fun MediaContent(content: MessageContent.Media) {
 private fun MessageContent.Media.toMediaItem() = MediaItem(
     uri = uri,
     filename = filename,
-    mediaType = if (this is MessageContent.Video) MediaType.VIDEO else MediaType.IMAGE,
+    mediaType = if (this is MessageContent.Video) MediaType.Video else MediaType.Image,
     mimeType = mimeType,
     width = width,
     height = height,

@@ -85,7 +85,7 @@ private class MediaPickerStateImpl(
 ) : MediaPickerState {
     override var type by mutableStateOf(initialType)
     override val isTypeEnabled: Boolean
-        get() = initialType == VisualMediaType.IMAGE_AND_VIDEO
+        get() = initialType == VisualMediaType.ImageAndVideo
     override var isLoading by mutableStateOf(true)
     override var mediaList by mutableStateOf<List<MediaItem>>(emptyList())
     override val selectedMediaList = mutableStateListOf<MediaItem>()
@@ -101,11 +101,11 @@ private class MediaPickerStateImpl(
     override suspend fun refresh(type: VisualMediaType) {
         this.type = type
         val types = buildList {
-            if (type == VisualMediaType.IMAGE_AND_VIDEO || type == VisualMediaType.IMAGE) {
-                add(MediaType.IMAGE)
+            if (type == VisualMediaType.ImageAndVideo || type == VisualMediaType.Image) {
+                add(MediaType.Image)
             }
-            if (type == VisualMediaType.IMAGE_AND_VIDEO || type == VisualMediaType.VIDEO) {
-                add(MediaType.VIDEO)
+            if (type == VisualMediaType.ImageAndVideo || type == VisualMediaType.Video) {
+                add(MediaType.Video)
             }
         }.toTypedArray()
 

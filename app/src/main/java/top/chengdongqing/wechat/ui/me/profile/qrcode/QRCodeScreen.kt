@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.ui.me.profile.qrcode
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,7 +44,6 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.createImageUri
 import top.chengdongqing.wechat.core.utils.randomUUID
 import top.chengdongqing.wechat.core.utils.saveToAlbum
-import top.chengdongqing.wechat.ui.components.divider.DividerDirection
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.ui.components.qrcode.generator.rememberQRCodeState
@@ -131,7 +131,7 @@ fun QRCodeScreen(onBack: () -> Unit) {
                 onSaveToAlbum = {
                     toast.show(
                         title = "正在处理...",
-                        icon = ToastIcon.LOADING,
+                        icon = ToastIcon.Loading,
                         duration = Duration.INFINITE,
                         mask = true
                     )
@@ -146,7 +146,7 @@ fun QRCodeScreen(onBack: () -> Unit) {
                         delay(200)
                         toast.show(
                             title = if (success) "已保存到相册" else "保存失败",
-                            icon = if (success) ToastIcon.SUCCESS else ToastIcon.FAIL
+                            icon = if (success) ToastIcon.Success else ToastIcon.Fail
                         )
                     }
                 }
@@ -218,7 +218,7 @@ private fun LinkText(text: String, onClick: () -> Unit) {
 private fun FooterDivider() {
     WeDivider(
         modifier = Modifier.height(8.dp),
-        direction = DividerDirection.VERTICAL
+        orientation = Orientation.Vertical
     )
 }
 

@@ -66,11 +66,11 @@ fun PermissionWrapper(
 
     // 封装检查逻辑
     val checkHardwareStatus = {
-        val btReady = if (mode == P2pMode.BLUETOOTH) {
+        val btReady = if (mode == P2pMode.Bluetooth) {
             bluetoothAdapter?.isEnabled == true
         } else true
 
-        val wifiReady = if (mode != P2pMode.BLUETOOTH) {
+        val wifiReady = if (mode != P2pMode.Bluetooth) {
             wifiManager?.isWifiEnabled == true
         } else true
 
@@ -97,7 +97,7 @@ fun PermissionWrapper(
             }
         }
         val filter = IntentFilter().apply {
-            if (mode == P2pMode.BLUETOOTH) addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+            if (mode == P2pMode.Bluetooth) addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
             else addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
         }
         context.registerReceiver(receiver, filter)
@@ -110,7 +110,7 @@ fun PermissionWrapper(
         PermissionGuideScreen(
             mode = mode,
             onAction = {
-                if (mode == P2pMode.BLUETOOTH) {
+                if (mode == P2pMode.Bluetooth) {
                     if (bluetoothAdapter == null) {
                         context.showToast("此设备不支持蓝牙")
                     } else if (!bluetoothAdapter.isEnabled) {
@@ -137,19 +137,19 @@ fun PermissionGuideScreen(
     onAction: () -> Unit
 ) {
     val (icon, title, desc) = when (mode) {
-        P2pMode.WIFI_LAN -> Triple(
+        P2pMode.WifiLan -> Triple(
             Icons.Default.Wifi,
             "局域网传输",
             "需要 Wi-Fi 状态权限以发现同一路由器下的伙伴。"
         )
 
-        P2pMode.WIFI_DIRECT -> Triple(
+        P2pMode.WifiDirect -> Triple(
             Icons.Default.WifiTethering, // 或者使用自定义 WFD 图标
             "Wi-Fi 直连 (快传)",
             "需要在没有路由器的情况下搜索附近的手机，这需要精确位置和附近设备权限。"
         )
 
-        P2pMode.BLUETOOTH -> Triple(
+        P2pMode.Bluetooth -> Triple(
             Icons.Default.Bluetooth,
             "蓝牙传输",
             "需要扫描并连接附近的蓝牙设备，请授权蓝牙相关权限。"
@@ -198,7 +198,7 @@ fun PermissionGuideScreen(
         }
 
         // 针对 Wi-Fi Direct 的特殊提示
-        if (mode == P2pMode.WIFI_DIRECT) {
+        if (mode == P2pMode.WifiDirect) {
             Text(
                 text = "提示：Wi-Fi 直连在某些设备上还需手动开启 GPS",
                 style = MaterialTheme.typography.labelSmall,
@@ -211,13 +211,13 @@ fun PermissionGuideScreen(
 
 private fun getPermissionsForMode(mode: P2pMode): List<String> {
     return when (mode) {
-        P2pMode.WIFI_LAN -> listOf(
+        P2pMode.WifiLan -> listOf(
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.CHANGE_WIFI_MULTICAST_STATE
         )
 
-        P2pMode.WIFI_DIRECT -> {
+        P2pMode.WifiDirect -> {
             val list = mutableListOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.CHANGE_WIFI_STATE,
@@ -229,7 +229,7 @@ private fun getPermissionsForMode(mode: P2pMode): List<String> {
             list
         }
 
-        P2pMode.BLUETOOTH -> {
+        P2pMode.Bluetooth -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 listOf(
                     Manifest.permission.BLUETOOTH_SCAN,

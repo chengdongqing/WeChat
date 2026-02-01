@@ -81,9 +81,9 @@ private fun TopBar(
     val actionSheet = rememberActionSheetState()
     val typeOptions = remember {
         listOf(
-            ActionSheetItem("选择图片", value = VisualMediaType.IMAGE),
-            ActionSheetItem("选择视频", value = VisualMediaType.VIDEO),
-            ActionSheetItem("图片和视频", value = VisualMediaType.IMAGE_AND_VIDEO)
+            ActionSheetItem("选择图片", value = VisualMediaType.Image),
+            ActionSheetItem("选择视频", value = VisualMediaType.Video),
+            ActionSheetItem("图片和视频", value = VisualMediaType.ImageAndVideo)
         )
     }
 
@@ -166,7 +166,7 @@ private fun BottomBar(state: MediaPickerState, onConfirm: () -> Unit) {
         )
         WeButton(
             text = "确定$countDescription",
-            size = ButtonSize.SMALL,
+            size = ButtonSize.Small,
             disabled = selectedCount == 0
         ) {
             onConfirm()

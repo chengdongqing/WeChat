@@ -58,7 +58,7 @@ fun VoiceRecordButton(
 
     // ========== 状态管理 ==========
     var isRecording by remember { mutableStateOf(false) }
-    var recordState by remember { mutableStateOf(RecordState.IDLE) }
+    var recordState by remember { mutableStateOf(RecordState.Idle) }
     var recordDuration by remember { mutableLongStateOf(0L) }
     var audioAmplitude by remember { mutableFloatStateOf(0f) }
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
@@ -83,7 +83,7 @@ fun VoiceRecordButton(
                         onSend = onVoiceSend
                     )
                     isRecording = false
-                    recordState = RecordState.IDLE
+                    recordState = RecordState.Idle
                 }
             }
         }
@@ -109,7 +109,7 @@ fun VoiceRecordButton(
                         startRecording(audioRecorder) { success ->
                             if (success) {
                                 isRecording = true
-                                recordState = RecordState.RECORDING
+                                recordState = RecordState.Recording
                                 recordDuration = 0L
                                 audioAmplitude = 0f
                                 dragOffset = Offset.Zero
@@ -140,7 +140,7 @@ fun VoiceRecordButton(
                                     onConvertToText = onConvertToText,
                                     onStateChange = { newState ->
                                         recordState = newState
-                                        isRecording = newState != RecordState.IDLE
+                                        isRecording = newState != RecordState.Idle
                                     }
                                 )
                             }
@@ -149,7 +149,7 @@ fun VoiceRecordButton(
                     onDragCancel = {
                         audioRecorder.cancelRecording()
                         isRecording = false
-                        recordState = RecordState.IDLE
+                        recordState = RecordState.Idle
                     }
                 )
             },
@@ -160,7 +160,7 @@ fun VoiceRecordButton(
     }
 
     // ========== 录音遮罩层 ==========
-    if (isRecording && recordState != RecordState.TOO_SHORT) {
+    if (isRecording && recordState != RecordState.TooShort) {
         RecordingDialog(
             recordState = recordState,
             audioAmplitude = audioAmplitude
@@ -200,13 +200,13 @@ private fun calculateRecordState(
     return when {
         offsetYDp < (-100).dp -> {
             when {
-                offsetXDp < (-50).dp -> RecordState.CANCEL
-                offsetXDp > 50.dp -> RecordState.CONVERT
-                else -> RecordState.RECORDING
+                offsetXDp < (-50).dp -> RecordState.Cancel
+                offsetXDp > 50.dp -> RecordState.Convert
+                else -> RecordState.Recording
             }
         }
 
-        else -> RecordState.RECORDING
+        else -> RecordState.Recording
     }
 }
 
@@ -223,33 +223,33 @@ private suspend fun handleDragEnd(
     onStateChange: (RecordState) -> Unit
 ) {
     when (recordState) {
-        RecordState.CANCEL -> {
+        RecordState.Cancel -> {
             audioRecorder.cancelRecording()
-            onStateChange(RecordState.IDLE)
+            onStateChange(RecordState.Idle)
         }
 
-        RecordState.CONVERT -> {
+        RecordState.Convert -> {
             val uri = audioRecorder.stopRecording()
             if (uri != null && onConvertToText != null) {
                 onConvertToText(uri, recordDuration)
             }
-            onStateChange(RecordState.IDLE)
+            onStateChange(RecordState.Idle)
         }
 
-        RecordState.RECORDING -> {
+        RecordState.Recording -> {
             if (recordDuration < minDuration) {
                 // 时间太短
                 audioRecorder.cancelRecording()
-                onStateChange(RecordState.TOO_SHORT)
+                onStateChange(RecordState.TooShort)
                 delay(1200)
-                onStateChange(RecordState.IDLE)
+                onStateChange(RecordState.Idle)
             } else {
                 // 正常发送
                 val uri = audioRecorder.stopRecording()
                 if (uri != null) {
                     onSend(uri, recordDuration)
                 }
-                onStateChange(RecordState.IDLE)
+                onStateChange(RecordState.Idle)
             }
         }
 
@@ -280,10 +280,10 @@ private fun handleRecordingComplete(
 private fun RecordButtonText(recordState: RecordState) {
     Text(
         text = when (recordState) {
-            RecordState.TOO_SHORT -> "说话时间太短"
+            RecordState.TooShort -> "说话时间太短"
             else -> "按住 说话"
         },
-        color = if (recordState == RecordState.TOO_SHORT) {
+        color = if (recordState == RecordState.TooShort) {
             Color(0xFFFF3B30)
         } else {
             Color.Black
@@ -324,9 +324,9 @@ private fun RecordingDialog(
  * 录音状态枚举
  */
 enum class RecordState {
-    IDLE,       // 空闲
-    RECORDING,  // 正常录音
-    CANCEL,     // 准备取消
-    CONVERT,    // 准备转文字
-    TOO_SHORT   // 时间太短
+    Idle,       // 空闲
+    Recording,  // 正常录音
+    Cancel,     // 准备取消
+    Convert,    // 准备转文字
+    TooShort   // 时间太短
 }

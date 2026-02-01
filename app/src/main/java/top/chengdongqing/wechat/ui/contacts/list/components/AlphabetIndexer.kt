@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.contacts
+package top.chengdongqing.wechat.ui.contacts.list.components
 
 import android.view.MotionEvent
 import androidx.compose.foundation.background

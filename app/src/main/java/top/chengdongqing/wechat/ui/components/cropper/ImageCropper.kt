@@ -119,7 +119,7 @@ fun WeImageCropper(
                 imageBitmap?.let { bitmap ->
                     toast.show(
                         "处理中...",
-                        ToastIcon.LOADING,
+                        ToastIcon.Loading,
                         duration = Duration.INFINITE,
                         mask = true
                     )

@@ -28,9 +28,9 @@ import top.chengdongqing.wechat.ui.theme.TextPrimaryDark
 import top.chengdongqing.wechat.ui.theme.TextPrimaryLight
 
 enum class ButtonType {
-    PRIMARY,
-    DANGER,
-    PLAIN
+    Primary,
+    Danger,
+    Plain
 }
 
 enum class ButtonSize(
@@ -38,9 +38,9 @@ enum class ButtonSize(
     val fontSize: TextUnit,
     val borderRadius: Dp = 8.dp
 ) {
-    LARGE(PaddingValues(vertical = 12.dp, horizontal = 24.dp), 17.sp),
-    MEDIUM(PaddingValues(vertical = 10.dp, horizontal = 24.dp), 14.sp),
-    SMALL(PaddingValues(vertical = 6.dp, horizontal = 12.dp), 14.sp, 6.dp)
+    Large(PaddingValues(vertical = 12.dp, horizontal = 24.dp), 17.sp),
+    Medium(PaddingValues(vertical = 10.dp, horizontal = 24.dp), 14.sp),
+    Small(PaddingValues(vertical = 6.dp, horizontal = 12.dp), 14.sp, 6.dp)
 }
 
 /**
@@ -58,8 +58,8 @@ enum class ButtonSize(
 fun WeButton(
     text: String,
     modifier: Modifier = Modifier,
-    type: ButtonType = ButtonType.PRIMARY,
-    size: ButtonSize = ButtonSize.LARGE,
+    type: ButtonType = ButtonType.Primary,
+    size: ButtonSize = ButtonSize.Large,
     width: Dp = 184.dp,
     disabled: Boolean = false,
     loading: Boolean = false,
@@ -70,7 +70,7 @@ fun WeButton(
 
     Box(
         Modifier
-            .width(if (size != ButtonSize.SMALL) width else Dp.Unspecified)
+            .width(if (size != ButtonSize.Small) width else Dp.Unspecified)
             .clip(RoundedCornerShape(size.borderRadius))
             .clickable(
                 enabled = !localDisabled
@@ -108,17 +108,17 @@ private data class ButtonColors(
 @Composable
 private fun buttonColorSchemeOf(type: ButtonType): ButtonColors {
     return when (type) {
-        ButtonType.PRIMARY -> {
+        ButtonType.Primary -> {
             ButtonColors(GreenPrimary, Color.White)
         }
 
-        ButtonType.DANGER -> if (isSystemInDarkTheme()) {
+        ButtonType.Danger -> if (isSystemInDarkTheme()) {
             ButtonColors(Danger, TextPrimaryDark)
         } else {
             ButtonColors(Color.Black.copy(0.05f), Danger)
         }
 
-        ButtonType.PLAIN -> if (isSystemInDarkTheme()) {
+        ButtonType.Plain -> if (isSystemInDarkTheme()) {
             ButtonColors(Color.White.copy(0.1f), TextPrimaryDark)
         } else {
             ButtonColors(Color.Black.copy(0.05f), TextPrimaryLight)

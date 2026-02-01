@@ -43,12 +43,10 @@ import top.chengdongqing.wechat.ui.utils.weClickable
 
 @Composable
 fun MeScreen(navController: NavController) {
-    val scrollState = rememberScrollState()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
+            .verticalScroll(rememberScrollState())
             .background(WeChatTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {

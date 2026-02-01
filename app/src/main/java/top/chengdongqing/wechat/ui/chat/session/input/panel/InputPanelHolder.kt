@@ -58,7 +58,7 @@ fun InputPanelHolder(
     )
 
     // 只在需要显示面板时才渲染
-    if (inputMode != InputMode.TEXT || animatedPanelHeight > 0.dp) {
+    if (inputMode != InputMode.Text || animatedPanelHeight > 0.dp) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,14 +67,14 @@ fun InputPanelHolder(
                 .clipToBounds() // 防止内容溢出
         ) {
             when (inputMode) {
-                InputMode.EMOJI -> EmojiPanel(
+                InputMode.Emoji -> EmojiPanel(
                     recentEmojis = recentEmojis,
                     onEmojiSelect = onEmojiSelect,
                     onStickerSelect = onStickerSelect,
                     onBackspace = onBackspace
                 )
 
-                InputMode.MORE -> MoreActionPanel { actionId, isLongClick ->
+                InputMode.More -> MoreActionPanel { actionId, isLongClick ->
                     onMoreAction?.invoke(actionId, isLongClick)
                 }
 

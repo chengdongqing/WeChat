@@ -38,7 +38,7 @@ fun CallControlBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = if (state.callType == CallType.VIDEO) 30.dp else 40.dp),
+            .padding(horizontal = if (state.callType == CallType.Video) 30.dp else 40.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -97,8 +97,8 @@ private fun IncomingCallControls(
         // 接听按钮
         CircularControlButton(
             iconResId = when (callType) {
-                CallType.VOICE -> R.drawable.ic_voice_call_filled
-                CallType.VIDEO -> R.drawable.ic_video_call_filled
+                CallType.Voice -> R.drawable.ic_voice_call_filled
+                CallType.Video -> R.drawable.ic_video_call_filled
             },
             text = "接听",
             backgroundColor = Color(0xFF52C41A),
@@ -131,7 +131,7 @@ private fun RowScope.ActiveCallControls(
     )
 
     // 视频模式下显示切换摄像头按钮
-    if (state.callType == CallType.VIDEO && state.isCallActive) {
+    if (state.callType == CallType.Video && state.isCallActive) {
         SwitchCameraButton(onClick = onSwitchCamera)
     }
 

@@ -44,7 +44,7 @@ fun String.parseRichText(
             val start = length
 
             when (match.type) {
-                MatchType.EMOJI -> {
+                MatchType.Emoji -> {
                     val emojiName = match.text.substring(1, match.text.length - 1)
                     if (Emojis.findByDescription(emojiName) != null) {
                         appendInlineContent(id = emojiName, alternateText = match.text)
@@ -53,7 +53,7 @@ fun String.parseRichText(
                     }
                 }
 
-                MatchType.URL -> {
+                MatchType.Url -> {
                     append(match.text)
                     addLink(
                         url = LinkAnnotation.Url(
@@ -68,7 +68,7 @@ fun String.parseRichText(
                     )
                 }
 
-                MatchType.PHONE -> {
+                MatchType.Phone -> {
                     append(match.text)
                     addLink(
                         clickable = LinkAnnotation.Clickable(
@@ -96,7 +96,7 @@ fun String.parseRichText(
  * 匹配类型
  */
 private enum class MatchType {
-    EMOJI, URL, PHONE
+    Emoji, Url, Phone
 }
 
 /**
@@ -118,7 +118,7 @@ private fun findAllRichTextMatches(text: String): List<RichTextMatch> {
     RichTextConfig.EMOJI_PATTERN.findAll(text).forEach { match ->
         allMatches.add(
             RichTextMatch(
-                type = MatchType.EMOJI,
+                type = MatchType.Emoji,
                 text = match.value,
                 range = match.range
             )
@@ -129,7 +129,7 @@ private fun findAllRichTextMatches(text: String): List<RichTextMatch> {
     RichTextConfig.URL_PATTERN.findAll(text).forEach { match ->
         allMatches.add(
             RichTextMatch(
-                type = MatchType.URL,
+                type = MatchType.Url,
                 text = match.value,
                 range = match.range
             )
@@ -140,7 +140,7 @@ private fun findAllRichTextMatches(text: String): List<RichTextMatch> {
     RichTextConfig.PHONE_PATTERN.findAll(text).forEach { match ->
         allMatches.add(
             RichTextMatch(
-                type = MatchType.PHONE,
+                type = MatchType.Phone,
                 text = match.value,
                 range = match.range
             )

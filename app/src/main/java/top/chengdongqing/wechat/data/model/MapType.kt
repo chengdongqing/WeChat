@@ -1,10 +1,10 @@
 package top.chengdongqing.wechat.data.model
 
 enum class MapType(val appName: String) {
-    AMAP("高德"),
-    BAIDU("百度"),
-    TENCENT("腾讯"),
-    GOOGLE("谷歌");
+    AMap("高德"),
+    Baidu("百度"),
+    Tencent("腾讯"),
+    Google("谷歌");
 
     companion object {
         fun ofIndex(index: Int): MapType? {

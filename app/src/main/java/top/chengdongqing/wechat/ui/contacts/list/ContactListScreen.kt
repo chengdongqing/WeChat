@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.contacts
+package top.chengdongqing.wechat.ui.contacts.list
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -14,25 +14,29 @@ import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.loading.WeLoading
+import top.chengdongqing.wechat.ui.contacts.list.components.AlphabetIndexer
+import top.chengdongqing.wechat.ui.contacts.list.components.ContactListItem
+import top.chengdongqing.wechat.ui.contacts.list.components.TopFunctionList
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
-import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
+import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
 
 @Composable
-fun ContactsScreen(viewModel: ContactsViewModel = hiltViewModel()) {
+fun ContactListScreen(viewModel: ContactListViewModel = hiltViewModel()) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+    val overscrollEffect = rememberBounceOverscrollEffect()
 
     Box(
         modifier = Modifier
@@ -72,7 +76,7 @@ fun ContactsScreen(viewModel: ContactsViewModel = hiltViewModel()) {
                         Column(
                             modifier = Modifier.background(WeChatTheme.colorScheme.surface)
                         ) {
-                            ContactItem(contact)
+                            ContactListItem(contact)
 
                             if (index < contacts.size - 1) {
                                 WeDivider(modifier = Modifier.padding(start = 68.dp))
@@ -99,7 +103,20 @@ fun ContactsScreen(viewModel: ContactsViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun ContactFooter(count: Int) {
+private fun ContactHeader(initial: Char) {
+    Text(
+        text = initial.toString(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(WeChatTheme.colorScheme.background)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        color = Color.Gray,
+        fontSize = 14.sp
+    )
+}
+
+@Composable
+private fun ContactFooter(count: Int) {
     Box(
         modifier = Modifier
             .fillMaxWidth()

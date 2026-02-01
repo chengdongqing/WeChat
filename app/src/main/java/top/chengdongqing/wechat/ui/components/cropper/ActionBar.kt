@@ -46,7 +46,7 @@ internal fun BoxScope.ActionBar(
         IconButton(onRotate) {
             Icon(Icons.Outlined.Rotate90DegreesCcw, "旋转", tint = Color.White)
         }
-        WeButton(text = "确定", size = ButtonSize.SMALL) {
+        WeButton(text = "确定", size = ButtonSize.Small) {
             onConfirm()
         }
     }

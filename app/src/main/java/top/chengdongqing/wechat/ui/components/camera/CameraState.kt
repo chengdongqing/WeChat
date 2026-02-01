@@ -277,7 +277,7 @@ private class CameraStateImpl(
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
                     val uri = context.getFileProviderUri(tempFile)
-                    onCapture(uri, VisualMediaType.IMAGE)
+                    onCapture(uri, VisualMediaType.Image)
                 }
 
                 override fun onError(e: ImageCaptureException) {
@@ -331,7 +331,7 @@ private class CameraStateImpl(
                             onError?.invoke(event.cause)
                         } else {
                             val uri = context.getFileProviderUri(tempFile)
-                            onCapture(uri, VisualMediaType.VIDEO)
+                            onCapture(uri, VisualMediaType.Video)
                         }
                     }
                 }

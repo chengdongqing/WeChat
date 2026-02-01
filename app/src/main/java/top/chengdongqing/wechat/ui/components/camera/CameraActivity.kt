@@ -22,7 +22,7 @@ class CameraActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val type = intent.getStringExtra(EXTRA_MEDIA_TYPE)?.run { VisualMediaType.valueOf(this) }
-            ?: VisualMediaType.IMAGE_AND_VIDEO
+            ?: VisualMediaType.ImageAndVideo
 
         setContent {
             WeChatTheme {

@@ -25,7 +25,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,14 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
-import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
+import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
 
 @Composable
 fun MoreActionPanel(onAction: (actionId: MoreAction, isLongClick: Boolean) -> Unit) {
-    val scope = rememberCoroutineScope()
     val pages = remember { MoreActionItems.chunked(ChunkCount) }
     val pagerState = rememberPagerState { pages.size }
-    val overscrollEffect = remember { BounceOverscrollEffect(scope, Orientation.Horizontal) }
+    val overscrollEffect = rememberBounceOverscrollEffect(Orientation.Horizontal)
 
     Column(
         modifier = Modifier
@@ -166,22 +164,22 @@ private fun PagerIndicator(
 }
 
 private val MoreActionItems = listOf(
-    MoreItemData(MoreAction.ALBUM, "照片", R.drawable.ic_album_filled),
-    MoreItemData(MoreAction.CAMERA, "拍摄", R.drawable.ic_camera_filled),
-    MoreItemData(MoreAction.VIDEO_CALL, "视频通话", R.drawable.ic_video_call_filled),
-    MoreItemData(MoreAction.LOCATION, "位置", R.drawable.ic_location_filled),
-    MoreItemData(MoreAction.TRANSFER, "转账", R.drawable.ic_transfer_filled),
-    MoreItemData(MoreAction.FAVORITE, "收藏", R.drawable.ic_favorites_filled),
-    MoreItemData(MoreAction.VOICE, "语音输入", R.drawable.ic_mic2_filled),
-    MoreItemData(MoreAction.CARD, "个人名片", R.drawable.ic_person_filled),
-    MoreItemData(MoreAction.FILE, "文件", R.drawable.ic_folder_filled),
-    MoreItemData(MoreAction.MUSIC, "音乐", R.drawable.ic_music_filled),
+    MoreItemData(MoreAction.Album, "照片", R.drawable.ic_album_filled),
+    MoreItemData(MoreAction.Camera, "拍摄", R.drawable.ic_camera_filled),
+    MoreItemData(MoreAction.VideoCall, "视频通话", R.drawable.ic_video_call_filled),
+    MoreItemData(MoreAction.Location, "位置", R.drawable.ic_location_filled),
+    MoreItemData(MoreAction.Transfer, "转账", R.drawable.ic_transfer_filled),
+    MoreItemData(MoreAction.Favorite, "收藏", R.drawable.ic_favorites_filled),
+    MoreItemData(MoreAction.Voice, "语音输入", R.drawable.ic_mic2_filled),
+    MoreItemData(MoreAction.Card, "个人名片", R.drawable.ic_person_filled),
+    MoreItemData(MoreAction.File, "文件", R.drawable.ic_folder_filled),
+    MoreItemData(MoreAction.Music, "音乐", R.drawable.ic_music_filled),
 )
 
 private const val ChunkCount = 8
 
 enum class MoreAction {
-    ALBUM, CAMERA, VIDEO_CALL, LOCATION, TRANSFER, FAVORITE, VOICE, CARD, FILE, MUSIC
+    Album, Camera, VideoCall, Location, Transfer, Favorite, Voice, Card, File, Music
 }
 
 private data class MoreItemData(

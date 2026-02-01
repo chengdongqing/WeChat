@@ -24,13 +24,13 @@ class SoundPlayer @Inject constructor(
      */
     enum class Sound(@get:RawRes val rawResId: Int) {
         /** 连接中提示音 */
-        CONNECTING(R.raw.phonering),
+        Connecting(R.raw.phonering),
 
         /** 来电铃声 */
-        RINGING(R.raw.phonering),
+        Ringing(R.raw.phonering),
 
         /** 通话结束音 */
-        CALL_END(R.raw.playend)
+        CallEnd(R.raw.playend)
     }
 
     private val soundPool: SoundPool by lazy {

@@ -5,8 +5,8 @@ package top.chengdongqing.wechat.data.call.model
  */
 enum class CallDirection {
     /** 呼出 */
-    OUTGOING,
+    Outgoing,
 
     /** 来电 */
-    INCOMING
+    Incoming
 }

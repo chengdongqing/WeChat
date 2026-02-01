@@ -5,20 +5,20 @@ package top.chengdongqing.wechat.ui.chat.session.input
  */
 enum class InputMode {
     /** 文本输入模式 */
-    TEXT,
+    Text,
 
     /** 语音输入模式 */
-    VOICE,
+    Voice,
 
     /** 表情面板模式 */
-    EMOJI,
+    Emoji,
 
     /** 更多功能面板模式 */
-    MORE;
+    More;
 
-    val isVoice: Boolean get() = this == VOICE
-    val isEmoji: Boolean get() = this == EMOJI
-    val isMore: Boolean get() = this == MORE
-    val isText: Boolean get() = this == TEXT
+    val isVoice: Boolean get() = this == Voice
+    val isEmoji: Boolean get() = this == Emoji
+    val isMore: Boolean get() = this == More
+    val isText: Boolean get() = this == Text
     val isPanelMode: Boolean get() = isEmoji || isMore
 }

@@ -48,7 +48,7 @@ class CallActivity : ComponentActivity() {
 
             WeChatTheme {
                 when (uiState.callType) {
-                    CallType.VOICE -> VoiceCallScreen(
+                    CallType.Voice -> VoiceCallScreen(
                         state = uiState,
                         onMinimize = ::minimizeToFloatingWindow,
                         onAcceptCall = viewModel::acceptCall,
@@ -57,7 +57,7 @@ class CallActivity : ComponentActivity() {
                         onToggleSpeaker = viewModel::toggleSpeaker
                     )
 
-                    CallType.VIDEO -> VideoCallScreen(
+                    CallType.Video -> VideoCallScreen(
                         state = uiState,
                         onMinimize = ::minimizeToFloatingWindow,
                         onAcceptCall = viewModel::acceptCall,
@@ -170,7 +170,7 @@ fun Context.startCall(
     val intent = CallActivity.createIntent(
         context = this,
         callType = callType,
-        callDirection = CallDirection.OUTGOING,
+        callDirection = CallDirection.Outgoing,
         userId = userId,
         userName = userName,
         userAvatar = userAvatar
@@ -190,7 +190,7 @@ fun Context.receiveCall(
     val intent = CallActivity.createIntent(
         context = this,
         callType = callType,
-        callDirection = CallDirection.INCOMING,
+        callDirection = CallDirection.Incoming,
         userId = userId,
         userName = userName,
         userAvatar = userAvatar

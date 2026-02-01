@@ -48,14 +48,14 @@ class ActionHandler(
      */
     fun handleAction(action: MoreAction, isLongClick: Boolean) {
         when (action) {
-            MoreAction.ALBUM -> handleAlbum()
-            MoreAction.CAMERA -> handleCamera(isLongClick)
-            MoreAction.VIDEO_CALL -> handleVideoCall()
-            MoreAction.LOCATION -> handleLocation()
-            MoreAction.FILE -> handleFile()
-            MoreAction.CARD -> handleCard()
-            MoreAction.FAVORITE -> handleFavorite()
-            MoreAction.VOICE -> handleVoice()
+            MoreAction.Album -> handleAlbum()
+            MoreAction.Camera -> handleCamera(isLongClick)
+            MoreAction.VideoCall -> handleVideoCall()
+            MoreAction.Location -> handleLocation()
+            MoreAction.File -> handleFile()
+            MoreAction.Card -> handleCard()
+            MoreAction.Favorite -> handleFavorite()
+            MoreAction.Voice -> handleVoice()
             else -> {}
         }
     }
@@ -64,7 +64,7 @@ class ActionHandler(
      * 处理相册
      */
     private fun handleAlbum() {
-        mediaLaunchers.mediaPicker(VisualMediaType.IMAGE_AND_VIDEO, 9)
+        mediaLaunchers.mediaPicker(VisualMediaType.ImageAndVideo, 9)
     }
 
     /**
@@ -84,7 +84,7 @@ class ActionHandler(
             }
         } else {
             // 短按：打开内置相机
-            mediaLaunchers.camera(VisualMediaType.IMAGE_AND_VIDEO)
+            mediaLaunchers.camera(VisualMediaType.ImageAndVideo)
         }
     }
 
@@ -111,15 +111,15 @@ class ActionHandler(
         actionSheet.show(CallOptions) { index ->
             // 发送通话消息
             val content = MessageContent.Call(
-                type = if (index == 0) CallType.VIDEO else CallType.VOICE,
-                status = CallStatus.CONNECTED,
+                type = if (index == 0) CallType.Video else CallType.Voice,
+                status = CallStatus.Connected,
                 duration = (3.minutes + 26.seconds).toLong(DurationUnit.MILLISECONDS)
             )
             onSendMessage(content)
 
             // 启动通话界面
             context.startCall(
-                callType = if (index == 0) CallType.VIDEO else CallType.VOICE,
+                callType = if (index == 0) CallType.Video else CallType.Voice,
                 userId = randomUUID(),
                 userName = "海盐芝士不加糖"
             )

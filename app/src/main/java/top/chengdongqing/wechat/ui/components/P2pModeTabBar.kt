@@ -57,9 +57,9 @@ fun P2pModeTabBar(
                     },
                     icon = {
                         val icon = when (mode) {
-                            P2pMode.WIFI_LAN -> Icons.Default.Wifi
-                            P2pMode.WIFI_DIRECT -> Icons.Default.WifiTethering
-                            P2pMode.BLUETOOTH -> Icons.Default.Bluetooth
+                            P2pMode.WifiLan -> Icons.Default.Wifi
+                            P2pMode.WifiDirect -> Icons.Default.WifiTethering
+                            P2pMode.Bluetooth -> Icons.Default.Bluetooth
                         }
                         Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
                     }

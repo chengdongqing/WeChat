@@ -90,7 +90,7 @@ fun InputOverlay(
                 InputActionBar(
                     isEmojiMode = inputMode.isEmoji,
                     onToggleMode = {
-                        val targetMode = if (inputMode.isEmoji) InputMode.TEXT else InputMode.EMOJI
+                        val targetMode = if (inputMode.isEmoji) InputMode.Text else InputMode.Emoji
                         controller.switchMode(targetMode)
                     }
                 )

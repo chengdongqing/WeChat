@@ -28,7 +28,7 @@ import top.chengdongqing.wechat.ui.components.emojitextfield.NativeFocusRequeste
 @Stable
 data class InputBarState(
     val inputText: String = "",
-    val inputMode: InputMode = InputMode.TEXT,
+    val inputMode: InputMode = InputMode.Text,
     val lineCount: Int = 1,
     val isExpanded: Boolean = false
 ) {
@@ -164,7 +164,7 @@ class InputBarController(
      * @param target 目标模式
      * @param showKeyboard 是否显示键盘（仅对TEXT模式生效）
      */
-    fun switchMode(target: InputMode = InputMode.TEXT, showKeyboard: Boolean = true) {
+    fun switchMode(target: InputMode = InputMode.Text, showKeyboard: Boolean = true) {
         _state.update { it.copy(inputMode = target) }
 
         when {
@@ -192,14 +192,14 @@ class InputBarController(
      * 切换到文本模式并显示键盘
      */
     fun switchToTextMode() {
-        switchMode(InputMode.TEXT, showKeyboard = true)
+        switchMode(InputMode.Text, showKeyboard = true)
     }
 
     /**
      * 关闭所有面板和键盘
      */
     fun dismissAll() {
-        switchMode(InputMode.TEXT, showKeyboard = false)
+        switchMode(InputMode.Text, showKeyboard = false)
     }
 
     /**
@@ -247,7 +247,7 @@ fun rememberInputBarController(focusRequester: NativeFocusRequester): InputBarCo
     // 当键盘弹出时，自动切换到文本模式
     LaunchedEffect(isImeVisible) {
         if (isImeVisible) {
-            controller.syncMode(InputMode.TEXT)
+            controller.syncMode(InputMode.Text)
         }
     }
 

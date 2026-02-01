@@ -43,7 +43,7 @@ import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBarIcon
-import top.chengdongqing.wechat.ui.contacts.ContactsScreen
+import top.chengdongqing.wechat.ui.contacts.list.ContactListScreen
 import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.ui.me.MeScreen
 import top.chengdongqing.wechat.ui.navigation.Screen
@@ -96,7 +96,7 @@ fun HomeScreen(navController: NavHostController) {
                     navController.navigate(Screen.ChatSession.createRoute(it))
                 })
 
-                Screen.Contacts -> ContactsScreen()
+                Screen.Contacts -> ContactListScreen()
                 Screen.Discovery -> DiscoveryScreen()
                 Screen.Me -> MeScreen(navController)
 

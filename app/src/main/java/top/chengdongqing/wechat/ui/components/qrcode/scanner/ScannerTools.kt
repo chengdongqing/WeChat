@@ -57,7 +57,7 @@ internal fun BoxScope.ScannerTools(state: ScannerState) {
             }
         }
         ToolItem(label = "相册", icon = Icons.Filled.Image) {
-            pickMedia(VisualMediaType.IMAGE, 1)
+            pickMedia(VisualMediaType.Image, 1)
             if (state.isFlashOn) {
                 state.toggleFlashState()
             }

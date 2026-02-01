@@ -53,8 +53,8 @@ import top.chengdongqing.wechat.data.emoji.Stickers
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.Black
-import top.chengdongqing.wechat.ui.utils.BounceOverscrollEffect
 import top.chengdongqing.wechat.ui.utils.dashedBorder
+import top.chengdongqing.wechat.ui.utils.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.ui.utils.repeatingClickable
 
 /**
@@ -210,8 +210,7 @@ private fun EmojiGrid(
     onSelect: (Emoji) -> Unit,
     onBackspace: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+    val overscrollEffect = rememberBounceOverscrollEffect()
 
     Box(contentAlignment = Alignment.BottomEnd) {
         LazyVerticalGrid(
@@ -324,8 +323,7 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
  */
 @Composable
 private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
-    val scope = rememberCoroutineScope()
-    val overscrollEffect = remember { BounceOverscrollEffect(scope) }
+    val overscrollEffect = rememberBounceOverscrollEffect()
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),

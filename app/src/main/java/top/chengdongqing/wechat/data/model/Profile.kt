@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.data.model
 
 enum class Gender(val label: String) {
-    MALE("男"),
-    FEMALE("女"),
-    UNKNOW("未知")
+    Male("男"),
+    Female("女"),
+    Unknow("未知")
 }

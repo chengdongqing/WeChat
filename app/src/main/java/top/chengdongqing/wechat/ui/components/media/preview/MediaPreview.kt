@@ -126,9 +126,9 @@ private fun BoxScope.ToolBar(medias: Array<MediaItem>, pagerState: PagerState) {
         ActionIcon(imageVector = Icons.Outlined.Download, label = "保存") {
             coroutineScope.launch {
                 if (context.saveToAlbum(media)) {
-                    toast.show("已保存到相册", icon = ToastIcon.SUCCESS)
+                    toast.show("已保存到相册", icon = ToastIcon.Success)
                 } else {
-                    toast.show("保存失败", icon = ToastIcon.FAIL)
+                    toast.show("保存失败", icon = ToastIcon.Fail)
                 }
             }
         }

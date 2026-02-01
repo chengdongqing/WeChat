@@ -59,7 +59,7 @@ fun RecordingOverlay(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 声纹气泡
-        if (recordState == RecordState.RECORDING) {
+        if (recordState == RecordState.Recording) {
             VoiceWaveformBubble(audioAmplitude)
             Spacer(modifier = Modifier.height(100.dp))
         }
@@ -103,13 +103,13 @@ private fun ActionButtons(recordState: RecordState) {
     ) {
         ActionButton(
             label = "取 消",
-            isActive = recordState == RecordState.CANCEL,
+            isActive = recordState == RecordState.Cancel,
             activeColor = Color(0xFFFF3B30),
             activeTextColor = Color.White
         )
         ActionButton(
             label = "文 字",
-            isActive = recordState == RecordState.CONVERT,
+            isActive = recordState == RecordState.Convert,
             activeColor = Color(0xFFD8D8D8),
             activeTextColor = Color.Black
         )
@@ -169,8 +169,8 @@ private fun ActionButton(
 private fun BottomHintText(recordState: RecordState) {
     Text(
         text = when (recordState) {
-            RecordState.CANCEL -> "松开手指，取消发送"
-            RecordState.CONVERT -> "松开手指，转文字"
+            RecordState.Cancel -> "松开手指，取消发送"
+            RecordState.Convert -> "松开手指，转文字"
             else -> "松开 发送"
         },
         color = Color.Gray,

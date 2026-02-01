@@ -61,7 +61,7 @@ fun LocationList(
                 if (loadMoreState.isLoadingMore) {
                     WeLoadMore(listState = listState)
                 } else if (pagingState.isAllLoaded) {
-                    WeLoadMore(type = LoadMoreType.ALL_LOADED)
+                    WeLoadMore(type = LoadMoreType.AllLoaded)
                 }
             }
         }

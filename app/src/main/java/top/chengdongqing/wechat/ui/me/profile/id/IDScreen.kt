@@ -67,7 +67,7 @@ fun IDScreen(onBack: () -> Unit) {
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.weight(1f))
-            WeButton(text = "修改微信号", type = ButtonType.PLAIN) {
+            WeButton(text = "修改微信号", type = ButtonType.Plain) {
                 dialog.show(
                     "提示",
                     "由于无中心服务器，为确保当前的设备的唯一性，微信号暂不支持修改",

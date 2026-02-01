@@ -15,6 +15,6 @@ data class MediaItem(
     val duration: Long = 0,
     val date: Long = 0
 ) : Parcelable {
-    val isImage get() = mediaType === MediaType.IMAGE
-    val isVideo get() = mediaType === MediaType.VIDEO
+    val isImage get() = mediaType === MediaType.Image
+    val isVideo get() = mediaType === MediaType.Video
 }

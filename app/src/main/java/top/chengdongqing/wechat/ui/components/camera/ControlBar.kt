@@ -192,10 +192,10 @@ fun ZoomControlBar(state: CameraState) {
 fun TipText(state: CameraState) {
     val tips = remember {
         buildList {
-            if (state.type == VisualMediaType.IMAGE_AND_VIDEO || state.type == VisualMediaType.IMAGE) {
+            if (state.type == VisualMediaType.ImageAndVideo || state.type == VisualMediaType.Image) {
                 add("轻触拍照")
             }
-            if (state.type == VisualMediaType.IMAGE_AND_VIDEO || state.type == VisualMediaType.VIDEO) {
+            if (state.type == VisualMediaType.ImageAndVideo || state.type == VisualMediaType.Video) {
                 add("长按摄像")
             }
         }.joinToString("，")
@@ -220,7 +220,7 @@ private fun CaptureButton(state: CameraState) {
             .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
-                        if (state.type != VisualMediaType.IMAGE) {
+                        if (state.type != VisualMediaType.Image) {
                             if (audioPermissionState.status.isGranted) {
                                 state.startRecording()
                             } else {
@@ -235,7 +235,7 @@ private fun CaptureButton(state: CameraState) {
                         }
                     }
                 ) {
-                    if (state.type != VisualMediaType.VIDEO) {
+                    if (state.type != VisualMediaType.Video) {
                         state.takePhoto()
                     }
                 }

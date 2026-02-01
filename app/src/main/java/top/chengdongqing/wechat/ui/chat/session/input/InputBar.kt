@@ -266,7 +266,7 @@ private fun VoiceModeToggle(
                     controller.focusRequester.requestFocus()
                 }
             } else {
-                controller.switchMode(InputMode.VOICE)
+                controller.switchMode(InputMode.Voice)
             }
         }
     }
@@ -331,9 +331,9 @@ private fun EmojiToggle(
         modifier = modifier
     ) {
         val mode = if (inputMode.isEmoji) {
-            InputMode.TEXT
+            InputMode.Text
         } else {
-            InputMode.EMOJI
+            InputMode.Emoji
         }
         controller.switchMode(mode)
     }
@@ -359,7 +359,7 @@ private fun SendOrMoreToggle(
             ) {
                 WeButton(
                     text = "发送",
-                    size = ButtonSize.SMALL,
+                    size = ButtonSize.Small,
                     onClick = onSendText
                 )
             }
@@ -368,9 +368,9 @@ private fun SendOrMoreToggle(
                 iconResId = R.drawable.ic_plus_circle_outlined
             ) {
                 val mode = if (state.inputMode.isMore) {
-                    InputMode.TEXT
+                    InputMode.Text
                 } else {
-                    InputMode.MORE
+                    InputMode.More
                 }
                 controller.switchMode(mode)
             }

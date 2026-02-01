@@ -82,9 +82,9 @@ fun rememberStatusBarHeight(): Dp {
  * 键盘高度测量模式
  */
 enum class KeyboardHeightMode {
-    AUTO,   // 自动检测
-    VIEW,   // 视图测量
-    IME     // IME insets
+    Auto,   // 自动检测
+    View,   // 视图测量
+    Ime     // IME insets
 }
 
 /**
@@ -92,7 +92,7 @@ enum class KeyboardHeightMode {
  */
 @Composable
 fun rememberKeyboardHeight(
-    mode: KeyboardHeightMode = KeyboardHeightMode.AUTO,
+    mode: KeyboardHeightMode = KeyboardHeightMode.Auto,
     minHeightThreshold: Dp = 100.dp
 ): Dp {
     val view = LocalView.current
@@ -100,11 +100,11 @@ fun rememberKeyboardHeight(
     val ime = WindowInsets.ime
 
     val actualMode = remember(mode, view) {
-        if (mode == KeyboardHeightMode.AUTO) {
+        if (mode == KeyboardHeightMode.Auto) {
             if (isViewInPopup(view)) {
-                KeyboardHeightMode.IME
+                KeyboardHeightMode.Ime
             } else {
-                KeyboardHeightMode.VIEW
+                KeyboardHeightMode.View
             }
         } else {
             mode
@@ -112,19 +112,19 @@ fun rememberKeyboardHeight(
     }
 
     return when (actualMode) {
-        KeyboardHeightMode.IME -> {
+        KeyboardHeightMode.Ime -> {
             // Popup 模式：实时获取 IME 高度
             with(density) {
                 ime.getBottom(density).toDp()
             }
         }
 
-        KeyboardHeightMode.VIEW -> {
+        KeyboardHeightMode.View -> {
             // 普通模式：使用视图测量
             rememberViewKeyboardHeight(view, density, minHeightThreshold)
         }
 
-        KeyboardHeightMode.AUTO -> error("Should not reach here")
+        KeyboardHeightMode.Auto -> error("Should not reach here")
     }
 }
 

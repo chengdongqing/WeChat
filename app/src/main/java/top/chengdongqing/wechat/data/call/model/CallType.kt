@@ -5,8 +5,8 @@ package top.chengdongqing.wechat.data.call.model
  */
 enum class CallType {
     /** 语音通话 */
-    VOICE,
+    Voice,
 
     /** 视频通话 */
-    VIDEO
+    Video
 }

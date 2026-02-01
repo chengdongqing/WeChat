@@ -70,7 +70,7 @@ sealed class MessageContent(
         val type: CallType,
         val status: CallStatus,
         val duration: Long? = null
-    ) : MessageContent(showUnreadDot = status == CallStatus.MISSED)
+    ) : MessageContent(showUnreadDot = status == CallStatus.Missed)
 
     data class Location(
         val latitude: Double,
@@ -103,10 +103,10 @@ sealed class MessageContent(
 }
 
 enum class CallStatus(val description: String, val descriptionForMe: String) {
-    CANCELLED("对方已取消", "已取消"),
+    Cancelled("对方已取消", "已取消"),
     REJECTED("对方已拒绝", "已拒绝"),
-    CONNECTED("已接通", "已接通"),
-    MISSED("未应答", "对方无应答");
+    Connected("已接通", "已接通"),
+    Missed("未应答", "对方无应答");
 
     companion object {
         fun describeDuration(duration: Long): String {

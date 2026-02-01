@@ -29,20 +29,20 @@ fun Context.navigateToLocation(
     name: String
 ) {
     val uri: Uri = when (mapType) {
-        MapType.AMAP -> {
+        MapType.AMap -> {
             "amapuri://route/plan?dlat=${location.latitude}&dlon=${location.longitude}&dname=$name&t=0".toUri()
         }
 
-        MapType.BAIDU -> {
+        MapType.Baidu -> {
             val encodedName = URLEncoder.encode(name, "UTF-8")
             "baidumap://map/direction?destination=latlng:${location.latitude},${location.longitude}|name:$encodedName&coord_type=gcj02&mode=driving".toUri()
         }
 
-        MapType.TENCENT -> {
+        MapType.Tencent -> {
             "qqmap://map/routeplan?to=$name&tocoord=${location.latitude},${location.longitude}&type=drive".toUri()
         }
 
-        MapType.GOOGLE -> {
+        MapType.Google -> {
             "google.navigation:q=${location.latitude},${location.longitude}".toUri()
         }
     }

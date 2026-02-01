@@ -26,7 +26,7 @@ fun NameScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             WeTopBar("更改名字", onBack = onBack) {
-                WeButton("保存", size = ButtonSize.SMALL, disabled = false)
+                WeButton("保存", size = ButtonSize.Small, disabled = false)
             }
         },
         containerColor = Color(0xFFEDEDED)

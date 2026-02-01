@@ -5,6 +5,9 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.OverscrollEffect
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
@@ -117,4 +120,13 @@ class BounceOverscrollEffect(
 
     override val isInProgress: Boolean
         get() = animatable.value != 0f
+}
+
+@Composable
+fun rememberBounceOverscrollEffect(orientation: Orientation = Orientation.Vertical): BounceOverscrollEffect {
+    val scope = rememberCoroutineScope()
+
+    return remember {
+        BounceOverscrollEffect(scope, orientation)
+    }
 }

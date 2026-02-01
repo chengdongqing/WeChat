@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.contacts
+package top.chengdongqing.wechat.ui.contacts.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,20 +15,26 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.utils.PinyinUtils.getInitial
 import top.chengdongqing.wechat.core.utils.randomUUID
-import top.chengdongqing.wechat.data.model.Contact
 import javax.inject.Inject
 
-data class ContactsState(
+data class ContactListState(
     val isLoading: Boolean = true,
     val groups: Map<Char, List<Contact>> = emptyMap(),
     val totalCount: Int = 0,
     val indexMap: Map<Char, Int> = emptyMap() // 索引表：保存预计算的索引位置
 )
 
+data class Contact(
+    val id: String,
+    val name: String,
+    val avatar: Int,
+    val initial: Char // 首字母
+)
+
 @HiltViewModel
-class ContactsViewModel @Inject constructor() : ViewModel() {
-    private val _state = MutableStateFlow(ContactsState())
-    val state: StateFlow<ContactsState> = _state.asStateFlow()
+class ContactListViewModel @Inject constructor() : ViewModel() {
+    private val _state = MutableStateFlow(ContactListState())
+    val state: StateFlow<ContactListState> = _state.asStateFlow()
 
     init {
         loadContacts()

@@ -23,7 +23,7 @@ fun SignatureScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             WeTopBar("个性签名", onBack = onBack) {
-                WeButton("保存", size = ButtonSize.SMALL, disabled = false)
+                WeButton("保存", size = ButtonSize.Small, disabled = false)
             }
         },
         containerColor = Color(0xFFEDEDED)

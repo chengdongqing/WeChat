@@ -13,7 +13,7 @@ data class MediaResource(
     val duration: Long = 0,
     val thumbBase64: String? = null
 ) {
-    fun toMediaItem(uri: Uri, mediaType: MediaType = MediaType.IMAGE) = MediaItem(
+    fun toMediaItem(uri: Uri, mediaType: MediaType = MediaType.Image) = MediaItem(
         uri = uri,
         filename = filename,
         mediaType = mediaType,

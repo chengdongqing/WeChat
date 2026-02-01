@@ -21,14 +21,14 @@ import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 @Composable
 fun GenderScreen(onBack: () -> Unit) {
     val genderOptions = remember {
-        Gender.entries.filter { it != Gender.UNKNOW }.map { it.label to it }
+        Gender.entries.filter { it != Gender.Unknow }.map { it.label to it }
     }
-    var selectedGender by remember { mutableStateOf(Gender.UNKNOW) }
+    var selectedGender by remember { mutableStateOf(Gender.Unknow) }
 
     Scaffold(
         topBar = {
             WeTopBar("设置性别", onBack = onBack) {
-                WeButton("完成", size = ButtonSize.SMALL, disabled = false)
+                WeButton("完成", size = ButtonSize.Small, disabled = false)
             }
         },
         containerColor = Color(0xFFEDEDED)

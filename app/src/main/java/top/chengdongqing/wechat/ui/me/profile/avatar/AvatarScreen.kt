@@ -71,7 +71,7 @@ fun AvatarScreen(onBack: () -> Unit) {
 
             toast.show(
                 title = if (success) "已保存到相册" else "保存失败",
-                icon = if (success) ToastIcon.SUCCESS else ToastIcon.FAIL
+                icon = if (success) ToastIcon.Success else ToastIcon.Fail
             )
         }
     }
@@ -89,8 +89,8 @@ fun AvatarScreen(onBack: () -> Unit) {
             ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
                 actionSheet.show(MenuOptions) { index ->
                     when (index) {
-                        0 -> launchAlbum(VisualMediaType.IMAGE, 1)
-                        1 -> launchCamera(VisualMediaType.IMAGE)
+                        0 -> launchAlbum(VisualMediaType.Image, 1)
+                        1 -> launchCamera(VisualMediaType.Image)
                         2 -> saveAvatar()
                     }
                 }

@@ -30,11 +30,11 @@ import top.chengdongqing.wechat.data.model.MessageContent
 fun CallContent(message: ChatMessage) {
     val isFromMe = message.isFromMe
     val content = message.content as MessageContent.Call
-    val isVideoCall = content.type == CallType.VIDEO
+    val isVideoCall = content.type == CallType.Video
     val status = content.status
 
     val description = remember {
-        if (status == CallStatus.CONNECTED) {
+        if (status == CallStatus.Connected) {
             content.duration?.let {
                 return@remember CallStatus.describeDuration(it)
             }
