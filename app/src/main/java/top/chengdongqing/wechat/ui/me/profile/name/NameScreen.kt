@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.me.profile.nickname
+package top.chengdongqing.wechat.ui.me.profile.name
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -20,8 +20,8 @@ import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
-fun NicknameScreen(onBack: () -> Unit) {
-    var nickname by remember { mutableStateOf("海盐芝士不加糖") }
+fun NameScreen(onBack: () -> Unit) {
+    var name by remember { mutableStateOf("海盐芝士不加糖") }
 
     Scaffold(
         topBar = {
@@ -36,8 +36,8 @@ fun NicknameScreen(onBack: () -> Unit) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            WeInput(nickname) {
-                nickname = it
+            WeInput(name) {
+                name = it
             }
 
             Text(

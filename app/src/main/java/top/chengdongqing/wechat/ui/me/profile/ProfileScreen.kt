@@ -69,11 +69,13 @@ fun ProfileScreen(navController: NavController) {
                     AvatarContent()
                 }
                 ProfileItem("名字", onClick = {
-                    navController.navigate(Screen.Nickname.route)
+                    navController.navigate(Screen.Name.route)
                 }) {
                     TextContent("海盐芝士不加糖")
                 }
-                ProfileItem("性别") {
+                ProfileItem("性别", onClick = {
+                    navController.navigate(Screen.Gender.route)
+                }) {
                     TextContent("男")
                 }
                 ProfileItem("微信号", onClick = {
