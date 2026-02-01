@@ -79,7 +79,7 @@ private fun MinimizeButton(
         modifier = modifier
             .size(32.dp)
             .offset(x = 14.dp)
-            .weClickable(onClick),
+            .weClickable(onClick = onClick),
         tint = Color.White
     )
 }

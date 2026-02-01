@@ -58,7 +58,7 @@ fun CircularControlButton(
         // 按钮圆圈（带动画过渡）
         Crossfade(
             targetState = isActive,
-            label = "button_state_animation"
+            label = "ButtonStateAnimation"
         ) { active ->
             ButtonCircle(
                 iconResId = iconResId,

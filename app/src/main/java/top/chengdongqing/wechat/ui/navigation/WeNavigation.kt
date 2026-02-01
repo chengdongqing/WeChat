@@ -14,6 +14,7 @@ import top.chengdongqing.wechat.ui.addfriend.PinCodeGroupScreen
 import top.chengdongqing.wechat.ui.addfriend.RadarScanScreen
 import top.chengdongqing.wechat.ui.chat.session.ChatSessionScreen
 import top.chengdongqing.wechat.ui.contacts.detail.ContactDetailScreen
+import top.chengdongqing.wechat.ui.contacts.detail.ContactSettingScreen
 import top.chengdongqing.wechat.ui.home.HomeScreen
 import top.chengdongqing.wechat.ui.me.profile.ProfileScreen
 import top.chengdongqing.wechat.ui.me.profile.avatar.AvatarScreen
@@ -96,7 +97,25 @@ fun WeChatNavigation(navController: NavHostController = rememberNavController())
             )
         ) { backStackEntry ->
             val contactId = backStackEntry.arguments?.getString("contactId") ?: ""
-            ContactDetailScreen(contactId, goBack)
+            ContactDetailScreen(
+                contactId = contactId,
+                onBack = goBack,
+                onNavigateToChat = { id ->
+                    navController.navigate(Screen.ChatSession.createRoute(id))
+                },
+                onNavigateToSetting = { id ->
+                    navController.navigate(Screen.ContactSetting.createRoute(id))
+                }
+            )
+        }
+        composable(
+            route = Screen.ContactSetting.route,
+            arguments = listOf(
+                navArgument("contactId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val contactId = backStackEntry.arguments?.getString("contactId") ?: ""
+            ContactSettingScreen(contactId, goBack)
         }
 
         composable(Screen.Profile.route) {

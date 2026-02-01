@@ -51,6 +51,9 @@ sealed class Screen(
     object ContactDetail : Screen("contacts/{contactId}", "联系人详情") {
         fun createRoute(contactId: String) = "contacts/${contactId}"
     }
+    object ContactSetting : Screen("contacts/{contactId}/setting", "朋友设置") {
+        fun createRoute(contactId: String) = "contacts/${contactId}/setting"
+    }
 
     object Profile : Screen("profile", "个人资料")
     object Avatar : Screen("profile/avatar", "头像")

@@ -50,10 +50,10 @@ fun ContactProfileItem(
         }
 
         // 备注
-        if (contact.remark.isNotEmpty()) {
+        if (contact.note.isNotEmpty()) {
             ProfileInfoRow(
                 label = "备忘",
-                value = contact.remark
+                value = contact.note
             )
         }
     }

@@ -56,7 +56,7 @@ import kotlin.math.roundToInt
 @Composable
 fun WeContextMenu(
     state: ContextMenuState,
-    onTap: (listIndex: Int, menuIndex: Int) -> Unit
+    onClick: (listIndex: Int, menuIndex: Int) -> Unit
 ) {
     if (!state.visible) return
     val props = state.props ?: return
@@ -95,14 +95,14 @@ fun WeContextMenu(
         ) {
             MenuContent(props.options, state.itemWidthDp, state.itemHeightDp) { menuIndex ->
                 isVisible = false
-                onTap(props.listIndex, menuIndex)
+                onClick(props.listIndex, menuIndex)
             }
         }
     }
 }
 
 @Composable
-fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onTap: (Int) -> Unit) {
+fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onClick: (Int) -> Unit) {
     Surface(
         modifier = Modifier
             .padding(8.dp)
@@ -117,7 +117,7 @@ fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onTap:
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(itemHeightDp)
-                        .weClickableWithBg { onTap(index) }
+                        .weClickableWithBg { onClick(index) }
                         .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {

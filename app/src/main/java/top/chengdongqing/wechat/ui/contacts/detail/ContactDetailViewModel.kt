@@ -115,7 +115,7 @@ class ContactDetailViewModel @AssistedInject constructor(
                 }
 
                 ContactAction.ShowMore -> {
-                    _navigationEvent.emit(NavigationEvent.ShowMoreOptions)
+                    _navigationEvent.emit(NavigationEvent.ShowMoreOptions(contactId))
                 }
             }
         }
@@ -142,7 +142,7 @@ class ContactDetailViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _uiState.update { state ->
                 state.copy(
-                    contact = state.contact.copy(remark = remark)
+                    contact = state.contact.copy(note = remark)
                 )
             }
             // contactRepository.updateContactRemark(contactId, remark)
@@ -159,12 +159,12 @@ class ContactDetailViewModel @AssistedInject constructor(
     private fun createSampleContact(): Contact {
         return Contact(
             id = "wxid_${randomUUID().take(12)}",
-            avatarUrl = "",
-            name = "老舅",
+            name = "海盐芝士不加糖",
             gender = Gender.Male,
-            nickname = "海盐芝士不加糖",
+            avatarUrl = "",
+            remarkName = "老舅",
             tags = listOf("朋友"),
-            remark = "在林拉高速上认识的摩友",
+            note = "在林拉高速上认识的摩友",
             momentPhotos = listOf(
                 R.drawable.img_splash,
                 R.drawable.img_location_placeholder,
@@ -182,5 +182,5 @@ sealed class NavigationEvent {
     data class NavigateToCall(val contactId: String) : NavigationEvent()
     data class NavigateToMoments(val contactId: String) : NavigationEvent()
     data class NavigateToProfile(val contactId: String) : NavigationEvent()
-    data object ShowMoreOptions : NavigationEvent()
+    data class ShowMoreOptions(val contactId: String) : NavigationEvent()
 }

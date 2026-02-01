@@ -79,12 +79,12 @@ fun AddFriendScreen(
             Column(modifier = Modifier.background(WeChatTheme.colorScheme.surface)) {
                 options.forEachIndexed { index, item ->
                     MenuListItem(
-                        title = item.title,
+                        label = item.title,
                         description = item.description,
                         iconResId = item.iconResId,
                         iconColor = item.iconColor,
                         height = 68.dp,
-                        onTap = item.onTap
+                        onClick = item.onClick
                     )
                     if (index < options.lastIndex) {
                         WeDivider(modifier = Modifier.padding(start = 58.dp))
@@ -128,5 +128,5 @@ private data class AddFriendItem(
     @get:DrawableRes val iconResId: Int,
     val iconColor: Color,
     val description: String,
-    val onTap: () -> Unit
+    val onClick: () -> Unit
 )

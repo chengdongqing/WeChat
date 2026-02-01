@@ -210,7 +210,7 @@ private fun LinkText(text: String, onClick: () -> Unit) {
         text = text,
         fontSize = 14.sp,
         color = LinkColor,
-        modifier = Modifier.weClickable(onClick)
+        modifier = Modifier.weClickable(onClick = onClick)
     )
 }
 

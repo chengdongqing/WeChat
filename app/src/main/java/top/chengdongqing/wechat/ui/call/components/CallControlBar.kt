@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.ui.call.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -111,7 +110,7 @@ private fun IncomingCallControls(
  * 通话中控制按钮
  */
 @Composable
-private fun RowScope.ActiveCallControls(
+private fun ActiveCallControls(
     state: CallUiState,
     onToggleMic: () -> Unit,
     onToggleSpeaker: () -> Unit,
@@ -185,6 +184,6 @@ private fun SwitchCameraButton(
         tint = Color.White,
         modifier = modifier
             .size(32.dp)
-            .weClickable(onClick)
+            .weClickable(onClick = onClick)
     )
 }

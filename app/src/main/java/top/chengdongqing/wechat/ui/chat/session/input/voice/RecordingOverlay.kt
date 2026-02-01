@@ -132,7 +132,7 @@ private fun ActionButton(
 ) {
     val size by animateDpAsState(
         targetValue = if (isActive) 80.dp else 64.dp,
-        label = "button_size"
+        label = "ButtonSize"
     )
 
     val bgColor = if (isActive) activeColor else Color(0xFFE9E9E9)
@@ -249,7 +249,7 @@ private fun VoiceBar(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
         ),
-        label = "bar_height_$index"
+        label = "BarHeight_$index"
     )
 
     Box(

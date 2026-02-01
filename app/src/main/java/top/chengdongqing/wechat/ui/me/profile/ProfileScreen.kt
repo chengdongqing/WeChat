@@ -1,19 +1,11 @@
 package top.chengdongqing.wechat.ui.me.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -21,7 +13,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -34,6 +25,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
+import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.navigation.Screen
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
@@ -112,38 +104,7 @@ private fun ProfileItem(
     content: @Composable () -> Unit
 ) {
     Column(modifier = Modifier.background(White)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .clickable { onClick?.invoke() }
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 左侧标题
-            Text(
-                text = label,
-                fontSize = 16.sp,
-                color = WeChatTheme.colorScheme.textPrimary
-            )
-            Spacer(modifier = Modifier.widthIn(24.dp))
-
-            Box(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                content()
-            }
-
-            // 右侧箭头
-            Spacer(modifier = Modifier.width(8.dp))
-            Icon(
-                painter = painterResource(R.drawable.ic_right_outlined),
-                contentDescription = null,
-                tint = WeChatTheme.colorScheme.textSecondary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+        MenuListItem(label, content = content, onClick = onClick)
 
         if (showDivider) {
             WeDivider(modifier = Modifier.padding(start = 16.dp))

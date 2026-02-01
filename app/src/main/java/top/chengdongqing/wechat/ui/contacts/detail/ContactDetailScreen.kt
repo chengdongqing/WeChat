@@ -35,13 +35,12 @@ fun ContactDetailScreen(
     onNavigateToChat: (String) -> Unit = {},
     onNavigateToCall: (String) -> Unit = {},
     onNavigateToMoments: (String) -> Unit = {},
-    onNavigateToProfile: (String) -> Unit = {}
+    onNavigateToProfile: (String) -> Unit = {},
+    onNavigateToSetting: (String) -> Unit = {},
+    viewModel: ContactDetailViewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
+        factory.create(contactId)
+    }
 ) {
-    val viewModel: ContactDetailViewModel = hiltViewModel(
-        creationCallback = { factory: ContactDetailViewModel.Factory ->
-            factory.create(contactId)
-        }
-    )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // 处理导航事件
@@ -52,7 +51,7 @@ fun ContactDetailScreen(
                 is NavigationEvent.NavigateToCall -> onNavigateToCall(event.contactId)
                 is NavigationEvent.NavigateToMoments -> onNavigateToMoments(event.contactId)
                 is NavigationEvent.NavigateToProfile -> onNavigateToProfile(event.contactId)
-                NavigationEvent.ShowMoreOptions -> {}
+                is NavigationEvent.ShowMoreOptions -> onNavigateToSetting(event.contactId)
             }
         }
     }

@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.ui.components.menulistitem
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,49 +27,83 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
 
 @Composable
 fun MenuListItem(
-    title: String,
-    @DrawableRes iconResId: Int,
+    label: String,
+    @DrawableRes iconResId: Int? = null,
     iconColor: Color = Color.Unspecified,
     description: String? = null,
+    content: (@Composable () -> Unit)? = null,
+    showArrow: Boolean = true,
     height: Dp = 56.dp,
-    onTap: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(height)
             .background(WeChatTheme.colorScheme.surface)
-            .clickable { onTap?.invoke() }
-            .padding(horizontal = 16.dp),
+            .clickable { onClick?.invoke() }
+            .padding(start = 16.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = painterResource(iconResId),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = iconColor
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                color = WeChatTheme.colorScheme.textPrimary
-            )
-            if (!description.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = description,
-                    fontSize = 12.sp,
-                    color = WeChatTheme.colorScheme.textSecondary
-                )
+        iconResId?.let {
+            MenuIcon(iconResId, iconColor)
+            Spacer(modifier = Modifier.width(16.dp))
+        }
+
+        MenuLabel(label, description, modifier = Modifier.weight(1f))
+
+        if (content != null || showArrow) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                content?.invoke()
+                if (showArrow) {
+                    MenuArrow()
+                }
             }
         }
-        Icon(
-            painter = painterResource(R.drawable.ic_right_outlined),
-            contentDescription = null,
-            tint = Color.Gray,
-            modifier = Modifier.size(24.dp)
-        )
     }
+}
+
+@Composable
+private fun MenuIcon(
+    @DrawableRes iconResId: Int,
+    iconColor: Color
+) {
+    Icon(
+        painter = painterResource(iconResId),
+        contentDescription = null,
+        modifier = Modifier.size(24.dp),
+        tint = iconColor
+    )
+}
+
+@Composable
+private fun MenuLabel(label: String, description: String?, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text(
+            text = label,
+            fontSize = 16.sp,
+            color = WeChatTheme.colorScheme.textPrimary
+        )
+        if (!description.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = description,
+                fontSize = 12.sp,
+                color = WeChatTheme.colorScheme.textSecondary
+            )
+        }
+    }
+}
+
+@Composable
+private fun MenuArrow() {
+    Icon(
+        painter = painterResource(R.drawable.ic_right_outlined),
+        contentDescription = null,
+        tint = Color.Gray,
+        modifier = Modifier.size(24.dp)
+    )
 }

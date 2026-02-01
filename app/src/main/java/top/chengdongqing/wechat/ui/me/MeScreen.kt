@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,7 +22,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -51,7 +51,7 @@ fun MeScreen(navController: NavController) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Column {
-            UserInfoHeader(
+            UserInfoSection(
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToQRCode = { navController.navigate(Screen.QRCode.route) }
             )
@@ -70,7 +70,7 @@ fun MeScreen(navController: NavController) {
 }
 
 @Composable
-fun UserInfoHeader(
+fun UserInfoSection(
     onNavigateToProfile: () -> Unit,
     onNavigateToQRCode: () -> Unit
 ) {
@@ -82,51 +82,53 @@ fun UserInfoHeader(
             .padding(start = 24.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Surface(
-            modifier = Modifier.size(64.dp),
-            shape = RoundedCornerShape(6.dp),
-            color = Color.LightGray
-        ) {
-            Image(
-                painter = painterResource(R.drawable.img_avatar),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        Image(
+            painter = painterResource(R.drawable.img_avatar),
+            contentDescription = null,
+            modifier = Modifier
+                .size(64.dp)
+                .clip(RoundedCornerShape(6.dp))
+        )
         Spacer(modifier = Modifier.width(20.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "海盐芝士不加糖",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = WeChatTheme.colorScheme.textPrimary
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "海盐芝士不加糖",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = WeChatTheme.colorScheme.textPrimary,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 20.dp)
+                )
+                Icon(
+                    painter = painterResource(R.drawable.ic_qrcode_outlined),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .weClickable { onNavigateToQRCode() },
+                    tint = Color(0xFF456F6F)
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "微信号：wxid_${randomUUID().take(12)}",
                     fontSize = 14.sp,
-                    color = WeChatTheme.colorScheme.textSecondary
+                    color = WeChatTheme.colorScheme.textSecondary,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 20.dp)
+                )
+                Icon(
+                    painter = painterResource(R.drawable.ic_right_outlined),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .offset(x = 4.dp),
+                    tint = Color.Gray
                 )
             }
-        }
-        Spacer(modifier = Modifier.width(20.dp))
-        Column {
-            Icon(
-                painter = painterResource(R.drawable.ic_qrcode_outlined),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(20.dp)
-                    .weClickable { onNavigateToQRCode() },
-                tint = Color(0xFF456F6F)
-            )
-            Spacer(modifier = Modifier.height(14.dp))
-            Icon(
-                painter = painterResource(R.drawable.ic_right_outlined),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = Color.Gray
-            )
         }
     }
 }

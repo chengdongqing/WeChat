@@ -83,15 +83,15 @@ private fun ContactBasicInfo(
     Column(modifier = modifier) {
         // 姓名和性别
         NameWithGender(
-            name = contact.name,
+            name = contact.remarkName,
             gender = contact.gender
         )
 
         // 昵称
-        if (contact.nickname.isNotEmpty()) {
+        if (contact.name.isNotEmpty()) {
             InfoText(
                 label = "昵称：",
-                value = contact.nickname,
+                value = contact.name,
                 modifier = Modifier.padding(top = 2.dp)
             )
         }

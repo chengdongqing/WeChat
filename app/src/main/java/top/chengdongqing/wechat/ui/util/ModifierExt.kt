@@ -35,11 +35,13 @@ import top.chengdongqing.wechat.ui.theme.WeChatTheme
  * 自定义点击，不带水波纹
  */
 fun Modifier.weClickable(
+    enabled: Boolean = true,
     onClick: () -> Unit
 ): Modifier = composed {
     this.clickable(
         interactionSource = remember { MutableInteractionSource() },
         indication = null,
+        enabled = enabled,
         onClick = onClick
     )
 }
@@ -48,6 +50,7 @@ fun Modifier.weClickable(
  * 自定义点击，带自定义背景色
  */
 fun Modifier.weClickableWithBg(
+    enabled: Boolean = true,
     showBackground: Boolean = true,
     onClick: () -> Unit
 ): Modifier = composed {
@@ -60,6 +63,7 @@ fun Modifier.weClickableWithBg(
         .clickable(
             interactionSource = interactionSource,
             indication = null,
+            enabled = enabled,
             onClick = onClick
         )
 }
