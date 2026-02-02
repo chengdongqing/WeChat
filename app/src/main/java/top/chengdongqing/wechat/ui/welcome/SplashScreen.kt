@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.splash
+package top.chengdongqing.wechat.ui.welcome
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -27,7 +27,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
         launch {
             scale.animateTo(
                 targetValue = 1.0f,
-                animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
+                animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
             )
             onTimeout()
         }

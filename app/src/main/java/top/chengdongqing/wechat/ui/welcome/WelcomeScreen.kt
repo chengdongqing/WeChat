@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.ui.setup
+package top.chengdongqing.wechat.ui.welcome
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme

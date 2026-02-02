@@ -28,7 +28,7 @@ import top.chengdongqing.wechat.ui.me.profile.name.NameScreen
 import top.chengdongqing.wechat.ui.me.profile.qrcode.QRCodeScreen
 import top.chengdongqing.wechat.ui.me.profile.signature.SignatureScreen
 import top.chengdongqing.wechat.ui.setup.ProfileSetupScreen
-import top.chengdongqing.wechat.ui.setup.WelcomeScreen
+import top.chengdongqing.wechat.ui.welcome.WelcomeScreen
 
 @Composable
 fun WeNavigation(navController: NavHostController = rememberNavController()) {

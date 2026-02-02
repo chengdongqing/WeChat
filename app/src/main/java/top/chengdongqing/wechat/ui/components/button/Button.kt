@@ -48,6 +48,7 @@ enum class ButtonSize(
  * @param type 类型
  * @param size 大小
  * @param width 宽度
+ * @param prefix 前缀
  * @param disabled 是否禁用
  * @param loading 是否加载中
  * @param onClick 点击事件
@@ -59,6 +60,7 @@ fun WeButton(
     type: ButtonType = ButtonType.Primary,
     size: ButtonSize = ButtonSize.Large,
     width: Dp = 184.dp,
+    prefix: (@Composable () -> Unit)? = null,
     disabled: Boolean = false,
     loading: Boolean = false,
     onClick: (() -> Unit)? = null
@@ -86,6 +88,10 @@ fun WeButton(
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (loading) {
                 WeLoading(color = colors.contentColor)
+                Spacer(Modifier.width(8.dp))
+            }
+            prefix?.let {
+                it()
                 Spacer(Modifier.width(8.dp))
             }
 

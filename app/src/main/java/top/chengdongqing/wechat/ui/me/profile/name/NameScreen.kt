@@ -35,7 +35,7 @@ fun NameScreen(onBack: () -> Unit) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            WeInput(name) {
+            WeInput(name, maxLength = 17) {
                 name = it
             }
 

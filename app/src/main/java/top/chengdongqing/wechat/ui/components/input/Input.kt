@@ -122,9 +122,6 @@ fun WeInput(
         }
 
         // 底部动态横线
-        WeDivider(
-            thickness = 1.dp,
-            color = indicatorColor
-        )
+        WeDivider(color = indicatorColor)
     }
 }

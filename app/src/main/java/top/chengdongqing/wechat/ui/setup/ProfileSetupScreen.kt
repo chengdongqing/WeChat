@@ -18,12 +18,12 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,10 +46,14 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.createMediaUri
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.ui.components.button.ButtonSize
+import top.chengdongqing.wechat.ui.components.button.ButtonType
 import top.chengdongqing.wechat.ui.components.button.WeButton
+import top.chengdongqing.wechat.ui.components.cropper.rememberImageCropperLauncher
+import top.chengdongqing.wechat.ui.components.informationbar.InformationBarType
+import top.chengdongqing.wechat.ui.components.informationbar.WeInformationBar
 import top.chengdongqing.wechat.ui.components.input.WeInput
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
-import top.chengdongqing.wechat.ui.theme.LinkColor
 import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.theme.White
 import top.chengdongqing.wechat.ui.util.weClickable
@@ -75,17 +79,10 @@ fun ProfileSetupScreen(
     var userName by remember { mutableStateOf("") }
     var avatarUri by remember { mutableStateOf<Uri?>(null) }
 
-    // 表单验证状态
-    val isValid by remember {
-        derivedStateOf {
-            userName.trim().length in 2..20
-        }
-    }
-
     Scaffold(
         topBar = {
             WeTopBar(
-                title = "个人资料设置",
+                title = "设置个人资料",
                 containerColor = White,
                 onBack = onBack,
                 backIconResId = R.drawable.ic_close_outlined
@@ -97,7 +94,6 @@ fun ProfileSetupScreen(
             modifier = Modifier.padding(paddingValues),
             userName = userName,
             avatarUri = avatarUri,
-            isValid = isValid,
             onUserNameChange = { userName = it },
             onAvatarChange = { avatarUri = it },
             onCompleteClick = {
@@ -123,7 +119,6 @@ private fun ProfileSetupContent(
     modifier: Modifier = Modifier,
     userName: String,
     avatarUri: Uri?,
-    isValid: Boolean,
     onUserNameChange: (String) -> Unit,
     onAvatarChange: (Uri?) -> Unit,
     onCompleteClick: () -> Unit
@@ -137,67 +132,86 @@ private fun ProfileSetupContent(
         label = "ButtonBottomPadding"
     )
 
-    Column(
+    var errorInfo by remember { mutableStateOf("") }
+
+    val handleOk = {
+        when {
+            userName.isBlank() -> errorInfo = "名字不能为空"
+            avatarUri == null -> errorInfo = "请设置头像"
+            else -> onCompleteClick()
+        }
+    }
+
+    LaunchedEffect(errorInfo) {
+        if (errorInfo.isNotBlank()) {
+            delay(5000)
+            errorInfo = ""
+        }
+    }
+
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = 22.dp)
     ) {
-        // 顶部提示文本
-        Text(
-            text = "设置名字和头像，让朋友认识你",
-            fontSize = 13.sp,
-            color = WeTheme.colorScheme.textSecondary
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // 头像选择区域
-        AvatarSelector(
-            avatarUri = avatarUri,
-            onAvatarChange = onAvatarChange
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 昵称输入框
-        WeInput(
-            value = userName,
-            label = "名字",
-            placeholder = "请填写名字",
-            activeColor = Color(0xFFE5E5E5),
-            onValueChange = onUserNameChange
-        )
-
-        // 昵称提示文本
-        Text(
-            text = "好名字可以让你的朋友更容易记住你。",
-            color = WeTheme.colorScheme.textSecondary,
-            fontSize = 13.sp,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(start = 4.dp, top = 12.dp)
-        )
-
-        // 弹性空白区域，将按钮推到底部
-        Spacer(
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = 24.dp)
-        )
-
-        // 底部确定按钮
         Column(
-            modifier = Modifier
-                .imePadding()
-                .padding(bottom = bottomPadding)
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            WeButton(
-                text = "确定",
-                disabled = !isValid,
-                onClick = onCompleteClick
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // 头像选择区域
+            AvatarSelector(
+                avatarUri = avatarUri,
+                onAvatarChange = onAvatarChange
             )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 昵称输入框
+            WeInput(
+                value = userName,
+                label = "名字",
+                placeholder = "请填写名字",
+                activeColor = Color(0xFFE5E5E5),
+                maxLength = 17,
+                onValueChange = onUserNameChange
+            )
+
+            // 昵称提示文本
+            Text(
+                text = "好名字可以让你的朋友更容易记住你。",
+                color = WeTheme.colorScheme.textSecondary,
+                fontSize = 13.sp,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(start = 4.dp, top = 12.dp)
+            )
+
+            // 弹性空白区域，将按钮推到底部
+            Spacer(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 24.dp)
+            )
+
+            // 底部确定按钮
+            Column(
+                modifier = Modifier
+                    .imePadding()
+                    .padding(bottom = bottomPadding)
+            ) {
+                WeButton("确定") {
+                    handleOk()
+                }
+            }
         }
+
+        WeInformationBar(
+            visible = errorInfo.isNotEmpty(),
+            content = errorInfo,
+            type = InformationBarType.WarnStrong
+        )
     }
 }
 
@@ -231,12 +245,16 @@ private fun AvatarSelector(
         )
     }
 
+    val launchCropper = rememberImageCropperLauncher {
+        onAvatarChange(it)
+    }
+
     // 拍照启动器
     val takePicture = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success && tempUri.value != null) {
-            onAvatarChange(tempUri.value)
+        if (success) {
+            tempUri.value?.let { launchCropper(it) }
         }
     }
 
@@ -244,7 +262,7 @@ private fun AvatarSelector(
     val pickPicture = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        uri?.let { onAvatarChange(it) }
+        uri?.let { launchCropper(it) }
     }
 
     // 显示ActionSheet
@@ -278,8 +296,8 @@ private fun AvatarSelector(
         // 头像展示/占位图
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(6.dp))
+                .size(100.dp)
+                .clip(CircleShape)
                 .weClickable { showActionSheet() }
         ) {
             if (avatarUri != null) {
@@ -300,14 +318,22 @@ private fun AvatarSelector(
             }
         }
 
-        // 提示文本
-        Text(
-            text = if (avatarUri == null) "点击设置头像" else "点击更换头像",
-            style = MaterialTheme.typography.bodySmall,
-            color = LinkColor,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .weClickable { showActionSheet() }
-        )
+        Spacer(modifier = Modifier.height(20.dp))
+
+        WeButton(
+            text = if (avatarUri != null) "更换头像" else "设置头像",
+            type = ButtonType.Plain,
+            size = ButtonSize.Small,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            prefix = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_camera_filled),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        ) {
+            showActionSheet()
+        }
     }
 }
