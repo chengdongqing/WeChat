@@ -32,6 +32,7 @@ fun WeTopBar(
     containerColor: Color = WeTheme.colorScheme.background,
     textColor: Color = WeTheme.colorScheme.textPrimary,
     onBack: (() -> Unit)? = null,
+    @DrawableRes backIconResId: Int = R.drawable.ic_back_outlined,
     actions: @Composable WeTopBarScope.() -> Unit = {}
 ) {
     Surface(
@@ -49,7 +50,7 @@ fun WeTopBar(
             if (onBack != null) {
                 WeTopBarIcon(
                     modifier = Modifier.align(Alignment.CenterStart),
-                    iconResId = R.drawable.ic_back_outlined,
+                    iconResId = backIconResId,
                     description = "返回",
                     tint = textColor,
                     onClick = onBack

@@ -181,10 +181,10 @@ suspend fun Context.createImageUri(bitmap: Bitmap, quality: Int = 100): Uri =
 /**
  * 创建媒体文件记录
  */
-suspend fun Context.createMediaUri(isExtensionsVideo: Boolean): Uri = withContext(Dispatchers.IO) {
-    val directory = if (isExtensionsVideo) "videos" else "images"
-    val extension = if (isExtensionsVideo) ".mp4" else ".jpg"
-    val prefix = if (isExtensionsVideo) "VID" else "IMG"
+suspend fun Context.createMediaUri(isVideo: Boolean = false): Uri = withContext(Dispatchers.IO) {
+    val directory = if (isVideo) "videos" else "images"
+    val extension = if (isVideo) ".mp4" else ".jpg"
+    val prefix = if (isVideo) "VID" else "IMG"
 
     val file = File(
         externalCacheDir,

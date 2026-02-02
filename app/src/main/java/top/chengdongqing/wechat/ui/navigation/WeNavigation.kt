@@ -1,5 +1,11 @@
 package top.chengdongqing.wechat.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -38,17 +44,45 @@ fun WeNavigation(navController: NavHostController = rememberNavController()) {
                 navController.navigate(Screen.ProfileSetup.route)
             }
         }
-        composable(Screen.ProfileSetup.route) {
+        composable(
+            route = Screen.ProfileSetup.route,
+            exitTransition = {
+                if (targetState.destination.route == Screen.Home.route) {
+                    fadeOut(animationSpec = tween(700)) +
+                            scaleOut(
+                                targetScale = 1.08f,
+                                animationSpec = tween(700)
+                            )
+                } else null
+            }
+        ) {
             ProfileSetupScreen(onBack = goBack) {
                 navController.navigate(Screen.Home.route) {
-                    popUpTo(0) { // 弹出到根节点
+                    popUpTo(Screen.Welcome.route) {
                         inclusive = true
                     }
+                    launchSingleTop = true
                 }
             }
         }
 
-        composable(Screen.Home.route) {
+        composable(
+            route = Screen.Home.route,
+            enterTransition = {
+                if (initialState.destination.route == Screen.ProfileSetup.route) {
+                    fadeIn(animationSpec = tween(700)) +
+                            scaleIn(
+                                initialScale = 0.92f,
+                                animationSpec = tween(700)
+                            )
+                } else {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        tween(300)
+                    )
+                }
+            }
+        ) {
             HomeScreen(navController)
         }
 

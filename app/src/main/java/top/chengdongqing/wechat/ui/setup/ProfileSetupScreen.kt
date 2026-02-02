@@ -1,163 +1,289 @@
 package top.chengdongqing.wechat.ui.setup
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.util.createMediaUri
+import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
+import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.ui.components.button.WeButton
+import top.chengdongqing.wechat.ui.components.input.WeInput
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
+import top.chengdongqing.wechat.ui.theme.LinkColor
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.theme.White
+import top.chengdongqing.wechat.ui.util.weClickable
 
 /**
  * 个人资料首次设置页面
- * 用于用户首次使用时配置昵称和头像
+ *
+ * 用于用户首次使用应用时配置个人信息（昵称和头像）
+ * 这是无中心化架构的身份创建页面，不涉及账号注册
+ *
+ * @param onBack 返回按钮点击回调
+ * @param onSetupComplete 设置完成回调，传递用户名和头像URI
  */
 @Composable
 fun ProfileSetupScreen(
-    viewModel: ProfileSetupViewModel = viewModel(),
     onBack: () -> Unit,
     onSetupComplete: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // 用户输入状态
+    var userName by remember { mutableStateOf("") }
+    var avatarUri by remember { mutableStateOf<Uri?>(null) }
+
+    // 表单验证状态
+    val isValid by remember {
+        derivedStateOf {
+            userName.trim().length in 2..20
+        }
+    }
 
     Scaffold(
         topBar = {
-            WeTopBar("", containerColor = White, onBack = onBack)
+            WeTopBar(
+                title = "个人资料设置",
+                containerColor = White,
+                onBack = onBack,
+                backIconResId = R.drawable.ic_close_outlined
+            )
         },
         containerColor = White
     ) { paddingValues ->
         ProfileSetupContent(
             modifier = Modifier.padding(paddingValues),
-            uiState = uiState,
-            onUserNameChange = { viewModel.onUserNameChange(it) },
+            userName = userName,
+            avatarUri = avatarUri,
+            isValid = isValid,
+            onUserNameChange = { userName = it },
+            onAvatarChange = { avatarUri = it },
             onCompleteClick = {
-                viewModel.saveProfile()
-                onSetupComplete()
+                scope.launch {
+                    keyboardController?.hide()
+                    delay(300)
+                    onSetupComplete(/*userName.trim(), avatarUri*/)
+                }
             }
         )
     }
 }
 
+/**
+ * 个人资料设置页面内容
+ *
+ * 包含头像选择、昵称输入和提交按钮
+ * 键盘弹出时自动调整底部按钮位置
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ProfileSetupContent(
     modifier: Modifier = Modifier,
-    uiState: ProfileSetupUiState,
+    userName: String,
+    avatarUri: Uri?,
+    isValid: Boolean,
     onUserNameChange: (String) -> Unit,
+    onAvatarChange: (Uri?) -> Unit,
     onCompleteClick: () -> Unit
 ) {
+    // 键盘可见性检测
+    val isKeyboardVisible = WindowInsets.isImeVisible
+
+    // 键盘弹出时动画调整底部间距
+    val bottomPadding by animateDpAsState(
+        targetValue = if (isKeyboardVisible) 0.dp else 40.dp,
+        label = "ButtonBottomPadding"
+    )
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
-        // 标题
+        // 顶部提示文本
         Text(
-            text = "个人资料设置",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            text = "设置名字和头像，让朋友认识你",
+            fontSize = 13.sp,
+            color = WeTheme.colorScheme.textSecondary
         )
 
-        Text(
-            text = "设置昵称和头像，让朋友认识你",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
+        Spacer(modifier = Modifier.height(40.dp))
 
-        // 头像
-        AvatarSection(
-            avatarUri = uiState.avatarUri,
-            onClick = {}
+        // 头像选择区域
+        AvatarSelector(
+            avatarUri = avatarUri,
+            onAvatarChange = onAvatarChange
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 昵称输入
-        OutlinedTextField(
-            value = uiState.userName,
-            onValueChange = onUserNameChange,
-            label = { Text("昵称") },
-            placeholder = { Text("请输入昵称") },
-            singleLine = true,
-            isError = uiState.userNameError != null,
-            supportingText = {
-                uiState.userNameError?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+        // 昵称输入框
+        WeInput(
+            value = userName,
+            label = "名字",
+            placeholder = "请填写名字",
+            activeColor = Color(0xFFE5E5E5),
+            onValueChange = onUserNameChange
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        // 昵称提示文本
+        Text(
+            text = "好名字可以让你的朋友更容易记住你。",
+            color = WeTheme.colorScheme.textSecondary,
+            fontSize = 13.sp,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(start = 4.dp, top = 12.dp)
+        )
 
-        // 设备ID（只读显示）
-        DeviceIdDisplay(deviceId = uiState.deviceId)
+        // 弹性空白区域，将按钮推到底部
+        Spacer(
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 24.dp)
+        )
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        WeButton(
-            text = "确定",
-            disabled = !uiState.isValid,
-            loading = uiState.isSaving
+        // 底部确定按钮
+        Column(
+            modifier = Modifier
+                .imePadding()
+                .padding(bottom = bottomPadding)
         ) {
-            onCompleteClick()
+            WeButton(
+                text = "确定",
+                disabled = !isValid,
+                onClick = onCompleteClick
+            )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 提示信息
-        PrivacyHint()
     }
 }
 
+/**
+ * 头像选择器组件
+ *
+ * 支持两种方式选择头像：
+ * 1. 拍照
+ * 2. 从相册选择
+ *
+ * @param avatarUri 当前头像URI，null表示未设置
+ * @param onAvatarChange 头像变更回调
+ */
 @Composable
-private fun AvatarSection(
-    avatarUri: android.net.Uri?,
-    onClick: () -> Unit
+private fun AvatarSelector(
+    avatarUri: Uri?,
+    onAvatarChange: (Uri?) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    // 临时URI，用于拍照时存储图片
+    val tempUri = remember { mutableStateOf<Uri?>(null) }
+
+    // ActionSheet状态和选项
+    val actionSheet = rememberActionSheetState()
+    val options = remember {
+        listOf(
+            ActionSheetItem("拍照"),
+            ActionSheetItem("从相册选择")
+        )
+    }
+
+    // 拍照启动器
+    val takePicture = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempUri.value != null) {
+            onAvatarChange(tempUri.value)
+        }
+    }
+
+    // 相册选择启动器
+    val pickPicture = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let { onAvatarChange(it) }
+    }
+
+    // 显示ActionSheet
+    val showActionSheet = {
+        actionSheet.show(options) { selectedIndex ->
+            when (selectedIndex) {
+                0 -> {
+                    // 拍照
+                    scope.launch {
+                        val uri = context.createMediaUri()
+                        tempUri.value = uri
+                        takePicture.launch(uri)
+                    }
+                }
+
+                1 -> {
+                    // 从相册选择
+                    pickPicture.launch(
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // 头像展示/占位图
         Box(
             modifier = Modifier
                 .size(64.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .clickable(onClick = onClick)
+                .weClickable { showActionSheet() }
         ) {
             if (avatarUri != null) {
+                // 显示已选择的头像
                 AsyncImage(
                     model = avatarUri,
                     contentDescription = "头像",
@@ -165,6 +291,7 @@ private fun AvatarSection(
                     contentScale = ContentScale.Crop
                 )
             } else {
+                // 显示占位图
                 Image(
                     painter = painterResource(R.drawable.img_avatar_placeholder),
                     contentDescription = "选择头像",
@@ -173,72 +300,14 @@ private fun AvatarSection(
             }
         }
 
+        // 提示文本
         Text(
             text = if (avatarUri == null) "点击设置头像" else "点击更换头像",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
+            color = LinkColor,
             modifier = Modifier
                 .padding(top = 8.dp)
-                .clickable(onClick = onClick)
+                .weClickable { showActionSheet() }
         )
-    }
-}
-
-@Composable
-private fun DeviceIdDisplay(deviceId: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(
-                text = "设备标识",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = deviceId.take(16) + "...",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun PrivacyHint() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(
-                    text = "局域网模式说明",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-                Text(
-                    text = "你的资料仅在局域网内可见，不会上传到互联网",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-        }
     }
 }

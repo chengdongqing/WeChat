@@ -53,14 +53,30 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.components.qrcode.scanner.QRCodeScannerActivity" />
-        <activity android:name=".ui.components.media.preview.MediaPreviewActivity" />
-        <activity android:name=".ui.components.media.picker.MediaPickerActivity" />
-        <activity android:name=".ui.components.cropper.ImageCropperActivity" />
-        <activity android:name=".ui.components.camera.CameraActivity" />
-        <activity android:name=".ui.components.location.preview.LocationPreviewActivity" />
-        <activity android:name=".ui.components.location.picker.LocationPickerActivity" />
-        <activity android:name=".ui.call.CallActivity" />
+        <activity
+            android:name=".ui.components.qrcode.scanner.QRCodeScannerActivity"
+            android:theme="@style/Theme.WeTheme" />
+        <activity
+            android:name=".ui.components.media.preview.MediaPreviewActivity"
+            android:theme="@style/Theme.WeTheme" />
+        <activity
+            android:name=".ui.components.media.picker.MediaPickerActivity"
+            android:theme="@style/Theme.WeTheme" />
+        <activity
+            android:name=".ui.components.cropper.ImageCropperActivity"
+            android:theme="@style/Theme.WeTheme" />
+        <activity
+            android:name=".ui.components.camera.CameraActivity"
+            android:theme="@style/Theme.WeTheme" />
+        <activity
+            android:name=".ui.components.location.preview.LocationPreviewActivity"
+            android:theme="@style/Theme.WeTheme" />
+        <activity
+            android:name=".ui.components.location.picker.LocationPickerActivity"
+            android:theme="@style/Theme.WeTheme" />
+        <activity
+            android:name=".ui.call.CallActivity"
+            android:theme="@style/Theme.WeTheme" />
 
         <meta-data
             android:name="com.amap.api.v2.apikey"
