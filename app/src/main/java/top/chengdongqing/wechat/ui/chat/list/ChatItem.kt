@@ -26,7 +26,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.Chat
 import top.chengdongqing.wechat.ui.components.badge.WeBadge
 import top.chengdongqing.wechat.ui.components.badge.toBadgeText
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun ChatItem(chat: Chat) {
@@ -55,14 +55,14 @@ fun ChatItem(chat: Chat) {
             Text(
                 text = chat.name,
                 fontSize = 16.sp,
-                color = WeChatTheme.colorScheme.textPrimary,
+                color = WeTheme.colorScheme.textPrimary,
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = chat.lastMessage,
                 fontSize = 13.sp,
-                color = WeChatTheme.colorScheme.textSecondary,
+                color = WeTheme.colorScheme.textSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -71,14 +71,14 @@ fun ChatItem(chat: Chat) {
             Text(
                 text = chat.time,
                 fontSize = 12.sp,
-                color = WeChatTheme.colorScheme.textSecondary
+                color = WeTheme.colorScheme.textSecondary
             )
             Spacer(modifier = Modifier.height(4.dp))
             Icon(
                 painter = painterResource(R.drawable.ic_mute_outlined),
                 contentDescription = "已开启免打扰",
                 modifier = Modifier.size(16.dp),
-                tint = WeChatTheme.colorScheme.textSecondary
+                tint = WeTheme.colorScheme.textSecondary
             )
         }
     }

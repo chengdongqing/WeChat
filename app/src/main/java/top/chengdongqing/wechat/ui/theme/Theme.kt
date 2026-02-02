@@ -17,7 +17,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.core.view.WindowCompat
 
 @Immutable
-class WeChatColorScheme(
+class WeColorScheme(
     val primary: Color,
     val primaryPressed: Color,
     // 基础表面
@@ -34,7 +34,7 @@ class WeChatColorScheme(
     val error: Color
 )
 
-private val LightColorScheme = WeChatColorScheme(
+private val LightColorScheme = WeColorScheme(
     primary = GreenPrimary,
     primaryPressed = GreenPressed,
     background = Grey_ED,
@@ -48,7 +48,7 @@ private val LightColorScheme = WeChatColorScheme(
     error = Danger
 )
 
-private val DarkColorScheme = WeChatColorScheme(
+private val DarkColorScheme = WeColorScheme(
     primary = GreenPrimary,
     primaryPressed = GreenPressed,
     background = Black,
@@ -62,10 +62,10 @@ private val DarkColorScheme = WeChatColorScheme(
     error = Danger
 )
 
-val LocalWeChatColorScheme = staticCompositionLocalOf { LightColorScheme }
+val LocalWeColorScheme = staticCompositionLocalOf { LightColorScheme }
 
 @Composable
-fun WeChatTheme(
+fun WeTheme(
     darkTheme: Boolean = false, // isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
@@ -95,15 +95,15 @@ fun WeChatTheme(
                 platformStyle = PlatformTextStyle(false)
             )
         ) {
-            CompositionLocalProvider(LocalWeChatColorScheme provides colorScheme) {
+            CompositionLocalProvider(LocalWeColorScheme provides colorScheme) {
                 content()
             }
         }
     }
 }
 
-object WeChatTheme {
-    val colorScheme: WeChatColorScheme
+object WeTheme {
+    val colorScheme: WeColorScheme
         @Composable
-        get() = LocalWeChatColorScheme.current
+        get() = LocalWeColorScheme.current
 }

@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.ui.chat.session.input.panel.MoreAction
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.ui.components.actionsheet.ActionSheetState
 import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetState
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
@@ -201,7 +201,7 @@ class ActionHandler(
                 Icon(
                     painter = painterResource(R.drawable.ic_video_call_filled),
                     contentDescription = null,
-                    tint = WeChatTheme.colorScheme.textPrimary,
+                    tint = WeTheme.colorScheme.textPrimary,
                     modifier = Modifier.size(18.dp)
                 )
             }),
@@ -209,7 +209,7 @@ class ActionHandler(
                 Icon(
                     painter = painterResource(R.drawable.ic_voice_call_filled),
                     contentDescription = null,
-                    tint = WeChatTheme.colorScheme.textPrimary,
+                    tint = WeTheme.colorScheme.textPrimary,
                     modifier = Modifier.size(18.dp)
                 )
             })

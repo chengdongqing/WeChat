@@ -54,7 +54,7 @@ import top.chengdongqing.wechat.core.util.createBitmapDescriptor
 import top.chengdongqing.wechat.core.util.isLoaded
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.core.util.toLatLng
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.isTrue
 
 @Composable
@@ -98,7 +98,7 @@ fun BoxScope.LocationControl(map: AMap, onClick: ((LatLng) -> Unit)? = null) {
             .offset(x = 12.dp, y = (-36).dp)
             .size(40.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(WeChatTheme.colorScheme.surface)
+            .background(WeTheme.colorScheme.surface)
             .clickable {
                 map.apply {
                     if (myLocation
@@ -118,7 +118,7 @@ fun BoxScope.LocationControl(map: AMap, onClick: ((LatLng) -> Unit)? = null) {
         Icon(
             imageVector = Icons.Outlined.MyLocation,
             contentDescription = "当前位置",
-            tint = WeChatTheme.colorScheme.textPrimary,
+            tint = WeTheme.colorScheme.textPrimary,
             modifier = Modifier.size(26.dp)
         )
     }

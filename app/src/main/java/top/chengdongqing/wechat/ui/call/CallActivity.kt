@@ -20,7 +20,7 @@ import top.chengdongqing.wechat.data.call.model.CallDirection
 import top.chengdongqing.wechat.data.call.model.CallType
 import top.chengdongqing.wechat.ui.call.screens.VideoCallScreen
 import top.chengdongqing.wechat.ui.call.screens.VoiceCallScreen
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 /**
  * 通话页面Activity
@@ -46,7 +46,7 @@ class CallActivity : ComponentActivity() {
         setContent {
             val uiState by viewModel.uiState.collectAsState()
 
-            WeChatTheme {
+            WeTheme {
                 when (uiState.callType) {
                     CallType.Voice -> VoiceCallScreen(
                         state = uiState,

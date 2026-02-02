@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.data.model.LocationPreviewItem
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.location.preview.previewLocation
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.rememberScreenFractionWidth
 
 @Composable
@@ -50,7 +50,7 @@ fun LocationContent(content: MessageContent.Location) {
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             Text(
                 text = content.poiName,
-                color = WeChatTheme.colorScheme.textPrimary,
+                color = WeTheme.colorScheme.textPrimary,
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
                 maxLines = 1,
@@ -58,7 +58,7 @@ fun LocationContent(content: MessageContent.Location) {
             )
             Text(
                 text = content.address,
-                color = WeChatTheme.colorScheme.textSecondary,
+                color = WeTheme.colorScheme.textSecondary,
                 fontSize = 12.sp,
                 lineHeight = 22.sp,
                 maxLines = 1,

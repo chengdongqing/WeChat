@@ -52,7 +52,7 @@ import top.chengdongqing.wechat.ui.components.toast.ToastIcon
 import top.chengdongqing.wechat.ui.components.toast.rememberToastState
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.theme.LinkColor
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.ui.util.weClickable
 import kotlin.time.Duration
@@ -119,7 +119,7 @@ fun QRCodeScreen(onBack: () -> Unit) {
                 Text(
                     text = "扫一扫上面的二维码图案，加我为朋友。",
                     fontSize = 12.sp,
-                    color = WeChatTheme.colorScheme.textSecondary
+                    color = WeTheme.colorScheme.textSecondary
                 )
             }
 
@@ -176,13 +176,13 @@ private fun ProfileBar(profile: ProfileInfo) {
                 text = profile.name,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = WeChatTheme.colorScheme.textPrimary
+                color = WeTheme.colorScheme.textPrimary
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = profile.signature,
                 fontSize = 12.sp,
-                color = WeChatTheme.colorScheme.textSecondary
+                color = WeTheme.colorScheme.textSecondary
             )
         }
     }

@@ -30,7 +30,7 @@ import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.components.switch.WeSwitch
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.theme.White
 import top.chengdongqing.wechat.ui.util.weClickable
 
@@ -100,7 +100,7 @@ private fun ContactListBar(onNavigateToContact: () -> Unit) {
             Text(
                 text = "老舅",
                 fontSize = 13.sp,
-                color = WeChatTheme.colorScheme.textSecondary
+                color = WeTheme.colorScheme.textSecondary
             )
         }
 

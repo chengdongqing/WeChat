@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import kotlin.math.roundToInt
 
 @Composable
@@ -113,7 +113,7 @@ private fun IndexItem(
             .size(20.dp)
             .background(
                 if (selected) {
-                    WeChatTheme.colorScheme.primary
+                    WeTheme.colorScheme.primary
                 } else {
                     Color.Transparent
                 },
@@ -123,7 +123,7 @@ private fun IndexItem(
     ) {
         Text(
             text = initial.toString(),
-            color = if (selected) Color.White else WeChatTheme.colorScheme.textPrimary,
+            color = if (selected) Color.White else WeTheme.colorScheme.textPrimary,
             fontSize = 11.sp,
             modifier = Modifier
                 .pointerInteropFilter { motionEvent ->
@@ -151,7 +151,7 @@ private fun IndexItem(
 
 @Composable
 private fun BoxScope.Indicator(initial: Char, index: Int, dpHeightPerIndex: Dp) {
-    val color = WeChatTheme.colorScheme.background
+    val color = WeTheme.colorScheme.background
 
     Box(
         modifier = Modifier

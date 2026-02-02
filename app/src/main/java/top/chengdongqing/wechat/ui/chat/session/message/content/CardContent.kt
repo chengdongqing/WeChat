@@ -20,7 +20,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun UserCardContent(content: MessageContent.UserCard) {
@@ -41,14 +41,14 @@ fun UserCardContent(content: MessageContent.UserCard) {
             Text(
                 text = content.name,
                 fontSize = 16.sp,
-                color = WeChatTheme.colorScheme.textPrimary
+                color = WeTheme.colorScheme.textPrimary
             )
         }
         WeDivider(modifier = Modifier.padding(top = 12.dp))
         Text(
             text = "个人名片",
             fontSize = 10.sp,
-            color = WeChatTheme.colorScheme.textSecondary,
+            color = WeTheme.colorScheme.textSecondary,
             modifier = Modifier.offset(y = 5.dp)
         )
     }

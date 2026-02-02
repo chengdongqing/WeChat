@@ -30,7 +30,7 @@ import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.components.switch.WeSwitch
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.theme.Danger
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.theme.White
 
 @Composable
@@ -64,7 +64,7 @@ fun ContactSettingScreen(
                         Text(
                             text = contact.remarkName,
                             fontSize = 16.sp,
-                            color = WeChatTheme.colorScheme.textSecondary
+                            color = WeTheme.colorScheme.textSecondary
                         )
                     }
                 )
@@ -115,7 +115,7 @@ private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
     ) {
         Text(
             text = "删除",
-            color = WeChatTheme.colorScheme.error,
+            color = WeTheme.colorScheme.error,
             fontSize = 17.sp,
             fontWeight = FontWeight.Medium
         )

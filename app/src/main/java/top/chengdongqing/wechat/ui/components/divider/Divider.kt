@@ -8,13 +8,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun WeDivider(
     modifier: Modifier = Modifier,
     thickness: Dp = 0.5.dp,
-    color: Color = WeChatTheme.colorScheme.divider,
+    color: Color = WeTheme.colorScheme.divider,
     orientation: Orientation = Orientation.Horizontal
 ) {
     if (orientation == Orientation.Horizontal) {

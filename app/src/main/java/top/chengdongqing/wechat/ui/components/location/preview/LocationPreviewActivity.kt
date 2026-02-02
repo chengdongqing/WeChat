@@ -8,7 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import top.chengdongqing.wechat.data.model.LocationPreviewItem
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 class LocationPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +23,7 @@ class LocationPreviewActivity : ComponentActivity() {
         }!!
 
         setContent {
-            WeChatTheme {
+            WeTheme {
                 WeLocationPreview(location) {
                     finish()
                 }

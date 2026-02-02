@@ -22,15 +22,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
 fun WeTopBar(
     title: String,
     modifier: Modifier = Modifier,
-    containerColor: Color = WeChatTheme.colorScheme.background,
-    textColor: Color = WeChatTheme.colorScheme.textPrimary,
+    containerColor: Color = WeTheme.colorScheme.background,
+    textColor: Color = WeTheme.colorScheme.textPrimary,
     onBack: (() -> Unit)? = null,
     actions: @Composable WeTopBarScope.() -> Unit = {}
 ) {
@@ -80,7 +80,7 @@ interface WeTopBarScope {
         modifier: Modifier = Modifier,
         @DrawableRes iconResId: Int,
         description: String? = null,
-        tint: Color = WeChatTheme.colorScheme.textPrimary,
+        tint: Color = WeTheme.colorScheme.textPrimary,
         onClick: (() -> Unit)? = null
     )
 }
@@ -109,7 +109,7 @@ fun WeTopBarIcon(
     modifier: Modifier = Modifier,
     @DrawableRes iconResId: Int,
     description: String? = null,
-    tint: Color = WeChatTheme.colorScheme.textPrimary,
+    tint: Color = WeTheme.colorScheme.textPrimary,
     onClick: (() -> Unit)? = null
 ) {
     Box(

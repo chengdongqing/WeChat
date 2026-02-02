@@ -45,7 +45,7 @@ import top.chengdongqing.wechat.ui.components.actionsheet.rememberActionSheetSta
 import top.chengdongqing.wechat.ui.components.location.AMap
 import top.chengdongqing.wechat.ui.components.location.rememberAMapState
 import top.chengdongqing.wechat.ui.theme.Black
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.theme.White
 import top.chengdongqing.wechat.ui.util.weClickable
 
@@ -124,14 +124,14 @@ private fun BottomBar(location: LocationPreviewItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(WeChatTheme.colorScheme.surface)
+            .background(WeTheme.colorScheme.surface)
             .padding(horizontal = 20.dp, vertical = 40.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = location.poiName,
-                color = WeChatTheme.colorScheme.textPrimary,
+                color = WeTheme.colorScheme.textPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -139,7 +139,7 @@ private fun BottomBar(location: LocationPreviewItem) {
             location.address?.let {
                 Text(
                     text = it,
-                    color = WeChatTheme.colorScheme.textSecondary,
+                    color = WeTheme.colorScheme.textSecondary,
                     fontSize = 14.sp
                 )
             }
@@ -152,7 +152,7 @@ private fun BottomBar(location: LocationPreviewItem) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(WeChatTheme.colorScheme.background)
+                    .background(WeTheme.colorScheme.background)
                     .clickable {
                         actionSheet.show(mapOptions) { index ->
                             context.navigateToLocation(
@@ -167,12 +167,12 @@ private fun BottomBar(location: LocationPreviewItem) {
                 Icon(
                     imageVector = Icons.Outlined.Navigation,
                     contentDescription = null,
-                    tint = WeChatTheme.colorScheme.primary,
+                    tint = WeTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "导航", color = WeChatTheme.colorScheme.textSecondary, fontSize = 14.sp)
+            Text(text = "导航", color = WeTheme.colorScheme.textSecondary, fontSize = 14.sp)
         }
     }
 }

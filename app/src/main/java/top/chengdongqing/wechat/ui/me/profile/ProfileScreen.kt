@@ -28,7 +28,7 @@ import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.navigation.Screen
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.theme.White
 
 /**
@@ -136,7 +136,7 @@ private fun QRCodeContent() {
         painter = painterResource(R.drawable.ic_qrcode_outlined),
         contentDescription = "二维码",
         modifier = Modifier.size(24.dp),
-        tint = WeChatTheme.colorScheme.textSecondary
+        tint = WeTheme.colorScheme.textSecondary
     )
 }
 
@@ -148,6 +148,6 @@ private fun TextContent(text: String) {
     Text(
         text = text,
         fontSize = 16.sp,
-        color = WeChatTheme.colorScheme.textSecondary
+        color = WeTheme.colorScheme.textSecondary
     )
 }

@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
 import top.chengdongqing.wechat.data.model.LocationItem
 import top.chengdongqing.wechat.ui.components.location.picker.LocationPickerState
 import top.chengdongqing.wechat.ui.components.searchbar.WeSearchBar
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.LaunchedUpdateEffect
 
 @Composable
@@ -112,9 +112,9 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
                 Text(
                     text = item,
                     color = if (active) {
-                        WeChatTheme.colorScheme.primary
+                        WeTheme.colorScheme.primary
                     } else {
-                        WeChatTheme.colorScheme.textPrimary
+                        WeTheme.colorScheme.textPrimary
                     },
                     modifier = Modifier
                         .onSizeChanged {
@@ -137,7 +137,7 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
                 .width(itemWidth)
                 .offset(x = animatedOffsetX),
             thickness = 2.dp,
-            color = WeChatTheme.colorScheme.primary
+            color = WeTheme.colorScheme.primary
         )
 
         Spacer(modifier = Modifier.height(16.dp))

@@ -34,7 +34,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 /**
  * 滑块
@@ -118,7 +118,7 @@ fun WeSlider(
                 Modifier
                     .fillMaxWidth()
                     .height(2.dp)
-                    .background(WeChatTheme.colorScheme.divider),
+                    .background(WeTheme.colorScheme.divider),
                 contentAlignment = Alignment.CenterStart
             ) {
                 // 高亮线段
@@ -126,7 +126,7 @@ fun WeSlider(
                     Modifier
                         .fillMaxWidth(percent)
                         .height(2.dp)
-                        .background(WeChatTheme.colorScheme.primary)
+                        .background(WeTheme.colorScheme.primary)
                 )
             }
             // 手柄
@@ -134,7 +134,7 @@ fun WeSlider(
                 Modifier
                     .size(28.dp)
                     .offset(offsetX - 14.dp)
-                    .shadow(14.dp, CircleShape, spotColor = WeChatTheme.colorScheme.divider)
+                    .shadow(14.dp, CircleShape, spotColor = WeTheme.colorScheme.divider)
                     .background(Color.White, CircleShape)
             )
         }
@@ -144,7 +144,7 @@ fun WeSlider(
             Text(
                 text = it(value),
                 modifier = Modifier.widthIn(40.dp),
-                color = WeChatTheme.colorScheme.textSecondary,
+                color = WeTheme.colorScheme.textSecondary,
                 fontSize = 14.sp,
                 textAlign = TextAlign.End
             )

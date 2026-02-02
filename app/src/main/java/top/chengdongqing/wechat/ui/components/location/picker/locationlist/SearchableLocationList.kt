@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.amap.api.maps.CameraUpdateFactory
 import top.chengdongqing.wechat.ui.components.location.picker.LocationPickerState
 import top.chengdongqing.wechat.ui.components.searchbar.WeSearchBar
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun SearchableLocationList(state: LocationPickerState, listState: LazyListState) {
@@ -50,7 +50,7 @@ fun SearchableLocationList(state: LocationPickerState, listState: LazyListState)
             .fillMaxWidth()
             .fillMaxHeight(animatedHeightFraction.value)
             .expandedStyle(state.isListExpanded)
-            .background(WeChatTheme.colorScheme.surface)
+            .background(WeTheme.colorScheme.surface)
             .nestedScroll(nestedScrollConnection)
     ) {
         if (state.isListExpanded) {
@@ -95,14 +95,14 @@ private fun ColumnScope.TopArrow(state: LocationPickerState) {
             .align(Alignment.CenterHorizontally)
             .padding(top = 16.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(WeChatTheme.colorScheme.background)
+            .background(WeTheme.colorScheme.background)
             .clickable { state.isListExpanded = false }
             .padding(horizontal = 12.dp)
     ) {
         Icon(
             imageVector = Icons.Outlined.KeyboardArrowDown,
             contentDescription = null,
-            tint = WeChatTheme.colorScheme.textSecondary,
+            tint = WeTheme.colorScheme.textSecondary,
             modifier = Modifier.size(22.dp)
         )
     }

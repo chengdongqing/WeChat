@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun FileContent(content: MessageContent.File) {
@@ -38,12 +38,12 @@ fun FileContent(content: MessageContent.File) {
             Text(
                 text = content.fileName,
                 fontSize = 16.sp,
-                color = WeChatTheme.colorScheme.textPrimary
+                color = WeTheme.colorScheme.textPrimary
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = formatFileSize(context, content.fileSize),
-                color = WeChatTheme.colorScheme.textSecondary,
+                color = WeTheme.colorScheme.textSecondary,
                 fontSize = 12.sp
             )
         }

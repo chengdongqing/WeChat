@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.ui.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.Danger
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 
 @Composable
@@ -36,7 +36,7 @@ fun ChatListScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(WeChatTheme.colorScheme.background)
+            .background(WeTheme.colorScheme.background)
             .overscroll(overscrollEffect),
         overscrollEffect = overscrollEffect
     ) {
@@ -46,7 +46,7 @@ fun ChatListScreen(
         ) { index, chat ->
             Box(
                 modifier = Modifier
-                    .background(WeChatTheme.colorScheme.surface)
+                    .background(WeTheme.colorScheme.surface)
                     .weContextMenu({
                         onNavigateToDetail(chat.id)
                     }) { position ->
@@ -58,7 +58,7 @@ fun ChatListScreen(
             ) {
                 ChatItem(chat)
             }
-            Box(modifier = Modifier.background(WeChatTheme.colorScheme.surface)) {
+            Box(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
                 WeDivider(modifier = Modifier.padding(start = 73.dp))
             }
         }

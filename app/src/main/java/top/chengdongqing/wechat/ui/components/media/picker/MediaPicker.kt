@@ -42,7 +42,7 @@ import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
 import top.chengdongqing.wechat.ui.components.loading.WeLoadMore
 import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun WeMediaPicker(
@@ -54,7 +54,7 @@ fun WeMediaPicker(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(WeChatTheme.colorScheme.surfaceVariant)
+            .background(WeTheme.colorScheme.surfaceVariant)
     ) {
         RequestMediaPermission(onRevoked = onCancel) {
             val state = rememberMediaPickerState(type, count)
@@ -96,7 +96,7 @@ private fun TopBar(
         Icon(
             imageVector = Icons.Outlined.Close,
             contentDescription = "返回",
-            tint = WeChatTheme.colorScheme.textPrimary,
+            tint = WeTheme.colorScheme.textPrimary,
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .offset(x = 16.dp)
@@ -109,7 +109,7 @@ private fun TopBar(
             modifier = Modifier
                 .align(Alignment.Center)
                 .clip(RoundedCornerShape(20.dp))
-                .background(WeChatTheme.colorScheme.divider)
+                .background(WeTheme.colorScheme.divider)
                 .clickable(enabled = state.isTypeEnabled) {
                     actionSheet.show(typeOptions) { index ->
                         coroutineScope.launch {
@@ -122,7 +122,7 @@ private fun TopBar(
         ) {
             Text(
                 text = typeOptions.find { it.value == state.type }?.label!!,
-                color = WeChatTheme.colorScheme.textPrimary,
+                color = WeTheme.colorScheme.textPrimary,
                 fontSize = 16.sp
             )
             if (state.isTypeEnabled) {
@@ -156,7 +156,7 @@ private fun BottomBar(state: MediaPickerState, onConfirm: () -> Unit) {
     ) {
         Text(
             text = "预览$countDescription",
-            color = WeChatTheme.colorScheme.textPrimary,
+            color = WeTheme.colorScheme.textPrimary,
             fontSize = 16.sp,
             modifier = Modifier
                 .alpha(if (selectedCount > 0) 1f else 0.6f)

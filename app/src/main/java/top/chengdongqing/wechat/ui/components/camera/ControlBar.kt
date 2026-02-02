@@ -53,7 +53,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import top.chengdongqing.wechat.data.model.VisualMediaType
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import kotlin.math.abs
 
 @Composable
@@ -166,7 +166,7 @@ fun ZoomControlBar(state: CameraState) {
                         Text(
                             text = label.format(step),
                             color = animateColorAsState(
-                                if (isSelected) WeChatTheme.colorScheme.primary else Color.White
+                                if (isSelected) WeTheme.colorScheme.primary else Color.White
                             ).value,
                             fontSize = 12.sp
                         )
@@ -177,7 +177,7 @@ fun ZoomControlBar(state: CameraState) {
                         ) {
                             Text(
                                 text = "x",
-                                color = WeChatTheme.colorScheme.primary,
+                                color = WeTheme.colorScheme.primary,
                                 fontSize = 12.sp
                             )
                         }
@@ -251,7 +251,7 @@ private fun CaptureButton(state: CameraState) {
             )
         } else {
             val borderColor = Color.LightGray
-            val activeColor = WeChatTheme.colorScheme.primary
+            val activeColor = WeTheme.colorScheme.primary
 
             Box(
                 contentAlignment = Alignment.Center,

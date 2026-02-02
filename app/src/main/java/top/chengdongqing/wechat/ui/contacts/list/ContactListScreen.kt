@@ -28,7 +28,7 @@ import top.chengdongqing.wechat.ui.components.loading.WeLoading
 import top.chengdongqing.wechat.ui.contacts.list.components.AlphabetIndexer
 import top.chengdongqing.wechat.ui.contacts.list.components.ContactListItem
 import top.chengdongqing.wechat.ui.contacts.list.components.TopFunctionList
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 
 @Composable
@@ -44,7 +44,7 @@ fun ContactListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(WeChatTheme.colorScheme.background)
+            .background(WeTheme.colorScheme.background)
     ) {
         LazyColumn(
             state = listState,
@@ -77,7 +77,7 @@ fun ContactListScreen(
                         contentType = { _, _ -> "ContactItem" } // 告诉 LazyColumn 哪些项是同一种布局，提高复用效率
                     ) { index, contact ->
                         Column(
-                            modifier = Modifier.background(WeChatTheme.colorScheme.surface)
+                            modifier = Modifier.background(WeTheme.colorScheme.surface)
                         ) {
                             ContactListItem(contact) {
                                 onNavigateToDetail(contact.id)
@@ -113,7 +113,7 @@ private fun ContactHeader(initial: Char) {
         text = initial.toString(),
         modifier = Modifier
             .fillMaxWidth()
-            .background(WeChatTheme.colorScheme.background)
+            .background(WeTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 4.dp),
         color = Color.Gray,
         fontSize = 14.sp
@@ -130,7 +130,7 @@ private fun ContactFooter(count: Int) {
     ) {
         Text(
             text = "${count}个朋友",
-            color = WeChatTheme.colorScheme.textSecondary
+            color = WeTheme.colorScheme.textSecondary
         )
     }
 }

@@ -9,7 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.MediaItem
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 class MediaPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +25,7 @@ class MediaPreviewActivity : ComponentActivity() {
         val current = intent.getIntExtra(EXTRA_CURRENT_INDEX, 0)
 
         setContent {
-            WeChatTheme {
+            WeTheme {
                 WeMediaPreview(medias, current) {
                     finish()
                 }

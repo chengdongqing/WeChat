@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.navigation.Screen
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
@@ -47,7 +47,7 @@ fun MeScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .background(WeChatTheme.colorScheme.background),
+            .background(WeTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Column {
@@ -58,7 +58,7 @@ fun MeScreen(navController: NavController) {
             StatusSection()
         }
         MenuListItem("服务", R.drawable.ic_pay_logo_outlined, Color(0xFF07C160))
-        Column(modifier = Modifier.background(WeChatTheme.colorScheme.surface)) {
+        Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
             MenuListItem("收藏", R.drawable.ic_favorites_outlined, Color.Unspecified)
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             MenuListItem("朋友圈", R.drawable.ic_album_outlined, Color(0xFF2782D7))
@@ -77,7 +77,7 @@ fun UserInfoSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(WeChatTheme.colorScheme.surface)
+            .background(WeTheme.colorScheme.surface)
             .weClickable { onNavigateToProfile() }
             .padding(start = 24.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -96,7 +96,7 @@ fun UserInfoSection(
                     text = "海盐芝士不加糖",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = WeChatTheme.colorScheme.textPrimary,
+                    color = WeTheme.colorScheme.textPrimary,
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 20.dp)
@@ -115,7 +115,7 @@ fun UserInfoSection(
                 Text(
                     text = "微信号：wxid_${randomUUID().take(12)}",
                     fontSize = 14.sp,
-                    color = WeChatTheme.colorScheme.textSecondary,
+                    color = WeTheme.colorScheme.textSecondary,
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 20.dp)
@@ -138,14 +138,14 @@ fun StatusSection() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(WeChatTheme.colorScheme.surface)
+            .background(WeTheme.colorScheme.surface)
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
         Spacer(modifier = Modifier.width(84.dp))
         Row(
             modifier = Modifier
                 .clip(CircleShape)
-                .border(0.5.dp, WeChatTheme.colorScheme.divider, CircleShape)
+                .border(0.5.dp, WeTheme.colorScheme.divider, CircleShape)
                 .clickable { }
                 .padding(horizontal = 12.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically

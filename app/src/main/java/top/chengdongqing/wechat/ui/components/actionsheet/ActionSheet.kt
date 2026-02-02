@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.popup.WePopup
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 data class ActionSheetItem(
     val label: String,
@@ -68,7 +68,7 @@ fun WeActionSheet(
                 ) {
                     Text(
                         text = it,
-                        color = WeChatTheme.colorScheme.textSecondary,
+                        color = WeTheme.colorScheme.textSecondary,
                         fontSize = 12.sp
                     )
                 }
@@ -101,14 +101,14 @@ fun WeActionSheet(
                         }
                         Text(
                             text = item.label,
-                            color = item.color ?: WeChatTheme.colorScheme.textPrimary,
+                            color = item.color ?: WeTheme.colorScheme.textPrimary,
                             fontSize = 16.sp
                         )
                     }
                     item.description?.let {
                         Text(
                             text = it,
-                            color = WeChatTheme.colorScheme.textSecondary,
+                            color = WeTheme.colorScheme.textSecondary,
                             fontSize = 12.sp
                         )
                     }
@@ -119,7 +119,7 @@ fun WeActionSheet(
                 modifier = Modifier
                     .height(8.dp)
                     .fillMaxWidth()
-                    .background(WeChatTheme.colorScheme.surfaceVariant)
+                    .background(WeTheme.colorScheme.surfaceVariant)
             )
 
             Column(
@@ -134,7 +134,7 @@ fun WeActionSheet(
             ) {
                 Text(
                     text = "取消",
-                    color = WeChatTheme.colorScheme.textPrimary,
+                    color = WeTheme.colorScheme.textPrimary,
                     fontSize = 16.sp
                 )
             }

@@ -32,7 +32,7 @@ import top.chengdongqing.wechat.core.util.loadMediaThumbnail
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.ui.components.media.preview.previewMedias
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.ui.util.weClickable
 import kotlin.time.Duration.Companion.milliseconds
@@ -88,7 +88,7 @@ private fun MediaGridCell(
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .background(WeChatTheme.colorScheme.divider)
+            .background(WeTheme.colorScheme.divider)
             .clickable { onClick() }
     ) {
         val context = LocalContext.current
@@ -157,7 +157,7 @@ private fun BoxScope.MediaCheckbox(selected: Boolean, selectedIndex: Int, onClic
 @Composable
 private fun Modifier.selectable(selected: Boolean) = this.then(
     if (selected) {
-        Modifier.background(WeChatTheme.colorScheme.primary, CircleShape)
+        Modifier.background(WeTheme.colorScheme.primary, CircleShape)
     } else {
         Modifier.border(1.dp, Color.White, CircleShape)
     }

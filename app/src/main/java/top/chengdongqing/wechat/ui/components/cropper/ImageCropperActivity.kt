@@ -12,7 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.ImmersiveModeEffect
 
 class ImageCropperActivity : ComponentActivity() {
@@ -28,7 +28,7 @@ class ImageCropperActivity : ComponentActivity() {
             }!!
 
             ImmersiveModeEffect()
-            WeChatTheme(darkTheme = true) {
+            WeTheme(darkTheme = true) {
                 WeImageCropper(uri, onCancel = { finish() }) {
                     val intent = Intent().apply {
                         putExtra(EXTRA_URI, it)

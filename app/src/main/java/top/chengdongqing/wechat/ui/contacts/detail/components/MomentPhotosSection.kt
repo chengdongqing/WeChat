@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 /**
  * 朋友圈照片预览项
@@ -44,7 +44,7 @@ fun MomentPhotosSection(
         Row(modifier = Modifier.weight(1f)) {
             Text(
                 text = "朋友圈",
-                color = WeChatTheme.colorScheme.textPrimary,
+                color = WeTheme.colorScheme.textPrimary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.width(80.dp)
@@ -57,7 +57,7 @@ fun MomentPhotosSection(
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
             contentDescription = "查看朋友圈",
-            tint = WeChatTheme.colorScheme.textSecondary
+            tint = WeTheme.colorScheme.textSecondary
         )
     }
 }

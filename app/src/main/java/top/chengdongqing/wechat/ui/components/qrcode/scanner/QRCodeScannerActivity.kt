@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 class QRCodeScannerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +21,7 @@ class QRCodeScannerActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            WeChatTheme {
+            WeTheme {
                 WeQRCodeScanner(
                     onRevoked = { finish() }
                 ) { codes ->

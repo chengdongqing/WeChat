@@ -47,7 +47,7 @@ import top.chengdongqing.wechat.ui.contacts.list.ContactListScreen
 import top.chengdongqing.wechat.ui.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.ui.me.MeScreen
 import top.chengdongqing.wechat.ui.navigation.Screen
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
@@ -65,7 +65,7 @@ fun HomeScreen(navController: NavHostController) {
                 TopBar(currentTab.label, navController)
             else
                 Surface(
-                    color = WeChatTheme.colorScheme.surface,
+                    color = WeTheme.colorScheme.surface,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Box(
@@ -162,7 +162,7 @@ private fun BottomBar(
     onTabSelected: (Int) -> Unit
 ) {
     Surface(
-        color = WeChatTheme.colorScheme.tabBarBackground,
+        color = WeTheme.colorScheme.tabBarBackground,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column {
@@ -181,7 +181,7 @@ private fun BottomBar(
                     val currentIconResId =
                         if (isSelected) screen.selectedIconResId!! else screen.iconResId!!
                     val currentColor =
-                        if (isSelected) WeChatTheme.colorScheme.primary else WeChatTheme.colorScheme.tabBarIconInactive
+                        if (isSelected) WeTheme.colorScheme.primary else WeTheme.colorScheme.tabBarIconInactive
 
                     Column(
                         modifier = Modifier

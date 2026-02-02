@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickable
 import kotlin.math.roundToInt
 
@@ -136,7 +136,7 @@ fun WePopup(
                         }
                     )
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                    .background(WeChatTheme.colorScheme.surface)
+                    .background(WeTheme.colorScheme.surface)
                     .weClickable { }
                     .padding(padding)
                     .onSizeChanged {
@@ -202,7 +202,7 @@ private fun DraggableLine() {
             modifier = Modifier
                 .size(40.dp, 4.dp)
                 .background(
-                    WeChatTheme.colorScheme.divider,
+                    WeTheme.colorScheme.divider,
                     RoundedCornerShape(2.dp)
                 )
         )
@@ -219,7 +219,7 @@ private fun PopupTitle(title: String) {
     ) {
         Text(
             text = title,
-            color = WeChatTheme.colorScheme.textPrimary,
+            color = WeTheme.colorScheme.textPrimary,
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold
         )

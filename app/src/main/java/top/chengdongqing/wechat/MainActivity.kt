@@ -11,9 +11,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.ui.navigation.WeChatNavigation
+import top.chengdongqing.wechat.ui.navigation.WeNavigation
 import top.chengdongqing.wechat.ui.splash.SplashScreen
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             var showSplash by remember { mutableStateOf(true) }
 
-            WeChatTheme {
+            WeTheme {
                 Crossfade(
                     targetState = showSplash,
                     animationSpec = tween(800)
@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
                             showSplash = false
                         })
                     } else {
-                        WeChatNavigation()
+                        WeNavigation()
                     }
                 }
             }

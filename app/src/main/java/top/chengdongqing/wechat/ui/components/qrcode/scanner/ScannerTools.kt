@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.model.VisualMediaType
 import top.chengdongqing.wechat.ui.components.media.picker.rememberPickMediasLauncher
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 internal fun BoxScope.ScannerTools(state: ScannerState) {
@@ -45,7 +45,7 @@ internal fun BoxScope.ScannerTools(state: ScannerState) {
         ToolItem(
             label = "闪光灯",
             icon = if (state.isFlashOn) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff,
-            iconColor = if (state.isFlashOn) WeChatTheme.colorScheme.primary else Color.White
+            iconColor = if (state.isFlashOn) WeTheme.colorScheme.primary else Color.White
         ) {
             state.toggleFlashState()
         }

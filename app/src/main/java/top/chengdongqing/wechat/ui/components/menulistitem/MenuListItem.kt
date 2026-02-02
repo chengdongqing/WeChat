@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun MenuListItem(
@@ -40,7 +40,7 @@ fun MenuListItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(height)
-            .background(WeChatTheme.colorScheme.surface)
+            .background(WeTheme.colorScheme.surface)
             .clickable { onClick?.invoke() }
             .padding(start = 16.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -85,14 +85,14 @@ private fun MenuLabel(label: String, description: String?, modifier: Modifier = 
         Text(
             text = label,
             fontSize = 16.sp,
-            color = WeChatTheme.colorScheme.textPrimary
+            color = WeTheme.colorScheme.textPrimary
         )
         if (!description.isNullOrEmpty()) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = description,
                 fontSize = 12.sp,
-                color = WeChatTheme.colorScheme.textSecondary
+                color = WeTheme.colorScheme.textSecondary
             )
         }
     }

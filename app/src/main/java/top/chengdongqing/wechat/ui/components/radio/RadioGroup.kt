@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickableWithBg
 
 @Composable
@@ -52,7 +52,7 @@ fun <T> WeRadioGroup(
                     Icon(
                         painter = painterResource(R.drawable.ic_check),
                         contentDescription = null,
-                        tint = WeChatTheme.colorScheme.primary,
+                        tint = WeTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }

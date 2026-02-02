@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.Contact
 import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 /**
  * 联系人头像和基本信息卡片
@@ -164,7 +164,7 @@ private fun InfoText(
 ) {
     Text(
         text = "$label$value",
-        color = WeChatTheme.colorScheme.textSecondary,
+        color = WeTheme.colorScheme.textSecondary,
         fontSize = 14.sp,
         modifier = modifier
     )

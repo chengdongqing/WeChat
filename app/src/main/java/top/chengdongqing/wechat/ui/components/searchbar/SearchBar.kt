@@ -34,7 +34,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.ui.theme.LinkColor
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
@@ -78,7 +78,7 @@ fun WeSearchBar(
                 .weight(1f)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(6.dp))
-                .background(WeChatTheme.colorScheme.background)
+                .background(WeTheme.colorScheme.background)
         ) {
             if (finalFocused) {
                 BasicTextField(
@@ -87,10 +87,10 @@ fun WeSearchBar(
                     modifier = Modifier.focusRequester(focusRequester),
                     textStyle = TextStyle(
                         fontSize = 16.sp,
-                        color = WeChatTheme.colorScheme.textPrimary
+                        color = WeTheme.colorScheme.textPrimary
                     ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    cursorBrush = SolidColor(WeChatTheme.colorScheme.primary),
+                    cursorBrush = SolidColor(WeTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
                         Row(
                             modifier = Modifier.fillMaxSize(),
@@ -102,7 +102,7 @@ fun WeSearchBar(
                                 modifier = Modifier
                                     .padding(start = 8.dp, end = 4.dp)
                                     .size(20.dp),
-                                tint = WeChatTheme.colorScheme.textSecondary
+                                tint = WeTheme.colorScheme.textSecondary
                             )
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -111,7 +111,7 @@ fun WeSearchBar(
                                 if (value.isEmpty()) {
                                     Text(
                                         text = placeholder,
-                                        color = WeChatTheme.colorScheme.textSecondary,
+                                        color = WeTheme.colorScheme.textSecondary,
                                         fontSize = 16.sp
                                     )
                                 }
@@ -138,11 +138,11 @@ fun WeSearchBar(
                         modifier = Modifier
                             .padding(end = 4.dp)
                             .size(20.dp),
-                        tint = WeChatTheme.colorScheme.textSecondary
+                        tint = WeTheme.colorScheme.textSecondary
                     )
                     Text(
                         text = placeholder,
-                        color = WeChatTheme.colorScheme.textSecondary,
+                        color = WeTheme.colorScheme.textSecondary,
                         fontSize = 16.sp
                     )
                 }

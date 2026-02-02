@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickable
 
 /**
@@ -45,9 +45,9 @@ fun WeSwitch(
             .clip(RoundedCornerShape(16.dp))
             .background(
                 if (checked) {
-                    WeChatTheme.colorScheme.primary
+                    WeTheme.colorScheme.primary
                 } else {
-                    WeChatTheme.colorScheme.divider
+                    WeTheme.colorScheme.divider
                 }
             )
             .alpha(if (disabled) 0.7f else 1f)

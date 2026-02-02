@@ -14,7 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import top.chengdongqing.wechat.data.model.VisualMediaType
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 class CameraActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +25,7 @@ class CameraActivity : ComponentActivity() {
             ?: VisualMediaType.ImageAndVideo
 
         setContent {
-            WeChatTheme {
+            WeTheme {
                 WeCamera(type, onRevoked = { finish() }) { uri, type ->
                     val intent = Intent().apply {
                         putExtra(EXTRA_MEDIA_URI, uri)

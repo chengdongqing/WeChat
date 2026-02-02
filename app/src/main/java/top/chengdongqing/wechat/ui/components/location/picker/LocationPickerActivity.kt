@@ -13,7 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import top.chengdongqing.wechat.data.model.LocationItem
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 class LocationPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +21,7 @@ class LocationPickerActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            WeChatTheme {
+            WeTheme {
                 WeLocationPicker(onCancel = { finish() }) { location ->
                     val intent = Intent().apply {
                         putExtra(EXTRA_LOCATION, location)

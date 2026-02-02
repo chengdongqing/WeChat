@@ -14,7 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import top.chengdongqing.wechat.data.model.MediaItem
 import top.chengdongqing.wechat.data.model.VisualMediaType
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.StatusBarAppearanceEffect
 
 class MediaPickerActivity : ComponentActivity() {
@@ -28,7 +28,7 @@ class MediaPickerActivity : ComponentActivity() {
 
         setContent {
             StatusBarAppearanceEffect(isDark = false)
-            WeChatTheme(darkTheme = true) {
+            WeTheme(darkTheme = true) {
                 WeMediaPicker(type, count, onCancel = { finish() }) { medias ->
                     val intent = Intent().apply {
                         putExtra(EXTRA_MEDIA_LIST, medias)

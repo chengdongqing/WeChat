@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.Contact
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 /**
  * 朋友资料信息项
@@ -79,7 +79,7 @@ private fun ProfileTitleRow(modifier: Modifier = Modifier) {
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
             contentDescription = "查看详情",
-            tint = WeChatTheme.colorScheme.textSecondary
+            tint = WeTheme.colorScheme.textSecondary
         )
     }
 }
@@ -99,13 +99,13 @@ private fun ProfileInfoRow(
     ) {
         Text(
             text = label,
-            color = WeChatTheme.colorScheme.textSecondary,
+            color = WeTheme.colorScheme.textSecondary,
             fontSize = 14.sp,
             modifier = Modifier.width(80.dp)
         )
         Text(
             text = value,
-            color = WeChatTheme.colorScheme.textPrimary,
+            color = WeTheme.colorScheme.textPrimary,
             fontSize = 14.sp
         )
     }

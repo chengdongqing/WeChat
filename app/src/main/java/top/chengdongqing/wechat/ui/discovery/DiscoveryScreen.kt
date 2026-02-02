@@ -10,14 +10,14 @@ import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.theme.Danger
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun DiscoveryScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(WeChatTheme.colorScheme.background),
+            .background(WeTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         MenuListItem("朋友圈", R.drawable.ic_moments_outlined)

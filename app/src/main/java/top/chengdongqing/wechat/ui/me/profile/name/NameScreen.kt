@@ -17,7 +17,7 @@ import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
 import top.chengdongqing.wechat.ui.components.input.WeInput
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun NameScreen(onBack: () -> Unit) {
@@ -42,7 +42,7 @@ fun NameScreen(onBack: () -> Unit) {
 
             Text(
                 text = "好名字可以让你的朋友更容易记住你。",
-                color = WeChatTheme.colorScheme.textSecondary,
+                color = WeTheme.colorScheme.textSecondary,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(start = 4.dp, top = 12.dp)
             )

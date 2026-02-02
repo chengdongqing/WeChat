@@ -21,7 +21,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun WeInput(
@@ -55,7 +55,7 @@ fun WeInput(
                 textStyle = TextStyle(fontSize = 17.sp, color = Color.Black),
                 singleLine = singleLine,
                 maxLines = maxLines,
-                cursorBrush = SolidColor(WeChatTheme.colorScheme.primary),
+                cursorBrush = SolidColor(WeTheme.colorScheme.primary),
                 decorationBox = { innerTextField ->
                     Box {
                         if (value.isEmpty()) {
@@ -71,7 +71,7 @@ fun WeInput(
                 Box(modifier = Modifier.padding(start = 30.dp)) {
                     Text(
                         text = "${maxLength - value.length}",
-                        color = WeChatTheme.colorScheme.textSecondary,
+                        color = WeTheme.colorScheme.textSecondary,
                         fontSize = 12.sp,
                         modifier = Modifier.align(Alignment.CenterEnd)
                     )

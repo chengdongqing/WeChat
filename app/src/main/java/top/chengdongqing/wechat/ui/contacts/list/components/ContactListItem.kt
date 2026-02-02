@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.ui.contacts.list.Contact
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun ContactListItem(contact: Contact, onNavigateToDetail: () -> Unit) {
@@ -29,7 +29,7 @@ fun ContactListItem(contact: Contact, onNavigateToDetail: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(WeChatTheme.colorScheme.surface)
+            .background(WeTheme.colorScheme.surface)
             .clickable { onNavigateToDetail() }
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -42,6 +42,6 @@ fun ContactListItem(contact: Contact, onNavigateToDetail: () -> Unit) {
                 .clip(RoundedCornerShape(4.dp))
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Text(text = contact.name, fontSize = 16.sp, color = WeChatTheme.colorScheme.textPrimary)
+        Text(text = contact.name, fontSize = 16.sp, color = WeTheme.colorScheme.textPrimary)
     }
 }

@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 /**
  * 自定义点击，不带水波纹
@@ -56,7 +56,7 @@ fun Modifier.weClickableWithBg(
 ): Modifier = composed {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val pressedColor = WeChatTheme.colorScheme.divider
+    val pressedColor = WeTheme.colorScheme.divider
 
     this
         .background(if (isPressed && showBackground) pressedColor else Color.Transparent)

@@ -30,7 +30,7 @@ import top.chengdongqing.wechat.ui.components.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.ui.components.qrcode.generator.rememberQRCodeState
 import top.chengdongqing.wechat.ui.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.rememberScreenFractionWidth
 
 @Composable
@@ -76,7 +76,7 @@ fun AddFriendScreen(
                 .fillMaxSize()
                 .background(Color(0xFFF7F7F7))
         ) {
-            Column(modifier = Modifier.background(WeChatTheme.colorScheme.surface)) {
+            Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
                 options.forEachIndexed { index, item ->
                     MenuListItem(
                         label = item.title,
@@ -117,7 +117,7 @@ private fun QrCodeSection(myId: String, modifier: Modifier) {
         Text(
             text = "我的微信号: $myId",
             fontSize = 15.sp,
-            color = WeChatTheme.colorScheme.textPrimary,
+            color = WeTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Center
         )
     }

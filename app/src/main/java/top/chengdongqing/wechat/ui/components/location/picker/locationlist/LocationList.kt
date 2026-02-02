@@ -28,7 +28,7 @@ import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.loading.LoadMoreType
 import top.chengdongqing.wechat.ui.components.loading.WeLoadMore
 import top.chengdongqing.wechat.ui.components.loading.WeLoading
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
@@ -91,7 +91,7 @@ private fun LocationListItem(checked: Boolean, location: LocationItem, onClick: 
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = location.poiName,
-                color = WeChatTheme.colorScheme.textPrimary,
+                color = WeTheme.colorScheme.textPrimary,
                 fontSize = 17.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -100,7 +100,7 @@ private fun LocationListItem(checked: Boolean, location: LocationItem, onClick: 
                     location.distance?.let { add(formatDistance(it)) }
                     location.address?.let { add(it) }
                 }.joinToString(" | "),
-                color = WeChatTheme.colorScheme.textSecondary,
+                color = WeTheme.colorScheme.textSecondary,
                 fontSize = 14.sp
             )
         }
@@ -108,7 +108,7 @@ private fun LocationListItem(checked: Boolean, location: LocationItem, onClick: 
             Icon(
                 painter = painterResource(id = R.drawable.ic_check),
                 contentDescription = null,
-                tint = WeChatTheme.colorScheme.primary,
+                tint = WeTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
             )
         }

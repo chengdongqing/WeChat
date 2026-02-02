@@ -15,7 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 import top.chengdongqing.wechat.ui.util.weClickable
 
 @Composable
@@ -23,7 +23,7 @@ fun ActionIcon(
     modifier: Modifier = Modifier,
     @DrawableRes iconResId: Int,
     description: String? = null,
-    tint: Color = WeChatTheme.colorScheme.textPrimary,
+    tint: Color = WeTheme.colorScheme.textPrimary,
     onClick: (() -> Unit)? = null
 ) {
     Box(
@@ -46,14 +46,14 @@ fun CircleActionIcon(
     modifier: Modifier = Modifier,
     @DrawableRes iconResId: Int,
     description: String? = null,
-    tint: Color = WeChatTheme.colorScheme.textPrimary,
+    tint: Color = WeTheme.colorScheme.textPrimary,
     onClick: (() -> Unit)? = null
 ) {
     Box(
         modifier = modifier
             .size(22.dp)
             .clip(CircleShape)
-            .background(WeChatTheme.colorScheme.divider)
+            .background(WeTheme.colorScheme.divider)
             .clickable { onClick?.invoke() }
             .padding(2.dp),
         contentAlignment = Alignment.Center

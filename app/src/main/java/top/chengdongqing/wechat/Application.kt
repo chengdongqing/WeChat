@@ -7,7 +7,7 @@ import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.clearAllCache
 
 @HiltAndroidApp
-class WechatApplication : Application() {
+class WeApplication : Application() {
     @Inject
     lateinit var soundPlayer: SoundTipPlayer // 初始化提示音播放器
 

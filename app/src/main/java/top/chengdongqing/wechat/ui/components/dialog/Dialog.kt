@@ -35,7 +35,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.theme.LinkColor
-import top.chengdongqing.wechat.ui.theme.WeChatTheme
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 /**
  * 对话框
@@ -70,7 +70,7 @@ fun WeDialog(
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
                 .fillMaxWidth(0.8f)
-                .background(WeChatTheme.colorScheme.background)
+                .background(WeTheme.colorScheme.background)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -86,7 +86,7 @@ fun WeDialog(
                             start = 24.dp,
                             end = 24.dp
                         ),
-                    color = WeChatTheme.colorScheme.textPrimary,
+                    color = WeTheme.colorScheme.textPrimary,
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
@@ -97,7 +97,7 @@ fun WeDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp),
-                        color = WeChatTheme.colorScheme.textSecondary,
+                        color = WeTheme.colorScheme.textSecondary,
                         fontSize = 15.sp,
                         textAlign = TextAlign.Center
                     )
@@ -119,7 +119,7 @@ fun WeDialog(
                         ) {
                             Text(
                                 text = cancelText,
-                                color = WeChatTheme.colorScheme.textPrimary,
+                                color = WeTheme.colorScheme.textPrimary,
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -127,7 +127,7 @@ fun WeDialog(
                         Box(
                             modifier = Modifier
                                 .size(0.5.dp, 56.dp)
-                                .background(WeChatTheme.colorScheme.divider)
+                                .background(WeTheme.colorScheme.divider)
                         )
                     }
                     Box(

@@ -1,11 +1,8 @@
 package top.chengdongqing.wechat.ui.navigation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
@@ -26,39 +23,13 @@ import top.chengdongqing.wechat.ui.me.profile.qrcode.QRCodeScreen
 import top.chengdongqing.wechat.ui.me.profile.signature.SignatureScreen
 
 @Composable
-fun WeChatNavigation(navController: NavHostController = rememberNavController()) {
-    val goBack: () -> Unit = {
-        navController.popBackStack()
-    }
+fun WeNavigation(navController: NavHostController = rememberNavController()) {
+    val goBack: () -> Unit = { navController.popBackStack() }
 
-    NavHost(
+    WeNavHost(
         navController = navController,
 //        startDestination = Screen.ChatSession.createRoute("123"),
-        startDestination = Screen.Home.route,
-        enterTransition = {
-            slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(300)
-            )
-        },
-        exitTransition = {
-            slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(300)
-            )
-        },
-        popEnterTransition = {
-            slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(300)
-            )
-        },
-        popExitTransition = {
-            slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(300)
-            )
-        }
+        startDestination = Screen.Home.route
     ) {
         composable(Screen.Home.route) {
             HomeScreen(navController)
