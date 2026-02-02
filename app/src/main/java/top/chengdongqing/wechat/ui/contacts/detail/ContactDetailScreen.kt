@@ -17,6 +17,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.Contact
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
 import top.chengdongqing.wechat.ui.contacts.detail.components.ContactDetailContent
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 /**
  * 联系人详情页面
@@ -63,7 +64,7 @@ fun ContactDetailScreen(
                 onMoreClick = { viewModel.handleAction(ContactAction.ShowMore) }
             )
         },
-        containerColor = Color(0xFFEDEDED)
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         ContactDetailScrollableContent(
             contact = uiState.contact,

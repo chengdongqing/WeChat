@@ -10,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
@@ -29,7 +28,7 @@ fun NameScreen(onBack: () -> Unit) {
                 WeButton("保存", size = ButtonSize.Small, disabled = false)
             }
         },
-        containerColor = Color(0xFFEDEDED)
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier

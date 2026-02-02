@@ -21,6 +21,8 @@ import top.chengdongqing.wechat.ui.me.profile.id.IDScreen
 import top.chengdongqing.wechat.ui.me.profile.name.NameScreen
 import top.chengdongqing.wechat.ui.me.profile.qrcode.QRCodeScreen
 import top.chengdongqing.wechat.ui.me.profile.signature.SignatureScreen
+import top.chengdongqing.wechat.ui.setup.ProfileSetupScreen
+import top.chengdongqing.wechat.ui.setup.WelcomeScreen
 
 @Composable
 fun WeNavigation(navController: NavHostController = rememberNavController()) {
@@ -29,8 +31,23 @@ fun WeNavigation(navController: NavHostController = rememberNavController()) {
     WeNavHost(
         navController = navController,
 //        startDestination = Screen.ChatSession.createRoute("123"),
-        startDestination = Screen.Home.route
+        startDestination = Screen.Welcome.route
     ) {
+        composable(Screen.Welcome.route) {
+            WelcomeScreen {
+                navController.navigate(Screen.ProfileSetup.route)
+            }
+        }
+        composable(Screen.ProfileSetup.route) {
+            ProfileSetupScreen(onBack = goBack) {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(0) { // 弹出到根节点
+                        inclusive = true
+                    }
+                }
+            }
+        }
+
         composable(Screen.Home.route) {
             HomeScreen(navController)
         }

@@ -96,7 +96,7 @@ fun QRCodeScreen(onBack: () -> Unit) {
         topBar = {
             WeTopBar("", onBack = onBack)
         },
-        containerColor = Color(0xFFEDEDED)
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier

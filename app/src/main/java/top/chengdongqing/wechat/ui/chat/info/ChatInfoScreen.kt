@@ -44,7 +44,7 @@ fun ChatInfoScreen(
         topBar = {
             WeTopBar("聊天信息", onBack = onBack)
         },
-        containerColor = Color(0xFFEDEDED)
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier

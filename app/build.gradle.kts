@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.annotations)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.splashscreen)
     implementation(libs.accompanist.permissions)
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)

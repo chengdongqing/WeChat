@@ -9,6 +9,9 @@ sealed class Screen(
     @get:DrawableRes val iconResId: Int? = null,
     @get:DrawableRes val selectedIconResId: Int? = null
 ) {
+    object Welcome : Screen("welcome", "欢迎页")
+    object ProfileSetup : Screen("profile_setup", "个人资料初始化页")
+
     object Home : Screen("home", "首页")
 
     // 主Tab页面

@@ -10,13 +10,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.data.model.Gender
 import top.chengdongqing.wechat.ui.components.button.ButtonSize
 import top.chengdongqing.wechat.ui.components.button.WeButton
 import top.chengdongqing.wechat.ui.components.radio.WeRadioGroup
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
+import top.chengdongqing.wechat.ui.theme.WeTheme
 
 @Composable
 fun GenderScreen(onBack: () -> Unit) {
@@ -31,7 +31,7 @@ fun GenderScreen(onBack: () -> Unit) {
                 WeButton("完成", size = ButtonSize.Small, disabled = false)
             }
         },
-        containerColor = Color(0xFFEDEDED)
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier

@@ -27,11 +27,10 @@ fun SplashScreen(onTimeout: () -> Unit) {
         launch {
             scale.animateTo(
                 targetValue = 1.0f,
-                animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing)
+                animationSpec = tween(durationMillis = 1000, easing = LinearOutSlowInEasing)
             )
+            onTimeout()
         }
-//        delay(1000)
-        onTimeout()
     }
 
     Box(
