@@ -124,4 +124,5 @@ sealed class ContactAction {
     data object ViewMoments : ContactAction()
     data object ViewProfile : ContactAction()
     data object ShowMore : ContactAction()
+    data object DeleteContact : ContactAction()
 }

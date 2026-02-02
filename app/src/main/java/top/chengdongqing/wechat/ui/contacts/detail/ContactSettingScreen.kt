@@ -19,13 +19,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import top.chengdongqing.wechat.data.model.Contact
+import top.chengdongqing.wechat.ui.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
 import top.chengdongqing.wechat.ui.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.ui.components.switch.WeSwitch
 import top.chengdongqing.wechat.ui.components.topbar.WeTopBar
+import top.chengdongqing.wechat.ui.theme.Danger
 import top.chengdongqing.wechat.ui.theme.WeChatTheme
 import top.chengdongqing.wechat.ui.theme.White
 
@@ -79,21 +83,42 @@ fun ContactSettingScreen(
                 }
                 SettingItem("投诉", showDivider = false)
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(White)
-                    .clickable {},
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "删除",
-                    color = WeChatTheme.colorScheme.error,
-                    fontSize = 17.sp
-                )
+
+            DeleteButton(contact) {
+                viewModel.handleAction(ContactAction.DeleteContact)
             }
         }
+    }
+}
+
+@Composable
+private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
+    val dialog = rememberDialogState()
+
+    val showDialog = {
+        dialog.show(
+            title = "即将删除联系人“${contact.remarkName}”",
+            content = "删除后对方不会收到通知",
+            okColor = Danger,
+            okText = "删除",
+            onOk = onDelete
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .background(White)
+            .clickable { showDialog() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "删除",
+            color = WeChatTheme.colorScheme.error,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -105,7 +130,7 @@ private fun SettingItem(
     content: (@Composable () -> Unit)? = null
 ) {
     Column(modifier = Modifier.background(White)) {
-        MenuListItem(label, content = content, onClick = onClick)
+        MenuListItem(label, content = content, height = 52.dp, onClick = onClick)
 
         if (showDivider) {
             WeDivider(modifier = Modifier.padding(start = 16.dp))

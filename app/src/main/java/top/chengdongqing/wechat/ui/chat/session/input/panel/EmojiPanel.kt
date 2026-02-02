@@ -51,9 +51,8 @@ import top.chengdongqing.wechat.data.emoji.Emojis
 import top.chengdongqing.wechat.data.emoji.Sticker
 import top.chengdongqing.wechat.data.emoji.Stickers
 import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.ui.components.button.DashedAddButton
 import top.chengdongqing.wechat.ui.components.divider.WeDivider
-import top.chengdongqing.wechat.ui.theme.Black
-import top.chengdongqing.wechat.ui.util.dashedBorder
 import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.ui.util.repeatingClickable
 
@@ -336,7 +335,7 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
         overscrollEffect = overscrollEffect
     ) {
         item(key = "add_sticker_button") {
-            AddStickerItem {}
+            DashedAddButton {}
         }
         items(
             items = Stickers.all,
@@ -386,33 +385,6 @@ private fun StickerItem(
             contentDescription = sticker.stickerId,
             modifier = Modifier.padding(4.dp),
             contentScale = ContentScale.Inside
-        )
-    }
-}
-
-/**
- * 新增贴纸按钮
- */
-@Composable
-private fun AddStickerItem(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .padding(4.dp)
-            .dashedBorder(
-                width = 1.dp,
-                color = Black,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .clip(RoundedCornerShape(10.dp))
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_plus_outlined),
-            contentDescription = "Add Sticker",
-            modifier = Modifier.size(30.dp),
-            tint = Black
         )
     }
 }

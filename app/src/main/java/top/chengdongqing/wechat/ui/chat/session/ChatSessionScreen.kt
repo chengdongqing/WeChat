@@ -39,6 +39,7 @@ import top.chengdongqing.wechat.ui.util.rememberBounceOverscrollEffect
 fun ChatSessionScreen(
     chatId: String,
     onBack: () -> Unit,
+    onNavigateToInfo: () -> Unit,
     viewModel: ChatSessionViewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
         factory.create(chatId)
     }
@@ -77,7 +78,9 @@ fun ChatSessionScreen(
         Scaffold(
             topBar = {
                 WeTopBar(title = uiState.title, onBack = onBack) {
-                    ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多")
+                    ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
+                        onNavigateToInfo()
+                    }
                 }
             },
             bottomBar = {

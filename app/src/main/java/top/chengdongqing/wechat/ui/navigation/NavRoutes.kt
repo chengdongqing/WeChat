@@ -46,11 +46,17 @@ sealed class Screen(
     object RadarScan : Screen("radar_scan", "雷达扫描")
     object PinCodeGroup : Screen("pin_code_group", "面对面建群")
     object ChatSession : Screen("chats/{chatId}", "聊天详情") {
-        fun createRoute(friendId: String) = "chats/${friendId}"
+        fun createRoute(chatId: String) = "chats/${chatId}"
     }
+
+    object ChatInfo : Screen("chats/{chatId}/info", "聊天信息") {
+        fun createRoute(chatId: String) = "chats/${chatId}/info"
+    }
+
     object ContactDetail : Screen("contacts/{contactId}", "联系人详情") {
         fun createRoute(contactId: String) = "contacts/${contactId}"
     }
+
     object ContactSetting : Screen("contacts/{contactId}/setting", "朋友设置") {
         fun createRoute(contactId: String) = "contacts/${contactId}/setting"
     }

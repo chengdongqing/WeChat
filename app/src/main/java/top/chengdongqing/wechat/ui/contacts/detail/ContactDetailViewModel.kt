@@ -117,6 +117,10 @@ class ContactDetailViewModel @AssistedInject constructor(
                 ContactAction.ShowMore -> {
                     _navigationEvent.emit(NavigationEvent.ShowMoreOptions(contactId))
                 }
+
+                ContactAction.DeleteContact -> {
+
+                }
             }
         }
     }
