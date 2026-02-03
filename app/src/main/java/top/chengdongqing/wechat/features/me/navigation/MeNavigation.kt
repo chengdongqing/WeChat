@@ -29,7 +29,7 @@ object MeRoute {
 
 fun NavGraphBuilder.meNavGraph(navController: NavHostController, onBack: () -> Unit) {
     composable(MeRoute.PROFILE) {
-        ProfileScreen(navController)
+        ProfileScreen(navController, onBack)
     }
     composable(MeRoute.QR_CODE) {
         QRCodeScreen(onBack)

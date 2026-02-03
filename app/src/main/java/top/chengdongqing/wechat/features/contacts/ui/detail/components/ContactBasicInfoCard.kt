@@ -110,7 +110,7 @@ private fun ContactBasicInfo(
 @Composable
 private fun NameWithGender(
     name: String,
-    gender: Gender,
+    gender: Gender?,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -124,9 +124,9 @@ private fun NameWithGender(
             color = Color.Black
         )
 
-        if (gender != Gender.Unknown) {
+        gender.let {
             Spacer(modifier = Modifier.width(4.dp))
-            GenderIcon(gender = gender)
+            GenderIcon(gender!!)
         }
     }
 }
@@ -142,7 +142,6 @@ private fun GenderIcon(
     val (icon, tint) = when (gender) {
         Gender.Female -> R.drawable.ic_female_filled to Color(0xFFFF5252)
         Gender.Male -> R.drawable.ic_male_filled to Color(0xFF2196F3)
-        Gender.Unknown -> return
     }
 
     Icon(

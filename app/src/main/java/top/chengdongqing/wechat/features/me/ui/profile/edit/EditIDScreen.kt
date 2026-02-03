@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -18,17 +18,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 
 @Composable
-fun EditIDScreen(onBack: () -> Unit) {
-    val dialog = rememberDialogState()
+fun EditIDScreen(
+    onBack: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -56,25 +60,18 @@ fun EditIDScreen(onBack: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = remember { "微信号：wxid_${randomUUID().take(12)}" },
+                text = "微信号：${uiState.profile?.id}",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "微信号是账号的唯一凭证，一年不能修改一次。",
+                text = "由于无中心服务器，为确保当前的设备的唯一性，微信号暂不支持修改。",
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.weight(1f))
-            WeButton(text = "修改微信号", type = ButtonType.Plain) {
-                dialog.show(
-                    "提示",
-                    "在无中心服务器的情况下，为确保当前的设备的唯一性，微信号暂不支持修改",
-                    onCancel = null,
-                    okText = "我知道了"
-                )
-            }
+            WeButton(text = "返回", type = ButtonType.Plain, onClick = onBack)
             Spacer(modifier = Modifier.height(100.dp))
         }
     }

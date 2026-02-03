@@ -175,7 +175,7 @@ private fun TopBar(
         WeButton(
             text = "确定",
             size = ButtonSize.Small,
-            enabled = !hasSelected,
+            enabled = hasSelected,
             loading = isLoading,
             onClick = onConfirm
         )

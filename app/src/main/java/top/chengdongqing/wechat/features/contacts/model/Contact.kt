@@ -6,7 +6,7 @@ data class Contact(
     val id: String,
     val avatarUrl: String,
     val remarkName: String,
-    val gender: Gender = Gender.Unknown,
+    val gender: Gender? = null,
     val name: String = "",
     val tags: List<String> = emptyList(),
     val note: String = "",

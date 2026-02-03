@@ -1,8 +1,5 @@
 package top.chengdongqing.wechat.features.me.ui.profile.edit
 
-import android.content.Context
-import android.content.res.Resources
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.animation.core.SnapSpec
 import androidx.compose.foundation.background
@@ -10,19 +7,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.zIndex
-import kotlinx.coroutines.Dispatchers
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
@@ -38,24 +31,29 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToast
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.util.createImageUri
 import top.chengdongqing.wechat.core.util.saveToAlbum
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileField
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
+import java.io.File
 
 @Composable
-fun EditAvatarScreen(onBack: () -> Unit) {
+fun EditAvatarScreen(
+    onBack: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val profile = uiState.profile
+
     val context = LocalContext.current
-    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val toast = rememberToastState()
     val actionSheet = rememberActionSheetState()
     val zoomableState = rememberZoomableState()
     val state = rememberZoomableImageState(zoomableState)
 
-    var avatarModel by remember { mutableStateOf<Any>(R.drawable.img_avatar) }
-
     val launchCropper = rememberImageCropperLauncher {
         scope.launch { zoomableState.resetZoom(SnapSpec()) } // 重置缩放，避免被之前的缩放影响
-        avatarModel = it
+        viewModel.updateField(ProfileField.Avatar(it))
     }
     val launchAlbum = rememberPickMediasLauncher { medias ->
         launchCropper(medias[0].uri)
@@ -66,8 +64,11 @@ fun EditAvatarScreen(onBack: () -> Unit) {
 
     val saveAvatar = {
         scope.launch {
-            val uri = resolveAvatarUri(context, resources, avatarModel) ?: return@launch
-            val success = context.saveToAlbum(uri)
+            val avatarUri = profile?.avatarPath?.let { path ->
+                val file = File(path)
+                if (file.exists()) Uri.fromFile(file) else null
+            }
+            val success = avatarUri?.let { context.saveToAlbum(avatarUri) } ?: false
 
             toast.show(
                 title = if (success) "已保存到相册" else "保存失败",
@@ -99,7 +100,7 @@ fun EditAvatarScreen(onBack: () -> Unit) {
 
         ZoomableAsyncImage(
             state = state,
-            model = avatarModel,
+            model = profile?.avatarPath,
             contentDescription = "头像",
             modifier = Modifier.fillMaxSize()
         )
@@ -111,26 +112,3 @@ private val MenuOptions = listOf(
     ActionSheetItem("拍摄新照片"),
     ActionSheetItem("保存到本地")
 )
-
-/**
- * 将头像model解析为Uri
- *
- * avatarModel可能是：
- * - Int: 默认头像资源ID
- * - Uri: 用户选择/拍摄的头像
- */
-private suspend fun resolveAvatarUri(
-    context: Context,
-    resources: Resources,
-    model: Any
-): Uri? = withContext(Dispatchers.IO) {
-    when (model) {
-        is Uri -> model
-        is Int -> {
-            val bitmap = BitmapFactory.decodeResource(resources, model) ?: return@withContext null
-            context.createImageUri(bitmap)
-        }
-
-        else -> null
-    }
-}

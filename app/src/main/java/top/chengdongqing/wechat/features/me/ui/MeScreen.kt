@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.me.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -24,6 +23,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,17 +32,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.data.model.UserProfile
 import top.chengdongqing.wechat.features.me.navigation.MeRoute
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 
 @Composable
-fun MeScreen(navController: NavController) {
+fun MeScreen(
+    navController: NavController,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -52,6 +61,7 @@ fun MeScreen(navController: NavController) {
     ) {
         Column {
             UserInfoSection(
+                profile = uiState.profile,
                 onNavigateToProfile = {
                     navController.navigate(MeRoute.PROFILE)
                 },
@@ -75,8 +85,9 @@ fun MeScreen(navController: NavController) {
 
 @Composable
 fun UserInfoSection(
+    profile: UserProfile?,
     onNavigateToProfile: () -> Unit,
-    onNavigateToQRCode: () -> Unit
+    onNavigateToQRCode: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -86,9 +97,9 @@ fun UserInfoSection(
             .padding(start = 24.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(R.drawable.img_avatar),
-            contentDescription = null,
+        AsyncImage(
+            model = profile?.avatarPath,
+            contentDescription = "头像",
             modifier = Modifier
                 .size(64.dp)
                 .clip(RoundedCornerShape(6.dp))
@@ -97,7 +108,7 @@ fun UserInfoSection(
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "海盐芝士不加糖",
+                    text = profile?.nickname ?: "",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = WeTheme.colorScheme.textPrimary,
@@ -117,7 +128,7 @@ fun UserInfoSection(
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "微信号：wxid_${randomUUID().take(12)}",
+                    text = "微信号：${profile?.id}",
                     fontSize = 14.sp,
                     color = WeTheme.colorScheme.textSecondary,
                     modifier = Modifier

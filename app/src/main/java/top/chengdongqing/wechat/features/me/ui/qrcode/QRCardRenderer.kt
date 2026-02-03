@@ -29,6 +29,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.QRCodeState
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.drawQrCode
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
+import top.chengdongqing.wechat.data.model.UserProfile
 
 /**
  * 二维码卡片渲染器
@@ -41,7 +43,7 @@ import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.dr
  * @param textMeasurer 文本测量器，用于计算文字尺寸和绘制
  */
 class QrCardRenderer(
-    private val profile: ProfileInfo,
+    private val profile: UserProfile,
     private val state: QRCodeState,
     private val avatarBitmap: Bitmap,
     private val textMeasurer: TextMeasurer
@@ -109,7 +111,7 @@ class QrCardRenderer(
         val textX = layout.avatarSize + layout.gap
         drawText(
             textMeasurer = textMeasurer,
-            text = profile.name,
+            text = profile.nickname,
             topLeft = Offset(textX, layout.avatarSize * 0.08f),
             style = TextStyle(
                 fontSize = 15.sp,
@@ -117,15 +119,17 @@ class QrCardRenderer(
                 color = Color(0xE6000000)
             )
         )
-        drawText(
-            textMeasurer = textMeasurer,
-            text = profile.signature,
-            topLeft = Offset(textX, layout.avatarSize * 0.62f),
-            style = TextStyle(
-                fontSize = 10.sp,
-                color = Color(0x80000000)
+        if (profile.signature?.isNotBlank().isTrue()) {
+            drawText(
+                textMeasurer = textMeasurer,
+                text = profile.signature!!,
+                topLeft = Offset(textX, layout.avatarSize * 0.62f),
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    color = Color(0x80000000)
+                )
             )
-        )
+        }
     }
 
     /**

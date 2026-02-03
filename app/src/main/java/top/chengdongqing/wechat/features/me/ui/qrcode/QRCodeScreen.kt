@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -50,20 +52,24 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToast
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.createImageUri
-import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.core.util.saveToAlbum
+import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 import kotlin.time.Duration
 
-data class ProfileInfo(
-    val name: String,
-    val signature: String
-)
-
 @Composable
-fun QRCodeScreen(onBack: () -> Unit) {
+fun QRCodeScreen(
+    onBack: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    if (uiState.profile == null) return
+    val profile = uiState.profile!!
+
     val targetWidth = rememberScreenFractionWidth(0.65f)
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -74,7 +80,7 @@ fun QRCodeScreen(onBack: () -> Unit) {
     var styleIndex by remember { mutableIntStateOf(QR_CODE_STYLES.indices.random()) }
 
     val state = rememberQRCodeState(
-        content = remember { "wxid_${randomUUID()}" },
+        content = profile.id,
         logoPainter = painterResource(R.drawable.img_logo_outlined),
         brush = QR_CODE_STYLES[styleIndex],
         backgroundColor = Color.Transparent
@@ -84,7 +90,6 @@ fun QRCodeScreen(onBack: () -> Unit) {
     val avatarBitmap = remember {
         ResourcesCompat.getDrawable(resources, R.drawable.img_avatar, null)!!.toBitmap()
     }
-    val profile = remember { ProfileInfo(name = "海盐芝士不加糖", signature = "这么近 那么美") }
     val textMeasurer = rememberTextMeasurer()
 
     // 用于生成图片
@@ -158,13 +163,13 @@ fun QRCodeScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun ProfileBar(profile: ProfileInfo) {
+private fun ProfileBar(profile: UserProfile) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = R.drawable.img_avatar,
+            model = profile.avatarPath,
             contentDescription = "头像",
             modifier = Modifier
                 .size(48.dp)
@@ -173,17 +178,19 @@ private fun ProfileBar(profile: ProfileInfo) {
         Spacer(modifier = Modifier.width(12.dp))
         Column {
             Text(
-                text = profile.name,
+                text = profile.nickname,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 color = WeTheme.colorScheme.textPrimary
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = profile.signature,
-                fontSize = 12.sp,
-                color = WeTheme.colorScheme.textSecondary
-            )
+            if (profile.signature?.isNotBlank().isTrue()) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = profile.signature!!,
+                    fontSize = 12.sp,
+                    color = WeTheme.colorScheme.textSecondary
+                )
+            }
         }
     }
 }

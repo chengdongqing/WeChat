@@ -5,30 +5,50 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.data.model.Gender
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileEventEffect
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileField
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 
 @Composable
-fun EditGenderScreen(onBack: () -> Unit) {
-    val genderOptions = remember {
-        Gender.entries.filter { it != Gender.Unknown }.map { it.label to it }
+fun EditGenderScreen(
+    onBack: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val genderOptions = remember { Gender.entries.map { it.label to it } }
+    var gender by remember { mutableStateOf<Gender?>(null) }
+    LaunchedEffect(uiState.profile) {
+        uiState.profile?.gender?.let { gender = it }
     }
-    var selectedGender by remember { mutableStateOf(Gender.Unknown) }
+
+    ProfileEventEffect(viewModel, onBack)
 
     Scaffold(
         topBar = {
             WeTopBar("设置性别", onBack = onBack) {
-                WeButton("完成", size = ButtonSize.Small, enabled = false)
+                WeButton(
+                    "完成",
+                    size = ButtonSize.Small,
+                    enabled = gender != null && gender != uiState.profile?.gender
+                ) {
+                    viewModel.updateField(ProfileField.Gender(gender!!))
+                }
             }
         },
         containerColor = WeTheme.colorScheme.background
@@ -41,9 +61,9 @@ fun EditGenderScreen(onBack: () -> Unit) {
         ) {
             WeRadioGroup(
                 options = genderOptions,
-                value = selectedGender
+                value = gender
             ) {
-                selectedGender = it
+                gender = it
             }
         }
     }

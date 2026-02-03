@@ -7,7 +7,7 @@ import top.chengdongqing.wechat.core.util.randomUUID
 data class UserProfile(
     val id: String,
     val nickname: String,
-    val gender: Gender,
+    val gender: Gender? = null,
     val signature: String? = null,
     val avatarPath: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
@@ -55,6 +55,5 @@ data class UserProfile(
 @Serializable
 enum class Gender(val label: String) {
     Male("男"),
-    Female("女"),
-    Unknown("未知")
+    Female("女")
 }

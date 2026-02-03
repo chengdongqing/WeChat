@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.manager.FileManager
-import top.chengdongqing.wechat.data.model.Gender
 import top.chengdongqing.wechat.data.model.UserProfile
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import javax.inject.Inject
@@ -75,8 +74,6 @@ class ProfileSetupViewModel @Inject constructor(
                 val profile = UserProfile(
                     id = userId,
                     nickname = currentState.nickname.trim(),
-                    gender = Gender.Unknown,
-                    signature = null,
                     avatarPath = avatarPath
                 )
 
