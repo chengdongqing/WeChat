@@ -38,8 +38,8 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.features.me.navigation.MeRoute
 
 @Composable
 fun MeScreen(navController: NavController) {
@@ -52,8 +52,12 @@ fun MeScreen(navController: NavController) {
     ) {
         Column {
             UserInfoSection(
-                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
-                onNavigateToQRCode = { navController.navigate(Screen.QRCode.route) }
+                onNavigateToProfile = {
+                    navController.navigate(MeRoute.Profile.route)
+                },
+                onNavigateToQRCode = {
+                    navController.navigate(MeRoute.QRCode.route)
+                }
             )
             StatusSection()
         }

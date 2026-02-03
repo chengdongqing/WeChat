@@ -1,0 +1,81 @@
+package top.chengdongqing.wechat.features.contacts.navigation
+
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
+import top.chengdongqing.wechat.features.contacts.ui.addfriend.AddFriendScreen
+import top.chengdongqing.wechat.features.contacts.ui.addfriend.pincode.PinCodeGroupScreen
+import top.chengdongqing.wechat.features.contacts.ui.addfriend.radar.RadarScanScreen
+import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
+import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
+
+sealed class ContactsRoute(val route: String) {
+    object AddFriend : ContactsRoute("add_friend")
+    object RadarScan : ContactsRoute("radar_scan")
+    object PinCodeGroup : ContactsRoute("pin_code_group")
+
+    object ContactDetail : ContactsRoute("contacts/{contactId}") {
+        const val ARG_CONTACT_ID = "contactId"
+
+        fun createRoute(contactId: String) = "contacts/${contactId}"
+    }
+
+    object ContactSetting : ContactsRoute("contacts/{contactId}/setting") {
+        const val ARG_CONTACT_ID = "contactId"
+
+        fun createRoute(contactId: String) = "contacts/${contactId}/setting"
+    }
+}
+
+fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: () -> Unit) {
+    composable(
+        route = ContactsRoute.ContactDetail.route,
+        arguments = listOf(
+            navArgument(ContactsRoute.ContactDetail.ARG_CONTACT_ID) { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val contactId =
+            backStackEntry.arguments?.getString(ContactsRoute.ContactDetail.ARG_CONTACT_ID) ?: ""
+        ContactDetailScreen(
+            contactId = contactId,
+            onBack = onBack,
+            onNavigateToChat = { id ->
+                navController.navigate(ChatRoute.ChatSession.createRoute(id))
+            },
+            onNavigateToSetting = { id ->
+                navController.navigate(ContactsRoute.ContactSetting.createRoute(id))
+            }
+        )
+    }
+    composable(
+        route = ContactsRoute.ContactSetting.route,
+        arguments = listOf(
+            navArgument(ContactsRoute.ContactSetting.ARG_CONTACT_ID) { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val contactId =
+            backStackEntry.arguments?.getString(ContactsRoute.ContactSetting.ARG_CONTACT_ID) ?: ""
+        ContactSettingScreen(contactId, onBack)
+    }
+
+    composable(ContactsRoute.AddFriend.route) {
+        AddFriendScreen(
+            onNavigateToRadar = {
+                navController.navigate(ContactsRoute.RadarScan.route)
+            },
+            onNavigateToGroup = {
+                navController.navigate(ContactsRoute.PinCodeGroup.route)
+            },
+            onBack = onBack
+        )
+    }
+    composable(ContactsRoute.RadarScan.route) {
+        RadarScanScreen(onBack)
+    }
+    composable(ContactsRoute.PinCodeGroup.route) {
+        PinCodeGroupScreen(onBack)
+    }
+}
