@@ -7,10 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -19,8 +15,6 @@ import top.chengdongqing.wechat.features.contacts.navigation.contactsNavGraph
 import top.chengdongqing.wechat.features.home.ui.HomeScreen
 import top.chengdongqing.wechat.features.me.navigation.meNavGraph
 import top.chengdongqing.wechat.features.me.ui.setup.ProfileSetupScreen
-import top.chengdongqing.wechat.features.startup.StartupState
-import top.chengdongqing.wechat.features.startup.StartupViewModel
 import top.chengdongqing.wechat.features.startup.WelcomeScreen
 
 object Screen {
@@ -31,24 +25,9 @@ object Screen {
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController(),
-    startupViewModel: StartupViewModel = hiltViewModel()
+    startDestination: String = Screen.WELCOME,
+    navController: NavHostController = rememberNavController()
 ) {
-    val startupState by startupViewModel.state.collectAsStateWithLifecycle()
-
-    // 监听启动状态，自动导航
-    LaunchedEffect(startupState) {
-        when (startupState) {
-            is StartupState.ReadyForHome -> {
-                navController.navigate(Screen.HOME) {
-                    popUpTo(Screen.WELCOME) { inclusive = true }
-                }
-            }
-
-            else -> {}
-        }
-    }
-
     // 页面返回
     val goBack: () -> Unit = {
         navController.popBackStack()
@@ -56,7 +35,7 @@ fun AppNavigation(
 
     WeNavHost(
         navController = navController,
-        startDestination = Screen.WELCOME
+        startDestination = startDestination
     ) {
         // 欢迎页
         composable(Screen.WELCOME) {
