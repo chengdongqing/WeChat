@@ -13,13 +13,13 @@ import android.util.Size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.data.model.MediaItem
-import top.chengdongqing.wechat.data.model.MediaType
+import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
+import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
 import java.io.IOException
 
 /**
  * 创建 MediaStore 插入所需的 ContentValues
- * 核心逻辑：设置文件名、路径并开启 [android.provider.MediaStore.MediaColumns.IS_PENDING] 状态
+ * 核心逻辑：设置文件名、路径并开启 [MediaStore.MediaColumns.IS_PENDING] 状态
  */
 fun Context.createMediaContentValues(
     filename: String,

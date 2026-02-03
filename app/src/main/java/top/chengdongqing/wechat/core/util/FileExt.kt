@@ -10,7 +10,8 @@ import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.data.model.MediaResource
+import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
+import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
 import java.io.File
 import java.io.FileOutputStream
 
@@ -95,6 +96,27 @@ suspend fun prepareMediaResource(context: Context, uri: Uri): MediaResource? =
             null
         }
     }
+
+data class MediaResource(
+    val file: File,
+    val filename: String,
+    val mimeType: String,
+    val size: Long,
+    val width: Int = 0,
+    val height: Int = 0,
+    val duration: Long = 0,
+    val thumbBase64: String? = null
+) {
+    fun toMediaItem(uri: Uri, mediaType: MediaType = MediaType.Image) = MediaItem(
+        uri = uri,
+        filename = filename,
+        mediaType = mediaType,
+        mimeType = mimeType,
+        width = width,
+        height = height,
+        duration = duration
+    )
+}
 
 /**
  * 核心查询逻辑：合并所有字段查询

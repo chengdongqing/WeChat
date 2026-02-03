@@ -10,9 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.ui.navigation.WeNavigation
-import top.chengdongqing.wechat.ui.theme.WeTheme
-import top.chengdongqing.wechat.ui.welcome.SplashScreen
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.navigation.WeNavigation
+import top.chengdongqing.wechat.features.welcome.SplashScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

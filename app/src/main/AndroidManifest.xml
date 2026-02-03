@@ -54,28 +54,28 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.components.qrcode.scanner.QRCodeScannerActivity"
+            android:name=".core.designsystem.components.qrcode.scanner.QRCodeScannerActivity"
             android:theme="@style/Theme.WeTheme" />
         <activity
-            android:name=".ui.components.media.preview.MediaPreviewActivity"
+            android:name=".core.designsystem.components.media.preview.MediaPreviewActivity"
             android:theme="@style/Theme.WeTheme" />
         <activity
-            android:name=".ui.components.media.picker.MediaPickerActivity"
+            android:name=".core.designsystem.components.media.picker.MediaPickerActivity"
             android:theme="@style/Theme.WeTheme" />
         <activity
-            android:name=".ui.components.cropper.ImageCropperActivity"
+            android:name=".core.designsystem.components.cropper.ImageCropperActivity"
             android:theme="@style/Theme.WeTheme" />
         <activity
-            android:name=".ui.components.camera.CameraActivity"
+            android:name=".core.designsystem.components.camera.CameraActivity"
             android:theme="@style/Theme.WeTheme" />
         <activity
-            android:name=".ui.components.location.preview.LocationPreviewActivity"
+            android:name=".core.designsystem.components.location.preview.LocationPreviewActivity"
             android:theme="@style/Theme.WeTheme" />
         <activity
-            android:name=".ui.components.location.picker.LocationPickerActivity"
+            android:name=".core.designsystem.components.location.picker.LocationPickerActivity"
             android:theme="@style/Theme.WeTheme" />
         <activity
-            android:name=".ui.call.CallActivity"
+            android:name=".features.call.CallActivity"
             android:theme="@style/Theme.WeTheme" />
 
         <meta-data
