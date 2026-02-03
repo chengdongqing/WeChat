@@ -25,7 +25,7 @@ fun EditNameScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             WeTopBar("更改名字", onBack = onBack) {
-                WeButton("保存", size = ButtonSize.Small, disabled = false)
+                WeButton("保存", size = ButtonSize.Small, enabled = false)
             }
         },
         containerColor = WeTheme.colorScheme.background

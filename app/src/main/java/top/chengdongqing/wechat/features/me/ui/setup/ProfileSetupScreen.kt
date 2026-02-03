@@ -27,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +37,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -57,26 +58,15 @@ import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.createMediaUri
 
-/**
- * 个人资料首次设置页面
- *
- * 用于用户首次使用应用时配置个人信息（昵称和头像）
- * 这是无中心化架构的身份创建页面，不涉及账号注册
- *
- * @param onBack 返回按钮点击回调
- * @param onSetupComplete 设置完成回调，传递用户名和头像URI
- */
 @Composable
 fun ProfileSetupScreen(
     onBack: () -> Unit,
-    onSetupComplete: () -> Unit
+    onSetupComplete: () -> Unit,
+    viewModel: ProfileSetupViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
-
-    // 用户输入状态
-    var userName by remember { mutableStateOf("") }
-    var avatarUri by remember { mutableStateOf<Uri?>(null) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -91,17 +81,17 @@ fun ProfileSetupScreen(
     ) { paddingValues ->
         ProfileSetupContent(
             modifier = Modifier.padding(paddingValues),
-            userName = userName,
-            avatarUri = avatarUri,
-            onUserNameChange = { userName = it },
-            onAvatarChange = { avatarUri = it },
+            uiState = uiState,
+            onUserNameChange = { viewModel.updateNickname(it) },
+            onAvatarChange = { viewModel.updateAvatar(it) },
             onCompleteClick = {
                 scope.launch {
                     keyboardController?.hide()
                     delay(300)
-                    onSetupComplete(/*userName.trim(), avatarUri*/)
+                    viewModel.completeSetup(onSetupComplete)
                 }
-            }
+            },
+            onErrorDismiss = { viewModel.clearError() }
         )
     }
 }
@@ -116,11 +106,11 @@ fun ProfileSetupScreen(
 @Composable
 private fun ProfileSetupContent(
     modifier: Modifier = Modifier,
-    userName: String,
-    avatarUri: Uri?,
+    uiState: ProfileSetupUiState,
     onUserNameChange: (String) -> Unit,
     onAvatarChange: (Uri?) -> Unit,
-    onCompleteClick: () -> Unit
+    onCompleteClick: () -> Unit,
+    onErrorDismiss: () -> Unit
 ) {
     // 键盘可见性检测
     val isKeyboardVisible = WindowInsets.isImeVisible
@@ -130,16 +120,6 @@ private fun ProfileSetupContent(
         targetValue = if (isKeyboardVisible) 0.dp else 40.dp,
         label = "ButtonBottomPadding"
     )
-
-    var errorInfo by remember { mutableStateOf("") }
-
-    val handleOk = {
-        when {
-            userName.isBlank() -> errorInfo = "名字不能为空"
-            avatarUri == null -> errorInfo = "请设置头像"
-            else -> onCompleteClick()
-        }
-    }
 
     Box(
         modifier = modifier
@@ -154,19 +134,21 @@ private fun ProfileSetupContent(
 
             // 头像选择区域
             AvatarSelector(
-                avatarUri = avatarUri,
-                onAvatarChange = onAvatarChange
+                avatarUri = uiState.avatarUri,
+                onAvatarChange = onAvatarChange,
+                enabled = !uiState.isLoading
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // 昵称输入框
             WeInput(
-                value = userName,
+                value = uiState.nickname,
                 label = "名字",
                 placeholder = "请填写名字",
                 activeColor = Color(0xFFE5E5E5),
                 maxLength = 17,
+                enabled = !uiState.isLoading,
                 onValueChange = onUserNameChange
             )
 
@@ -193,18 +175,21 @@ private fun ProfileSetupContent(
                     .imePadding()
                     .padding(bottom = bottomPadding)
             ) {
-                WeButton("确定") {
-                    handleOk()
-                }
+                WeButton(
+                    text = "确定",
+                    enabled = !uiState.isLoading,
+                    onClick = onCompleteClick
+                )
             }
         }
 
+        // 错误提示
         WeInformationBar(
-            visible = errorInfo.isNotEmpty(),
-            message = errorInfo,
+            visible = uiState.errorMessage != null,
+            message = uiState.errorMessage ?: "",
             type = InformationBarType.WarnStrong,
             autoClose = true,
-            onClose = { errorInfo = "" }
+            onClose = onErrorDismiss
         )
     }
 }
@@ -218,11 +203,13 @@ private fun ProfileSetupContent(
  *
  * @param avatarUri 当前头像URI，null表示未设置
  * @param onAvatarChange 头像变更回调
+ * @param enabled 是否可用
  */
 @Composable
 private fun AvatarSelector(
     avatarUri: Uri?,
-    onAvatarChange: (Uri?) -> Unit
+    onAvatarChange: (Uri?) -> Unit,
+    enabled: Boolean = true
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -261,24 +248,26 @@ private fun AvatarSelector(
 
     // 显示ActionSheet
     val showActionSheet = {
-        actionSheet.show(options) { selectedIndex ->
-            when (selectedIndex) {
-                0 -> {
-                    // 拍照
-                    scope.launch {
-                        val uri = context.createMediaUri()
-                        tempUri.value = uri
-                        takePicture.launch(uri)
+        if (enabled) {
+            actionSheet.show(options) { selectedIndex ->
+                when (selectedIndex) {
+                    0 -> {
+                        // 拍照
+                        scope.launch {
+                            val uri = context.createMediaUri()
+                            tempUri.value = uri
+                            takePicture.launch(uri)
+                        }
                     }
-                }
 
-                1 -> {
-                    // 从相册选择
-                    pickPicture.launch(
-                        PickVisualMediaRequest(
-                            ActivityResultContracts.PickVisualMedia.ImageOnly
+                    1 -> {
+                        // 从相册选择
+                        pickPicture.launch(
+                            PickVisualMediaRequest(
+                                ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -292,7 +281,7 @@ private fun AvatarSelector(
             modifier = Modifier
                 .size(100.dp)
                 .clip(CircleShape)
-                .weClickable { showActionSheet() }
+                .weClickable(enabled = enabled) { showActionSheet() }
         ) {
             if (avatarUri != null) {
                 // 显示已选择的头像
@@ -318,6 +307,7 @@ private fun AvatarSelector(
             text = if (avatarUri != null) "更换头像" else "设置头像",
             type = ButtonType.Plain,
             size = ButtonSize.Small,
+            enabled = enabled,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
             prefix = {
                 Icon(

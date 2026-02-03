@@ -1,18 +1,18 @@
 package top.chengdongqing.wechat.data.model
 
+import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.core.util.randomUUID
-import java.io.Serializable
 
+@Serializable
 data class UserProfile(
     val id: String,
     val nickname: String,
     val gender: Gender,
     val signature: String? = null,
     val avatarPath: String? = null,
-    val version: Long = 1,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
-) : Serializable {
+) {
 
     companion object {
         /**
@@ -44,7 +44,6 @@ data class UserProfile(
             gender = gender ?: this.gender,
             signature = signature ?: this.signature,
             avatarPath = avatarPath ?: this.avatarPath,
-            version = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
         )
     }
@@ -53,6 +52,7 @@ data class UserProfile(
 /**
  * 性别枚举
  */
+@Serializable
 enum class Gender(val label: String) {
     Male("男"),
     Female("女"),

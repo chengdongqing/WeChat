@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.welcome
+package top.chengdongqing.wechat.features.startup
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -24,11 +24,23 @@ import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
+/**
+ * 欢迎页
+ *
+ * 用途：首次使用时的欢迎界面
+ * 功能：
+ * - 语言选择
+ * - 引导用户进入资料设置
+ */
 @Composable
-fun WelcomeScreen(onNavigateToSetup: () -> Unit = {}) {
+fun WelcomeScreen(
+    onNavigateToSetup: () -> Unit = {},
+    onNavigateToLanguage: () -> Unit = {}
+) {
     StatusBarAppearanceEffect(isDark = isSystemInDarkTheme())
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // 背景图片
         Image(
             painter = painterResource(id = R.drawable.img_splash),
             contentDescription = null,
@@ -37,6 +49,7 @@ fun WelcomeScreen(onNavigateToSetup: () -> Unit = {}) {
             alignment = Alignment.TopCenter
         )
 
+        // 顶部语言切换按钮
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -48,10 +61,13 @@ fun WelcomeScreen(onNavigateToSetup: () -> Unit = {}) {
                 text = "语言",
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 15.sp,
-                modifier = Modifier.weClickable { }
+                modifier = Modifier.weClickable {
+                    onNavigateToLanguage()
+                }
             )
         }
 
+        // 底部开始按钮
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

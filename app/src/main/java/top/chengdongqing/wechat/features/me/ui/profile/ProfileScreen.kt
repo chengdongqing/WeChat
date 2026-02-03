@@ -53,27 +53,27 @@ fun ProfileScreen(navController: NavController) {
         ) {
             Column {
                 ProfileItem("头像", onClick = {
-                    navController.navigate(MeRoute.EditAvatar.route)
+                    navController.navigate(MeRoute.Edit.AVATAR)
                 }) {
                     AvatarContent()
                 }
                 ProfileItem("名字", onClick = {
-                    navController.navigate(MeRoute.EditName.route)
+                    navController.navigate(MeRoute.Edit.NAME)
                 }) {
                     TextContent("海盐芝士不加糖")
                 }
                 ProfileItem("性别", onClick = {
-                    navController.navigate(MeRoute.EditGender.route)
+                    navController.navigate(MeRoute.Edit.GENDER)
                 }) {
                     TextContent("男")
                 }
                 ProfileItem("微信号", onClick = {
-                    navController.navigate(MeRoute.EditID.route)
+                    navController.navigate(MeRoute.Edit.ID)
                 }) {
                     TextContent("wxid_${randomUUID().take(12)}")
                 }
                 ProfileItem("我的二维码", onClick = {
-                    navController.navigate(MeRoute.QRCode.route)
+                    navController.navigate(MeRoute.QR_CODE)
                 }) {
                     QRCodeContent()
                 }
@@ -81,7 +81,7 @@ fun ProfileScreen(navController: NavController) {
                     label = "签名",
                     showDivider = false,
                     onClick = {
-                        navController.navigate(MeRoute.EditSignature.route)
+                        navController.navigate(MeRoute.Edit.SIGNATURE)
                     }
                 ) {
                     TextContent("这么近 那么美")

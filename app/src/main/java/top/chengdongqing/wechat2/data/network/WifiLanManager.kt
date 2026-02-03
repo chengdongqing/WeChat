@@ -27,8 +27,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat2.core.util.AppJson
 import top.chengdongqing.wechat2.core.util.IdManager
 import top.chengdongqing.wechat2.core.util.ServiceLocator
 import top.chengdongqing.wechat2.core.util.getDeviceName

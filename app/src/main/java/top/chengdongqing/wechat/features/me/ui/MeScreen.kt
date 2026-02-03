@@ -53,10 +53,10 @@ fun MeScreen(navController: NavController) {
         Column {
             UserInfoSection(
                 onNavigateToProfile = {
-                    navController.navigate(MeRoute.Profile.route)
+                    navController.navigate(MeRoute.PROFILE)
                 },
                 onNavigateToQRCode = {
-                    navController.navigate(MeRoute.QRCode.route)
+                    navController.navigate(MeRoute.QR_CODE)
                 }
             )
             StatusSection()

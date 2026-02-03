@@ -7,6 +7,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -15,31 +19,57 @@ import top.chengdongqing.wechat.features.contacts.navigation.contactsNavGraph
 import top.chengdongqing.wechat.features.home.ui.HomeScreen
 import top.chengdongqing.wechat.features.me.navigation.meNavGraph
 import top.chengdongqing.wechat.features.me.ui.setup.ProfileSetupScreen
-import top.chengdongqing.wechat.features.welcome.WelcomeScreen
+import top.chengdongqing.wechat.features.startup.StartupState
+import top.chengdongqing.wechat.features.startup.StartupViewModel
+import top.chengdongqing.wechat.features.startup.WelcomeScreen
 
-sealed class Screen(val route: String) {
-    object Welcome : Screen("welcome")
-    object ProfileSetup : Screen("profile_setup")
-    object Home : Screen("home")
+object Screen {
+    const val WELCOME = "welcome"
+    const val PROFILE_SETUP = "profile_setup"
+    const val HOME = "home"
 }
 
 @Composable
-fun AppNavigation(navController: NavHostController = rememberNavController()) {
-    val goBack: () -> Unit = { navController.popBackStack() }
+fun AppNavigation(
+    navController: NavHostController = rememberNavController(),
+    startupViewModel: StartupViewModel = hiltViewModel()
+) {
+    val startupState by startupViewModel.state.collectAsStateWithLifecycle()
+
+    // 监听启动状态，自动导航
+    LaunchedEffect(startupState) {
+        when (startupState) {
+            is StartupState.ReadyForHome -> {
+                navController.navigate(Screen.HOME) {
+                    popUpTo(Screen.WELCOME) { inclusive = true }
+                }
+            }
+
+            else -> {}
+        }
+    }
+
+    // 页面返回
+    val goBack: () -> Unit = {
+        navController.popBackStack()
+    }
 
     WeNavHost(
         navController = navController,
-        startDestination = Screen.Welcome.route
+        startDestination = Screen.WELCOME
     ) {
-        composable(Screen.Welcome.route) {
-            WelcomeScreen {
-                navController.navigate(Screen.ProfileSetup.route)
-            }
+        // 欢迎页
+        composable(Screen.WELCOME) {
+            WelcomeScreen(onNavigateToSetup = {
+                navController.navigate(Screen.PROFILE_SETUP)
+            })
         }
+
+        // 资料设置页
         composable(
-            route = Screen.ProfileSetup.route,
+            route = Screen.PROFILE_SETUP,
             exitTransition = {
-                if (targetState.destination.route == Screen.Home.route) {
+                if (targetState.destination.route == Screen.HOME) {
                     fadeOut(
                         animationSpec = tween(700)
                     ) + scaleOut(
@@ -49,20 +79,21 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                 } else null
             }
         ) {
-            ProfileSetupScreen(onBack = goBack) {
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.Welcome.route) {
+            ProfileSetupScreen(onBack = goBack, onSetupComplete = {
+                navController.navigate(Screen.HOME) {
+                    popUpTo(Screen.WELCOME) {
                         inclusive = true
                     }
                     launchSingleTop = true
                 }
-            }
+            })
         }
 
+        // 主页
         composable(
-            route = Screen.Home.route,
+            route = Screen.HOME,
             enterTransition = {
-                if (initialState.destination.route == Screen.ProfileSetup.route) {
+                if (initialState.destination.route == Screen.PROFILE_SETUP) {
                     fadeIn(animationSpec = tween(700)) +
                             scaleIn(
                                 initialScale = 0.92f,

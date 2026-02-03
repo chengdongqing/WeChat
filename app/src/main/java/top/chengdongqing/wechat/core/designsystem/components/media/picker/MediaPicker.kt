@@ -167,7 +167,7 @@ private fun BottomBar(state: MediaPickerState, onConfirm: () -> Unit) {
         WeButton(
             text = "确定$countDescription",
             size = ButtonSize.Small,
-            disabled = selectedCount == 0
+            enabled = selectedCount == 0
         ) {
             onConfirm()
         }

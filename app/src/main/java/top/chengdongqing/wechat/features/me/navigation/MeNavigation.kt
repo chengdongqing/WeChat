@@ -11,38 +11,43 @@ import top.chengdongqing.wechat.features.me.ui.profile.edit.EditNameScreen
 import top.chengdongqing.wechat.features.me.ui.profile.edit.EditSignatureScreen
 import top.chengdongqing.wechat.features.me.ui.qrcode.QRCodeScreen
 
-sealed class MeRoute(val route: String) {
-    object Profile : MeRoute("profile")
-    object QRCode : MeRoute("qrcode")
+object MeRoute {
+    private const val ROOT = "me"
+    const val PROFILE = "$ROOT/profile"
+    const val QR_CODE = "$ROOT/qrcode"
 
-    object EditAvatar : MeRoute("profile/avatar")
-    object EditName : MeRoute("profile/name")
-    object EditID : MeRoute("profile/id")
-    object EditSignature : MeRoute("profile/signature")
-    object EditGender : MeRoute("profile/gender")
+    // 编辑个人信息的子路由
+    object Edit {
+        private const val EDIT_ROOT = "$PROFILE/edit"
+        const val AVATAR = "$EDIT_ROOT/avatar"
+        const val NAME = "$EDIT_ROOT/name"
+        const val ID = "$EDIT_ROOT/id"
+        const val SIGNATURE = "$EDIT_ROOT/signature"
+        const val GENDER = "$EDIT_ROOT/gender"
+    }
 }
 
 fun NavGraphBuilder.meNavGraph(navController: NavHostController, onBack: () -> Unit) {
-    composable(MeRoute.Profile.route) {
+    composable(MeRoute.PROFILE) {
         ProfileScreen(navController)
     }
-    composable(MeRoute.QRCode.route) {
+    composable(MeRoute.QR_CODE) {
         QRCodeScreen(onBack)
     }
 
-    composable(MeRoute.EditAvatar.route) {
+    composable(MeRoute.Edit.AVATAR) {
         EditAvatarScreen(onBack)
     }
-    composable(MeRoute.EditID.route) {
+    composable(MeRoute.Edit.ID) {
         EditIDScreen(onBack)
     }
-    composable(MeRoute.EditName.route) {
+    composable(MeRoute.Edit.NAME) {
         EditNameScreen(onBack)
     }
-    composable(MeRoute.EditSignature.route) {
+    composable(MeRoute.Edit.SIGNATURE) {
         EditSignatureScreen(onBack)
     }
-    composable(MeRoute.EditGender.route) {
+    composable(MeRoute.Edit.GENDER) {
         EditGenderScreen(onBack)
     }
 }

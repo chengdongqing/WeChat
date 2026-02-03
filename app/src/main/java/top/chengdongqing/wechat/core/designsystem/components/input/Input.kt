@@ -27,24 +27,11 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
-/**
- * 微信风格的通用输入框组件
- *
- * @param value 当前输入的内容
- * @param modifier 外部修饰符
- * @param label 输入框左侧的标签文本，为 null 时不显示
- * @param placeholder 当输入为空时的提示文本
- * @param maxLength 最大字符长度限制，为 null 时不限制
- * @param singleLine 是否强制单行显示，默认为 true
- * @param maxLines 最大显示行数
- * @param activeColor 获取焦点时底部横线的颜色，默认为微信绿
- * @param inactiveColor 未获取焦点时底部横线的颜色，默认为浅灰色
- * @param onValueChange 内容改变时的回调
- */
 @Composable
 fun WeInput(
     value: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     label: String? = null,
     placeholder: String = "",
     maxLength: Int? = null,
@@ -89,6 +76,7 @@ fun WeInput(
                     .weight(1f)
                     .padding(vertical = 12.dp)
                     .onFocusChanged { isFocused = it.isFocused },
+                enabled = enabled,
                 textStyle = TextStyle(
                     fontSize = 17.sp,
                     color = WeTheme.colorScheme.textPrimary

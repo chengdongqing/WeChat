@@ -28,7 +28,7 @@ fun EditGenderScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             WeTopBar("设置性别", onBack = onBack) {
-                WeButton("完成", size = ButtonSize.Small, disabled = false)
+                WeButton("完成", size = ButtonSize.Small, enabled = false)
             }
         },
         containerColor = WeTheme.colorScheme.background

@@ -29,8 +29,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.util.AppJson
 import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat2.core.util.AppJson
 import top.chengdongqing.wechat2.core.util.IdManager
 import top.chengdongqing.wechat2.data.model_1.ChatPayload
 import top.chengdongqing.wechat2.data.model_1.MessageEnvelope

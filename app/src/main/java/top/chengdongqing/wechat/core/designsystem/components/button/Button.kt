@@ -49,7 +49,7 @@ enum class ButtonSize(
  * @param size 大小
  * @param width 宽度
  * @param prefix 前缀
- * @param disabled 是否禁用
+ * @param enabled 是否启用
  * @param loading 是否加载中
  * @param onClick 点击事件
  */
@@ -61,27 +61,23 @@ fun WeButton(
     size: ButtonSize = ButtonSize.Large,
     width: Dp = 184.dp,
     prefix: (@Composable () -> Unit)? = null,
-    disabled: Boolean = false,
+    enabled: Boolean = true,
     loading: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
     val colors = buttonColorSchemeOf(type)
-    val localDisabled = disabled || loading
+    val finalEnabled = enabled && !loading
 
     Box(
         Modifier
             .width(if (size != ButtonSize.Small) width else Dp.Unspecified)
             .clip(RoundedCornerShape(size.borderRadius))
-            .clickable(
-                enabled = !localDisabled
-            ) {
-                if (!localDisabled) {
-                    onClick?.invoke()
-                }
+            .clickable(enabled = finalEnabled) {
+                onClick?.invoke()
             }
             .background(colors.containerColor)
             .padding(size.padding)
-            .alpha(if (disabled) 0.7f else 1f)
+            .alpha(if (!enabled) 0.7f else 1f)
             .then(modifier),
         contentAlignment = Alignment.Center
     ) {
@@ -112,20 +108,8 @@ private data class ButtonColors(
 @Composable
 private fun buttonColorSchemeOf(type: ButtonType): ButtonColors {
     return when (type) {
-        ButtonType.Primary -> {
-            ButtonColors(GreenPrimary, Color.White)
-        }
-
-        ButtonType.Danger -> /*if (isSystemInDarkTheme()) {
-            ButtonColors(Danger, TextPrimaryDark)
-        } else {*/
-            ButtonColors(Color.Black.copy(0.05f), Danger)
-//        }
-
-        ButtonType.Plain -> /*if (isSystemInDarkTheme()) {
-            ButtonColors(Color.White.copy(0.1f), TextPrimaryDark)
-        } else {*/
-            ButtonColors(Color.Black.copy(0.05f), TextPrimaryLight)
-//        }
+        ButtonType.Primary -> ButtonColors(GreenPrimary, Color.White)
+        ButtonType.Danger -> ButtonColors(Color.Black.copy(0.05f), Danger)
+        ButtonType.Plain -> ButtonColors(Color.Black.copy(0.05f), TextPrimaryLight)
     }
 }

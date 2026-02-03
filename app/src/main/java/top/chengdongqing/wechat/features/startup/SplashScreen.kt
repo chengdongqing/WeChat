@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.welcome
+package top.chengdongqing.wechat.features.startup
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -19,6 +19,9 @@ import androidx.compose.ui.res.painterResource
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 
+/**
+ * 展示启动画面
+ */
 @Composable
 fun SplashScreen(onTimeout: () -> Unit) {
     val scale = remember { Animatable(1.05f) }
@@ -45,7 +48,10 @@ fun SplashScreen(onTimeout: () -> Unit) {
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer(scaleX = scale.value, scaleY = scale.value)
+                .graphicsLayer(
+                    scaleX = scale.value,
+                    scaleY = scale.value
+                )
         )
     }
 }
