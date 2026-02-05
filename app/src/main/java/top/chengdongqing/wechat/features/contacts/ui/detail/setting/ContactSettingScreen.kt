@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -61,7 +62,7 @@ fun ContactSettingScreen(
             Column {
                 SettingItem(
                     label = "设置朋友资料",
-                    content = {
+                    trailing = {
                         Text(
                             text = contact.remarkName,
                             fontSize = 16.sp,
@@ -128,10 +129,10 @@ private fun SettingItem(
     label: String,
     showDivider: Boolean = true,
     onClick: (() -> Unit)? = null,
-    content: (@Composable () -> Unit)? = null
+    trailing: (@Composable RowScope.() -> Unit)? = null
 ) {
     Column(modifier = Modifier.background(White)) {
-        MenuListItem(label, content = content, height = 52.dp, onClick = onClick)
+        MenuListItem(label, trailing = trailing, height = 52.dp, onClick = onClick)
 
         if (showDivider) {
             WeDivider(modifier = Modifier.padding(start = 16.dp))

@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.res.ResourcesCompat
@@ -77,7 +78,7 @@ fun QRCodeScreen(
     val toast = rememberToastState()
 
     // 样式循环切换
-    var styleIndex by remember { mutableIntStateOf(QR_CODE_STYLES.indices.random()) }
+    var styleIndex by remember { mutableIntStateOf(0) }
 
     val state = rememberQRCodeState(
         content = profile.id,
@@ -181,14 +182,18 @@ private fun ProfileBar(profile: UserProfile) {
                 text = profile.nickname,
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = WeTheme.colorScheme.textPrimary
+                color = WeTheme.colorScheme.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             if (profile.signature?.isNotBlank().isTrue()) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = profile.signature!!,
                     fontSize = 12.sp,
-                    color = WeTheme.colorScheme.textSecondary
+                    color = WeTheme.colorScheme.textSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -114,7 +115,9 @@ fun UserInfoSection(
                     color = WeTheme.colorScheme.textPrimary,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(end = 20.dp)
+                        .padding(end = 20.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Icon(
                     painter = painterResource(R.drawable.ic_qrcode_outlined),
@@ -133,7 +136,9 @@ fun UserInfoSection(
                     color = WeTheme.colorScheme.textSecondary,
                     modifier = Modifier
                         .weight(1f)
-                        .padding(end = 20.dp)
+                        .padding(end = 20.dp),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Icon(
                     painter = painterResource(R.drawable.ic_right_outlined),

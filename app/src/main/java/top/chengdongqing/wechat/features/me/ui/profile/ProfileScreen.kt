@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -182,12 +185,12 @@ private fun ProfileItem(
     label: String,
     showDivider: Boolean = true,
     onClick: (() -> Unit)?,
-    content: @Composable () -> Unit
+    trailing: @Composable RowScope.() -> Unit
 ) {
     Column(modifier = Modifier.background(White)) {
         MenuListItem(
             label = label,
-            content = content,
+            trailing = trailing,
             onClick = onClick
         )
 
@@ -229,12 +232,16 @@ private fun QRCodeContent() {
  * 文本内容
  */
 @Composable
-private fun TextContent(text: String?) {
+private fun RowScope.TextContent(text: String?) {
     text?.let {
         Text(
             text = text,
             fontSize = 16.sp,
-            color = WeTheme.colorScheme.textSecondary
+            color = WeTheme.colorScheme.textSecondary,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.End
         )
     }
 }

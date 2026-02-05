@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,7 +32,7 @@ fun MenuListItem(
     @DrawableRes iconResId: Int? = null,
     iconColor: Color = Color.Unspecified,
     description: String? = null,
-    content: (@Composable () -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
     showArrow: Boolean = true,
     height: Dp = 56.dp,
     onClick: (() -> Unit)? = null
@@ -42,25 +43,27 @@ fun MenuListItem(
             .height(height)
             .background(WeTheme.colorScheme.surface)
             .clickable { onClick?.invoke() }
-            .padding(start = 16.dp, end = 8.dp),
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(22.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        iconResId?.let {
-            MenuIcon(iconResId, iconColor)
-            Spacer(modifier = Modifier.width(16.dp))
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            iconResId?.let { MenuIcon(it, iconColor) }
+            MenuLabel(label, description)
         }
-
-        MenuLabel(label, description, modifier = Modifier.weight(1f))
-
-        if (content != null || showArrow) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                content?.invoke()
-                if (showArrow) {
-                    MenuArrow()
-                }
+        Row(
+            modifier = Modifier.weight(2f),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            trailing?.invoke(this)
+            if (showArrow) {
+                Spacer(modifier = Modifier.width(8.dp))
+                MenuArrow()
             }
         }
     }
