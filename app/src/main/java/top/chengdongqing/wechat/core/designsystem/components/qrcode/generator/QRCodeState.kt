@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.core.designsystem.components.qrcode.generator
 
-import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -8,19 +7,15 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.EncodeHintType
+import com.google.zxing.common.BitMatrix
+import com.google.zxing.qrcode.QRCodeWriter
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 
 /**
@@ -50,33 +45,29 @@ class QRCodeState(
     var logoPercent: Float by mutableFloatStateOf(logoPercent)
     var dotStyle: QrDotStyle by mutableStateOf(dotStyle)
 
-    // 内部缓存，避免重复生成
     internal val bitMatrix = generateQrMatrix(content)
     internal val regions: QrCodeRegions
         get() = QrCodeRegions(bitMatrix.width, if (logoPainter != null) logoPercent else 0f)
 
     /**
-     * 生成二维码Bitmap
-     *
-     * @param sizePx 图片边长(px)，建议至少600px
-     * @param density 屏幕密度
+     * 生成二维码矩阵
+     * 使用H级纠错（可遮盖约30%面积），MARGIN设为0由外层padding处理静区
      */
-    suspend fun generateBitmap(sizePx: Int = 1024, density: Density): Bitmap =
-        withContext(Dispatchers.IO) {
-            val imageBitmap = ImageBitmap(sizePx, sizePx)
-            val canvas = Canvas(imageBitmap)
+    private fun generateQrMatrix(content: String): BitMatrix {
+        val hints = mutableMapOf<EncodeHintType, Any>(
+            EncodeHintType.CHARACTER_SET to "UTF-8",
+            EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H,
+            EncodeHintType.MARGIN to 0,
+            EncodeHintType.QR_VERSION to 5
+        )
 
-            CanvasDrawScope().draw(
-                density = density,
-                layoutDirection = LayoutDirection.Ltr,
-                canvas = canvas,
-                size = Size(sizePx.toFloat(), sizePx.toFloat())
-            ) {
-                drawQrCode(bitMatrix, regions, brush, dotStyle, logoPainter, backgroundColor)
-            }
-
-            imageBitmap.asAndroidBitmap()
-        }
+        return QRCodeWriter().encode(
+            content,
+            BarcodeFormat.QR_CODE,
+            0, 0,
+            hints
+        )
+    }
 }
 
 /**

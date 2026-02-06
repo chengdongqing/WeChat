@@ -48,7 +48,6 @@ fun MenuListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
-            modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -56,7 +55,7 @@ fun MenuListItem(
             MenuLabel(label, description)
         }
         Row(
-            modifier = Modifier.weight(2f),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {

@@ -16,11 +16,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
 import com.google.zxing.common.BitMatrix
-import com.google.zxing.qrcode.QRCodeWriter
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 
 /**
  * 二维码组件
@@ -51,7 +47,7 @@ internal fun DrawScope.drawQrCode(
     backgroundColor: Color
 ) {
     val cellSize = size.width / bitMatrix.width
-    val dotSize = cellSize * 0.9f
+    val dotSize = cellSize * 0.8f
 
     drawRect(backgroundColor)
     drawDataDots(bitMatrix, regions, cellSize, dotSize, brush, dotStyle)
@@ -96,7 +92,7 @@ private fun DrawScope.drawDataDots(
 
             when (style) {
                 QrDotStyle.Round -> path.addRoundRect(
-                    RoundRect(rect, CornerRadius(cellSize * 0.3f))
+                    RoundRect(rect, CornerRadius(cellSize * 0.2f))
                 )
 
                 QrDotStyle.Circle -> path.addOval(rect)
@@ -128,14 +124,13 @@ private fun DrawScope.drawFinderPatterns(matrixWidth: Int, cellSize: Float, brus
  */
 private fun DrawScope.drawFinderPattern(x: Int, y: Int, cellSize: Float, brush: Brush) {
     val origin = Offset(x * cellSize, y * cellSize)
-    val cornerRadius = CornerRadius(cellSize * 0.4f)
 
     // 外框（Stroke居中绘制，需偏移半个线宽）
     drawRoundRect(
         brush = brush,
         topLeft = origin + Offset(cellSize / 2f, cellSize / 2f),
         size = Size(cellSize * 6f, cellSize * 6f),
-        cornerRadius = cornerRadius,
+        cornerRadius = CornerRadius(cellSize * 0.2f),
         style = Stroke(width = cellSize)
     )
 
@@ -144,7 +139,7 @@ private fun DrawScope.drawFinderPattern(x: Int, y: Int, cellSize: Float, brush: 
         brush = brush,
         topLeft = origin + Offset(cellSize * 2f, cellSize * 2f),
         size = Size(cellSize * 3f, cellSize * 3f),
-        cornerRadius = cornerRadius
+        cornerRadius = CornerRadius(cellSize * 0.4f)
     )
 }
 
@@ -193,30 +188,16 @@ private fun DrawScope.drawLogo(
 }
 
 /**
- * 生成二维码矩阵
- * 使用H级纠错（可遮盖约30%面积），MARGIN设为0由外层padding处理静区
- */
-internal fun generateQrMatrix(content: String): BitMatrix =
-    QRCodeWriter().encode(
-        content,
-        BarcodeFormat.QR_CODE,
-        0, 0,
-        mapOf(
-            EncodeHintType.CHARACTER_SET to "UTF-8",
-            EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.H,
-            EncodeHintType.MARGIN to 0
-        )
-    )
-
-/**
  * 二维码区域判定，用于绘制时跳过特殊区域
  *
  * @param matrixSize 矩阵边长（模块数）
  * @param logoPercent logo占二维码的比例
+ * @param logoMargin logo外围额外空出的格子数量
  */
 internal class QrCodeRegions(
     private val matrixSize: Int,
-    logoPercent: Float = 0.22f
+    logoPercent: Float = 0.22f,
+    private val logoMargin: Int = 1
 ) {
     private val finderSize = 7
     private val logoModules = (matrixSize * logoPercent).toInt()
@@ -230,9 +211,11 @@ internal class QrCodeRegions(
                 (x >= matrixSize - finderSize && y < finderSize) ||
                 (x < finderSize && y >= matrixSize - finderSize)
 
-    /** 是否在中心logo遮挡区域内 */
-    fun isInLogoArea(x: Int, y: Int): Boolean =
-        x in logoStart..logoEnd && y in logoStart..logoEnd
+    /** 是否在logo及其间距区域内 */
+    fun isInLogoArea(x: Int, y: Int): Boolean {
+        return x in (logoStart - logoMargin)..(logoEnd + logoMargin) &&
+                y in (logoStart - logoMargin)..(logoEnd + logoMargin)
+    }
 
     /** 是否为需要绘制的普通数据点（排除定位码和logo区域） */
     fun isDataModule(x: Int, y: Int, hasValue: Boolean): Boolean =

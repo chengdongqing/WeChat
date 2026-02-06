@@ -240,9 +240,6 @@ private fun FooterDivider() {
 private val QR_CODE_STYLES = listOf(
     SolidColor(Color(0xFF222222)),                          // 黑色
     SolidColor(Color(0xFF00C35A)),                          // 微信绿
-    SolidColor(Color(0xFF1989FA)),                          // 蓝色
-    SolidColor(Color(0xFFE94E3E)),                          // 红色
-    SolidColor(Color(0xFF8D46FB)),                          // 紫色
     Brush.linearGradient(                                   // 红→紫
         colors = listOf(Color(0xFFE94E3E), Color(0xFF8D46FB)),
         start = Offset.Zero,
