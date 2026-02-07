@@ -10,12 +10,13 @@ import top.chengdongqing.wechat.features.contacts.ui.addfriend.AddFriendScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.pincode.PinCodeGroupScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
+import top.chengdongqing.wechat.features.contacts.ui.detail.requestadd.RequestAddScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
 
 sealed class ContactsRoute(val route: String) {
-    object AddFriend : ContactsRoute("add_friend")
-    object RadarScan : ContactsRoute("radar_scan")
-    object PinCodeGroup : ContactsRoute("pin_code_group")
+    object AddFriend : ContactsRoute("contacts/add")
+    object RadarScan : ContactsRoute("contacts/add/radar_scan")
+    object PinCodeGroup : ContactsRoute("contacts/add/pin_code_group")
 
     object ContactDetail : ContactsRoute("contacts/{contactId}") {
         const val ARG_CONTACT_ID = "contactId"
@@ -27,6 +28,12 @@ sealed class ContactsRoute(val route: String) {
         const val ARG_CONTACT_ID = "contactId"
 
         fun createRoute(contactId: String) = "contacts/${contactId}/setting"
+    }
+
+    object ContactRequestAdd : ContactsRoute("contacts/{contactId}/request_add") {
+        const val ARG_CONTACT_ID = "contactId"
+
+        fun createRoute(contactId: String) = "contacts/${contactId}/request_add"
     }
 }
 
@@ -47,6 +54,9 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
             },
             onNavigateToSetting = { id ->
                 navController.navigate(ContactsRoute.ContactSetting.createRoute(id))
+            },
+            onNavigateToRequestAdd = { id ->
+                navController.navigate(ContactsRoute.ContactRequestAdd.createRoute(id))
             }
         )
     }
@@ -59,6 +69,19 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
         val contactId =
             backStackEntry.arguments?.getString(ContactsRoute.ContactSetting.ARG_CONTACT_ID) ?: ""
         ContactSettingScreen(contactId, onBack)
+    }
+    composable(
+        route = ContactsRoute.ContactRequestAdd.route,
+        arguments = listOf(
+            navArgument(ContactsRoute.ContactRequestAdd.ARG_CONTACT_ID) {
+                type = NavType.StringType
+            }
+        )
+    ) { backStackEntry ->
+        val contactId = backStackEntry.arguments?.getString(
+            ContactsRoute.ContactRequestAdd.ARG_CONTACT_ID
+        ) ?: ""
+        RequestAddScreen(contactId, onBack)
     }
 
     composable(ContactsRoute.AddFriend.route) {

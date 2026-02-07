@@ -16,7 +16,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.contacts.model.Contact
 import top.chengdongqing.wechat.features.contacts.ui.detail.components.ContactDetailContent
 
 /**
@@ -38,6 +37,7 @@ fun ContactDetailScreen(
     onNavigateToMoments: (String) -> Unit = {},
     onNavigateToProfile: (String) -> Unit = {},
     onNavigateToSetting: (String) -> Unit = {},
+    onNavigateToRequestAdd: (String) -> Unit = {},
     viewModel: ContactDetailViewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
         factory.create(contactId)
     }
@@ -53,24 +53,30 @@ fun ContactDetailScreen(
                 is NavigationEvent.NavigateToMoments -> onNavigateToMoments(event.contactId)
                 is NavigationEvent.NavigateToProfile -> onNavigateToProfile(event.contactId)
                 is NavigationEvent.ShowMoreOptions -> onNavigateToSetting(event.contactId)
+                is NavigationEvent.NavigateToRequestAdd -> onNavigateToRequestAdd(event.contactId)
             }
         }
     }
 
     Scaffold(
         topBar = {
-            ContactDetailTopBar(
-                onBack = onBack,
-                onMoreClick = { viewModel.handleAction(ContactAction.ShowMore) }
-            )
+            ContactDetailTopBar(onBack) {
+                viewModel.handleAction(ContactAction.ShowMore)
+            }
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
-        ContactDetailScrollableContent(
-            contact = uiState.contact,
-            onAction = viewModel::handleAction,
-            modifier = Modifier.padding(innerPadding)
-        )
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+        ) {
+            ContactDetailContent(
+                contact = uiState.contact,
+                onAction = viewModel::handleAction
+            )
+        }
     }
 }
 
@@ -96,27 +102,6 @@ private fun ContactDetailTopBar(
 }
 
 /**
- * 联系人详情可滚动内容区域
- */
-@Composable
-private fun ContactDetailScrollableContent(
-    contact: Contact,
-    onAction: (ContactAction) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-    ) {
-        ContactDetailContent(
-            contact = contact,
-            onAction = onAction
-        )
-    }
-}
-
-/**
  * 操作类型
  */
 sealed class ContactAction {
@@ -126,4 +111,5 @@ sealed class ContactAction {
     data object ViewProfile : ContactAction()
     data object ShowMore : ContactAction()
     data object DeleteContact : ContactAction()
+    data object AddToContacts : ContactAction()
 }

@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.features.contacts.model.Contact
+import top.chengdongqing.wechat.features.contacts.model.ContactRelation
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 
 /**
@@ -31,23 +33,32 @@ import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
  */
 @Composable
 fun ActionButtonsSection(
-    onAction: (ContactAction) -> Unit,
-    modifier: Modifier = Modifier
+    contact: Contact,
+    onAction: (ContactAction) -> Unit
 ) {
-    Column(modifier = modifier.background(Color.White)) {
-        ContactActionButton(
-            iconResId = R.drawable.ic_message_outlined,
-            text = "发消息",
-            onClick = { onAction(ContactAction.SendMessage) }
-        )
+    Column(modifier = Modifier.background(Color.White)) {
+        when (contact.relation) {
+            ContactRelation.Friend -> {
+                ContactActionButton(
+                    iconResId = R.drawable.ic_message_outlined,
+                    text = "发消息",
+                    onClick = { onAction(ContactAction.SendMessage) }
+                )
+                WeDivider()
+                ContactActionButton(
+                    iconResId = R.drawable.ic_voice_video_call_outlined,
+                    text = "音视频通话",
+                    onClick = { onAction(ContactAction.VoiceVideoCall) }
+                )
+            }
 
-        WeDivider()
-
-        ContactActionButton(
-            iconResId = R.drawable.ic_voice_video_call_outlined,
-            text = "音视频通话",
-            onClick = { onAction(ContactAction.VoiceVideoCall) }
-        )
+            else -> {
+                ContactActionButton(
+                    text = "添加到通讯录",
+                    onClick = { onAction(ContactAction.AddToContacts) }
+                )
+            }
+        }
     }
 }
 
@@ -56,26 +67,27 @@ fun ActionButtonsSection(
  */
 @Composable
 private fun ContactActionButton(
-    @DrawableRes iconResId: Int,
+    @DrawableRes iconResId: Int? = null,
     text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
             .clickable(onClick = onClick),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = painterResource(iconResId),
-            contentDescription = null,
-            tint = Color(0xFF576B95),
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
+        iconResId?.let {
+            Icon(
+                painter = painterResource(it),
+                contentDescription = null,
+                tint = Color(0xFF576B95),
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
         Text(
             text = text,
             color = Color(0xFF576B95),

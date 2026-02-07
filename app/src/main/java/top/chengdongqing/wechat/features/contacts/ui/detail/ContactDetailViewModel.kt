@@ -121,6 +121,10 @@ class ContactDetailViewModel @AssistedInject constructor(
                 ContactAction.DeleteContact -> {
 
                 }
+
+                ContactAction.AddToContacts -> {
+                    _navigationEvent.emit(NavigationEvent.NavigateToRequestAdd(contactId))
+                }
             }
         }
     }
@@ -186,5 +190,6 @@ sealed class NavigationEvent {
     data class NavigateToCall(val contactId: String) : NavigationEvent()
     data class NavigateToMoments(val contactId: String) : NavigationEvent()
     data class NavigateToProfile(val contactId: String) : NavigationEvent()
+    data class NavigateToRequestAdd(val contactId: String) : NavigationEvent()
     data class ShowMoreOptions(val contactId: String) : NavigationEvent()
 }

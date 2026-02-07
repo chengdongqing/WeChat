@@ -43,7 +43,7 @@ fun ContactDetailContent(
         }
 
         // 操作按钮板块
-        ActionButtonsSection(onAction = onAction)
+        ActionButtonsSection(contact, onAction)
     }
 }
 
