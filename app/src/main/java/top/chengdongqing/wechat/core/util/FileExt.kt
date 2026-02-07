@@ -47,8 +47,34 @@ suspend fun prepareMediaResource(context: Context, uri: Uri): MediaResource? =
                 try {
                     val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                     BitmapFactory.decodeFile(targetFile.absolutePath, options)
-                    width = options.outWidth
-                    height = options.outHeight
+
+                    val originalWidth = options.outWidth
+                    val originalHeight = options.outHeight
+
+                    // 读取 EXIF 旋转信息
+                    val exif = androidx.exifinterface.media.ExifInterface(targetFile.absolutePath)
+                    val orientation = exif.getAttributeInt(
+                        androidx.exifinterface.media.ExifInterface.TAG_ORIENTATION,
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_NORMAL
+                    )
+
+                    // 判断是否发生了 90 度或 270 度的旋转
+                    val isSwapped = when (orientation) {
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_90,
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_ROTATE_270,
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSPOSE,
+                        androidx.exifinterface.media.ExifInterface.ORIENTATION_TRANSVERSE -> true
+
+                        else -> false
+                    }
+
+                    if (isSwapped) {
+                        width = originalHeight
+                        height = originalWidth
+                    } else {
+                        width = originalWidth
+                        height = originalHeight
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -60,16 +86,28 @@ suspend fun prepareMediaResource(context: Context, uri: Uri): MediaResource? =
                     val retriever = MediaMetadataRetriever()
                     retriever.setDataSource(targetFile.absolutePath)
 
-                    if (width <= 0) {
-                        width =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                                ?.toIntOrNull() ?: 0
+                    // 获取旋转角度
+                    val rotation =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                            ?.toIntOrNull() ?: 0
+
+                    // 获取原始宽高
+                    val rawWidth =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                            ?.toIntOrNull() ?: 0
+                    val rawHeight =
+                        retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                            ?.toIntOrNull() ?: 0
+
+                    // 3. 根据旋转角度修正
+                    if (rotation == 90 || rotation == 270) {
+                        width = rawHeight
+                        height = rawWidth
+                    } else {
+                        width = rawWidth
+                        height = rawHeight
                     }
-                    if (height <= 0) {
-                        height =
-                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-                                ?.toIntOrNull() ?: 0
-                    }
+
                     if (duration <= 0) {
                         duration =
                             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
