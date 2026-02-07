@@ -109,7 +109,7 @@ fun ChatSessionScreen(
                             listState.animateScrollToItem(0)
                             delay(100)
                             onSent?.invoke()
-                            viewModel.finishScrollToLatest()
+                            viewModel.finishSending()
                         }
                     }
                 }

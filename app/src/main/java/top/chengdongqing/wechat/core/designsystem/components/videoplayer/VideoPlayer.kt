@@ -62,7 +62,7 @@ fun WeVideoPlayer(
 private fun BoxScope.PlayIcon(state: VideoPlayerState) {
     if (state.isPrepared && !state.isPlaying) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_play_arrow_filled),
+            painter = painterResource(id = R.drawable.ic_play_filled),
             contentDescription = "播放",
             modifier = Modifier
                 .align(Alignment.Center)

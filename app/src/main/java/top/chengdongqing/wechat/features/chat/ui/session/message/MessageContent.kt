@@ -18,7 +18,7 @@ fun MessageContent(message: ChatMessage) {
         is MessageContent.Text -> TextContent(content)
         is MessageContent.Voice -> VoiceContent(message)
         is MessageContent.Sticker -> StickerContent(content)
-        is MessageContent.Image, is MessageContent.Video -> MediaContent(content)
+        is MessageContent.Image, is MessageContent.Video -> MediaContent(message)
         is MessageContent.Call -> CallContent(message)
         is MessageContent.Location -> LocationContent(content)
         is MessageContent.File -> FileContent(content)

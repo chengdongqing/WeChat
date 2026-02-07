@@ -4,8 +4,11 @@ import android.util.Size
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,21 +31,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.preview.previewMedias
+import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
+import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.core.util.loadMediaThumbnail
+import top.chengdongqing.wechat.core.util.toPercent
+import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.data.model.MessageSendStatus
 import top.chengdongqing.wechat.features.chat.ui.session.LocalMediaContext
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun MediaContent(content: MessageContent.Media) {
+fun MediaContent(message: ChatMessage) {
     val context = LocalContext.current
-    val isVideo = content is MessageContent.Video
     val targetWidth = rememberScreenFractionWidth()
+    val content = message.content as MessageContent.Media
+    val isVideo = content is MessageContent.Video
 
     // 获取更多媒体数据，方便预览时切换
     val mediaContext = LocalMediaContext.current
@@ -81,31 +91,88 @@ fun MediaContent(content: MessageContent.Media) {
             contentScale = ContentScale.Crop
         )
 
-        // 视频专属UI
-        if (content is MessageContent.Video) {
-            // 播放图标
-            Icon(
-                painter = painterResource(R.drawable.ic_play_arrow_filled),
-                contentDescription = "Play",
-                tint = Color.White,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, Color.White, CircleShape)
-                    .padding(4.dp)
-            )
+        when (content) {
+            is MessageContent.Image -> {
+                // 发送的进度
+                if (message.isSending) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        WeLoading(size = 42.dp, color = White)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            message.sendProgress.toPercent(),
+                            color = White,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
 
-            // 视频时长
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(horizontal = 8.dp, vertical = 6.dp)
-            ) {
-                Text(
-                    text = content.duration.milliseconds.format(),
-                    color = Color.White,
-                    fontSize = 10.sp
-                )
+            is MessageContent.Video -> {
+                if (message.isSending) {
+                    Box(
+                        modifier = Modifier
+                            .size(39.dp)
+                            .clip(CircleShape)
+                            .clickable {},
+                        contentAlignment = Alignment.Center
+                    ) {
+                        WeCircleProgress(
+                            message.sendProgress * 100,
+                            size = 36.dp,
+                            strokeWidth = 3.dp,
+                            trackColor = Color.LightGray.copy(alpha = 0.8f),
+                            indicatorColor = White,
+                            formatter = null
+                        )
+
+                        when (message.sendStatus) {
+                            is MessageSendStatus.Sending -> {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_pause_filled),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            is MessageSendStatus.Paused -> {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_play_filled),
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+
+                            else -> {}
+                        }
+                    }
+                } else {
+                    // 播放图标
+                    Icon(
+                        painter = painterResource(R.drawable.ic_play_filled),
+                        contentDescription = "Play",
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, Color.White, CircleShape)
+                            .padding(4.dp)
+                    )
+                }
+
+                // 视频时长
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = content.duration.milliseconds.format(),
+                        color = Color.White,
+                        fontSize = 10.sp
+                    )
+                }
             }
         }
     }

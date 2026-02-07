@@ -29,6 +29,7 @@ import top.chengdongqing.wechat.core.media.VoicePlayer
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.data.model.MessageSendStatus
 import top.chengdongqing.wechat.features.chat.ui.session.input.voice.AudioFocusManager
 import java.time.Duration
 import java.time.Instant
@@ -87,6 +88,32 @@ class ChatSessionViewModel @AssistedInject constructor(
         loadInitialMessages()
     }
 
+    /**
+     * 发送消息
+     */
+    fun sendMessage(content: MessageContent, onSent: () -> Unit) {
+        _uiState.update { it.copy(isSending = true) }
+
+        val newMessage = ChatMessage(
+            id = randomUUID(),
+            content = content,
+            timestamp = System.currentTimeMillis(),
+            isFromMe = true,
+            sendStatus = MessageSendStatus.Success
+        )
+
+        // 立即添加到列表
+        _messages.update { listOf(newMessage) + it }
+        onSent()
+    }
+
+    /**
+     * 更新发送状态
+     */
+    fun finishSending() {
+        _uiState.update { it.copy(isSending = false) }
+    }
+
     private fun loadInitialMessages() {
         viewModelScope.launch {
             val initialMessages = generateMockChatData(page = 0, pageSize = pageSize)
@@ -101,30 +128,6 @@ class ChatSessionViewModel @AssistedInject constructor(
                 )
             }
         }
-    }
-
-    /**
-     * 发送消息
-     */
-    fun sendMessage(content: MessageContent, onSent: () -> Unit) {
-        _uiState.update { it.copy(isSending = true) }
-
-        val newMessage = ChatMessage(
-            id = randomUUID(),
-            content = content,
-            timestamp = System.currentTimeMillis(),
-            isFromMe = true
-        )
-
-        _messages.update { listOf(newMessage) + it }
-        onSent()
-    }
-
-    /**
-     * 完成滚动到最新消息
-     */
-    fun finishScrollToLatest() {
-        _uiState.update { it.copy(isSending = false) }
     }
 
     /**

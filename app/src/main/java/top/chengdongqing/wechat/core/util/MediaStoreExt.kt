@@ -98,8 +98,11 @@ suspend fun Context.loadMediaThumbnail(
                 loadVideoThumbnail(uri)
             }
         } catch (_: IOException) {
-            // 如果加载失败，降级处理：图片返回原图 Uri，视频返回 null
-            if (!isVideo) uri else loadVideoThumbnail(uri)
+            if (!isVideo) {
+                uri
+            } else {
+                loadVideoThumbnail(uri)
+            }
         }
     }
 }
