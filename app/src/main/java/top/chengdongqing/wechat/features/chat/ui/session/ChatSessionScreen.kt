@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
@@ -14,10 +15,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -29,8 +32,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
+import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageItem
@@ -53,12 +59,22 @@ fun ChatSessionScreen(
     val scope = rememberCoroutineScope()
     val overscrollEffect = rememberBounceOverscrollEffect()
 
-    // 当键盘弹出时，消息列表自动置底
+    // 键盘和数据更新时的自动滚动
     KeyboardScrollEffect(listState, messages.size)
-    // 当数据更新时，消息列表自动置底
     MessageDataScrollEffect(listState, messages)
 
-    // 提供媒体上下文
+    // 上拉加载更多的监听
+    LoadMoreEffect(
+        listState = listState,
+        messages = messages,
+        isLoadingMore = uiState.isLoadingMore,
+        hasMoreMessages = uiState.hasMoreMessages,
+        onLoadMore = { lastVisibleMsgId ->
+            viewModel.loadMore(lastVisibleMsgId)
+        }
+    )
+
+    // 媒体上下文
     val mediaContext = remember(mediaList, playingMessageId) {
         MediaContext(
             allMedia = mediaList,
@@ -69,9 +85,11 @@ fun ChatSessionScreen(
         )
     }
 
-    // 回到后台或当前页面销毁，停止播放语音
+    // 生命周期感知的语音播放控制
     VoicePlayingLifecycle {
-        if (playingMessageId != null) viewModel.stopVoice()
+        if (playingMessageId != null) {
+            viewModel.stopVoice()
+        }
     }
 
     CompositionLocalProvider(LocalMediaContext provides mediaContext) {
@@ -91,7 +109,6 @@ fun ChatSessionScreen(
                             listState.animateScrollToItem(0)
                             delay(100)
                             onSent?.invoke()
-
                             viewModel.finishScrollToLatest()
                         }
                     }
@@ -106,7 +123,7 @@ fun ChatSessionScreen(
                     .background(Color(0xFFF3F3F3))
                     .overscroll(overscrollEffect),
                 contentPadding = PaddingValues(10.dp),
-                reverseLayout = true, // 新消息在底部，旧消息在顶部；键盘弹出时列表会自动推上去
+                reverseLayout = true,
                 verticalArrangement = Arrangement.Top,
                 overscrollEffect = overscrollEffect
             ) {
@@ -117,11 +134,48 @@ fun ChatSessionScreen(
                     MessageItem(message)
                     TimeDivider(messages, index)
                 }
+
+                // 加载更多指示器
+                if (uiState.hasMoreMessages) {
+                    item(key = "load_more") {
+                        WeLoadMore(type = LoadMoreType.Loading)
+                    }
+                }
             }
         }
     }
 }
 
+/**
+ * 加载更多的效果监听
+ */
+@Composable
+private fun LoadMoreEffect(
+    listState: LazyListState,
+    messages: List<ChatMessage>,
+    isLoadingMore: Boolean,
+    hasMoreMessages: Boolean,
+    onLoadMore: (String) -> Unit
+) {
+    LaunchedEffect(listState, messages, isLoadingMore, hasMoreMessages) {
+        snapshotFlow {
+            listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
+        }.collect { lastVisibleIndex ->
+            if (lastVisibleIndex == null || isLoadingMore || !hasMoreMessages) return@collect
+
+            // 当滚动到倒数第3个item时触发加载
+            val threshold = messages.size - 3
+            if (lastVisibleIndex >= threshold && messages.isNotEmpty()) {
+                val lastMessage = messages.lastOrNull()
+                lastMessage?.let { onLoadMore(it.id) }
+            }
+        }
+    }
+}
+
+/**
+ * 生命周期感知的语音播放控制
+ */
 @Composable
 private fun VoicePlayingLifecycle(onVoiceStop: () -> Unit) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -141,6 +195,9 @@ private fun VoicePlayingLifecycle(onVoiceStop: () -> Unit) {
     }
 }
 
+/**
+ * 媒体上下文数据类
+ */
 data class MediaContext(
     val allMedia: List<MessageContent.Media>,
     val getIndexOf: (MessageContent.Media) -> Int,

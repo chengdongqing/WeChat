@@ -9,6 +9,10 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,50 +36,76 @@ import java.util.UUID
 
 data class ChatSessionState(
     val title: String = "",
-    val isSending: Boolean = false
+    val isSending: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val hasMoreMessages: Boolean = true
 )
 
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
-//    private val repository: ChatRepository
     private val soundTipPlayer: SoundTipPlayer,
     @ApplicationContext context: Context
 ) : ViewModel() {
+
     @AssistedFactory
     interface Factory {
         fun create(chatId: String): ChatSessionViewModel
     }
 
-    // 数据层：消息列表
+    // 数据层
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
     val messages = _messages.asStateFlow()
 
-    // UI状态层
     private val _uiState = MutableStateFlow(ChatSessionState())
     val uiState = _uiState.asStateFlow()
 
-    // 派生状态：媒体列表（缓存）
+    // 派生状态：媒体列表
     val mediaList: StateFlow<List<MessageContent.Media>> = messages
-        .map { messages -> messages.mapNotNull { it.content as? MessageContent.Media }.reversed() }
+        .map { messages ->
+            messages.mapNotNull { it.content as? MessageContent.Media }.reversed()
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    private val voicePlayer = VoicePlayer()
+    // 音频播放管理
+    private val audioPlaybackManager = AudioPlaybackManager(
+        context = context,
+        soundTipPlayer = soundTipPlayer,
+        onPlayingStateChanged = { messageId -> _playingMessageId.value = messageId },
+        onMessagePlayed = { messageId -> markAsPlayed(messageId) }
+    )
+
     private val _playingMessageId = MutableStateFlow<String?>(null)
     val playingMessageId = _playingMessageId.asStateFlow()
 
-    // 初始化音频焦点管理器
-    private val audioFocusManager = AudioFocusManager(context)
+    // 分页加载配置
+    private var currentPage = 0
+    private val pageSize = 20
+    private var oldestTimestamp: Long? = null
 
     init {
         loadInitialMessages()
     }
 
     private fun loadInitialMessages() {
-        _messages.value = generateMockChatData()
-        _uiState.update { it.copy(title = "张三") }
+        viewModelScope.launch {
+            val initialMessages = generateMockChatData(page = 0, pageSize = pageSize)
+            _messages.value = initialMessages
+            oldestTimestamp = initialMessages.lastOrNull()?.timestamp
+            currentPage = 1
+
+            _uiState.update {
+                it.copy(
+                    title = "张三",
+                    hasMoreMessages = initialMessages.size >= pageSize
+                )
+            }
+        }
     }
 
+    /**
+     * 发送消息
+     */
     fun sendMessage(content: MessageContent, onSent: () -> Unit) {
         _uiState.update { it.copy(isSending = true) }
 
@@ -85,168 +115,252 @@ class ChatSessionViewModel @AssistedInject constructor(
             timestamp = System.currentTimeMillis(),
             isFromMe = true
         )
-        _messages.update { listOf(newMessage) + it }
 
+        _messages.update { listOf(newMessage) + it }
         onSent()
     }
 
+    /**
+     * 完成滚动到最新消息
+     */
     fun finishScrollToLatest() {
-        _uiState.update {
-            it.copy(isSending = false)
+        _uiState.update { it.copy(isSending = false) }
+    }
+
+    /**
+     * 加载更多历史消息
+     */
+    fun loadMore(lastVisibleMsgId: String) {
+        val currentState = _uiState.value
+        if (currentState.isLoadingMore || !currentState.hasMoreMessages) {
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingMore = true) }
+
+            // 模拟网络延迟
+            delay(500)
+
+            try {
+                val moreMessages = generateMockChatData(
+                    page = currentPage,
+                    pageSize = pageSize,
+                    beforeTimestamp = oldestTimestamp
+                )
+
+                if (moreMessages.isNotEmpty()) {
+                    _messages.update { current -> current + moreMessages }
+                    oldestTimestamp = moreMessages.lastOrNull()?.timestamp
+                    currentPage++
+
+                    _uiState.update {
+                        it.copy(
+                            isLoadingMore = false,
+                            hasMoreMessages = moreMessages.size >= pageSize
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoadingMore = false,
+                            hasMoreMessages = false
+                        )
+                    }
+                }
+            } catch (_: Exception) {
+                _uiState.update { it.copy(isLoadingMore = false) }
+            }
         }
     }
 
-    fun loadMore(lastMsgId: String) {
-
-    }
-
-    private fun generateMockChatData(): List<ChatMessage> {
+    /**
+     * 生成模拟数据
+     */
+    private fun generateMockChatData(
+        page: Int,
+        pageSize: Int,
+        beforeTimestamp: Long? = null
+    ): List<ChatMessage> {
         val messages = mutableListOf<ChatMessage>()
-        val now = Instant.now()
-
-        // 定义需要测试的时间跨度
-        val testBuckets = listOf(
-            // 数量 | 时间偏移量
-            5 to Duration.ofMinutes(2),    // 刚刚 (几分钟前)
-            3 to Duration.ofHours(2),      // 今天更早 (几小时前)
-            5 to Duration.ofDays(1),       // 昨天
-            5 to Duration.ofDays(3),       // 本周内 (周几)
-            5 to Duration.ofDays(10),      // 今年稍早 (几月几日)
-            5 to Duration.ofDays(400)      // 往年
-        )
+        val baseTime = beforeTimestamp?.let { Instant.ofEpochMilli(it) } ?: Instant.now()
 
         val mockTexts = listOf(
             "你好！",
             "在干嘛？",
             "OK",
             "看下这个时间对吗？",
-            "这是一条长消息用来测试最大宽度限制是否正常。"
+            "这是一条长消息用来测试最大宽度限制是否正常。",
+            "收到",
+            "好的，没问题",
+            "待会见",
+            "忙完了吗？"
         )
 
-        testBuckets.forEach { (count, duration) ->
-            repeat(count) {
-                // 在对应时间区间内再加一点随机偏移，防止所有消息时间戳完全一样
-                val randomOffset = Duration.ofMinutes((1..60).random().toLong())
-                val timestamp = now.minus(duration).minus(randomOffset).toEpochMilli()
+        // 根据页码生成不同时间范围的消息
+        val startOffset = when (page) {
+            0 -> Duration.ofMinutes(5)
+            1 -> Duration.ofDays(1)
+            2 -> Duration.ofDays(3)
+            3 -> Duration.ofDays(7)
+            4 -> Duration.ofDays(14)
+            else -> Duration.ofDays(30L * (page - 4))
+        }
 
-                messages.add(
-                    ChatMessage(
-                        id = UUID.randomUUID().toString(),
-                        content = MessageContent.Text(mockTexts.random()),
-                        timestamp = timestamp,
-                        isFromMe = (0..1).random() == 1
-                    )
+        repeat(pageSize) { index ->
+            val randomOffset = Duration.ofMinutes((index * 30L) + (1..30).random().toLong())
+            val timestamp = baseTime.minus(startOffset).minus(randomOffset).toEpochMilli()
+
+            messages.add(
+                ChatMessage(
+                    id = UUID.randomUUID().toString(),
+                    content = MessageContent.Text(mockTexts.random()),
+                    timestamp = timestamp,
+                    isFromMe = (0..1).random() == 1
                 )
-            }
+            )
         }
 
         return messages.sortedByDescending { it.timestamp }
     }
 
+    /**
+     * 切换语音播放状态
+     */
     fun toggleVoicePlay(messageId: String, uri: Uri) {
-        if (_playingMessageId.value == messageId) {
-            stopVoice()
-        } else {
-            startPlaying(messageId, uri)
-        }
-    }
-
-    private fun startPlaying(messageId: String, uri: Uri, isContinuous: Boolean = false) {
-        // 只有当不是连播状态时（即第一条），才申请焦点
-        if (!isContinuous) {
-            audioFocusManager.requestFocus()
-        }
-
-        _playingMessageId.value = messageId
-        markAsPlayed(messageId)
-
-        voicePlayer.play(uri) {
-            // 播放提示音
-            soundTipPlayer.play(R.raw.play_completed)
-
-            val hasNext = checkHasNextUnreadVoice(messageId)
-            if (hasNext) {
-                // 还有下一条，继续连播
-                playNextUnreadVoice(messageId)
-            } else {
-                // 如果不需要自动续播下一条，则释放焦点
-                audioFocusManager.abandonFocus()
-                _playingMessageId.value = null
-            }
-        }
+        audioPlaybackManager.togglePlay(messageId, uri, _messages.value)
     }
 
     /**
-     * 更新已读状态
+     * 停止语音播放
+     */
+    fun stopVoice() {
+        audioPlaybackManager.stop()
+    }
+
+    /**
+     * 标记消息为已播放
      */
     private fun markAsPlayed(messageId: String) {
         _messages.update { currentList ->
-            val index = currentList.indexOfFirst { it.id == messageId }
-            if (index == -1) return@update currentList
-
-            val targetMsg = currentList[index]
-            val content = targetMsg.content
-
-            if (content is MessageContent.Voice && !content.isPlayed) {
-                val newList = currentList.toMutableList()
-                val newContent = content.copy(isPlayed = true)
-                newList[index] = targetMsg.copy(content = newContent)
-                newList
-            } else {
-                currentList
-            }
-        }
-    }
-
-    /**
-     * 寻找下一条未播放的语音
-     */
-    private fun playNextUnreadVoice(currentMsgId: String) {
-        val currentList = _messages.value
-        // 找到当前消息的索引
-        val currentIndex = currentList.indexOfFirst { it.id == currentMsgId }
-
-        if (currentIndex != -1) {
-            // 从当前消息开始，寻找更晚发出的语音（索引减小方向），index 越小，消息越新
-            for (i in (currentIndex - 1) downTo 0) {
-                val nextMsg = currentList[i]
-                val content = nextMsg.content
-
-                // 必须是语音消息，且从未播放过
-                if (content is MessageContent.Voice && !content.isPlayed) {
-                    viewModelScope.launch {
-                        _playingMessageId.value = null
-                        delay(250)
-                        startPlaying(nextMsg.id, content.uri, isContinuous = true)
+            currentList.map { message ->
+                if (message.id == messageId) {
+                    val content = message.content
+                    if (content is MessageContent.Voice && !content.isPlayed) {
+                        message.copy(content = content.copy(isPlayed = true))
+                    } else {
+                        message
                     }
-                    return
+                } else {
+                    message
                 }
             }
         }
     }
 
-    /**
-     * 检查是否有未读的语音
-     */
-    private fun checkHasNextUnreadVoice(currentMsgId: String): Boolean {
-        val currentList = _messages.value
-        val currentIndex = currentList.indexOfFirst { it.id == currentMsgId }
-        if (currentIndex != -1) {
-            for (i in (currentIndex - 1) downTo 0) {
-                val content = currentList[i].content
-                if (content is MessageContent.Voice && !content.isPlayed) return true
-            }
-        }
-        return false
-    }
-
-    fun stopVoice() {
-        voicePlayer.stop()
-        _playingMessageId.value = null
-    }
-
     override fun onCleared() {
         super.onCleared()
+        audioPlaybackManager.release()
         EmojiRenderer.clearCache()
     }
+}
+
+/**
+ * 音频播放管理器 - 封装所有音频播放相关逻辑
+ */
+private class AudioPlaybackManager(
+    context: Context,
+    private val soundTipPlayer: SoundTipPlayer,
+    private val onPlayingStateChanged: (String?) -> Unit,
+    private val onMessagePlayed: (String) -> Unit
+) {
+    private val audioFocusManager = AudioFocusManager(context)
+    private val voicePlayer = VoicePlayer()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private var currentPlayingId: String? = null
+
+    fun togglePlay(messageId: String, uri: Uri, messages: List<ChatMessage>) {
+        if (currentPlayingId == messageId) {
+            stop()
+        } else {
+            startPlaying(messageId, uri, messages, isContinuous = false)
+        }
+    }
+
+    fun stop() {
+        voicePlayer.stop()
+        audioFocusManager.abandonFocus()
+        currentPlayingId = null
+        onPlayingStateChanged(null)
+    }
+
+    fun release() {
+        stop()
+        scope.cancel()
+    }
+
+    private fun startPlaying(
+        messageId: String,
+        uri: Uri,
+        messages: List<ChatMessage>,
+        isContinuous: Boolean
+    ) {
+        // 首次播放时申请音频焦点
+        if (!isContinuous) {
+            audioFocusManager.requestFocus()
+        }
+
+        currentPlayingId = messageId
+        onPlayingStateChanged(messageId)
+        onMessagePlayed(messageId)
+
+        voicePlayer.play(uri) {
+            handlePlaybackCompleted(messageId, messages)
+        }
+    }
+
+    private fun handlePlaybackCompleted(messageId: String, messages: List<ChatMessage>) {
+        soundTipPlayer.play(R.raw.play_completed)
+
+        val nextVoice = findNextUnreadVoice(messageId, messages)
+        if (nextVoice != null) {
+            // 连续播放下一条
+            scope.launch {
+                onPlayingStateChanged(null)
+                delay(250)
+                startPlaying(
+                    messageId = nextVoice.id,
+                    uri = nextVoice.uri,
+                    messages = messages,
+                    isContinuous = true
+                )
+            }
+        } else {
+            // 没有更多消息，释放音频焦点
+            audioFocusManager.abandonFocus()
+            currentPlayingId = null
+            onPlayingStateChanged(null)
+        }
+    }
+
+    private fun findNextUnreadVoice(
+        currentMsgId: String,
+        messages: List<ChatMessage>
+    ): VoiceInfo? {
+        val currentIndex = messages.indexOfFirst { it.id == currentMsgId }
+        if (currentIndex == -1) return null
+
+        // 从当前消息向更新的消息查找（index 越小，消息越新）
+        for (i in (currentIndex - 1) downTo 0) {
+            val message = messages[i]
+            val content = message.content
+            if (content is MessageContent.Voice && !content.isPlayed) {
+                return VoiceInfo(message.id, content.uri)
+            }
+        }
+        return null
+    }
+
+    private data class VoiceInfo(val id: String, val uri: Uri)
 }

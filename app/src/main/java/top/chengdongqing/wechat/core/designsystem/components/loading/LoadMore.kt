@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 enum class LoadMoreType {
     Loading,
@@ -46,7 +46,7 @@ fun WeLoadMore(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "正在加载...",
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    color = WeTheme.colorScheme.textSecondary,
                     fontSize = 14.sp
                 )
 
@@ -61,7 +61,7 @@ fun WeLoadMore(
                 WeDivider(modifier = Modifier.weight(1f))
                 Text(
                     text = "暂无数据",
-                    color = MaterialTheme.colorScheme.onSecondary,
+                    color = WeTheme.colorScheme.textSecondary,
                     fontSize = 14.sp,
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
@@ -74,7 +74,7 @@ fun WeLoadMore(
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
                         .size(4.dp)
-                        .background(MaterialTheme.colorScheme.outline, CircleShape)
+                        .background(WeTheme.colorScheme.divider, CircleShape)
                 )
                 WeDivider(modifier = Modifier.weight(1f))
             }
