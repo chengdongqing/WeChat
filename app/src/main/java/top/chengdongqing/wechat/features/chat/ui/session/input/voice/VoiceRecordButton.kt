@@ -64,6 +64,7 @@ fun VoiceRecordButton(
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
 
     val audioRecorder = remember { AudioRecorderManager(context) }
+    val focusManager = remember { AudioFocusManager(context) }
 
     // ========== 录音计时器 ==========
     // 每50ms更新一次时长和音量
@@ -103,6 +104,8 @@ fun VoiceRecordButton(
                             audioPermissionState.launchPermissionRequest()
                             return@detectDragGesturesAfterLongPress
                         }
+                        // 申请焦点，暂停其他App的音频播放
+                        focusManager.requestFocus()
                         // 停止当前播放的语音
                         mediaContext?.onVoiceStop?.invoke()
 
@@ -143,6 +146,9 @@ fun VoiceRecordButton(
                                         isRecording = newState != RecordState.Idle
                                     }
                                 )
+
+                                // 取消焦点
+                                focusManager.abandonFocus()
                             }
                         }
                     },

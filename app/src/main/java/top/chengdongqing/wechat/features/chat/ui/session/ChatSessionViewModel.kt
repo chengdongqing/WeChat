@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.chat.ui.session
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,6 +8,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +25,7 @@ import top.chengdongqing.wechat.core.media.VoicePlayer
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.ChatMessage
 import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.input.voice.AudioFocusManager
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -36,7 +39,8 @@ data class ChatSessionState(
 class ChatSessionViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
 //    private val repository: ChatRepository
-    private val soundTipPlayer: SoundTipPlayer
+    private val soundTipPlayer: SoundTipPlayer,
+    @ApplicationContext context: Context
 ) : ViewModel() {
     @AssistedFactory
     interface Factory {
@@ -59,6 +63,9 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val voicePlayer = VoicePlayer()
     private val _playingMessageId = MutableStateFlow<String?>(null)
     val playingMessageId = _playingMessageId.asStateFlow()
+
+    // 初始化音频焦点管理器
+    private val audioFocusManager = AudioFocusManager(context)
 
     init {
         loadInitialMessages()
@@ -144,15 +151,28 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    private fun startPlaying(messageId: String, uri: Uri) {
+    private fun startPlaying(messageId: String, uri: Uri, isContinuous: Boolean = false) {
+        // 只有当不是连播状态时（即第一条），才申请焦点
+        if (!isContinuous) {
+            audioFocusManager.requestFocus()
+        }
+
         _playingMessageId.value = messageId
         markAsPlayed(messageId)
 
         voicePlayer.play(uri) {
             // 播放提示音
             soundTipPlayer.play(R.raw.play_completed)
-            // 播放完成后尝试自动播放下一条
-            playNextUnreadVoice(messageId)
+
+            val hasNext = checkHasNextUnreadVoice(messageId)
+            if (hasNext) {
+                // 还有下一条，继续连播
+                playNextUnreadVoice(messageId)
+            } else {
+                // 如果不需要自动续播下一条，则释放焦点
+                audioFocusManager.abandonFocus()
+                _playingMessageId.value = null
+            }
         }
     }
 
@@ -197,15 +217,27 @@ class ChatSessionViewModel @AssistedInject constructor(
                     viewModelScope.launch {
                         _playingMessageId.value = null
                         delay(250)
-                        startPlaying(nextMsg.id, content.uri)
+                        startPlaying(nextMsg.id, content.uri, isContinuous = true)
                     }
-                    return // 找到并开始播放后，直接退出循环
+                    return
                 }
             }
         }
+    }
 
-        // 如果循环结束没找到满足条件的，清空播放状态
-        _playingMessageId.value = null
+    /**
+     * 检查是否有未读的语音
+     */
+    private fun checkHasNextUnreadVoice(currentMsgId: String): Boolean {
+        val currentList = _messages.value
+        val currentIndex = currentList.indexOfFirst { it.id == currentMsgId }
+        if (currentIndex != -1) {
+            for (i in (currentIndex - 1) downTo 0) {
+                val content = currentList[i].content
+                if (content is MessageContent.Voice && !content.isPlayed) return true
+            }
+        }
+        return false
     }
 
     fun stopVoice() {
