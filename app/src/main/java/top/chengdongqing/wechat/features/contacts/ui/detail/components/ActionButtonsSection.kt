@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.features.contacts.model.Contact
-import top.chengdongqing.wechat.features.contacts.model.ContactRelation
+import top.chengdongqing.wechat.features.contacts.data.model.Contact
+import top.chengdongqing.wechat.features.contacts.data.model.ContactRelation
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 
 /**

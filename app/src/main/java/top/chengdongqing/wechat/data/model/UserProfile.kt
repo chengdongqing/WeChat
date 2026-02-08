@@ -55,5 +55,15 @@ data class UserProfile(
 @Serializable
 enum class Gender(val label: String) {
     Male("男"),
-    Female("女")
+    Female("女");
+
+    companion object {
+        fun Gender?.getIndex(): Int {
+            return this?.ordinal ?: -1
+        }
+
+        fun fromIndex(index: Int): Gender? {
+            return entries.getOrNull(index)
+        }
+    }
 }

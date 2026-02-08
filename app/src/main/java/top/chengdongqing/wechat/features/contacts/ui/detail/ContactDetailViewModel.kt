@@ -17,7 +17,8 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.features.contacts.model.Contact
+import top.chengdongqing.wechat.features.contacts.data.model.Contact
+import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepository
 
 data class ContactDetailUiState(
     val contact: Contact,
@@ -38,24 +39,25 @@ data class ContactDetailUiState(
 @HiltViewModel(assistedFactory = ContactDetailViewModel.Factory::class)
 class ContactDetailViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
-    // private val contactRepository: ContactRepository
+    private val contactP2PRepository: ContactP2PRepository  // 注入
 ) : ViewModel() {
+
     @AssistedFactory
     interface Factory {
         fun create(contactId: String): ContactDetailViewModel
     }
 
-    // UI状态流
     private val _uiState = MutableStateFlow(
         ContactDetailUiState(
-            contact = createSampleContact(),
-            isLoading = false
+            contact = Contact(
+                id = contactId,
+                name = "加载中...",
+            ),
+            isLoading = true
         )
     )
     val uiState: StateFlow<ContactDetailUiState> = _uiState.asStateFlow()
-    val a = _uiState.asStateFlow()
 
-    // 导航事件流
     private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
     val navigationEvent: SharedFlow<NavigationEvent> = _navigationEvent.asSharedFlow()
 
@@ -71,15 +73,25 @@ class ContactDetailViewModel @AssistedInject constructor(
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             try {
-                // 实际项目中从仓库加载数据
-                // val contact = contactRepository.getContactById(contactId)
-                val contact = createSampleContact()
+                // 从缓存获取（刚扫码获取的数据）
+                val contact = ContactP2PRepository.getContactFromCache(contactId)
 
-                _uiState.update {
-                    it.copy(
-                        contact = contact,
-                        isLoading = false
-                    )
+                if (contact != null) {
+                    _uiState.update {
+                        it.copy(
+                            contact = contact,
+                            isLoading = false
+                        )
+                    }
+                } else {
+                    // 如果缓存没有，说明不是通过扫码进入的
+                    // 可以尝试从数据库或其他方式加载
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "未找到联系人信息"
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update {
@@ -179,6 +191,13 @@ class ContactDetailViewModel @AssistedInject constructor(
                 R.drawable.img_radar_bg
             )
         )
+    }
+
+    /**
+     * 清除错误
+     */
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 }
 

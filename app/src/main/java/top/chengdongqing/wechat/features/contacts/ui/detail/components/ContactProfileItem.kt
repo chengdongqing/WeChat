@@ -19,7 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.contacts.model.Contact
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
+import top.chengdongqing.wechat.features.contacts.data.model.Contact
 
 /**
  * 朋友资料信息项
@@ -41,15 +42,18 @@ fun ContactProfileItem(
         // 朋友资料标题行
         ProfileTitleRow()
 
-        // 标签
+        if (contact.signature?.isNotBlank().isTrue()) {
+            ProfileInfoRow(
+                label = "签名",
+                value = contact.signature ?: ""
+            )
+        }
         if (contact.tags.isNotEmpty()) {
             ProfileInfoRow(
                 label = "标签",
                 value = contact.tags.joinToString(", ")
             )
         }
-
-        // 备注
         if (contact.note.isNotEmpty()) {
             ProfileInfoRow(
                 label = "备忘",

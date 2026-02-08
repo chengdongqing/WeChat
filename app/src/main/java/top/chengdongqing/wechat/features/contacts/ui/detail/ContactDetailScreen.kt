@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -20,13 +23,6 @@ import top.chengdongqing.wechat.features.contacts.ui.detail.components.ContactDe
 
 /**
  * 联系人详情页面
- *
- * @param contactId 联系人ID
- * @param onBack 返回回调
- * @param onNavigateToChat 导航到聊天页面
- * @param onNavigateToCall 导航到通话页面
- * @param onNavigateToMoments 导航到朋友圈
- * @param onNavigateToProfile 导航到资料编辑
  */
 @Composable
 fun ContactDetailScreen(
@@ -43,6 +39,7 @@ fun ContactDetailScreen(
     }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // 处理导航事件
     LaunchedEffect(Unit) {
@@ -58,12 +55,21 @@ fun ContactDetailScreen(
         }
     }
 
+    // 显示错误
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            viewModel.clearError()
+        }
+    }
+
     Scaffold(
         topBar = {
             ContactDetailTopBar(onBack) {
                 viewModel.handleAction(ContactAction.ShowMore)
             }
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Column(

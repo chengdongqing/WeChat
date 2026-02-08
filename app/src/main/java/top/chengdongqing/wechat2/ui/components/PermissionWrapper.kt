@@ -115,9 +115,7 @@ fun PermissionWrapper(
                         context.showToast("此设备不支持蓝牙")
                     } else if (!bluetoothAdapter.isEnabled) {
                         context.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-
                     }
-
                 } else {
                     if (wifiManager == null) {
                         context.showToast("此设备不支持Wi-Fi")

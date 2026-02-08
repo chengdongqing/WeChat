@@ -1,25 +1,17 @@
-package top.chengdongqing.wechat.features.contacts.model
+package top.chengdongqing.wechat.features.contacts.data.model
 
 import top.chengdongqing.wechat.data.model.Gender
 
 /**
  * 联系人实体模型
- * * @property id 唯一标识符（通常为用户微信号或系统生成 UUID）
- * @property avatarUrl 头像链接地址
- * @property remarkName 备注名称（用户主动设置的昵称，优先级最高）
- * @property gender 性别：[Gender.Male], [Gender.Female] 或 null (未设置)
- * @property name 原始昵称（对方自己设置的名称）
- * @property tags 联系人标签列表，用于分类管理
- * @property note 详细备注信息（如来源、描述等）
- * @property momentPhotos 朋友圈缩略图资源 ID 列表（用于在详细资料页展示最近动态）
- * @property relation 与当前用户的关系状态，参见 [ContactRelation]
  */
 data class Contact(
     val id: String,
-    val avatarUrl: String,
-    val remarkName: String,
+    val name: String,
+    val avatarUrl: String? = null,
+    val remarkName: String = "",
     val gender: Gender? = null,
-    val name: String = "",
+    val signature: String? = null,
     val tags: List<String> = emptyList(),
     val note: String = "",
     val momentPhotos: List<Int> = emptyList(),

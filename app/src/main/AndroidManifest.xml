@@ -25,6 +25,12 @@
     <uses-permission
         android:name="android.permission.READ_MEDIA_VIDEO"
         tools:ignore="PhotoAndVideoPolicy" />
+    <!-- 前台服务权限 (Android 9.0+) -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
+        tools:ignore="ForegroundServicesPolicy" />
+    <!-- 如果是 Android 14+ 还需要指定前台服务类型 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -77,6 +83,12 @@
         <activity
             android:name=".features.call.CallActivity"
             android:theme="@style/Theme.WeTheme" />
+
+        <service
+            android:name=".data.network.service.P2PService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
 
         <meta-data
             android:name="com.amap.api.v2.apikey"

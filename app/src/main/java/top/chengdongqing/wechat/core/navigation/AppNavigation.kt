@@ -30,7 +30,7 @@ fun AppNavigation(
 ) {
     // 页面返回
     val goBack: () -> Unit = {
-        navController.popBackStack()
+        navController.navigateUp()
     }
 
     WeNavHost(

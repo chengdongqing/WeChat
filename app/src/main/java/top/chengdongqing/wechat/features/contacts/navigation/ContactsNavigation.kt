@@ -7,13 +7,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.AddFriendScreen
+import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.AcceptVerifyScreen
+import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.NewFriendsScreen
+import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.RequestAddScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.pincode.PinCodeGroupScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
-import top.chengdongqing.wechat.features.contacts.ui.newfirends.AcceptVerifyScreen
-import top.chengdongqing.wechat.features.contacts.ui.newfirends.NewFriendsScreen
-import top.chengdongqing.wechat.features.contacts.ui.newfirends.RequestAddScreen
 
 sealed class ContactsRoute(val route: String) {
     object AddFriend : ContactsRoute("contacts/add")
@@ -55,6 +55,9 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
             },
             onNavigateToGroup = {
                 navController.navigate(ContactsRoute.PinCodeGroup.route)
+            },
+            onNavigateToContactDetail = { id ->
+                navController.navigate(ContactsRoute.Detail.createRoute(id))
             },
             onBack = onBack
         )

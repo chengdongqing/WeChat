@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.ui.newfirends.components
+package top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

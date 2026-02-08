@@ -1,7 +1,5 @@
 package top.chengdongqing.wechat.features.contacts.ui.detail.components
 
-import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,10 +20,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.features.contacts.model.Contact
+import top.chengdongqing.wechat.features.contacts.data.model.Contact
 
 /**
  * 联系人头像和基本信息卡片
@@ -43,7 +42,7 @@ fun ContactBasicInfoCard(
     ) {
         // 头像
         ContactAvatar(
-            avatarResId = R.drawable.img_avatar,
+            avatarUrl = contact.avatarUrl ?: R.drawable.img_avatar_placeholder,
             contentDescription = "头像"
         )
 
@@ -59,12 +58,12 @@ fun ContactBasicInfoCard(
  */
 @Composable
 private fun ContactAvatar(
-    @DrawableRes avatarResId: Int,
+    avatarUrl: Any,
     contentDescription: String,
     modifier: Modifier = Modifier
 ) {
-    Image(
-        painter = painterResource(avatarResId),
+    AsyncImage(
+        model = avatarUrl,
         contentDescription = contentDescription,
         modifier = modifier
             .size(64.dp)
@@ -88,13 +87,11 @@ private fun ContactBasicInfo(
         )
 
         // 昵称
-        if (contact.name.isNotEmpty()) {
-            InfoText(
-                label = "昵称：",
-                value = contact.name,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-        }
+        InfoText(
+            label = "昵称：",
+            value = contact.name,
+            modifier = Modifier.padding(top = 2.dp)
+        )
 
         // 微信号
         InfoText(
@@ -124,9 +121,9 @@ private fun NameWithGender(
             color = Color.Black
         )
 
-        gender.let {
+        if (gender != null) {
             Spacer(modifier = Modifier.width(4.dp))
-            GenderIcon(gender!!)
+            GenderIcon(gender)
         }
     }
 }
