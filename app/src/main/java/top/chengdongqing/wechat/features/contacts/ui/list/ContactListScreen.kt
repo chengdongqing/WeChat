@@ -34,7 +34,8 @@ import top.chengdongqing.wechat.features.contacts.ui.list.components.TopFunction
 @Composable
 fun ContactListScreen(
     viewModel: ContactListViewModel = hiltViewModel(),
-    onNavigateToDetail: (contactId: String) -> Unit
+    onNavigateToDetail: (contactId: String) -> Unit,
+    onNavigateToNewFriends: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
@@ -52,7 +53,7 @@ fun ContactListScreen(
             overscrollEffect = overscrollEffect
         ) {
             // 顶部固定功能项
-            item { TopFunctionList() }
+            item { TopFunctionList(onNavigateToNewFriends = onNavigateToNewFriends) }
 
             if (state.isLoading) {
                 // 加载中

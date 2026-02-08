@@ -28,11 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
@@ -43,6 +46,7 @@ fun WeSearchBar(
     modifier: Modifier = Modifier,
     placeholder: String = "搜索",
     disabled: Boolean = false,
+    backgroundColor: Color = WeTheme.colorScheme.background,
     focused: Boolean? = null,
     onFocusChange: ((Boolean) -> Unit)? = null,
     onClick: (() -> Unit)? = null,
@@ -51,26 +55,25 @@ fun WeSearchBar(
     var localFocused by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
 
-    val finalFocused = focused ?: localFocused
+    val isFocused = focused ?: localFocused
     fun setFocus(value: Boolean) {
         localFocused = value
         onFocusChange?.invoke(value)
     }
 
     // 输入框自动聚焦
-    LaunchedEffect(finalFocused) {
-        if (finalFocused) {
+    LaunchedEffect(isFocused) {
+        if (isFocused) {
             focusRequester.requestFocus()
         }
     }
     // 返回时先取消聚焦
-    BackHandler(finalFocused) {
+    BackHandler(isFocused) {
         setFocus(false)
     }
 
     Row(
-        modifier = modifier
-            .height(38.dp),
+        modifier = modifier.height(38.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
@@ -78,9 +81,9 @@ fun WeSearchBar(
                 .weight(1f)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(6.dp))
-                .background(WeTheme.colorScheme.background)
+                .background(backgroundColor)
         ) {
-            if (finalFocused) {
+            if (isFocused) {
                 BasicTextField(
                     value,
                     onValueChange = onChange,
@@ -92,63 +95,18 @@ fun WeSearchBar(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     cursorBrush = SolidColor(WeTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
-                        Row(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Outlined.Search,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .padding(start = 8.dp, end = 4.dp)
-                                    .size(20.dp),
-                                tint = WeTheme.colorScheme.textSecondary
-                            )
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                if (value.isEmpty()) {
-                                    Text(
-                                        text = placeholder,
-                                        color = WeTheme.colorScheme.textSecondary,
-                                        fontSize = 16.sp
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        }
+                        SearchBarDecoration(value, placeholder, innerTextField)
                     })
             } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .weClickable {
-                            if (!disabled) {
-                                setFocus(true)
-                            }
-                            onClick?.invoke()
-                        },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        Icons.Outlined.Search,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(end = 4.dp)
-                            .size(20.dp),
-                        tint = WeTheme.colorScheme.textSecondary
-                    )
-                    Text(
-                        text = placeholder,
-                        color = WeTheme.colorScheme.textSecondary,
-                        fontSize = 16.sp
-                    )
+                SearchPlaceholder(placeholder) {
+                    if (!disabled) {
+                        setFocus(true)
+                    }
+                    onClick?.invoke()
                 }
             }
         }
-        if (finalFocused) {
+        if (isFocused) {
             Text(
                 text = "取消",
                 color = LinkColor,
@@ -161,5 +119,67 @@ fun WeSearchBar(
                     .padding(start = 8.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun SearchBarDecoration(
+    value: String,
+    placeholder: String,
+    innerTextField: @Composable () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            Icons.Outlined.Search,
+            contentDescription = null,
+            modifier = Modifier
+                .padding(start = 8.dp, end = 4.dp)
+                .size(20.dp),
+            tint = WeTheme.colorScheme.textSecondary
+        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            if (value.isEmpty()) {
+                Text(
+                    text = placeholder,
+                    color = WeTheme.colorScheme.textSecondary,
+                    fontSize = 16.sp
+                )
+            }
+            innerTextField()
+        }
+    }
+}
+
+@Composable
+private fun SearchPlaceholder(
+    placeholder: String,
+    onActivate: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .weClickable(onClick = onActivate),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_search_outlined),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(end = 4.dp)
+                .size(20.dp),
+            tint = WeTheme.colorScheme.textSecondary
+        )
+        Text(
+            text = placeholder,
+            color = WeTheme.colorScheme.textSecondary,
+            fontSize = 16.sp
+        )
     }
 }

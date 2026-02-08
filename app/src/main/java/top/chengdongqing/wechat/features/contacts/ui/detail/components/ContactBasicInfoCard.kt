@@ -83,7 +83,7 @@ private fun ContactBasicInfo(
     Column(modifier = modifier) {
         // 姓名和性别
         NameWithGender(
-            name = contact.remarkName,
+            name = contact.displayName,
             gender = contact.gender
         )
 

@@ -32,10 +32,9 @@ data class Contact(
         get() = remarkName.ifBlank { name }
 
     /**
-     * 是否允许查看朋友圈动态
-     * 只有关系状态为 [ContactRelation.Friend] 时才允许访问
+     * 是否是好友
      */
-    val canSeeMoments: Boolean
+    val isFriend: Boolean
         get() = relation == ContactRelation.Friend
 }
 

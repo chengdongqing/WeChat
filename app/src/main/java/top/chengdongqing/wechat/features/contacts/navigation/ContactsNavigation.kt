@@ -10,8 +10,9 @@ import top.chengdongqing.wechat.features.contacts.ui.addfriend.AddFriendScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.pincode.PinCodeGroupScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
-import top.chengdongqing.wechat.features.contacts.ui.detail.requestadd.RequestAddScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
+import top.chengdongqing.wechat.features.contacts.ui.newfirends.NewFriendsScreen
+import top.chengdongqing.wechat.features.contacts.ui.requestadd.RequestAddScreen
 
 sealed class ContactsRoute(val route: String) {
     object AddFriend : ContactsRoute("contacts/add")
@@ -35,9 +36,29 @@ sealed class ContactsRoute(val route: String) {
 
         fun createRoute(contactId: String) = "contacts/${contactId}/request_add"
     }
+
+    object NewFriends : ContactsRoute("contacts/new_friends")
 }
 
 fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: () -> Unit) {
+    composable(ContactsRoute.AddFriend.route) {
+        AddFriendScreen(
+            onNavigateToRadar = {
+                navController.navigate(ContactsRoute.RadarScan.route)
+            },
+            onNavigateToGroup = {
+                navController.navigate(ContactsRoute.PinCodeGroup.route)
+            },
+            onBack = onBack
+        )
+    }
+    composable(ContactsRoute.RadarScan.route) {
+        RadarScanScreen(onBack)
+    }
+    composable(ContactsRoute.PinCodeGroup.route) {
+        PinCodeGroupScreen(onBack)
+    }
+
     composable(
         route = ContactsRoute.ContactDetail.route,
         arguments = listOf(
@@ -84,21 +105,15 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
         RequestAddScreen(contactId, onBack)
     }
 
-    composable(ContactsRoute.AddFriend.route) {
-        AddFriendScreen(
-            onNavigateToRadar = {
-                navController.navigate(ContactsRoute.RadarScan.route)
+    composable(ContactsRoute.NewFriends.route) {
+        NewFriendsScreen(
+            onBack = onBack,
+            onNavigateToAdd = {
+                navController.navigate(ContactsRoute.AddFriend.route)
             },
-            onNavigateToGroup = {
-                navController.navigate(ContactsRoute.PinCodeGroup.route)
-            },
-            onBack = onBack
+            onNavigateToVerify = {
+
+            }
         )
-    }
-    composable(ContactsRoute.RadarScan.route) {
-        RadarScanScreen(onBack)
-    }
-    composable(ContactsRoute.PinCodeGroup.route) {
-        PinCodeGroupScreen(onBack)
     }
 }

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.ui.detail.requestadd
+package top.chengdongqing.wechat.features.contacts.ui.requestadd
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

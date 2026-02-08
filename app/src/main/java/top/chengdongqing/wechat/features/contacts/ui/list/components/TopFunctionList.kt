@@ -28,12 +28,32 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun TopFunctionList() {
+fun TopFunctionList(onNavigateToNewFriends: () -> Unit) {
     val functions = listOf(
-        TopFunction("新的朋友", R.drawable.ic_add_friends_filled, Color(0xFFFA9D3B)),
-        TopFunction("群聊", R.drawable.ic_group_chat_filled, Color(0xFF07C160)),
-        TopFunction("标签", R.drawable.ic_tag_filled, Color(0xFF2782D7)),
-        TopFunction("公众号", R.drawable.ic_officical_account_filled, Color(0xFF2782D7)),
+        TopFunction(
+            title = "新的朋友",
+            iconResId = R.drawable.ic_add_friends_filled,
+            containerColor = Color(0xFFFA9D3B),
+            onClick = onNavigateToNewFriends
+        ),
+        TopFunction(
+            title = "群聊",
+            iconResId = R.drawable.ic_group_chat_filled,
+            containerColor = Color(0xFF07C160),
+            onClick = {}
+        ),
+        TopFunction(
+            title = "标签",
+            iconResId = R.drawable.ic_tag_filled,
+            containerColor = Color(0xFF2782D7),
+            onClick = {}
+        ),
+        TopFunction(
+            title = "公众号",
+            iconResId = R.drawable.ic_officical_account_filled,
+            containerColor = Color(0xFF2782D7),
+            onClick = {}
+        )
     )
 
     Column(
@@ -56,7 +76,7 @@ private fun TopFunctionItem(function: TopFunction) {
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .clickable { }
+            .clickable(onClick = function.onClick)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -86,5 +106,6 @@ private fun TopFunctionItem(function: TopFunction) {
 private data class TopFunction(
     val title: String,
     @get:DrawableRes val iconResId: Int,
-    val containerColor: Color
+    val containerColor: Color,
+    val onClick: () -> Unit
 )

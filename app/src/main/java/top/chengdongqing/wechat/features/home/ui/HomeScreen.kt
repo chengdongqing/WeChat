@@ -99,9 +99,14 @@ fun HomeScreen(navController: NavHostController) {
                     navController.navigate(ChatRoute.ChatSession.createRoute(id))
                 })
 
-                HomeTab.Contacts -> ContactListScreen(onNavigateToDetail = { id ->
-                    navController.navigate(ContactsRoute.ContactDetail.createRoute(id))
-                })
+                HomeTab.Contacts -> ContactListScreen(
+                    onNavigateToDetail = { id ->
+                        navController.navigate(ContactsRoute.ContactDetail.createRoute(id))
+                    },
+                    onNavigateToNewFriends = {
+                        navController.navigate(ContactsRoute.NewFriends.route)
+                    }
+                )
 
                 HomeTab.Discovery -> DiscoveryScreen()
 
