@@ -1,8 +1,9 @@
-package top.chengdongqing.wechat.features.contacts.ui.requestadd
+package top.chengdongqing.wechat.features.contacts.ui.newfirends.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -41,15 +43,25 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
+enum class FriendActionType(val title: String) {
+    Apply("申请添加朋友"),
+    Verify("通过朋友验证")
+}
+
 @Composable
-fun RequestAddScreen(
+internal fun FriendHandleBase(
+    type: FriendActionType,
     contactId: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onComplete: () -> Unit
 ) {
+    var greetingText by remember { mutableStateOf(if (type == FriendActionType.Apply) "我是..." else "") }
+    var remarkText by remember { mutableStateOf("") }
+
     Scaffold(
         topBar = {
             WeTopBar(
-                title = "申请添加朋友",
+                title = type.title,
                 containerColor = WeTheme.colorScheme.surface,
                 onBack = onBack
             )
@@ -70,58 +82,69 @@ fun RequestAddScreen(
                         .verticalScroll(rememberScrollState())
                 ) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    ListItem("打招呼内容") {
-                        var inputText by remember { mutableStateOf("") }
-                        BasicTextField(
-                            value = inputText,
-                            onValueChange = { inputText = it },
-                            maxLines = 3,
-                            cursorBrush = SolidColor(WeTheme.colorScheme.primary),
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    if (type == FriendActionType.Apply) {
+                        ListItem("打招呼内容") {
+                            BasicTextField(
+                                value = greetingText,
+                                onValueChange = { greetingText = it },
+                                maxLines = 3,
+                                textStyle = TextStyle(
+                                    fontSize = 16.sp,
+                                    color = WeTheme.colorScheme.textPrimary
+                                ),
+                                cursorBrush = SolidColor(WeTheme.colorScheme.primary),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                     ListItem("备注") {
                         BasicTextField(
-                            value = "",
-                            onValueChange = {},
+                            value = remarkText,
+                            onValueChange = { remarkText = it },
                             singleLine = true,
+                            textStyle = TextStyle(
+                                fontSize = 16.sp,
+                                color = WeTheme.colorScheme.textPrimary
+                            ),
                             cursorBrush = SolidColor(WeTheme.colorScheme.primary),
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
-                    ListItem("标签") {
-                        LinkedRow("添加标签") {}
-                    }
-                    ListItem("备忘") {
-                        LinkedRow("添加备忘") {}
-                    }
-                    ListItem("照片") {
-                        LinkedRow("添加照片") {}
-                    }
-                    ListItem("朋友权限") {
-                        LinkedRow("设置朋友权限") {}
-                    }
+                    ListItem("标签") { LinkedRow("添加标签") {} }
+                    ListItem("备忘") { LinkedRow("添加备忘") {} }
+                    ListItem("朋友权限") { LinkedRow("设置朋友权限") {} }
                     Spacer(modifier = Modifier.height(40.dp))
                 }
-                Spacer(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(12.dp)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color.White.copy(alpha = 0.8f)
-                                )
-                            )
-                        )
-                )
+
+                // 底部遮罩
+                BottomMask()
             }
 
-            SendButton {}
+            // 确认按钮
+            ConfirmButton(
+                text = if (type == FriendActionType.Apply) "发送" else "完成",
+                onClick = onComplete
+            )
         }
     }
+}
+
+@Composable
+private fun BoxScope.BottomMask() {
+    Spacer(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .height(12.dp)
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.White.copy(alpha = 0.8f)
+                    )
+                )
+            )
+    )
 }
 
 @Composable
@@ -166,7 +189,7 @@ private fun LinkedRow(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SendButton(onClick: () -> Unit) {
+private fun ConfirmButton(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -175,6 +198,6 @@ private fun SendButton(onClick: () -> Unit) {
             .padding(bottom = 32.dp, top = 4.dp),
         contentAlignment = Alignment.Center
     ) {
-        WeButton(text = "发送", onClick = onClick)
+        WeButton(text = text, onClick = onClick)
     }
 }

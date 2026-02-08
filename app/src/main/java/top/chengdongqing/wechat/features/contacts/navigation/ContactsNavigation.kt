@@ -11,30 +11,37 @@ import top.chengdongqing.wechat.features.contacts.ui.addfriend.pincode.PinCodeGr
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
+import top.chengdongqing.wechat.features.contacts.ui.newfirends.AcceptVerifyScreen
 import top.chengdongqing.wechat.features.contacts.ui.newfirends.NewFriendsScreen
-import top.chengdongqing.wechat.features.contacts.ui.requestadd.RequestAddScreen
+import top.chengdongqing.wechat.features.contacts.ui.newfirends.RequestAddScreen
 
 sealed class ContactsRoute(val route: String) {
     object AddFriend : ContactsRoute("contacts/add")
     object RadarScan : ContactsRoute("contacts/add/radar_scan")
     object PinCodeGroup : ContactsRoute("contacts/add/pin_code_group")
 
-    object ContactDetail : ContactsRoute("contacts/{contactId}") {
+    object Detail : ContactsRoute("contacts/{contactId}") {
         const val ARG_CONTACT_ID = "contactId"
 
         fun createRoute(contactId: String) = "contacts/${contactId}"
     }
 
-    object ContactSetting : ContactsRoute("contacts/{contactId}/setting") {
+    object Setting : ContactsRoute("contacts/{contactId}/setting") {
         const val ARG_CONTACT_ID = "contactId"
 
         fun createRoute(contactId: String) = "contacts/${contactId}/setting"
     }
 
-    object ContactRequestAdd : ContactsRoute("contacts/{contactId}/request_add") {
+    object RequestAdd : ContactsRoute("contacts/{contactId}/request_add") {
         const val ARG_CONTACT_ID = "contactId"
 
         fun createRoute(contactId: String) = "contacts/${contactId}/request_add"
+    }
+
+    object AcceptVerify : ContactsRoute("contacts/{contactId}/accept_verify") {
+        const val ARG_CONTACT_ID = "contactId"
+
+        fun createRoute(contactId: String) = "contacts/${contactId}/accept_verify"
     }
 
     object NewFriends : ContactsRoute("contacts/new_friends")
@@ -60,13 +67,13 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
     }
 
     composable(
-        route = ContactsRoute.ContactDetail.route,
+        route = ContactsRoute.Detail.route,
         arguments = listOf(
-            navArgument(ContactsRoute.ContactDetail.ARG_CONTACT_ID) { type = NavType.StringType }
+            navArgument(ContactsRoute.Detail.ARG_CONTACT_ID) { type = NavType.StringType }
         )
     ) { backStackEntry ->
         val contactId =
-            backStackEntry.arguments?.getString(ContactsRoute.ContactDetail.ARG_CONTACT_ID) ?: ""
+            backStackEntry.arguments?.getString(ContactsRoute.Detail.ARG_CONTACT_ID) ?: ""
         ContactDetailScreen(
             contactId = contactId,
             onBack = onBack,
@@ -74,35 +81,48 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
                 navController.navigate(ChatRoute.ChatSession.createRoute(id))
             },
             onNavigateToSetting = { id ->
-                navController.navigate(ContactsRoute.ContactSetting.createRoute(id))
+                navController.navigate(ContactsRoute.Setting.createRoute(id))
             },
             onNavigateToRequestAdd = { id ->
-                navController.navigate(ContactsRoute.ContactRequestAdd.createRoute(id))
+                navController.navigate(ContactsRoute.RequestAdd.createRoute(id))
             }
         )
     }
     composable(
-        route = ContactsRoute.ContactSetting.route,
+        route = ContactsRoute.Setting.route,
         arguments = listOf(
-            navArgument(ContactsRoute.ContactSetting.ARG_CONTACT_ID) { type = NavType.StringType }
+            navArgument(ContactsRoute.Setting.ARG_CONTACT_ID) { type = NavType.StringType }
         )
     ) { backStackEntry ->
         val contactId =
-            backStackEntry.arguments?.getString(ContactsRoute.ContactSetting.ARG_CONTACT_ID) ?: ""
+            backStackEntry.arguments?.getString(ContactsRoute.Setting.ARG_CONTACT_ID) ?: ""
         ContactSettingScreen(contactId, onBack)
     }
     composable(
-        route = ContactsRoute.ContactRequestAdd.route,
+        route = ContactsRoute.RequestAdd.route,
         arguments = listOf(
-            navArgument(ContactsRoute.ContactRequestAdd.ARG_CONTACT_ID) {
+            navArgument(ContactsRoute.RequestAdd.ARG_CONTACT_ID) {
                 type = NavType.StringType
             }
         )
     ) { backStackEntry ->
         val contactId = backStackEntry.arguments?.getString(
-            ContactsRoute.ContactRequestAdd.ARG_CONTACT_ID
+            ContactsRoute.RequestAdd.ARG_CONTACT_ID
         ) ?: ""
         RequestAddScreen(contactId, onBack)
+    }
+    composable(
+        route = ContactsRoute.AcceptVerify.route,
+        arguments = listOf(
+            navArgument(ContactsRoute.AcceptVerify.ARG_CONTACT_ID) {
+                type = NavType.StringType
+            }
+        )
+    ) { backStackEntry ->
+        val contactId = backStackEntry.arguments?.getString(
+            ContactsRoute.AcceptVerify.ARG_CONTACT_ID
+        ) ?: ""
+        AcceptVerifyScreen(contactId, onBack)
     }
 
     composable(ContactsRoute.NewFriends.route) {
@@ -112,7 +132,7 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
                 navController.navigate(ContactsRoute.AddFriend.route)
             },
             onNavigateToVerify = {
-
+                navController.navigate(ContactsRoute.AcceptVerify.route)
             }
         )
     }

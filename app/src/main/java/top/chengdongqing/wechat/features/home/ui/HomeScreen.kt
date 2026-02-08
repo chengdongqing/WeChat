@@ -101,7 +101,7 @@ fun HomeScreen(navController: NavHostController) {
 
                 HomeTab.Contacts -> ContactListScreen(
                     onNavigateToDetail = { id ->
-                        navController.navigate(ContactsRoute.ContactDetail.createRoute(id))
+                        navController.navigate(ContactsRoute.Detail.createRoute(id))
                     },
                     onNavigateToNewFriends = {
                         navController.navigate(ContactsRoute.NewFriends.route)

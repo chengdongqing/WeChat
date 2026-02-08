@@ -50,7 +50,7 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
             chatId = chatId,
             onBack = onBack,
             onNavigateToContact = { id ->
-                navController.navigate(ContactsRoute.ContactDetail.createRoute(id))
+                navController.navigate(ContactsRoute.Detail.createRoute(id))
             }
         )
     }
