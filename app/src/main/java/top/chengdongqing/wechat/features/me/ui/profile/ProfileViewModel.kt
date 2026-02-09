@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.features.me.ui.profile
 
 import android.net.Uri
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
@@ -23,22 +24,12 @@ import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import javax.inject.Inject
 
 /**
- * 个人资料页面 UI 状态
- */
-data class ProfileUiState(
-    val profile: UserProfile? = null,
-    val myQRCode: String = "",
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null
-)
-
-/**
  * 个人资料 ViewModel
  *
  * 职责：
- * - 加载和展示当前用户资料
- * - 提供资料更新功能
- * - 管理头像 URI 转换
+ * - 管理用户资料的加载与更新
+ * - 处理二维码生成与扫描
+ * - 协调导航事件
  */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
@@ -63,23 +54,18 @@ class ProfileViewModel @Inject constructor(
      */
     private fun loadProfile() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            setLoading(true)
 
             profileRepository.getCurrentProfile()
                 .catch { error ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "加载资料失败: ${error.message}"
-                        )
-                    }
+                    handleError("加载资料失败: ${error.message}")
                 }
                 .collect { profile ->
                     _uiState.update {
                         it.copy(
                             profile = profile,
                             isLoading = false,
-                            errorMessage = null
+                            error = null
                         )
                     }
                 }
@@ -93,7 +79,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             qrCodeUseCase.generateMyQRCode().fold(
                 onSuccess = { qrCode ->
-                    _uiState.update { it.copy(myQRCode = qrCode) }
+                    _uiState.update { it.copy(qrCode = qrCode) }
                 },
                 onFailure = { e ->
                     _eventFlow.emit(ProfileUiEvent.ShowError("生成二维码失败: ${e.message}"))
@@ -104,106 +90,145 @@ class ProfileViewModel @Inject constructor(
 
     /**
      * 处理扫描到的二维码
+     *
+     * @param qrContent 二维码字符串
      */
     fun handleScannedQRCode(qrContent: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            setLoading(true)
 
-            when (val result = qrCodeUseCase.handleScannedQRCode(qrContent)) {
-                is QRCodeResult.AddFriend -> {
-                    _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(ProfileUiEvent.NavigateToContactDetail(result.contact.id))
-                }
-
-                is QRCodeResult.OpenUrl -> {
-                    _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(ProfileUiEvent.OpenUrl(result.url))
-                }
-
-                is QRCodeResult.ShowText -> {
-                    _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(ProfileUiEvent.NavigateToPlainText(result.text))
-                }
-
-                is QRCodeResult.JoinGroup -> {
-                    _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(ProfileUiEvent.ShowError("群聊功能开发中"))
-                }
-
-                is QRCodeResult.Error -> {
-                    _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(ProfileUiEvent.ShowError(result.message))
-                }
+            val event = when (val result = qrCodeUseCase.handleScannedQRCode(qrContent)) {
+                is QRCodeResult.AddFriend -> ProfileUiEvent.NavigateToContactDetail(result.contact.id)
+                is QRCodeResult.OpenUrl -> ProfileUiEvent.OpenUrl(result.url)
+                is QRCodeResult.ShowText -> ProfileUiEvent.NavigateToPlainText(result.text)
+                is QRCodeResult.JoinGroup -> ProfileUiEvent.ShowError("群聊功能开发中")
+                is QRCodeResult.Error -> ProfileUiEvent.ShowError(result.message)
             }
+
+            setLoading(false)
+            emitEvent(event)
         }
     }
 
     /**
-     * 统一更新入口
+     * 更新用户资料字段
+     *
+     * @param field 要更新的字段
      */
     fun updateField(field: ProfileField) {
         viewModelScope.launch {
-            // 前置验证逻辑
-            val validationError = validateInput(field)
-            if (validationError != null) {
-                _eventFlow.emit(ProfileUiEvent.ShowError(validationError))
+            // 验证输入
+            validateInput(field)?.let { error ->
+                _eventFlow.emit(ProfileUiEvent.ShowError(error))
                 return@launch
             }
 
-            // 开启 Loading
-            _uiState.update { it.copy(isLoading = true) }
-
-            // 执行具体业务逻辑
+            // 执行更新
+            setLoading(true)
             val result = performUpdate(field)
+            setLoading(false)
 
             // 处理结果
-            _uiState.update { it.copy(isLoading = false) }
-            result.onSuccess {
-                _eventFlow.emit(ProfileUiEvent.UpdateSuccess)
-            }.onFailure { e ->
-                _eventFlow.emit(ProfileUiEvent.ShowError(e.message ?: "更新失败"))
-            }
+            result.fold(
+                onSuccess = { emitEvent(ProfileUiEvent.UpdateSuccess) },
+                onFailure = { error ->
+                    emitEvent(ProfileUiEvent.ShowError(error.message ?: "更新失败"))
+                }
+            )
         }
     }
 
+    /**
+     * 执行具体的更新操作
+     */
     private suspend fun performUpdate(field: ProfileField): Result<Unit> {
         return when (field) {
             is ProfileField.Nickname -> profileRepository.updateProfile(nickname = field.value.trim())
             is ProfileField.Gender -> profileRepository.updateProfile(gender = field.value)
             is ProfileField.Signature -> profileRepository.updateProfile(signature = field.value.trim())
-            is ProfileField.Avatar -> handleAvatarUpdate(field.uri)
+            is ProfileField.Avatar -> updateAvatar(field.uri)
         }
     }
 
-    private suspend fun handleAvatarUpdate(uri: Uri): Result<Unit> {
-        val current = _uiState.value.profile ?: return Result.failure(Exception("资料未加载"))
+    /**
+     * 更新头像
+     *
+     * 1. 删除旧头像
+     * 2. 保存新头像
+     * 3. 更新资料
+     */
+    private suspend fun updateAvatar(uri: Uri): Result<Unit> {
+        val profile = _uiState.value.profile
+            ?: return Result.failure(Exception("资料未加载"))
+
         return try {
-            current.avatarPath?.let { fileManager.deleteAvatar(it) }
-            val newPath = fileManager.saveAvatar(uri, current.id).getOrThrow()
+            // 删除旧头像
+            profile.avatarPath?.let { fileManager.deleteAvatar(it) }
+
+            // 保存新头像
+            val newPath = fileManager.saveAvatar(uri, profile.id).getOrThrow()
+
+            // 更新资料
             profileRepository.updateProfile(avatarPath = newPath)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    private fun validateInput(field: ProfileField): String? = when (field) {
-        is ProfileField.Nickname -> {
-            if (field.value.isBlank()) "昵称不能为空"
-            else if (!UserProfile.isValidName(field.value)) "昵称格式不正确"
-            else null
-        }
+    /**
+     * 验证输入
+     *
+     * @return 错误信息，null 表示验证通过
+     */
+    private fun validateInput(field: ProfileField): String? {
+        return when (field) {
+            is ProfileField.Nickname -> when {
+                field.value.isBlank() -> "昵称不能为空"
+                !UserProfile.isValidName(field.value) -> "昵称格式不正确"
+                else -> null
+            }
 
-        else -> null // 其他字段暂不设强制验证
+            else -> null // 其他字段暂不强制验证
+        }
     }
 
     /**
      * 清除错误信息
      */
     fun clearError() {
-        _uiState.update { it.copy(errorMessage = null) }
+        _uiState.update { it.copy(error = null) }
+    }
+
+    // ========== 辅助方法 ==========
+
+    private fun setLoading(isLoading: Boolean) {
+        _uiState.update { it.copy(isLoading = isLoading) }
+    }
+
+    private fun handleError(message: String) {
+        _uiState.update {
+            it.copy(isLoading = false, error = message)
+        }
+    }
+
+    private suspend fun emitEvent(event: ProfileUiEvent) {
+        _eventFlow.emit(event)
     }
 }
 
+/**
+ * 个人资料页面 UI 状态
+ */
+data class ProfileUiState(
+    val profile: UserProfile? = null,
+    val qrCode: String = "",
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
+/**
+ * 资料字段封装
+ */
 sealed class ProfileField {
     data class Nickname(val value: String) : ProfileField()
     data class Gender(val value: top.chengdongqing.wechat.data.model.Gender) : ProfileField()
@@ -211,6 +236,9 @@ sealed class ProfileField {
     data class Avatar(val uri: Uri) : ProfileField()
 }
 
+/**
+ * UI 事件
+ */
 sealed class ProfileUiEvent {
     object UpdateSuccess : ProfileUiEvent()
     data class ShowError(val message: String) : ProfileUiEvent()
@@ -219,6 +247,9 @@ sealed class ProfileUiEvent {
     data class NavigateToPlainText(val text: String) : ProfileUiEvent()
 }
 
+/**
+ * 处理资料更新事件的副作用
+ */
 @Composable
 fun ProfileEventEffect(
     viewModel: ProfileViewModel,
@@ -231,6 +262,50 @@ fun ProfileEventEffect(
                 is ProfileUiEvent.UpdateSuccess -> onSuccess()
                 is ProfileUiEvent.ShowError -> onError(event.message)
                 else -> {}
+            }
+        }
+    }
+}
+
+/**
+ * 处理 ProfileViewModel 的导航事件
+ *
+ * 适用于所有需要处理 Profile 导航的页面
+ *
+ * @param viewModel ProfileViewModel 实例
+ * @param snackbarHostState Snackbar 宿主状态
+ * @param onNavigateToContactDetail 导航到联系人详情回调
+ * @param onNavigateToPlainText 导航到纯文本页面回调
+ * @param onNavigateToWebView 导航到 WebView 回调
+ */
+@Composable
+fun HandleProfileNavigationEvents(
+    viewModel: ProfileViewModel,
+    snackbarHostState: SnackbarHostState,
+    onNavigateToContactDetail: (String) -> Unit,
+    onNavigateToPlainText: (String) -> Unit,
+    onNavigateToWebView: (String) -> Unit
+) {
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is ProfileUiEvent.NavigateToContactDetail -> {
+                    onNavigateToContactDetail(event.contactId)
+                }
+
+                is ProfileUiEvent.NavigateToPlainText -> {
+                    onNavigateToPlainText(event.text)
+                }
+
+                is ProfileUiEvent.OpenUrl -> {
+                    onNavigateToWebView(event.url)
+                }
+
+                is ProfileUiEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+
+                else -> {} // 其他事件由具体页面处理
             }
         }
     }

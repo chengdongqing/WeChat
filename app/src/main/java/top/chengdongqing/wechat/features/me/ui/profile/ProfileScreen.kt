@@ -86,8 +86,8 @@ fun ProfileScreen(
 
             // 错误提示
             WeInformationBar(
-                visible = uiState.errorMessage != null,
-                message = uiState.errorMessage ?: "",
+                visible = uiState.error != null,
+                message = uiState.error ?: "",
                 type = InformationBarType.WarnStrong,
                 autoClose = true,
                 onClose = { viewModel.clearError() }

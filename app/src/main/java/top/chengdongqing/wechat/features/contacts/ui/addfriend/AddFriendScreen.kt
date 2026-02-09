@@ -7,18 +7,16 @@ import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -41,6 +39,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuListItem
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.QrDotStyle
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.WeQRCode
@@ -50,16 +49,19 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileUiState
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 
-@SuppressLint("MissingPermission")
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun AddFriendScreen(
+    onBack: () -> Unit,
     onNavigateToRadar: () -> Unit,
     onNavigateToGroup: () -> Unit,
     onNavigateToContactDetail: (contactId: String) -> Unit,
-    onBack: () -> Unit,
-    viewModel: AddFriendViewModel = hiltViewModel()
+    onNavigateToPlainText: (text: String) -> Unit,
+    onNavigateToWebView: (url: String) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -70,48 +72,162 @@ fun AddFriendScreen(
     }
 
     // 处理导航事件
-    LaunchedEffect(Unit) {
-        viewModel.navigationEvent.collect { event ->
-            when (event) {
-                is AddFriendNavigationEvent.NavigateToContactDetail -> {
-                    onNavigateToContactDetail(event.contactId)
-                }
-            }
-        }
-    }
+    HandleProfileNavigationEvents(
+        viewModel = viewModel,
+        snackbarHostState = snackbarHostState,
+        onNavigateToContactDetail = onNavigateToContactDetail,
+        onNavigateToPlainText = onNavigateToPlainText,
+        onNavigateToWebView = onNavigateToWebView
+    )
 
-    // 显示错误
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let { error ->
-            snackbarHostState.showSnackbar(error)
-            viewModel.clearError()
-        }
-    }
+    // 蓝牙权限和初始化
+    HandleBluetoothSetup()
 
-    val options = remember {
-        listOf(
-            AddFriendItem(
-                "扫一扫",
-                R.drawable.ic_scan_outlined,
-                Color(0xFF2B7CF1),
-                "扫描二维码名片"
-            ) { launchScanner() },
-            AddFriendItem(
-                "雷达",
-                R.drawable.ic_radar_outlined,
-                Color(0xFF7468BE),
-                "添加身边的朋友"
-            ) { onNavigateToRadar() },
-            AddFriendItem(
-                "面对面建群",
-                R.drawable.ic_group_chat_outlined,
-                Color(0xFF07C160),
-                "与身边的朋友进入同一个群聊"
-            ) { onNavigateToGroup() }
+    val addFriendOptions = rememberAddFriendOptions(
+        launchScanner = launchScanner,
+        onNavigateToRadar = onNavigateToRadar,
+        onNavigateToGroup = onNavigateToGroup
+    )
+
+    Scaffold(
+        topBar = { WeTopBar(title = "添加朋友", onBack = onBack) },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { innerPadding ->
+        AddFriendContent(
+            uiState = uiState,
+            innerPadding = innerPadding,
+            options = addFriendOptions
         )
     }
 
-    val permissions = remember {
+    LoadingDialog(uiState.isLoading)
+}
+
+/**
+ * 处理蓝牙设置和权限
+ */
+@SuppressLint("MissingPermission")
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+private fun HandleBluetoothSetup() {
+    val context = LocalContext.current
+    val bluetoothAdapter = rememberBluetoothAdapter(context)
+    val permissions = rememberBluetoothPermissions()
+    val permissionState = rememberMultiplePermissionsState(permissions)
+
+    LaunchedEffect(bluetoothAdapter) {
+        when {
+            bluetoothAdapter == null -> {
+                context.showToast("此设备不支持蓝牙")
+            }
+
+            !bluetoothAdapter.isEnabled -> {
+                context.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+            }
+        }
+        permissionState.launchMultiplePermissionRequest()
+    }
+}
+
+/**
+ * 添加好友页面内容
+ */
+@Composable
+private fun AddFriendContent(
+    uiState: ProfileUiState,
+    innerPadding: PaddingValues,
+    options: List<AddFriendItem>
+) {
+    Column(
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize()
+            .background(Color(0xFFF7F7F7))
+    ) {
+        AddFriendOptionsList(options)
+
+        // 只有当二维码生成后才显示
+        if (uiState.profile != null && uiState.qrCode.isNotEmpty()) {
+            QrCodeSection(
+                qrContent = uiState.qrCode,
+                wxId = uiState.profile.id,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+/**
+ * 添加好友选项列表
+ */
+@Composable
+private fun AddFriendOptionsList(options: List<AddFriendItem>) {
+    Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
+        options.forEachIndexed { index, item ->
+            MenuListItem(
+                label = item.title,
+                description = item.description,
+                iconResId = item.iconResId,
+                iconColor = item.iconColor,
+                height = 68.dp,
+                onClick = item.onClick
+            )
+            if (index < options.lastIndex) {
+                WeDivider(modifier = Modifier.padding(start = 58.dp))
+            }
+        }
+    }
+}
+
+/**
+ * 二维码展示区域
+ */
+@Composable
+private fun QrCodeSection(
+    qrContent: String,
+    wxId: String,
+    modifier: Modifier = Modifier
+) {
+    val qrCodeState = rememberQRCodeState(
+        content = qrContent,
+        logoPainter = painterResource(R.drawable.img_logo_outlined),
+        backgroundColor = Color.Transparent,
+        dotStyle = QrDotStyle.Circle
+    )
+    val targetWidth = rememberScreenFractionWidth(0.4f)
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        WeQRCode(qrCodeState, modifier = Modifier.size(targetWidth))
+        Spacer(modifier = Modifier.height(30.dp))
+        Text(
+            text = "我的微信号: $wxId",
+            fontSize = 15.sp,
+            color = WeTheme.colorScheme.textPrimary,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+/**
+ * 记忆化蓝牙适配器
+ */
+@Composable
+private fun rememberBluetoothAdapter(context: Context): BluetoothAdapter? {
+    return remember {
+        (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+    }
+}
+
+/**
+ * 记忆化蓝牙权限列表
+ */
+@Composable
+private fun rememberBluetoothPermissions(): List<String> {
+    return remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(
                 Manifest.permission.BLUETOOTH_SCAN,
@@ -126,108 +242,50 @@ fun AddFriendScreen(
             )
         }
     }
-    val permissionState = rememberMultiplePermissionsState(permissions)
-
-    val context = LocalContext.current
-    val bluetoothAdapter =
-        (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
-
-    LaunchedEffect(bluetoothAdapter) {
-        if (bluetoothAdapter == null) {
-            context.showToast("此设备不支持蓝牙")
-        } else if (!bluetoothAdapter.isEnabled) {
-            context.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-        }
-        permissionState.launchMultiplePermissionRequest()
-    }
-
-    Scaffold(
-        topBar = {
-            WeTopBar(title = "添加朋友", onBack = onBack)
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .background(Color(0xFFF7F7F7))
-            ) {
-                Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
-                    options.forEachIndexed { index, item ->
-                        MenuListItem(
-                            label = item.title,
-                            description = item.description,
-                            iconResId = item.iconResId,
-                            iconColor = item.iconColor,
-                            height = 68.dp,
-                            onClick = item.onClick
-                        )
-                        if (index < options.lastIndex) {
-                            WeDivider(modifier = Modifier.padding(start = 58.dp))
-                        }
-                    }
-                }
-
-                // 只有当二维码生成后才显示
-                if (uiState.qrCode.isNotEmpty()) {
-                    QrCodeSection(
-                        qrContent = uiState.qrCode,
-                        wxId = uiState.wxId,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-
-            // Loading 遮罩
-            if (uiState.isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.3f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Color.White)
-                }
-            }
-        }
-    }
 }
 
+/**
+ * 记忆化添加好友选项
+ */
 @Composable
-private fun QrCodeSection(
-    qrContent: String,
-    wxId: String,
-    modifier: Modifier = Modifier
-) {
-    val state = rememberQRCodeState(
-        content = qrContent,
-        logoPainter = painterResource(R.drawable.img_logo_outlined),
-        backgroundColor = Color.Transparent,
-        dotStyle = QrDotStyle.Circle
-    )
-    val targetWidth = rememberScreenFractionWidth(0.4f)
-
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        WeQRCode(state, modifier = Modifier.size(targetWidth))
-        Spacer(modifier = Modifier.height(30.dp))
-        Text(
-            text = "我的微信号: $wxId",
-            fontSize = 15.sp,
-            color = WeTheme.colorScheme.textPrimary,
-            textAlign = TextAlign.Center
+private fun rememberAddFriendOptions(
+    launchScanner: () -> Unit,
+    onNavigateToRadar: () -> Unit,
+    onNavigateToGroup: () -> Unit
+): List<AddFriendItem> {
+    return remember(launchScanner, onNavigateToRadar, onNavigateToGroup) {
+        listOf(
+            AddFriendItem(
+                title = "扫一扫",
+                iconResId = R.drawable.ic_scan_outlined,
+                iconColor = Color(0xFF2B7CF1),
+                description = "扫描二维码名片",
+                onClick = launchScanner
+            ),
+            AddFriendItem(
+                title = "雷达",
+                iconResId = R.drawable.ic_radar_outlined,
+                iconColor = Color(0xFF7468BE),
+                description = "添加身边的朋友",
+                onClick = onNavigateToRadar
+            ),
+            AddFriendItem(
+                title = "面对面建群",
+                iconResId = R.drawable.ic_group_chat_outlined,
+                iconColor = Color(0xFF07C160),
+                description = "与身边的朋友进入同一个群聊",
+                onClick = onNavigateToGroup
+            )
         )
     }
 }
 
-private data class AddFriendItem(
+/**
+ * 添加好友选项数据类
+ */
+data class AddFriendItem(
     val title: String,
-    @get:DrawableRes val iconResId: Int,
+    val iconResId: Int,
     val iconColor: Color,
     val description: String,
     val onClick: () -> Unit

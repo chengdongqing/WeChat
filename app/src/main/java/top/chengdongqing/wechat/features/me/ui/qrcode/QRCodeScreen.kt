@@ -1,8 +1,12 @@
 package top.chengdongqing.wechat.features.me.ui.qrcode
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,11 +17,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -30,162 +37,169 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
+import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.QRCodeState
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.rememberQRCodeState
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastState
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.createImageUri
 import top.chengdongqing.wechat.core.util.saveToAlbum
 import top.chengdongqing.wechat.data.model.UserProfile
-import top.chengdongqing.wechat.features.me.ui.profile.ProfileUiEvent
+import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
+import java.io.File
 import kotlin.time.Duration
 
 @Composable
 fun QRCodeScreen(
     onBack: () -> Unit,
     onNavigateToContactDetail: (String) -> Unit,
+    onNavigateToPlainText: (String) -> Unit,
+    onNavigateToWebView: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    if (uiState.profile == null) return
-    val profile = uiState.profile!!
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    // 处理导航事件
-    LaunchedEffect(Unit) {
-        viewModel.eventFlow.collect { event ->
-            when (event) {
-                is ProfileUiEvent.NavigateToContactDetail -> {
-                    onNavigateToContactDetail(event.contactId)
-                }
+    // 提前返回，避免后续空值检查
+    val profile = uiState.profile ?: return
+    if (uiState.qrCode.isEmpty()) return
 
-                is ProfileUiEvent.ShowError -> {
-                    // 显示错误 Toast
-                }
-
-                else -> {}
-            }
-        }
-    }
+    // 事件处理复用
+    HandleProfileNavigationEvents(
+        viewModel = viewModel,
+        snackbarHostState = snackbarHostState,
+        onNavigateToContactDetail = onNavigateToContactDetail,
+        onNavigateToPlainText = onNavigateToPlainText,
+        onNavigateToWebView = onNavigateToWebView
+    )
 
     val targetWidth = rememberScreenFractionWidth(0.65f)
-    val context = LocalContext.current
-    val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     val toast = rememberToastState()
 
-    // 样式循环切换
+    // QR 码样式状态
     var styleIndex by remember { mutableIntStateOf(0) }
-
-    val state = rememberQRCodeState(
-        content = uiState.myQRCode,
+    val qrCodeState = rememberQRCodeState(
+        content = uiState.qrCode,
         logoPainter = painterResource(R.drawable.img_logo_outlined),
         brush = QR_CODE_STYLES[styleIndex],
         backgroundColor = Color.Transparent
     )
 
-    val resources = LocalResources.current
-    val avatarBitmap = remember {
-        ResourcesCompat.getDrawable(resources, R.drawable.img_avatar, null)!!.toBitmap()
-    }
+    // 准备生成图片所需的资源
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val avatarBitmap = rememberAvatarBitmap(profile.avatarPath) ?: return
     val textMeasurer = rememberTextMeasurer()
 
-    // 用于生成图片
-    val cardRenderer = remember(profile, state, avatarBitmap) {
-        QrCardRenderer(profile, state, avatarBitmap, textMeasurer)
+    val cardRenderer = remember(profile, qrCodeState, avatarBitmap) {
+        QrCardRenderer(profile, qrCodeState, avatarBitmap, textMeasurer)
     }
 
     Scaffold(
-        topBar = {
-            WeTopBar("", onBack = onBack)
-        },
+        topBar = { WeTopBar("", onBack = onBack) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(80.dp))
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .width(targetWidth),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                ProfileBar(profile)
-                Spacer(modifier = Modifier.height(28.dp))
-                WeQRCode(state)
-                Spacer(modifier = Modifier.height(28.dp))
-                Text(
-                    text = "扫一扫上面的二维码图案，加我为朋友。",
-                    fontSize = 12.sp,
-                    color = WeTheme.colorScheme.textSecondary
+        QRCodeContent(
+            profile = profile,
+            qrCodeState = qrCodeState,
+            targetWidth = targetWidth,
+            innerPadding = innerPadding,
+            onScanQRCode = viewModel::handleScannedQRCode,
+            onChangeStyle = {
+                styleIndex = (styleIndex + 1) % QR_CODE_STYLES.size
+                qrCodeState.brush = QR_CODE_STYLES[styleIndex]
+            },
+            onSaveToAlbum = {
+                handleSaveToAlbum(
+                    cardRenderer = cardRenderer,
+                    density = density,
+                    context = context,
+                    toast = toast,
+                    scope = scope
                 )
             }
+        )
+    }
 
-            FooterBar(
-                onScanQRCode = { qrContent ->
-                    viewModel.handleScannedQRCode(qrContent)
-                },
-                onChangeStyle = {
-                    styleIndex = (styleIndex + 1) % QR_CODE_STYLES.size
-                    state.brush = QR_CODE_STYLES[styleIndex]
-                },
-                onSaveToAlbum = {
-                    toast.show(
-                        title = "正在处理...",
-                        icon = ToastIcon.Loading,
-                        duration = Duration.INFINITE,
-                        mask = true
-                    )
+    LoadingDialog(uiState.isLoading)
+}
 
-                    scope.launch {
-                        val bitmap = cardRenderer.generateBitmap(density = density)
-                        val uri = context.createImageUri(bitmap)
-                        val success = context.saveToAlbum(uri)
+/**
+ * QR 码内容区域
+ */
+@Composable
+private fun QRCodeContent(
+    profile: UserProfile,
+    qrCodeState: QRCodeState,
+    targetWidth: Dp,
+    innerPadding: PaddingValues,
+    onScanQRCode: (String) -> Unit,
+    onChangeStyle: () -> Unit,
+    onSaveToAlbum: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(80.dp))
 
-                        delay(200)
-                        toast.hide()
-                        delay(200)
-                        toast.show(
-                            title = if (success) "已保存到相册" else "保存失败",
-                            icon = if (success) ToastIcon.Success else ToastIcon.Fail
-                        )
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(42.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .width(targetWidth),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ProfileBar(profile)
+            Spacer(modifier = Modifier.height(28.dp))
+            WeQRCode(qrCodeState)
+            Spacer(modifier = Modifier.height(28.dp))
+            QRCodeHintText()
         }
+
+        QRCodeFooter(
+            onScanQRCode = onScanQRCode,
+            onChangeStyle = onChangeStyle,
+            onSaveToAlbum = onSaveToAlbum
+        )
+
+        Spacer(modifier = Modifier.height(42.dp))
     }
 }
 
+/**
+ * 个人信息栏
+ */
 @Composable
 private fun ProfileBar(profile: UserProfile) {
     Row(
@@ -200,31 +214,55 @@ private fun ProfileBar(profile: UserProfile) {
                 .clip(RoundedCornerShape(4.dp))
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Column {
+        ProfileInfo(profile)
+    }
+}
+
+/**
+ * 个人信息文本
+ */
+@Composable
+private fun ProfileInfo(profile: UserProfile) {
+    Column {
+        Text(
+            text = profile.nickname,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            color = WeTheme.colorScheme.textPrimary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        profile.signature?.takeIf { it.isNotBlank() }?.let { signature ->
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = profile.nickname,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = WeTheme.colorScheme.textPrimary,
+                text = signature,
+                fontSize = 12.sp,
+                color = WeTheme.colorScheme.textSecondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            if (profile.signature?.isNotBlank().isTrue()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = profile.signature!!,
-                    fontSize = 12.sp,
-                    color = WeTheme.colorScheme.textSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
         }
     }
 }
 
+/**
+ * QR 码提示文本
+ */
 @Composable
-private fun FooterBar(
+private fun QRCodeHintText() {
+    Text(
+        text = "扫一扫上面的二维码图案，加我为朋友。",
+        fontSize = 12.sp,
+        color = WeTheme.colorScheme.textSecondary
+    )
+}
+
+/**
+ * QR 码底部操作栏
+ */
+@Composable
+private fun QRCodeFooter(
     onScanQRCode: (String) -> Unit,
     onChangeStyle: () -> Unit,
     onSaveToAlbum: () -> Unit
@@ -242,6 +280,79 @@ private fun FooterBar(
         LinkText("换个样式", onChangeStyle)
         FooterDivider()
         LinkText("保存图片", onSaveToAlbum)
+    }
+}
+
+/**
+ * 记忆化头像 Bitmap
+ */
+@Composable
+fun rememberAvatarBitmap(path: String?): Bitmap? {
+    var bitmap by remember(path) { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(path) {
+        if (path.isNullOrBlank()) {
+            bitmap = null
+            return@LaunchedEffect
+        }
+
+        val loadedBitmap = withContext(Dispatchers.IO) {
+            try {
+                val file = File(path)
+                if (file.exists()) {
+                    BitmapFactory.decodeFile(path)
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+        bitmap = loadedBitmap
+    }
+
+    return bitmap
+}
+
+/**
+ * 处理保存到相册操作
+ */
+private fun handleSaveToAlbum(
+    cardRenderer: QrCardRenderer,
+    density: Density,
+    context: Context,
+    toast: ToastState,
+    scope: CoroutineScope
+) {
+    toast.show(
+        title = "正在处理...",
+        icon = ToastIcon.Loading,
+        duration = Duration.INFINITE,
+        mask = true
+    )
+
+    scope.launch {
+        try {
+            val bitmap = cardRenderer.generateBitmap(density = density)
+            val uri = context.createImageUri(bitmap)
+            val success = context.saveToAlbum(uri)
+
+            delay(200)
+            toast.hide()
+            delay(200)
+
+            toast.show(
+                title = if (success) "已保存到相册" else "保存失败",
+                icon = if (success) ToastIcon.Success else ToastIcon.Fail
+            )
+        } catch (e: Exception) {
+            toast.hide()
+            toast.show(
+                title = "保存失败: ${e.message}",
+                icon = ToastIcon.Fail
+            )
+        }
     }
 }
 

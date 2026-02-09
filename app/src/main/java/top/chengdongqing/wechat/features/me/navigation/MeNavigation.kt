@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.features.me.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileScreen
 import top.chengdongqing.wechat.features.me.ui.profile.edit.EditAvatarScreen
@@ -37,6 +38,12 @@ fun NavGraphBuilder.meNavGraph(navController: NavHostController, onBack: () -> U
             onBack = onBack,
             onNavigateToContactDetail = { id ->
                 navController.navigate(ContactsRoute.Detail.createRoute(id))
+            },
+            onNavigateToPlainText = { text ->
+                navController.navigate(Screen.PlainText.createRoute(text))
+            },
+            onNavigateToWebView = { url ->
+                navController.navigate(Screen.WebView.createRoute(url))
             }
         )
     }

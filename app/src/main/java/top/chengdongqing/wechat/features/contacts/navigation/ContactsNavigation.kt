@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.AddFriendScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.AcceptVerifyScreen
@@ -50,6 +51,7 @@ sealed class ContactsRoute(val route: String) {
 fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: () -> Unit) {
     composable(ContactsRoute.AddFriend.route) {
         AddFriendScreen(
+            onBack = onBack,
             onNavigateToRadar = {
                 navController.navigate(ContactsRoute.RadarScan.route)
             },
@@ -59,7 +61,12 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
             onNavigateToContactDetail = { id ->
                 navController.navigate(ContactsRoute.Detail.createRoute(id))
             },
-            onBack = onBack
+            onNavigateToPlainText = { text ->
+                navController.navigate(Screen.PlainText.createRoute(text))
+            },
+            onNavigateToWebView = { url ->
+                navController.navigate(Screen.WebView.createRoute(url))
+            }
         )
     }
     composable(ContactsRoute.RadarScan.route) {

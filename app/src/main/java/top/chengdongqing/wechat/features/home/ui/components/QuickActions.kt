@@ -61,7 +61,7 @@ fun QuickActions(
     items: List<MenuItem>,
     anchorPosition: Offset,
     anchorSize: IntSize,
-    onDismissRequest: () -> Unit
+    onDismiss: () -> Unit
 ) {
     var shouldShow by remember { mutableStateOf(expanded) }
     var isVisible by remember { mutableStateOf(false) }
@@ -116,7 +116,7 @@ fun QuickActions(
                 onDispose {
                     if (!isVisible) {
                         shouldShow = false
-                        onDismissRequest()
+                        onDismiss()
                     }
                 }
             }
@@ -135,7 +135,7 @@ fun QuickActions(
                             .height(55.dp)
                             .weClickableWithBg {
                                 item.onClick()
-                                onDismissRequest()
+                                onDismiss()
                             }
                             .padding(horizontal = 20.dp),
                         verticalAlignment = Alignment.CenterVertically
