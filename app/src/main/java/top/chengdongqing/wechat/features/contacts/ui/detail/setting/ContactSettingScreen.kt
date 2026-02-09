@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.features.contacts.data.model.Contact
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewModel
 

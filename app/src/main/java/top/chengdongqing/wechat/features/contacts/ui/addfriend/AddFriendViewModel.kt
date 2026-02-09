@@ -4,26 +4,28 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import javax.inject.Inject
 
 data class AddFriendUiState(
-    val myQRCode: String = "",
-    val myUserId: String = "",
+    val qrCode: String = "",
+    val wxId: String = "",
     val isLoading: Boolean = false,
     val error: String? = null
 )
 
 @HiltViewModel
 class AddFriendViewModel @Inject constructor(
-    private val contactP2PRepository: ContactP2PRepository,
+    private val qrCodeUseCase: QRCodeUseCase,
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
@@ -42,18 +44,30 @@ class AddFriendViewModel @Inject constructor(
      */
     private fun loadMyProfile() {
         viewModelScope.launch {
-            profileRepository.getCurrentProfile().collect { profile ->
-                if (profile != null) {
-                    // 生成二维码
-                    val qrCode = contactP2PRepository.generateMyQRCode()
+            val profileDeferred = async {
+                profileRepository.getCurrentProfile().first()
+            }
+            val qrCodeDeferred = async {
+                qrCodeUseCase.generateMyQRCode()
+            }
+            val profile = profileDeferred.await()
+            val qrResult = qrCodeDeferred.await()
 
-                    _uiState.update {
-                        it.copy(
-                            myQRCode = qrCode,
-                            myUserId = profile.id
+            _uiState.update { currentState ->
+                qrResult.fold(
+                    onSuccess = { qrCode ->
+                        currentState.copy(
+                            wxId = profile?.id ?: "",
+                            qrCode = qrCode
+                        )
+                    },
+                    onFailure = { e ->
+                        currentState.copy(
+                            wxId = profile?.id ?: "",
+                            error = "生成二维码失败: ${e.message}"
                         )
                     }
-                }
+                )
             }
         }
     }
@@ -66,18 +80,14 @@ class AddFriendViewModel @Inject constructor(
             Log.d("AddFriend", "开始处理二维码")
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            val result = contactP2PRepository.handleScannedQRCode(qrContent)
-
-            result.fold(
+            qrCodeUseCase.scanQRCodeToAddFriend(qrContent).fold(
                 onSuccess = { contact ->
-                    Log.d("AddFriend", "成功: ${contact.name}")
                     _uiState.update { it.copy(isLoading = false) }
                     _navigationEvent.emit(
                         AddFriendNavigationEvent.NavigateToContactDetail(contact.id)
                     )
                 },
                 onFailure = { error ->
-                    Log.e("AddFriend", "失败: ${error.message}", error)
                     _uiState.update {
                         it.copy(
                             isLoading = false,

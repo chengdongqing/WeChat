@@ -6,7 +6,7 @@ import java.security.MessageDigest
 
 /**
  * 发现信标 - 用于所有加好友方式的统一数据格式
- * 总大小：30字节（简化版）
+ * 总大小：30字节
  */
 data class DiscoveryBeacon(
     val userId: String,              // 原始用户ID（序列化时会被哈希为16字节）
@@ -101,11 +101,7 @@ data class DiscoveryBeacon(
     fun isValid(): Boolean {
         // 检查时间戳（5分钟过期）
         val age = System.currentTimeMillis() - timestamp
-        if (age > 5 * 60 * 1000) {
-            return false
-        }
-
-        return true
+        return age <= 5 * 60 * 1000
     }
 }
 

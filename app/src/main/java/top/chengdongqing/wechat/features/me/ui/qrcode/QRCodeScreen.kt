@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -59,17 +60,36 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.createImageUri
 import top.chengdongqing.wechat.core.util.saveToAlbum
 import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileUiEvent
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 import kotlin.time.Duration
 
 @Composable
 fun QRCodeScreen(
     onBack: () -> Unit,
+    onNavigateToContactDetail: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     if (uiState.profile == null) return
     val profile = uiState.profile!!
+
+    // 处理导航事件
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is ProfileUiEvent.NavigateToContactDetail -> {
+                    onNavigateToContactDetail(event.contactId)
+                }
+
+                is ProfileUiEvent.ShowError -> {
+                    // 显示错误 Toast
+                }
+
+                else -> {}
+            }
+        }
+    }
 
     val targetWidth = rememberScreenFractionWidth(0.65f)
     val context = LocalContext.current
@@ -81,7 +101,7 @@ fun QRCodeScreen(
     var styleIndex by remember { mutableIntStateOf(0) }
 
     val state = rememberQRCodeState(
-        content = profile.id,
+        content = uiState.myQRCode,
         logoPainter = painterResource(R.drawable.img_logo_outlined),
         brush = QR_CODE_STYLES[styleIndex],
         backgroundColor = Color.Transparent
@@ -130,6 +150,9 @@ fun QRCodeScreen(
             }
 
             FooterBar(
+                onScanQRCode = { qrContent ->
+                    viewModel.handleScannedQRCode(qrContent)
+                },
                 onChangeStyle = {
                     styleIndex = (styleIndex + 1) % QR_CODE_STYLES.size
                     state.brush = QR_CODE_STYLES[styleIndex]
@@ -201,8 +224,14 @@ private fun ProfileBar(profile: UserProfile) {
 }
 
 @Composable
-private fun FooterBar(onChangeStyle: () -> Unit, onSaveToAlbum: () -> Unit) {
-    val launchScanner = rememberScanCodeLauncher {}
+private fun FooterBar(
+    onScanQRCode: (String) -> Unit,
+    onChangeStyle: () -> Unit,
+    onSaveToAlbum: () -> Unit
+) {
+    val launchScanner = rememberScanCodeLauncher { qrCodes ->
+        onScanQRCode(qrCodes.first())
+    }
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),

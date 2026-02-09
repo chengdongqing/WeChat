@@ -27,13 +27,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
+import top.chengdongqing.wechat.data.model.UserProfileTransfer
 import top.chengdongqing.wechat.data.network.service.P2PService
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import kotlin.coroutines.resume
 
 class BLEDiscovery @Inject constructor(
+    private val json: Json,
     @param:ApplicationContext private val context: Context
 ) {
 
@@ -46,10 +49,13 @@ class BLEDiscovery @Inject constructor(
     private var bluetoothLeScanner: BluetoothLeScanner? = null
     private var bluetoothGatt: BluetoothGatt? = null
 
-    // 保存读取回调的 continuation
-    private var readContinuation: CancellableContinuation<String?>? = null
-
+    private var readContinuation: CancellableContinuation<Pair<UserProfileTransfer, ByteArray>?>? =
+        null
     private val receivedData = ByteArrayOutputStream()
+
+    // 解析状态
+    private var jsonReceived = false
+    private var profileTransfer: UserProfileTransfer? = null
 
     companion object {
         private const val TAG = "BLEDiscovery"
@@ -220,25 +226,44 @@ class BLEDiscovery @Inject constructor(
 
                     Log.d(TAG, "累计接收: ${receivedData.size()} 字节")
 
-                    // 尝试解析（判断是否完整）
-                    val jsonString = String(receivedData.toByteArray(), Charsets.UTF_8)
-                    if (jsonString.startsWith("{") && jsonString.endsWith("}")) {
-                        try {
-                            // 验证JSON是否完整
-                            JSONObject(jsonString)
+                    // 第一阶段：接收 JSON
+                    if (!jsonReceived) {
+                        val jsonString = String(receivedData.toByteArray(), Charsets.UTF_8)
+                        if (jsonString.startsWith("{") && jsonString.endsWith("}")) {
+                            try {
+                                JSONObject(jsonString)
 
-                            Log.d(TAG, "✅ 接收完成: ${receivedData.size()} 字节")
+                                // 解析成功
+                                profileTransfer =
+                                    json.decodeFromString<UserProfileTransfer>(jsonString)
+                                jsonReceived = true
 
-                            // 只 resume 一次
+                                Log.d(TAG, "✅ JSON 接收完成: ${receivedData.size()} 字节")
+
+                                Log.d(TAG, "等待接收头像")
+                                receivedData.reset()  // 清空缓冲区，准备接收头像
+                            } catch (_: Exception) {
+                                Log.d(TAG, "JSON 未完成，继续接收...")
+                            }
+                        }
+                    }
+                    // 第二阶段：接收头像二进制
+                    else {
+                        val expectedSize = profileTransfer?.avatarSize ?: 0
+
+                        if (receivedData.size() >= expectedSize) {
+                            val avatarBytes = receivedData.toByteArray()
+
+                            Log.d(TAG, "✅ 头像接收完成: ${avatarBytes.size} 字节")
+
+                            // 返回 JSON + 头像
                             readContinuation?.let { cont ->
                                 if (cont.isActive) {
-                                    cont.resume(jsonString)
+                                    cont.resume(Pair(profileTransfer!!, avatarBytes))
                                 }
                             }
                             readContinuation = null
-                        } catch (_: Exception) {
-                            // JSON不完整，继续接收
-                            Log.d(TAG, "JSON未完成，继续接收...")
+                            reset()
                         }
                     }
                 }
@@ -246,11 +271,18 @@ class BLEDiscovery @Inject constructor(
         )
     }
 
+    private fun reset() {
+        receivedData.reset()
+        jsonReceived = false
+        profileTransfer = null
+    }
+
     /**
      * 订阅 Notification 并读取数据
+     * 返回 Pair<JSON, 头像字节数组>
      */
     @SuppressLint("MissingPermission")
-    suspend fun readProfile(gatt: BluetoothGatt): String? {
+    suspend fun readProfile(gatt: BluetoothGatt): Pair<UserProfileTransfer, ByteArray?>? {
         return suspendCancellableCoroutine { continuation ->
 
             val service = gatt.getService(P2PService.SERVICE_UUID)
@@ -262,7 +294,7 @@ class BLEDiscovery @Inject constructor(
                 return@suspendCancellableCoroutine
             }
 
-            receivedData.reset()
+            reset()
             readContinuation = continuation
 
             // 启用 Notification

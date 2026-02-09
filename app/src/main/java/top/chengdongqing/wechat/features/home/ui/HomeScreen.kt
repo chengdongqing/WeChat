@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -55,6 +57,8 @@ import top.chengdongqing.wechat.features.home.navigation.HomeTab
 import top.chengdongqing.wechat.features.home.ui.components.MenuItem
 import top.chengdongqing.wechat.features.home.ui.components.QuickActions
 import top.chengdongqing.wechat.features.me.ui.MeScreen
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileUiEvent
+import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -70,7 +74,12 @@ fun HomeScreen(navController: NavHostController) {
             if (currentTab.route != HomeTab.Me.route) {
                 HomeTopBar(
                     title = currentTab.label,
-                    onNavigateToAddFriend = { navController.navigate(ContactsRoute.AddFriend.route) }
+                    onNavigateToAddFriend = {
+                        navController.navigate(ContactsRoute.AddFriend.route)
+                    },
+                    onNavigateToContactDetail = { id ->
+                        navController.navigate(ContactsRoute.Detail.createRoute(id))
+                    }
                 )
             } else {
                 TopPlaceholder()
@@ -132,11 +141,32 @@ private fun TopPlaceholder() {
 }
 
 @Composable
-private fun HomeTopBar(title: String, onNavigateToAddFriend: () -> Unit) {
+private fun HomeTopBar(
+    title: String,
+    onNavigateToAddFriend: () -> Unit,
+    onNavigateToContactDetail: (String) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
     var menuExpanded by remember { mutableStateOf(false) }
     var anchorPosition by remember { mutableStateOf(Offset.Zero) }
     var anchorSize by remember { mutableStateOf(IntSize.Zero) }
-    val scanCode = rememberScanCodeLauncher {}
+
+    // 处理扫码后的导航
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collect { event ->
+            when (event) {
+                is ProfileUiEvent.NavigateToContactDetail -> {
+                    onNavigateToContactDetail(event.contactId)
+                }
+
+                else -> {}
+            }
+        }
+    }
+
+    val scanCode = rememberScanCodeLauncher { qrCodes ->
+        viewModel.handleScannedQRCode(qrCodes.first())
+    }
 
     val menuItems = remember {
         listOf(

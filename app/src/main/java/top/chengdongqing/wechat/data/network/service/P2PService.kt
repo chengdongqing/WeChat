@@ -25,7 +25,6 @@ import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
 import android.os.ParcelUuid
-import android.util.Base64
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.scale
@@ -296,7 +295,7 @@ class P2PService : Service() {
         server: BluetoothGattServer,
         device: BluetoothDevice,
         characteristic: BluetoothGattCharacteristic,
-        confirm: Boolean = false,
+        confirm: Boolean,
         value: ByteArray
     ): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -327,8 +326,8 @@ class P2PService : Service() {
                 return
             }
 
-            val thumbnailBase64 = myProfile.avatarPath?.let { path ->
-                generateThumbnail(path, maxSizeKB = 2)
+            val thumbnailBytes = myProfile.avatarPath?.let { path ->
+                generateThumbnailBytes(path)
             }
 
             val transfer = UserProfileTransfer(
@@ -336,13 +335,16 @@ class P2PService : Service() {
                 nickname = myProfile.nickname,
                 signature = myProfile.signature,
                 gender = myProfile.gender.getIndex(),
-                avatarThumbnail = thumbnailBase64
+                avatarSize = thumbnailBytes?.size ?: 0
             )
 
             val profileJson = json.encodeToString(transfer)
-            val fullData = profileJson.toByteArray(Charsets.UTF_8)
+            val jsonBytes = profileJson.toByteArray(Charsets.UTF_8)
 
-            Log.d(TAG, "开始通过 Notification 发送: ${fullData.size} 字节")
+            Log.d(TAG, "开始发送数据:")
+            Log.d(TAG, "  - JSON大小: ${jsonBytes.size} 字节")
+            Log.d(TAG, "  - 头像大小: ${thumbnailBytes?.size ?: 0} 字节")
+            Log.d(TAG, "  - 总大小: ${jsonBytes.size + (thumbnailBytes?.size ?: 0)} 字节")
 
             val service = gattServer?.getService(SERVICE_UUID)
             val characteristic = service?.getCharacteristic(CHARACTERISTIC_UUID)
@@ -352,51 +354,72 @@ class P2PService : Service() {
                 return
             }
 
-            // 分片发送
-            var offset = 0
-            var chunkIndex = 0
+            // 第一步：发送 JSON 元数据
+            sendData(gattServer!!, device, characteristic, jsonBytes, "JSON")
 
-            while (offset < fullData.size) {
-                val remaining = fullData.size - offset
-                val chunkSize = minOf(MAX_CHUNK_SIZE, remaining)
-                val chunk = fullData.copyOfRange(offset, offset + chunkSize)
-
-                // 使用兼容方法发送
-                val success = notifyCharacteristicChangedCompat(
-                    gattServer!!,
-                    device,
-                    characteristic,
-                    value = chunk
-                )
-
-                if (success) {
-                    Log.d(TAG, "发送片段 #$chunkIndex: offset=$offset, size=$chunkSize")
-                } else {
-                    Log.e(TAG, "发送失败 #$chunkIndex")
-                    break
-                }
-
-                offset += chunkSize
-                chunkIndex++
-
-                delay(50)
+            // 第二步：如果有头像，发送头像二进制
+            if (thumbnailBytes != null) {
+                delay(100)  // 短暂延迟
+                sendData(gattServer!!, device, characteristic, thumbnailBytes, "头像")
             }
 
-            Log.d(TAG, "✅ 发送完成，共 $chunkIndex 片")
-
+            Log.d(TAG, "✅ 全部数据发送完成")
         } catch (e: Exception) {
             Log.e(TAG, "发送数据失败", e)
         }
     }
 
     /**
+     * 发送数据（分片）
+     */
+    private suspend fun sendData(
+        server: BluetoothGattServer,
+        device: BluetoothDevice,
+        characteristic: BluetoothGattCharacteristic,
+        data: ByteArray,
+        dataType: String
+    ) {
+        var offset = 0
+        var chunkIndex = 0
+
+        while (offset < data.size) {
+            val remaining = data.size - offset
+            val chunkSize = minOf(MAX_CHUNK_SIZE, remaining)
+            val chunk = data.copyOfRange(offset, offset + chunkSize)
+
+            val success = notifyCharacteristicChangedCompat(
+                server,
+                device,
+                characteristic,
+                false,
+                chunk
+            )
+
+            if (success) {
+                Log.d(
+                    TAG,
+                    "[$dataType] 片段 #$chunkIndex: $chunkSize 字节，剩余=${remaining - chunkSize}"
+                )
+            } else {
+                Log.e(TAG, "[$dataType] 发送失败 #$chunkIndex")
+                break
+            }
+
+            offset += chunkSize
+            chunkIndex++
+
+            delay(50)
+        }
+    }
+
+    /**
      * 生成缩略图并转为Base64
      */
-    private fun generateThumbnail(
+    private fun generateThumbnailBytes(
         imagePath: String,
         maxSizeKB: Int = 5,
         maxDimension: Int = 100
-    ): String? {
+    ): ByteArray? {
         return try {
             val file = File(imagePath)
             if (!file.exists()) return null
@@ -426,23 +449,12 @@ class P2PService : Service() {
                 quality -= 10
             } while (outputStream.size() > maxSizeKB * 1024 && quality > 10)
 
-            // 转Base64
             val bytes = outputStream.toByteArray()
-            val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
 
             bitmap.recycle()
             thumbnail.recycle()
 
-            Log.d(TAG, "✅ 缩略图生成成功:")
-            Log.d(TAG, "  - 压缩后大小: ${bytes.size} 字节")
-            Log.d(TAG, "  - Base64长度: ${base64.length} 字符")
-            Log.d(TAG, "  - 预估JSON大小: ${base64.length + 200} 字节")
-
-            if (bytes.size > maxSizeKB * 1024) {
-                Log.w(TAG, "⚠️ 缩略图超过目标大小 ${maxSizeKB}KB")
-            }
-
-            "data:image/jpeg;base64,$base64"
+            bytes
         } catch (e: Exception) {
             Log.e(TAG, "生成缩略图失败", e)
             null

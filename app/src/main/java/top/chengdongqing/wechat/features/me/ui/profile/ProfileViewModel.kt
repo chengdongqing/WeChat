@@ -1,10 +1,9 @@
 package top.chengdongqing.wechat.features.me.ui.profile
 
-import android.app.Application
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import javax.inject.Inject
 
@@ -26,6 +26,7 @@ import javax.inject.Inject
  */
 data class ProfileUiState(
     val profile: UserProfile? = null,
+    val myQRCode: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -42,8 +43,8 @@ data class ProfileUiState(
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val fileManager: FileManager,
-    application: Application
-) : AndroidViewModel(application) {
+    private val qrCodeUseCase: QRCodeUseCase,
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -53,6 +54,7 @@ class ProfileViewModel @Inject constructor(
 
     init {
         loadProfile()
+        generateQRCode()
     }
 
     /**
@@ -80,6 +82,42 @@ class ProfileViewModel @Inject constructor(
                         )
                     }
                 }
+        }
+    }
+
+    /**
+     * 生成我的二维码
+     */
+    private fun generateQRCode() {
+        viewModelScope.launch {
+            qrCodeUseCase.generateMyQRCode().fold(
+                onSuccess = { qrCode ->
+                    _uiState.update { it.copy(myQRCode = qrCode) }
+                },
+                onFailure = { e ->
+                    _eventFlow.emit(ProfileUiEvent.ShowError("生成二维码失败: ${e.message}"))
+                }
+            )
+        }
+    }
+
+    /**
+     * 处理扫描到的二维码
+     */
+    fun handleScannedQRCode(qrContent: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            qrCodeUseCase.scanQRCodeToAddFriend(qrContent).fold(
+                onSuccess = { contact ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    _eventFlow.emit(ProfileUiEvent.NavigateToContactDetail(contact.id))
+                },
+                onFailure = { e ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    _eventFlow.emit(ProfileUiEvent.ShowError(e.message ?: "扫码失败"))
+                }
+            )
         }
     }
 
@@ -159,19 +197,22 @@ sealed class ProfileField {
 sealed class ProfileUiEvent {
     object UpdateSuccess : ProfileUiEvent()
     data class ShowError(val message: String) : ProfileUiEvent()
+    data class NavigateToContactDetail(val contactId: String) : ProfileUiEvent()
 }
 
 @Composable
 fun ProfileEventEffect(
     viewModel: ProfileViewModel,
     onSuccess: () -> Unit = {},
-    onError: (String) -> Unit = {}
+    onError: (error: String) -> Unit = {},
+    onNavigateToContactDetail: (contactId: String) -> Unit = {}
 ) {
     LaunchedEffect(viewModel) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is ProfileUiEvent.UpdateSuccess -> onSuccess()
                 is ProfileUiEvent.ShowError -> onError(event.message)
+                is ProfileUiEvent.NavigateToContactDetail -> onNavigateToContactDetail(event.contactId)
             }
         }
     }

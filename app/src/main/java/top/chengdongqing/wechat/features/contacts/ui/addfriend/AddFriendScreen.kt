@@ -65,10 +65,8 @@ fun AddFriendScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     // 处理扫码
-    val scanCode = rememberScanCodeLauncher { qrContent ->
-        qrContent[0].let {
-            viewModel.handleScannedQRCode(it)
-        }
+    val launchScanner = rememberScanCodeLauncher { qrCodes ->
+        viewModel.handleScannedQRCode(qrCodes.first())
     }
 
     // 处理导航事件
@@ -97,7 +95,7 @@ fun AddFriendScreen(
                 R.drawable.ic_scan_outlined,
                 Color(0xFF2B7CF1),
                 "扫描二维码名片"
-            ) { scanCode() },
+            ) { launchScanner() },
             AddFriendItem(
                 "雷达",
                 R.drawable.ic_radar_outlined,
@@ -173,10 +171,10 @@ fun AddFriendScreen(
                 }
 
                 // 只有当二维码生成后才显示
-                if (uiState.myQRCode.isNotEmpty()) {
+                if (uiState.qrCode.isNotEmpty()) {
                     QrCodeSection(
-                        qrContent = uiState.myQRCode,
-                        userId = uiState.myUserId,
+                        qrContent = uiState.qrCode,
+                        wxId = uiState.wxId,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -200,7 +198,7 @@ fun AddFriendScreen(
 @Composable
 private fun QrCodeSection(
     qrContent: String,
-    userId: String,
+    wxId: String,
     modifier: Modifier = Modifier
 ) {
     val state = rememberQRCodeState(
@@ -219,7 +217,7 @@ private fun QrCodeSection(
         WeQRCode(state, modifier = Modifier.size(targetWidth))
         Spacer(modifier = Modifier.height(30.dp))
         Text(
-            text = "我的微信号: $userId",
+            text = "我的微信号: $wxId",
             fontSize = 15.sp,
             color = WeTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Center

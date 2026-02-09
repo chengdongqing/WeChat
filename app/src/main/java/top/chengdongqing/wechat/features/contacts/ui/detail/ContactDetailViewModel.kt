@@ -17,8 +17,8 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.features.contacts.data.model.Contact
 import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 data class ContactDetailUiState(
     val contact: Contact,
@@ -181,7 +181,7 @@ class ContactDetailViewModel @AssistedInject constructor(
             id = "wxid_${randomUUID().take(12)}",
             name = "海盐芝士不加糖",
             gender = Gender.Male,
-            avatarUrl = "",
+            avatarPath = "",
             remarkName = "老舅",
             tags = listOf("朋友"),
             note = "在林拉高速上认识的摩友",

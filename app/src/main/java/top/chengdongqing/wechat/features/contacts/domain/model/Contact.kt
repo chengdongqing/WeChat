@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.data.model
+package top.chengdongqing.wechat.features.contacts.domain.model
 
 import top.chengdongqing.wechat.data.model.Gender
 
@@ -8,7 +8,7 @@ import top.chengdongqing.wechat.data.model.Gender
 data class Contact(
     val id: String,
     val name: String,
-    val avatarUrl: String? = null,
+    val avatarPath: String? = null,
     val remarkName: String = "",
     val gender: Gender? = null,
     val signature: String? = null,

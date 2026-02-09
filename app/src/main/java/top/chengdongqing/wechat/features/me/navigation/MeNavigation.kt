@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.features.me.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileScreen
 import top.chengdongqing.wechat.features.me.ui.profile.edit.EditAvatarScreen
 import top.chengdongqing.wechat.features.me.ui.profile.edit.EditGenderScreen
@@ -32,7 +33,12 @@ fun NavGraphBuilder.meNavGraph(navController: NavHostController, onBack: () -> U
         ProfileScreen(navController, onBack)
     }
     composable(MeRoute.QR_CODE) {
-        QRCodeScreen(onBack)
+        QRCodeScreen(
+            onBack = onBack,
+            onNavigateToContactDetail = { id ->
+                navController.navigate(ContactsRoute.Detail.createRoute(id))
+            }
+        )
     }
 
     composable(MeRoute.Edit.AVATAR) {

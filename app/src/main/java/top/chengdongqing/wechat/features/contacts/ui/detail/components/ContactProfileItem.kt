@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
-import top.chengdongqing.wechat.features.contacts.data.model.Contact
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 /**
  * 朋友资料信息项

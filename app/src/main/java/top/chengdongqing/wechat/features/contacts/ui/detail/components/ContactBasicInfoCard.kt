@@ -24,7 +24,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.features.contacts.data.model.Contact
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 /**
  * 联系人头像和基本信息卡片
@@ -42,7 +42,7 @@ fun ContactBasicInfoCard(
     ) {
         // 头像
         ContactAvatar(
-            avatarUrl = contact.avatarUrl ?: R.drawable.img_avatar_placeholder,
+            avatarUrl = contact.avatarPath ?: R.drawable.img_avatar_placeholder,
             contentDescription = "头像"
         )
 

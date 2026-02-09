@@ -1,24 +1,26 @@
 package top.chengdongqing.wechat.features.contacts.data.repository
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.ConnectionCapabilities
 import top.chengdongqing.wechat.data.model.DiscoveryBeacon
 import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.data.model.Gender.Companion.getIndex
 import top.chengdongqing.wechat.data.model.UserProfileTransfer
 import top.chengdongqing.wechat.data.network.connection.Connection
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
-import top.chengdongqing.wechat.features.contacts.data.model.Contact
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -27,7 +29,6 @@ import javax.inject.Inject
 class ContactP2PRepository @Inject constructor(
     private val bleDiscovery: BLEDiscovery,
     private val profileRepository: ProfileRepository,
-    private val json: Json,
     @param:ApplicationContext private val context: Context
 ) {
 
@@ -62,14 +63,12 @@ class ContactP2PRepository @Inject constructor(
                 val gatt = bleDiscovery.scanAndConnect(beacon.userId)
                     ?: return@withContext Result.failure(Exception("未找到对方设备"))
 
-                // 读取对方资料
-                val profileJson = bleDiscovery.readProfile(gatt)
+                // 接收 JSON + 头像二进制
+                val (profileTransfer, avatarBytes) = bleDiscovery.readProfile(gatt)
                     ?: return@withContext Result.failure(Exception("获取资料失败"))
 
-                println("----profileJson:$profileJson")
-
-                // 解析JSON
-                val contact = parseProfileJson(profileJson)
+                // 解析
+                val contact = parseProfileWithAvatar(profileTransfer, avatarBytes)
 
                 // 保存到本地缓存
                 saveContactToCache(contact)
@@ -77,8 +76,8 @@ class ContactP2PRepository @Inject constructor(
                 bleDiscovery.close()
 
                 Result.success(contact)
-            } catch (e: Exception) {
-                Result.failure(e)
+            } catch (_: Exception) {
+                Result.failure(Exception("不支持该二维码"))
             }
         }
     }
@@ -91,16 +90,24 @@ class ContactP2PRepository @Inject constructor(
     }
 
     /**
-     * 解析JSON格式的用户资料
+     * 解析资料（包含头像二进制）
      */
-    private fun parseProfileJson(jsonString: String): Contact {
+    private fun parseProfileWithAvatar(
+        profile: UserProfileTransfer,
+        avatarBytes: ByteArray?
+    ): Contact {
         try {
-            val profile = json.decodeFromString<UserProfileTransfer>(jsonString)
+            // 保存头像二进制到本地
+            val avatarPath = if (avatarBytes != null) {
+                saveAvatarToLocal(profile.userId, avatarBytes)
+            } else {
+                null
+            }
 
             return Contact(
                 id = profile.userId,
                 name = profile.nickname,
-                avatarUrl = profile.avatarThumbnail,
+                avatarPath = avatarPath,
                 signature = profile.signature,
                 gender = Gender.fromIndex(profile.gender)
             )
@@ -110,21 +117,26 @@ class ContactP2PRepository @Inject constructor(
     }
 
     /**
-     * 生成我的资料JSON（给对方读取）
+     * 保存头像二进制到本地
      */
-    suspend fun generateMyProfileJson(): String {
-        val profile = profileRepository.getCurrentProfileOnce()
-            ?: throw Exception("未找到个人资料")
+    private fun saveAvatarToLocal(userId: String, bytes: ByteArray): String? {
+        return try {
+            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
 
-        val transfer = UserProfileTransfer(
-            userId = profile.id,
-            nickname = profile.nickname,
-            signature = profile.signature,
-            avatarUrl = profile.avatarPath,
-            gender = profile.gender.getIndex()
-        )
+            val file = File(context.cacheDir, "avatar_$userId.jpg")
+            file.outputStream().use { output ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)
+            }
 
-        return json.encodeToString(transfer)
+            bitmap.recycle()
+
+            Log.d("ContactP2P", "头像已保存: ${file.absolutePath}")
+
+            file.absolutePath
+        } catch (e: Exception) {
+            Log.e("ContactP2P", "保存头像失败", e)
+            null
+        }
     }
 
     /**
@@ -204,9 +216,8 @@ class ContactP2PRepository @Inject constructor(
         val profile = profileRepository.getCurrentProfileOnce()
             ?: throw Exception("未找到个人资料")
 
-        // 使用 create 方法创建Beacon（不需要deviceId）
         val beacon = DiscoveryBeacon.create(
-            userId = profile.id,  // 直接用 wxid_xxx
+            userId = profile.id,
             capabilities = getMyCapabilities()
         )
 
