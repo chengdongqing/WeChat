@@ -31,6 +31,7 @@
         tools:ignore="ForegroundServicesPolicy" />
     <!-- 如果是 Android 14+ 还需要指定前台服务类型 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <uses-feature
         android:name="android.hardware.camera"

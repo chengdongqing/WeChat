@@ -12,12 +12,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
+import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
-import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
-data class AcceptVerifyUiState(
-    val request: FriendRequest? = null,
+data class RequestAddUiState(
+    val contact: Contact? = null,
+    val greetingMessage: String = "我是...",
     val remark: String = "",
     val tags: List<String> = emptyList(),
     val note: String = "",
@@ -25,50 +26,34 @@ data class AcceptVerifyUiState(
     val error: String? = null
 )
 
-@HiltViewModel(assistedFactory = AcceptVerifyViewModel.Factory::class)
-class AcceptVerifyViewModel @AssistedInject constructor(
-    @Assisted private val requestId: String,
-    private val friendRequestRepository: FriendRequestRepository,
-    private val friendRequestDao: FriendRequestDao
+@HiltViewModel(assistedFactory = RequestAddViewModel.Factory::class)
+class RequestAddViewModel @AssistedInject constructor(
+    @Assisted private val contactId: String,
+    private val friendRequestRepository: FriendRequestRepository
 ) : ViewModel() {
 
     @AssistedFactory
     interface Factory {
-        fun create(requestId: String): AcceptVerifyViewModel
+        fun create(contactId: String): RequestAddViewModel
     }
 
-    private val _uiState = MutableStateFlow(AcceptVerifyUiState())
+    private val _uiState = MutableStateFlow(RequestAddUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _eventFlow = MutableSharedFlow<AcceptVerifyEvent>()
+    private val _eventFlow = MutableSharedFlow<RequestAddEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     init {
-        loadRequest()
+        loadContact()
     }
 
-    /**
-     * 加载申请详情
-     */
-    private fun loadRequest() {
-        viewModelScope.launch {
-            try {
-                val request = friendRequestDao.getById(requestId)
+    private fun loadContact() {
+        val contact = ContactP2PRepository.getContactFromCache(contactId)
+        _uiState.update { it.copy(contact = contact) }
+    }
 
-                if (request != null) {
-                    _uiState.update {
-                        it.copy(
-                            request = request.toDomain(),
-                            remark = request.remark ?: ""
-                        )
-                    }
-                } else {
-                    _eventFlow.emit(AcceptVerifyEvent.ShowError("申请不存在"))
-                }
-            } catch (e: Exception) {
-                _eventFlow.emit(AcceptVerifyEvent.ShowError("加载失败: ${e.message}"))
-            }
-        }
+    fun updateGreeting(text: String) {
+        _uiState.update { it.copy(greetingMessage = text) }
     }
 
     fun updateRemark(text: String) {
@@ -83,32 +68,39 @@ class AcceptVerifyViewModel @AssistedInject constructor(
         _uiState.update { it.copy(note = text) }
     }
 
-    fun accept() {
+    fun sendRequest() {
         viewModelScope.launch {
             val state = _uiState.value
+            val contact = state.contact ?: return@launch
+
+            if (state.greetingMessage.isBlank()) {
+                _eventFlow.emit(RequestAddEvent.ShowError("请输入打招呼内容"))
+                return@launch
+            }
 
             _uiState.update { it.copy(isLoading = true) }
 
-            friendRequestRepository.acceptFriendRequest(
-                requestId = requestId,
+            friendRequestRepository.sendFriendRequest(
+                targetContact = contact,
+                greetingMessage = state.greetingMessage,
                 remark = state.remark.takeIf { it.isNotBlank() },
                 tags = state.tags.takeIf { it.isNotEmpty() },
                 note = state.note.takeIf { it.isNotBlank() }
             ).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(AcceptVerifyEvent.AcceptSuccess)
+                    _eventFlow.emit(RequestAddEvent.SendSuccess)
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(AcceptVerifyEvent.ShowError(e.message ?: "操作失败"))
+                    _eventFlow.emit(RequestAddEvent.ShowError(e.message ?: "发送失败"))
                 }
             )
         }
     }
 }
 
-sealed class AcceptVerifyEvent {
-    object AcceptSuccess : AcceptVerifyEvent()
-    data class ShowError(val message: String) : AcceptVerifyEvent()
+sealed class RequestAddEvent {
+    object SendSuccess : RequestAddEvent()
+    data class ShowError(val message: String) : RequestAddEvent()
 }

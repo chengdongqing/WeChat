@@ -22,6 +22,7 @@ object AppModule {
             encodeDefaults = true
             isLenient = true
             prettyPrint = false
+            classDiscriminator = "type"  // 多态序列化
         }
     }
 }

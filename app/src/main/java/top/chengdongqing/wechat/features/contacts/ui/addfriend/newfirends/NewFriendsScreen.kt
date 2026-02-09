@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,6 +25,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
@@ -34,17 +37,26 @@ import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuLi
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.data.database.entity.RequestStatus
+import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
+import kotlin.time.Duration.Companion.days
 
 @Composable
 fun NewFriendsScreen(
     onBack: () -> Unit,
     onNavigateToAdd: () -> Unit,
-    onNavigateToVerify: () -> Unit
+    onNavigateToVerify: (requestId: String) -> Unit,
+    viewModel: NewFriendsViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
-            NewFriendsTopBar(onBack, onNavigateToAdd)
+            NewFriendsTopBar(
+                onBack = onBack,
+                onNavigateToAdd = onNavigateToAdd,
+                pendingCount = uiState.pendingCount
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -75,23 +87,57 @@ fun NewFriendsScreen(
                 )
             }
 
-            item { SectionTitle("近三天") }
-            itemsIndexed(items = List(3) { it }) { index, _ ->
-                FriendRequestItem(
-                    name = "海盐芝士不加糖",
-                    message = "我是James",
-                    onClick = onNavigateToVerify,
-                    showDivider = index < 2
-                )
+            // 按时间分组
+            val (recent, older) = uiState.requests.partition { request ->
+                System.currentTimeMillis() - request.timestamp < 3.days.inWholeMilliseconds
             }
-            item { SectionTitle("三天前") }
-            items(5) {
-                FriendRequestItem(
-                    name = "微信好友",
-                    message = "来自搜索账号",
-                    onClick = onNavigateToVerify,
-                    showDivider = true
-                )
+
+            // 近三天
+            if (recent.isNotEmpty()) {
+                item { SectionTitle("近三天") }
+                itemsIndexed(
+                    items = recent,
+                    key = { _, request -> request.requestId }
+                ) { index, request ->
+                    FriendRequestItem(
+                        request = request,
+                        onClick = { onNavigateToVerify(request.requestId) },
+                        showDivider = index < recent.size - 1
+                    )
+                }
+            }
+
+            // 三天前
+            if (older.isNotEmpty()) {
+                item { SectionTitle("三天前") }
+                itemsIndexed(
+                    items = older,
+                    key = { _, request -> request.requestId }
+                ) { index, request ->
+                    FriendRequestItem(
+                        request = request,
+                        onClick = { onNavigateToVerify(request.requestId) },
+                        showDivider = index < recent.size - 1
+                    )
+                }
+            }
+
+            // 空状态
+            if (uiState.requests.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 80.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "暂无好友申请",
+                            color = WeTheme.colorScheme.textSecondary,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
             }
         }
     }
@@ -111,8 +157,7 @@ private fun SectionTitle(title: String) {
 
 @Composable
 private fun FriendRequestItem(
-    name: String,
-    message: String,
+    request: FriendRequest,
     onClick: () -> Unit,
     showDivider: Boolean = true
 ) {
@@ -120,30 +165,36 @@ private fun FriendRequestItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .weClickable(onClick = onClick) // 微信列表整行可点
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Image(
-                painter = painterResource(R.drawable.img_avatar),
+            // 头像
+            AsyncImage(
+                model = request.fromAvatarPath,
                 contentDescription = null,
+                placeholder = painterResource(R.drawable.img_avatar),
+                error = painterResource(R.drawable.img_avatar),
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(6.dp))
             )
+
             Column(modifier = Modifier.weight(1f)) {
+                // 昵称
                 Text(
-                    text = name,
+                    text = request.fromNickname,
                     color = WeTheme.colorScheme.textPrimary,
                     fontSize = 16.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (message.isNotEmpty()) {
+
+                // 打招呼内容
+                if (request.greetingMessage.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = message,
+                        text = request.greetingMessage,
                         color = WeTheme.colorScheme.textSecondary,
                         fontSize = 14.sp,
                         maxLines = 1,
@@ -151,15 +202,46 @@ private fun FriendRequestItem(
                     )
                 }
             }
-            WeButton(
-                text = "查看",
-                type = ButtonType.Plain,
-                size = ButtonSize.Small,
-                onClick = onClick
-            )
+
+            // 状态按钮
+            when (request.status) {
+                RequestStatus.PENDING -> {
+                    WeButton(
+                        text = "查看",
+                        type = ButtonType.Plain,
+                        size = ButtonSize.Small,
+                        onClick = onClick
+                    )
+                }
+
+                RequestStatus.ACCEPTED -> {
+                    Text(
+                        text = "已添加",
+                        color = WeTheme.colorScheme.textSecondary,
+                        fontSize = 14.sp
+                    )
+                }
+
+                RequestStatus.REJECTED -> {
+                    Text(
+                        text = "已拒绝",
+                        color = WeTheme.colorScheme.textSecondary,
+                        fontSize = 14.sp
+                    )
+                }
+
+                RequestStatus.EXPIRED -> {
+                    Text(
+                        text = "已过期",
+                        color = WeTheme.colorScheme.textSecondary,
+                        fontSize = 14.sp
+                    )
+                }
+            }
         }
+
         if (showDivider) {
-            WeDivider(modifier = Modifier.padding(start = 76.dp)) // 微信分割线通常不切断头像
+            WeDivider(modifier = Modifier.padding(start = 76.dp))
         }
     }
 }
@@ -167,19 +249,14 @@ private fun FriendRequestItem(
 @Composable
 private fun NewFriendsTopBar(
     onBack: () -> Unit,
-    onNavigateToAdd: () -> Unit
+    onNavigateToAdd: () -> Unit,
+    pendingCount: Int
 ) {
     WeTopBar(
-        title = "新的朋友",
+        title = if (pendingCount > 0) "新的朋友($pendingCount)" else "新的朋友",
         onBack = onBack,
         actions = {
-            Text(
-                text = "添加朋友",
-                color = WeTheme.colorScheme.textPrimary,
-                fontSize = 16.sp,
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .weClickable(onClick = onNavigateToAdd)
-            )
-        })
+            ActionText("添加朋友", onClick = onNavigateToAdd)
+        }
+    )
 }

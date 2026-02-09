@@ -51,6 +51,8 @@ class BLEDiscovery @Inject constructor(
 
     private var readContinuation: CancellableContinuation<Pair<UserProfileTransfer, ByteArray>?>? =
         null
+    private var writeContinuation: CancellableContinuation<Boolean>? = null
+
     private val receivedData = ByteArrayOutputStream()
 
     // 解析状态
@@ -151,6 +153,57 @@ class BLEDiscovery @Inject constructor(
     }
 
     /**
+     * 写入特征值
+     */
+    @SuppressLint("MissingPermission")
+    suspend fun writeCharacteristic(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        data: ByteArray
+    ): Boolean {
+        return suspendCancellableCoroutine { continuation ->
+
+            writeContinuation = continuation
+
+            val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Android 13+ 新 API
+                gatt.writeCharacteristic(
+                    characteristic,
+                    data,
+                    BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                ) == BluetoothStatusCodes.SUCCESS
+            } else {
+                // Android 13 以下旧 API
+                @Suppress("DEPRECATION")
+                characteristic.value = data
+                @Suppress("DEPRECATION")
+                characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                @Suppress("DEPRECATION")
+                gatt.writeCharacteristic(characteristic)
+            }
+
+            if (!result) {
+                Log.e(TAG, "启动写入失败")
+                writeContinuation = null
+                continuation.resume(false)
+                return@suspendCancellableCoroutine
+            }
+
+            Log.d(TAG, "已启动写入，等待回调...")
+
+            // 10秒超时
+            CoroutineScope(Dispatchers.IO).launch {
+                delay(10000)
+                if (writeContinuation == continuation && continuation.isActive) {
+                    Log.e(TAG, "写入超时")
+                    writeContinuation = null
+                    continuation.resume(false)
+                }
+            }
+        }
+    }
+
+    /**
      * 连接到设备
      */
     @SuppressLint("MissingPermission")
@@ -212,6 +265,25 @@ class BLEDiscovery @Inject constructor(
                         continuation.resume(null)
                     }
                 }
+
+                // 处理写入回调
+                override fun onCharacteristicWrite(
+                    gatt: BluetoothGatt,
+                    characteristic: BluetoothGattCharacteristic,
+                    status: Int
+                ) {
+                    Log.d(TAG, "写入回调: status=$status")
+
+                    val success = status == BluetoothGatt.GATT_SUCCESS
+
+                    writeContinuation?.let { cont ->
+                        if (cont.isActive) {
+                            cont.resume(success)
+                        }
+                    }
+                    writeContinuation = null
+                }
+
 
                 // 处理 Notification 数据
                 override fun onCharacteristicChanged(

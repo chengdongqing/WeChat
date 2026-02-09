@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.network.service
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -39,6 +40,9 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.model.Gender.Companion.getIndex
 import top.chengdongqing.wechat.data.model.UserProfileTransfer
+import top.chengdongqing.wechat.data.network.protocol.P2PMessage
+import top.chengdongqing.wechat.data.network.protocol.RequestAction
+import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -51,6 +55,9 @@ class P2PService : Service() {
 
     @Inject
     lateinit var profileRepository: ProfileRepository
+
+    @Inject
+    lateinit var friendRequestRepository: FriendRequestRepository
 
     @Inject
     lateinit var json: Json
@@ -81,13 +88,52 @@ class P2PService : Service() {
 
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "p2p_service_channel"
+
+        // 好友请求通知
+        private const val FRIEND_REQUEST_CHANNEL_ID = "friend_request_channel"
+        private const val FRIEND_REQUEST_NOTIFICATION_ID = 2001
     }
 
     override fun onCreate() {
         super.onCreate()
+        createNotificationChannels()
         startForegroundService()
         startBLEAdvertising()
         startGattServer()
+    }
+
+    /**
+     * 创建通知渠道
+     */
+    private fun createNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(NotificationManager::class.java)
+
+            // P2P 服务通道
+            val serviceChannel = NotificationChannel(
+                CHANNEL_ID,
+                "P2P连接服务",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "保持局域网连接功能运行"
+                setShowBadge(false)
+            }
+
+            // 好友请求通道
+            val friendRequestChannel = NotificationChannel(
+                FRIEND_REQUEST_CHANNEL_ID,
+                "好友请求",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "新的好友请求通知"
+                setShowBadge(true)
+                enableLights(true)
+                enableVibration(true)
+            }
+
+            notificationManager.createNotificationChannel(serviceChannel)
+            notificationManager.createNotificationChannel(friendRequestChannel)
+        }
     }
 
     private fun startForegroundService() {
@@ -200,8 +246,10 @@ class P2PService : Service() {
                 val characteristic = BluetoothGattCharacteristic(
                     CHARACTERISTIC_UUID,
                     BluetoothGattCharacteristic.PROPERTY_READ or
-                            BluetoothGattCharacteristic.PROPERTY_NOTIFY,  // 添加 Notify
-                    BluetoothGattCharacteristic.PERMISSION_READ
+                            BluetoothGattCharacteristic.PROPERTY_WRITE or
+                            BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+                    BluetoothGattCharacteristic.PERMISSION_READ or
+                            BluetoothGattCharacteristic.PERMISSION_WRITE
                 )
 
                 // 添加 Descriptor（用于启用 Notification）
@@ -216,66 +264,7 @@ class P2PService : Service() {
 
                 gattServer = bluetoothManager.openGattServer(
                     this@P2PService,
-                    object : BluetoothGattServerCallback() {
-
-                        override fun onConnectionStateChange(
-                            device: BluetoothDevice,
-                            status: Int,
-                            newState: Int
-                        ) {
-                            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                                Log.d(TAG, "设备已连接: ${device.address}")
-                            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                                Log.d(TAG, "设备已断开: ${device.address}")
-                            }
-                        }
-
-                        // 当客户端订阅 Notification 时触发
-                        override fun onDescriptorWriteRequest(
-                            device: BluetoothDevice,
-                            requestId: Int,
-                            descriptor: BluetoothGattDescriptor,
-                            preparedWrite: Boolean,
-                            responseNeeded: Boolean,
-                            offset: Int,
-                            value: ByteArray
-                        ) {
-                            if (descriptor.uuid == DESCRIPTOR_UUID) {
-                                Log.d(TAG, "客户端订阅了 Notification")
-
-                                if (responseNeeded) {
-                                    gattServer?.sendResponse(
-                                        device,
-                                        requestId,
-                                        BluetoothGatt.GATT_SUCCESS,
-                                        0,
-                                        null
-                                    )
-                                }
-
-                                // 开始发送数据
-                                serviceScope.launch {
-                                    sendProfileData(device)
-                                }
-                            }
-                        }
-
-                        override fun onCharacteristicReadRequest(
-                            device: BluetoothDevice,
-                            requestId: Int,
-                            offset: Int,
-                            characteristic: BluetoothGattCharacteristic
-                        ) {
-                            // 简单响应，实际数据通过 Notification 发送
-                            gattServer?.sendResponse(
-                                device,
-                                requestId,
-                                BluetoothGatt.GATT_SUCCESS,
-                                0,
-                                "USE_NOTIFICATION".toByteArray()
-                            )
-                        }
-                    }
+                    GattServerCallback()
                 )
 
                 gattServer?.addService(service)
@@ -288,6 +277,191 @@ class P2PService : Service() {
     }
 
     /**
+     * GATT 服务器回调
+     */
+    private inner class GattServerCallback : BluetoothGattServerCallback() {
+
+        override fun onConnectionStateChange(
+            device: BluetoothDevice,
+            status: Int,
+            newState: Int
+        ) {
+            when (newState) {
+                BluetoothProfile.STATE_CONNECTED -> {
+                    Log.d(TAG, "设备已连接: ${device.address}")
+                }
+
+                BluetoothProfile.STATE_DISCONNECTED -> {
+                    Log.d(TAG, "设备已断开: ${device.address}")
+                }
+            }
+        }
+
+        override fun onDescriptorWriteRequest(
+            device: BluetoothDevice,
+            requestId: Int,
+            descriptor: BluetoothGattDescriptor,
+            preparedWrite: Boolean,
+            responseNeeded: Boolean,
+            offset: Int,
+            value: ByteArray
+        ) {
+            if (descriptor.uuid == DESCRIPTOR_UUID) {
+                Log.d(TAG, "客户端订阅了 Notification")
+
+                if (responseNeeded) {
+                    gattServer?.sendResponse(
+                        device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        null
+                    )
+                }
+
+                // 开始发送资料数据
+                serviceScope.launch {
+                    sendProfileData(device)
+                }
+            }
+        }
+
+        override fun onCharacteristicReadRequest(
+            device: BluetoothDevice,
+            requestId: Int,
+            offset: Int,
+            characteristic: BluetoothGattCharacteristic
+        ) {
+            gattServer?.sendResponse(
+                device,
+                requestId,
+                BluetoothGatt.GATT_SUCCESS,
+                0,
+                "USE_NOTIFICATION".toByteArray()
+            )
+        }
+
+        @SuppressLint("MissingPermission")
+        override fun onCharacteristicWriteRequest(
+            device: BluetoothDevice,
+            requestId: Int,
+            characteristic: BluetoothGattCharacteristic,
+            preparedWrite: Boolean,
+            responseNeeded: Boolean,
+            offset: Int,
+            value: ByteArray
+        ) {
+            serviceScope.launch {
+                try {
+                    Log.d(TAG, "收到写入请求，数据大小: ${value.size}")
+
+                    // 反序列化消息
+                    when (val message = deserializeMessage(value)) {
+                        is P2PMessage.FriendRequest -> {
+                            Log.d(TAG, "收到好友申请: ${message.fromNickname}")
+                            friendRequestRepository.handleIncomingRequest(message)
+                            showFriendRequestNotification(
+                                message.fromNickname,
+                                "请求添加你为好友"
+                            )
+                        }
+
+                        is P2PMessage.FriendRequestResponse -> {
+                            Log.d(TAG, "收到好友申请响应: ${message.action}")
+                            friendRequestRepository.handleRequestResponse(message)
+                            if (message.action == RequestAction.ACCEPT) {
+                                showFriendRequestNotification(
+                                    "好友申请",
+                                    "对方已同意你的好友申请"
+                                )
+                            }
+                        }
+
+                        else -> {
+                            Log.d(TAG, "收到其他类型消息: ${message::class.simpleName}")
+                        }
+                    }
+
+                    if (responseNeeded) {
+                        gattServer?.sendResponse(
+                            device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            null
+                        )
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "处理消息失败", e)
+                    if (responseNeeded) {
+                        gattServer?.sendResponse(
+                            device,
+                            requestId,
+                            BluetoothGatt.GATT_FAILURE,
+                            0,
+                            null
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 反序列化消息
+     */
+    private fun deserializeMessage(data: ByteArray): P2PMessage {
+        return try {
+            val jsonString = String(data, Charsets.UTF_8)
+            Log.d(TAG, "反序列化消息: $jsonString")
+
+            // 使用 Kotlinx Serialization 的多态反序列化
+            json.decodeFromString<P2PMessage>(jsonString)
+        } catch (e: Exception) {
+            Log.e(TAG, "反序列化失败", e)
+            throw Exception("无法解析消息: ${e.message}")
+        }
+    }
+
+    /**
+     * 显示好友请求通知
+     */
+    private fun showFriendRequestNotification(title: String, content: String) {
+        try {
+            // 创建点击 Intent（打开新的朋友页面）
+            val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                // 可以添加额外参数，指示打开新的朋友页面
+                putExtra("open_new_friends", true)
+            }
+
+            val pendingIntent = PendingIntent.getActivity(
+                this,
+                FRIEND_REQUEST_NOTIFICATION_ID,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val notification = NotificationCompat.Builder(this, FRIEND_REQUEST_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_add_friends_filled)
+                .setContentTitle(title)
+                .setContentText(content)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .build()
+
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.notify(FRIEND_REQUEST_NOTIFICATION_ID, notification)
+
+            Log.d(TAG, "已显示通知: $title - $content")
+        } catch (e: Exception) {
+            Log.e(TAG, "显示通知失败", e)
+        }
+    }
+
+    /**
      * 兼容新旧 API 的 Notification 发送
      */
     @SuppressLint("MissingPermission")
@@ -295,7 +469,7 @@ class P2PService : Service() {
         server: BluetoothGattServer,
         device: BluetoothDevice,
         characteristic: BluetoothGattCharacteristic,
-        confirm: Boolean,
+        confirm: Boolean = false,
         value: ByteArray
     ): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -391,8 +565,7 @@ class P2PService : Service() {
                 server,
                 device,
                 characteristic,
-                false,
-                chunk
+                value = chunk
             )
 
             if (success) {

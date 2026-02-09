@@ -7,17 +7,12 @@ import android.util.Base64
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
-import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.model.ConnectionCapabilities
 import top.chengdongqing.wechat.data.model.DiscoveryBeacon
 import top.chengdongqing.wechat.data.model.Gender
 import top.chengdongqing.wechat.data.model.UserProfileTransfer
-import top.chengdongqing.wechat.data.network.connection.Connection
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
-import top.chengdongqing.wechat.data.network.protocol.P2PMessage
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import java.io.File
@@ -138,68 +133,6 @@ class ContactP2PRepository @Inject constructor(
             Log.e("ContactP2P", "保存头像失败", e)
             null
         }
-    }
-
-    /**
-     * 发送好友申请
-     */
-    suspend fun sendFriendRequest(
-        connection: Connection,
-        targetUserId: String,
-        verificationMessage: String
-    ): Result<Unit> {
-        return try {
-            val myProfile = profileRepository.getCurrentProfileOnce()
-                ?: return Result.failure(Exception("未找到个人资料"))
-
-            val request = P2PMessage.FriendRequest(
-                requestId = randomUUID(),
-                fromUserId = myProfile.id,
-                fromNickname = myProfile.nickname,
-                toUserId = targetUserId,
-                verificationMessage = verificationMessage,
-                timestamp = System.currentTimeMillis()
-            )
-
-            connection.send(request)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    /**
-     * 获取用户资料
-     */
-    private suspend fun fetchUserProfile(
-        connection: Connection,
-        userIdHash: String  // 这是哈希值
-    ): Contact {
-        val myProfile = profileRepository.getCurrentProfileOnce()
-            ?: throw Exception("未找到个人资料")
-
-        // 1. 发送请求（不需要传真实userId，对方会返回）
-        val request = P2PMessage.GetProfileRequest(
-            userId = "",  // 留空，表示获取连接对方的资料
-            requesterId = myProfile.id,
-            includeAvatar = true
-        )
-        connection.send(request)
-
-        // 2. 等待响应（3秒超时）
-        val response = withTimeout(3000) {
-            // 监听消息流，等待GetProfileResponse
-            connection.messageFlow()
-                .firstOrNull { it is P2PMessage.GetProfileResponse }
-                    as? P2PMessage.GetProfileResponse
-                ?: throw Exception("获取用户资料超时")
-        }
-
-        // 3. 转换为Contact
-        return Contact(
-            id = response.userId,
-            name = response.nickname
-        )
     }
 
     /**

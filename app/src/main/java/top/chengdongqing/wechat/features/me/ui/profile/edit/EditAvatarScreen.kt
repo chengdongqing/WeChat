@@ -84,7 +84,7 @@ fun EditAvatarScreen(
                 .align(Alignment.TopCenter)
                 .zIndex(1f),
             containerColor = Color.Transparent,
-            textColor = White,
+            contentColor = White,
             onBack = onBack
         ) {
             ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {

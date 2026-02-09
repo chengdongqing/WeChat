@@ -39,10 +39,10 @@ sealed class ContactsRoute(val route: String) {
         fun createRoute(contactId: String) = "contacts/${contactId}/request_add"
     }
 
-    object AcceptVerify : ContactsRoute("contacts/{contactId}/accept_verify") {
-        const val ARG_CONTACT_ID = "contactId"
+    object AcceptVerify : ContactsRoute("contacts/{requestId}/accept_verify") {
+        const val ARG_REQUEST_ID = "requestId"
 
-        fun createRoute(contactId: String) = "contacts/${contactId}/accept_verify"
+        fun createRoute(requestId: String) = "contacts/${requestId}/accept_verify"
     }
 
     object NewFriends : ContactsRoute("contacts/new_friends")
@@ -119,20 +119,31 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
         val contactId = backStackEntry.arguments?.getString(
             ContactsRoute.RequestAdd.ARG_CONTACT_ID
         ) ?: ""
-        RequestAddScreen(contactId, onBack)
+        RequestAddScreen(
+            contactId = contactId,
+            onBack = onBack,
+            onSuccess = {
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(navController.graph.id) {
+                        inclusive = true
+                    }
+                    launchSingleTop = true
+                }
+            }
+        )
     }
     composable(
         route = ContactsRoute.AcceptVerify.route,
         arguments = listOf(
-            navArgument(ContactsRoute.AcceptVerify.ARG_CONTACT_ID) {
+            navArgument(ContactsRoute.AcceptVerify.ARG_REQUEST_ID) {
                 type = NavType.StringType
             }
         )
     ) { backStackEntry ->
         val contactId = backStackEntry.arguments?.getString(
-            ContactsRoute.AcceptVerify.ARG_CONTACT_ID
+            ContactsRoute.AcceptVerify.ARG_REQUEST_ID
         ) ?: ""
-        AcceptVerifyScreen(contactId, onBack)
+        AcceptVerifyScreen(contactId, onBack, onBack)
     }
 
     composable(ContactsRoute.NewFriends.route) {
@@ -141,8 +152,8 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
             onNavigateToAdd = {
                 navController.navigate(ContactsRoute.AddFriend.route)
             },
-            onNavigateToVerify = {
-                navController.navigate(ContactsRoute.AcceptVerify.route)
+            onNavigateToVerify = { id ->
+                navController.navigate(ContactsRoute.AcceptVerify.createRoute(id))
             }
         )
     }

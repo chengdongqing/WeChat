@@ -33,7 +33,6 @@ import top.chengdongqing.wechat.data.model.MessageSendStatus
 import top.chengdongqing.wechat.features.chat.ui.session.input.voice.AudioFocusManager
 import java.time.Duration
 import java.time.Instant
-import java.util.UUID
 
 data class ChatSessionState(
     val title: String = "",
@@ -216,7 +215,7 @@ class ChatSessionViewModel @AssistedInject constructor(
 
             messages.add(
                 ChatMessage(
-                    id = UUID.randomUUID().toString(),
+                    id = randomUUID(),
                     content = MessageContent.Text(mockTexts.random()),
                     timestamp = timestamp,
                     isFromMe = (0..1).random() == 1

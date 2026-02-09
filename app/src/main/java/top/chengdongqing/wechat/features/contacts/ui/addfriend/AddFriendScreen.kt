@@ -113,7 +113,8 @@ private fun HandleBluetoothSetup() {
     val context = LocalContext.current
     val bluetoothAdapter = rememberBluetoothAdapter(context)
     val permissions = rememberBluetoothPermissions()
-    val permissionState = rememberMultiplePermissionsState(permissions)
+    val permissionState =
+        rememberMultiplePermissionsState(permissions + listOf(Manifest.permission.POST_NOTIFICATIONS))
 
     LaunchedEffect(bluetoothAdapter) {
         when {

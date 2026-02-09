@@ -1,52 +1,41 @@
 package top.chengdongqing.wechat.data.network.protocol
 
-import java.io.Serializable
+import kotlinx.serialization.Serializable
 
 /**
  * P2P消息定义
  */
-sealed class P2PMessage : Serializable {
-
-    /**
-     * 获取用户资料请求
-     */
-    data class GetProfileRequest(
-        val userId: String,
-        val requesterId: String,
-        val includeAvatar: Boolean = true
-    ) : P2PMessage()
-
-    /**
-     * 获取用户资料响应
-     */
-    data class GetProfileResponse(
-        val userId: String,
-        val nickname: String,
-        val gender: Int?,
-        val signature: String?,
-        val avatarData: ByteArray?  // 头像二进制数据
-    ) : P2PMessage()
+@Serializable
+sealed class P2PMessage {
 
     /**
      * 好友申请
      */
+    @Serializable
     data class FriendRequest(
         val requestId: String,
         val fromUserId: String,
         val fromNickname: String,
+        val fromAvatarPath: String?,
         val toUserId: String,
-        val verificationMessage: String,
+        val greetingMessage: String,
+        val remark: String?,
+        val tags: List<String>?,
+        val note: String?,
         val timestamp: Long
     ) : P2PMessage()
 
     /**
      * 好友申请响应
      */
+    @Serializable
     data class FriendRequestResponse(
         val requestId: String,
-        val userId: String,
         val action: RequestAction,
-        val myProfile: GetProfileResponse? = null  // 接受时返回自己的资料
+        val remark: String?,
+        val tags: List<String>?,
+        val note: String?,
+        val timestamp: Long
     ) : P2PMessage()
 
     /**
@@ -60,6 +49,7 @@ sealed class P2PMessage : Serializable {
     data class Pong(val timestamp: Long) : P2PMessage()
 }
 
+@Serializable
 enum class RequestAction {
     ACCEPT,
     REJECT

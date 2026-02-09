@@ -21,10 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
+import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -51,13 +48,14 @@ enum class FriendActionType(val title: String) {
 @Composable
 internal fun FriendHandleBase(
     type: FriendActionType,
-    contactId: String,
+    greetingText: String = "",
+    onGreetingChange: (String) -> Unit = {},
+    remarkText: String = "",
+    onRemarkChange: (String) -> Unit = {},
+    isLoading: Boolean = false,
     onBack: () -> Unit,
     onComplete: () -> Unit
 ) {
-    var greetingText by remember { mutableStateOf(if (type == FriendActionType.Apply) "我是..." else "") }
-    var remarkText by remember { mutableStateOf("") }
-
     Scaffold(
         topBar = {
             WeTopBar(
@@ -86,7 +84,7 @@ internal fun FriendHandleBase(
                         ListItem("打招呼内容") {
                             BasicTextField(
                                 value = greetingText,
-                                onValueChange = { greetingText = it },
+                                onValueChange = onGreetingChange,
                                 maxLines = 3,
                                 textStyle = TextStyle(
                                     fontSize = 16.sp,
@@ -100,7 +98,7 @@ internal fun FriendHandleBase(
                     ListItem("备注") {
                         BasicTextField(
                             value = remarkText,
-                            onValueChange = { remarkText = it },
+                            onValueChange = onRemarkChange,
                             singleLine = true,
                             textStyle = TextStyle(
                                 fontSize = 16.sp,
@@ -127,6 +125,8 @@ internal fun FriendHandleBase(
             )
         }
     }
+
+    LoadingDialog(isLoading)
 }
 
 @Composable
