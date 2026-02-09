@@ -39,8 +39,8 @@ class MainActivity : ComponentActivity() {
             // 判断导航目标
             LaunchedEffect(startupState) {
                 when (startupState) {
-                    is StartupState.ReadyForHome -> startDestination = Screen.HOME
-                    is StartupState.NeedWelcome -> startDestination = Screen.WELCOME
+                    is StartupState.ReadyForHome -> startDestination = Screen.Home.route
+                    is StartupState.NeedWelcome -> startDestination = Screen.Welcome.route
                     else -> {}
                 }
             }

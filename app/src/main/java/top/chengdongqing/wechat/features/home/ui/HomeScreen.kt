@@ -48,6 +48,7 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBarIcon
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.chat.ui.list.ChatListScreen
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
@@ -79,6 +80,12 @@ fun HomeScreen(navController: NavHostController) {
                     },
                     onNavigateToContactDetail = { id ->
                         navController.navigate(ContactsRoute.Detail.createRoute(id))
+                    },
+                    onNavigateToPlainText = { text ->
+                        navController.navigate(Screen.PlainText.createRoute(text))
+                    },
+                    onNavigateToWebView = { url ->
+                        navController.navigate(Screen.WebView.createRoute(url))
                     }
                 )
             } else {
@@ -145,6 +152,8 @@ private fun HomeTopBar(
     title: String,
     onNavigateToAddFriend: () -> Unit,
     onNavigateToContactDetail: (String) -> Unit,
+    onNavigateToPlainText: (text: String) -> Unit,
+    onNavigateToWebView: (url: String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -157,6 +166,14 @@ private fun HomeTopBar(
             when (event) {
                 is ProfileUiEvent.NavigateToContactDetail -> {
                     onNavigateToContactDetail(event.contactId)
+                }
+
+                is ProfileUiEvent.NavigateToPlainText -> {
+                    onNavigateToPlainText(event.text)
+                }
+
+                is ProfileUiEvent.OpenUrl -> {
+                    onNavigateToWebView(event.url)
                 }
 
                 else -> {}

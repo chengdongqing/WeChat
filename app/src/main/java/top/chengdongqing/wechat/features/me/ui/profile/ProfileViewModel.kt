@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import javax.inject.Inject
@@ -108,16 +109,32 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            qrCodeUseCase.scanQRCodeToAddFriend(qrContent).fold(
-                onSuccess = { contact ->
+            when (val result = qrCodeUseCase.handleScannedQRCode(qrContent)) {
+                is QRCodeResult.AddFriend -> {
                     _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(ProfileUiEvent.NavigateToContactDetail(contact.id))
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(ProfileUiEvent.ShowError(e.message ?: "扫码失败"))
+                    _eventFlow.emit(ProfileUiEvent.NavigateToContactDetail(result.contact.id))
                 }
-            )
+
+                is QRCodeResult.OpenUrl -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    _eventFlow.emit(ProfileUiEvent.OpenUrl(result.url))
+                }
+
+                is QRCodeResult.ShowText -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    _eventFlow.emit(ProfileUiEvent.NavigateToPlainText(result.text))
+                }
+
+                is QRCodeResult.JoinGroup -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    _eventFlow.emit(ProfileUiEvent.ShowError("群聊功能开发中"))
+                }
+
+                is QRCodeResult.Error -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    _eventFlow.emit(ProfileUiEvent.ShowError(result.message))
+                }
+            }
         }
     }
 
@@ -198,6 +215,8 @@ sealed class ProfileUiEvent {
     object UpdateSuccess : ProfileUiEvent()
     data class ShowError(val message: String) : ProfileUiEvent()
     data class NavigateToContactDetail(val contactId: String) : ProfileUiEvent()
+    data class OpenUrl(val url: String) : ProfileUiEvent()
+    data class NavigateToPlainText(val text: String) : ProfileUiEvent()
 }
 
 @Composable
@@ -205,14 +224,13 @@ fun ProfileEventEffect(
     viewModel: ProfileViewModel,
     onSuccess: () -> Unit = {},
     onError: (error: String) -> Unit = {},
-    onNavigateToContactDetail: (contactId: String) -> Unit = {}
 ) {
     LaunchedEffect(viewModel) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
                 is ProfileUiEvent.UpdateSuccess -> onSuccess()
                 is ProfileUiEvent.ShowError -> onError(event.message)
-                is ProfileUiEvent.NavigateToContactDetail -> onNavigateToContactDetail(event.contactId)
+                else -> {}
             }
         }
     }

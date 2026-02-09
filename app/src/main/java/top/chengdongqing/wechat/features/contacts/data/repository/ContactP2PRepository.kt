@@ -46,6 +46,7 @@ class ContactP2PRepository @Inject constructor(
     suspend fun handleScannedQRCode(qrContent: String): Result<Contact> {
         return withContext(Dispatchers.IO) {
             try {
+                // 解析 Beacon
                 val beacon = parseBeacon(qrContent)
 
                 if (!beacon.isValid()) {
@@ -63,7 +64,7 @@ class ContactP2PRepository @Inject constructor(
                 val gatt = bleDiscovery.scanAndConnect(beacon.userId)
                     ?: return@withContext Result.failure(Exception("未找到对方设备"))
 
-                // 接收 JSON + 头像二进制
+                // 接收 基础信息 + 头像二进制
                 val (profileTransfer, avatarBytes) = bleDiscovery.readProfile(gatt)
                     ?: return@withContext Result.failure(Exception("获取资料失败"))
 
@@ -212,7 +213,7 @@ class ContactP2PRepository @Inject constructor(
     /**
      * 生成我的二维码
      */
-    suspend fun generateMyQRCode(): String {
+    suspend fun generateMyQRCodeBeacon(): String {
         val profile = profileRepository.getCurrentProfileOnce()
             ?: throw Exception("未找到个人资料")
 

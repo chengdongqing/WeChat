@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import javax.inject.Inject
@@ -80,22 +81,21 @@ class AddFriendViewModel @Inject constructor(
             Log.d("AddFriend", "开始处理二维码")
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            qrCodeUseCase.scanQRCodeToAddFriend(qrContent).fold(
-                onSuccess = { contact ->
+            when (val result = qrCodeUseCase.handleScannedQRCode(qrContent)) {
+                is QRCodeResult.AddFriend -> {
                     _uiState.update { it.copy(isLoading = false) }
-                    _navigationEvent.emit(
-                        AddFriendNavigationEvent.NavigateToContactDetail(contact.id)
-                    )
-                },
-                onFailure = { error ->
+                    _navigationEvent.emit(AddFriendNavigationEvent.NavigateToContactDetail(result.contact.id))
+                }
+
+                else -> {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = error.message ?: "连接失败"
+                            error = "不支持该二维码"
                         )
                     }
                 }
-            )
+            }
         }
     }
 
