@@ -24,6 +24,9 @@ data class FriendRequestEntity(
     val status: RequestStatus,          // 状态
     val direction: RequestDirection,    // 方向（发出/收到）
 
+    // 新增：是否已读
+    val isRead: Boolean = false,
+
     // 时间
     val createAt: Long,                // 创建时间
     val updatedAt: Long                 // 更新时间

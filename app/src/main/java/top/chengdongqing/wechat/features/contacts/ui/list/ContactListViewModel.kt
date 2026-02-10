@@ -37,7 +37,7 @@ class ContactListViewModel @Inject constructor(
     // 组合多个数据流
     val state: StateFlow<ContactListUiState> = combine(
         _state,
-        friendRequestRepository.getPendingCount()
+        friendRequestRepository.getUnreadCount()
     ) { contactsData, pendingCount ->
         ContactListUiState(
             isLoading = contactsData.isLoading,

@@ -26,6 +26,7 @@ import android.os.IBinder
 import android.os.ParcelUuid
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +71,6 @@ class P2PService : Service() {
 
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
     private var gattServer: BluetoothGattServer? = null
-    private var isReceivingBinary = false
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
         val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
@@ -89,7 +89,7 @@ class P2PService : Service() {
         // Descriptor UUID（用于启用 Notification）
         val DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
-        private const val MAX_CHUNK_SIZE = 500  // 每次发送500字节
+        private const val MAX_CHUNK_SIZE = 500
 
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "p2p_service_channel"
@@ -157,7 +157,7 @@ class P2PService : Service() {
         }
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("局域网微信")
+            .setContentTitle(getString(R.string.app_name))
             .setContentText("P2P服务运行中")
             .setSmallIcon(R.drawable.img_logo)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -286,6 +286,9 @@ class P2PService : Service() {
      */
     private inner class GattServerCallback : BluetoothGattServerCallback() {
 
+        // 使用设备级别的状态管理
+        private val deviceSessions = mutableMapOf<String, DeviceSession>()
+
         override fun onConnectionStateChange(
             device: BluetoothDevice,
             status: Int,
@@ -294,10 +297,14 @@ class P2PService : Service() {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     Log.d(TAG, "设备已连接: ${device.address}")
+                    // 创建会话
+                    deviceSessions[device.address] = DeviceSession()
                 }
 
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     Log.d(TAG, "设备已断开: ${device.address}")
+                    // 清理会话
+                    deviceSessions.remove(device.address)
                 }
             }
         }
@@ -348,11 +355,6 @@ class P2PService : Service() {
             )
         }
 
-        // 接收缓冲区
-        private val receivedMessageData = mutableMapOf<String, ByteArrayOutputStream>()
-        private var currentMessage: P2PMessage? = null
-        private var expectedBinarySize = 0
-
         @SuppressLint("MissingPermission")
         override fun onCharacteristicWriteRequest(
             device: BluetoothDevice,
@@ -365,21 +367,22 @@ class P2PService : Service() {
         ) {
             serviceScope.launch {
                 try {
-                    val deviceKey = device.address
+                    val session = deviceSessions[device.address] ?: run {
+                        Log.e(TAG, "未找到设备会话")
+                        return@launch
+                    }
 
-                    if (!isReceivingBinary) {
-                        // 尝试解析为 JSON
-                        val buffer =
-                            receivedMessageData.getOrPut(deviceKey) { ByteArrayOutputStream() }
-                        buffer.write(value)
+                    if (!session.isReceivingBinary) {
+                        // 接收 JSON
+                        session.buffer.write(value)
 
-                        val jsonString = String(buffer.toByteArray(), Charsets.UTF_8)
+                        val jsonString = String(session.buffer.toByteArray(), Charsets.UTF_8)
 
                         if (jsonString.startsWith("{") && jsonString.endsWith("}")) {
                             try {
                                 // JSON 接收完成
                                 val message = json.decodeFromString<P2PMessage>(jsonString)
-                                currentMessage = message
+                                session.currentMessage = message
 
                                 Log.d(TAG, "✅ 收到消息: ${message::class.simpleName}")
 
@@ -390,18 +393,17 @@ class P2PService : Service() {
                                     else -> 0
                                 }
 
-                                receivedMessageData.remove(deviceKey)  // 清空 JSON 缓冲
+                                session.buffer.reset() // 清空 JSON 缓冲
 
                                 if (binarySize > 0) {
                                     // 准备接收二进制
-                                    isReceivingBinary = true
-                                    expectedBinarySize = binarySize
-                                    receivedMessageData[deviceKey] = ByteArrayOutputStream()
+                                    session.isReceivingBinary = true
+                                    session.expectedBinarySize = binarySize
                                     Log.d(TAG, "等待二进制数据: $binarySize 字节")
                                 } else {
                                     // 没有二进制，直接处理
                                     handleCompleteMessage(message, null)
-                                    currentMessage = null
+                                    session.currentMessage = null
                                 }
                             } catch (_: Exception) {
                                 Log.d(TAG, "JSON 未完成，继续接收...")
@@ -409,26 +411,25 @@ class P2PService : Service() {
                         }
                     } else {
                         // 接收二进制数据
-                        val buffer = receivedMessageData[deviceKey]!!
-                        buffer.write(value)
+                        session.buffer.write(value)
 
                         Log.d(
                             TAG,
-                            "接收二进制片段: ${value.size} 字节, 累计: ${buffer.size()}/$expectedBinarySize"
+                            "接收二进制片段: ${session.buffer.size()}/${session.expectedBinarySize}"
                         )
 
-                        if (buffer.size() >= expectedBinarySize) {
+                        if (session.buffer.size() >= session.expectedBinarySize) {
                             // 接收完成
-                            val binaryData = buffer.toByteArray()
+                            val binaryData = session.buffer.toByteArray()
                             Log.d(TAG, "✅ 二进制接收完成: ${binaryData.size} 字节")
 
-                            handleCompleteMessage(currentMessage, binaryData)
+                            handleCompleteMessage(session.currentMessage, binaryData)
 
                             // 清理
-                            receivedMessageData.remove(deviceKey)
-                            currentMessage = null
-                            expectedBinarySize = 0
-                            isReceivingBinary = false
+                            session.buffer.reset()
+                            session.currentMessage = null
+                            session.expectedBinarySize = 0
+                            session.isReceivingBinary = false
                         }
                     }
 
@@ -496,10 +497,9 @@ class P2PService : Service() {
     private fun showFriendRequestNotification(title: String, content: String) {
         try {
             // 创建点击 Intent（打开新的朋友页面）
-            val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = "wechat://contacts/new_friends".toUri()
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                // 可以添加额外参数，指示打开新的朋友页面
-                putExtra("open_new_friends", true)
             }
 
             val pendingIntent = PendingIntent.getActivity(
@@ -670,3 +670,10 @@ private fun String.toMD5Bytes(): ByteArray {
     val md = MessageDigest.getInstance("MD5")
     return md.digest(this.toByteArray())
 }
+
+private data class DeviceSession(
+    var isReceivingBinary: Boolean = false,
+    val buffer: ByteArrayOutputStream = ByteArrayOutputStream(),
+    var currentMessage: P2PMessage? = null,
+    var expectedBinarySize: Int = 0
+)

@@ -54,6 +54,12 @@ class NewFriendsViewModel @Inject constructor(
         initialValue = NewFriendsUiState()
     )
 
+    fun markAllAsRead() {
+        viewModelScope.launch {
+            friendRequestRepository.markAllIncomingAsRead()
+        }
+    }
+
     fun onSearchQueryChange(newQuery: String) {
         _searchQuery.value = newQuery
     }

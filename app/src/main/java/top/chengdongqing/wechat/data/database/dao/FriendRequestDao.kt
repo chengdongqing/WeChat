@@ -32,4 +32,25 @@ interface FriendRequestDao {
 
     @Query("SELECT COUNT(*) FROM friend_requests WHERE direction = 'INCOMING' AND status = 'PENDING'")
     fun getPendingCount(): Flow<Int>
+
+    // 查询未读数量（只统计收到的待处理申请）
+    @Query(
+        """
+        SELECT COUNT(*) FROM friend_requests 
+        WHERE direction = 'INCOMING' 
+        AND status = 'PENDING' 
+        AND isRead = 0
+    """
+    )
+    fun getUnreadCount(): Flow<Int>
+
+    // 标记所有收到的申请为已读
+    @Query(
+        """
+        UPDATE friend_requests 
+        SET isRead = 1, updatedAt = :updatedAt 
+        WHERE direction = 'INCOMING'
+    """
+    )
+    suspend fun markAllIncomingAsRead(updatedAt: Long)
 }

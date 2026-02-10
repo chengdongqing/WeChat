@@ -57,6 +57,22 @@ class FriendRequestRepository @Inject constructor(
     }
 
     /**
+     * 获取未读数量
+     */
+    fun getUnreadCount(): Flow<Int> {
+        return friendRequestDao.getUnreadCount()
+    }
+
+    /**
+     * 标记所有收到的申请为已读
+     */
+    suspend fun markAllIncomingAsRead() {
+        withContext(Dispatchers.IO) {
+            friendRequestDao.markAllIncomingAsRead(System.currentTimeMillis())
+        }
+    }
+
+    /**
      * 删除请求
      */
     suspend fun delete(requestId: String) {
@@ -122,6 +138,7 @@ class FriendRequestRepository @Inject constructor(
                     note = note,
                     status = RequestStatus.PENDING,
                     direction = RequestDirection.OUTGOING,
+                    isRead = true,
                     createAt = System.currentTimeMillis(),
                     updatedAt = System.currentTimeMillis()
                 )
@@ -246,7 +263,7 @@ class FriendRequestRepository @Inject constructor(
                 // 检查是否已经是好友
                 if (contactDao.exists(message.peerUserId)) {
                     Log.d("FriendRequest", "已经是好友")
-//                    return@withContext
+                    return@withContext
                 }
 
                 // 保存头像二进制
