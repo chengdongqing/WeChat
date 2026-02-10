@@ -248,8 +248,11 @@ private fun HomeTopBar(
 @Composable
 private fun HomeBottomBar(
     pagerState: PagerState,
-    onTabSelected: (Int) -> Unit
+    onTabSelected: (Int) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
+    val unreadCounts by viewModel.unreadCounts.collectAsStateWithLifecycle()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -272,6 +275,7 @@ private fun HomeBottomBar(
                 } else {
                     WeTheme.colorScheme.tabBarIconInactive
                 }
+                val badge = unreadCounts[screen] ?: 0
 
                 Column(
                     modifier = Modifier
@@ -281,8 +285,8 @@ private fun HomeBottomBar(
                     verticalArrangement = Arrangement.Center
                 ) {
                     WeBadge(
-                        visible = index == 0,
-                        content = 6.toBadgeText(),
+                        visible = badge > 0,
+                        content = badge.toBadgeText(),
                         size = 20.dp,
                         offset = DpOffset(x = 12.dp, y = (-2).dp)
                     ) {

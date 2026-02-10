@@ -18,9 +18,6 @@ interface FriendRequestDao {
     @Query("SELECT * FROM friend_requests WHERE id = :requestId")
     suspend fun getById(requestId: String): FriendRequestEntity?
 
-    @Query("SELECT * FROM friend_requests WHERE fromUserId = :userId AND toUserId = :currentUserId AND status = 'PENDING'")
-    suspend fun getPendingRequestFrom(userId: String, currentUserId: String): FriendRequestEntity?
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(request: FriendRequestEntity)
 

@@ -8,9 +8,9 @@ import androidx.navigation.navArgument
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.AddFriendScreen
-import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.AcceptVerifyScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.NewFriendsScreen
-import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.RequestAddScreen
+import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.request.RequestAddScreen
+import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.verify.AcceptVerifyScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.pincode.PinCodeGroupScreen
 import top.chengdongqing.wechat.features.contacts.ui.addfriend.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen

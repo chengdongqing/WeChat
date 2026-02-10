@@ -61,6 +61,7 @@ class BLEDiscovery @Inject constructor(
 
     companion object {
         private const val TAG = "BLEDiscovery"
+        private const val MAX_WRITE_SIZE = 512
     }
 
     /**
@@ -161,19 +162,71 @@ class BLEDiscovery @Inject constructor(
         characteristic: BluetoothGattCharacteristic,
         data: ByteArray
     ): Boolean {
+        return try {
+            if (data.size <= MAX_WRITE_SIZE) {
+                // 小于最大值，直接写入
+                Log.d(TAG, "单次写入: ${data.size} 字节")
+                writeCharacteristicOnce(gatt, characteristic, data)
+            } else {
+                // 分片写入
+                Log.d(TAG, "开始分片写入，总大小: ${data.size} 字节")
+
+                var offset = 0
+                var chunkIndex = 0
+
+                while (offset < data.size) {
+                    val remaining = data.size - offset
+                    val chunkSize = minOf(MAX_WRITE_SIZE, remaining)
+                    val chunk = data.copyOfRange(offset, offset + chunkSize)
+
+                    Log.d(
+                        TAG,
+                        "写入片段 #$chunkIndex: $chunkSize 字节, 剩余: ${remaining - chunkSize}"
+                    )
+
+                    val success = writeCharacteristicOnce(gatt, characteristic, chunk)
+
+                    if (!success) {
+                        Log.e(TAG, "片段 #$chunkIndex 写入失败")
+                        return false
+                    }
+
+                    offset += chunkSize
+                    chunkIndex++
+
+                    // 每片之间延迟 50ms
+                    delay(50)
+                }
+
+                Log.d(TAG, "✅ 分片写入完成，共 $chunkIndex 片")
+                true
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "写入失败", e)
+            false
+        }
+    }
+
+    /**
+     * 写入特征值（单次）
+     */
+    @SuppressLint("MissingPermission")
+    private suspend fun writeCharacteristicOnce(
+        gatt: BluetoothGatt,
+        characteristic: BluetoothGattCharacteristic,
+        data: ByteArray
+    ): Boolean {
         return suspendCancellableCoroutine { continuation ->
 
             writeContinuation = continuation
 
             val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                // Android 13+ 新 API
                 gatt.writeCharacteristic(
                     characteristic,
                     data,
                     BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
                 ) == BluetoothStatusCodes.SUCCESS
             } else {
-                // Android 13 以下旧 API
                 @Suppress("DEPRECATION")
                 characteristic.value = data
                 @Suppress("DEPRECATION")
@@ -188,8 +241,6 @@ class BLEDiscovery @Inject constructor(
                 continuation.resume(false)
                 return@suspendCancellableCoroutine
             }
-
-            Log.d(TAG, "已启动写入，等待回调...")
 
             // 10秒超时
             CoroutineScope(Dispatchers.IO).launch {

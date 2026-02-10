@@ -7,22 +7,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.PinyinHelper.getInitial
 import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
 import javax.inject.Inject
-
-data class ContactListState(
-    val isLoading: Boolean = true,
-    val groups: Map<Char, List<Contact>> = emptyMap(),
-    val totalCount: Int = 0,
-    val indexMap: Map<Char, Int> = emptyMap() // 索引表：保存预计算的索引位置
-)
 
 data class Contact(
     val id: String,
@@ -32,9 +28,29 @@ data class Contact(
 )
 
 @HiltViewModel
-class ContactListViewModel @Inject constructor() : ViewModel() {
-    private val _state = MutableStateFlow(ContactListState())
-    val state: StateFlow<ContactListState> = _state.asStateFlow()
+class ContactListViewModel @Inject constructor(
+    friendRequestRepository: FriendRequestRepository
+) : ViewModel() {
+    // 联系人数据流
+    private val _state = MutableStateFlow(ContactsData())
+
+    // 组合多个数据流
+    val state: StateFlow<ContactListUiState> = combine(
+        _state,
+        friendRequestRepository.getPendingCount()
+    ) { contactsData, pendingCount ->
+        ContactListUiState(
+            isLoading = contactsData.isLoading,
+            groups = contactsData.groups,
+            totalCount = contactsData.totalCount,
+            indexMap = contactsData.indexMap,
+            pendingCount = pendingCount
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ContactListUiState()
+    )
 
     init {
         loadContacts()
@@ -125,3 +141,20 @@ class ContactListViewModel @Inject constructor() : ViewModel() {
         return indexMap
     }
 }
+
+// 内部数据类
+private data class ContactsData(
+    val isLoading: Boolean = true,
+    val groups: Map<Char, List<Contact>> = emptyMap(),
+    val totalCount: Int = 0,
+    val indexMap: Map<Char, Int> = emptyMap()
+)
+
+// UI State
+data class ContactListUiState(
+    val isLoading: Boolean = true,
+    val groups: Map<Char, List<Contact>> = emptyMap(),
+    val totalCount: Int = 0,
+    val indexMap: Map<Char, Int> = emptyMap(),
+    val pendingCount: Int = 0
+)

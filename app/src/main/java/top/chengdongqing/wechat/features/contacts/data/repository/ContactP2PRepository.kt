@@ -102,7 +102,7 @@ class ContactP2PRepository @Inject constructor(
 
             return Contact(
                 id = profile.userId,
-                name = profile.nickname,
+                nickname = profile.nickname,
                 avatarPath = avatarPath,
                 signature = profile.signature,
                 gender = Gender.fromIndex(profile.gender)

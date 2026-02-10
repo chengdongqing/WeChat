@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -14,6 +15,8 @@ import javax.inject.Inject
 
 data class NewFriendsUiState(
     val requests: List<FriendRequest> = emptyList(),
+    val filteredRequests: List<FriendRequest> = emptyList(), // 过滤后的展示数据
+    val searchQuery: String = "", // 搜索框内容
     val pendingCount: Int = 0
 )
 
@@ -22,12 +25,27 @@ class NewFriendsViewModel @Inject constructor(
     private val friendRequestRepository: FriendRequestRepository
 ) : ViewModel() {
 
+    private val _searchQuery = MutableStateFlow("")
+
     val uiState: StateFlow<NewFriendsUiState> = combine(
         friendRequestRepository.getRequests(),
-        friendRequestRepository.getPendingCount()
-    ) { requests, count ->
+        friendRequestRepository.getPendingCount(),
+        _searchQuery
+    ) { requests, count, query ->
+        // 匹配昵称或微信号
+        val filtered = if (query.isBlank()) {
+            requests
+        } else {
+            requests.filter {
+                it.peerNickname.contains(query, ignoreCase = true) ||
+                        it.peerUserId.contains(query, ignoreCase = true)
+            }
+        }
+
         NewFriendsUiState(
             requests = requests,
+            filteredRequests = filtered,
+            searchQuery = query,
             pendingCount = count
         )
     }.stateIn(
@@ -35,6 +53,10 @@ class NewFriendsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = NewFriendsUiState()
     )
+
+    fun onSearchQueryChange(newQuery: String) {
+        _searchQuery.value = newQuery
+    }
 
     fun delete(requestId: String) {
         viewModelScope.launch {

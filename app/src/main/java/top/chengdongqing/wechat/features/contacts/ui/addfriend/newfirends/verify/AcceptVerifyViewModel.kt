@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends
+package top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.verify
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

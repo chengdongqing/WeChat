@@ -89,7 +89,7 @@ private fun ContactBasicInfo(
         // 昵称
         InfoText(
             label = "昵称：",
-            value = contact.name,
+            value = contact.nickname,
             modifier = Modifier.padding(top = 2.dp)
         )
 

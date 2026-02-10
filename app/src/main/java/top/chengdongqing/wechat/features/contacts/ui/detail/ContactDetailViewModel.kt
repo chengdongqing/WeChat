@@ -51,7 +51,7 @@ class ContactDetailViewModel @AssistedInject constructor(
         ContactDetailUiState(
             contact = Contact(
                 id = contactId,
-                name = "加载中...",
+                nickname = "加载中...",
             ),
             isLoading = true
         )
@@ -179,7 +179,7 @@ class ContactDetailViewModel @AssistedInject constructor(
     private fun createSampleContact(): Contact {
         return Contact(
             id = "wxid_${randomUUID().take(12)}",
-            name = "海盐芝士不加糖",
+            nickname = "海盐芝士不加糖",
             gender = Gender.Male,
             avatarPath = "",
             remarkName = "老舅",

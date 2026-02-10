@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends
+package top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.verify
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect

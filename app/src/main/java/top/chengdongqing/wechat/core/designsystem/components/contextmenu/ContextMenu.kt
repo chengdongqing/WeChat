@@ -198,7 +198,7 @@ fun Modifier.weContextMenu(
         }
         .indication(
             interactionSource = interactionSource,
-            indication = LocalIndication.current
+            indication = if (onClick != null) LocalIndication.current else null
         )
         .pointerInput(onClick, onLongClick) {
             detectTapGestures(

@@ -7,7 +7,7 @@ import top.chengdongqing.wechat.data.model.Gender
  */
 data class Contact(
     val id: String,
-    val name: String,
+    val nickname: String,
     val avatarPath: String? = null,
     val remarkName: String = "",
     val gender: Gender? = null,
@@ -18,10 +18,10 @@ data class Contact(
     val relation: ContactRelation = ContactRelation.NotFriend
 ) {
     /**
-     * UI 显示名称：优先显示备注名 [remarkName]，若无备注则显示原始昵称 [name]
+     * UI 显示名称：优先显示备注名 [remarkName]，若无备注则显示原始昵称 [nickname]
      */
     val displayName: String
-        get() = remarkName.ifBlank { name }
+        get() = remarkName.ifBlank { nickname }
 
     /**
      * 是否是好友

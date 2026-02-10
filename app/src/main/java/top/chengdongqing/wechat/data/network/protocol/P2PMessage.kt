@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.data.network.protocol
 
 import kotlinx.serialization.Serializable
+import top.chengdongqing.wechat.data.model.Gender
 
 /**
  * P2P消息定义
@@ -14,14 +15,13 @@ sealed class P2PMessage {
     @Serializable
     data class FriendRequest(
         val requestId: String,
-        val fromUserId: String,
-        val fromNickname: String,
-        val fromAvatarPath: String?,
-        val toUserId: String,
+        val peerUserId: String,
+        val peerNickname: String,
         val greetingMessage: String,
         val remark: String?,
         val tags: List<String>?,
         val note: String?,
+        val avatarSize: Int,
         val timestamp: Long
     ) : P2PMessage()
 
@@ -35,6 +35,20 @@ sealed class P2PMessage {
         val remark: String?,
         val tags: List<String>?,
         val note: String?,
+        val timestamp: Long
+    ) : P2PMessage()
+
+    /**
+     * 完整资料响应
+     */
+    @Serializable
+    data class FullProfileResponse(
+        val requestId: String,
+        val userId: String,
+        val nickname: String,
+        val signature: String?,
+        val gender: Gender?,
+        val avatarSize: Int,
         val timestamp: Long
     ) : P2PMessage()
 

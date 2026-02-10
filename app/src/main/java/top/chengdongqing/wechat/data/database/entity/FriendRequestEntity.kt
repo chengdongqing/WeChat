@@ -10,11 +10,9 @@ data class FriendRequestEntity(
     val id: String,              // 请求ID
 
     // 基本信息
-    val fromUserId: String,             // 发起人ID
-    val fromNickname: String,           // 发起人昵称
-    val fromAvatarPath: String?,        // 发起人头像路径
-
-    val toUserId: String,               // 接收人ID
+    val peerUserId: String,             // 对方的ID
+    val peerNickname: String,           // 对方的昵称
+    val peerAvatarPath: String?,        // 对方的头像路径
 
     // 申请内容
     val greetingMessage: String,        // 打招呼内容
@@ -33,9 +31,9 @@ data class FriendRequestEntity(
     fun toDomain(): FriendRequest {
         return FriendRequest(
             id = id,
-            fromUserId = fromUserId,
-            fromNickname = fromNickname,
-            fromAvatarPath = fromAvatarPath,
+            peerUserId = peerUserId,
+            peerNickname = peerNickname,
+            peerAvatarPath = peerAvatarPath,
             greetingMessage = greetingMessage,
             remark = remark,
             status = status,
@@ -55,4 +53,6 @@ enum class RequestStatus {
 enum class RequestDirection {
     OUTGOING,   // 发出的
     INCOMING;    // 收到的
+
+    val isOutgoing: Boolean get() = this == OUTGOING
 }

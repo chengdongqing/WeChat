@@ -21,14 +21,11 @@ import android.bluetooth.le.AdvertiseData
 import android.bluetooth.le.AdvertiseSettings
 import android.bluetooth.le.BluetoothLeAdvertiser
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
 import android.os.ParcelUuid
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.core.graphics.scale
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,14 +35,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.data.model.Gender.Companion.getIndex
 import top.chengdongqing.wechat.data.model.UserProfileTransfer
+import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
 import top.chengdongqing.wechat.data.network.protocol.RequestAction
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.security.MessageDigest
 import java.util.UUID
 import javax.inject.Inject
@@ -60,12 +58,19 @@ class P2PService : Service() {
     lateinit var friendRequestRepository: FriendRequestRepository
 
     @Inject
+    lateinit var bleDiscovery: BLEDiscovery
+
+    @Inject
+    lateinit var imageExt: ImageExt
+
+    @Inject
     lateinit var json: Json
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
 
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
     private var gattServer: BluetoothGattServer? = null
+    private var isReceivingBinary = false
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
         val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
@@ -343,6 +348,11 @@ class P2PService : Service() {
             )
         }
 
+        // 接收缓冲区
+        private val receivedMessageData = mutableMapOf<String, ByteArrayOutputStream>()
+        private var currentMessage: P2PMessage? = null
+        private var expectedBinarySize = 0
+
         @SuppressLint("MissingPermission")
         override fun onCharacteristicWriteRequest(
             device: BluetoothDevice,
@@ -355,32 +365,70 @@ class P2PService : Service() {
         ) {
             serviceScope.launch {
                 try {
-                    Log.d(TAG, "收到写入请求，数据大小: ${value.size}")
+                    val deviceKey = device.address
 
-                    // 反序列化消息
-                    when (val message = deserializeMessage(value)) {
-                        is P2PMessage.FriendRequest -> {
-                            Log.d(TAG, "收到好友申请: ${message.fromNickname}")
-                            friendRequestRepository.handleIncomingRequest(message)
-                            showFriendRequestNotification(
-                                message.fromNickname,
-                                "请求添加你为好友"
-                            )
-                        }
+                    if (!isReceivingBinary) {
+                        // 尝试解析为 JSON
+                        val buffer =
+                            receivedMessageData.getOrPut(deviceKey) { ByteArrayOutputStream() }
+                        buffer.write(value)
 
-                        is P2PMessage.FriendRequestResponse -> {
-                            Log.d(TAG, "收到好友申请响应: ${message.action}")
-                            friendRequestRepository.handleRequestResponse(message)
-                            if (message.action == RequestAction.ACCEPT) {
-                                showFriendRequestNotification(
-                                    "好友申请",
-                                    "对方已同意你的好友申请"
-                                )
+                        val jsonString = String(buffer.toByteArray(), Charsets.UTF_8)
+
+                        if (jsonString.startsWith("{") && jsonString.endsWith("}")) {
+                            try {
+                                // JSON 接收完成
+                                val message = json.decodeFromString<P2PMessage>(jsonString)
+                                currentMessage = message
+
+                                Log.d(TAG, "✅ 收到消息: ${message::class.simpleName}")
+
+                                // 检查是否有后续二进制
+                                val binarySize = when (message) {
+                                    is P2PMessage.FriendRequest -> message.avatarSize
+                                    is P2PMessage.FullProfileResponse -> message.avatarSize
+                                    else -> 0
+                                }
+
+                                receivedMessageData.remove(deviceKey)  // 清空 JSON 缓冲
+
+                                if (binarySize > 0) {
+                                    // 准备接收二进制
+                                    isReceivingBinary = true
+                                    expectedBinarySize = binarySize
+                                    receivedMessageData[deviceKey] = ByteArrayOutputStream()
+                                    Log.d(TAG, "等待二进制数据: $binarySize 字节")
+                                } else {
+                                    // 没有二进制，直接处理
+                                    handleCompleteMessage(message, null)
+                                    currentMessage = null
+                                }
+                            } catch (_: Exception) {
+                                Log.d(TAG, "JSON 未完成，继续接收...")
                             }
                         }
+                    } else {
+                        // 接收二进制数据
+                        val buffer = receivedMessageData[deviceKey]!!
+                        buffer.write(value)
 
-                        else -> {
-                            Log.d(TAG, "收到其他类型消息: ${message::class.simpleName}")
+                        Log.d(
+                            TAG,
+                            "接收二进制片段: ${value.size} 字节, 累计: ${buffer.size()}/$expectedBinarySize"
+                        )
+
+                        if (buffer.size() >= expectedBinarySize) {
+                            // 接收完成
+                            val binaryData = buffer.toByteArray()
+                            Log.d(TAG, "✅ 二进制接收完成: ${binaryData.size} 字节")
+
+                            handleCompleteMessage(currentMessage, binaryData)
+
+                            // 清理
+                            receivedMessageData.remove(deviceKey)
+                            currentMessage = null
+                            expectedBinarySize = 0
+                            isReceivingBinary = false
                         }
                     }
 
@@ -394,7 +442,7 @@ class P2PService : Service() {
                         )
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "处理消息失败", e)
+                    Log.e(TAG, "处理写入失败", e)
                     if (responseNeeded) {
                         gattServer?.sendResponse(
                             device,
@@ -407,21 +455,38 @@ class P2PService : Service() {
                 }
             }
         }
-    }
 
-    /**
-     * 反序列化消息
-     */
-    private fun deserializeMessage(data: ByteArray): P2PMessage {
-        return try {
-            val jsonString = String(data, Charsets.UTF_8)
-            Log.d(TAG, "反序列化消息: $jsonString")
+        /**
+         * 处理完整消息（JSON + 可选的二进制数据）
+         */
+        private suspend fun handleCompleteMessage(message: P2PMessage?, binaryData: ByteArray?) {
+            when (message) {
+                is P2PMessage.FriendRequest -> {
+                    friendRequestRepository.handleIncomingRequest(message, binaryData)
+                    showFriendRequestNotification(
+                        message.peerNickname,
+                        "请求添加你为好友"
+                    )
+                }
 
-            // 使用 Kotlinx Serialization 的多态反序列化
-            json.decodeFromString<P2PMessage>(jsonString)
-        } catch (e: Exception) {
-            Log.e(TAG, "反序列化失败", e)
-            throw Exception("无法解析消息: ${e.message}")
+                is P2PMessage.FriendRequestResponse -> {
+                    friendRequestRepository.handleRequestResponse(message)
+                    if (message.action == RequestAction.ACCEPT) {
+                        showFriendRequestNotification(
+                            "好友申请",
+                            "对方已同意你的好友申请"
+                        )
+                    }
+                }
+
+                is P2PMessage.FullProfileResponse -> {
+                    friendRequestRepository.handleFullProfileResponse(message, binaryData)
+                }
+
+                else -> {
+                    Log.w(TAG, "未知消息类型")
+                }
+            }
         }
     }
 
@@ -503,7 +568,11 @@ class P2PService : Service() {
             }
 
             val thumbnailBytes = myProfile.avatarPath?.let { path ->
-                generateThumbnailBytes(path)
+                imageExt.generateThumbnailBytes(
+                    imagePath = path,
+                    targetSize = 100,
+                    maxSizeKB = 5
+                )
             }
 
             val transfer = UserProfileTransfer(
@@ -584,55 +653,6 @@ class P2PService : Service() {
             chunkIndex++
 
             delay(50)
-        }
-    }
-
-    /**
-     * 生成缩略图并转为Base64
-     */
-    private fun generateThumbnailBytes(
-        imagePath: String,
-        maxSizeKB: Int = 5,
-        maxDimension: Int = 100
-    ): ByteArray? {
-        return try {
-            val file = File(imagePath)
-            if (!file.exists()) return null
-
-            // 读取图片
-            val bitmap = BitmapFactory.decodeFile(imagePath) ?: return null
-
-            // 计算缩放比例
-            val scale = minOf(
-                maxDimension.toFloat() / bitmap.width,
-                maxDimension.toFloat() / bitmap.height
-            )
-
-            val scaledWidth = (bitmap.width * scale).toInt()
-            val scaledHeight = (bitmap.height * scale).toInt()
-
-            // 缩放
-            val thumbnail = bitmap.scale(scaledWidth, scaledHeight)
-
-            // 压缩为JPEG
-            val outputStream = ByteArrayOutputStream()
-            var quality = 80
-
-            do {
-                outputStream.reset()
-                thumbnail.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
-                quality -= 10
-            } while (outputStream.size() > maxSizeKB * 1024 && quality > 10)
-
-            val bytes = outputStream.toByteArray()
-
-            bitmap.recycle()
-            thumbnail.recycle()
-
-            bytes
-        } catch (e: Exception) {
-            Log.e(TAG, "生成缩略图失败", e)
-            null
         }
     }
 

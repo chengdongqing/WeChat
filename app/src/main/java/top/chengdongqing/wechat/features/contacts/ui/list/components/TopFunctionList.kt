@@ -16,45 +16,55 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
+import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun TopFunctionList(onNavigateToNewFriends: () -> Unit) {
-    val functions = listOf(
-        TopFunction(
-            title = "新的朋友",
-            iconResId = R.drawable.ic_add_friends_filled,
-            containerColor = Color(0xFFFA9D3B),
-            onClick = onNavigateToNewFriends
-        ),
-        TopFunction(
-            title = "群聊",
-            iconResId = R.drawable.ic_group_chat_filled,
-            containerColor = Color(0xFF07C160),
-            onClick = {}
-        ),
-        TopFunction(
-            title = "标签",
-            iconResId = R.drawable.ic_tag_filled,
-            containerColor = Color(0xFF2782D7),
-            onClick = {}
-        ),
-        TopFunction(
-            title = "公众号",
-            iconResId = R.drawable.ic_officical_account_filled,
-            containerColor = Color(0xFF2782D7),
-            onClick = {}
+fun TopFunctionList(
+    pendingCount: Int,
+    onNavigateToNewFriends: () -> Unit
+) {
+    val functions = remember(pendingCount) {
+        listOf(
+            TopFunction(
+                title = "新的朋友",
+                iconResId = R.drawable.ic_add_friends_filled,
+                badge = pendingCount,
+                containerColor = Color(0xFFFA9D3B),
+                onClick = onNavigateToNewFriends
+            ),
+            TopFunction(
+                title = "群聊",
+                iconResId = R.drawable.ic_group_chat_filled,
+                containerColor = Color(0xFF07C160),
+                onClick = {}
+            ),
+            TopFunction(
+                title = "标签",
+                iconResId = R.drawable.ic_tag_filled,
+                containerColor = Color(0xFF2782D7),
+                onClick = {}
+            ),
+            TopFunction(
+                title = "公众号",
+                iconResId = R.drawable.ic_officical_account_filled,
+                containerColor = Color(0xFF2782D7),
+                onClick = {}
+            )
         )
-    )
+    }
 
     Column(
         modifier = Modifier
@@ -95,17 +105,27 @@ private fun TopFunctionItem(function: TopFunction) {
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = function.title,
-            fontSize = 16.sp,
-            color = WeTheme.colorScheme.textPrimary
-        )
+        WeBadge(
+            visible = function.badge > 0,
+            content = function.badge.toBadgeText(),
+            alignment = Alignment.CenterEnd,
+            size = 20.dp,
+            offset = DpOffset(0)
+        ) {
+            Text(
+                text = function.title,
+                fontSize = 16.sp,
+                color = WeTheme.colorScheme.textPrimary,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
 private data class TopFunction(
     val title: String,
     @get:DrawableRes val iconResId: Int,
+    val badge: Int = 0,
     val containerColor: Color,
     val onClick: () -> Unit
 )

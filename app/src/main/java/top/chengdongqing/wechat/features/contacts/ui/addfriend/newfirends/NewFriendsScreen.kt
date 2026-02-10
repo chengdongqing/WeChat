@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,6 +43,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuLi
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
@@ -55,10 +57,11 @@ fun NewFriendsScreen(
     viewModel: NewFriendsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val overscrollEffect = rememberBounceOverscrollEffect()
 
     // 按时间分组
-    val (recent, older) = remember(uiState.requests) {
-        uiState.requests.partition { request ->
+    val (recent, older) = remember(uiState.filteredRequests) {
+        uiState.filteredRequests.partition { request ->
             System.currentTimeMillis() - request.timestamp < 3.days.inWholeMilliseconds
         }
     }
@@ -77,27 +80,35 @@ fun NewFriendsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .overscroll(overscrollEffect),
+            overscrollEffect = overscrollEffect
         ) {
             // 搜索栏
-            item {
-                Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            stickyHeader {
+                // 搜索框
+                Box(
+                    modifier = Modifier
+                        .background(WeTheme.colorScheme.background)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
                     WeSearchBar(
-                        value = "",
+                        value = uiState.searchQuery,
                         placeholder = "搜索 账号/名字",
                         backgroundColor = WeTheme.colorScheme.surface,
-                        onChange = {}
+                        onChange = { viewModel.onSearchQueryChange(it) }
                     )
                 }
             }
 
             // 功能菜单
-            item {
-                MenuListItem(
-                    label = "添加手机联系人",
-                    iconResId = R.drawable.ic_voice_call_filled,
-                    iconColor = WeTheme.colorScheme.primary,
-                    onClick = { }
-                )
+            if (uiState.searchQuery.isEmpty()) {
+                item {
+                    MenuListItem(
+                        label = "添加手机联系人",
+                        iconResId = R.drawable.ic_voice_call_filled,
+                        iconColor = WeTheme.colorScheme.primary
+                    )
+                }
             }
 
             // 近三天
@@ -179,6 +190,7 @@ private fun FriendRequestItem(
     onClick: () -> Unit,
 ) {
     val contextMenuState = rememberContextMenuState()
+    val isOutgoing = request.direction.isOutgoing
 
     Column(
         modifier = Modifier
@@ -195,11 +207,11 @@ private fun FriendRequestItem(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // 头像组件
-            RequestAvatar(request.fromAvatarPath)
+            RequestAvatar(request.peerAvatarPath)
             // 信息主体 (昵称 & 留言)
             RequestContent(
-                nickname = request.fromNickname,
-                message = request.greetingMessage,
+                nickname = request.peerNickname,
+                message = (if (isOutgoing) "我：" else "") + request.greetingMessage,
                 modifier = Modifier.weight(1f)
             )
             // 状态处理器 (按钮或文字)
@@ -222,9 +234,8 @@ private fun FriendRequestItem(
 @Composable
 private fun RequestAvatar(url: String?) {
     AsyncImage(
-        model = url,
+        model = url ?: R.drawable.img_avatar_placeholder,
         contentDescription = "用户头像",
-        placeholder = painterResource(R.drawable.img_avatar_placeholder),
         error = painterResource(R.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(48.dp)
