@@ -13,7 +13,7 @@ import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
         FriendRequestEntity::class,
         ContactEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DatabaseConverters::class)

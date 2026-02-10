@@ -24,9 +24,9 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             WeDatabase::class.java,
-            "wechat_database"
+            "wechat"
         )
-            .fallbackToDestructiveMigration(false)  // 开发阶段可以用，生产环境需要配置 Migration
+            .fallbackToDestructiveMigration(true)  // 开发阶段可以用，生产环境需要配置 Migration
             .build()
     }
 

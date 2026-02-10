@@ -35,10 +35,10 @@ class FriendRequestRepository @Inject constructor(
 ) {
 
     /**
-     * 获取所有收到的好友申请
+     * 获取所有发出和收到的好友申请
      */
-    fun getIncomingRequests(): Flow<List<FriendRequest>> {
-        return friendRequestDao.getAllByDirection(RequestDirection.INCOMING)
+    fun getRequests(): Flow<List<FriendRequest>> {
+        return friendRequestDao.getAll()
             .map { entities -> entities.map { it.toDomain() } }
     }
 
@@ -47,6 +47,13 @@ class FriendRequestRepository @Inject constructor(
      */
     fun getPendingCount(): Flow<Int> {
         return friendRequestDao.getPendingCount()
+    }
+
+    /**
+     * 删除请求
+     */
+    suspend fun delete(requestId: String) {
+        return friendRequestDao.delete(requestId)
     }
 
     /**
@@ -89,7 +96,7 @@ class FriendRequestRepository @Inject constructor(
 
                 // 4. 保存到本地数据库（发出的申请）
                 val entity = FriendRequestEntity(
-                    requestId = requestId,
+                    id = requestId,
                     fromUserId = myProfile.id,
                     fromNickname = myProfile.nickname,
                     fromAvatarPath = myProfile.avatarPath,
@@ -269,7 +276,7 @@ class FriendRequestRepository @Inject constructor(
 
                 // 保存申请
                 val entity = FriendRequestEntity(
-                    requestId = message.requestId,
+                    id = message.requestId,
                     fromUserId = message.fromUserId,
                     fromNickname = message.fromNickname,
                     fromAvatarPath = message.fromAvatarPath,
@@ -339,20 +346,6 @@ class FriendRequestRepository @Inject constructor(
             }
         }
     }
-}
-
-// 扩展函数
-private fun FriendRequestEntity.toDomain(): FriendRequest {
-    return FriendRequest(
-        requestId = requestId,
-        fromUserId = fromUserId,
-        fromNickname = fromNickname,
-        fromAvatarPath = fromAvatarPath,
-        greetingMessage = greetingMessage,
-        remark = remark,
-        status = status,
-        timestamp = createAt
-    )
 }
 
 private fun String.toMD5Hex(): String {

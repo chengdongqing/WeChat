@@ -7,16 +7,15 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
-import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
 
 @Dao
 interface FriendRequestDao {
 
-    @Query("SELECT * FROM friend_requests WHERE direction = :direction ORDER BY createAt DESC")
-    fun getAllByDirection(direction: RequestDirection): Flow<List<FriendRequestEntity>>
+    @Query("SELECT * FROM friend_requests ORDER BY createAt DESC")
+    fun getAll(): Flow<List<FriendRequestEntity>>
 
-    @Query("SELECT * FROM friend_requests WHERE requestId = :requestId")
+    @Query("SELECT * FROM friend_requests WHERE id = :requestId")
     suspend fun getById(requestId: String): FriendRequestEntity?
 
     @Query("SELECT * FROM friend_requests WHERE fromUserId = :userId AND toUserId = :currentUserId AND status = 'PENDING'")
@@ -28,10 +27,10 @@ interface FriendRequestDao {
     @Update
     suspend fun update(request: FriendRequestEntity)
 
-    @Query("UPDATE friend_requests SET status = :status, updatedAt = :updatedAt WHERE requestId = :requestId")
+    @Query("UPDATE friend_requests SET status = :status, updatedAt = :updatedAt WHERE id = :requestId")
     suspend fun updateStatus(requestId: String, status: RequestStatus, updatedAt: Long)
 
-    @Query("DELETE FROM friend_requests WHERE requestId = :requestId")
+    @Query("DELETE FROM friend_requests WHERE id = :requestId")
     suspend fun delete(requestId: String)
 
     @Query("SELECT COUNT(*) FROM friend_requests WHERE direction = 'INCOMING' AND status = 'PENDING'")

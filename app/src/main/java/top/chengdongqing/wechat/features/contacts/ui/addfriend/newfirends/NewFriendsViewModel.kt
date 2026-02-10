@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 import javax.inject.Inject
@@ -18,11 +19,11 @@ data class NewFriendsUiState(
 
 @HiltViewModel
 class NewFriendsViewModel @Inject constructor(
-    friendRequestRepository: FriendRequestRepository
+    private val friendRequestRepository: FriendRequestRepository
 ) : ViewModel() {
 
     val uiState: StateFlow<NewFriendsUiState> = combine(
-        friendRequestRepository.getIncomingRequests(),
+        friendRequestRepository.getRequests(),
         friendRequestRepository.getPendingCount()
     ) { requests, count ->
         NewFriendsUiState(
@@ -34,4 +35,10 @@ class NewFriendsViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = NewFriendsUiState()
     )
+
+    fun delete(requestId: String) {
+        viewModelScope.launch {
+            friendRequestRepository.delete(requestId)
+        }
+    }
 }

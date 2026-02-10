@@ -297,6 +297,7 @@ class P2PService : Service() {
             }
         }
 
+        @SuppressLint("MissingPermission")
         override fun onDescriptorWriteRequest(
             device: BluetoothDevice,
             requestId: Int,
@@ -326,6 +327,7 @@ class P2PService : Service() {
             }
         }
 
+        @SuppressLint("MissingPermission")
         override fun onCharacteristicReadRequest(
             device: BluetoothDevice,
             requestId: Int,

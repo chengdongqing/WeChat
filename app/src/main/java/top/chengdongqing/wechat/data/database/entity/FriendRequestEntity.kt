@@ -7,7 +7,7 @@ import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 @Entity(tableName = "friend_requests")
 data class FriendRequestEntity(
     @PrimaryKey
-    val requestId: String,              // 请求ID
+    val id: String,              // 请求ID
 
     // 基本信息
     val fromUserId: String,             // 发起人ID
@@ -32,13 +32,14 @@ data class FriendRequestEntity(
 ) {
     fun toDomain(): FriendRequest {
         return FriendRequest(
-            requestId = requestId,
+            id = id,
             fromUserId = fromUserId,
             fromNickname = fromNickname,
             fromAvatarPath = fromAvatarPath,
             greetingMessage = greetingMessage,
             remark = remark,
             status = status,
+            direction = direction,
             timestamp = createAt
         )
     }
@@ -53,5 +54,5 @@ enum class RequestStatus {
 
 enum class RequestDirection {
     OUTGOING,   // 发出的
-    INCOMING    // 收到的
+    INCOMING;    // 收到的
 }

@@ -18,7 +18,7 @@ import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 data class RequestAddUiState(
     val contact: Contact? = null,
-    val greetingMessage: String = "我是...",
+    val greetingMessage: String = "我是",
     val remark: String = "",
     val tags: List<String> = emptyList(),
     val note: String = "",
