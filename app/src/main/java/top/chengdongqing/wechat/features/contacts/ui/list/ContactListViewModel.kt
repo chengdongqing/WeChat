@@ -3,135 +3,91 @@ package top.chengdongqing.wechat.features.contacts.ui.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.PinyinHelper.getInitial
-import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.features.contacts.data.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
+import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 import javax.inject.Inject
-
-data class Contact(
-    val id: String,
-    val name: String,
-    val avatar: Int,
-    val initial: Char // 首字母
-)
 
 @HiltViewModel
 class ContactListViewModel @Inject constructor(
+    contactRepository: ContactRepository,
+    profileRepository: ProfileRepository,
     friendRequestRepository: FriendRequestRepository
 ) : ViewModel() {
-    // 联系人数据流
-    private val _state = MutableStateFlow(ContactsData())
-
-    // 组合多个数据流
+    /**
+     * 组合多个数据流
+     */
     val state: StateFlow<ContactListUiState> = combine(
-        _state,
+        contactRepository.getAllContacts(),
+        profileRepository.getCurrentProfile(),
         friendRequestRepository.getUnreadCount()
-    ) { contactsData, pendingCount ->
+    ) { contacts, myProfile, unreadCount ->
+        // 动态合并：将自己插入到联系人列表
+        val allContacts = if (myProfile != null) {
+            val myselfAsContact = Contact(
+                id = myProfile.id,
+                nickname = myProfile.nickname,
+                avatarPath = myProfile.avatarPath,
+                signature = myProfile.signature,
+                gender = myProfile.gender
+            )
+            // 合并列表（自己 + 其他联系人）
+            listOf(myselfAsContact) + contacts
+        } else {
+            contacts
+        }
+
+        // 处理联系人数据
+        val groups = allContacts.groupByInitial()
+        val indexMap = calculateIndexMap(groups)
+
         ContactListUiState(
-            isLoading = contactsData.isLoading,
-            groups = contactsData.groups,
-            totalCount = contactsData.totalCount,
-            indexMap = contactsData.indexMap,
-            pendingCount = pendingCount
+            isLoading = false,
+            groups = groups,
+            totalCount = allContacts.size,
+            indexMap = indexMap,
+            unreadCount = unreadCount
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ContactListUiState()
+        initialValue = ContactListUiState(isLoading = true)
     )
 
-    init {
-        loadContacts()
-    }
-
-    private fun loadContacts() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-
-            val contacts = generateMockContacts(500)
-            val groups = contacts.groupByInitial()
-            val indexMap = calculateIndexMap(groups)
-
-            _state.update {
-                it.copy(
-                    isLoading = false,
-                    groups = groups,
-                    totalCount = contacts.size,
-                    indexMap = indexMap
+    /**
+     * 按字母分组
+     */
+    private fun List<Contact>.groupByInitial(): Map<Char, List<ContactItem>> =
+        this
+            .map { contact ->
+                ContactItem(
+                    id = contact.id,
+                    name = contact.displayName,
+                    avatarPath = contact.avatarPath,
+                    initial = contact.displayName.getInitial()
                 )
             }
-        }
-    }
-
-    private suspend fun generateMockContacts(count: Int): List<Contact> =
-        withContext(Dispatchers.Default) {
-            val surnames = listOf(
-                "阿",
-                "巴",
-                "陈",
-                "戴",
-                "鄂",
-                "付",
-                "高",
-                "何",
-                "金",
-                "李",
-                "马",
-                "牛",
-                "彭",
-                "秦",
-                "苏",
-                "万",
-                "夏",
-                "张",
-                "~",
-                "*"
-            )
-            val names = listOf("强", "玲", "伟", "芳", "杰", "秀", "涛", "娜", "军", "明")
-
-            val chunkSize = (count / Runtime.getRuntime().availableProcessors()).coerceAtLeast(1)
-
-            (0 until count step chunkSize).map { start ->
-                async {
-                    val end = (start + chunkSize).coerceAtMost(count)
-                    List(end - start) {
-                        val name = "${surnames.random()}${names.random()}"
-                        Contact(
-                            id = randomUUID(),
-                            name = name,
-                            avatar = R.drawable.img_logo,
-                            initial = name.getInitial()
-                        )
-                    }
+            .groupBy { it.initial }
+            .toSortedMap { a, b ->
+                when {
+                    a == '#' -> 1 // # 放最后
+                    b == '#' -> -1
+                    else -> a.compareTo(b)
                 }
-            }.awaitAll().flatten()
-        }
-
-    private fun List<Contact>.groupByInitial(): Map<Char, List<Contact>> =
-        this.groupBy { it.initial }.toSortedMap { a, b ->
-            when {
-                a == '#' -> 1
-                b == '#' -> -1
-                else -> a.compareTo(b)
             }
-        }
 
-    private fun calculateIndexMap(groups: Map<Char, List<Contact>>): Map<Char, Int> {
+    /**
+     * 计算每个首字母对应的列表索引
+     */
+    private fun calculateIndexMap(groups: Map<Char, List<ContactItem>>): Map<Char, Int> {
         val indexMap = mutableMapOf<Char, Int>()
-        // 顶部固定功能项占了 1 个 item 位置
-        var currentIndex = 1
+        var currentIndex = 1 // 顶部功能项占 1 个位置
 
         groups.forEach { (initial, contacts) ->
             indexMap[initial] = currentIndex
@@ -142,19 +98,19 @@ class ContactListViewModel @Inject constructor(
     }
 }
 
-// 内部数据类
-private data class ContactsData(
-    val isLoading: Boolean = true,
-    val groups: Map<Char, List<Contact>> = emptyMap(),
-    val totalCount: Int = 0,
-    val indexMap: Map<Char, Int> = emptyMap()
+// 联系人列表项
+data class ContactItem(
+    val id: String,
+    val name: String,
+    val avatarPath: String?,
+    val initial: Char
 )
 
 // UI State
 data class ContactListUiState(
     val isLoading: Boolean = true,
-    val groups: Map<Char, List<Contact>> = emptyMap(),
+    val groups: Map<Char, List<ContactItem>> = emptyMap(),
     val totalCount: Int = 0,
     val indexMap: Map<Char, Int> = emptyMap(),
-    val pendingCount: Int = 0
+    val unreadCount: Int = 0
 )

@@ -52,56 +52,81 @@ fun ContactListScreen(
             modifier = Modifier.overscroll(overscrollEffect),
             overscrollEffect = overscrollEffect
         ) {
-            // 顶部固定功能项
+            // 顶部功能列表
             item {
                 TopFunctionList(
-                    pendingCount = state.pendingCount,
+                    pendingCount = state.unreadCount,
                     onNavigateToNewFriends = onNavigateToNewFriends
                 )
             }
 
-            if (state.isLoading) {
-                // 加载中
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        WeLoading()
-                    }
-                }
-            } else {
-                // 联系人分组列表
-                state.groups.forEach { (initial, contacts) ->
-                    item { ContactHeader(initial) }
-
-                    itemsIndexed(
-                        items = contacts,
-                        key = { _, contact -> contact.id },
-                        contentType = { _, _ -> "ContactItem" } // 告诉 LazyColumn 哪些项是同一种布局，提高复用效率
-                    ) { index, contact ->
-                        Column(
-                            modifier = Modifier.background(WeTheme.colorScheme.surface)
+            when {
+                state.isLoading -> {
+                    // 加载中
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            ContactListItem(contact) {
-                                onNavigateToDetail(contact.id)
-                            }
-
-                            if (index < contacts.size - 1) {
-                                WeDivider(modifier = Modifier.padding(start = 68.dp))
-                            }
+                            WeLoading()
                         }
                     }
                 }
 
-                item { ContactFooter(state.totalCount) }
+                state.groups.isEmpty() -> {
+                    // 空状态
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "暂无联系人",
+                                color = WeTheme.colorScheme.textSecondary,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+
+                else -> {
+                    // 联系人分组列表
+                    state.groups.forEach { (initial, contacts) ->
+                        item { ContactHeader(initial) }
+
+                        itemsIndexed(
+                            items = contacts,
+                            key = { _, contact -> contact.id },
+                            contentType = { _, _ -> "ContactItem" } // 告诉 LazyColumn 哪些项是同一种布局，提高复用效率
+                        ) { index, contact ->
+                            Column(
+                                modifier = Modifier.background(WeTheme.colorScheme.surface)
+                            ) {
+                                ContactListItem(contact) {
+                                    onNavigateToDetail(contact.id)
+                                }
+
+                                if (index < contacts.size - 1) {
+                                    WeDivider(modifier = Modifier.padding(start = 68.dp))
+                                }
+                            }
+                        }
+                    }
+
+                    // 底部统计
+                    item {
+                        ContactFooter(state.totalCount)
+                    }
+                }
             }
         }
 
         // 右侧字母索引栏
-        if (!state.isLoading) {
+        if (!state.isLoading && state.groups.isNotEmpty()) {
             AlphabetIndexer(state.groups) { initial ->
                 state.indexMap[initial]?.let { targetIndex ->
                     scope.launch {

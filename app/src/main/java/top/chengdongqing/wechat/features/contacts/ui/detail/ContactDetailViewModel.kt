@@ -14,32 +14,17 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.util.randomUUID
-import top.chengdongqing.wechat.data.model.Gender
 import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.data.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
+import top.chengdongqing.wechat.features.me.repository.ProfileRepository
 
-data class ContactDetailUiState(
-    val contact: Contact,
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
-
-/**
- * 联系人详情ViewModel
- *
- * 负责管理联系人详情页面的业务逻辑和状态
- *
- * 主要功能：
- * - 加载联系人详细信息
- * - 处理用户操作（发消息、通话等）
- * - 管理UI状态和错误处理
- */
 @HiltViewModel(assistedFactory = ContactDetailViewModel.Factory::class)
 class ContactDetailViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
-    private val contactP2PRepository: ContactP2PRepository  // 注入
+    private val contactRepository: ContactRepository,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -47,15 +32,7 @@ class ContactDetailViewModel @AssistedInject constructor(
         fun create(contactId: String): ContactDetailViewModel
     }
 
-    private val _uiState = MutableStateFlow(
-        ContactDetailUiState(
-            contact = Contact(
-                id = contactId,
-                nickname = "加载中...",
-            ),
-            isLoading = true
-        )
-    )
+    private val _uiState = MutableStateFlow(ContactDetailUiState(isLoading = true))
     val uiState: StateFlow<ContactDetailUiState> = _uiState.asStateFlow()
 
     private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
@@ -70,11 +47,41 @@ class ContactDetailViewModel @AssistedInject constructor(
      */
     private fun loadContactDetails() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
             try {
-                // 从缓存获取（刚扫码获取的数据）
-                val contact = ContactP2PRepository.getContactFromCache(contactId)
+                // 获取当前用户ID
+                val myProfile = profileRepository.getCurrentProfileOnce() ?: return@launch
+                val myUserId = myProfile.id
+
+                // 检查是否是自己
+                val isMyself = contactId == myUserId
+
+                // 先尝试从数据库加载
+                var contact = if (!isMyself) contactRepository.getContactById(contactId) else null
+                val isFriend = contact != null
+
+                contact = when {
+                    isMyself -> {
+                        // 如果是自己，从 Profile 动态创建
+                        Contact(
+                            id = myProfile.id,
+                            nickname = myProfile.nickname,
+                            avatarPath = myProfile.avatarPath,
+                            signature = myProfile.signature,
+                            gender = myProfile.gender,
+                            relation = ContactRelation.Myself
+                        )
+                    }
+
+                    !isFriend -> {
+                        // 尝试从缓存获取（扫码进入）
+                        ContactP2PRepository.getContactFromCache(contactId)
+                    }
+
+                    else -> {
+                        // 朋友
+                        contact.copy(relation = ContactRelation.Friend)
+                    }
+                }
 
                 if (contact != null) {
                     _uiState.update {
@@ -84,8 +91,6 @@ class ContactDetailViewModel @AssistedInject constructor(
                         )
                     }
                 } else {
-                    // 如果缓存没有，说明不是通过扫码进入的
-                    // 可以尝试从数据库或其他方式加载
                     _uiState.update {
                         it.copy(
                             isLoading = false,
@@ -131,7 +136,7 @@ class ContactDetailViewModel @AssistedInject constructor(
                 }
 
                 ContactAction.DeleteContact -> {
-
+                    deleteContact()
                 }
 
                 ContactAction.AddToContacts -> {
@@ -142,55 +147,17 @@ class ContactDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * 更新联系人标签
+     * 删除联系人
      */
-    fun updateTags(tags: List<String>) {
+    private fun deleteContact() {
         viewModelScope.launch {
-            _uiState.update { state ->
-                state.copy(
-                    contact = state.contact.copy(tags = tags)
-                )
+            try {
+                contactRepository.deleteContact(contactId)
+                _navigationEvent.emit(NavigationEvent.ContactDeleted)
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "删除失败：${e.message}") }
             }
-            // contactRepository.updateContactTags(contactId, tags)
         }
-    }
-
-    /**
-     * 更新联系人备注
-     */
-    fun updateRemark(remark: String) {
-        viewModelScope.launch {
-            _uiState.update { state ->
-                state.copy(
-                    contact = state.contact.copy(note = remark)
-                )
-            }
-            // contactRepository.updateContactRemark(contactId, remark)
-        }
-    }
-
-    /**
-     * 刷新联系人信息
-     */
-    fun refresh() {
-        loadContactDetails()
-    }
-
-    private fun createSampleContact(): Contact {
-        return Contact(
-            id = "wxid_${randomUUID().take(12)}",
-            nickname = "海盐芝士不加糖",
-            gender = Gender.Male,
-            avatarPath = "",
-            remarkName = "老舅",
-            tags = listOf("朋友"),
-            note = "在林拉高速上认识的摩友",
-            momentPhotos = listOf(
-                R.drawable.img_splash,
-                R.drawable.img_location_placeholder,
-                R.drawable.img_radar_bg
-            )
-        )
     }
 
     /**
@@ -201,9 +168,12 @@ class ContactDetailViewModel @AssistedInject constructor(
     }
 }
 
-/**
- * 导航事件
- */
+data class ContactDetailUiState(
+    val contact: Contact? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
 sealed class NavigationEvent {
     data class NavigateToChat(val contactId: String) : NavigationEvent()
     data class NavigateToCall(val contactId: String) : NavigationEvent()
@@ -211,4 +181,15 @@ sealed class NavigationEvent {
     data class NavigateToProfile(val contactId: String) : NavigationEvent()
     data class NavigateToRequestAdd(val contactId: String) : NavigationEvent()
     data class ShowMoreOptions(val contactId: String) : NavigationEvent()
+    data object ContactDeleted : NavigationEvent()
+}
+
+sealed class ContactAction {
+    data object SendMessage : ContactAction()
+    data object VoiceVideoCall : ContactAction()
+    data object ViewMoments : ContactAction()
+    data object ViewProfile : ContactAction()
+    data object ShowMore : ContactAction()
+    data object DeleteContact : ContactAction()
+    data object AddToContacts : ContactAction()
 }

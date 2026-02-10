@@ -107,7 +107,13 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
     ) { backStackEntry ->
         val contactId =
             backStackEntry.arguments?.getString(ContactsRoute.Setting.ARG_CONTACT_ID) ?: ""
-        ContactSettingScreen(contactId, onBack)
+        ContactSettingScreen(
+            contactId = contactId,
+            onBack = onBack,
+            onDelete = {
+                navController.popBackStack(Screen.Home.route, inclusive = false)
+            }
+        )
     }
     composable(
         route = ContactsRoute.RequestAdd.route,

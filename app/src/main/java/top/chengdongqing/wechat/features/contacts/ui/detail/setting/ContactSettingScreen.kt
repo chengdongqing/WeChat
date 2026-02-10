@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -34,17 +35,30 @@ import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewModel
+import top.chengdongqing.wechat.features.contacts.ui.detail.NavigationEvent
 
 @Composable
 fun ContactSettingScreen(
     contactId: String,
     onBack: () -> Unit,
+    onDelete: () -> Unit,
     viewModel: ContactDetailViewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
         factory.create(contactId)
     }
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val contact = uiState.contact
+    val contact = uiState.contact ?: return
+
+    // 处理导航事件
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvent.collect { event ->
+            when (event) {
+                is NavigationEvent.ContactDeleted -> onDelete()
+                else -> {}
+            }
+        }
+    }
+
 
     Scaffold(
         topBar = {
@@ -64,7 +78,7 @@ fun ContactSettingScreen(
                     label = "设置朋友资料",
                     trailing = {
                         Text(
-                            text = contact.remarkName,
+                            text = contact.displayName,
                             fontSize = 16.sp,
                             color = WeTheme.colorScheme.textSecondary
                         )
@@ -99,7 +113,7 @@ private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
 
     val showDialog = {
         dialog.show(
-            title = "即将删除联系人“${contact.remarkName}”",
+            title = "即将删除联系人“${contact.displayName}”",
             content = "删除后对方不会收到通知",
             okColor = Danger,
             okText = "删除",

@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.data.database.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 
 @Entity(tableName = "friend_requests")
 data class FriendRequestEntity(
@@ -16,9 +15,9 @@ data class FriendRequestEntity(
 
     // 申请内容
     val greetingMessage: String,        // 打招呼内容
-    val remark: String?,                // 备注
-    val tags: String?,                  // 标签
-    val note: String?,                  // 备忘
+    val remark: String? = null,         // 备注
+    val tags: String? = null,           // 标签
+    val note: String? = null,           // 备忘
 
     // 状态
     val status: RequestStatus,          // 状态
@@ -30,21 +29,7 @@ data class FriendRequestEntity(
     // 时间
     val createAt: Long,                // 创建时间
     val updatedAt: Long                 // 更新时间
-) {
-    fun toDomain(): FriendRequest {
-        return FriendRequest(
-            id = id,
-            peerUserId = peerUserId,
-            peerNickname = peerNickname,
-            peerAvatarPath = peerAvatarPath,
-            greetingMessage = greetingMessage,
-            remark = remark,
-            status = status,
-            direction = direction,
-            timestamp = createAt
-        )
-    }
-}
+)
 
 enum class RequestStatus {
     PENDING,    // 待处理

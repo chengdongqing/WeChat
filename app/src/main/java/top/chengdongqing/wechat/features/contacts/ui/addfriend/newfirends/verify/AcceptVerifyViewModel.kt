@@ -13,17 +13,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
+import top.chengdongqing.wechat.data.database.entity.toDomain
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
-
-data class AcceptVerifyUiState(
-    val request: FriendRequest? = null,
-    val remark: String = "",
-    val tags: List<String> = emptyList(),
-    val note: String = "",
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
 
 @HiltViewModel(assistedFactory = AcceptVerifyViewModel.Factory::class)
 class AcceptVerifyViewModel @AssistedInject constructor(
@@ -59,7 +51,8 @@ class AcceptVerifyViewModel @AssistedInject constructor(
                     _uiState.update {
                         it.copy(
                             request = request.toDomain(),
-                            remark = request.remark ?: ""
+                            remark = request.greetingMessage.removePrefix("我是").trim(),
+                            note = request.note ?: ""
                         )
                     }
                 } else {
@@ -73,10 +66,6 @@ class AcceptVerifyViewModel @AssistedInject constructor(
 
     fun updateRemark(text: String) {
         _uiState.update { it.copy(remark = text) }
-    }
-
-    fun updateTags(tags: List<String>) {
-        _uiState.update { it.copy(tags = tags) }
     }
 
     fun updateNote(text: String) {
@@ -107,6 +96,15 @@ class AcceptVerifyViewModel @AssistedInject constructor(
         }
     }
 }
+
+data class AcceptVerifyUiState(
+    val request: FriendRequest? = null,
+    val remark: String = "",
+    val tags: List<String> = emptyList(),
+    val note: String = "",
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
 
 sealed class AcceptVerifyEvent {
     object AcceptSuccess : AcceptVerifyEvent()

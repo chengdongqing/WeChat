@@ -15,35 +15,32 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 
-/**
- * 联系人详情内容区域
- */
 @Composable
 fun ContactDetailContent(
     contact: Contact,
-    onAction: (ContactAction) -> Unit,
-    modifier: Modifier = Modifier
+    onAction: (ContactAction) -> Unit
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 基本信息板块
-        BasicInfoSection(
-            contact = contact,
-            onProfileClick = { onAction(ContactAction.ViewProfile) }
-        )
-
-        // 朋友圈板块
-        if (contact.momentPhotos.isNotEmpty()) {
-            MomentPhotosSection(
-                photoResIds = contact.momentPhotos,
-                onClick = { onAction(ContactAction.ViewMoments) }
-            )
+        // 基本信息
+        BasicInfoSection(contact) {
+            onAction(ContactAction.ViewProfile)
         }
 
-        // 操作按钮板块
-        ActionButtonsSection(contact, onAction)
+        // 朋友圈
+        if (contact.isFriend || contact.isMyself) {
+            MomentPhotosSection {
+                onAction(ContactAction.ViewMoments)
+            }
+        }
+
+        // 操作按钮
+        ActionButtonsSection(
+            contact,
+            onAction = onAction
+        )
     }
 }
 
@@ -53,10 +50,9 @@ fun ContactDetailContent(
 @Composable
 private fun BasicInfoSection(
     contact: Contact,
-    onProfileClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onProfileClick: () -> Unit
 ) {
-    Column(modifier = modifier.background(Color.White)) {
+    Column(modifier = Modifier.background(Color.White)) {
         // 头像和基本信息
         ContactBasicInfoCard(contact = contact)
 

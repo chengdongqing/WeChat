@@ -17,6 +17,7 @@ import top.chengdongqing.wechat.data.database.entity.ContactEntity
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
+import top.chengdongqing.wechat.data.database.entity.toDomain
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
 import top.chengdongqing.wechat.data.network.protocol.P2PMessageTransmitter
@@ -108,9 +109,6 @@ class FriendRequestRepository @Inject constructor(
                     peerUserId = myProfile.id,
                     peerNickname = myProfile.nickname,
                     greetingMessage = greetingMessage,
-                    remark = remark,
-                    tags = tags,
-                    note = note,
                     avatarSize = avatarBytes?.size ?: 0,
                     timestamp = System.currentTimeMillis()
                 )
@@ -175,9 +173,6 @@ class FriendRequestRepository @Inject constructor(
                 val response = P2PMessage.FriendRequestResponse(
                     requestId = requestId,
                     action = RequestAction.ACCEPT,
-                    remark = remark,
-                    tags = tags,
-                    note = note,
                     timestamp = System.currentTimeMillis()
                 )
                 val sendSuccess = transmitter.sendMessage(
@@ -278,9 +273,6 @@ class FriendRequestRepository @Inject constructor(
                     peerNickname = message.peerNickname,
                     peerAvatarPath = avatarPath,
                     greetingMessage = message.greetingMessage,
-                    remark = message.remark,
-                    tags = message.tags?.let { json.encodeToString(it) },
-                    note = message.note,
                     status = RequestStatus.PENDING,
                     direction = RequestDirection.INCOMING,
                     createAt = message.timestamp,
@@ -312,9 +304,9 @@ class FriendRequestRepository @Inject constructor(
                             userId = request.peerUserId,
                             nickname = request.peerNickname,
                             avatarPath = request.peerAvatarPath,
-                            remarkName = message.remark,
-                            tags = message.tags?.let { json.encodeToString(it) },
-                            note = message.note,
+                            remarkName = request.remark,
+                            tags = request.tags,
+                            note = request.note,
                             addedAt = System.currentTimeMillis(),
                             updatedAt = System.currentTimeMillis()
                         )

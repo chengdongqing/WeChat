@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,13 +29,9 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
  * 朋友圈照片预览项
  */
 @Composable
-fun MomentPhotosSection(
-    photoResIds: List<Int>,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun MomentPhotosSection(onClick: () -> Unit) {
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .background(Color.White)
@@ -51,7 +48,7 @@ fun MomentPhotosSection(
             )
 
             // 照片预览网格
-            MomentPhotoGrid(photoResIds = photoResIds)
+            MomentPhotoGrid()
         }
 
         Icon(
@@ -66,12 +63,13 @@ fun MomentPhotosSection(
  * 朋友圈照片网格
  */
 @Composable
-private fun MomentPhotoGrid(
-    photoResIds: List<Int>,
-    modifier: Modifier = Modifier
-) {
+private fun MomentPhotoGrid() {
+    val photoResIds = remember {
+        listOf(R.drawable.img_avatar, R.drawable.img_splash, R.drawable.img_radar_bg)
+    }
+
     Row(
-        modifier = modifier,
+        modifier = Modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         photoResIds.take(3).forEach { photoResId ->

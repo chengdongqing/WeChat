@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,18 +39,12 @@ fun ContactBasicInfoCard(
         modifier = modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalAlignment = if (contact.isMyself) Alignment.CenterVertically else Alignment.Top
     ) {
-        // 头像
-        ContactAvatar(
-            avatarUrl = contact.avatarPath ?: R.drawable.img_avatar_placeholder,
-            contentDescription = "头像"
-        )
-
+        ContactAvatar(contact.avatarPath ?: R.drawable.img_avatar_placeholder)
         Spacer(modifier = Modifier.width(16.dp))
-
-        // 联系人信息
-        ContactBasicInfo(contact = contact)
+        ContactBasicInfo(contact)
     }
 }
 
@@ -57,15 +52,12 @@ fun ContactBasicInfoCard(
  * 联系人头像组件
  */
 @Composable
-private fun ContactAvatar(
-    avatarUrl: Any,
-    contentDescription: String,
-    modifier: Modifier = Modifier
-) {
+private fun ContactAvatar(avatarUrl: Any) {
     AsyncImage(
         model = avatarUrl,
-        contentDescription = contentDescription,
-        modifier = modifier
+        contentDescription = "头像",
+        error = painterResource(R.drawable.img_avatar_placeholder),
+        modifier = Modifier
             .size(64.dp)
             .clip(RoundedCornerShape(6.dp))
     )
@@ -87,11 +79,15 @@ private fun ContactBasicInfo(
         )
 
         // 昵称
-        InfoText(
-            label = "昵称：",
-            value = contact.nickname,
-            modifier = Modifier.padding(top = 2.dp)
-        )
+        if (!contact.isMyself) {
+            InfoText(
+                label = "昵称：",
+                value = contact.nickname,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        } else {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         // 微信号
         InfoText(

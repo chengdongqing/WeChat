@@ -18,9 +18,6 @@ sealed class P2PMessage {
         val peerUserId: String,
         val peerNickname: String,
         val greetingMessage: String,
-        val remark: String?,
-        val tags: List<String>?,
-        val note: String?,
         val avatarSize: Int,
         val timestamp: Long
     ) : P2PMessage()
@@ -32,9 +29,6 @@ sealed class P2PMessage {
     data class FriendRequestResponse(
         val requestId: String,
         val action: RequestAction,
-        val remark: String?,
-        val tags: List<String>?,
-        val note: String?,
         val timestamp: Long
     ) : P2PMessage()
 

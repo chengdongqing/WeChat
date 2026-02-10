@@ -21,9 +21,6 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.contacts.ui.detail.components.ContactDetailContent
 
-/**
- * 联系人详情页面
- */
 @Composable
 fun ContactDetailScreen(
     contactId: String,
@@ -40,6 +37,7 @@ fun ContactDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val contact = uiState.contact ?: return
 
     // 处理导航事件
     LaunchedEffect(Unit) {
@@ -51,6 +49,7 @@ fun ContactDetailScreen(
                 is NavigationEvent.NavigateToProfile -> onNavigateToProfile(event.contactId)
                 is NavigationEvent.ShowMoreOptions -> onNavigateToSetting(event.contactId)
                 is NavigationEvent.NavigateToRequestAdd -> onNavigateToRequestAdd(event.contactId)
+                else -> {}
             }
         }
     }
@@ -65,7 +64,10 @@ fun ContactDetailScreen(
 
     Scaffold(
         topBar = {
-            ContactDetailTopBar(onBack) {
+            ContactDetailTopBar(
+                showMoreAction = !contact.isMyself,
+                onBack = onBack
+            ) {
                 viewModel.handleAction(ContactAction.ShowMore)
             }
         },
@@ -79,7 +81,7 @@ fun ContactDetailScreen(
                 .fillMaxSize()
         ) {
             ContactDetailContent(
-                contact = uiState.contact,
+                contact = contact,
                 onAction = viewModel::handleAction
             )
         }
@@ -91,6 +93,7 @@ fun ContactDetailScreen(
  */
 @Composable
 private fun ContactDetailTopBar(
+    showMoreAction: Boolean,
     onBack: () -> Unit,
     onMoreClick: () -> Unit
 ) {
@@ -99,23 +102,12 @@ private fun ContactDetailTopBar(
         containerColor = Color.White,
         onBack = onBack
     ) {
-        ActionIcon(
-            iconResId = R.drawable.ic_more_outlined,
-            description = "更多",
-            onClick = onMoreClick
-        )
+        if (showMoreAction) {
+            ActionIcon(
+                iconResId = R.drawable.ic_more_outlined,
+                description = "更多",
+                onClick = onMoreClick
+            )
+        }
     }
-}
-
-/**
- * 操作类型
- */
-sealed class ContactAction {
-    data object SendMessage : ContactAction()
-    data object VoiceVideoCall : ContactAction()
-    data object ViewMoments : ContactAction()
-    data object ViewProfile : ContactAction()
-    data object ShowMore : ContactAction()
-    data object DeleteContact : ContactAction()
-    data object AddToContacts : ContactAction()
 }

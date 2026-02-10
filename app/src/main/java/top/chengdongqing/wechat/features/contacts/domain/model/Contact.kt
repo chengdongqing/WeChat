@@ -9,31 +9,33 @@ data class Contact(
     val id: String,
     val nickname: String,
     val avatarPath: String? = null,
-    val remarkName: String = "",
+    val remarkName: String? = null,
     val gender: Gender? = null,
     val signature: String? = null,
-    val tags: List<String> = emptyList(),
-    val note: String = "",
-    val momentPhotos: List<Int> = emptyList(),
+    val tags: List<String>? = null,
+    val note: String? = null,
     val relation: ContactRelation = ContactRelation.NotFriend
 ) {
     /**
      * UI 显示名称：优先显示备注名 [remarkName]，若无备注则显示原始昵称 [nickname]
      */
     val displayName: String
-        get() = remarkName.ifBlank { nickname }
+        get() = remarkName ?: nickname
 
-    /**
-     * 是否是好友
-     */
     val isFriend: Boolean
         get() = relation == ContactRelation.Friend
+
+    val isMyself: Boolean
+        get() = relation == ContactRelation.Myself
 }
 
 /**
  * 联系人关系状态枚举
  */
 enum class ContactRelation {
+    /** 自己 */
+    Myself,
+
     /** 已经是好友，可正常发送消息及查看朋友圈 */
     Friend,
 

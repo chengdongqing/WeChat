@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 
 /**
@@ -37,19 +36,21 @@ fun ActionButtonsSection(
     onAction: (ContactAction) -> Unit
 ) {
     Column(modifier = Modifier.background(Color.White)) {
-        when (contact.relation) {
-            ContactRelation.Friend -> {
+        when {
+            contact.isMyself || contact.isFriend -> {
                 ContactActionButton(
                     iconResId = R.drawable.ic_message_outlined,
                     text = "发消息",
                     onClick = { onAction(ContactAction.SendMessage) }
                 )
-                WeDivider()
-                ContactActionButton(
-                    iconResId = R.drawable.ic_voice_video_call_outlined,
-                    text = "音视频通话",
-                    onClick = { onAction(ContactAction.VoiceVideoCall) }
-                )
+                if (contact.isFriend) {
+                    WeDivider()
+                    ContactActionButton(
+                        iconResId = R.drawable.ic_voice_video_call_outlined,
+                        text = "音视频通话",
+                        onClick = { onAction(ContactAction.VoiceVideoCall) }
+                    )
+                }
             }
 
             else -> {
