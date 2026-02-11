@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -83,7 +85,10 @@ private fun ProfileTitleRow(modifier: Modifier = Modifier) {
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
             contentDescription = "查看详情",
-            tint = WeTheme.colorScheme.textSecondary
+            tint = Color.DarkGray,
+            modifier = Modifier
+                .size(24.dp)
+                .offset(x = 8.dp)
         )
     }
 }

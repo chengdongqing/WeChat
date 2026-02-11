@@ -14,16 +14,17 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepository
-import top.chengdongqing.wechat.features.contacts.data.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
-import top.chengdongqing.wechat.features.me.repository.ProfileRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 @HiltViewModel(assistedFactory = ContactDetailViewModel.Factory::class)
 class ContactDetailViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
     private val contactRepository: ContactRepository,
+    private val contactP2PRepository: ContactP2PRepository,
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
@@ -74,7 +75,7 @@ class ContactDetailViewModel @AssistedInject constructor(
 
                     !isFriend -> {
                         // 尝试从缓存获取（扫码进入）
-                        ContactP2PRepository.getContactFromCache(contactId)
+                        contactP2PRepository.getContactFromCache(contactId)
                     }
 
                     else -> {

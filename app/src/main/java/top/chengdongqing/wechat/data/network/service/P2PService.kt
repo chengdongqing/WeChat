@@ -42,13 +42,22 @@ import top.chengdongqing.wechat.data.model.UserProfileTransfer
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
 import top.chengdongqing.wechat.data.network.protocol.RequestAction
-import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
-import top.chengdongqing.wechat.features.me.repository.ProfileRepository
+import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
+import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.util.UUID
 import javax.inject.Inject
 
+/**
+ * P2P 通信服务
+ *
+ * 职责：
+ * - 通过 BLE 进行设备发现和连接
+ * - 处理 P2P 消息的接收和发送
+ * - 管理 GATT 服务器和客户端连接
+ */
 @AndroidEntryPoint
 class P2PService : Service() {
 
@@ -73,31 +82,30 @@ class P2PService : Service() {
     private var gattServer: BluetoothGattServer? = null
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
-        val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothManager.adapter
+        val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+        manager.adapter
     }
 
     companion object {
-        private const val TAG = "P2PService"
+        const val TAG = "P2PService"
 
-        // BLE 服务 UUID
+        // UUID
         val SERVICE_UUID: UUID = UUID.fromString("0000FE9F-0000-1000-8000-00805F9B34FB")
-
-        // 特征 UUID（用于读写数据）
         val CHARACTERISTIC_UUID: UUID = UUID.fromString("0000FEA0-0000-1000-8000-00805F9B34FB")
-
-        // Descriptor UUID（用于启用 Notification）
         val DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
-        private const val MAX_CHUNK_SIZE = 500
+        // 配置
+        const val MAX_CHUNK_SIZE = 500
+        const val CHUNK_DELAY_MS = 50L
 
-        private const val NOTIFICATION_ID = 1001
-        private const val CHANNEL_ID = "p2p_service_channel"
-
-        // 好友请求通知
-        private const val FRIEND_REQUEST_CHANNEL_ID = "friend_request_channel"
-        private const val FRIEND_REQUEST_NOTIFICATION_ID = 2001
+        // 通知
+        const val NOTIFICATION_ID = 1001
+        const val CHANNEL_ID = "p2p_service_channel"
+        const val FRIEND_REQUEST_CHANNEL_ID = "friend_request_channel"
+        const val FRIEND_REQUEST_NOTIFICATION_ID = 2001
     }
+
+    // ==================== 生命周期 ====================
 
     override fun onCreate() {
         super.onCreate()
@@ -106,6 +114,14 @@ class P2PService : Service() {
         startBLEAdvertising()
         startGattServer()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopBLEAdvertising()
+        stopGattServer()
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
 
     /**
      * 创建通知渠道
@@ -167,38 +183,25 @@ class P2PService : Service() {
         startForeground(NOTIFICATION_ID, notification)
     }
 
-    /**
-     * 启动 BLE 广播
-     */
+    // ==================== BLE 广播 ====================
+
     @SuppressLint("MissingPermission")
     private fun startBLEAdvertising() {
         serviceScope.launch {
             try {
-                if (bluetoothAdapter == null || !bluetoothAdapter!!.isEnabled) {
-                    Log.w(TAG, "蓝牙不可用")
-                    return@launch
-                }
+                val adapter = bluetoothAdapter ?: return@launch logError("蓝牙不可用")
+                if (!adapter.isEnabled) return@launch logWarn("蓝牙未启用")
 
-                bluetoothLeAdvertiser = bluetoothAdapter!!.bluetoothLeAdvertiser
-                if (bluetoothLeAdvertiser == null) {
-                    Log.w(TAG, "设备不支持BLE广播")
-                    return@launch
-                }
+                val advertiser = adapter.bluetoothLeAdvertiser
+                    ?: return@launch logWarn("设备不支持BLE广播")
 
-                // 获取我的userId
+                // 获取用户ID哈希
                 val myProfile = profileRepository.getCurrentProfile().first()
-                if (myProfile == null) {
-                    Log.w(TAG, "未找到个人资料")
-                    return@launch
-                }
+                    ?: return@launch logWarn("未找到个人资料")
 
-                // 将userId哈希为16字节
-                val userIdHash = myProfile.id.toMD5Bytes()
+                val userIdHash = myProfile.id.toMD5Bytes().copyOf(4)
 
-                // 只取前4字节作为广播数据（节省空间）
-                val shortHash = userIdHash.copyOf(4)
-
-                // 广播设置
+                // 配置广播
                 val settings = AdvertiseSettings.Builder()
                     .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
                     .setConnectable(true)
@@ -206,87 +209,90 @@ class P2PService : Service() {
                     .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
                     .build()
 
-                // 广播数据
                 val data = AdvertiseData.Builder()
                     .setIncludeDeviceName(false)
                     .addServiceUuid(ParcelUuid(SERVICE_UUID))
-                    .addServiceData(ParcelUuid(SERVICE_UUID), shortHash)
+                    .addServiceData(ParcelUuid(SERVICE_UUID), userIdHash)
                     .build()
 
-                bluetoothLeAdvertiser!!.startAdvertising(
-                    settings,
-                    data,
-                    object : AdvertiseCallback() {
-                        override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                            Log.d(TAG, "BLE广播启动成功")
-                        }
+                advertiser.startAdvertising(settings, data, AdvertiseCallbackImpl())
+                bluetoothLeAdvertiser = advertiser
 
-                        override fun onStartFailure(errorCode: Int) {
-                            Log.e(TAG, "BLE广播启动失败: $errorCode")
-                        }
-                    }
-                )
-
+                Log.d(TAG, "BLE广播已启动")
             } catch (e: Exception) {
-                Log.e(TAG, "启动BLE广播失败", e)
+                logError("启动BLE广播失败", e)
             }
         }
     }
 
-    /**
-     * 启动 GATT 服务器
-     */
+    @SuppressLint("MissingPermission")
+    private fun stopBLEAdvertising() {
+        bluetoothLeAdvertiser?.stopAdvertising(object : AdvertiseCallback() {})
+        bluetoothLeAdvertiser = null
+    }
+
+    // ==================== GATT 服务器 ====================
+
     @SuppressLint("MissingPermission")
     private fun startGattServer() {
         serviceScope.launch {
             try {
-                val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+                val manager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
 
-                val service = BluetoothGattService(
-                    SERVICE_UUID,
-                    BluetoothGattService.SERVICE_TYPE_PRIMARY
-                )
+                // 创建服务
+                val service = createGattService()
 
-                // 创建特征（支持 Read 和 Notify）
-                val characteristic = BluetoothGattCharacteristic(
-                    CHARACTERISTIC_UUID,
-                    BluetoothGattCharacteristic.PROPERTY_READ or
-                            BluetoothGattCharacteristic.PROPERTY_WRITE or
-                            BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                    BluetoothGattCharacteristic.PERMISSION_READ or
-                            BluetoothGattCharacteristic.PERMISSION_WRITE
-                )
-
-                // 添加 Descriptor（用于启用 Notification）
-                val descriptor = BluetoothGattDescriptor(
-                    DESCRIPTOR_UUID,
-                    BluetoothGattDescriptor.PERMISSION_READ or
-                            BluetoothGattDescriptor.PERMISSION_WRITE
-                )
-                characteristic.addDescriptor(descriptor)
-
-                service.addCharacteristic(characteristic)
-
-                gattServer = bluetoothManager.openGattServer(
-                    this@P2PService,
-                    GattServerCallback()
-                )
-
+                // 打开服务器
+                gattServer = manager.openGattServer(this@P2PService, GattServerCallback())
                 gattServer?.addService(service)
-                Log.d(TAG, "GATT服务器已启动")
 
+                Log.d(TAG, "GATT服务器已启动")
             } catch (e: Exception) {
-                Log.e(TAG, "启动GATT服务器失败", e)
+                logError("启动GATT服务器失败", e)
             }
         }
     }
 
+    @SuppressLint("MissingPermission")
+    private fun stopGattServer() {
+        gattServer?.close()
+        gattServer = null
+    }
+
     /**
-     * GATT 服务器回调
+     * 创建 GATT 服务
      */
+    private fun createGattService(): BluetoothGattService {
+        val service = BluetoothGattService(
+            SERVICE_UUID,
+            BluetoothGattService.SERVICE_TYPE_PRIMARY
+        )
+
+        val characteristic = BluetoothGattCharacteristic(
+            CHARACTERISTIC_UUID,
+            BluetoothGattCharacteristic.PROPERTY_READ or
+                    BluetoothGattCharacteristic.PROPERTY_WRITE or
+                    BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+            BluetoothGattCharacteristic.PERMISSION_READ or
+                    BluetoothGattCharacteristic.PERMISSION_WRITE
+        )
+
+        val descriptor = BluetoothGattDescriptor(
+            DESCRIPTOR_UUID,
+            BluetoothGattDescriptor.PERMISSION_READ or
+                    BluetoothGattDescriptor.PERMISSION_WRITE
+        )
+
+        characteristic.addDescriptor(descriptor)
+        service.addCharacteristic(characteristic)
+
+        return service
+    }
+
+    // ==================== GATT 回调 ====================
+
     private inner class GattServerCallback : BluetoothGattServerCallback() {
 
-        // 使用设备级别的状态管理
         private val deviceSessions = mutableMapOf<String, DeviceSession>()
 
         override fun onConnectionStateChange(
@@ -296,15 +302,13 @@ class P2PService : Service() {
         ) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
-                    Log.d(TAG, "设备已连接: ${device.address}")
-                    // 创建会话
                     deviceSessions[device.address] = DeviceSession()
+                    Log.d(TAG, "设备已连接: ${device.address}")
                 }
 
                 BluetoothProfile.STATE_DISCONNECTED -> {
-                    Log.d(TAG, "设备已断开: ${device.address}")
-                    // 清理会话
                     deviceSessions.remove(device.address)
+                    Log.d(TAG, "设备已断开: ${device.address}")
                 }
             }
         }
@@ -320,39 +324,15 @@ class P2PService : Service() {
             value: ByteArray
         ) {
             if (descriptor.uuid == DESCRIPTOR_UUID) {
-                Log.d(TAG, "客户端订阅了 Notification")
+                Log.d(TAG, "客户端订阅了通知")
 
                 if (responseNeeded) {
-                    gattServer?.sendResponse(
-                        device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        0,
-                        null
-                    )
+                    gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
                 }
 
-                // 开始发送资料数据
-                serviceScope.launch {
-                    sendProfileData(device)
-                }
+                // 发送资料
+                serviceScope.launch { sendProfileData(device) }
             }
-        }
-
-        @SuppressLint("MissingPermission")
-        override fun onCharacteristicReadRequest(
-            device: BluetoothDevice,
-            requestId: Int,
-            offset: Int,
-            characteristic: BluetoothGattCharacteristic
-        ) {
-            gattServer?.sendResponse(
-                device,
-                requestId,
-                BluetoothGatt.GATT_SUCCESS,
-                0,
-                "USE_NOTIFICATION".toByteArray()
-            )
         }
 
         @SuppressLint("MissingPermission")
@@ -367,72 +347,10 @@ class P2PService : Service() {
         ) {
             serviceScope.launch {
                 try {
-                    val session = deviceSessions[device.address] ?: run {
-                        Log.e(TAG, "未找到设备会话")
-                        return@launch
-                    }
+                    val session = deviceSessions[device.address]
+                        ?: return@launch logError("未找到设备会话")
 
-                    if (!session.isReceivingBinary) {
-                        // 接收 JSON
-                        session.buffer.write(value)
-
-                        val jsonString = String(session.buffer.toByteArray(), Charsets.UTF_8)
-
-                        if (jsonString.startsWith("{") && jsonString.endsWith("}")) {
-                            try {
-                                // JSON 接收完成
-                                val message = json.decodeFromString<P2PMessage>(jsonString)
-                                session.currentMessage = message
-
-                                Log.d(TAG, "✅ 收到消息: ${message::class.simpleName}")
-
-                                // 检查是否有后续二进制
-                                val binarySize = when (message) {
-                                    is P2PMessage.FriendRequest -> message.avatarSize
-                                    is P2PMessage.FullProfileResponse -> message.avatarSize
-                                    is P2PMessage.AutoAddResponse -> message.avatarSize
-                                    else -> 0
-                                }
-
-                                session.buffer.reset() // 清空 JSON 缓冲
-
-                                if (binarySize > 0) {
-                                    // 准备接收二进制
-                                    session.isReceivingBinary = true
-                                    session.expectedBinarySize = binarySize
-                                    Log.d(TAG, "等待二进制数据: $binarySize 字节")
-                                } else {
-                                    // 没有二进制，直接处理
-                                    handleCompleteMessage(message, null)
-                                    session.currentMessage = null
-                                }
-                            } catch (_: Exception) {
-                                Log.d(TAG, "JSON 未完成，继续接收...")
-                            }
-                        }
-                    } else {
-                        // 接收二进制数据
-                        session.buffer.write(value)
-
-                        Log.d(
-                            TAG,
-                            "接收二进制片段: ${session.buffer.size()}/${session.expectedBinarySize}"
-                        )
-
-                        if (session.buffer.size() >= session.expectedBinarySize) {
-                            // 接收完成
-                            val binaryData = session.buffer.toByteArray()
-                            Log.d(TAG, "✅ 二进制接收完成: ${binaryData.size} 字节")
-
-                            handleCompleteMessage(session.currentMessage, binaryData)
-
-                            // 清理
-                            session.buffer.reset()
-                            session.currentMessage = null
-                            session.expectedBinarySize = 0
-                            session.isReceivingBinary = false
-                        }
-                    }
+                    handleDataReceive(session, value)
 
                     if (responseNeeded) {
                         gattServer?.sendResponse(
@@ -444,7 +362,7 @@ class P2PService : Service() {
                         )
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "处理写入失败", e)
+                    logError("处理写入失败", e)
                     if (responseNeeded) {
                         gattServer?.sendResponse(
                             device,
@@ -459,78 +377,184 @@ class P2PService : Service() {
         }
 
         /**
-         * 处理完整消息（JSON + 可选的二进制数据）
+         * 处理接收数据
+         */
+        private suspend fun handleDataReceive(session: DeviceSession, value: ByteArray) {
+            if (!session.isReceivingBinary) {
+                handleJsonReceive(session, value)
+            } else {
+                handleBinaryReceive(session, value)
+            }
+        }
+
+        /**
+         * 处理 JSON 接收
+         */
+        private suspend fun handleJsonReceive(session: DeviceSession, value: ByteArray) {
+            session.buffer.write(value)
+
+            val jsonString = String(session.buffer.toByteArray(), Charsets.UTF_8)
+
+            if (jsonString.startsWith("{") && jsonString.endsWith("}")) {
+                try {
+                    val message = json.decodeFromString<P2PMessage>(jsonString)
+                    session.currentMessage = message
+
+                    Log.d(TAG, "✅ 收到消息: ${message::class.simpleName}")
+
+                    // 检查是否有二进制数据
+                    val binarySize = message.getBinarySize()
+
+                    session.buffer.reset()
+
+                    if (binarySize > 0) {
+                        session.isReceivingBinary = true
+                        session.expectedBinarySize = binarySize
+                        Log.d(TAG, "等待二进制: $binarySize 字节")
+                    } else {
+                        handleCompleteMessage(message, null)
+                        session.currentMessage = null
+                    }
+                } catch (_: Exception) {
+                    Log.d(TAG, "JSON 未完成，继续接收")
+                }
+            }
+        }
+
+        /**
+         * 处理二进制接收
+         */
+        private suspend fun handleBinaryReceive(session: DeviceSession, value: ByteArray) {
+            session.buffer.write(value)
+
+            Log.d(TAG, "接收二进制: ${session.buffer.size()}/${session.expectedBinarySize}")
+
+            if (session.buffer.size() >= session.expectedBinarySize) {
+                val binaryData = session.buffer.toByteArray()
+                Log.d(TAG, "✅ 二进制接收完成: ${binaryData.size} 字节")
+
+                handleCompleteMessage(session.currentMessage, binaryData)
+
+                // 重置会话
+                session.reset()
+            }
+        }
+
+        /**
+         * 处理完整消息
          */
         private suspend fun handleCompleteMessage(message: P2PMessage?, binaryData: ByteArray?) {
             when (message) {
                 is P2PMessage.FriendRequest -> {
-                    friendRequestRepository.handleIncomingRequest(message, binaryData)
-                    showFriendRequestNotification(
-                        message.peerNickname,
-                        "请求添加你为好友"
+                    friendRequestRepository.handleIncomingRequest(
+                        message.toDomain(binaryData)
                     )
+                    showNotification("${message.peerNickname}请求添加你为好友")
                 }
 
                 is P2PMessage.FriendRequestResponse -> {
-                    friendRequestRepository.handleRequestResponse(message)
+                    friendRequestRepository.handleRequestResponse(
+                        message.toDomain()
+                    )
                     if (message.action == RequestAction.ACCEPT) {
-                        showFriendRequestNotification(
-                            "好友申请",
-                            "对方已同意你的好友申请"
-                        )
+                        showNotification("对方已同意你的好友申请")
                     }
                 }
 
                 is P2PMessage.AutoAddResponse -> {
-                    friendRequestRepository.handleAutoAddResponse(message, binaryData)
+                    friendRequestRepository.handleAutoAddResponse(
+                        message.toDomain(binaryData)
+                    )
                 }
 
                 is P2PMessage.FullProfileResponse -> {
-                    friendRequestRepository.handleFullProfileResponse(message, binaryData)
+                    friendRequestRepository.handleFullProfileResponse(
+                        message.toDomain(binaryData)
+                    )
                 }
 
-                else -> {
-                    Log.w(TAG, "未知消息类型")
-                }
+                else -> logWarn("未知消息类型")
             }
         }
     }
 
-    /**
-     * 显示好友请求通知
-     */
-    private fun showFriendRequestNotification(title: String, content: String) {
+    // ==================== 发送数据 ====================
+
+    @SuppressLint("MissingPermission")
+    private suspend fun sendProfileData(device: BluetoothDevice) {
         try {
-            // 创建点击 Intent（打开新的朋友页面）
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = "wechat://contacts/new_friends".toUri()
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            val myProfile = profileRepository.getCurrentProfile().first()
+                ?: return logError("未找到个人资料")
+
+            val thumbnailBytes = myProfile.avatarPath?.let {
+                imageExt.generateThumbnailBytes(it, targetSize = 100, maxSizeKB = 5)
             }
 
-            val pendingIntent = PendingIntent.getActivity(
-                this,
-                FRIEND_REQUEST_NOTIFICATION_ID,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            val transfer = UserProfileTransfer(
+                userId = myProfile.id,
+                nickname = myProfile.nickname,
+                signature = myProfile.signature,
+                gender = myProfile.gender.getIndex(),
+                avatarSize = thumbnailBytes?.size ?: 0
             )
 
-            val notification = NotificationCompat.Builder(this, FRIEND_REQUEST_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_add_friends_filled)
-                .setContentTitle(title)
-                .setContentText(content)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent)
-                .setDefaults(NotificationCompat.DEFAULT_ALL)
-                .build()
+            val jsonBytes = json.encodeToString(transfer).toByteArray()
 
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.notify(FRIEND_REQUEST_NOTIFICATION_ID, notification)
+            Log.d(TAG, "发送数据: JSON=${jsonBytes.size}B, 头像=${thumbnailBytes?.size ?: 0}B")
 
-            Log.d(TAG, "已显示通知: $title - $content")
+            val service = gattServer?.getService(SERVICE_UUID)
+            val characteristic = service?.getCharacteristic(CHARACTERISTIC_UUID)
+
+            if (characteristic == null || gattServer == null) {
+                return logError("未找到特征或服务器")
+            }
+
+            // 发送 JSON
+            sendDataChunked(gattServer!!, device, characteristic, jsonBytes, "JSON")
+
+            // 发送头像
+            if (thumbnailBytes != null) {
+                delay(100)
+                sendDataChunked(gattServer!!, device, characteristic, thumbnailBytes, "头像")
+            }
+
+            Log.d(TAG, "✅ 数据发送完成")
         } catch (e: Exception) {
-            Log.e(TAG, "显示通知失败", e)
+            logError("发送数据失败", e)
         }
+    }
+
+    /**
+     * 分片发送数据
+     */
+    private suspend fun sendDataChunked(
+        server: BluetoothGattServer,
+        device: BluetoothDevice,
+        characteristic: BluetoothGattCharacteristic,
+        data: ByteArray,
+        dataType: String
+    ) {
+        var offset = 0
+        var chunkIndex = 0
+
+        while (offset < data.size) {
+            val chunkSize = minOf(MAX_CHUNK_SIZE, data.size - offset)
+            val chunk = data.copyOfRange(offset, offset + chunkSize)
+
+            val success =
+                notifyCharacteristicChangedCompat(server, device, characteristic, value = chunk)
+
+            if (!success) {
+                logError("[$dataType] 发送失败 #$chunkIndex")
+                break
+            }
+
+            offset += chunkSize
+            chunkIndex++
+            delay(CHUNK_DELAY_MS)
+        }
+
+        Log.d(TAG, "[$dataType] 发送完成: $chunkIndex 片")
     }
 
     /**
@@ -559,126 +583,97 @@ class P2PService : Service() {
         }
     }
 
-    /**
-     * 通过 Notification 发送数据
-     */
-    @SuppressLint("MissingPermission")
-    private suspend fun sendProfileData(device: BluetoothDevice) {
+    // ==================== 通知 ====================
+
+    private fun showNotification(content: String) {
         try {
-            val myProfile = profileRepository.getCurrentProfile().first()
-
-            if (myProfile == null) {
-                Log.e(TAG, "未找到个人资料")
-                return
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = "wechat://contacts/new".toUri()
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
 
-            val thumbnailBytes = myProfile.avatarPath?.let { path ->
-                imageExt.generateThumbnailBytes(
-                    imagePath = path,
-                    targetSize = 100,
-                    maxSizeKB = 5
-                )
-            }
-
-            val transfer = UserProfileTransfer(
-                userId = myProfile.id,
-                nickname = myProfile.nickname,
-                signature = myProfile.signature,
-                gender = myProfile.gender.getIndex(),
-                avatarSize = thumbnailBytes?.size ?: 0
+            val pendingIntent = PendingIntent.getActivity(
+                this,
+                FRIEND_REQUEST_NOTIFICATION_ID,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            val profileJson = json.encodeToString(transfer)
-            val jsonBytes = profileJson.toByteArray(Charsets.UTF_8)
+            val notification = NotificationCompat.Builder(this, FRIEND_REQUEST_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_add_friends_filled)
+                .setContentTitle("好友请求")
+                .setContentText(content)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .build()
 
-            Log.d(TAG, "开始发送数据:")
-            Log.d(TAG, "  - JSON大小: ${jsonBytes.size} 字节")
-            Log.d(TAG, "  - 头像大小: ${thumbnailBytes?.size ?: 0} 字节")
-            Log.d(TAG, "  - 总大小: ${jsonBytes.size + (thumbnailBytes?.size ?: 0)} 字节")
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.notify(FRIEND_REQUEST_NOTIFICATION_ID, notification)
 
-            val service = gattServer?.getService(SERVICE_UUID)
-            val characteristic = service?.getCharacteristic(CHARACTERISTIC_UUID)
-
-            if (characteristic == null || gattServer == null) {
-                Log.e(TAG, "未找到特征或服务器")
-                return
-            }
-
-            // 第一步：发送 JSON 元数据
-            sendData(gattServer!!, device, characteristic, jsonBytes, "JSON")
-
-            // 第二步：如果有头像，发送头像二进制
-            if (thumbnailBytes != null) {
-                delay(100)  // 短暂延迟
-                sendData(gattServer!!, device, characteristic, thumbnailBytes, "头像")
-            }
-
-            Log.d(TAG, "✅ 全部数据发送完成")
+            Log.d(TAG, "已显示通知: $content")
         } catch (e: Exception) {
-            Log.e(TAG, "发送数据失败", e)
+            logError("显示通知失败", e)
+        }
+    }
+
+    // ==================== 辅助方法 ====================
+
+    private fun logError(message: String, e: Exception? = null) {
+        if (e != null) Log.e(TAG, message, e) else Log.e(TAG, message)
+    }
+
+    private fun logWarn(message: String) {
+        Log.w(TAG, message)
+    }
+
+    /**
+     * 获取消息的二进制大小
+     */
+    private fun P2PMessage.getBinarySize(): Int = when (this) {
+        is P2PMessage.FriendRequest -> avatarSize
+        is P2PMessage.FullProfileResponse -> avatarSize
+        is P2PMessage.AutoAddResponse -> avatarSize
+        else -> 0
+    }
+
+    // ==================== 内部类 ====================
+
+    /**
+     * 设备会话
+     */
+    private data class DeviceSession(
+        var isReceivingBinary: Boolean = false,
+        val buffer: ByteArrayOutputStream = ByteArrayOutputStream(),
+        var currentMessage: P2PMessage? = null,
+        var expectedBinarySize: Int = 0
+    ) {
+        fun reset() {
+            buffer.reset()
+            currentMessage = null
+            expectedBinarySize = 0
+            isReceivingBinary = false
         }
     }
 
     /**
-     * 发送数据（分片）
+     * 广播回调
      */
-    private suspend fun sendData(
-        server: BluetoothGattServer,
-        device: BluetoothDevice,
-        characteristic: BluetoothGattCharacteristic,
-        data: ByteArray,
-        dataType: String
-    ) {
-        var offset = 0
-        var chunkIndex = 0
+    private class AdvertiseCallbackImpl : AdvertiseCallback() {
+        override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
+            Log.d(TAG, "BLE广播启动成功")
+        }
 
-        while (offset < data.size) {
-            val remaining = data.size - offset
-            val chunkSize = minOf(MAX_CHUNK_SIZE, remaining)
-            val chunk = data.copyOfRange(offset, offset + chunkSize)
-
-            val success = notifyCharacteristicChangedCompat(
-                server,
-                device,
-                characteristic,
-                value = chunk
-            )
-
-            if (success) {
-                Log.d(
-                    TAG,
-                    "[$dataType] 片段 #$chunkIndex: $chunkSize 字节，剩余=${remaining - chunkSize}"
-                )
-            } else {
-                Log.e(TAG, "[$dataType] 发送失败 #$chunkIndex")
-                break
-            }
-
-            offset += chunkSize
-            chunkIndex++
-
-            delay(50)
+        override fun onStartFailure(errorCode: Int) {
+            Log.e(TAG, "BLE广播启动失败: $errorCode")
         }
     }
-
-    @SuppressLint("MissingPermission")
-    override fun onDestroy() {
-        super.onDestroy()
-        bluetoothLeAdvertiser?.stopAdvertising(object : AdvertiseCallback() {})
-        gattServer?.close()
-    }
-
-    override fun onBind(intent: Intent?): IBinder? = null
 }
+
+// ==================== 扩展函数 ====================
 
 private fun String.toMD5Bytes(): ByteArray {
     val md = MessageDigest.getInstance("MD5")
     return md.digest(this.toByteArray())
 }
-
-private data class DeviceSession(
-    var isReceivingBinary: Boolean = false,
-    val buffer: ByteArrayOutputStream = ByteArrayOutputStream(),
-    var currentMessage: P2PMessage? = null,
-    var expectedBinarySize: Int = 0
-)

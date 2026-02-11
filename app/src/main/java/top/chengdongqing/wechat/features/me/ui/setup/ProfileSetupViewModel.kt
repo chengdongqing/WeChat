@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.data.model.UserProfile
-import top.chengdongqing.wechat.features.me.repository.ProfileRepository
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 data class ProfileSetupUiState(

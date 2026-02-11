@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.features.me.repository.ProfileRepository
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 /**

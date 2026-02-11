@@ -59,7 +59,6 @@ fun ContactSettingScreen(
         }
     }
 
-
     Scaffold(
         topBar = {
             WeTopBar("朋友设置", onBack = onBack)

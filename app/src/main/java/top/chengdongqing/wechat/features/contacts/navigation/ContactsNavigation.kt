@@ -8,17 +8,18 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
-import top.chengdongqing.wechat.features.contacts.ui.addfriend.AddFriendScreen
-import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.NewFriendsScreen
-import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.request.RequestAddScreen
-import top.chengdongqing.wechat.features.contacts.ui.addfriend.newfirends.verify.AcceptVerifyScreen
-import top.chengdongqing.wechat.features.contacts.ui.addfriend.pincode.PinCodeGroupScreen
-import top.chengdongqing.wechat.features.contacts.ui.addfriend.radar.RadarScanScreen
+import top.chengdongqing.wechat.features.contacts.ui.add.AddContactScreen
+import top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.NewContactsScreen
+import top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.request.RequestAddScreen
+import top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.verify.AcceptVerifyScreen
+import top.chengdongqing.wechat.features.contacts.ui.add.pincode.PinCodeGroupScreen
+import top.chengdongqing.wechat.features.contacts.ui.add.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
+import top.chengdongqing.wechat.features.contacts.ui.detail.profile.ContactProfileScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
 
 sealed class ContactsRoute(val route: String) {
-    object AddFriend : ContactsRoute("contacts/add")
+    object AddContact : ContactsRoute("contacts/add")
     object RadarScan : ContactsRoute("contacts/add/radar_scan")
     object PinCodeGroup : ContactsRoute("contacts/add/pin_code_group")
 
@@ -34,6 +35,12 @@ sealed class ContactsRoute(val route: String) {
         fun createRoute(contactId: String) = "contacts/${contactId}/setting"
     }
 
+    object Profile : ContactsRoute("contacts/{contactId}/profile") {
+        const val ARG_CONTACT_ID = "contactId"
+
+        fun createRoute(contactId: String) = "contacts/${contactId}/profile"
+    }
+
     object RequestAdd : ContactsRoute("contacts/{contactId}/request_add") {
         const val ARG_CONTACT_ID = "contactId"
 
@@ -46,12 +53,12 @@ sealed class ContactsRoute(val route: String) {
         fun createRoute(requestId: String) = "contacts/${requestId}/accept_verify"
     }
 
-    object NewFriends : ContactsRoute("contacts/new_friends")
+    object New : ContactsRoute("contacts/new")
 }
 
 fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: () -> Unit) {
-    composable(ContactsRoute.AddFriend.route) {
-        AddFriendScreen(
+    composable(ContactsRoute.AddContact.route) {
+        AddContactScreen(
             onBack = onBack,
             onNavigateToRadar = {
                 navController.navigate(ContactsRoute.RadarScan.route)
@@ -94,6 +101,9 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
             onNavigateToSetting = { id ->
                 navController.navigate(ContactsRoute.Setting.createRoute(id))
             },
+            onNavigateToProfile = { id ->
+                navController.navigate(ContactsRoute.Profile.createRoute(id))
+            },
             onNavigateToRequestAdd = { id ->
                 navController.navigate(ContactsRoute.RequestAdd.createRoute(id))
             }
@@ -114,6 +124,16 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
                 navController.popBackStack(Screen.Home.route, inclusive = false)
             }
         )
+    }
+    composable(
+        route = ContactsRoute.Profile.route,
+        arguments = listOf(
+            navArgument(ContactsRoute.Profile.ARG_CONTACT_ID) { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val contactId =
+            backStackEntry.arguments?.getString(ContactsRoute.Profile.ARG_CONTACT_ID) ?: ""
+        ContactProfileScreen(contactId, onBack)
     }
     composable(
         route = ContactsRoute.RequestAdd.route,
@@ -154,17 +174,17 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
     }
 
     composable(
-        route = ContactsRoute.NewFriends.route,
+        route = ContactsRoute.New.route,
         deepLinks = listOf(
             navDeepLink {
-                uriPattern = "wechat://contacts/new_friends"
+                uriPattern = "wechat://contacts/new"
             }
         )
     ) {
-        NewFriendsScreen(
+        NewContactsScreen(
             onBack = onBack,
             onNavigateToAdd = {
-                navController.navigate(ContactsRoute.AddFriend.route)
+                navController.navigate(ContactsRoute.AddContact.route)
             },
             onNavigateToVerify = { id ->
                 navController.navigate(ContactsRoute.AcceptVerify.createRoute(id))

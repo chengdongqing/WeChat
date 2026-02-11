@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
+import top.chengdongqing.wechat.data.database.entity.AddSource
 import top.chengdongqing.wechat.data.model.Gender
 
 /**
@@ -14,7 +15,10 @@ data class Contact(
     val signature: String? = null,
     val tags: List<String>? = null,
     val note: String? = null,
-    val relation: ContactRelation = ContactRelation.NotFriend
+    val relation: ContactRelation = ContactRelation.NotFriend,
+    val source: AddSource? = null,
+    val isFromMe: Boolean = true,
+    val addedAt: Long? = null
 ) {
     /**
      * UI 显示名称：优先显示备注名 [remarkName]，若无备注则显示原始昵称 [nickname]

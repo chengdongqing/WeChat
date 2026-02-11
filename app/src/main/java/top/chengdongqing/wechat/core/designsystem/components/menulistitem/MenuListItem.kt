@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,7 +42,7 @@ fun MenuListItem(
             .fillMaxWidth()
             .height(height)
             .background(WeTheme.colorScheme.surface)
-            .clickable { onClick?.invoke() }
+            .clickable(enabled = showArrow) { onClick?.invoke() }
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(22.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -61,7 +61,6 @@ fun MenuListItem(
         ) {
             trailing?.invoke(this)
             if (showArrow) {
-                Spacer(modifier = Modifier.width(8.dp))
                 MenuArrow()
             }
         }
@@ -105,7 +104,9 @@ private fun MenuArrow() {
     Icon(
         painter = painterResource(R.drawable.ic_right_outlined),
         contentDescription = null,
-        tint = Color.Gray,
-        modifier = Modifier.size(24.dp)
+        tint = Color.DarkGray,
+        modifier = Modifier
+            .size(24.dp)
+            .offset(x = 8.dp)
     )
 }

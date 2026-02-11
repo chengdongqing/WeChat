@@ -3,10 +3,6 @@ package top.chengdongqing.wechat.data.database.entity
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 
-/**
- * Entity 转 Domain 扩展函数
- */
-
 fun ContactEntity.toDomain(): Contact {
     return Contact(
         id = userId,
@@ -15,7 +11,24 @@ fun ContactEntity.toDomain(): Contact {
         signature = signature,
         gender = gender,
         remarkName = remarkName,
-        note = note
+        note = note,
+        source = source,
+        isFromMe = isFromMe,
+        addedAt = addedAt
+    )
+}
+
+fun Contact.toEntity(): ContactEntity {
+    return ContactEntity(
+        userId = id,
+        nickname = nickname,
+        avatarPath = avatarPath,
+        signature = signature,
+        gender = gender,
+        remarkName = remarkName,
+        note = note,
+        addedAt = System.currentTimeMillis(),
+        updatedAt = System.currentTimeMillis()
     )
 }
 
@@ -32,3 +45,9 @@ fun FriendRequestEntity.toDomain(): FriendRequest {
         timestamp = createAt
     )
 }
+
+@JvmName("toContactDomainList")
+fun List<ContactEntity>.toDomain(): List<Contact> = map { it.toDomain() }
+
+@JvmName("toFriendRequestDomainList")
+fun List<FriendRequestEntity>.toDomain(): List<FriendRequest> = map { it.toDomain() }

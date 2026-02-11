@@ -4,8 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.data.model.QRCodeFormat
 import top.chengdongqing.wechat.data.model.QRCodeType
-import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,7 +24,7 @@ class QRCodeUseCase @Inject constructor(
     suspend fun generateMyQRCode(): Result<String> {
         return withContext(Dispatchers.IO) {
             try {
-                val beaconBase64 = contactP2PRepository.generateMyQRCodeBeacon()
+                val beaconBase64 = contactP2PRepository.generateMyQRCode()
                 val qrCode = QRCodeFormat.generateAddFriendQRCode(beaconBase64)
                 Result.success(qrCode)
             } catch (e: Exception) {

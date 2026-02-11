@@ -139,7 +139,7 @@ private fun HomeTopBarWrapper(
             title = currentTab.label,
             viewModel = viewModel,
             onNavigateToAddFriend = {
-                navController.navigate(ContactsRoute.AddFriend.route)
+                navController.navigate(ContactsRoute.AddContact.route)
             }
         )
     } else {
@@ -185,7 +185,7 @@ private fun HomeContentPager(
                     navController.navigate(ContactsRoute.Detail.createRoute(id))
                 },
                 onNavigateToNewFriends = {
-                    navController.navigate(ContactsRoute.NewFriends.route)
+                    navController.navigate(ContactsRoute.New.route)
                 }
             )
 

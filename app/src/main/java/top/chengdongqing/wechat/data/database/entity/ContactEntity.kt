@@ -19,7 +19,24 @@ data class ContactEntity(
     val tags: String? = null,
     val note: String? = null,
 
+    // 添加方式
+    val source: AddSource? = null,
+    val isFromMe: Boolean = true,
+
     // 时间
     val addedAt: Long,
     val updatedAt: Long
 )
+
+enum class AddSource(val label: String) {
+    Search("搜索账号"),
+    QRCode("扫一扫"),
+    Radar("雷达扫描"),
+    Group("群聊"),
+    Card("名片分享");
+
+    fun getDescription(isFromMe: Boolean): String = when (isFromMe) {
+        true -> "通过${label}添加"
+        false -> "对方通过${label}添加"
+    }
+}

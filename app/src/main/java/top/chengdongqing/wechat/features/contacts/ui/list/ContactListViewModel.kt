@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import top.chengdongqing.wechat.core.util.PinyinHelper.getInitial
-import top.chengdongqing.wechat.features.contacts.data.repository.ContactRepository
-import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.me.repository.ProfileRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 @HiltViewModel

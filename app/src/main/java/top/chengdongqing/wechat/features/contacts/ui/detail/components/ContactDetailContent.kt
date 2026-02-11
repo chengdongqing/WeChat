@@ -55,14 +55,16 @@ private fun BasicInfoSection(
     Column(modifier = Modifier.background(Color.White)) {
         // 头像和基本信息
         ContactBasicInfoCard(contact = contact)
-
         Spacer(modifier = Modifier.height(12.dp))
-        WeDivider(modifier = Modifier.padding(start = 16.dp))
 
-        // 朋友资料信息
-        ContactProfileItem(
-            contact = contact,
-            onClick = onProfileClick
-        )
+        if (!contact.isMyself) {
+            WeDivider(modifier = Modifier.padding(start = 16.dp))
+
+            // 朋友资料信息
+            ContactProfileItem(
+                contact = contact,
+                onClick = onProfileClick
+            )
+        }
     }
 }

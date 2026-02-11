@@ -18,3 +18,12 @@ fun Float.toPercent() = "${(this * 100).toInt()}%"
  */
 fun String.encode(): String = Uri.encode(this)
 fun String.decode(): String = Uri.decode(this)
+
+/**
+ * 字符串转 MD5 十六进制
+ */
+fun String.toMD5Hex(): String {
+    val md = java.security.MessageDigest.getInstance("MD5")
+    val digest = md.digest(this.toByteArray())
+    return digest.joinToString("") { "%02x".format(it) }
+}
