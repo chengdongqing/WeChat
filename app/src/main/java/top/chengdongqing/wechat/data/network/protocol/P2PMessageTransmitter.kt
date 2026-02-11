@@ -5,7 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
-import top.chengdongqing.wechat.data.network.service.P2PService
+import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 
 /**
  * P2P 消息传输器
@@ -38,9 +38,9 @@ class P2PMessageTransmitter(
             }
 
             val characteristic = gatt.getService(
-                P2PService.SERVICE_UUID
+                BLEModule.SERVICE_UUID
             )?.getCharacteristic(
-                P2PService.CHARACTERISTIC_UUID
+                BLEModule.CHARACTERISTIC_UUID
             )
 
             if (characteristic == null) {

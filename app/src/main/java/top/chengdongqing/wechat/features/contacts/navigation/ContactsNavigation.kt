@@ -60,7 +60,7 @@ sealed class ContactsRoute(val route: String) {
         fun createRoute(requestId: String) = "contacts/${requestId}/accept_verify"
     }
 
-    object New : ContactsRoute("contacts/new")
+    object NewFriends : ContactsRoute("contacts/new_friends")
 }
 
 fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: () -> Unit) {
@@ -197,10 +197,10 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
     }
 
     composable(
-        route = ContactsRoute.New.route,
+        route = ContactsRoute.NewFriends.route,
         deepLinks = listOf(
             navDeepLink {
-                uriPattern = "wechat://contacts/new"
+                uriPattern = "wechat://contacts/new_friends"
             }
         )
     ) {

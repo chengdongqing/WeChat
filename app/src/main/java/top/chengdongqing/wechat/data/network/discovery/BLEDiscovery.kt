@@ -30,7 +30,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import top.chengdongqing.wechat.data.model.UserProfileTransfer
-import top.chengdongqing.wechat.data.network.service.P2PService
+import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -89,7 +89,7 @@ class BLEDiscovery @Inject constructor(
                 }
 
                 val filter = ScanFilter.Builder()
-                    .setServiceUuid(ParcelUuid(P2PService.SERVICE_UUID))
+                    .setServiceUuid(ParcelUuid(BLEModule.SERVICE_UUID))
                     .build()
 
                 val settings = ScanSettings.Builder()
@@ -105,7 +105,7 @@ class BLEDiscovery @Inject constructor(
                         Log.d(TAG, "扫描到设备: ${result.device.address}")
 
                         val serviceData = result.scanRecord?.getServiceData(
-                            ParcelUuid(P2PService.SERVICE_UUID)
+                            ParcelUuid(BLEModule.SERVICE_UUID)
                         )
 
                         if (serviceData != null) {
@@ -301,7 +301,7 @@ class BLEDiscovery @Inject constructor(
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         Log.d(TAG, "服务发现成功")
 
-                        val service = gatt.getService(P2PService.SERVICE_UUID)
+                        val service = gatt.getService(BLEModule.SERVICE_UUID)
                         if (service != null) {
                             Log.d(TAG, "找到目标服务")
                             continuation.resume(gatt)
@@ -408,8 +408,8 @@ class BLEDiscovery @Inject constructor(
     suspend fun readProfile(gatt: BluetoothGatt): Pair<UserProfileTransfer, ByteArray?>? {
         return suspendCancellableCoroutine { continuation ->
 
-            val service = gatt.getService(P2PService.SERVICE_UUID)
-            val characteristic = service?.getCharacteristic(P2PService.CHARACTERISTIC_UUID)
+            val service = gatt.getService(BLEModule.SERVICE_UUID)
+            val characteristic = service?.getCharacteristic(BLEModule.CHARACTERISTIC_UUID)
 
             if (characteristic == null) {
                 Log.e(TAG, "未找到特征")
@@ -430,7 +430,7 @@ class BLEDiscovery @Inject constructor(
             }
 
             // 写入 Descriptor 以订阅
-            val descriptor = characteristic.getDescriptor(P2PService.DESCRIPTOR_UUID)
+            val descriptor = characteristic.getDescriptor(BLEModule.DESCRIPTOR_UUID)
             if (descriptor != null) {
                 val result = writeDescriptorCompat(
                     gatt,

@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.core.util
 
 import android.net.Uri
+import java.security.MessageDigest
 import java.util.UUID
 
 /**
@@ -20,10 +21,16 @@ fun String.encode(): String = Uri.encode(this)
 fun String.decode(): String = Uri.decode(this)
 
 /**
+ * 字符串转 MD5 字节数组
+ */
+fun String.toMD5Bytes(): ByteArray {
+    val md = MessageDigest.getInstance("MD5")
+    return md.digest(this.toByteArray())
+}
+
+/**
  * 字符串转 MD5 十六进制
  */
 fun String.toMD5Hex(): String {
-    val md = java.security.MessageDigest.getInstance("MD5")
-    val digest = md.digest(this.toByteArray())
-    return digest.joinToString("") { "%02x".format(it) }
+    return toMD5Bytes().joinToString("") { "%02x".format(it) }
 }

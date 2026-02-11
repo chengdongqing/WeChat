@@ -2,8 +2,11 @@ package top.chengdongqing.wechat.data.database
 
 import androidx.room.TypeConverter
 import top.chengdongqing.wechat.data.database.entity.AddSource
+import top.chengdongqing.wechat.data.database.entity.ConnectionType
+import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
+import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.model.Gender
 import top.chengdongqing.wechat.data.model.Gender.Companion.getIndex
 
@@ -32,4 +35,22 @@ class DatabaseConverters {
 
     @TypeConverter
     fun toAddSource(value: String): AddSource = AddSource.valueOf(value)
+
+    @TypeConverter
+    fun fromConnectionType(value: ConnectionType) = value.name
+
+    @TypeConverter
+    fun toConnectionType(value: String): ConnectionType = ConnectionType.valueOf(value)
+
+    @TypeConverter
+    fun fromMessageType(value: MessageType) = value.name
+
+    @TypeConverter
+    fun toMessageType(value: String): MessageType = MessageType.valueOf(value)
+
+    @TypeConverter
+    fun fromSendStatus(value: SendStatus) = value.name
+
+    @TypeConverter
+    fun toSendStatus(value: String): SendStatus = SendStatus.valueOf(value)
 }

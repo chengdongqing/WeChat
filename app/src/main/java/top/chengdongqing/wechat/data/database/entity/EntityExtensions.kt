@@ -27,7 +27,7 @@ fun Contact.toEntity(): ContactEntity {
         gender = gender,
         remarkName = remarkName,
         note = note,
-        addedAt = System.currentTimeMillis(),
+        addedAt = addedAt ?: System.currentTimeMillis(),
         updatedAt = System.currentTimeMillis()
     )
 }

@@ -8,8 +8,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import top.chengdongqing.wechat.data.database.WeDatabase
+import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
+import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
+import top.chengdongqing.wechat.data.database.dao.MessageDao
 import javax.inject.Singleton
 
 @Module
@@ -40,5 +43,23 @@ object DatabaseModule {
     @Singleton
     fun provideContactDao(database: WeDatabase): ContactDao {
         return database.contactDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideChatSessionDao(database: WeDatabase): ChatSessionDao {
+        return database.chatSessionDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMessageDao(database: WeDatabase): MessageDao {
+        return database.messageDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideConnectionInfoDao(database: WeDatabase): ConnectionInfoDao {
+        return database.connectionInfoDao()
     }
 }

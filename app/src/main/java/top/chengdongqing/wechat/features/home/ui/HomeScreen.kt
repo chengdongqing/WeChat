@@ -185,7 +185,7 @@ private fun HomeContentPager(
                     navController.navigate(ContactsRoute.Detail.createRoute(id))
                 },
                 onNavigateToNewFriends = {
-                    navController.navigate(ContactsRoute.New.route)
+                    navController.navigate(ContactsRoute.NewFriends.route)
                 }
             )
 

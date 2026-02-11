@@ -124,7 +124,7 @@ fun QRCodeScreen(
     }
 
     Scaffold(
-        topBar = { WeTopBar(title = "", onBack = onBack) },
+        topBar = { WeTopBar(onBack = onBack) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
