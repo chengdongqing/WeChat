@@ -40,8 +40,5 @@ enum class ContactRelation {
     Friend,
 
     /** 陌生人（通过扫码、群聊等方式进入资料页，尚未添加好友） */
-    NotFriend,
-
-    /** 黑名单：已屏蔽该用户，阻断所有消息往来 */
-    BlackList
+    NotFriend
 }

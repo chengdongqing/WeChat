@@ -390,6 +390,7 @@ class P2PService : Service() {
                                 val binarySize = when (message) {
                                     is P2PMessage.FriendRequest -> message.avatarSize
                                     is P2PMessage.FullProfileResponse -> message.avatarSize
+                                    is P2PMessage.AutoAddResponse -> message.avatarSize
                                     else -> 0
                                 }
 
@@ -478,6 +479,10 @@ class P2PService : Service() {
                             "对方已同意你的好友申请"
                         )
                     }
+                }
+
+                is P2PMessage.AutoAddResponse -> {
+                    friendRequestRepository.handleAutoAddResponse(message, binaryData)
                 }
 
                 is P2PMessage.FullProfileResponse -> {

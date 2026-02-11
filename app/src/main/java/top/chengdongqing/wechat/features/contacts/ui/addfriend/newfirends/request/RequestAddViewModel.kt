@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.data.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
@@ -29,7 +30,8 @@ data class RequestAddUiState(
 @HiltViewModel(assistedFactory = RequestAddViewModel.Factory::class)
 class RequestAddViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
-    private val friendRequestRepository: FriendRequestRepository
+    private val friendRequestRepository: FriendRequestRepository,
+    private val contactRepository: ContactRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -40,7 +42,7 @@ class RequestAddViewModel @AssistedInject constructor(
     private val _uiState = MutableStateFlow(RequestAddUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _eventFlow = MutableSharedFlow<RequestAddEvent>()
+    private val _eventFlow = MutableSharedFlow<SendEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     init {
@@ -60,10 +62,6 @@ class RequestAddViewModel @AssistedInject constructor(
         _uiState.update { it.copy(remark = text) }
     }
 
-    fun updateTags(tags: List<String>) {
-        _uiState.update { it.copy(tags = tags) }
-    }
-
     fun updateNote(text: String) {
         _uiState.update { it.copy(note = text) }
     }
@@ -74,7 +72,7 @@ class RequestAddViewModel @AssistedInject constructor(
             val contact = state.contact ?: return@launch
 
             if (state.greetingMessage.isBlank()) {
-                _eventFlow.emit(RequestAddEvent.ShowError("请输入打招呼内容"))
+                _eventFlow.emit(SendEvent.Error("请输入打招呼内容"))
                 return@launch
             }
 
@@ -88,19 +86,26 @@ class RequestAddViewModel @AssistedInject constructor(
                 note = state.note.takeIf { it.isNotBlank() }
             ).fold(
                 onSuccess = {
+                    // 检查是否已自动添加
+                    val isNowFriend = contactRepository.existsContact(contactId)
+                    if (isNowFriend) {
+                        _eventFlow.emit(SendEvent.AutoAdded)  // 自动添加成功
+                    } else {
+                        _eventFlow.emit(SendEvent.WaitingVerify)
+                    }
                     _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(RequestAddEvent.SendSuccess)
                 },
                 onFailure = { e ->
                     _uiState.update { it.copy(isLoading = false) }
-                    _eventFlow.emit(RequestAddEvent.ShowError(e.message ?: "发送失败"))
+                    _eventFlow.emit(SendEvent.Error(e.message ?: "发送失败"))
                 }
             )
         }
     }
 }
 
-sealed class RequestAddEvent {
-    object SendSuccess : RequestAddEvent()
-    data class ShowError(val message: String) : RequestAddEvent()
+sealed class SendEvent {
+    object AutoAdded : SendEvent()
+    object WaitingVerify : SendEvent()
+    data class Error(val message: String) : SendEvent()
 }

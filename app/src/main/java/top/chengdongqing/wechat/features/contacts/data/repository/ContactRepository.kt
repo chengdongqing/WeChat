@@ -32,10 +32,10 @@ class ContactRepository @Inject constructor(
     }
 
     /**
-     * 添加联系人
+     * 是否存在联系人
      */
-    suspend fun addContact(contact: ContactEntity) {
-        contactDao.insert(contact)
+    suspend fun existsContact(userId: String): Boolean {
+        return contactDao.exists(userId)
     }
 
     /**

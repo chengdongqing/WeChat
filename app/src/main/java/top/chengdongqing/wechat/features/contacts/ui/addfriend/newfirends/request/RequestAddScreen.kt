@@ -26,13 +26,19 @@ fun RequestAddScreen(
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collect { event ->
             when (event) {
-                is RequestAddEvent.SendSuccess -> {
+                SendEvent.WaitingVerify -> {
                     toast.show("已发送好友申请", icon = ToastIcon.Success)
                     delay(1000)
                     onSuccess()
                 }
 
-                is RequestAddEvent.ShowError -> {
+                SendEvent.AutoAdded -> {
+                    toast.show("已添加", icon = ToastIcon.Success)
+                    delay(1000)
+                    onSuccess()
+                }
+
+                is SendEvent.Error -> {
                     toast.show(event.message, icon = ToastIcon.Fail)
                 }
             }

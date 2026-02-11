@@ -255,9 +255,31 @@ class FriendRequestRepository @Inject constructor(
     suspend fun handleIncomingRequest(message: P2PMessage.FriendRequest, avatarBytes: ByteArray?) {
         withContext(Dispatchers.IO) {
             try {
-                // 检查是否已经是好友
-                if (contactDao.exists(message.peerUserId)) {
-                    Log.d("FriendRequest", "已经是好友")
+                // 1. 检查对方是否已在我的通讯录
+                val isAlreadyFriend = contactDao.exists(message.peerUserId)
+
+                if (isAlreadyFriend) {
+                    Log.d("FriendRequest", "对方已在通讯录，自动发送个人资料给对方")
+
+                    // 自动发送我的完整资料（不创建申请记录）
+                    sendAutoAddResponse(message.peerUserId, message.requestId)
+
+                    // 更新对方的头像和昵称（可能变了）
+                    val avatarPath = avatarBytes?.let { bytes ->
+                        imageExt.saveAvatarBytes(message.peerUserId, bytes, isThumbnail = true)
+                    }
+                    val existingContact = contactDao.getById(message.peerUserId)
+                    if (existingContact != null) {
+                        contactDao.update(
+                            existingContact.copy(
+                                nickname = message.peerNickname,
+                                avatarPath = avatarPath ?: existingContact.avatarPath,
+                                updatedAt = System.currentTimeMillis()
+                            )
+                        )
+                    }
+
+                    Log.d("FriendRequest", "已自动回复个人资料，无需申请流程")
                     return@withContext
                 }
 
@@ -284,6 +306,39 @@ class FriendRequestRepository @Inject constructor(
             } catch (e: Exception) {
                 Log.e("FriendRequest", "处理申请失败", e)
             }
+        }
+    }
+
+    /**
+     * ✅ 发送自动添加回复（对方还保留着我）
+     */
+    private suspend fun sendAutoAddResponse(targetUserId: String, requestId: String) {
+        try {
+            val myProfile = profileRepository.getCurrentProfileOnce() ?: return
+
+            val avatarBytes = myProfile.avatarPath?.let { path ->
+                imageExt.generateThumbnailBytes(path)
+            }
+
+            val message = P2PMessage.AutoAddResponse(
+                requestId = requestId,
+                userId = myProfile.id,
+                nickname = myProfile.nickname,
+                signature = myProfile.signature,
+                gender = myProfile.gender,
+                avatarSize = avatarBytes?.size ?: 0,
+                timestamp = System.currentTimeMillis()
+            )
+
+            val success = transmitter.sendMessage(targetUserId, message, avatarBytes)
+
+            if (success) {
+                Log.d("FriendRequest", "✅ 自动添加回复已发送")
+            } else {
+                Log.w("FriendRequest", "自动添加回复发送失败")
+            }
+        } catch (e: Exception) {
+            Log.e("FriendRequest", "发送自动添加回复失败", e)
         }
     }
 
@@ -336,6 +391,60 @@ class FriendRequestRepository @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.e("FriendRequest", "处理响应失败", e)
+            }
+        }
+    }
+
+    /**
+     * 处理自动添加回复（对方还保留着我）
+     */
+    suspend fun handleAutoAddResponse(
+        message: P2PMessage.AutoAddResponse,
+        avatarBytes: ByteArray?
+    ) {
+        withContext(Dispatchers.IO) {
+            try {
+                Log.d("FriendRequest", "收到自动添加回复，对方还保留着我")
+
+                // 检查是否已存在
+                if (contactDao.exists(message.userId)) {
+                    Log.d("FriendRequest", "已是好友，忽略")
+                    return@withContext
+                }
+
+                // 查询请求记录
+                val friendRequest = friendRequestDao.getByPeerUserId(
+                    message.userId,
+                    RequestDirection.OUTGOING
+                )
+
+                // 保存头像
+                val avatarPath = avatarBytes?.let { bytes ->
+                    imageExt.saveAvatarBytes(message.userId, bytes, isThumbnail = true)
+                }
+
+                // 直接添加到通讯录（无需申请流程）
+                val contactEntity = ContactEntity(
+                    userId = message.userId,
+                    nickname = message.nickname,
+                    avatarPath = avatarPath,
+                    signature = message.signature,
+                    gender = message.gender,
+                    remarkName = friendRequest?.remark,
+                    addedAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
+                )
+
+                contactDao.insert(contactEntity)
+
+                // 删除请求记录（如果存在）
+                friendRequest?.let {
+                    friendRequestDao.delete(it.id)
+                }
+
+                Log.d("FriendRequest", "✅ 已自动添加对方到通讯录")
+            } catch (e: Exception) {
+                Log.e("FriendRequest", "处理自动添加回复失败", e)
             }
         }
     }

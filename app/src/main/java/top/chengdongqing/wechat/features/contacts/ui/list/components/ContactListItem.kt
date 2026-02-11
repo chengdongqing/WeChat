@@ -38,8 +38,7 @@ fun ContactListItem(contact: ContactItem, onNavigateToDetail: () -> Unit) {
         AsyncImage(
             model = contact.avatarPath,
             contentDescription = null,
-            placeholder = painterResource(R.drawable.img_avatar),
-            error = painterResource(R.drawable.img_avatar),
+            error = painterResource(R.drawable.img_avatar_placeholder),
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(4.dp))

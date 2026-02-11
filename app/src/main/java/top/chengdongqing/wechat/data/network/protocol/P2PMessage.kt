@@ -47,6 +47,20 @@ sealed class P2PMessage {
     ) : P2PMessage()
 
     /**
+     * 自动添加响应（我删除了对方，但对方还保留着我，这时我再次申请添加他）
+     */
+    @Serializable
+    data class AutoAddResponse(
+        val requestId: String,
+        val userId: String,
+        val nickname: String,
+        val signature: String?,
+        val gender: Gender?,
+        val avatarSize: Int,
+        val timestamp: Long
+    ) : P2PMessage()
+
+    /**
      * 心跳消息
      */
     data class Ping(val timestamp: Long) : P2PMessage()

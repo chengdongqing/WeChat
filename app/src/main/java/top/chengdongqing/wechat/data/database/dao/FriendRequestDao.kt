@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
+import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
 
 @Dao
@@ -17,6 +18,20 @@ interface FriendRequestDao {
 
     @Query("SELECT * FROM friend_requests WHERE id = :requestId")
     suspend fun getById(requestId: String): FriendRequestEntity?
+
+    @Query(
+        """
+        SELECT * FROM friend_requests 
+        WHERE peerUserId = :peerUserId 
+        AND direction = :direction 
+        ORDER BY createAt DESC 
+        LIMIT 1
+    """
+    )
+    suspend fun getByPeerUserId(
+        peerUserId: String,
+        direction: RequestDirection
+    ): FriendRequestEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(request: FriendRequestEntity)
