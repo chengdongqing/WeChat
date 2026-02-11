@@ -47,7 +47,7 @@ fun PinCodeGroupScreen(onBack: () -> Unit) {
         containerColor = Color(0xFF1E1E1E),
         topBar = {
             WeTopBar(
-                "面对面建群",
+                title = "面对面建群",
                 containerColor = Color(0xFF1E1E1E),
                 contentColor = Color.White,
                 onBack = onBack

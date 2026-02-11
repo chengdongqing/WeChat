@@ -37,6 +37,7 @@ fun WeInput(
     maxLength: Int? = null,
     singleLine: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
+    showDivider: Boolean = true,
     activeColor: Color = Color(0xFF07C160),
     inactiveColor: Color = Color(0xFFE5E5E5),
     onValueChange: (String) -> Unit
@@ -111,10 +112,12 @@ fun WeInput(
             }
         }
 
-        // 底部动态横线
-        WeDivider(
-            thickness = 1.dp,
-            color = indicatorColor
-        )
+        // 底部横线
+        if (showDivider) {
+            WeDivider(
+                thickness = 1.dp,
+                color = indicatorColor
+            )
+        }
     }
 }

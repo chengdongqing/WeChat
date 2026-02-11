@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.features.contacts.ui.list.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,12 +45,23 @@ fun ContactListItem(contact: ContactItem, onNavigateToDetail: () -> Unit) {
                 .clip(RoundedCornerShape(4.dp))
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = contact.name,
-            color = WeTheme.colorScheme.textPrimary,
-            fontSize = 16.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Column {
+            Text(
+                text = contact.name,
+                color = WeTheme.colorScheme.textPrimary,
+                fontSize = 16.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            contact.note?.let {
+                Text(
+                    text = it,
+                    color = WeTheme.colorScheme.textSecondary,
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
     }
 }

@@ -30,6 +30,7 @@ import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewMod
 fun ContactProfileScreen(
     contactId: String,
     onBack: () -> Unit,
+    onNavigateToEdit: () -> Unit,
     viewModel: ContactDetailViewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
         factory.create(contactId)
     }
@@ -39,7 +40,7 @@ fun ContactProfileScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar("朋友资料", onBack = onBack)
+            WeTopBar(title = "朋友资料", onBack = onBack)
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -53,21 +54,26 @@ fun ContactProfileScreen(
             ProfileGroup("备注") {
                 ProfileItem(
                     label = "备注名",
-                    trailing = { ProfileItemText(contact.displayName) }
+                    trailing = { ProfileItemText(contact.displayName) },
+                    onClick = onNavigateToEdit
                 )
                 ProfileItem(
-                    label = "电话"
+                    label = "电话",
+                    onClick = onNavigateToEdit
                 )
                 ProfileItem(
-                    label = "标签"
+                    label = "标签",
+                    onClick = onNavigateToEdit
                 )
                 ProfileItem(
                     label = "备忘",
-                    trailing = { ProfileItemText(contact.note) }
+                    trailing = { ProfileItemText(contact.note) },
+                    onClick = onNavigateToEdit
                 )
                 ProfileItem(
-                    label = "备注名",
-                    showDivider = false
+                    label = "照片",
+                    showDivider = false,
+                    onClick = onNavigateToEdit
                 )
             }
             ProfileGroup("朋友权限") {

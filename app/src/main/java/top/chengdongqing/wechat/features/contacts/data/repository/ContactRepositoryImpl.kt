@@ -21,6 +21,10 @@ class ContactRepositoryImpl @Inject constructor(
         return contactDao.getById(userId)?.toDomain()
     }
 
+    override fun observeContactById(userId: String): Flow<Contact?> {
+        return contactDao.getByIdFlow(userId).map { it?.toDomain() }
+    }
+
     override suspend fun exists(userId: String): Boolean {
         return contactDao.exists(userId)
     }

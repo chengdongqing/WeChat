@@ -43,7 +43,7 @@ fun ChatInfoScreen(
 ) {
     Scaffold(
         topBar = {
-            WeTopBar("聊天信息", onBack = onBack)
+            WeTopBar(title = "聊天信息", onBack = onBack)
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->

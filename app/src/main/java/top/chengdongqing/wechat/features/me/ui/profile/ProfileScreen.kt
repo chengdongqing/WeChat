@@ -55,7 +55,7 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar("个人资料", onBack = onBack)
+            WeTopBar(title = "个人资料", onBack = onBack)
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->

@@ -61,7 +61,7 @@ fun ContactSettingScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar("朋友设置", onBack = onBack)
+            WeTopBar(title = "朋友设置", onBack = onBack)
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->

@@ -7,12 +7,12 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
@@ -25,7 +25,7 @@ class ContactDetailViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
     private val contactRepository: ContactRepository,
     private val contactP2PRepository: ContactP2PRepository,
-    private val profileRepository: ProfileRepository
+    profileRepository: ProfileRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -33,82 +33,53 @@ class ContactDetailViewModel @AssistedInject constructor(
         fun create(contactId: String): ContactDetailViewModel
     }
 
-    private val _uiState = MutableStateFlow(ContactDetailUiState(isLoading = true))
-    val uiState: StateFlow<ContactDetailUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<ContactDetailUiState> = combine(
+        profileRepository.getCurrentProfile(),
+        contactRepository.observeContactById(contactId)
+    ) { myProfile, contact ->
+        if (myProfile == null) {
+            return@combine ContactDetailUiState(isLoading = false, error = "未找到个人资料")
+        }
+
+        val isMyself = contactId == myProfile.id
+
+        val finalContact = when {
+            isMyself -> {
+                // 自己
+                Contact(
+                    id = myProfile.id,
+                    nickname = myProfile.nickname,
+                    avatarPath = myProfile.avatarPath,
+                    signature = myProfile.signature,
+                    gender = myProfile.gender,
+                    relation = ContactRelation.Myself
+                )
+            }
+
+            contact != null -> {
+                // 朋友（从数据库）
+                contact.copy(relation = ContactRelation.Friend)
+            }
+
+            else -> {
+                // 陌生人（从缓存）
+                contactP2PRepository.getContactFromCache(contactId)
+            }
+        }
+
+        ContactDetailUiState(
+            contact = finalContact,
+            isLoading = false,
+            error = if (finalContact == null) "未找到联系人信息" else null
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ContactDetailUiState(isLoading = true)
+    )
 
     private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
     val navigationEvent: SharedFlow<NavigationEvent> = _navigationEvent.asSharedFlow()
-
-    init {
-        loadContactDetails()
-    }
-
-    /**
-     * 加载联系人详细信息
-     */
-    private fun loadContactDetails() {
-        viewModelScope.launch {
-            try {
-                // 获取当前用户ID
-                val myProfile = profileRepository.getCurrentProfileOnce() ?: return@launch
-                val myUserId = myProfile.id
-
-                // 检查是否是自己
-                val isMyself = contactId == myUserId
-
-                // 先尝试从数据库加载
-                var contact = if (!isMyself) contactRepository.getContactById(contactId) else null
-                val isFriend = contact != null
-
-                contact = when {
-                    isMyself -> {
-                        // 如果是自己，从 Profile 动态创建
-                        Contact(
-                            id = myProfile.id,
-                            nickname = myProfile.nickname,
-                            avatarPath = myProfile.avatarPath,
-                            signature = myProfile.signature,
-                            gender = myProfile.gender,
-                            relation = ContactRelation.Myself
-                        )
-                    }
-
-                    !isFriend -> {
-                        // 尝试从缓存获取（扫码进入）
-                        contactP2PRepository.getContactFromCache(contactId)
-                    }
-
-                    else -> {
-                        // 朋友
-                        contact.copy(relation = ContactRelation.Friend)
-                    }
-                }
-
-                if (contact != null) {
-                    _uiState.update {
-                        it.copy(
-                            contact = contact,
-                            isLoading = false
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "未找到联系人信息"
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "加载联系人信息失败：${e.message}"
-                    )
-                }
-            }
-        }
-    }
 
     /**
      * 处理联系人操作
@@ -155,17 +126,9 @@ class ContactDetailViewModel @AssistedInject constructor(
             try {
                 contactRepository.deleteContact(contactId)
                 _navigationEvent.emit(NavigationEvent.ContactDeleted)
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = "删除失败：${e.message}") }
+            } catch (_: Exception) {
             }
         }
-    }
-
-    /**
-     * 清除错误
-     */
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
     }
 }
 

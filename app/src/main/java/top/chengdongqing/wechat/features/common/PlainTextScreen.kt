@@ -20,7 +20,7 @@ fun PlainTextScreen(
     onBack: () -> Unit
 ) {
     Scaffold(topBar = {
-        WeTopBar("", onBack = onBack, backIconResId = R.drawable.ic_close_outlined)
+        WeTopBar(title = "", onBack = onBack, backIconResId = R.drawable.ic_close_outlined)
     }) { innerPadding ->
         Box(
             modifier = Modifier

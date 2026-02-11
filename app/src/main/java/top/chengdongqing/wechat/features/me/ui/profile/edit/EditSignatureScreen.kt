@@ -38,7 +38,7 @@ fun EditSignatureScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar("个性签名", onBack = onBack) {
+            WeTopBar(title = "个性签名", onBack = onBack) {
                 WeButton(
                     "保存",
                     size = ButtonSize.Small,

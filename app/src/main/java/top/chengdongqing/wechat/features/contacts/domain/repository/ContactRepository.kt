@@ -16,6 +16,11 @@ interface ContactRepository {
     suspend fun getContactById(userId: String): Contact?
 
     /**
+     * 监听指定联系人的变化
+     */
+    fun observeContactById(userId: String): Flow<Contact?>
+
+    /**
      * 检查联系人是否存在
      */
     suspend fun exists(userId: String): Boolean

@@ -69,6 +69,7 @@ class ContactListViewModel @Inject constructor(
                 ContactItem(
                     id = contact.id,
                     name = contact.displayName,
+                    note = contact.note,
                     avatarPath = contact.avatarPath,
                     initial = contact.displayName.getInitial()
                 )
@@ -102,6 +103,7 @@ class ContactListViewModel @Inject constructor(
 data class ContactItem(
     val id: String,
     val name: String,
+    val note: String?,
     val avatarPath: String?,
     val initial: Char
 )

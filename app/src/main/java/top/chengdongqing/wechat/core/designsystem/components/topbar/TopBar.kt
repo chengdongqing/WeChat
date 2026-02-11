@@ -27,23 +27,16 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 /**
  * 顶部导航栏
- *
- * @param title 标题文本
- * @param modifier 修饰符
- * @param containerColor 背景色
- * @param contentColor 内容颜色（标题、图标）
- * @param onBack 返回按钮回调，null 时不显示返回按钮
- * @param backIconResId 返回按钮图标
- * @param actions 右侧操作按钮
  */
 @Composable
 fun WeTopBar(
-    title: String,
     modifier: Modifier = Modifier,
+    title: String? = null,
     containerColor: Color = WeTheme.colorScheme.background,
     contentColor: Color = WeTheme.colorScheme.textPrimary,
     onBack: (() -> Unit)? = null,
     @DrawableRes backIconResId: Int = R.drawable.ic_back_outlined,
+    backText: String? = null,
     actions: @Composable WeTopBarScope.() -> Unit = {}
 ) {
     Surface(
@@ -60,25 +53,39 @@ fun WeTopBar(
         ) {
             // 返回按钮
             if (onBack != null) {
-                WeTopBarIcon(
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    iconResId = backIconResId,
-                    description = "返回",
-                    tint = contentColor,
-                    onClick = onBack
-                )
+                if (backText == null) {
+                    WeTopBarIcon(
+                        modifier = Modifier.align(Alignment.CenterStart),
+                        iconResId = backIconResId,
+                        description = "返回",
+                        tint = contentColor,
+                        onClick = onBack
+                    )
+                } else {
+                    Text(
+                        text = backText,
+                        color = contentColor,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(horizontal = 8.dp)
+                            .weClickable(onClick = onBack)
+                    )
+                }
             }
 
             // 标题
-            Text(
-                text = title,
-                modifier = Modifier.padding(horizontal = 56.dp),
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = contentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            title?.let {
+                Text(
+                    text = title,
+                    modifier = Modifier.padding(horizontal = 56.dp),
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
             // 右侧操作按钮
             Row(

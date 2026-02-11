@@ -16,6 +16,7 @@ import top.chengdongqing.wechat.features.contacts.ui.add.pincode.PinCodeGroupScr
 import top.chengdongqing.wechat.features.contacts.ui.add.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.profile.ContactProfileScreen
+import top.chengdongqing.wechat.features.contacts.ui.detail.profile.edit.EditContactProfileScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
 
 sealed class ContactsRoute(val route: String) {
@@ -39,6 +40,12 @@ sealed class ContactsRoute(val route: String) {
         const val ARG_CONTACT_ID = "contactId"
 
         fun createRoute(contactId: String) = "contacts/${contactId}/profile"
+    }
+
+    object ProfileEdit : ContactsRoute("contacts/{contactId}/profile/edit") {
+        const val ARG_CONTACT_ID = "contactId"
+
+        fun createRoute(contactId: String) = "contacts/${contactId}/profile/edit"
     }
 
     object RequestAdd : ContactsRoute("contacts/{contactId}/request_add") {
@@ -133,7 +140,23 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
     ) { backStackEntry ->
         val contactId =
             backStackEntry.arguments?.getString(ContactsRoute.Profile.ARG_CONTACT_ID) ?: ""
-        ContactProfileScreen(contactId, onBack)
+        ContactProfileScreen(
+            contactId,
+            onBack,
+            onNavigateToEdit = {
+                navController.navigate(ContactsRoute.ProfileEdit.createRoute(contactId))
+            }
+        )
+    }
+    composable(
+        route = ContactsRoute.ProfileEdit.route,
+        arguments = listOf(
+            navArgument(ContactsRoute.ProfileEdit.ARG_CONTACT_ID) { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val contactId =
+            backStackEntry.arguments?.getString(ContactsRoute.ProfileEdit.ARG_CONTACT_ID) ?: ""
+        EditContactProfileScreen(contactId, onBack)
     }
     composable(
         route = ContactsRoute.RequestAdd.route,

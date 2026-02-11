@@ -58,7 +58,6 @@ fun ContactDetailScreen(
     LaunchedEffect(uiState.error) {
         uiState.error?.let { error ->
             snackbarHostState.showSnackbar(error)
-            viewModel.clearError()
         }
     }
 

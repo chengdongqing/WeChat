@@ -41,7 +41,7 @@ fun EditNameScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar("更改名字", onBack = onBack) {
+            WeTopBar(title = "更改名字", onBack = onBack) {
                 WeButton(
                     "保存",
                     size = ButtonSize.Small,

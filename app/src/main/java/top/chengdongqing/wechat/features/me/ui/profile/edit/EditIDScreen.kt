@@ -37,7 +37,7 @@ fun EditIDScreen(
     Scaffold(
         topBar = {
             WeTopBar(
-                "",
+                title = "",
                 containerColor = White,
                 onBack = onBack
             )
