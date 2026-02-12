@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.data.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 
 @Composable
 fun MessageItem(

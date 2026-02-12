@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.chat.ui.session
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -36,8 +35,8 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreTyp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.data.model.ChatMessage
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageItem
 
@@ -80,7 +79,7 @@ fun ChatSessionScreen(
             allMedia = mediaList,
             getIndexOf = { content -> mediaList.indexOf(content) },
             playingMessageId = playingMessageId,
-            onVoiceToggle = { id, uri -> viewModel.toggleVoicePlay(id, uri) },
+            onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
             onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() }
         )
     }
@@ -202,7 +201,7 @@ data class MediaContext(
     val allMedia: List<MessageContent.Media>,
     val getIndexOf: (MessageContent.Media) -> Int,
     val playingMessageId: String?,
-    val onVoiceToggle: (messageId: String, uri: Uri) -> Unit,
+    val onVoiceToggle: (messageId: String, localPath: String) -> Unit,
     val onVoiceStop: () -> Unit
 )
 

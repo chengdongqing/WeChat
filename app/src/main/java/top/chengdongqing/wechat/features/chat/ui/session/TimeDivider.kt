@@ -15,7 +15,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.util.toChatDisplayTime
-import top.chengdongqing.wechat.data.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 
 @Composable
 fun TimeDivider(

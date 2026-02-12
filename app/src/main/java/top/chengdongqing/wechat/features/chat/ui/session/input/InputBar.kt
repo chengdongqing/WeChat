@@ -35,7 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.Emoj
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.CircleActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.ScrollToDismissEffect
@@ -294,7 +294,7 @@ private fun InputFieldArea(
             // 语音录制按钮
             VoiceRecordButton(
                 onVoiceSend = { uri, duration ->
-                    val content = MessageContent.Voice(uri, duration)
+                    val content = MessageContent.Voice(uri.toString(), duration)
                     onSendMessage(content) {
                         soundPlayer.play(R.raw.after_upload_voice)
                     }

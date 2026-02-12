@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
@@ -41,9 +42,9 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWid
 import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.core.util.loadMediaThumbnail
 import top.chengdongqing.wechat.core.util.toPercent
-import top.chengdongqing.wechat.data.model.ChatMessage
-import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.data.model.MessageSendStatus
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 import top.chengdongqing.wechat.features.chat.ui.session.LocalMediaContext
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -179,7 +180,7 @@ fun MediaContent(message: ChatMessage) {
 }
 
 private fun MessageContent.Media.toMediaItem() = MediaItem(
-    uri = uri,
+    uri = localPath.toUri(),
     filename = filename,
     mediaType = if (this is MessageContent.Video) MediaType.Video else MediaType.Image,
     mimeType = mimeType,

@@ -21,7 +21,7 @@ import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.core.designsystem.util.DpSaver
 import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputMode
 
 @Composable

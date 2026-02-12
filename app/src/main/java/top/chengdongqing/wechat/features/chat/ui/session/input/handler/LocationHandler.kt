@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
 import top.chengdongqing.wechat.core.designsystem.components.location.picker.rememberPickLocationLauncher
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 /**
  * 位置处理器
@@ -23,7 +23,7 @@ class LocationHandler(
             longitude = location.coordinate.longitude,
             address = location.address ?: "",
             poiName = location.name,
-            snapshotUri = location.staticMapUrl
+            snapshotPath = location.staticMapUri.toString()
         )
         onSendMessage(content, null)
     }

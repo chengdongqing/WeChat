@@ -13,10 +13,10 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
+import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.socket.SocketConnection
-import top.chengdongqing.wechat.data.network.socket.SocketManager
 import top.chengdongqing.wechat.data.network.socket.SocketServer
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,7 +26,6 @@ import javax.inject.Singleton
  */
 @Singleton
 class MessageReceiver @Inject constructor(
-    private val socketManager: SocketManager,
     private val socketServer: SocketServer,
     private val messageDao: MessageDao,
     private val chatSessionDao: ChatSessionDao,
@@ -87,9 +86,7 @@ class MessageReceiver @Inject constructor(
             val jsonString = String(data, Charsets.UTF_8)
 
             // 解析协议
-            val protocol = json.decodeFromString<ChatProtocol>(jsonString)
-
-            when (protocol) {
+            when (val protocol = json.decodeFromString<ChatProtocol>(jsonString)) {
                 is ChatProtocol.TextMessage -> handleTextMessage(protocol)
                 is ChatProtocol.MediaMessage -> handleMediaMessage(protocol)
                 is ChatProtocol.MessageAck -> handleMessageAck(protocol)
@@ -115,10 +112,10 @@ class MessageReceiver @Inject constructor(
             sessionId = protocol.senderId,
             senderId = protocol.senderId,
             receiverId = protocol.receiverId,
-            contentType = top.chengdongqing.wechat.data.database.entity.MessageType.TEXT,
+            contentType = MessageType.Text,
             content = protocol.content,
             timestamp = protocol.timestamp,
-            sendStatus = SendStatus.DELIVERED,
+            sendStatus = SendStatus.Delivered,
             isFromMe = false,
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
@@ -149,13 +146,11 @@ class MessageReceiver @Inject constructor(
             senderId = protocol.senderId,
             receiverId = protocol.receiverId,
             contentType = protocol.messageType,
-            content = protocol.fileName,
-            mediaSize = protocol.fileSize,
-            mediaWidth = protocol.mediaWidth,
-            mediaHeight = protocol.mediaHeight,
+            content = protocol.content,
+            mediaSize = protocol.mediaSize,
             mediaDuration = protocol.mediaDuration,
             timestamp = protocol.timestamp,
-            sendStatus = SendStatus.DELIVERED,
+            sendStatus = SendStatus.Delivered,
             isFromMe = false,
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis()
@@ -165,10 +160,10 @@ class MessageReceiver @Inject constructor(
 
         // 更新会话
         val contentText = when (protocol.messageType) {
-            top.chengdongqing.wechat.data.database.entity.MessageType.IMAGE -> "[图片]"
-            top.chengdongqing.wechat.data.database.entity.MessageType.VOICE -> "[语音]"
-            top.chengdongqing.wechat.data.database.entity.MessageType.VIDEO -> "[视频]"
-            top.chengdongqing.wechat.data.database.entity.MessageType.FILE -> "[文件]"
+            MessageType.Image -> "[图片]"
+            MessageType.VoiceCall -> "[语音]"
+            MessageType.Video -> "[视频]"
+            MessageType.File -> "[文件]"
             else -> "[消息]"
         }
         updateChatSession(protocol.senderId, contentText, protocol.timestamp)
@@ -185,7 +180,7 @@ class MessageReceiver @Inject constructor(
      */
     private suspend fun handleMessageAck(protocol: ChatProtocol.MessageAck) {
         Log.d(TAG, "收到ACK: ${protocol.messageId}")
-        messageDao.updateSendStatus(protocol.messageId, SendStatus.DELIVERED)
+        messageDao.updateSendStatus(protocol.messageId, SendStatus.Delivered)
     }
 
     /**
@@ -193,7 +188,7 @@ class MessageReceiver @Inject constructor(
      */
     private suspend fun handleMessageRead(protocol: ChatProtocol.MessageRead) {
         Log.d(TAG, "收到已读回执: ${protocol.messageId}")
-        messageDao.updateSendStatus(protocol.messageId, SendStatus.READ)
+        messageDao.updateSendStatus(protocol.messageId, SendStatus.Read)
     }
 
     /**
@@ -238,7 +233,7 @@ class MessageReceiver @Inject constructor(
                 contactName = "Unknown",  // 应该从联系人表查询
                 contactAvatar = null,
                 lastMessage = lastMessage,
-                lastMessageType = "TEXT",
+                lastMessageType = MessageType.Text,
                 lastMessageTime = timestamp,
                 unreadCount = 1,
                 createdAt = System.currentTimeMillis(),

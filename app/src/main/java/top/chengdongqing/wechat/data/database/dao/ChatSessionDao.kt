@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
+import top.chengdongqing.wechat.data.database.entity.MessageType
 
 @Dao
 interface ChatSessionDao {
@@ -35,4 +36,24 @@ interface ChatSessionDao {
 
     @Delete
     suspend fun delete(session: ChatSessionEntity)
+
+    @Query("UPDATE chat_sessions SET isPinned = :isPinned WHERE sessionId = :sessionId")
+    suspend fun updatePin(sessionId: String, isPinned: Boolean)
+
+    @Query(
+        """
+        UPDATE chat_sessions 
+        SET lastMessage = :lastMessage,
+            lastMessageType = :lastMessageType,
+            lastMessageTime = :timestamp,
+            updatedAt = :timestamp
+        WHERE sessionId = :sessionId
+    """
+    )
+    suspend fun updateLastMessage(
+        sessionId: String,
+        lastMessage: String,
+        lastMessageType: MessageType?,
+        timestamp: Long
+    )
 }

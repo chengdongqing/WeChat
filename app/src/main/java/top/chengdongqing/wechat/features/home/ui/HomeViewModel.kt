@@ -20,7 +20,7 @@ class HomeViewModel @Inject constructor(
     // 各个 Tab 的未读消息数
     val unreadCounts: StateFlow<Map<HomeTab, Int>> = combine(
         flowOf(0),
-        friendRequestRepository.getUnreadCount()
+        friendRequestRepository.observeUnreadCount()
     ) { chatUnread, contactUnread ->
         mapOf(
             HomeTab.Chats to chatUnread,

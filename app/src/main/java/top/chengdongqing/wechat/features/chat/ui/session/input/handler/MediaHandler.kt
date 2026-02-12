@@ -18,7 +18,7 @@ import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaIt
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.core.util.prepareMediaResource
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 /**
  * 媒体处理器
@@ -42,20 +42,22 @@ class MediaHandler(
         val contents = items.map { item ->
             if (item.isImage) {
                 MessageContent.Image(
-                    uri = item.uri,
-                    mimeType = item.mimeType,
-                    filename = item.filename,
-                    width = item.width,
-                    height = item.height
-                )
-            } else {
-                MessageContent.Video(
-                    uri = item.uri,
+                    localPath = item.uri.toString(),
                     mimeType = item.mimeType,
                     filename = item.filename,
                     width = item.width,
                     height = item.height,
-                    duration = item.duration
+                    size = 0
+                )
+            } else {
+                MessageContent.Video(
+                    localPath = item.uri.toString(),
+                    mimeType = item.mimeType,
+                    filename = item.filename,
+                    width = item.width,
+                    height = item.height,
+                    duration = item.duration,
+                    size = 0
                 )
             }
         }
@@ -78,20 +80,22 @@ class MediaHandler(
 
             val content = if (isImage) {
                 MessageContent.Image(
-                    uri = mediaUri,
-                    mimeType = resource.mimeType,
-                    filename = resource.filename,
-                    width = resource.width,
-                    height = resource.height
-                )
-            } else {
-                MessageContent.Video(
-                    uri = mediaUri,
+                    localPath = mediaUri.toString(),
                     mimeType = resource.mimeType,
                     filename = resource.filename,
                     width = resource.width,
                     height = resource.height,
-                    duration = resource.duration
+                    size = resource.size
+                )
+            } else {
+                MessageContent.Video(
+                    localPath = mediaUri.toString(),
+                    mimeType = resource.mimeType,
+                    filename = resource.filename,
+                    width = resource.width,
+                    height = resource.height,
+                    duration = resource.duration,
+                    size = resource.size
                 )
             }
             onSendMessage(content, null)
@@ -108,11 +112,12 @@ class MediaHandler(
             val resource = prepareMediaResource(context, capturedUri) ?: return@launch
 
             val content = MessageContent.Image(
-                uri = capturedUri,
+                localPath = capturedUri.toString(),
                 mimeType = resource.mimeType,
                 filename = resource.filename,
                 width = resource.width,
-                height = resource.height
+                height = resource.height,
+                size = resource.size
             )
             onSendMessage(content, null)
         }
@@ -128,12 +133,13 @@ class MediaHandler(
             val resource = prepareMediaResource(context, capturedUri) ?: return@launch
 
             val content = MessageContent.Video(
-                uri = capturedUri,
+                localPath = capturedUri.toString(),
                 mimeType = resource.mimeType,
                 filename = resource.filename,
                 width = resource.width,
                 height = resource.height,
-                duration = resource.duration
+                duration = resource.duration,
+                size = resource.size
             )
             onSendMessage(content, null)
         }

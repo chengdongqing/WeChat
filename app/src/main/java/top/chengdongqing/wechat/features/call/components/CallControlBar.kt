@@ -15,9 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.data.model.CallType
 import top.chengdongqing.wechat.features.call.CallUiState
 import top.chengdongqing.wechat.features.call.model.CallState
+import top.chengdongqing.wechat.features.chat.domain.model.CallType
 
 /**
  * 通话控制栏

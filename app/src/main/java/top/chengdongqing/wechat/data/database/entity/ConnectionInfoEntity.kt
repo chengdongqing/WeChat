@@ -32,7 +32,7 @@ data class ConnectionInfoEntity(
 )
 
 enum class ConnectionType {
-    WIFI_LAN,       // WiFi局域网
-    WIFI_DIRECT,    // WiFi直连
-    BLUETOOTH       // 蓝牙
+    WiFiLan,       // WiFi局域网
+    WiFiDirect,    // WiFi直连
+    Bluetooth      // 蓝牙
 }

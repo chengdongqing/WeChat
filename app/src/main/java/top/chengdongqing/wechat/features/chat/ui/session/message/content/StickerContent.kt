@@ -7,7 +7,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.util.asAssetPath
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 @Composable
 fun StickerContent(content: MessageContent.Sticker) {

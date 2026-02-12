@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.model
+package top.chengdongqing.wechat.features.me.data.model
 
 import kotlinx.serialization.Serializable
 

@@ -30,7 +30,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.QRCodeState
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.drawQrCode
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
-import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 
 /**
  * 二维码卡片渲染器

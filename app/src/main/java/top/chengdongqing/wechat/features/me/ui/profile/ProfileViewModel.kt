@@ -17,9 +17,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.manager.FileManager
-import top.chengdongqing.wechat.data.model.UserProfile
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
+import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
@@ -231,7 +231,8 @@ data class ProfileUiState(
  */
 sealed class ProfileField {
     data class Nickname(val value: String) : ProfileField()
-    data class Gender(val value: top.chengdongqing.wechat.data.model.Gender) : ProfileField()
+    data class Gender(val value: top.chengdongqing.wechat.features.me.domain.model.Gender) :
+        ProfileField()
     data class Signature(val value: String) : ProfileField()
     data class Avatar(val uri: Uri) : ProfileField()
 }

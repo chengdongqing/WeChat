@@ -31,12 +31,12 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.toMD5Bytes
-import top.chengdongqing.wechat.data.model.Gender.Companion.getIndex
-import top.chengdongqing.wechat.data.model.UserProfileTransfer
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
 import top.chengdongqing.wechat.data.network.protocol.RequestAction
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
+import top.chengdongqing.wechat.features.me.data.model.UserProfileTransfer
+import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.getIndex
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.ByteArrayOutputStream
 import java.util.UUID

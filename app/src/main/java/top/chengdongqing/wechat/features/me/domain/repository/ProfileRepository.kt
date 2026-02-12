@@ -1,8 +1,8 @@
 package top.chengdongqing.wechat.features.me.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.me.domain.model.Gender
+import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 
 interface ProfileRepository {
 

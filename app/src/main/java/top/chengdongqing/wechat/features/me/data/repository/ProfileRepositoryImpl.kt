@@ -11,8 +11,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.me.domain.model.Gender
+import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 

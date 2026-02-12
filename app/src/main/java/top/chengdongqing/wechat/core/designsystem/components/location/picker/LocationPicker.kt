@@ -72,7 +72,7 @@ fun WeLocationPicker(
             mapState.takeSnapshot(state.isSearchMode)?.let { bitmap ->
                 // 保存到缓存并获取uri
                 val snapshot = context.createImageUri(bitmap)
-                val location = state.selectedLocation!!.copy(staticMapUrl = snapshot)
+                val location = state.selectedLocation!!.copy(staticMapUri = snapshot)
                 onConfirm(location)
                 isLoading = false
             }

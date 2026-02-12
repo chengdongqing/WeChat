@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.model
+package top.chengdongqing.wechat.features.chat.domain.model
 
 import top.chengdongqing.wechat.core.util.format
 import kotlin.time.Duration.Companion.milliseconds
@@ -8,7 +8,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 enum class CallStatus(val description: String, val descriptionForMe: String) {
     Cancelled("对方已取消", "已取消"),
-    REJECTED("对方已拒绝", "已拒绝"),
+    Rejected("对方已拒绝", "已拒绝"),
     Connected("已接通", "已接通"),
     Missed("未应答", "对方无应答");
 
@@ -22,11 +22,9 @@ enum class CallStatus(val description: String, val descriptionForMe: String) {
 /**
  * 通话类型
  */
-enum class CallType {
-    /** 语音通话 */
-    Voice,
+enum class CallType(val label: String) {
+    Voice("语音通话"),
+    Video("视频通话");
 
-    /** 视频通话 */
-    Video
+    val isVideoCall: Boolean get() = this == Video
 }
-

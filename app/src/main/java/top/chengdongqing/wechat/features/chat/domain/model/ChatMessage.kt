@@ -1,6 +1,4 @@
-package top.chengdongqing.wechat.data.model
-
-import android.net.Uri
+package top.chengdongqing.wechat.features.chat.domain.model
 
 /**
  * 消息数据类
@@ -56,7 +54,7 @@ sealed class MessageContent(
     data class Text(val text: String) : MessageContent()
 
     data class Voice(
-        val uri: Uri,
+        val localPath: String,
         val duration: Long,
         val isPlayed: Boolean = false
     ) : MessageContent(showUnreadDot = !isPlayed)
@@ -68,32 +66,35 @@ sealed class MessageContent(
     ) : MessageContent(showBubbleArrow = false)
 
     abstract class Media(
-        open val uri: Uri,
+        open val localPath: String,
         open val filename: String,
         open val mimeType: String,
         open val width: Int,
         open val height: Int,
+        open val size: Long
     ) : MessageContent(showBubbleArrow = false) {
         val ratio: Float
             get() = width.toFloat() / height.toFloat()
     }
 
     data class Image(
-        override val uri: Uri,
-        override val mimeType: String,
-        override val filename: String,
-        override val width: Int,
-        override val height: Int
-    ) : Media(uri, filename, mimeType, width, height)
-
-    data class Video(
-        override val uri: Uri,
+        override val localPath: String,
         override val mimeType: String,
         override val filename: String,
         override val width: Int,
         override val height: Int,
-        val duration: Long
-    ) : Media(uri, filename, mimeType, width, height)
+        override val size: Long
+    ) : Media(localPath, filename, mimeType, width, height, size)
+
+    data class Video(
+        override val localPath: String,
+        override val mimeType: String,
+        override val filename: String,
+        override val width: Int,
+        override val height: Int,
+        override val size: Long,
+        val duration: Long,
+    ) : Media(localPath, filename, mimeType, width, height, size)
 
     data class Call(
         val type: CallType,
@@ -106,29 +107,27 @@ sealed class MessageContent(
         val longitude: Double,
         val address: String,
         val poiName: String,
-        val snapshotUri: Uri?
+        val snapshotPath: String?
     ) : MessageContent(isSameBackground = true)
 
-    data class UserCard(
+    data class File(
+        val localPath: String,
+        val mimeType: String,
+        val filename: String,
+        val size: Long
+    ) : MessageContent(isSameBackground = true)
+
+    data class ContactCard(
         val userId: String,
         val name: String,
         val avatar: String,
     ) : MessageContent(isSameBackground = true)
 
-    data class File(
-        val fileName: String,
-        val fileSize: Long,
-        val fileType: String,
-        val fileUrl: String
-    ) : MessageContent(isSameBackground = true)
-
     data class Favorite(
         val title: String,
         val source: String,
-        val previewUrl: String? = null
+        val previewPath: String? = null
     ) : MessageContent(isSameBackground = true)
-
-    data object Unknown : MessageContent()
 }
 
 /**
@@ -151,35 +150,35 @@ sealed class MessageSendStatus {
 
         /** 网络错误 - 可重试 */
         data class NetworkError(
-            override val error: SendError = SendError.NETWORK_TIMEOUT
+            override val error: SendError = SendError.NetworkTimeout
         ) : Failed() {
             override val canRetry: Boolean = true
         }
 
         /** 对方不在线 - 可重试 */
         data class RecipientOffline(
-            override val error: SendError = SendError.RECIPIENT_OFFLINE
+            override val error: SendError = SendError.RecipientOffline
         ) : Failed() {
             override val canRetry: Boolean = true
         }
 
         /** 不是好友 - 不可重试 */
         data class NotFriend(
-            override val error: SendError = SendError.NOT_FRIEND
+            override val error: SendError = SendError.NotFriend
         ) : Failed() {
             override val canRetry: Boolean = false
         }
 
         /** 被对方拉黑 - 不可重试 */
         data class Blocked(
-            override val error: SendError = SendError.BLOCKED
+            override val error: SendError = SendError.Blocked
         ) : Failed() {
             override val canRetry: Boolean = false
         }
 
         /** 消息过大 - 不可重试 */
         data class MessageTooLarge(
-            override val error: SendError = SendError.MESSAGE_TOO_LARGE
+            override val error: SendError = SendError.MessageTooLarge
         ) : Failed() {
             override val canRetry: Boolean = false
         }
@@ -190,10 +189,10 @@ sealed class MessageSendStatus {
  * 错误类型枚举
  */
 enum class SendError(val message: String) {
-    NETWORK_TIMEOUT("网络连接超时。"),
-    RECIPIENT_OFFLINE("对方不在线。"),
-    NOT_FRIEND("对方已不是你的好友。"),
-    BLOCKED("消息已发出，但被对方拒收了。"),
-    MESSAGE_TOO_LARGE("消息内容过大。"),
-    UNKNOWN("未知错误。")
+    NetworkTimeout("网络连接超时。"),
+    RecipientOffline("对方不在线。"),
+    NotFriend("对方已不是你的好友。"),
+    Blocked("消息已发出，但被对方拒收了。"),
+    MessageTooLarge("消息内容过大。"),
+    Unknown("未知错误。")
 }

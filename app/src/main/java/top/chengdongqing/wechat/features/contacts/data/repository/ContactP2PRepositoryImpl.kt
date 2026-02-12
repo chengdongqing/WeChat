@@ -10,11 +10,11 @@ import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.model.ConnectionCapabilities
 import top.chengdongqing.wechat.data.model.DiscoveryBeacon
-import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.data.model.UserProfileTransfer
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.me.data.model.UserProfileTransfer
+import top.chengdongqing.wechat.features.me.domain.model.Gender
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 

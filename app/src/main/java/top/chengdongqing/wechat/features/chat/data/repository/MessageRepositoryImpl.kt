@@ -1,0 +1,341 @@
+package top.chengdongqing.wechat.features.chat.data.repository
+
+import android.content.Context
+import androidx.core.net.toUri
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
+import top.chengdongqing.wechat.data.database.dao.MessageDao
+import top.chengdongqing.wechat.data.database.entity.MessageEntity
+import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.database.entity.SendStatus
+import top.chengdongqing.wechat.data.network.messaging.MessageSender
+import top.chengdongqing.wechat.features.chat.data.mapper.ContactCardContent
+import top.chengdongqing.wechat.features.chat.data.mapper.FavoriteContent
+import top.chengdongqing.wechat.features.chat.data.mapper.FileContent
+import top.chengdongqing.wechat.features.chat.data.mapper.LocationContent
+import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
+import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import javax.inject.Inject
+
+class MessageRepositoryImpl @Inject constructor(
+    private val messageDao: MessageDao,
+    private val chatSessionDao: ChatSessionDao,
+    private val messageSender: MessageSender,
+    private val profileRepository: ProfileRepository,
+    private val json: Json,
+    @param:ApplicationContext private val context: Context
+) : top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository {
+
+    override suspend fun getMessages(
+        sessionId: String,
+        limit: Int,
+        beforeTimestamp: Long?
+    ): List<ChatMessage> {
+        val entities = if (beforeTimestamp != null) {
+            messageDao.getMessagesBeforeTimestamp(sessionId, beforeTimestamp, limit)
+        } else {
+            messageDao.getMessagesBySession(sessionId, limit, 0)
+        }
+        return entities.map { it.toDomain(json) }
+    }
+
+    override fun observeMessages(sessionId: String): Flow<List<ChatMessage>> {
+        return messageDao.observeMessagesBySession(sessionId).map { list ->
+            list.map { it.toDomain(json) }
+        }
+    }
+
+    override suspend fun sendMessage(
+        sessionId: String,
+        receiverId: String,
+        content: MessageContent
+    ): Result<ChatMessage> {
+        return runCatching {
+            val myProfile = profileRepository.getCurrentProfileOnce()
+                ?: throw Exception("未找到个人资料")
+
+            // 1. 构建消息实体
+            val messageId = randomUUID()
+            val now = System.currentTimeMillis()
+
+            val entity = buildMessageEntity(
+                messageId = messageId,
+                sessionId = sessionId,
+                senderId = myProfile.id,
+                receiverId = receiverId,
+                content = content,
+                timestamp = now
+            )
+
+            // 2. 先存本地（乐观更新，立即显示）
+            messageDao.insert(entity)
+
+            // 3. 更新会话
+            updateSessionLastMessage(sessionId, content, now)
+
+            // 4. 异步发送（不阻塞 UI）
+            val message = entity.toDomain(json)
+
+            // 异步发送，失败后更新状态
+            sendMessageAsync(entity)
+
+            message
+        }
+    }
+
+    override suspend fun retrySend(messageId: String): Result<Unit> {
+        return runCatching {
+            val entity = messageDao.getByMessageId(messageId)
+                ?: throw Exception("消息不存在")
+
+            // 重置为发送中
+            messageDao.updateSendStatus(messageId, SendStatus.Sending)
+
+            // 重新发送
+            messageSender.sendTextMessage(entity).getOrThrow()
+        }
+    }
+
+    override suspend fun markAllAsRead(sessionId: String) {
+        messageDao.markAllAsRead(sessionId)
+        chatSessionDao.clearUnreadCount(sessionId)
+    }
+
+    override suspend fun deleteMessage(messageId: String) {
+        messageDao.getByMessageId(messageId)?.let {
+            messageDao.delete(it)
+        }
+    }
+
+    override suspend fun deleteSessionMessages(sessionId: String) {
+        messageDao.deleteBySession(sessionId)
+    }
+
+    // ==================== 私有方法 ====================
+
+    private fun buildMessageEntity(
+        messageId: String,
+        sessionId: String,
+        senderId: String,
+        receiverId: String,
+        content: MessageContent,
+        timestamp: Long
+    ): MessageEntity {
+        val now = System.currentTimeMillis()
+
+        // 公共字段
+        fun base(
+            contentType: MessageType,
+            contentValue: String,
+            localPath: String? = null,
+            mediaSize: Long? = null,
+            mediaDuration: Long? = null
+        ) = MessageEntity(
+            messageId = messageId,
+            sessionId = sessionId,
+            senderId = senderId,
+            receiverId = receiverId,
+            contentType = contentType,
+            content = contentValue,
+            localPath = localPath,
+            mediaSize = mediaSize,
+            mediaDuration = mediaDuration,
+            timestamp = timestamp,
+            sendStatus = SendStatus.Sending,
+            isFromMe = true,
+            createdAt = now,
+            updatedAt = now
+        )
+
+        return when (content) {
+            is MessageContent.Text ->
+                base(
+                    contentType = MessageType.Text,
+                    contentValue = content.text
+                )
+
+            is MessageContent.Voice ->
+                base(
+                    contentType = MessageType.Voice,
+                    contentValue = "",
+                    localPath = content.localPath,
+                    mediaDuration = content.duration
+                )
+
+            is MessageContent.Image ->
+                base(
+                    contentType = MessageType.Image,
+                    contentValue = json.encodeToString(
+                        MediaContent(
+                            width = content.width,
+                            height = content.height,
+                            mimeType = content.mimeType,
+                            filename = content.filename
+                        )
+                    ),
+                    localPath = content.localPath,
+                    mediaSize = content.size
+                )
+
+            is MessageContent.Video ->
+                base(
+                    contentType = MessageType.Video,
+                    contentValue = json.encodeToString(
+                        MediaContent(
+                            width = content.width,
+                            height = content.height,
+                            mimeType = content.mimeType,
+                            filename = content.filename
+                        )
+                    ),
+                    localPath = content.localPath,
+                    mediaSize = content.size,
+                    mediaDuration = content.duration
+                )
+
+            is MessageContent.File ->
+                base(
+                    contentType = MessageType.File,
+                    contentValue = json.encodeToString(
+                        FileContent(
+                            mimeType = content.mimeType,
+                            filename = content.filename
+                        )
+                    ),
+                    localPath = content.localPath,
+                    mediaSize = content.size
+                )
+
+            is MessageContent.Sticker ->
+                base(
+                    contentType = MessageType.Sticker,
+                    contentValue = content.stickerId,
+                    localPath = content.localPath
+                )
+
+            is MessageContent.Location ->
+                base(
+                    contentType = MessageType.Location,
+                    contentValue = json.encodeToString(
+                        LocationContent(
+                            latitude = content.latitude,
+                            longitude = content.longitude,
+                            address = content.address,
+                            poiName = content.poiName
+                        )
+                    ),
+                    localPath = content.snapshotPath
+                )
+
+            is MessageContent.ContactCard ->
+                base(
+                    contentType = MessageType.ContactCard,
+                    contentValue = json.encodeToString(
+                        ContactCardContent(
+                            userId = content.userId,
+                            name = content.name,
+                            avatar = content.avatar
+                        )
+                    )
+                )
+
+            is MessageContent.Favorite ->
+                base(
+                    contentType = MessageType.Favorite,
+                    contentValue = json.encodeToString(
+                        FavoriteContent(
+                            title = content.title,
+                            source = content.source
+                        )
+                    ),
+                    localPath = content.previewPath
+                )
+
+            is MessageContent.Call ->
+                base(
+                    contentType = if (content.type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall,
+                    contentValue = content.status.name,
+                    mediaDuration = content.duration
+                )
+
+            else -> base(
+                contentType = MessageType.Text,
+                contentValue = ""
+            )
+        }
+    }
+
+    /**
+     * 异步发送消息，失败时更新状态
+     */
+    private suspend fun sendMessageAsync(entity: MessageEntity) {
+        try {
+            when (entity.contentType) {
+                MessageType.Text -> {
+                    messageSender.sendTextMessage(entity)
+                }
+
+                else -> {
+                    // 媒体消息：读取文件后发送
+                    val fileData = entity.localPath?.let { path ->
+                        context.contentResolver.openInputStream(path.toUri())?.readBytes()
+                    }
+
+                    if (fileData != null) {
+                        messageSender.sendMediaMessage(entity, fileData)
+                    } else {
+                        messageDao.updateSendStatus(entity.messageId, SendStatus.Failed)
+                    }
+                }
+            }
+        } catch (_: Exception) {
+            messageDao.updateSendStatus(entity.messageId, SendStatus.Failed)
+        }
+    }
+
+    /**
+     * 更新会话最后一条消息
+     */
+    private suspend fun updateSessionLastMessage(
+        sessionId: String,
+        content: MessageContent,
+        timestamp: Long
+    ) {
+        val lastMessageText = when (content) {
+            is MessageContent.Text -> content.text
+            is MessageContent.Image -> "[图片]"
+            is MessageContent.Voice -> "[语音]"
+            is MessageContent.Video -> "[视频]"
+            is MessageContent.File -> "[文件]"
+            is MessageContent.Location -> "[位置]"
+            is MessageContent.Favorite -> "[收藏]"
+            is MessageContent.ContactCard -> "[名片]"
+            is MessageContent.Sticker -> "[表情]"
+            is MessageContent.Call -> "[${content.type.label}]"
+            else -> ""
+        }
+
+        val lastMessageType = when (content) {
+            is MessageContent.Text -> MessageType.Text
+            is MessageContent.Image -> MessageType.Image
+            is MessageContent.Voice -> MessageType.Voice
+            is MessageContent.Video -> MessageType.Video
+            is MessageContent.File -> MessageType.File
+            is MessageContent.Location -> MessageType.Location
+            is MessageContent.Favorite -> MessageType.Favorite
+            is MessageContent.ContactCard -> MessageType.ContactCard
+            is MessageContent.Sticker -> MessageType.Sticker
+            is MessageContent.Call -> if (content.type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
+            else -> null
+        }
+
+        chatSessionDao.updateLastMessage(sessionId, lastMessageText, lastMessageType, timestamp)
+    }
+}

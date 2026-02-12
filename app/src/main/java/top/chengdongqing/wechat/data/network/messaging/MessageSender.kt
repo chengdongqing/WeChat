@@ -56,14 +56,14 @@ class MessageSender @Inject constructor(
                 socketManager.send(message.receiverId, data).getOrThrow()
 
                 // 5. 更新发送状态
-                messageDao.updateSendStatus(message.messageId, SendStatus.SENT)
+                messageDao.updateSendStatus(message.messageId, SendStatus.Sent)
 
                 Log.d(TAG, "✅ 消息已发送: ${message.messageId}")
 
                 Unit
             }.onFailure { error ->
                 Log.e(TAG, "发送失败: ${message.messageId}", error)
-                messageDao.updateSendStatus(message.messageId, SendStatus.FAILED)
+                messageDao.updateSendStatus(message.messageId, SendStatus.Failed)
             }
         }
 
@@ -75,7 +75,7 @@ class MessageSender @Inject constructor(
         fileData: ByteArray
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val connection = getActiveConnection(message.receiverId)
+            getActiveConnection(message.receiverId)
                 ?: throw Exception("对方不在线")
 
             // 1. 先发送媒体消息元数据
@@ -84,10 +84,8 @@ class MessageSender @Inject constructor(
                 senderId = message.senderId,
                 receiverId = message.receiverId,
                 messageType = message.contentType,
-                fileName = message.messageId,
-                fileSize = fileData.size.toLong(),
-                mediaWidth = message.mediaWidth,
-                mediaHeight = message.mediaHeight,
+                content = message.content,
+                mediaSize = fileData.size.toLong(),
                 mediaDuration = message.mediaDuration,
                 timestamp = message.timestamp
             )
@@ -99,14 +97,14 @@ class MessageSender @Inject constructor(
             sendFileData(message.receiverId, fileData)
 
             // 3. 更新状态
-            messageDao.updateSendStatus(message.messageId, SendStatus.SENT)
+            messageDao.updateSendStatus(message.messageId, SendStatus.Sent)
 
             Log.d(TAG, "✅ 媒体消息已发送: ${message.messageId}")
 
             Unit
         }.onFailure { error ->
             Log.e(TAG, "发送媒体失败: ${message.messageId}", error)
-            messageDao.updateSendStatus(message.messageId, SendStatus.FAILED)
+            messageDao.updateSendStatus(message.messageId, SendStatus.Failed)
         }
     }
 
@@ -159,7 +157,7 @@ class MessageSender @Inject constructor(
         // 优先使用 WiFi LAN
         val connections = connectionInfoDao.getConnectionsByUserId(userId)
         return connections.firstOrNull {
-            it.connectionType == ConnectionType.WIFI_LAN && it.isOnline
+            it.connectionType == ConnectionType.WiFiLan && it.isOnline
         }
     }
 

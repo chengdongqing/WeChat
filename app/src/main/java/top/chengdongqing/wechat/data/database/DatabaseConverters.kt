@@ -7,8 +7,8 @@ import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
 import top.chengdongqing.wechat.data.database.entity.SendStatus
-import top.chengdongqing.wechat.data.model.Gender
-import top.chengdongqing.wechat.data.model.Gender.Companion.getIndex
+import top.chengdongqing.wechat.features.me.domain.model.Gender
+import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.getIndex
 
 class DatabaseConverters {
 

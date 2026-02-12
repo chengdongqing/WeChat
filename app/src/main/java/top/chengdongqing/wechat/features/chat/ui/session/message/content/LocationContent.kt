@@ -24,7 +24,7 @@ import top.chengdongqing.wechat.core.designsystem.components.location.model.Loca
 import top.chengdongqing.wechat.core.designsystem.components.location.preview.previewLocation
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 @Composable
 fun LocationContent(content: MessageContent.Location) {
@@ -71,7 +71,7 @@ fun LocationContent(content: MessageContent.Location) {
         // 位置快照图片
         AsyncImage(
             model = ImageRequest.Builder(context)
-                .data(content.snapshotUri)
+                .data(content.snapshotPath)
                 .fallback(R.drawable.img_location_placeholder)
                 .build(),
             contentDescription = "Location",

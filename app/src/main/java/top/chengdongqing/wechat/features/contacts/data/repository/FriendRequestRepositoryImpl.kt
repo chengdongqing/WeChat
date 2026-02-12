@@ -75,7 +75,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     /**
      * 获取未读数量
      */
-    override fun getUnreadCount(): Flow<Int> = friendRequestDao.getUnreadCount()
+    override fun observeUnreadCount(): Flow<Int> = friendRequestDao.observeUnreadCount()
 
     // ==================== 标记已读 ====================
 
@@ -161,7 +161,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
             val request = friendRequestDao.getById(requestId)
                 ?: throw Exception("申请不存在")
 
-            if (request.status != RequestStatus.PENDING) {
+            if (request.status != RequestStatus.Pending) {
                 throw Exception("申请已处理")
             }
 
@@ -179,7 +179,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
             addContactFromRequest(request, remark, tags, note)
 
             // 4. 更新申请状态
-            friendRequestDao.updateStatus(requestId, RequestStatus.ACCEPTED, currentTimeMillis())
+            friendRequestDao.updateStatus(requestId, RequestStatus.Accepted, currentTimeMillis())
 
             // 5. 延迟发送完整资料
             scheduleProfileSend(request.peerUserId)
@@ -260,7 +260,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 // 2. 查询原申请记录（获取备注等信息）
                 val originalRequest = friendRequestDao.getByPeerUserId(
                     response.userId,
-                    RequestDirection.OUTGOING
+                    RequestDirection.Outgoing
                 )
 
                 // 3. 保存头像
@@ -407,7 +407,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         // 2. 更新状态
         friendRequestDao.updateStatus(
             request.id,
-            RequestStatus.ACCEPTED,
+            RequestStatus.Accepted,
             currentTimeMillis()
         )
 
@@ -419,7 +419,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
      * 处理对方拒绝了申请
      */
     private suspend fun handleRejected(requestId: String) {
-        friendRequestDao.updateStatus(requestId, RequestStatus.REJECTED, currentTimeMillis())
+        friendRequestDao.updateStatus(requestId, RequestStatus.Rejected, currentTimeMillis())
         Log.d(TAG, "申请被拒绝")
     }
 
@@ -482,8 +482,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
             remark = remark,
             tags = tags?.let { json.encodeToString(it) },
             note = note,
-            status = RequestStatus.PENDING,
-            direction = RequestDirection.OUTGOING,
+            status = RequestStatus.Pending,
+            direction = RequestDirection.Outgoing,
             isRead = true,  // 发出的申请标记为已读
             createAt = currentTimeMillis(),
             updatedAt = currentTimeMillis()
@@ -513,8 +513,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
             peerNickname = peerNickname,
             peerAvatarPath = avatarPath,
             greetingMessage = greetingMessage,
-            status = RequestStatus.PENDING,
-            direction = RequestDirection.INCOMING,
+            status = RequestStatus.Pending,
+            direction = RequestDirection.Incoming,
             isRead = false,  // 收到的申请标记为未读
             createAt = timestamp,
             updatedAt = currentTimeMillis()

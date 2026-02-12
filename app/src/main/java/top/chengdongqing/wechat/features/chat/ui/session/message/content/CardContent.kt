@@ -20,10 +20,10 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 @Composable
-fun UserCardContent(content: MessageContent.UserCard) {
+fun UserCardContent(content: MessageContent.ContactCard) {
     Column(
         modifier = Modifier
             .clickable {}

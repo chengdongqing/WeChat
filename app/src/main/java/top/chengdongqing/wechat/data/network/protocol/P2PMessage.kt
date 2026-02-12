@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.data.network.protocol
 
 import kotlinx.serialization.Serializable
-import top.chengdongqing.wechat.data.model.Gender
+import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 /**
  * P2P消息定义

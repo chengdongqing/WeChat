@@ -17,10 +17,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.data.model.CallType
 import top.chengdongqing.wechat.features.call.model.CallDirection
 import top.chengdongqing.wechat.features.call.screens.VideoCallScreen
 import top.chengdongqing.wechat.features.call.screens.VoiceCallScreen
+import top.chengdongqing.wechat.features.chat.domain.model.CallType
 
 /**
  * 通话页面Activity

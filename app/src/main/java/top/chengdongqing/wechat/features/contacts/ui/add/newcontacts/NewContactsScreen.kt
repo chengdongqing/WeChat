@@ -282,8 +282,8 @@ private fun RequestStatusHandler(
     onActionClick: () -> Unit
 ) {
     when (request.status) {
-        RequestStatus.PENDING -> {
-            if (request.direction == RequestDirection.INCOMING) {
+        RequestStatus.Pending -> {
+            if (request.direction == RequestDirection.Incoming) {
                 WeButton(
                     text = "查看",
                     type = ButtonType.Plain,
@@ -295,9 +295,9 @@ private fun RequestStatusHandler(
             }
         }
 
-        RequestStatus.ACCEPTED -> StatusText("已添加")
-        RequestStatus.REJECTED -> StatusText("已拒绝")
-        RequestStatus.EXPIRED -> StatusText("已过期")
+        RequestStatus.Accepted -> StatusText("已添加")
+        RequestStatus.Rejected -> StatusText("已拒绝")
+        RequestStatus.Expired -> StatusText("已过期")
     }
 }
 

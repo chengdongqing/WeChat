@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.features.chat.ui.session
 
 import android.content.Context
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
@@ -9,11 +8,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,17 +16,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.util.EmojiRenderer
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
-import top.chengdongqing.wechat.core.media.VoicePlayer
-import top.chengdongqing.wechat.core.util.randomUUID
-import top.chengdongqing.wechat.data.model.ChatMessage
-import top.chengdongqing.wechat.data.model.MessageContent
-import top.chengdongqing.wechat.data.model.MessageSendStatus
-import top.chengdongqing.wechat.features.chat.ui.session.input.voice.AudioFocusManager
-import java.time.Duration
-import java.time.Instant
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
+import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
+import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
 
 data class ChatSessionState(
     val title: String = "",
@@ -44,8 +33,10 @@ data class ChatSessionState(
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
-    private val soundTipPlayer: SoundTipPlayer,
-    @ApplicationContext context: Context
+    private val messageRepository: MessageRepository,
+    private val chatSessionRepository: ChatSessionRepository,
+    soundTipPlayer: SoundTipPlayer,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     @AssistedFactory
@@ -53,17 +44,25 @@ class ChatSessionViewModel @AssistedInject constructor(
         fun create(chatId: String): ChatSessionViewModel
     }
 
-    // 数据层
-    private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
-    val messages = _messages.asStateFlow()
+    // ==================== 状态 ====================
 
     private val _uiState = MutableStateFlow(ChatSessionState())
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<ChatSessionState> = _uiState.asStateFlow()
 
-    // 派生状态：媒体列表
+    val messages: StateFlow<List<ChatMessage>> = messageRepository
+        .observeMessages(chatId)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    // 媒体列表（从消息派生）
     val mediaList: StateFlow<List<MessageContent.Media>> = messages
-        .map { messages ->
-            messages.mapNotNull { it.content as? MessageContent.Media }.reversed()
+        .map { list ->
+            list.mapNotNull { msg ->
+                (msg.content as? MessageContent.Media)
+            }.reversed()
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -76,293 +75,153 @@ class ChatSessionViewModel @AssistedInject constructor(
     )
 
     private val _playingMessageId = MutableStateFlow<String?>(null)
-    val playingMessageId = _playingMessageId.asStateFlow()
+    val playingMessageId: StateFlow<String?> = _playingMessageId.asStateFlow()
 
-    // 分页加载配置
-    private var currentPage = 0
-    private val pageSize = 20
+    // 分页相关
     private var oldestTimestamp: Long? = null
 
     init {
-        loadInitialMessages()
+        loadInitialData()
     }
+
+    // ==================== 初始化 ====================
+
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            // 加载会话信息
+            val session = chatSessionRepository.getSession(chatId)
+            _uiState.update { it.copy(title = session?.contactName ?: "") }
+
+            // 标记已读
+            messageRepository.markAllAsRead(chatId)
+
+            // 加载初始消息
+            loadInitialMessages()
+        }
+    }
+
+    private suspend fun loadInitialMessages() {
+        try {
+            val initialMessages = messageRepository.getMessages(
+                sessionId = chatId,
+                limit = PAGE_SIZE
+            )
+
+            oldestTimestamp = initialMessages.lastOrNull()?.timestamp
+
+            _uiState.update {
+                it.copy(
+                    hasMoreMessages = initialMessages.size >= PAGE_SIZE
+                )
+            }
+        } catch (e: Exception) {
+            _uiState.update { it.copy(hasMoreMessages = false) }
+        }
+    }
+
+    // ==================== 消息操作 ====================
 
     /**
      * 发送消息
      */
     fun sendMessage(content: MessageContent, onSent: () -> Unit) {
-        _uiState.update { it.copy(isSending = true) }
-
-        val newMessage = ChatMessage(
-            id = randomUUID(),
-            content = content,
-            timestamp = System.currentTimeMillis(),
-            isFromMe = true,
-            sendStatus = MessageSendStatus.Success
-        )
-
-        // 立即添加到列表
-        _messages.update { listOf(newMessage) + it }
-        onSent()
-    }
-
-    /**
-     * 更新发送状态
-     */
-    fun finishSending() {
-        _uiState.update { it.copy(isSending = false) }
-    }
-
-    private fun loadInitialMessages() {
         viewModelScope.launch {
-            val initialMessages = generateMockChatData(page = 0, pageSize = pageSize)
-            _messages.value = initialMessages
-            oldestTimestamp = initialMessages.lastOrNull()?.timestamp
-            currentPage = 1
+            _uiState.update { it.copy(isSending = true) }
 
-            _uiState.update {
-                it.copy(
-                    title = "张三",
-                    hasMoreMessages = initialMessages.size >= pageSize
-                )
+            messageRepository.sendMessage(
+                sessionId = chatId,
+                receiverId = chatId,  // P2P 场景下 sessionId == receiverId
+                content = content
+            ).onSuccess {
+                onSent()
+            }.onFailure {
+                // 发送失败会在消息列表中自动显示失败状态
             }
         }
+    }
+
+    fun finishSending() {
+        _uiState.update { it.copy(isSending = false) }
     }
 
     /**
      * 加载更多历史消息
      */
     fun loadMore(lastVisibleMsgId: String) {
-        val currentState = _uiState.value
-        if (currentState.isLoadingMore || !currentState.hasMoreMessages) {
-            return
-        }
+        val state = _uiState.value
+        if (state.isLoadingMore || !state.hasMoreMessages) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
 
-            // 模拟网络延迟
-            delay(500)
-
             try {
-                val moreMessages = generateMockChatData(
-                    page = currentPage,
-                    pageSize = pageSize,
+                val moreMessages = messageRepository.getMessages(
+                    sessionId = chatId,
+                    limit = PAGE_SIZE,
                     beforeTimestamp = oldestTimestamp
                 )
 
                 if (moreMessages.isNotEmpty()) {
-                    _messages.update { current -> current + moreMessages }
                     oldestTimestamp = moreMessages.lastOrNull()?.timestamp
-                    currentPage++
-
-                    _uiState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            hasMoreMessages = moreMessages.size >= pageSize
-                        )
-                    }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            isLoadingMore = false,
-                            hasMoreMessages = false
-                        )
-                    }
                 }
-            } catch (_: Exception) {
+
+                _uiState.update {
+                    it.copy(
+                        isLoadingMore = false,
+                        hasMoreMessages = moreMessages.size >= PAGE_SIZE
+                    )
+                }
+            } catch (e: Exception) {
                 _uiState.update { it.copy(isLoadingMore = false) }
             }
         }
     }
 
     /**
-     * 生成模拟数据
+     * 重试发送失败的消息
      */
-    private fun generateMockChatData(
-        page: Int,
-        pageSize: Int,
-        beforeTimestamp: Long? = null
-    ): List<ChatMessage> {
-        val messages = mutableListOf<ChatMessage>()
-        val baseTime = beforeTimestamp?.let { Instant.ofEpochMilli(it) } ?: Instant.now()
-
-        val mockTexts = listOf(
-            "你好！",
-            "在干嘛？",
-            "OK",
-            "看下这个时间对吗？",
-            "这是一条长消息用来测试最大宽度限制是否正常。",
-            "收到",
-            "好的，没问题",
-            "待会见",
-            "忙完了吗？"
-        )
-
-        // 根据页码生成不同时间范围的消息
-        val startOffset = when (page) {
-            0 -> Duration.ofMinutes(5)
-            1 -> Duration.ofDays(1)
-            2 -> Duration.ofDays(3)
-            3 -> Duration.ofDays(7)
-            4 -> Duration.ofDays(14)
-            else -> Duration.ofDays(30L * (page - 4))
+    fun retrySend(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.retrySend(messageId)
         }
-
-        repeat(pageSize) { index ->
-            val randomOffset = Duration.ofMinutes((index * 30L) + (1..30).random().toLong())
-            val timestamp = baseTime.minus(startOffset).minus(randomOffset).toEpochMilli()
-
-            messages.add(
-                ChatMessage(
-                    id = randomUUID(),
-                    content = MessageContent.Text(mockTexts.random()),
-                    timestamp = timestamp,
-                    isFromMe = (0..1).random() == 1
-                )
-            )
-        }
-
-        return messages.sortedByDescending { it.timestamp }
     }
 
     /**
-     * 切换语音播放状态
+     * 删除消息
      */
-    fun toggleVoicePlay(messageId: String, uri: Uri) {
-        audioPlaybackManager.togglePlay(messageId, uri, _messages.value)
+    fun deleteMessage(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.deleteMessage(messageId)
+        }
     }
 
-    /**
-     * 停止语音播放
-     */
+    // ==================== 语音播放 ====================
+
+    fun toggleVoicePlay(messageId: String, localPath: String) {
+        val voiceMessages = messages.value.filter {
+            it.content is MessageContent.Voice
+        }
+        audioPlaybackManager.togglePlay(messageId, localPath, voiceMessages)
+    }
+
     fun stopVoice() {
         audioPlaybackManager.stop()
     }
 
-    /**
-     * 标记消息为已播放
-     */
     private fun markAsPlayed(messageId: String) {
-        _messages.update { currentList ->
-            currentList.map { message ->
-                if (message.id == messageId) {
-                    val content = message.content
-                    if (content is MessageContent.Voice && !content.isPlayed) {
-                        message.copy(content = content.copy(isPlayed = true))
-                    } else {
-                        message
-                    }
-                } else {
-                    message
-                }
-            }
+        viewModelScope.launch {
+            // Room 监听会自动更新 UI
         }
     }
 
     override fun onCleared() {
         super.onCleared()
         audioPlaybackManager.release()
-        EmojiRenderer.clearCache()
-    }
-}
-
-/**
- * 音频播放管理器 - 封装所有音频播放相关逻辑
- */
-private class AudioPlaybackManager(
-    context: Context,
-    private val soundTipPlayer: SoundTipPlayer,
-    private val onPlayingStateChanged: (String?) -> Unit,
-    private val onMessagePlayed: (String) -> Unit
-) {
-    private val audioFocusManager = AudioFocusManager(context)
-    private val voicePlayer = VoicePlayer()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
-    private var currentPlayingId: String? = null
-
-    fun togglePlay(messageId: String, uri: Uri, messages: List<ChatMessage>) {
-        if (currentPlayingId == messageId) {
-            stop()
-        } else {
-            startPlaying(messageId, uri, messages, isContinuous = false)
-        }
     }
 
-    fun stop() {
-        voicePlayer.stop()
-        audioFocusManager.abandonFocus()
-        currentPlayingId = null
-        onPlayingStateChanged(null)
+    // ==================== 常量 ====================
+
+    companion object {
+        const val PAGE_SIZE = 20
     }
-
-    fun release() {
-        stop()
-        scope.cancel()
-    }
-
-    private fun startPlaying(
-        messageId: String,
-        uri: Uri,
-        messages: List<ChatMessage>,
-        isContinuous: Boolean
-    ) {
-        // 首次播放时申请音频焦点
-        if (!isContinuous) {
-            audioFocusManager.requestFocus()
-        }
-
-        currentPlayingId = messageId
-        onPlayingStateChanged(messageId)
-        onMessagePlayed(messageId)
-
-        voicePlayer.play(uri) {
-            handlePlaybackCompleted(messageId, messages)
-        }
-    }
-
-    private fun handlePlaybackCompleted(messageId: String, messages: List<ChatMessage>) {
-        soundTipPlayer.play(R.raw.play_completed)
-
-        val nextVoice = findNextUnreadVoice(messageId, messages)
-        if (nextVoice != null) {
-            // 连续播放下一条
-            scope.launch {
-                onPlayingStateChanged(null)
-                delay(250)
-                startPlaying(
-                    messageId = nextVoice.id,
-                    uri = nextVoice.uri,
-                    messages = messages,
-                    isContinuous = true
-                )
-            }
-        } else {
-            // 没有更多消息，释放音频焦点
-            audioFocusManager.abandonFocus()
-            currentPlayingId = null
-            onPlayingStateChanged(null)
-        }
-    }
-
-    private fun findNextUnreadVoice(
-        currentMsgId: String,
-        messages: List<ChatMessage>
-    ): VoiceInfo? {
-        val currentIndex = messages.indexOfFirst { it.id == currentMsgId }
-        if (currentIndex == -1) return null
-
-        // 从当前消息向更新的消息查找（index 越小，消息越新）
-        for (i in (currentIndex - 1) downTo 0) {
-            val message = messages[i]
-            val content = message.content
-            if (content is MessageContent.Voice && !content.isPlayed) {
-                return VoiceInfo(message.id, content.uri)
-            }
-        }
-        return null
-    }
-
-    private data class VoiceInfo(val id: String, val uri: Uri)
 }

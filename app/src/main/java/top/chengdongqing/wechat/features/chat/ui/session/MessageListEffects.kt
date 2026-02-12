@@ -12,7 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.data.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 
 /**
  * 当数据更新时，消息列表自动置底

@@ -16,5 +16,5 @@ data class LocationInfo(
     val address: String? = null,
     val distanceMetres: Int? = null,
     val coordinate: LatLng,
-    val staticMapUrl: Uri? = null
+    val staticMapUri: Uri? = null
 ) : Parcelable

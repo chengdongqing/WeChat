@@ -23,8 +23,8 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.util.toChatDisplayTime
-import top.chengdongqing.wechat.data.model.Gender.Companion.safePronoun
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewModel
+import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.safePronoun
 
 @Composable
 fun ContactProfileScreen(

@@ -70,7 +70,7 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWid
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.createImageUri
 import top.chengdongqing.wechat.core.util.saveToAlbum
-import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 import java.io.File

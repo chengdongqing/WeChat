@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.model
+package top.chengdongqing.wechat.features.me.domain.model
 
 import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.core.util.randomUUID

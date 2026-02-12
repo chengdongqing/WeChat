@@ -5,6 +5,10 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
+import top.chengdongqing.wechat.features.chat.data.repository.ChatSessionRepositoryImpl
+import top.chengdongqing.wechat.features.chat.data.repository.MessageRepositoryImpl
+import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
+import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepositoryImpl
 import top.chengdongqing.wechat.features.contacts.data.repository.ContactRepositoryImpl
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepositoryImpl
@@ -41,4 +45,16 @@ interface RepositoryModule {
     fun bindFriendRequestRepository(
         impl: FriendRequestRepositoryImpl
     ): FriendRequestRepository
+
+    @Binds
+    @Singleton
+    fun bindChatSessionRepository(
+        impl: ChatSessionRepositoryImpl
+    ): ChatSessionRepository
+
+    @Binds
+    @Singleton
+    fun bindMessageRepository(
+        impl: MessageRepositoryImpl
+    ): MessageRepository
 }

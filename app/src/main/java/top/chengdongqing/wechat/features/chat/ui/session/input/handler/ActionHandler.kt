@@ -19,10 +19,10 @@ import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualM
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.createMediaUri
 import top.chengdongqing.wechat.core.util.randomUUID
-import top.chengdongqing.wechat.data.model.CallStatus
-import top.chengdongqing.wechat.data.model.CallType
-import top.chengdongqing.wechat.data.model.MessageContent
 import top.chengdongqing.wechat.features.call.startCall
+import top.chengdongqing.wechat.features.chat.domain.model.CallStatus
+import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -150,10 +150,10 @@ class ActionHandler(
      */
     private fun handleFile() {
         val content = MessageContent.File(
-            fileName = "extra_data.b",
-            fileSize = (6.9 * 1024 * 1024).toLong(),
-            fileType = "file",
-            fileUrl = ""
+            filename = "extra_data.b",
+            size = (6.9 * 1024 * 1024).toLong(),
+            mimeType = "file",
+            localPath = ""
         )
         onSendMessage(content)
     }
@@ -162,7 +162,7 @@ class ActionHandler(
      * 处理名片
      */
     private fun handleCard() {
-        val content = MessageContent.UserCard(
+        val content = MessageContent.ContactCard(
             userId = randomUUID(),
             name = "文件传输助手",
             avatar = ""

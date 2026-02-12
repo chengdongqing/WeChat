@@ -20,7 +20,7 @@ import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.data.model.UserProfile
+import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileEventEffect
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileField
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel

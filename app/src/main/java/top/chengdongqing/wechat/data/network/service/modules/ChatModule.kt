@@ -40,7 +40,7 @@ class ChatModule @Inject constructor(
     /**
      * 启动聊天服务
      */
-    suspend fun start(userId: String, scope: CoroutineScope) {
+    fun start(userId: String, scope: CoroutineScope) {
         // 1. 启动 Socket 服务器
         socketServer.start()
         Log.d(TAG, "✅ Socket 服务器已启动")
@@ -98,7 +98,7 @@ class ChatModule @Inject constructor(
         // 保存连接信息
         val connectionInfo = ConnectionInfoEntity(
             userId = device.userId,
-            connectionType = ConnectionType.WIFI_LAN,
+            connectionType = ConnectionType.WiFiLan,
             ipAddress = device.host,
             port = device.port,
             serviceName = device.serviceName,

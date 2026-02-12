@@ -1,8 +1,8 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message
 
 import androidx.compose.runtime.Composable
-import top.chengdongqing.wechat.data.model.ChatMessage
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.CallContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.FileContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.LocationContent
@@ -22,7 +22,7 @@ fun MessageContent(message: ChatMessage) {
         is MessageContent.Call -> CallContent(message)
         is MessageContent.Location -> LocationContent(content)
         is MessageContent.File -> FileContent(content)
-        is MessageContent.UserCard -> UserCardContent(content)
+        is MessageContent.ContactCard -> UserCardContent(content)
         else -> Unit
     }
 }

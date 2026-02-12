@@ -45,27 +45,36 @@ interface FriendRequestDao {
     @Query("DELETE FROM friend_requests WHERE id = :requestId")
     suspend fun delete(requestId: String)
 
-    @Query("SELECT COUNT(*) FROM friend_requests WHERE direction = 'INCOMING' AND status = 'PENDING'")
-    fun getPendingCount(): Flow<Int>
+    @Query("SELECT COUNT(*) FROM friend_requests WHERE direction = :direction AND status = :status")
+    fun getPendingCount(
+        direction: RequestDirection = RequestDirection.Incoming,
+        status: RequestStatus = RequestStatus.Pending
+    ): Flow<Int>
 
     // 查询未读数量（只统计收到的待处理申请）
     @Query(
         """
         SELECT COUNT(*) FROM friend_requests 
-        WHERE direction = 'INCOMING' 
-        AND status = 'PENDING' 
+        WHERE direction = :direction 
+        AND status = :status 
         AND isRead = 0
     """
     )
-    fun getUnreadCount(): Flow<Int>
+    fun observeUnreadCount(
+        direction: RequestDirection = RequestDirection.Incoming,
+        status: RequestStatus = RequestStatus.Pending
+    ): Flow<Int>
 
     // 标记所有收到的申请为已读
     @Query(
         """
         UPDATE friend_requests 
         SET isRead = 1, updatedAt = :updatedAt 
-        WHERE direction = 'INCOMING'
+        WHERE direction = :direction
     """
     )
-    suspend fun markAllIncomingAsRead(updatedAt: Long)
+    suspend fun markAllIncomingAsRead(
+        updatedAt: Long,
+        direction: RequestDirection = RequestDirection.Incoming
+    )
 }

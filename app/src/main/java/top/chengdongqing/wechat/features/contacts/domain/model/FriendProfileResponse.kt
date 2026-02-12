@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
-import top.chengdongqing.wechat.data.model.Gender
+import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 data class FriendProfileResponse(
     val userId: String,

@@ -24,7 +24,7 @@ interface FriendRequestRepository {
     /**
      * 获取未读数量
      */
-    fun getUnreadCount(): Flow<Int>
+    fun observeUnreadCount(): Flow<Int>
 
     // ==================== 操作 ====================
 

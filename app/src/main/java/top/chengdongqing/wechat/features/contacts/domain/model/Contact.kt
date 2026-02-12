@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
 import top.chengdongqing.wechat.data.database.entity.AddSource
-import top.chengdongqing.wechat.data.model.Gender
+import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 /**
  * 联系人实体模型

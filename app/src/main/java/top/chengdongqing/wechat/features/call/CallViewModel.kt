@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.data.model.CallType
 import top.chengdongqing.wechat.features.call.audio.SoundPlayer
 import top.chengdongqing.wechat.features.call.model.AudioConfig
 import top.chengdongqing.wechat.features.call.model.CallDirection
@@ -23,6 +22,7 @@ import top.chengdongqing.wechat.features.call.model.CallDuration
 import top.chengdongqing.wechat.features.call.model.CallState
 import top.chengdongqing.wechat.features.call.model.CallUser
 import top.chengdongqing.wechat.features.call.model.VideoConfig
+import top.chengdongqing.wechat.features.chat.domain.model.CallType
 import javax.inject.Inject
 
 /**

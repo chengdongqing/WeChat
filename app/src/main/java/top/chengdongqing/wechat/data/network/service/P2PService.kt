@@ -162,11 +162,11 @@ class P2PService : Service() {
         if (message.isFromMe) return  // 自己发送的消息不通知
 
         val contentText = when (message.contentType) {
-            MessageType.TEXT -> message.content
-            MessageType.IMAGE -> "[图片]"
-            MessageType.VOICE -> "[语音]"
-            MessageType.VIDEO -> "[视频]"
-            MessageType.FILE -> "[文件]"
+            MessageType.Text -> message.content
+            MessageType.Image -> "[图片]"
+            MessageType.Voice -> "[语音]"
+            MessageType.Video -> "[视频]"
+            MessageType.File -> "[文件]"
             else -> "[消息]"
         }
 

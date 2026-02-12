@@ -32,15 +32,15 @@ data class FriendRequestEntity(
 )
 
 enum class RequestStatus {
-    PENDING,    // 待处理
-    ACCEPTED,   // 已接受
-    REJECTED,   // 已拒绝
-    EXPIRED     // 已过期
+    Pending,    // 待处理
+    Accepted,   // 已接受
+    Rejected,   // 已拒绝
+    Expired     // 已过期
 }
 
 enum class RequestDirection {
-    OUTGOING,   // 发出的
-    INCOMING;    // 收到的
+    Outgoing,   // 发出的
+    Incoming;   // 收到的
 
-    val isOutgoing: Boolean get() = this == OUTGOING
+    val isOutgoing: Boolean get() = this == Outgoing
 }

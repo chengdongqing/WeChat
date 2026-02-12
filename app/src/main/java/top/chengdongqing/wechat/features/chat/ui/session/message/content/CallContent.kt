@@ -21,16 +21,15 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.data.model.CallStatus
-import top.chengdongqing.wechat.data.model.CallType
-import top.chengdongqing.wechat.data.model.ChatMessage
-import top.chengdongqing.wechat.data.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.CallStatus
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 @Composable
 fun CallContent(message: ChatMessage) {
     val isFromMe = message.isFromMe
     val content = message.content as MessageContent.Call
-    val isVideoCall = content.type == CallType.Video
+    val isVideoCall = content.type.isVideoCall
     val status = content.status
 
     val description = remember {
@@ -49,7 +48,7 @@ fun CallContent(message: ChatMessage) {
         ) {
             Icon(
                 painter = painterResource(if (isVideoCall) R.drawable.ic_video_call_outlined else R.drawable.ic_voice_call_outlined),
-                contentDescription = if (isVideoCall) "视频通话" else "语音通话",
+                contentDescription = content.type.label,
                 Modifier
                     .size(22.dp)
                     .graphicsLayer(scaleX = if (isFromMe && isVideoCall) -1f else 1f),

@@ -1,20 +1,19 @@
 package top.chengdongqing.wechat.core.media
 
 import android.media.MediaPlayer
-import android.net.Uri
 
 class VoicePlayer {
     private var mediaPlayer: MediaPlayer? = null
 
     fun play(
-        uri: Uri,
+        localPath: String,
         onComplete: () -> Unit
     ) {
         stop()
 
         mediaPlayer = MediaPlayer().apply {
             try {
-                setDataSource(uri.path)
+                setDataSource(localPath)
                 setOnCompletionListener {
                     onComplete()
                     stop() // 播放完自动释放
