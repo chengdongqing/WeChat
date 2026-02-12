@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.delay
@@ -22,13 +20,11 @@ fun MessageDataScrollEffect(
     listState: LazyListState,
     messages: List<ChatMessage>
 ) {
-    val topMessageId = remember(messages.size) { derivedStateOf { messages.firstOrNull()?.id } }
+    val latestMessageId = messages.firstOrNull()?.id
 
-    LaunchedEffect(topMessageId.value) {
-        if (topMessageId.value != null) {
-            if (listState.firstVisibleItemIndex <= 1) {
-                listState.animateScrollToItem(0)
-            }
+    LaunchedEffect(latestMessageId) {
+        if (latestMessageId != null && listState.firstVisibleItemIndex <= 1) {
+            listState.animateScrollToItem(0)
         }
     }
 }

@@ -8,6 +8,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,19 +23,14 @@ import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
-
-data class ChatSessionState(
-    val title: String = "",
-    val isSending: Boolean = false,
-    val isLoadingMore: Boolean = false,
-    val hasMoreMessages: Boolean = true
-)
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
     private val messageRepository: MessageRepository,
     private val chatSessionRepository: ChatSessionRepository,
+    private val profileRepository: ProfileRepository,
     soundTipPlayer: SoundTipPlayer,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -88,14 +84,22 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            // 加载会话信息
-            val session = chatSessionRepository.getSession(chatId)
-            _uiState.update { it.copy(title = session?.contactName ?: "") }
+            val sessionDeferred = async { chatSessionRepository.getSession(chatId) }
+            val profileDeferred = async { profileRepository.getCurrentProfileOnce() }
+            val markReadDeferred = async { messageRepository.markAllAsRead(chatId) }
 
-            // 标记已读
-            messageRepository.markAllAsRead(chatId)
+            val session = sessionDeferred.await()
+            val profile = profileDeferred.await()
+            markReadDeferred.await()
 
-            // 加载初始消息
+            _uiState.update {
+                it.copy(
+                    title = session?.contactName ?: "",
+                    peerAvatar = session?.contactAvatar,
+                    myAvatar = profile?.avatarPath
+                )
+            }
+
             loadInitialMessages()
         }
     }
@@ -111,12 +115,17 @@ class ChatSessionViewModel @AssistedInject constructor(
 
             _uiState.update {
                 it.copy(
-                    hasMoreMessages = initialMessages.size >= PAGE_SIZE
+                    hasMoreMessages = initialMessages.size >= PAGE_SIZE,
+                    shouldScrollToBottom = true
                 )
             }
         } catch (e: Exception) {
             _uiState.update { it.copy(hasMoreMessages = false) }
         }
+    }
+
+    fun onScrolledToBottom() {
+        _uiState.update { it.copy(shouldScrollToBottom = false) }
     }
 
     // ==================== 消息操作 ====================
@@ -225,3 +234,13 @@ class ChatSessionViewModel @AssistedInject constructor(
         const val PAGE_SIZE = 20
     }
 }
+
+data class ChatSessionState(
+    val title: String = "",
+    val peerAvatar: String? = null,
+    val myAvatar: String? = null,
+    val isSending: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val hasMoreMessages: Boolean = true,
+    val shouldScrollToBottom: Boolean = false
+)

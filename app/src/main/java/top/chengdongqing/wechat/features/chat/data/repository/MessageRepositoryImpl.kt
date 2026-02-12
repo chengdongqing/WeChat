@@ -78,16 +78,14 @@ class MessageRepositoryImpl @Inject constructor(
                 timestamp = now
             )
 
-            // 2. 先存本地（乐观更新，立即显示）
+            // 2. 保存到数据库（离线优先）
             messageDao.insert(entity)
 
             // 3. 更新会话
             updateSessionLastMessage(sessionId, content, now)
 
-            // 4. 异步发送（不阻塞 UI）
+            // 4. 异步发送
             val message = entity.toDomain(json)
-
-            // 异步发送，失败后更新状态
             sendMessageAsync(entity)
 
             message

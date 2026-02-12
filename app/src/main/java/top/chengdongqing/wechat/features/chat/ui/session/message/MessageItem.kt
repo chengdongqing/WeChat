@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -24,7 +25,8 @@ import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 @Composable
 fun MessageItem(
     message: ChatMessage,
-    avatarRes: Int = R.drawable.img_avatar
+    peerAvatar: String?,
+    myAvatar: String?,
 ) {
     val isFromMe = message.isFromMe
     val content = message.content
@@ -41,7 +43,7 @@ fun MessageItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (!isFromMe) {
-                    Avatar(avatarRes)
+                    Avatar(peerAvatar)
                 } else {
                     StatusIndicator(message)
                 }
@@ -56,7 +58,7 @@ fun MessageItem(
                 }
 
                 if (isFromMe) {
-                    Avatar(avatarRes)
+                    Avatar(myAvatar)
                 } else {
                     StatusIndicator(message)
                 }
@@ -70,10 +72,11 @@ fun MessageItem(
 }
 
 @Composable
-private fun Avatar(resId: Int) {
-    Image(
-        painter = painterResource(resId),
+private fun Avatar(localPath: String?) {
+    AsyncImage(
+        model = localPath,
         contentDescription = null,
+        error = painterResource(R.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))

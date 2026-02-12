@@ -62,6 +62,14 @@ fun ChatSessionScreen(
     KeyboardScrollEffect(listState, messages.size)
     MessageDataScrollEffect(listState, messages)
 
+    // 初始加载完成后滚动到底部
+    LaunchedEffect(uiState.shouldScrollToBottom) {
+        if (uiState.shouldScrollToBottom) {
+            listState.scrollToItem(0)
+            viewModel.onScrolledToBottom()
+        }
+    }
+
     // 上拉加载更多的监听
     LoadMoreEffect(
         listState = listState,
@@ -94,11 +102,11 @@ fun ChatSessionScreen(
     CompositionLocalProvider(LocalMediaContext provides mediaContext) {
         Scaffold(
             topBar = {
-                WeTopBar(title = uiState.title, onBack = onBack) {
-                    ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
-                        onNavigateToInfo()
-                    }
-                }
+                ChatSessionTopBar(
+                    title = uiState.title,
+                    onBack = onBack,
+                    onNavigateToInfo = onNavigateToInfo
+                )
             },
             bottomBar = {
                 InputBar(listState = listState, isSending = uiState.isSending) { content, onSent ->
@@ -130,7 +138,11 @@ fun ChatSessionScreen(
                     items = messages,
                     key = { _, message -> message.id }
                 ) { index, message ->
-                    MessageItem(message)
+                    MessageItem(
+                        message = message,
+                        peerAvatar = uiState.peerAvatar,
+                        myAvatar = uiState.myAvatar
+                    )
                     TimeDivider(messages, index)
                 }
 
@@ -141,6 +153,15 @@ fun ChatSessionScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ChatSessionTopBar(title: String, onBack: () -> Unit, onNavigateToInfo: () -> Unit) {
+    WeTopBar(title = title, onBack = onBack) {
+        ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
+            onNavigateToInfo()
         }
     }
 }
