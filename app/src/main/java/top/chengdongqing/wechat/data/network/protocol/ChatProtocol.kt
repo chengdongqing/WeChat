@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.data.network.protocol
 
 import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.features.chat.domain.model.CallType
 
 /**
  * 聊天消息协议
@@ -9,13 +10,16 @@ import top.chengdongqing.wechat.data.database.entity.MessageType
 @Serializable
 sealed class ChatProtocol {
 
+    abstract val messageId: String
+    abstract val senderId: String
+
     /**
      * 文本消息
      */
     @Serializable
     data class TextMessage(
-        val messageId: String,
-        val senderId: String,
+        override val messageId: String,
+        override val senderId: String,
         val receiverId: String,
         val content: String,
         val timestamp: Long
@@ -26,8 +30,8 @@ sealed class ChatProtocol {
      */
     @Serializable
     data class MediaMessage(
-        val messageId: String,
-        val senderId: String,
+        override val messageId: String,
+        override val senderId: String,
         val receiverId: String,
         val messageType: MessageType,
         val content: String,
@@ -41,8 +45,8 @@ sealed class ChatProtocol {
      */
     @Serializable
     data class MessageAck(
-        val messageId: String,
-        val receiverId: String,
+        override val messageId: String,
+        override val senderId: String,
         val timestamp: Long
     ) : ChatProtocol()
 
@@ -51,27 +55,59 @@ sealed class ChatProtocol {
      */
     @Serializable
     data class MessageRead(
-        val messageId: String,
-        val receiverId: String,
+        override val messageId: String,
+        override val senderId: String,
         val timestamp: Long
     ) : ChatProtocol()
 
-    /**
-     * 在线状态
-     */
+    // 信令消息
     @Serializable
-    data class OnlineStatus(
-        val userId: String,
-        val isOnline: Boolean,
-        val timestamp: Long
-    ) : ChatProtocol()
+    sealed class Signaling : ChatProtocol() {
+
+        @Serializable
+        data class Offer(
+            override val messageId: String,
+            override val senderId: String,
+            val sdp: String
+        ) : Signaling()
+
+        @Serializable
+        data class Answer(
+            override val messageId: String,
+            override val senderId: String,
+            val sdp: String
+        ) : Signaling()
+
+        @Serializable
+        data class IceCandidate(
+            override val messageId: String,
+            override val senderId: String,
+            val candidate: String,
+            val sdpMid: String?,
+            val sdpMLineIndex: Int
+        ) : Signaling()
+
+        @Serializable
+        data class Hangup(
+            override val messageId: String,
+            override val senderId: String,
+        ) : Signaling()
+
+        @Serializable
+        data class CallRequest(
+            override val messageId: String,
+            override val senderId: String,
+            val callType: CallType
+        ) : Signaling()
+    }
 
     /**
-     * 心跳包
+     * 心跳消息
      */
     @Serializable
     data class Heartbeat(
-        val userId: String,
-        val timestamp: Long
+        override val messageId: String = "",
+        override val senderId: String,
+        val timestamp: Long = System.currentTimeMillis()
     ) : ChatProtocol()
 }

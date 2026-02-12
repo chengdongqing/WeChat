@@ -28,6 +28,9 @@ interface ChatSessionDao {
     @Update
     suspend fun update(session: ChatSessionEntity)
 
+    @Query("UPDATE chat_sessions SET unreadCount = unreadCount + 1 WHERE sessionId = :sessionId")
+    suspend fun incrementUnreadCount(sessionId: String)
+
     @Query("UPDATE chat_sessions SET unreadCount = 0 WHERE sessionId = :sessionId")
     suspend fun clearUnreadCount(sessionId: String)
 

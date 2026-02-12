@@ -35,9 +35,8 @@ class MessageSender @Inject constructor(
     suspend fun sendTextMessage(message: MessageEntity): Result<Unit> =
         withContext(Dispatchers.IO) {
             runCatching {
-                // 1. 获取对方的连接信息
-                val connection = getActiveConnection(message.receiverId)
-                    ?: throw Exception("对方不在线")
+                // 1. 确保连接存在，不存在则尝试建立
+                ensureConnected(message.receiverId, message.senderId)
 
                 // 2. 构造协议消息
                 val protocol = ChatProtocol.TextMessage(
@@ -49,8 +48,7 @@ class MessageSender @Inject constructor(
                 )
 
                 // 3. 序列化
-                val jsonData = json.encodeToString(protocol)
-                val data = jsonData.toByteArray(Charsets.UTF_8)
+                val data = json.encodeToString<ChatProtocol>(protocol).toByteArray(Charsets.UTF_8)
 
                 // 4. 发送
                 socketManager.send(message.receiverId, data).getOrThrow()
@@ -90,7 +88,7 @@ class MessageSender @Inject constructor(
                 timestamp = message.timestamp
             )
 
-            val metaData = json.encodeToString(protocol).toByteArray()
+            val metaData = json.encodeToString<ChatProtocol>(protocol).toByteArray()
             socketManager.send(message.receiverId, metaData).getOrThrow()
 
             // 2. 再发送文件数据（分片传输）
@@ -109,19 +107,45 @@ class MessageSender @Inject constructor(
     }
 
     /**
+     * 确保已连接，没有则自动重连
+     */
+    private suspend fun ensureConnected(userId: String, myUserId: String) {
+        // 已连接则直接返回
+        if (socketManager.isConnected(userId)) return
+
+        Log.d(TAG, "未找到连接，尝试建立: $userId")
+
+        // 从数据库查找连接信息
+        val connectionInfo = connectionInfoDao
+            .getConnectionsByUserId(userId)
+            .firstOrNull { it.ipAddress != null && it.port != null }
+            ?: throw Exception("未找到 $userId 的连接信息，对方可能不在同一网络")
+
+        // 建立连接
+        socketManager.connect(
+            userId = userId,
+            host = connectionInfo.ipAddress!!,
+            port = connectionInfo.port!!,
+            myUserId = myUserId
+        ).getOrElse {
+            throw Exception("连接失败，对方可能已离线")
+        }
+    }
+
+    /**
      * 发送消息已读回执
      */
-    suspend fun sendReadReceipt(messageId: String, receiverId: String) {
+    suspend fun sendReadReceipt(messageId: String, senderId: String) {
         withContext(Dispatchers.IO) {
             try {
                 val protocol = ChatProtocol.MessageRead(
                     messageId = messageId,
-                    receiverId = receiverId,
+                    senderId = senderId,
                     timestamp = System.currentTimeMillis()
                 )
 
-                val data = json.encodeToString(protocol).toByteArray()
-                socketManager.send(receiverId, data)
+                val data = json.encodeToString<ChatProtocol>(protocol).toByteArray()
+                socketManager.send(senderId, data)
 
             } catch (e: Exception) {
                 Log.e(TAG, "发送已读回执失败", e)
@@ -132,17 +156,17 @@ class MessageSender @Inject constructor(
     /**
      * 发送消息确认（ACK）
      */
-    suspend fun sendAck(messageId: String, receiverId: String) {
+    suspend fun sendAck(messageId: String, senderId: String) {
         withContext(Dispatchers.IO) {
             try {
                 val protocol = ChatProtocol.MessageAck(
                     messageId = messageId,
-                    receiverId = receiverId,
+                    senderId = senderId,
                     timestamp = System.currentTimeMillis()
                 )
 
-                val data = json.encodeToString(protocol).toByteArray()
-                socketManager.send(receiverId, data)
+                val data = json.encodeToString<ChatProtocol>(protocol).toByteArray()
+                socketManager.send(senderId, data)
 
             } catch (e: Exception) {
                 Log.e(TAG, "发送ACK失败", e)

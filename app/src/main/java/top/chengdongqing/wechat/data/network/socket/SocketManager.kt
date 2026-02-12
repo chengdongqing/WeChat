@@ -5,13 +5,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
+import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketTimeoutException
 import javax.inject.Inject
@@ -21,7 +26,9 @@ import javax.inject.Singleton
  * TCP Socket 连接管理器
  */
 @Singleton
-class SocketManager @Inject constructor() {
+class SocketManager @Inject constructor(
+    private val json: Json
+) {
 
     private companion object {
         const val TAG = "SocketManager"
@@ -43,7 +50,8 @@ class SocketManager @Inject constructor() {
     suspend fun connect(
         userId: String,
         host: String,
-        port: Int
+        port: Int,
+        myUserId: String
     ): Result<SocketConnection> = withContext(Dispatchers.IO) {
         runCatching {
             // 如果已有连接，先关闭
@@ -52,7 +60,7 @@ class SocketManager @Inject constructor() {
             Log.d(TAG, "正在连接: $host:$port")
 
             val socket = Socket()
-            socket.connect(java.net.InetSocketAddress(host, port), SOCKET_TIMEOUT)
+            socket.connect(InetSocketAddress(host, port), SOCKET_TIMEOUT)
             socket.soTimeout = SOCKET_TIMEOUT
             socket.keepAlive = true
             socket.tcpNoDelay = true  // 禁用 Nagle 算法，降低延迟
@@ -66,9 +74,21 @@ class SocketManager @Inject constructor() {
 
             activeConnections[userId] = connection
 
+            // 连接后立即发送心跳包
+            val heartbeat = json.encodeToString<ChatProtocol>(
+                ChatProtocol.Heartbeat(myUserId, myUserId)
+            ).toByteArray(Charsets.UTF_8)
+
+            synchronized(connection.outputStream) {
+                connection.outputStream.writeInt(heartbeat.size)
+                connection.outputStream.write(heartbeat)
+                connection.outputStream.flush()
+            }
+
+            Log.d(TAG, "✅ 心跳包已发送")
+
             // 启动接收消息的协程
             startReceiving(connection)
-
             // 启动心跳
             startHeartbeat(connection)
 
@@ -132,7 +152,7 @@ class SocketManager @Inject constructor() {
      * 是否已连接
      */
     fun isConnected(userId: String): Boolean {
-        return activeConnections[userId]?.socket?.isConnected == true
+        return activeConnections[userId]?.socket?.isConnected.isTrue()
     }
 
     /**
@@ -160,7 +180,7 @@ class SocketManager @Inject constructor() {
                         // 发送到接收通道
                         connection.receiveChannel.send(data)
 
-                    } catch (e: SocketTimeoutException) {
+                    } catch (_: SocketTimeoutException) {
                         // 超时是正常的，继续读取
                         continue
                     }
@@ -180,10 +200,12 @@ class SocketManager @Inject constructor() {
         scope.launch {
             try {
                 while (connection.socket.isConnected && !connection.socket.isClosed) {
-                    kotlinx.coroutines.delay(HEARTBEAT_INTERVAL)
+                    delay(HEARTBEAT_INTERVAL)
+                    val protocol = ChatProtocol.Heartbeat(connection.userId, connection.userId)
 
                     // 发送心跳包
-                    val heartbeat = "PING".toByteArray()
+                    val heartbeat = Json.encodeToString<ChatProtocol>(protocol)
+                        .toByteArray(Charsets.UTF_8)
                     send(connection.userId, heartbeat)
                 }
             } catch (e: Exception) {

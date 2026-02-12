@@ -16,12 +16,12 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
 import top.chengdongqing.wechat.data.notification.NotificationHelper
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.toPreviewText
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -38,12 +38,16 @@ class P2PService : Service() {
 
     @Inject
     lateinit var bleModule: BLEModule
+
     @Inject
     lateinit var chatModule: ChatModule
+
     @Inject
     lateinit var profileRepository: ProfileRepository
+
     @Inject
     lateinit var contactRepository: ContactRepository
+
     @Inject
     lateinit var notificationHelper: NotificationHelper
 
@@ -108,7 +112,7 @@ class P2PService : Service() {
 
             // ✅ 监听新消息
             serviceScope.launch {
-                chatModule.newMessages.collect { message ->
+                chatModule.incomingMessageFlow.collect { message ->
                     handleNewMessage(message)
                 }
             }
@@ -158,17 +162,10 @@ class P2PService : Service() {
     /**
      * ✅ 处理新消息
      */
-    private suspend fun handleNewMessage(message: MessageEntity) {
+    private suspend fun handleNewMessage(message: ChatMessage) {
         if (message.isFromMe) return  // 自己发送的消息不通知
 
-        val contentText = when (message.contentType) {
-            MessageType.Text -> message.content
-            MessageType.Image -> "[图片]"
-            MessageType.Voice -> "[语音]"
-            MessageType.Video -> "[视频]"
-            MessageType.File -> "[文件]"
-            else -> "[消息]"
-        }
+        val contentText = message.content.toPreviewText()
 
         // 查询联系人昵称
         val contact = contactRepository.getContactById(message.senderId)
@@ -179,7 +176,7 @@ class P2PService : Service() {
             sessionId = message.sessionId,
             title = senderName,
             content = contentText,
-            notificationId = message.messageId.hashCode()
+            notificationId = message.id.hashCode()
         )
     }
 

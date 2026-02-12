@@ -22,7 +22,7 @@ import top.chengdongqing.wechat.data.database.entity.MessageEntity
         MessageEntity::class,
         ConnectionInfoEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 @TypeConverters(DatabaseConverters::class)

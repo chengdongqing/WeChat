@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 /**
- * P2P消息定义
+ * P2P消息协议
  */
 @Serializable
 sealed class P2PMessage {
@@ -59,16 +59,6 @@ sealed class P2PMessage {
         val avatarSize: Int,
         val timestamp: Long
     ) : P2PMessage()
-
-    /**
-     * 心跳消息
-     */
-    data class Ping(val timestamp: Long) : P2PMessage()
-
-    /**
-     * 心跳响应
-     */
-    data class Pong(val timestamp: Long) : P2PMessage()
 }
 
 @Serializable

@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
 @Entity(
     tableName = "messages",
@@ -36,11 +37,13 @@ data class MessageEntity(
     val isFromMe: Boolean,              // 是否是我发送的
 
     val retryCount: Int = 0,            // 重试次数
+    val failReason: String? = null,     // 失败原因
 
     val createdAt: Long,                // 创建时间
     val updatedAt: Long                 // 更新时间
 )
 
+@Serializable
 enum class MessageType {
     Text,           // 文本
     Voice,          // 语音
@@ -61,4 +64,18 @@ enum class SendStatus {
     Delivered,      // 已送达
     Read,           // 已读
     Failed          // 发送失败
+}
+
+fun MessageType.toPreviewText(content: String): String = when (this) {
+    MessageType.Text -> content
+    MessageType.Image -> "[图片]"
+    MessageType.Voice -> "[语音]"
+    MessageType.Video -> "[视频]"
+    MessageType.File -> "[文件]"
+    MessageType.Location -> "[位置]"
+    MessageType.Favorite -> "[收藏]"
+    MessageType.ContactCard -> "[名片]"
+    MessageType.Sticker -> "[表情]"
+    MessageType.VoiceCall -> "[语音通话]"
+    MessageType.VideoCall -> "[视频通话]"
 }

@@ -50,10 +50,12 @@ fun ChatSession.toEntity() = ChatSessionEntity(
 fun MessageEntity.toDomain(json: Json): ChatMessage {
     return ChatMessage(
         id = messageId,
+        sessionId = sessionId,
+        senderId = senderId,
         content = toMessageContent(json),
         isFromMe = isFromMe,
         timestamp = timestamp,
-        sendStatus = sendStatus.toDomain(retryCount),
+        sendStatus = sendStatus.toDomain(failReason),
         retryCount = retryCount
     )
 }
@@ -178,19 +180,19 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
 
 // ==================== SendStatus ====================
 
-fun SendStatus.toDomain(retryCount: Int = 0): MessageSendStatus {
+fun SendStatus.toDomain(failReason: String? = null): MessageSendStatus {
     return when (this) {
         SendStatus.Sending -> MessageSendStatus.Sending()
         SendStatus.Sent -> MessageSendStatus.Success
         SendStatus.Delivered -> MessageSendStatus.Success
         SendStatus.Read -> MessageSendStatus.Success
-        SendStatus.Failed -> {
-            // 根据重试次数决定错误类型
-            if (retryCount > 0) {
-                MessageSendStatus.Failed.NetworkError()
-            } else {
-                MessageSendStatus.Failed.RecipientOffline()
-            }
+        SendStatus.Failed -> when (failReason) {
+            "OFFLINE" -> MessageSendStatus.Failed.RecipientOffline()
+            "NOT_REACHABLE" -> MessageSendStatus.Failed.RecipientOffline()
+            "NOT_FRIEND" -> MessageSendStatus.Failed.NotFriend()
+            "BLOCKED" -> MessageSendStatus.Failed.Blocked()
+            "TOO_LARGE" -> MessageSendStatus.Failed.MessageTooLarge()
+            else -> MessageSendStatus.Failed.NetworkError()
         }
     }
 }

@@ -1,8 +1,6 @@
 package top.chengdongqing.wechat.features.chat.data.repository
 
-import android.content.Context
-import androidx.core.net.toUri
-import dagger.hilt.android.qualifiers.ApplicationContext
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
@@ -21,7 +19,10 @@ import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.toPreviewText
+import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import java.io.File
 import javax.inject.Inject
 
 class MessageRepositoryImpl @Inject constructor(
@@ -29,9 +30,12 @@ class MessageRepositoryImpl @Inject constructor(
     private val chatSessionDao: ChatSessionDao,
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
-    private val json: Json,
-    @param:ApplicationContext private val context: Context
-) : top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository {
+    private val json: Json
+) : MessageRepository {
+
+    companion object {
+        private const val TAG = "MessageRepository"
+    }
 
     override suspend fun getMessages(
         sessionId: String,
@@ -285,9 +289,8 @@ class MessageRepositoryImpl @Inject constructor(
                 else -> {
                     // 媒体消息：读取文件后发送
                     val fileData = entity.localPath?.let { path ->
-                        context.contentResolver.openInputStream(path.toUri())?.readBytes()
+                        File(path).takeIf { it.exists() }?.readBytes()
                     }
-
                     if (fileData != null) {
                         messageSender.sendMediaMessage(entity, fileData)
                     } else {
@@ -295,8 +298,18 @@ class MessageRepositoryImpl @Inject constructor(
                     }
                 }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            Log.e(TAG, "发送失败: ${e.message}")
+
+            // 根据错误信息区分失败类型，存到 content 备用
+            val failReason = when {
+                e.message?.contains("连接信息") == true -> "NOT_REACHABLE"
+                e.message?.contains("已离线") == true -> "OFFLINE"
+                else -> "UNKNOWN"
+            }
+
             messageDao.updateSendStatus(entity.messageId, SendStatus.Failed)
+            messageDao.updateFailReason(entity.messageId, failReason)
         }
     }
 
@@ -308,19 +321,7 @@ class MessageRepositoryImpl @Inject constructor(
         content: MessageContent,
         timestamp: Long
     ) {
-        val lastMessageText = when (content) {
-            is MessageContent.Text -> content.text
-            is MessageContent.Image -> "[图片]"
-            is MessageContent.Voice -> "[语音]"
-            is MessageContent.Video -> "[视频]"
-            is MessageContent.File -> "[文件]"
-            is MessageContent.Location -> "[位置]"
-            is MessageContent.Favorite -> "[收藏]"
-            is MessageContent.ContactCard -> "[名片]"
-            is MessageContent.Sticker -> "[表情]"
-            is MessageContent.Call -> "[${content.type.label}]"
-            else -> ""
-        }
+        val lastMessageText = content.toPreviewText()
 
         val lastMessageType = when (content) {
             is MessageContent.Text -> MessageType.Text

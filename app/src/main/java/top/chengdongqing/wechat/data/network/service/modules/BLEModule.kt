@@ -85,7 +85,7 @@ class BLEModule @Inject constructor(
     /**
      * 启动 BLE 服务
      */
-    suspend fun start(scope: CoroutineScope) {
+    fun start(scope: CoroutineScope) {
         startBLEAdvertising(scope)
         startGattServer(scope)
         Log.d(TAG, "✅ BLE 模块已启动")
@@ -110,7 +110,7 @@ class BLEModule @Inject constructor(
      * 启动 BLE 广播
      */
     @SuppressLint("MissingPermission")
-    private suspend fun startBLEAdvertising(scope: CoroutineScope) {
+    private fun startBLEAdvertising(scope: CoroutineScope) {
         scope.launch {
             try {
                 val adapter = bluetoothAdapter ?: return@launch
@@ -213,7 +213,7 @@ class BLEModule @Inject constructor(
     ) : BluetoothGattServerCallback() {
 
         override fun onConnectionStateChange(
-            device: android.bluetooth.BluetoothDevice,
+            device: BluetoothDevice,
             status: Int,
             newState: Int
         ) {
@@ -232,7 +232,7 @@ class BLEModule @Inject constructor(
 
         @SuppressLint("MissingPermission")
         override fun onDescriptorWriteRequest(
-            device: android.bluetooth.BluetoothDevice,
+            device: BluetoothDevice,
             requestId: Int,
             descriptor: BluetoothGattDescriptor,
             preparedWrite: Boolean,
@@ -256,7 +256,7 @@ class BLEModule @Inject constructor(
 
         @SuppressLint("MissingPermission")
         override fun onCharacteristicWriteRequest(
-            device: android.bluetooth.BluetoothDevice,
+            device: BluetoothDevice,
             requestId: Int,
             characteristic: BluetoothGattCharacteristic,
             preparedWrite: Boolean,
@@ -382,7 +382,7 @@ class BLEModule @Inject constructor(
          * 发送个人资料
          */
         @SuppressLint("MissingPermission")
-        private suspend fun sendProfileData(device: android.bluetooth.BluetoothDevice) {
+        private suspend fun sendProfileData(device: BluetoothDevice) {
             try {
                 val myProfile = profileRepository.getCurrentProfile().first() ?: return
 

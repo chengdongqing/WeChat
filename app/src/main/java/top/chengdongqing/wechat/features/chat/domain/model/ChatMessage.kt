@@ -5,6 +5,8 @@ package top.chengdongqing.wechat.features.chat.domain.model
  */
 data class ChatMessage(
     val id: String,
+    val sessionId: String,
+    val senderId: String,
     val content: MessageContent,
     val isFromMe: Boolean,
     val timestamp: Long,
@@ -195,4 +197,18 @@ enum class SendError(val message: String) {
     Blocked("消息已发出，但被对方拒收了。"),
     MessageTooLarge("消息内容过大。"),
     Unknown("未知错误。")
+}
+
+fun MessageContent.toPreviewText(): String = when (this) {
+    is MessageContent.Text -> text
+    is MessageContent.Image -> "[图片]"
+    is MessageContent.Voice -> "[语音]"
+    is MessageContent.Video -> "[视频]"
+    is MessageContent.File -> "[文件]"
+    is MessageContent.Location -> "[位置]"
+    is MessageContent.Favorite -> "[收藏]"
+    is MessageContent.ContactCard -> "[名片]"
+    is MessageContent.Sticker -> "[表情]"
+    is MessageContent.Call -> "[${type.label}]"
+    else -> ""
 }
