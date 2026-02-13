@@ -12,29 +12,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
-import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
     private val messageRepository: MessageRepository,
-    private val sessionRepository: ChatSessionRepository,
     private val profileRepository: ProfileRepository,
+    private val contactRepository: ContactRepository,
     soundTipPlayer: SoundTipPlayer,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -47,10 +43,10 @@ class ChatSessionViewModel @AssistedInject constructor(
     // ==================== UI 状态 ====================
 
     private val _uiState = MutableStateFlow(ChatSessionUiState())
-    val uiState: StateFlow<ChatSessionUiState> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
-    // 观察消息流：自动随数据库更新
-    val messages: StateFlow<List<ChatMessage>> = messageRepository
+    // 消息流
+    val messages = messageRepository
         .observeMessages(chatId)
         .stateIn(
             scope = viewModelScope,
@@ -58,8 +54,8 @@ class ChatSessionViewModel @AssistedInject constructor(
             initialValue = emptyList()
         )
 
-    // 派生状态：媒体预览列表（使用更高效的 map 转换）
-    val mediaList: StateFlow<List<MessageContent.Media>> = messages
+    // 派生状态：媒体预览列表
+    val mediaList = messages
         .map { list ->
             list.asSequence()
                 .mapNotNull { it.content as? MessageContent.Media }
@@ -90,36 +86,35 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            // 给导航动画留出喘息时间 (约 2 帧)
-            yield()
+            val contactDeferred = async(Dispatchers.IO) {
+                contactRepository.getContactById(chatId)
+            }
+            val profileDeferred = async(Dispatchers.IO) {
+                profileRepository.getCurrentProfileOnce()
+            }
 
-            // 并行获取基础信息
-            supervisorScope {
-                val sessionDeferred = async(Dispatchers.IO) { sessionRepository.getSession(chatId) }
-                val profileDeferred =
-                    async(Dispatchers.IO) { profileRepository.getCurrentProfileOnce() }
+            try {
+                val contact = contactDeferred.await()
+                val profile = profileDeferred.await()
 
-                // 标记已读：不阻塞 UI，独立启动
-                launch(Dispatchers.IO) { messageRepository.markAllAsRead(chatId) }
-
-                try {
-                    val session = sessionDeferred.await()
-                    val profile = profileDeferred.await()
-
-                    // 更新基础 UI 状态
-                    _uiState.update {
-                        it.copy(
-                            title = session?.contactName ?: "Chat",
-                            peerAvatar = session?.contactAvatar,
-                            myAvatar = profile?.avatarPath
-                        )
-                    }
-
-                    // 加载第一页消息
-                    loadInitialMessages()
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                // 更新基础 UI 状态
+                _uiState.update {
+                    it.copy(
+                        title = contact?.displayName ?: profile?.nickname ?: "",
+                        peerAvatar = contact?.avatarPath,
+                        myAvatar = profile?.avatarPath
+                    )
                 }
+
+                // 加载第一页消息
+                loadInitialMessages()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            // 标记已读
+            launch(Dispatchers.IO) {
+                messageRepository.markAllAsRead(chatId)
             }
         }
     }
@@ -150,9 +145,7 @@ class ChatSessionViewModel @AssistedInject constructor(
             messageRepository.sendMessage(chatId, chatId, content)
                 .onSuccess {
                     onSent()
-                    _uiState.update { it.copy(isSending = false) }
                 }
-                .onFailure { _uiState.update { it.copy(isSending = false) } }
         }
     }
 

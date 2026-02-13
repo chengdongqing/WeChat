@@ -13,7 +13,7 @@ import top.chengdongqing.wechat.data.database.entity.MessageType
 @Dao
 interface ChatSessionDao {
 
-    @Query("SELECT * FROM chat_sessions ORDER BY isPinned DESC, lastMessageTime DESC")
+    @Query("SELECT * FROM chat_sessions WHERE isHidden = 0 ORDER BY isPinned DESC, lastMessageTime DESC")
     fun observeAll(): Flow<List<ChatSessionEntity>>
 
     @Query("SELECT * FROM chat_sessions WHERE sessionId = :sessionId")
@@ -34,11 +34,20 @@ interface ChatSessionDao {
     @Query("UPDATE chat_sessions SET unreadCount = 0 WHERE sessionId = :sessionId")
     suspend fun clearUnreadCount(sessionId: String)
 
+    @Query("UPDATE chat_sessions SET unreadCount = 1 WHERE sessionId = :sessionId")
+    suspend fun markAsUnread(sessionId: String)
+
     @Query("UPDATE chat_sessions SET draftMessage = :draft WHERE sessionId = :sessionId")
     suspend fun updateDraft(sessionId: String, draft: String?)
 
+    @Query("UPDATE chat_sessions SET isHidden = 1 WHERE sessionId = :sessionId")
+    suspend fun hideSession(sessionId: String)
+
     @Delete
     suspend fun delete(session: ChatSessionEntity)
+
+    @Query("DELETE FROM chat_sessions WHERE sessionId = :sessionId")
+    suspend fun deleteById(sessionId: String)
 
     @Query("UPDATE chat_sessions SET isPinned = :isPinned WHERE sessionId = :sessionId")
     suspend fun updatePin(sessionId: String, isPinned: Boolean)
@@ -49,9 +58,11 @@ interface ChatSessionDao {
         SET lastMessage = :lastMessage,
             lastMessageType = :lastMessageType,
             lastMessageTime = :timestamp,
-            updatedAt = :timestamp
+            updatedAt = :timestamp,
+            -- 如果隐藏了，则取消隐藏
+            isHidden = CASE WHEN isHidden = 1 THEN 0 ELSE isHidden END
         WHERE sessionId = :sessionId
-    """
+        """
     )
     suspend fun updateLastMessage(
         sessionId: String,

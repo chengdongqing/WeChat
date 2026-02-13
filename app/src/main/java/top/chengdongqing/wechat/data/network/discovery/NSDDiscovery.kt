@@ -40,11 +40,18 @@ class NSDDiscovery @Inject constructor(
     /**
      * 注册服务（让其他设备发现我）
      */
-    fun registerService(userId: String): Flow<ServiceRegistrationState> = callbackFlow {
+    fun registerService(userId: String, localPort: Int): Flow<ServiceRegistrationState> =
+        callbackFlow {
+            if (localPort <= 0) {
+                trySend(ServiceRegistrationState.Failed(-1))
+                close()
+                return@callbackFlow
+            }
+
         val serviceInfo = NsdServiceInfo().apply {
             serviceName = "WeChat_$userId"
             serviceType = SERVICE_TYPE
-            port = 0  // 系统自动分配
+            port = localPort
             setAttribute("userId", userId)
         }
 

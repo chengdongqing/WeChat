@@ -1,8 +1,11 @@
 package top.chengdongqing.wechat.features.chat.data.repository
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
+import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
@@ -10,7 +13,9 @@ import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepos
 import javax.inject.Inject
 
 class ChatSessionRepositoryImpl @Inject constructor(
-    private val chatSessionDao: ChatSessionDao
+    private val weDatabase: WeDatabase,
+    private val chatSessionDao: ChatSessionDao,
+    private val messageDao: MessageDao
 ) : ChatSessionRepository {
 
     override fun observeAllSessions(): Flow<List<ChatSession>> {
@@ -35,6 +40,10 @@ class ChatSessionRepositoryImpl @Inject constructor(
         chatSessionDao.clearUnreadCount(sessionId)
     }
 
+    override suspend fun markAsUnread(sessionId: String) {
+        chatSessionDao.markAsUnread(sessionId)
+    }
+
     override suspend fun saveDraft(sessionId: String, draft: String?) {
         chatSessionDao.updateDraft(sessionId, draft)
     }
@@ -43,9 +52,14 @@ class ChatSessionRepositoryImpl @Inject constructor(
         chatSessionDao.updatePin(sessionId, isPinned)
     }
 
+    override suspend fun hideSession(sessionId: String) {
+        chatSessionDao.hideSession(sessionId)
+    }
+
     override suspend fun deleteSession(sessionId: String) {
-        chatSessionDao.getById(sessionId)?.let {
-            chatSessionDao.delete(it)
+        weDatabase.withTransaction {
+            chatSessionDao.deleteById(sessionId)
+            messageDao.deleteBySession(sessionId)
         }
     }
 

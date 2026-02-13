@@ -45,14 +45,14 @@ class ChatModule @Inject constructor(
 
     // ==================== 启停 ====================
 
-    fun start(userId: String, scope: CoroutineScope) {
+    suspend fun start(userId: String, scope: CoroutineScope) {
         // 1. 启动 Socket 服务器
-        socketServer.start()
+        val port = socketServer.start()
         Log.d(TAG, "✅ Socket 服务器已启动")
 
         // 2. 注册 NSD 服务
         scope.launch {
-            nsdManager.registerService(userId).collect { state ->
+            nsdManager.registerService(userId, port).collect { state ->
                 if (state is ServiceRegistrationState.Registered) {
                     Log.d(TAG, "✅ NSD 已注册，端口: ${state.port}")
                 } else {
@@ -93,6 +93,12 @@ class ChatModule @Inject constructor(
     // ==================== 私有方法 ====================
 
     private suspend fun handleDiscoveredDevice(device: DiscoveredDevice, myUserId: String) {
+        // 幂等性检查：如果已经在线或正在连接，跳过
+        if (socketManager.isConnected(device.userId)) {
+            Log.d(TAG, "设备 ${device.userId} 已连接，跳过重复连接")
+            return
+        }
+
         Log.d(TAG, "发现设备: ${device.userId} @ ${device.host}:${device.port}")
 
         // 保存连接信息

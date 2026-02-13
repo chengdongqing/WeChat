@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.io.EOFException
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import java.io.DataInputStream
@@ -28,7 +30,6 @@ class SocketServer @Inject constructor(
 
     private companion object {
         const val TAG = "SocketServer"
-        const val SERVER_PORT = 8888
     }
 
     private var serverSocket: ServerSocket? = null
@@ -42,27 +43,34 @@ class SocketServer @Inject constructor(
     /**
      * 启动服务器
      */
-    fun start() {
-        scope.launch {
-            try {
-                serverSocket = ServerSocket(SERVER_PORT)
-                Log.d(TAG, "✅ 服务器已启动，监听端口: $SERVER_PORT")
+    suspend fun start(): Int = withContext(Dispatchers.IO) {
+        try {
+            // 端口设为 0，系统自动分配空闲端口
+            val socket = ServerSocket(0).also { serverSocket = it }
+            val port = socket.localPort
+            Log.d(TAG, "✅ 服务器已在动态端口启动: $port")
 
-                while (!serverSocket!!.isClosed) {
-                    try {
-                        // 等待客户端连接
-                        val clientSocket = serverSocket!!.accept()
-                        Log.d(TAG, "✅ 收到新连接: ${clientSocket.inetAddress.hostAddress}")
-                        // 处理客户端连接
-                        handleClient(clientSocket)
-                    } catch (e: Exception) {
-                        if (!serverSocket!!.isClosed) {
-                            Log.e(TAG, "接受连接失败", e)
-                        }
-                    }
-                }
+            // 在后台开启循环接受连接，不阻塞返回端口的操作
+            scope.launch {
+                acceptLoop()
+            }
+
+            return@withContext port
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ 服务器启动失败", e)
+            -1
+        }
+    }
+
+    private fun acceptLoop() {
+        val socket = serverSocket ?: return
+        while (!socket.isClosed) {
+            try {
+                val clientSocket = socket.accept()
+                Log.d(TAG, "✅ 收到新连接: ${clientSocket.inetAddress.hostAddress}")
+                handleClient(clientSocket)
             } catch (e: Exception) {
-                Log.e(TAG, "服务器异常", e)
+                if (!socket.isClosed) Log.e(TAG, "接受连接异常", e)
             }
         }
     }
@@ -141,26 +149,32 @@ class SocketServer @Inject constructor(
                 // 通过 Channel 发送数据
                 connection.receiveChannel.send(data)
             }
+        } catch (_: EOFException) {
+            Log.d(TAG, "客户端正常断开: ${connection.userId}")
         } catch (e: Exception) {
-            Log.e(TAG, "接收消息失败: ${connection.userId}", e)
+            Log.e(TAG, "消息接收中断: ${connection.userId}", e)
         } finally {
-            activeClients.remove(connection.userId)
-            connection.close()
+            cleanupConnection(connection.userId)
         }
+    }
+
+    private fun cleanupConnection(userId: String) {
+        activeClients.remove(userId)?.close()
+        Log.d(TAG, "连接已清理: $userId")
     }
 
     /**
      * 发送数据给客户端
      */
     suspend fun sendToClient(userId: String, data: ByteArray): Result<Unit> {
-        return runCatching {
-            val connection = activeClients[userId]
-                ?: throw Exception("客户端未连接: $userId")
-
-            synchronized(connection.outputStream) {
-                connection.outputStream.writeInt(data.size)
-                connection.outputStream.write(data)
-                connection.outputStream.flush()
+        val connection = activeClients[userId] ?: return Result.failure(Exception("未连接"))
+        return withContext(Dispatchers.IO) {
+            runCatching {
+                synchronized(connection.outputStream) {
+                    connection.outputStream.writeInt(data.size)
+                    connection.outputStream.write(data)
+                    connection.outputStream.flush()
+                }
             }
         }
     }
@@ -178,19 +192,6 @@ class SocketServer @Inject constructor(
         scope.cancel()
 
         Log.d(TAG, "服务器已停止")
-    }
-
-    /**
-     * 解析 userId（简化版，实际应该解析 JSON）
-     */
-    private fun parseUserId(data: ByteArray): String? {
-        return try {
-            // 这里应该解析协议消息获取 userId
-            // 暂时返回 null，实际使用时需要实现
-            null
-        } catch (e: Exception) {
-            null
-        }
     }
 }
 
