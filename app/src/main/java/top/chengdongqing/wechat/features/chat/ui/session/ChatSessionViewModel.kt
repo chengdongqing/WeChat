@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
+import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
@@ -31,6 +32,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val messageRepository: MessageRepository,
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
+    private val activeSessionManager: ActiveSessionManager,
     soundTipPlayer: SoundTipPlayer,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -79,6 +81,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private var lastLoadedTimestamp: Long? = null
 
     init {
+        activeSessionManager.enter(chatId)
         loadInitialData()
     }
 
@@ -225,6 +228,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     override fun onCleared() {
         super.onCleared()
         audioPlaybackManager.release()
+        activeSessionManager.leave()
     }
 
     companion object {

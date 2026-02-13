@@ -10,6 +10,7 @@ import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendStatus
+import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
 import top.chengdongqing.wechat.features.chat.data.mapper.ContactCardContent
 import top.chengdongqing.wechat.features.chat.data.mapper.FavoriteContent
@@ -30,6 +31,7 @@ class MessageRepositoryImpl @Inject constructor(
     private val chatSessionDao: ChatSessionDao,
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
+    private val chatSessionUpdater: ChatSessionUpdater,
     private val json: Json
 ) : MessageRepository {
 
@@ -64,8 +66,9 @@ class MessageRepositoryImpl @Inject constructor(
         return runCatching {
             val myProfile = profileRepository.getCurrentProfileOnce()
                 ?: throw Exception("未找到个人资料")
+            val isSelfSession = sessionId == myProfile.id
 
-            // 1. 构建消息实体
+            // 构建消息实体
             val messageId = randomUUID()
             val now = System.currentTimeMillis()
 
@@ -77,18 +80,25 @@ class MessageRepositoryImpl @Inject constructor(
                 content = content,
                 timestamp = now
             )
+            // 保存到数据库（离线优先）
+            messageDao.insert(
+                entity.copy(
+                    // 如果是给自己发的，直接设置为发送成功
+                    sendStatus = if (isSelfSession) SendStatus.Sent else entity.sendStatus
+                )
+            )
 
-            // 2. 保存到数据库（离线优先）
-            messageDao.insert(entity)
-
-            // 3. 更新会话
+            // 更新会话
             updateSessionLastMessage(sessionId, content, now)
 
-            // 4. 异步发送
-            val message = entity.toDomain(json)
-            sendMessageAsync(entity)
+            // 异步发送
+            if (!isSelfSession) {
+                sendMessageAsync(entity)
+            } else {
+                chatSessionUpdater.update(entity)
+            }
 
-            message
+            entity.toDomain(json)
         }
     }
 

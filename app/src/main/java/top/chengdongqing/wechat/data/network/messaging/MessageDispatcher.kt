@@ -5,15 +5,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
-import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendStatus
-import top.chengdongqing.wechat.data.database.entity.toPreviewText
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
@@ -26,10 +22,9 @@ import javax.inject.Singleton
 @Singleton
 class MessageDispatcher @Inject constructor(
     private val messageDao: MessageDao,
-    private val chatSessionDao: ChatSessionDao,
-    private val contactDao: ContactDao,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageSender: MessageSender,
+    private val chatSessionUpdater: ChatSessionUpdater,
     private val json: Json
 ) {
     private companion object {
@@ -82,12 +77,12 @@ class MessageDispatcher @Inject constructor(
             messageDao.insert(entity)
 
             // 更新会话
-            updateSession(entity)
+            chatSessionUpdater.update(entity)
 
             // 回复 ACK
             messageSender.sendAck(protocol.messageId, protocol.senderId)
 
-            // 推入 ChatFlow
+            // 推入 MessageFlow
             _incomingMessageFlow.emit(entity.toDomain(json))
 
             Log.d(TAG, "✅ 消息已处理: ${protocol.messageId}")
@@ -164,37 +159,6 @@ class MessageDispatcher @Inject constructor(
             )
 
             else -> throw IllegalArgumentException("不支持的消息类型: ${protocol::class.simpleName}")
-        }
-    }
-
-    private suspend fun updateSession(entity: MessageEntity) {
-        val lastMessageText = entity.contentType.toPreviewText(entity.content)
-
-        val existing = chatSessionDao.getById(entity.sessionId)
-        if (existing != null) {
-            chatSessionDao.updateLastMessage(
-                entity.sessionId,
-                lastMessageText,
-                entity.contentType,
-                entity.timestamp
-            )
-            chatSessionDao.incrementUnreadCount(entity.sessionId)
-        } else {
-            val contact = contactDao.getById(entity.senderId)
-            chatSessionDao.insert(
-                ChatSessionEntity(
-                    sessionId = entity.sessionId,
-                    contactId = entity.senderId,
-                    contactName = contact?.remarkName ?: contact?.nickname ?: "",
-                    contactAvatar = contact?.avatarPath,
-                    lastMessage = lastMessageText,
-                    lastMessageType = entity.contentType,
-                    lastMessageTime = entity.timestamp,
-                    unreadCount = 1,
-                    createdAt = System.currentTimeMillis(),
-                    updatedAt = System.currentTimeMillis()
-                )
-            )
         }
     }
 }

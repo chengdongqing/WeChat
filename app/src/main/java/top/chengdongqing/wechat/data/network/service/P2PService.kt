@@ -20,6 +20,7 @@ import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
 import top.chengdongqing.wechat.data.notification.NotificationHelper
+import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.toPreviewText
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
@@ -50,6 +51,9 @@ class P2PService : Service() {
 
     @Inject
     lateinit var notificationHelper: NotificationHelper
+
+    @Inject
+    lateinit var activeSessionManager: ActiveSessionManager
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -113,7 +117,10 @@ class P2PService : Service() {
             // ✅ 监听新消息
             serviceScope.launch {
                 chatModule.incomingMessageFlow.collect { message ->
-                    handleNewMessage(message)
+                    // 正在查看该会话，不发通知
+                    if (!activeSessionManager.isActive(message.sessionId)) {
+                        handleNewMessage(message)
+                    }
                 }
             }
 
