@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.session
+package top.chengdongqing.wechat.features.chat.ui.session.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background

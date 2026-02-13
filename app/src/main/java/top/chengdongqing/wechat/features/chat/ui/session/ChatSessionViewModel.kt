@@ -8,6 +8,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,6 +18,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -29,7 +33,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 class ChatSessionViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
     private val messageRepository: MessageRepository,
-    private val chatSessionRepository: ChatSessionRepository,
+    private val sessionRepository: ChatSessionRepository,
     private val profileRepository: ProfileRepository,
     soundTipPlayer: SoundTipPlayer,
     @param:ApplicationContext private val context: Context
@@ -40,11 +44,12 @@ class ChatSessionViewModel @AssistedInject constructor(
         fun create(chatId: String): ChatSessionViewModel
     }
 
-    // ==================== 状态 ====================
+    // ==================== UI 状态 ====================
 
-    private val _uiState = MutableStateFlow(ChatSessionState())
-    val uiState: StateFlow<ChatSessionState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(ChatSessionUiState())
+    val uiState: StateFlow<ChatSessionUiState> = _uiState.asStateFlow()
 
+    // 观察消息流：自动随数据库更新
     val messages: StateFlow<List<ChatMessage>> = messageRepository
         .observeMessages(chatId)
         .stateIn(
@@ -53,99 +58,101 @@ class ChatSessionViewModel @AssistedInject constructor(
             initialValue = emptyList()
         )
 
-    // 媒体列表（从消息派生）
+    // 派生状态：媒体预览列表（使用更高效的 map 转换）
     val mediaList: StateFlow<List<MessageContent.Media>> = messages
         .map { list ->
-            list.mapNotNull { msg ->
-                (msg.content as? MessageContent.Media)
-            }.reversed()
+            list.asSequence()
+                .mapNotNull { it.content as? MessageContent.Media }
+                .toList()
+                .reversed()
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    // 音频播放管理
+    // ==================== 播放管理 ====================
+
     private val audioPlaybackManager = AudioPlaybackManager(
         context = context,
         soundTipPlayer = soundTipPlayer,
-        onPlayingStateChanged = { messageId -> _playingMessageId.value = messageId },
-        onMessagePlayed = { messageId -> markAsPlayed(messageId) }
+        onPlayingStateChanged = { _playingMessageId.value = it },
+        onMessagePlayed = { markAsPlayed(it) }
     )
 
     private val _playingMessageId = MutableStateFlow<String?>(null)
-    val playingMessageId: StateFlow<String?> = _playingMessageId.asStateFlow()
+    val playingMessageId = _playingMessageId.asStateFlow()
 
-    // 分页相关
-    private var oldestTimestamp: Long? = null
+    private var lastLoadedTimestamp: Long? = null
 
     init {
         loadInitialData()
     }
 
-    // ==================== 初始化 ====================
+    // ==================== 初始化逻辑 ====================
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            val sessionDeferred = async { chatSessionRepository.getSession(chatId) }
-            val profileDeferred = async { profileRepository.getCurrentProfileOnce() }
-            val markReadDeferred = async { messageRepository.markAllAsRead(chatId) }
+            // 给导航动画留出喘息时间 (约 2 帧)
+            yield()
 
-            val session = sessionDeferred.await()
-            val profile = profileDeferred.await()
-            markReadDeferred.await()
+            // 并行获取基础信息
+            supervisorScope {
+                val sessionDeferred = async(Dispatchers.IO) { sessionRepository.getSession(chatId) }
+                val profileDeferred =
+                    async(Dispatchers.IO) { profileRepository.getCurrentProfileOnce() }
 
-            _uiState.update {
-                it.copy(
-                    title = session?.contactName ?: "",
-                    peerAvatar = session?.contactAvatar,
-                    myAvatar = profile?.avatarPath
-                )
+                // 标记已读：不阻塞 UI，独立启动
+                launch(Dispatchers.IO) { messageRepository.markAllAsRead(chatId) }
+
+                try {
+                    val session = sessionDeferred.await()
+                    val profile = profileDeferred.await()
+
+                    // 更新基础 UI 状态
+                    _uiState.update {
+                        it.copy(
+                            title = session?.contactName ?: "Chat",
+                            peerAvatar = session?.contactAvatar,
+                            myAvatar = profile?.avatarPath
+                        )
+                    }
+
+                    // 加载第一页消息
+                    loadInitialMessages()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
-
-            loadInitialMessages()
         }
     }
 
     private suspend fun loadInitialMessages() {
-        try {
-            val initialMessages = messageRepository.getMessages(
-                sessionId = chatId,
-                limit = PAGE_SIZE
-            )
+        val result = withContext(Dispatchers.IO) {
+            runCatching { messageRepository.getMessages(chatId, PAGE_SIZE) }
+        }
 
-            oldestTimestamp = initialMessages.lastOrNull()?.timestamp
-
+        result.onSuccess { msgs ->
+            lastLoadedTimestamp = msgs.lastOrNull()?.timestamp
             _uiState.update {
                 it.copy(
-                    hasMoreMessages = initialMessages.size >= PAGE_SIZE,
+                    hasMoreMessages = msgs.size >= PAGE_SIZE,
                     shouldScrollToBottom = true
                 )
             }
-        } catch (e: Exception) {
+        }.onFailure {
             _uiState.update { it.copy(hasMoreMessages = false) }
         }
     }
 
-    fun onScrolledToBottom() {
-        _uiState.update { it.copy(shouldScrollToBottom = false) }
-    }
+    // ==================== 交互操作 ====================
 
-    // ==================== 消息操作 ====================
-
-    /**
-     * 发送消息
-     */
-    fun sendMessage(content: MessageContent, onSent: () -> Unit) {
+    fun sendMessage(content: MessageContent, onSent: () -> Unit = {}) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSending = true) }
-
-            messageRepository.sendMessage(
-                sessionId = chatId,
-                receiverId = chatId,  // P2P 场景下 sessionId == receiverId
-                content = content
-            ).onSuccess {
-                onSent()
-            }.onFailure {
-                // 发送失败会在消息列表中自动显示失败状态
-            }
+            messageRepository.sendMessage(chatId, chatId, content)
+                .onSuccess {
+                    onSent()
+                    _uiState.update { it.copy(isSending = false) }
+                }
+                .onFailure { _uiState.update { it.copy(isSending = false) } }
         }
     }
 
@@ -154,33 +161,32 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     /**
-     * 加载更多历史消息
+     * 加载更多历史
      */
-    fun loadMore(lastVisibleMsgId: String) {
+    fun loadMore() {
         val state = _uiState.value
         if (state.isLoadingMore || !state.hasMoreMessages) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
 
-            try {
-                val moreMessages = messageRepository.getMessages(
-                    sessionId = chatId,
-                    limit = PAGE_SIZE,
-                    beforeTimestamp = oldestTimestamp
-                )
-
-                if (moreMessages.isNotEmpty()) {
-                    oldestTimestamp = moreMessages.lastOrNull()?.timestamp
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    messageRepository.getMessages(chatId, PAGE_SIZE, lastLoadedTimestamp)
                 }
+            }
 
+            result.onSuccess { moreMsgs ->
+                if (moreMsgs.isNotEmpty()) {
+                    lastLoadedTimestamp = moreMsgs.lastOrNull()?.timestamp
+                }
                 _uiState.update {
                     it.copy(
                         isLoadingMore = false,
-                        hasMoreMessages = moreMessages.size >= PAGE_SIZE
+                        hasMoreMessages = moreMsgs.size >= PAGE_SIZE
                     )
                 }
-            } catch (e: Exception) {
+            }.onFailure {
                 _uiState.update { it.copy(isLoadingMore = false) }
             }
         }
@@ -204,12 +210,8 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    // ==================== 语音播放 ====================
-
     fun toggleVoicePlay(messageId: String, localPath: String) {
-        val voiceMessages = messages.value.filter {
-            it.content is MessageContent.Voice
-        }
+        val voiceMessages = messages.value.filter { it.content is MessageContent.Voice }
         audioPlaybackManager.togglePlay(messageId, localPath, voiceMessages)
     }
 
@@ -217,9 +219,13 @@ class ChatSessionViewModel @AssistedInject constructor(
         audioPlaybackManager.stop()
     }
 
+    fun onScrolledToBottomHandled() {
+        _uiState.update { it.copy(shouldScrollToBottom = false) }
+    }
+
     private fun markAsPlayed(messageId: String) {
-        viewModelScope.launch {
-            // Room 监听会自动更新 UI
+        viewModelScope.launch(Dispatchers.IO) {
+            // messageRepo.markVoiceAsPlayed(messageId)
         }
     }
 
@@ -228,14 +234,12 @@ class ChatSessionViewModel @AssistedInject constructor(
         audioPlaybackManager.release()
     }
 
-    // ==================== 常量 ====================
-
     companion object {
-        const val PAGE_SIZE = 20
+        private const val PAGE_SIZE = 20
     }
 }
 
-data class ChatSessionState(
+data class ChatSessionUiState(
     val title: String = "",
     val peerAvatar: String? = null,
     val myAvatar: String? = null,

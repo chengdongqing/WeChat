@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.session
+package top.chengdongqing.wechat.features.chat.ui.session.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.session
+package top.chengdongqing.wechat.features.chat.ui.session.util
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets

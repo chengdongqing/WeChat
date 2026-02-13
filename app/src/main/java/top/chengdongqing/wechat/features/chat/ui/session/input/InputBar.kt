@@ -36,9 +36,8 @@ import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.Nati
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.ActionIcon
-import top.chengdongqing.wechat.features.chat.ui.session.CircleActionIcon
-import top.chengdongqing.wechat.features.chat.ui.session.ScrollToDismissEffect
+import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
+import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.ActionHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberActionHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberLocationHandler
@@ -46,6 +45,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberM
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.InputPanelHolder
 import top.chengdongqing.wechat.features.chat.ui.session.input.text.InputOverlay
 import top.chengdongqing.wechat.features.chat.ui.session.input.voice.VoiceRecordButton
+import top.chengdongqing.wechat.features.chat.ui.session.util.ScrollToDismissEffect
 
 /**
  * 聊天输入栏
