@@ -2,17 +2,21 @@ package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
-import top.chengdongqing.wechat.data.database.entity.ConnectionType
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.socket.SocketManager
+import java.io.File
+import java.io.FileInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 消息发送器
@@ -26,6 +30,8 @@ class MessageSender @Inject constructor(
 ) {
 
     private companion object {
+        private const val CHUNK_SIZE = 64 * 1024  // 64KB
+
         const val TAG = "MessageSender"
     }
 
@@ -66,45 +72,90 @@ class MessageSender @Inject constructor(
         }
 
     /**
-     * 发送媒体消息（需要先传文件）
+     * 发送媒体消息
+     * 先发 JSON 元数据，再用 FileInputStream 分块发二进制
      */
-    suspend fun sendMediaMessage(
-        message: MessageEntity,
-        fileData: ByteArray
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            getActiveConnection(message.receiverId)
-                ?: throw Exception("对方不在线")
+    suspend fun sendMediaMessage(message: MessageEntity): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                // 1. 确保连接存在，不存在则尝试建立
+                ensureConnected(message.receiverId, message.senderId)
 
-            // 1. 先发送媒体消息元数据
-            val protocol = ChatProtocol.MediaMessage(
-                messageId = message.messageId,
-                senderId = message.senderId,
-                receiverId = message.receiverId,
-                messageType = message.contentType,
-                content = message.content,
-                mediaSize = fileData.size.toLong(),
-                mediaDuration = message.mediaDuration,
-                timestamp = message.timestamp
-            )
+                val file = File(message.localPath ?: throw Exception("文件路径为空"))
+                if (!file.exists()) throw Exception("文件不存在: ${message.localPath}")
 
-            val metaData = json.encodeToString<ChatProtocol>(protocol).toByteArray()
-            socketManager.send(message.receiverId, metaData).getOrThrow()
+                val startBytes = message.sentBytes
+                var totalSent = startBytes
+                val buffer = ByteArray(CHUNK_SIZE)
 
-            // 2. 再发送文件数据（分片传输）
-            sendFileData(message.receiverId, fileData)
+                // 1. 发 FileHeader（JSON）
+                val header = ChatProtocol.FileHeader(
+                    messageId = message.messageId,
+                    senderId = message.senderId,
+                    receiverId = message.receiverId,
+                    messageType = message.contentType,
+                    content = message.content,
+                    fileSize = file.length(),
+                    mediaDuration = message.mediaDuration,
+                    resumeFrom = startBytes,
+                    timestamp = message.timestamp
+                )
+                val headerData = json.encodeToString<ChatProtocol>(header).toByteArray()
+                socketManager.send(message.receiverId, headerData).getOrThrow()
 
-            // 3. 更新状态
-            messageDao.updateSendStatus(message.messageId, SendStatus.Sent)
+                // 2. FileInputStream 边读边发（不会 OOM）
+                FileInputStream(file).use { fis ->
+                    if (startBytes > 0) fis.skip(startBytes)
 
-            Log.d(TAG, "✅ 媒体消息已发送: ${message.messageId}")
+                    var bytesRead = 0
+                    while (
+                        isActive &&  // 协程取消时退出循环
+                        fis.read(buffer).also { bytesRead = it } != -1
+                    ) {
+                        // 让协程框架有机会响应取消信号
+                        yield()
 
-            Unit
-        }.onFailure { error ->
-            Log.e(TAG, "发送媒体失败: ${message.messageId}", error)
-            messageDao.updateSendStatus(message.messageId, SendStatus.Failed)
+                        socketManager.sendBinary(
+                            userId = message.receiverId,
+                            messageId = message.messageId,
+                            data = buffer,
+                            offset = 0,
+                            length = bytesRead
+                        ).getOrThrow()
+
+                        totalSent += bytesRead
+
+                        if (totalSent % (1024 * 1024) == 0L) {
+                            messageDao.updateSentBytes(message.messageId, totalSent)
+                        }
+                    }
+                    // 确保最终进度写入
+                    messageDao.updateSentBytes(message.messageId, totalSent)
+                }
+
+                // 3. 发 FileEnd（JSON）
+                if (isActive) {
+                    val end = ChatProtocol.FileEnd(
+                        messageId = message.messageId,
+                        senderId = message.senderId
+                    )
+                    val endData = json.encodeToString<ChatProtocol>(end).toByteArray()
+                    socketManager.send(message.receiverId, endData).getOrThrow()
+
+                    messageDao.updateSendStatus(message.messageId, SendStatus.Sent)
+                    Log.d(TAG, "✅ 文件发送完成: ${message.messageId}")
+                } else {
+                    // 取消：保留 sentBytes，下次可以断点续传
+                    Log.d(TAG, "发送已取消: ${message.messageId}, 已发 $totalSent 字节")
+                }
+
+                Unit
+            }.onFailure { error ->
+                if (error is CancellationException) throw error  // ✅ 取消异常必须重新抛出
+                Log.e(TAG, "发送媒体失败: ${message.messageId}", error)
+                messageDao.updateSendStatus(message.messageId, SendStatus.Failed)
+            }
         }
-    }
 
     /**
      * 确保已连接，没有则自动重连
@@ -171,37 +222,6 @@ class MessageSender @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "发送ACK失败", e)
             }
-        }
-    }
-
-    /**
-     * 获取活跃的连接
-     */
-    private suspend fun getActiveConnection(userId: String): top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity? {
-        // 优先使用 WiFi LAN
-        val connections = connectionInfoDao.getConnectionsByUserId(userId)
-        return connections.firstOrNull {
-            it.connectionType == ConnectionType.WiFiLan && it.isOnline
-        }
-    }
-
-    /**
-     * 分片发送文件数据
-     */
-    private suspend fun sendFileData(userId: String, fileData: ByteArray) {
-        val chunkSize = 64 * 1024  // 64KB 每片
-        var offset = 0
-
-        while (offset < fileData.size) {
-            val remaining = fileData.size - offset
-            val size = minOf(chunkSize, remaining)
-            val chunk = fileData.copyOfRange(offset, offset + size)
-
-            socketManager.send(userId, chunk).getOrThrow()
-
-            offset += size
-
-            Log.d(TAG, "文件传输进度: ${offset * 100 / fileData.size}%")
         }
     }
 }

@@ -65,7 +65,7 @@ fun MessageItem(
             }
         }
 
-        if (message.isFailed && !message.canRetry) {
+        if (message.isFailed) {
             FailedMessageHint(message)
         }
     }
@@ -93,7 +93,7 @@ private fun StatusIndicator(message: ChatMessage) {
         message.isFailed -> Image(
             painter = painterResource(R.drawable.ic_error_circle_filled),
             contentDescription = "错误",
-            modifier = Modifier.size(28.dp)
+            modifier = Modifier.size(24.dp)
         )
     }
 }

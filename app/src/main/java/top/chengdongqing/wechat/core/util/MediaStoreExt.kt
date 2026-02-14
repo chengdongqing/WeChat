@@ -9,12 +9,15 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.OpenableColumns
+import android.util.Log
 import android.util.Size
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
+import java.io.File
 import java.io.IOException
 
 /**
@@ -178,4 +181,47 @@ suspend fun Context.saveToAlbum(media: MediaItem): Boolean = withContext(Dispatc
 suspend fun Context.saveToAlbum(uri: Uri): Boolean {
     val res = prepareMediaResource(this, uri) ?: return false
     return saveToAlbum(res.toMediaItem(uri))
+}
+
+/**
+ * 把 content:// Uri 复制到应用私有目录，返回真实路径
+ * 用于消息发送前将媒体文件持久化到本地
+ */
+fun Context.copyUriToPrivateDir(
+    uri: Uri,
+    mediaType: MediaType
+): String? {
+    return try {
+        val subDir = when (mediaType) {
+            MediaType.Image -> "images"
+            MediaType.Video -> "videos"
+            MediaType.Audio,
+            MediaType.Recording -> "voices"
+        }
+
+        val dir = File(filesDir, subDir).also { it.mkdirs() }
+
+        val fileName = "${randomUUID()}_${getFileName(uri)}"
+        val destFile = File(dir, fileName)
+        val success = contentResolver.copyUri(uri, Uri.fromFile(destFile))
+
+        if (success) destFile.absolutePath else null
+    } catch (e: Exception) {
+        Log.e("MediaStoreExt", "复制文件失败", e)
+        null
+    }
+}
+
+/**
+ * 获取 Uri 对应的文件名
+ */
+fun Context.getFileName(uri: Uri): String {
+    var name = "${System.currentTimeMillis()}"
+    contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+        val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        if (cursor.moveToFirst() && index >= 0) {
+            name = cursor.getString(index)
+        }
+    }
+    return name
 }

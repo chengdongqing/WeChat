@@ -24,12 +24,13 @@ data class MessageEntity(
     val contentType: MessageType,       // 消息类型
     val content: String,                // 消息内容（JSON或文本）
 
-    val localPath: String? = null,      // 媒体文件路径
-    val mediaSize: Long? = null,        // 媒体文件大小
+    val localPath: String? = null,      // 文件路径
+    val fileSize: Long? = null,         // 文件大小
     val mediaDuration: Long? = null,    // 媒体时长
 
     val timestamp: Long,                // 发送时间戳
 
+    val sentBytes: Long = 0L,           // 已发送字节数（断点位置）
     val sendStatus: SendStatus,         // 发送状态
     val isRead: Boolean = false,        // 是否已读
     val isPlayed: Boolean = false,      // 是否已播放（语音/视频）

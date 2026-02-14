@@ -20,11 +20,10 @@ import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.domain.model.toPreviewText
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
-import java.io.File
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 class MessageRepositoryImpl @Inject constructor(
     private val messageDao: MessageDao,
@@ -66,7 +65,7 @@ class MessageRepositoryImpl @Inject constructor(
         return runCatching {
             val myProfile = profileRepository.getCurrentProfileOnce()
                 ?: throw Exception("未找到个人资料")
-            val isSelfSession = sessionId == myProfile.id
+            val isSelfSession = receiverId == myProfile.id
 
             // 构建消息实体
             val messageId = randomUUID()
@@ -80,7 +79,7 @@ class MessageRepositoryImpl @Inject constructor(
                 content = content,
                 timestamp = now
             )
-            // 保存到数据库（离线优先）
+            // 保存到数据库
             messageDao.insert(
                 entity.copy(
                     // 如果是给自己发的，直接设置为发送成功
@@ -89,13 +88,11 @@ class MessageRepositoryImpl @Inject constructor(
             )
 
             // 更新会话
-            updateSessionLastMessage(sessionId, content, now)
+            chatSessionUpdater.update(entity)
 
             // 异步发送
             if (!isSelfSession) {
                 sendMessageAsync(entity)
-            } else {
-                chatSessionUpdater.update(entity)
             }
 
             entity.toDomain(json)
@@ -121,9 +118,7 @@ class MessageRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteMessage(messageId: String) {
-        messageDao.getByMessageId(messageId)?.let {
-            messageDao.delete(it)
-        }
+        messageDao.deleteByMessageId(messageId)
     }
 
     override suspend fun deleteSessionMessages(sessionId: String) {
@@ -147,7 +142,7 @@ class MessageRepositoryImpl @Inject constructor(
             contentType: MessageType,
             contentValue: String,
             localPath: String? = null,
-            mediaSize: Long? = null,
+            fileSize: Long? = null,
             mediaDuration: Long? = null
         ) = MessageEntity(
             messageId = messageId,
@@ -157,7 +152,7 @@ class MessageRepositoryImpl @Inject constructor(
             contentType = contentType,
             content = contentValue,
             localPath = localPath,
-            mediaSize = mediaSize,
+            fileSize = fileSize,
             mediaDuration = mediaDuration,
             timestamp = timestamp,
             sendStatus = SendStatus.Sending,
@@ -193,7 +188,7 @@ class MessageRepositoryImpl @Inject constructor(
                         )
                     ),
                     localPath = content.localPath,
-                    mediaSize = content.size
+                    fileSize = content.size
                 )
 
             is MessageContent.Video ->
@@ -208,7 +203,7 @@ class MessageRepositoryImpl @Inject constructor(
                         )
                     ),
                     localPath = content.localPath,
-                    mediaSize = content.size,
+                    fileSize = content.size,
                     mediaDuration = content.duration
                 )
 
@@ -222,7 +217,7 @@ class MessageRepositoryImpl @Inject constructor(
                         )
                     ),
                     localPath = content.localPath,
-                    mediaSize = content.size
+                    fileSize = content.size
                 )
 
             is MessageContent.Sticker ->
@@ -290,26 +285,14 @@ class MessageRepositoryImpl @Inject constructor(
     private suspend fun sendMessageAsync(entity: MessageEntity) {
         try {
             when (entity.contentType) {
-                MessageType.Text -> {
-                    messageSender.sendTextMessage(entity)
-                }
-
-                else -> {
-                    // 媒体消息：读取文件后发送
-                    val fileData = entity.localPath?.let { path ->
-                        File(path).takeIf { it.exists() }?.readBytes()
-                    }
-                    if (fileData != null) {
-                        messageSender.sendMediaMessage(entity, fileData)
-                    } else {
-                        messageDao.updateSendStatus(entity.messageId, SendStatus.Failed)
-                    }
-                }
+                MessageType.Text -> messageSender.sendTextMessage(entity)
+                else -> messageSender.sendMediaMessage(entity)
             }
+        } catch (e: CancellationException) {
+            throw e  // 取消异常必须重新抛出
         } catch (e: Exception) {
             Log.e(TAG, "发送失败: ${e.message}")
 
-            // 根据错误信息区分失败类型，存到 content 备用
             val failReason = when {
                 e.message?.contains("连接信息") == true -> "NOT_REACHABLE"
                 e.message?.contains("已离线") == true -> "OFFLINE"
@@ -319,32 +302,5 @@ class MessageRepositoryImpl @Inject constructor(
             messageDao.updateSendStatus(entity.messageId, SendStatus.Failed)
             messageDao.updateFailReason(entity.messageId, failReason)
         }
-    }
-
-    /**
-     * 更新会话最后一条消息
-     */
-    private suspend fun updateSessionLastMessage(
-        sessionId: String,
-        content: MessageContent,
-        timestamp: Long
-    ) {
-        val lastMessageText = content.toPreviewText()
-
-        val lastMessageType = when (content) {
-            is MessageContent.Text -> MessageType.Text
-            is MessageContent.Image -> MessageType.Image
-            is MessageContent.Voice -> MessageType.Voice
-            is MessageContent.Video -> MessageType.Video
-            is MessageContent.File -> MessageType.File
-            is MessageContent.Location -> MessageType.Location
-            is MessageContent.Favorite -> MessageType.Favorite
-            is MessageContent.ContactCard -> MessageType.ContactCard
-            is MessageContent.Sticker -> MessageType.Sticker
-            is MessageContent.Call -> if (content.type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
-            else -> null
-        }
-
-        chatSessionDao.updateLastMessage(sessionId, lastMessageText, lastMessageType, timestamp)
     }
 }

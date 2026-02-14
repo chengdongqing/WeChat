@@ -58,11 +58,17 @@ class ChatSessionUpdater @Inject constructor(
         entity: MessageEntity,
         isSelfSession: Boolean
     ): Pair<String, String?> {
+        val profile = profileRepository.getCurrentProfileOnce()
+
         return if (isSelfSession) {
-            val profile = profileRepository.getCurrentProfileOnce()
             Pair(profile?.nickname ?: "", profile?.avatarPath)
         } else {
-            val contact = contactDao.getById(entity.senderId)
+            val senderId = if (entity.senderId == profile?.id) {
+                entity.receiverId
+            } else {
+                entity.senderId
+            }
+            val contact = contactDao.getById(senderId)
             Pair(
                 contact?.remarkName?.takeIf { it.isNotBlank() } ?: contact?.nickname ?: "",
                 contact?.avatarPath

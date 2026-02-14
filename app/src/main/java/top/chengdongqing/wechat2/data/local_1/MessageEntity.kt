@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 import top.chengdongqing.wechat2.data.model_1.ChatPayload
 import top.chengdongqing.wechat2.data.model_1.MessageEnvelope
 
-@Entity(tableName = "messages")
+@Entity(tableName = "messages_1")
 data class MessageEntity(
     @PrimaryKey
     val id: String,            // 消息唯一ID (UUID)

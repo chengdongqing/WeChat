@@ -78,12 +78,12 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             }.getOrElse { MediaContent() }
 
             MessageContent.Image(
-                localPath = localPath!!,
+                localPath = localPath ?: "",
                 mimeType = data.mimeType,
                 filename = data.filename,
                 width = data.width,
                 height = data.height,
-                size = mediaSize ?: 0
+                size = fileSize ?: 0
             )
         }
 
@@ -93,12 +93,12 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             }.getOrElse { MediaContent() }
 
             MessageContent.Video(
-                localPath = localPath!!,
+                localPath = localPath ?: "",
                 mimeType = data.mimeType,
                 filename = data.filename,
                 width = data.width,
                 height = data.height,
-                size = mediaSize ?: 0,
+                size = fileSize ?: 0,
                 duration = mediaDuration ?: 0
             )
         }
@@ -112,7 +112,7 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
                 localPath = localPath!!,
                 filename = data.filename,
                 mimeType = data.mimeType,
-                size = mediaSize ?: 0,
+                size = fileSize ?: 0,
             )
         }
 

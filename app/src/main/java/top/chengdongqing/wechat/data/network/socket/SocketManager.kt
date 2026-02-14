@@ -4,21 +4,24 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.io.EOFException
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
+import top.chengdongqing.wechat.data.network.protocol.SocketFrame
+import top.chengdongqing.wechat.data.network.protocol.SocketProtocol.TYPE_BINARY
+import top.chengdongqing.wechat.data.network.protocol.SocketProtocol.TYPE_JSON
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.InetSocketAddress
 import java.net.Socket
-import java.net.SocketTimeoutException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -57,6 +60,7 @@ class SocketManager @Inject constructor(
             // 如果已有连接，先关闭
             activeConnections[userId]?.close()
 
+            Log.d("DEBUG", "我是主动连接方 -> $myUserId 连接 $userId")
             Log.d(TAG, "正在连接: $host:$port")
 
             val socket = Socket()
@@ -76,10 +80,11 @@ class SocketManager @Inject constructor(
 
             // 连接后立即发送心跳包
             val heartbeat = json.encodeToString<ChatProtocol>(
-                ChatProtocol.Heartbeat(myUserId, myUserId)
+                ChatProtocol.Heartbeat("", myUserId)
             ).toByteArray(Charsets.UTF_8)
 
             synchronized(connection.outputStream) {
+                connection.outputStream.writeByte(TYPE_JSON.toInt())
                 connection.outputStream.writeInt(heartbeat.size)
                 connection.outputStream.write(heartbeat)
                 connection.outputStream.flush()
@@ -105,28 +110,47 @@ class SocketManager @Inject constructor(
     /**
      * 发送数据
      */
-    suspend fun send(
-        userId: String,
-        data: ByteArray
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    /**
+     * 发送 JSON 协议消息
+     */
+    suspend fun send(userId: String, data: ByteArray): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val connection = activeConnections[userId]
                 ?: throw Exception("未找到连接: $userId")
 
             synchronized(connection.outputStream) {
-                // 先发送数据长度
+                connection.outputStream.writeByte(TYPE_JSON.toInt())
                 connection.outputStream.writeInt(data.size)
-                // 再发送数据
                 connection.outputStream.write(data)
                 connection.outputStream.flush()
             }
+        }
+    }
 
-            Log.d(TAG, "发送数据: $userId, ${data.size} 字节")
+    /**
+     * 发送原始二进制块
+     */
+    suspend fun sendBinary(
+        userId: String,
+        messageId: String,
+        data: ByteArray,
+        offset: Int,
+        length: Int
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val connection = activeConnections[userId]
+                ?: throw Exception("未找到连接: $userId")
 
-            Unit
-        }.onFailure { error ->
-            Log.e(TAG, "发送失败: $userId", error)
-            disconnect(userId)
+            val idBytes = messageId.toByteArray(Charsets.UTF_8)
+
+            synchronized(connection.outputStream) {
+                connection.outputStream.writeByte(TYPE_BINARY.toInt())
+                connection.outputStream.writeByte(idBytes.size)      // messageId 长度
+                connection.outputStream.write(idBytes)               // messageId
+                connection.outputStream.writeInt(length)
+                connection.outputStream.write(data, offset, length)
+                connection.outputStream.flush()
+            }
         }
     }
 
@@ -158,37 +182,51 @@ class SocketManager @Inject constructor(
     /**
      * 启动接收消息
      */
-    private fun startReceiving(connection: SocketConnection) {
+    fun startReceiving(connection: SocketConnection) {
         scope.launch {
+            val inputStream = connection.inputStream
             try {
-                while (connection.socket.isConnected && !connection.socket.isClosed) {
-                    try {
-                        // 读取数据长度
-                        val length = connection.inputStream.readInt()
+                while (isActive) {
+                    // 1. 读取类型 (1 字节) - 这里如果读不到就会抛 EOFException，正常断开应捕获
+                    val type = try {
+                        inputStream.readByte()
+                    } catch (_: EOFException) {
+                        break
+                    }
 
-                        if (length <= 0 || length > 10 * 1024 * 1024) {  // 最大 10MB
-                            Log.w(TAG, "异常数据长度: $length")
-                            break
+                    // 2. 读取长度 (4 字节)
+                    val length = inputStream.readInt()
+
+                    // 3. 读取内容
+                    val data = ByteArray(length)
+                    inputStream.readFully(data) // 必须用 readFully 确保读够长度
+
+                    // 4. 分发到对应通道
+                    when (type) {
+                        TYPE_JSON -> connection.frameChannel.send(
+                            SocketFrame.JsonFrame(data)
+                        )
+
+                        TYPE_BINARY -> {
+                            val idLength = inputStream.readByte().toInt()
+                            val idBytes = ByteArray(idLength)
+                            inputStream.readFully(idBytes)
+                            val messageId = String(idBytes, Charsets.UTF_8)
+
+                            val dataLength = inputStream.readInt()
+                            val frameData = ByteArray(dataLength)
+                            inputStream.readFully(frameData)
+
+                            connection.frameChannel.send(
+                                SocketFrame.BinaryFrame(messageId, frameData)
+                            )
                         }
-
-                        // 读取数据
-                        val data = ByteArray(length)
-                        connection.inputStream.readFully(data)
-
-                        Log.d(TAG, "收到数据: ${connection.userId}, $length 字节")
-
-                        // 发送到接收通道
-                        connection.receiveChannel.send(data)
-
-                    } catch (_: SocketTimeoutException) {
-                        // 超时是正常的，继续读取
-                        continue
                     }
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "接收异常: ${connection.userId}", e)
+                Log.e("SocketManager", "接收异常: ${connection.userId}", e)
             } finally {
-                disconnect(connection.userId)
+                disconnect(connection.userId) // 发生错误或读完则清理连接
             }
         }
     }
@@ -201,7 +239,7 @@ class SocketManager @Inject constructor(
             try {
                 while (connection.socket.isConnected && !connection.socket.isClosed) {
                     delay(HEARTBEAT_INTERVAL)
-                    val protocol = ChatProtocol.Heartbeat(connection.userId, connection.userId)
+                    val protocol = ChatProtocol.Heartbeat("", connection.userId)
 
                     // 发送心跳包
                     val heartbeat = Json.encodeToString<ChatProtocol>(protocol)
@@ -220,26 +258,6 @@ class SocketManager @Inject constructor(
     fun closeAll() {
         activeConnections.values.forEach { it.close() }
         activeConnections.clear()
-    }
-}
-
-/**
- * Socket 连接
- */
-data class SocketConnection(
-    val userId: String,
-    val socket: Socket,
-    val inputStream: DataInputStream,
-    val outputStream: DataOutputStream,
-    val receiveChannel: Channel<ByteArray> = Channel(Channel.UNLIMITED)
-) {
-    fun close() {
-        runCatching {
-            receiveChannel.close()
-            inputStream.close()
-            outputStream.close()
-            socket.close()
-        }
     }
 }
 

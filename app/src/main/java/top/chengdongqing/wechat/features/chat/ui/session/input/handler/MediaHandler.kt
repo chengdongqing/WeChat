@@ -15,8 +15,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
+import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememberPickMediasLauncher
+import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
 import top.chengdongqing.wechat.core.util.prepareMediaResource
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
@@ -40,9 +42,11 @@ class MediaHandler(
 
         // 转换为消息内容
         val contents = items.map { item ->
+            val localPath = context.copyUriToPrivateDir(item.uri, item.mediaType) ?: return
+
             if (item.isImage) {
                 MessageContent.Image(
-                    localPath = item.uri.toString(),
+                    localPath = localPath,
                     mimeType = item.mimeType,
                     filename = item.filename,
                     width = item.width,
@@ -51,7 +55,7 @@ class MediaHandler(
                 )
             } else {
                 MessageContent.Video(
-                    localPath = item.uri.toString(),
+                    localPath = localPath,
                     mimeType = item.mimeType,
                     filename = item.filename,
                     width = item.width,
@@ -76,11 +80,15 @@ class MediaHandler(
      */
     fun handleCameraCapture(mediaUri: Uri, isImage: Boolean) {
         scope.launch {
+            val localPath = context.copyUriToPrivateDir(
+                mediaUri,
+                if (isImage) MediaType.Image else MediaType.Video
+            ) ?: return@launch
             val resource = prepareMediaResource(context, mediaUri) ?: return@launch
 
             val content = if (isImage) {
                 MessageContent.Image(
-                    localPath = mediaUri.toString(),
+                    localPath = localPath,
                     mimeType = resource.mimeType,
                     filename = resource.filename,
                     width = resource.width,
@@ -89,7 +97,7 @@ class MediaHandler(
                 )
             } else {
                 MessageContent.Video(
-                    localPath = mediaUri.toString(),
+                    localPath = localPath,
                     mimeType = resource.mimeType,
                     filename = resource.filename,
                     width = resource.width,
@@ -109,10 +117,14 @@ class MediaHandler(
         if (!success || capturedUri == null) return
 
         scope.launch {
+            val localPath = context.copyUriToPrivateDir(
+                capturedUri,
+                MediaType.Image
+            ) ?: return@launch
             val resource = prepareMediaResource(context, capturedUri) ?: return@launch
 
             val content = MessageContent.Image(
-                localPath = capturedUri.toString(),
+                localPath = localPath,
                 mimeType = resource.mimeType,
                 filename = resource.filename,
                 width = resource.width,
@@ -130,10 +142,14 @@ class MediaHandler(
         if (!success || capturedUri == null) return
 
         scope.launch {
+            val localPath = context.copyUriToPrivateDir(
+                capturedUri,
+                MediaType.Video
+            ) ?: return@launch
             val resource = prepareMediaResource(context, capturedUri) ?: return@launch
 
             val content = MessageContent.Video(
-                localPath = capturedUri.toString(),
+                localPath = localPath,
                 mimeType = resource.mimeType,
                 filename = resource.filename,
                 width = resource.width,

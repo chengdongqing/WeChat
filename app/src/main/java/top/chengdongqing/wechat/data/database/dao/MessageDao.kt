@@ -54,11 +54,24 @@ interface MessageDao {
     @Query("SELECT * FROM messages WHERE messageId = :messageId")
     suspend fun getByMessageId(messageId: String): MessageEntity?
 
+    @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE messageId = :messageId)")
+    suspend fun exists(messageId: String): Boolean
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(message: MessageEntity): Long
 
     @Update
     suspend fun update(message: MessageEntity)
+
+    @Query("UPDATE messages SET sentBytes = :sentBytes WHERE messageId = :messageId")
+    suspend fun updateSentBytes(messageId: String, sentBytes: Long)
+
+    @Query("UPDATE messages SET localPath = :localPath, updatedAt = :updatedAt WHERE messageId = :messageId")
+    suspend fun updateLocalPath(
+        messageId: String,
+        localPath: String,
+        updatedAt: Long = System.currentTimeMillis()
+    )
 
     @Query("UPDATE messages SET sendStatus = :status WHERE messageId = :messageId")
     suspend fun updateSendStatus(messageId: String, status: SendStatus)
@@ -77,6 +90,9 @@ interface MessageDao {
 
     @Delete
     suspend fun delete(message: MessageEntity)
+
+    @Query("DELETE FROM messages WHERE messageId = :messageId")
+    suspend fun deleteByMessageId(messageId: String)
 
     @Query("DELETE FROM messages WHERE sessionId = :sessionId")
     suspend fun deleteBySession(sessionId: String)

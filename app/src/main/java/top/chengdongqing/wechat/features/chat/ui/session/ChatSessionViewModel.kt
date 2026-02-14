@@ -149,6 +149,9 @@ class ChatSessionViewModel @AssistedInject constructor(
                 .onSuccess {
                     onSent()
                 }
+                .onFailure {
+                    _uiState.update { it.copy(isSending = false) }
+                }
         }
     }
 

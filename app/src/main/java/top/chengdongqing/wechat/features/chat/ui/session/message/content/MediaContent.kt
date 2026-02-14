@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message.content
 
+import android.content.Context
 import android.util.Size
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -58,11 +59,14 @@ fun MediaContent(message: ChatMessage) {
     // 获取更多媒体数据，方便预览时切换
     val mediaContext = LocalMediaContext.current
     val (mediaItems, currentIndex) = remember(content, mediaContext) {
-        val items = mediaContext?.allMedia?.map { it.toMediaItem() }
-            ?: listOf(content.toMediaItem())
+        val items = mediaContext?.allMedia?.map { it.toMediaItem(context) }
+            ?: listOf(content.toMediaItem(context))
         val index = mediaContext?.getIndexOf(content) ?: 0
         items to index
     }
+    // 防止数组越界
+    if (currentIndex == -1 || currentIndex > mediaItems.size - 1) return
+
     val media = mediaItems[currentIndex]
 
     // 异步加载缩略图
@@ -179,7 +183,7 @@ fun MediaContent(message: ChatMessage) {
     }
 }
 
-private fun MessageContent.Media.toMediaItem() = MediaItem(
+private fun MessageContent.Media.toMediaItem(context: Context) = MediaItem(
     uri = localPath.toUri(),
     filename = filename,
     mediaType = if (this is MessageContent.Video) MediaType.Video else MediaType.Image,
