@@ -22,6 +22,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import java.io.File
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -286,7 +287,10 @@ class MessageRepositoryImpl @Inject constructor(
         try {
             when (entity.contentType) {
                 MessageType.Text -> messageSender.sendTextMessage(entity)
-                else -> messageSender.sendMediaMessage(entity)
+                else -> {
+                    val file = File(entity.localPath ?: throw Exception("文件路径为空"))
+                    messageSender.sendMediaMessage(entity, file)
+                }
             }
         } catch (e: CancellationException) {
             throw e  // 取消异常必须重新抛出

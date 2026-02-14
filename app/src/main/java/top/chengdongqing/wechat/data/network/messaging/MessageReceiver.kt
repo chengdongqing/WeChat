@@ -1,102 +1,167 @@
 package top.chengdongqing.wechat.data.network.messaging
 
+import android.content.Context
 import android.util.Log
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.SocketFrame
+import top.chengdongqing.wechat.data.network.protocol.Packet
+import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.socket.ClientConnection
 import top.chengdongqing.wechat.data.network.socket.SocketConnection
 import top.chengdongqing.wechat.data.network.socket.SocketServer
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * 消息接收器
+ *
+ * FILE_CHUNK 直接写磁盘临时文件，峰值内存仅一个 chunk (256KB)。
+ * 使用 BufferedOutputStream 减少磁盘 write syscall。
  */
 @Singleton
 class MessageReceiver @Inject constructor(
     private val socketServer: SocketServer,
     private val dispatcher: MessageDispatcher,
-    private val json: Json
+    private val json: Json,
+    @param:ApplicationContext private val context: Context
 ) {
     private companion object {
         const val TAG = "MessageReceiver"
+
+        /** 磁盘写缓冲: 256KB，与 chunk 大小对齐 */
+        const val DISK_WRITE_BUFFER = 256 * 1024
     }
 
-    // 透传 Flow
     val incomingMessageFlow = dispatcher.incomingMessageFlow
     val signalingFlow = dispatcher.signalingFlow
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    /**
-     * 启动服务器端连接监听
-     */
+    private class MediaReceiveState(
+        val metadata: ChatProtocol.MediaMessage,
+        val tempFile: File,
+        val outputStream: BufferedOutputStream,
+        var receivedBytes: Long = 0,
+        var lastReportedAt: Long = 0
+    ) {
+        fun cleanup() {
+            runCatching { outputStream.close() }
+            runCatching { tempFile.delete() }
+        }
+    }
+
+    private val mediaStates = mutableMapOf<String, MediaReceiveState>()
+
+    // ==================== 公开接口 ====================
+
     fun start() {
         scope.launch {
             socketServer.incomingConnections.collect { incoming ->
                 startListening(incoming.connection)
             }
         }
-        Log.d(TAG, "✅ 消息接收器已启动")
+        Log.d(TAG, "消息接收器已启动")
     }
 
-    /**
-     * 监听客户端连接（主动连出去的）
-     */
     fun startListening(connection: SocketConnection) {
-        listenChannels(connection.userId, connection.frameChannel)
+        scope.launch { consumePackets(connection.userId, connection.receiveChannel) }
     }
 
-    /**
-     * 监听服务端连接（对方连进来的）
-     */
     fun startListening(connection: ClientConnection) {
-        listenChannels(connection.userId, connection.frameChannel)
+        scope.launch { consumePackets(connection.userId, connection.receiveChannel) }
     }
 
-    private fun listenChannels(
+    // ==================== 核心逻辑 ====================
+
+    private suspend fun consumePackets(
         userId: String,
-        frameChannel: Channel<SocketFrame>,
+        channel: kotlinx.coroutines.channels.Channel<Packet>
     ) {
-        Log.d(TAG, "启动监听: $userId")
-
-        scope.launch {
-            for (frame in frameChannel) {
-                when (frame) {
-                    is SocketFrame.JsonFrame -> {
-                        handleJsonData(frame.data)
-                    }
-
-                    is SocketFrame.BinaryFrame -> {
-                        handleBinaryData(frame)
-                    }
-                }
+        try {
+            for (packet in channel) {
+                handlePacket(userId, packet)
             }
-            Log.d(TAG, "二进制通道关闭: $userId")
+        } catch (e: Exception) {
+            Log.e(TAG, "消费异常: $userId", e)
+        } finally {
+            cleanupMediaState(userId)
+            Log.d(TAG, "连接已关闭: $userId")
         }
     }
 
-    private suspend fun handleJsonData(data: ByteArray) {
+    private suspend fun handlePacket(userId: String, packet: Packet) {
         try {
-            val jsonString = String(data, Charsets.UTF_8)
-            val protocol = json.decodeFromString<ChatProtocol>(jsonString)
-            dispatcher.dispatch(protocol)
+            when (packet.type) {
+                PacketType.FILE_META -> handleFileMeta(userId, packet.body)
+                PacketType.FILE_CHUNK -> handleFileChunk(userId, packet.body)
+                else -> handleJsonPacket(packet)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "JSON 解析失败: ${e.message}")
+            Log.e(TAG, "处理 Packet 失败 (userId=$userId, type=${packet.type})", e)
+            if (packet.type == PacketType.FILE_CHUNK) {
+                cleanupMediaState(userId)
+            }
         }
     }
 
-    private suspend fun handleBinaryData(frame: SocketFrame.BinaryFrame) {
-        try {
-            dispatcher.dispatchBinary(frame)
-        } catch (e: Exception) {
-            Log.e(TAG, "二进制处理失败: ${frame.messageId} - ${e.message}")
+    private suspend fun handleJsonPacket(packet: Packet) {
+        val jsonString = String(packet.body, Charsets.UTF_8)
+        val protocol = json.decodeFromString<ChatProtocol>(jsonString)
+        dispatcher.dispatch(protocol)
+    }
+
+    private fun handleFileMeta(userId: String, body: ByteArray) {
+        cleanupMediaState(userId)
+
+        val jsonString = String(body, Charsets.UTF_8)
+        val metadata = json.decodeFromString<ChatProtocol.MediaMessage>(jsonString)
+
+        val tempFile = File(context.cacheDir, "recv_${metadata.messageId}.tmp")
+        val outputStream = BufferedOutputStream(FileOutputStream(tempFile), DISK_WRITE_BUFFER)
+
+        mediaStates[userId] = MediaReceiveState(metadata, tempFile, outputStream)
+        Log.d(TAG, "开始接收媒体: messageId=${metadata.messageId}, 大小=${metadata.fileSize}")
+    }
+
+    private suspend fun handleFileChunk(userId: String, chunkData: ByteArray) {
+        val state = mediaStates[userId] ?: run {
+            Log.w(TAG, "收到 FILE_CHUNK 但无对应 FILE_META (userId=$userId)")
+            return
+        }
+
+        state.outputStream.write(chunkData)
+        state.receivedBytes += chunkData.size
+
+        // 进度节流
+        if (state.receivedBytes - state.lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
+            state.lastReportedAt = state.receivedBytes
+            val pct = (state.receivedBytes * 100) / state.metadata.fileSize
+            Log.d(TAG, "接收 [${state.metadata.messageId}]: $pct%")
+        }
+
+        if (state.receivedBytes >= state.metadata.fileSize) {
+            state.outputStream.flush()
+            state.outputStream.close()
+            dispatcher.dispatch(state.metadata, state.tempFile)
+
+            mediaStates.remove(userId)
+            Log.d(TAG, "媒体接收完成: messageId=${state.metadata.messageId}")
+        }
+    }
+
+    private fun cleanupMediaState(userId: String) {
+        mediaStates.remove(userId)?.let {
+            it.cleanup()
+            Log.w(TAG, "清理未完成的媒体接收: messageId=${it.metadata.messageId}")
         }
     }
 }

@@ -254,3 +254,17 @@ suspend fun Context.createMediaUri(isVideo: Boolean = false): Uri = withContext(
     }
     FileProvider.getUriForFile(this@createMediaUri, "${packageName}.provider", file)
 }
+
+/**
+ * 从文件名或路径中提取扩展名
+ *
+ * @return 扩展名（不含点），如 "jpg", "mp4"，未找到返回 null
+ */
+fun String?.extractFileExtension(): String? {
+    if (isNullOrBlank()) return null
+    val lastDotIndex = lastIndexOf('.')
+    if (lastDotIndex == -1 || lastDotIndex == length - 1) {
+        return null
+    }
+    return substring(lastDotIndex + 1)
+}

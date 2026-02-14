@@ -3,53 +3,57 @@ package top.chengdongqing.wechat.data.network.socket
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import kotlinx.io.EOFException
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
+import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.SocketFrame
-import top.chengdongqing.wechat.data.network.protocol.SocketProtocol.TYPE_BINARY
-import top.chengdongqing.wechat.data.network.protocol.SocketProtocol.TYPE_JSON
-import java.io.DataInputStream
-import java.io.DataOutputStream
+import top.chengdongqing.wechat.data.network.protocol.Packet
+import top.chengdongqing.wechat.data.network.protocol.PacketReader
+import top.chengdongqing.wechat.data.network.protocol.PacketType
+import top.chengdongqing.wechat.data.network.protocol.PacketWriter
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * TCP Socket 连接管理器
+ * TCP 客户端连接管理器（主动端）
+ *
+ * 性能设计:
+ * - Socket 收发缓冲区 512KB，匹配 LAN 带宽
+ * - BufferedOutputStream 256KB，合并写入减少 syscall
+ * - tcpNoDelay = true，禁用 Nagle
+ * - 文件传输通过 [sendAtomicTransfer] 持有 Mutex，帧序列原子
+ * - 心跳引用计数，传输中自动暂停
  */
 @Singleton
 class SocketManager @Inject constructor(
     private val json: Json
 ) {
-
     private companion object {
         const val TAG = "SocketManager"
-        const val SOCKET_TIMEOUT = 30000  // 30秒超时
-        const val HEARTBEAT_INTERVAL = 15000L  // 15秒心跳
     }
 
-    // 存储活跃的连接
-    private val activeConnections = mutableMapOf<String, SocketConnection>()
-
+    private val activeConnections = ConcurrentHashMap<String, SocketConnection>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _connectionEvents = MutableSharedFlow<ConnectionEvent>()
     val connectionEvents: Flow<ConnectionEvent> = _connectionEvents.asSharedFlow()
 
-    /**
-     * 连接到对方
-     */
+    // ==================== 公开接口 ====================
+
     suspend fun connect(
         userId: String,
         host: String,
@@ -57,49 +61,24 @@ class SocketManager @Inject constructor(
         myUserId: String
     ): Result<SocketConnection> = withContext(Dispatchers.IO) {
         runCatching {
-            // 如果已有连接，先关闭
-            activeConnections[userId]?.close()
-
-            Log.d("DEBUG", "我是主动连接方 -> $myUserId 连接 $userId")
+            closeExisting(userId)
             Log.d(TAG, "正在连接: $host:$port")
 
-            val socket = Socket()
-            socket.connect(InetSocketAddress(host, port), SOCKET_TIMEOUT)
-            socket.soTimeout = SOCKET_TIMEOUT
-            socket.keepAlive = true
-            socket.tcpNoDelay = true  // 禁用 Nagle 算法，降低延迟
-
+            val socket = createSocket(host, port)
             val connection = SocketConnection(
                 userId = userId,
                 socket = socket,
-                inputStream = DataInputStream(socket.getInputStream()),
-                outputStream = DataOutputStream(socket.getOutputStream())
+                reader = PacketReader(socket.getInputStream()),
+                writer = PacketWriter(socket.getOutputStream())
             )
-
             activeConnections[userId] = connection
 
-            // 连接后立即发送心跳包
-            val heartbeat = json.encodeToString<ChatProtocol>(
-                ChatProtocol.Heartbeat("", myUserId)
-            ).toByteArray(Charsets.UTF_8)
-
-            synchronized(connection.outputStream) {
-                connection.outputStream.writeByte(TYPE_JSON.toInt())
-                connection.outputStream.writeInt(heartbeat.size)
-                connection.outputStream.write(heartbeat)
-                connection.outputStream.flush()
-            }
-
-            Log.d(TAG, "✅ 心跳包已发送")
-
-            // 启动接收消息的协程
+            sendHandshake(connection, myUserId)
             startReceiving(connection)
-            // 启动心跳
             startHeartbeat(connection)
 
             _connectionEvents.emit(ConnectionEvent.Connected(userId))
-
-            Log.d(TAG, "✅ 连接成功: $userId")
+            Log.d(TAG, "连接成功: $userId")
             connection
         }.onFailure { error ->
             Log.e(TAG, "连接失败: $userId", error)
@@ -107,56 +86,47 @@ class SocketManager @Inject constructor(
         }
     }
 
-    /**
-     * 发送数据
-     */
-    /**
-     * 发送 JSON 协议消息
-     */
-    suspend fun send(userId: String, data: ByteArray): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            val connection = activeConnections[userId]
-                ?: throw Exception("未找到连接: $userId")
-
-            synchronized(connection.outputStream) {
-                connection.outputStream.writeByte(TYPE_JSON.toInt())
-                connection.outputStream.writeInt(data.size)
-                connection.outputStream.write(data)
-                connection.outputStream.flush()
+    /** 发送单个 Packet 并立即 flush */
+    suspend fun send(userId: String, packet: Packet): Result<Unit> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                requireConnection(userId).writer.write(packet)
+            }.onFailure { error ->
+                Log.e(TAG, "发送失败: $userId", error)
+                disconnect(userId)
             }
         }
-    }
 
     /**
-     * 发送原始二进制块
+     * 原子发送一组 Packet（文件传输专用）
+     *
+     * Mutex 保证帧序列不被其他传输打断。
+     * block 接收 [PacketWriter]，可使用 writeNoFlush + 手动 flush
+     * 来减少 syscall（BufferedOutputStream 在 buffer 满时也会自动 flush）。
      */
-    suspend fun sendBinary(
+    suspend fun sendAtomicTransfer(
         userId: String,
-        messageId: String,
-        data: ByteArray,
-        offset: Int,
-        length: Int
+        block: suspend (PacketWriter) -> Unit
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            val connection = activeConnections[userId]
-                ?: throw Exception("未找到连接: $userId")
+        val conn = activeConnections[userId]
+            ?: return@withContext Result.failure(IllegalStateException("未找到连接: $userId"))
 
-            val idBytes = messageId.toByteArray(Charsets.UTF_8)
-
-            synchronized(connection.outputStream) {
-                connection.outputStream.writeByte(TYPE_BINARY.toInt())
-                connection.outputStream.writeByte(idBytes.size)      // messageId 长度
-                connection.outputStream.write(idBytes)               // messageId
-                connection.outputStream.writeInt(length)
-                connection.outputStream.write(data, offset, length)
-                connection.outputStream.flush()
-            }
+        conn.transferMutex.lock()
+        conn.incrementTransferCount()
+        try {
+            block(conn.writer)
+            conn.writer.flush()     // 确保最后残留的数据刷出
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "原子传输失败: $userId", e)
+            disconnect(userId)
+            Result.failure(e)
+        } finally {
+            conn.decrementTransferCount()
+            conn.transferMutex.unlock()
         }
     }
 
-    /**
-     * 断开连接
-     */
     suspend fun disconnect(userId: String) {
         withContext(Dispatchers.IO) {
             activeConnections.remove(userId)?.close()
@@ -165,107 +135,145 @@ class SocketManager @Inject constructor(
         }
     }
 
-    /**
-     * 获取连接
-     */
-    fun getConnection(userId: String): SocketConnection? {
-        return activeConnections[userId]
+    fun getConnection(userId: String): SocketConnection? = activeConnections[userId]
+
+    fun isConnected(userId: String): Boolean =
+        activeConnections[userId]?.isActive == true
+
+    fun closeAll() {
+        activeConnections.values.forEach { it.close() }
+        activeConnections.clear()
     }
 
-    /**
-     * 是否已连接
-     */
-    fun isConnected(userId: String): Boolean {
-        return activeConnections[userId]?.socket?.isConnected.isTrue()
-    }
+    // ==================== 内部逻辑 ====================
+
+    private fun requireConnection(userId: String): SocketConnection =
+        activeConnections[userId]
+            ?: throw IllegalStateException("未找到连接: $userId")
 
     /**
-     * 启动接收消息
+     * 创建并配置 Socket
+     *
+     * 关键参数:
+     * - sendBufferSize / receiveBufferSize = 512KB → 充足的 TCP 窗口
+     * - tcpNoDelay = true → 禁用 Nagle，配合我们自己的 BufferedOutputStream 做批量写入
+     * - soTimeout = 0 → 由 Ping-Pong 判活，不依赖读超时
      */
-    fun startReceiving(connection: SocketConnection) {
+    private fun createSocket(host: String, port: Int): Socket =
+        Socket().apply {
+            // 注: send/receiveBufferSize 需要在 connect 之前设置才能影响 TCP 窗口协商
+            sendBufferSize = TransferConfig.SOCKET_SEND_BUFFER
+            receiveBufferSize = TransferConfig.SOCKET_RECV_BUFFER
+            connect(InetSocketAddress(host, port), TransferConfig.CONNECT_TIMEOUT)
+            soTimeout = 0
+            keepAlive = true
+            tcpNoDelay = true
+        }
+
+    private fun sendHandshake(connection: SocketConnection, myUserId: String) {
+        val body = json.encodeToString<ChatProtocol>(
+            ChatProtocol.Heartbeat(senderId = myUserId)
+        ).toByteArray(Charsets.UTF_8)
+
+        connection.writer.write(Packet(PacketType.HANDSHAKE, body))
+        Log.d(TAG, "握手包已发送")
+    }
+
+    private fun closeExisting(userId: String) {
+        activeConnections.remove(userId)?.close()
+    }
+
+    private fun startReceiving(connection: SocketConnection) {
         scope.launch {
-            val inputStream = connection.inputStream
             try {
-                while (isActive) {
-                    // 1. 读取类型 (1 字节) - 这里如果读不到就会抛 EOFException，正常断开应捕获
-                    val type = try {
-                        inputStream.readByte()
-                    } catch (_: EOFException) {
-                        break
-                    }
+                while (connection.isActive) {
+                    val packet = connection.reader.read()
 
-                    // 2. 读取长度 (4 字节)
-                    val length = inputStream.readInt()
-
-                    // 3. 读取内容
-                    val data = ByteArray(length)
-                    inputStream.readFully(data) // 必须用 readFully 确保读够长度
-
-                    // 4. 分发到对应通道
-                    when (type) {
-                        TYPE_JSON -> connection.frameChannel.send(
-                            SocketFrame.JsonFrame(data)
-                        )
-
-                        TYPE_BINARY -> {
-                            val idLength = inputStream.readByte().toInt()
-                            val idBytes = ByteArray(idLength)
-                            inputStream.readFully(idBytes)
-                            val messageId = String(idBytes, Charsets.UTF_8)
-
-                            val dataLength = inputStream.readInt()
-                            val frameData = ByteArray(dataLength)
-                            inputStream.readFully(frameData)
-
-                            connection.frameChannel.send(
-                                SocketFrame.BinaryFrame(messageId, frameData)
-                            )
-                        }
+                    when (packet.type) {
+                        PacketType.PONG -> connection.lastPongTime.set(System.currentTimeMillis())
+                        PacketType.PING -> connection.writer.write(Packet.pong())
+                        else -> connection.receiveChannel.send(packet)
                     }
                 }
             } catch (e: Exception) {
-                Log.e("SocketManager", "接收异常: ${connection.userId}", e)
+                if (connection.isActive) {
+                    Log.e(TAG, "接收异常: ${connection.userId}", e)
+                }
             } finally {
-                disconnect(connection.userId) // 发生错误或读完则清理连接
+                disconnect(connection.userId)
             }
         }
     }
 
-    /**
-     * 启动心跳
-     */
     private fun startHeartbeat(connection: SocketConnection) {
-        scope.launch {
-            try {
-                while (connection.socket.isConnected && !connection.socket.isClosed) {
-                    delay(HEARTBEAT_INTERVAL)
-                    val protocol = ChatProtocol.Heartbeat("", connection.userId)
+        connection.lastPongTime.set(System.currentTimeMillis())
 
-                    // 发送心跳包
-                    val heartbeat = Json.encodeToString<ChatProtocol>(protocol)
-                        .toByteArray(Charsets.UTF_8)
-                    send(connection.userId, heartbeat)
+        connection.heartbeatJob = scope.launch {
+            try {
+                while (connection.isActive) {
+                    delay(TransferConfig.PING_INTERVAL)
+
+                    if (connection.activeTransferCount.get() > 0) continue
+
+                    val elapsed = System.currentTimeMillis() - connection.lastPongTime.get()
+                    if (elapsed > TransferConfig.PONG_TIMEOUT) {
+                        Log.w(TAG, "Pong 超时 (${elapsed}ms)，断开: ${connection.userId}")
+                        disconnect(connection.userId)
+                        break
+                    }
+
+                    runCatching {
+                        connection.writer.write(Packet.ping())
+                    }.onFailure {
+                        Log.e(TAG, "Ping 失败: ${connection.userId}", it)
+                        disconnect(connection.userId)
+                        break
+                    }
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "心跳异常: ${connection.userId}", e)
             }
         }
     }
+}
 
-    /**
-     * 关闭所有连接
-     */
-    fun closeAll() {
-        activeConnections.values.forEach { it.close() }
-        activeConnections.clear()
+// ==================== 数据类 ====================
+
+data class SocketConnection(
+    val userId: String,
+    val socket: Socket,
+    val reader: PacketReader,
+    val writer: PacketWriter,
+    val receiveChannel: Channel<Packet> = Channel(Channel.UNLIMITED),
+    val transferMutex: Mutex = Mutex(),
+    val activeTransferCount: AtomicInteger = AtomicInteger(0),
+    val lastPongTime: AtomicLong = AtomicLong(System.currentTimeMillis()),
+    var heartbeatJob: Job? = null
+) {
+    val isActive: Boolean get() = socket.isConnected && !socket.isClosed
+
+    fun incrementTransferCount() {
+        activeTransferCount.incrementAndGet()
+    }
+
+    fun decrementTransferCount() {
+        if (activeTransferCount.decrementAndGet() <= 0) {
+            lastPongTime.set(System.currentTimeMillis())
+        }
+    }
+
+    fun close() {
+        runCatching {
+            heartbeatJob?.cancel()
+            receiveChannel.close()
+            reader.close()
+            writer.close()
+            socket.close()
+        }
     }
 }
 
-/**
- * 连接事件
- */
 sealed class ConnectionEvent {
     data class Connected(val userId: String) : ConnectionEvent()
     data class Disconnected(val userId: String, val reason: String?) : ConnectionEvent()
-    data class Error(val userId: String, val error: String) : ConnectionEvent()
 }

@@ -5,14 +5,16 @@ import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.data.database.entity.MessageType
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * 文件管理器
- * 负责头像等文件的存储和管理
+ * 负责头像、聊天媒体文件等的存储和管理
  */
 @Singleton
 class FileManager @Inject constructor(
@@ -21,6 +23,26 @@ class FileManager @Inject constructor(
 
     private val avatarDir: File
         get() = File(context.filesDir, "avatars").apply {
+            if (!exists()) mkdirs()
+        }
+
+    private val imagesDir: File
+        get() = File(context.filesDir, "images").apply {
+            if (!exists()) mkdirs()
+        }
+
+    private val videosDir: File
+        get() = File(context.filesDir, "videos").apply {
+            if (!exists()) mkdirs()
+        }
+
+    private val audiosDir: File
+        get() = File(context.filesDir, "audios").apply {
+            if (!exists()) mkdirs()
+        }
+
+    private val filesDir: File
+        get() = File(context.filesDir, "files").apply {
             if (!exists()) mkdirs()
         }
 
@@ -80,6 +102,85 @@ class FileManager @Inject constructor(
     suspend fun clearAllAvatars(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             avatarDir.listFiles()?.forEach { it.delete() }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 保存媒体文件（图片/视频/音频/文件）
+     *
+     * @param messageType 消息类型
+     * @param sourceFile 源文件
+     * @param messageId 消息ID（用于文件命名）
+     * @param extension 文件扩展名（可选，如 "jpg", "mp4"）
+     * @return 保存后的文件绝对路径
+     */
+    suspend fun saveMediaFile(
+        messageType: MessageType,
+        sourceFile: File,
+        messageId: String,
+        extension: String? = null
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            // 根据消息类型选择目录
+            val targetDir = when (messageType) {
+                MessageType.Image -> imagesDir
+                MessageType.Video -> videosDir
+                MessageType.Voice -> audiosDir
+                MessageType.File -> filesDir
+                else -> filesDir // 默认使用 files 目录
+            }
+
+            // 生成文件名：messageId + 扩展名
+            val fileName = if (extension != null) {
+                "${messageId}.${extension.trimStart('.')}"
+            } else {
+                messageId
+            }
+
+            val targetFile = File(targetDir, fileName)
+
+            // 写入文件数据
+            FileInputStream(sourceFile).channel.use { sourceChannel ->
+                FileOutputStream(targetFile).channel.use { targetChannel ->
+                    sourceChannel.transferTo(0, sourceChannel.size(), targetChannel)
+                }
+            }
+
+            Result.success(targetFile.absolutePath)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 删除媒体文件
+     *
+     * @param filePath 文件绝对路径
+     */
+    suspend fun deleteMediaFile(filePath: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val file = File(filePath)
+            if (file.exists()) {
+                file.delete()
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 清理所有媒体文件
+     */
+    suspend fun clearAllMediaFiles(): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            imagesDir.listFiles()?.forEach { it.delete() }
+            videosDir.listFiles()?.forEach { it.delete() }
+            audiosDir.listFiles()?.forEach { it.delete() }
+            filesDir.listFiles()?.forEach { it.delete() }
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

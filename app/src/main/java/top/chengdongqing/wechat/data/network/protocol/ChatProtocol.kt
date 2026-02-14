@@ -26,28 +26,18 @@ sealed class ChatProtocol {
     ) : ChatProtocol()
 
     /**
-     * 文件开始
+     * 媒体消息（图片、语音、视频、文件）
      */
     @Serializable
-    data class FileHeader(
+    data class MediaMessage(
         override val messageId: String,
         override val senderId: String,
         val receiverId: String,
         val messageType: MessageType,
         val content: String,
         val fileSize: Long,
-        val mediaDuration: Long?,
-        val resumeFrom: Long,
+        val mediaDuration: Long? = null,
         val timestamp: Long
-    ) : ChatProtocol()
-
-    /**
-     * 文件结束
-     */
-    @Serializable
-    data class FileEnd(
-        override val messageId: String,
-        override val senderId: String
     ) : ChatProtocol()
 
     /**

@@ -7,19 +7,20 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.home.navigation.HomeTab
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    chatSessionRepository: ChatSessionRepository,
     friendRequestRepository: FriendRequestRepository
 ) : ViewModel() {
 
     // 各个 Tab 的未读消息数
     val unreadCounts: StateFlow<Map<HomeTab, Int>> = combine(
-        flowOf(0),
+        chatSessionRepository.observeTotalUnreadCount(),
         friendRequestRepository.observeUnreadCount()
     ) { chatUnread, contactUnread ->
         mapOf(

@@ -2,49 +2,48 @@ package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.SendStatus
+import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
+import top.chengdongqing.wechat.data.network.protocol.Packet
+import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.socket.SocketManager
+import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import java.io.File
 import java.io.FileInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 消息发送器
+ *
+ * 性能优化:
+ * - chunk 256KB，减少 Packet 头开销和 syscall 次数
+ * - writeNoFlush: chunk 不逐片 flush，由 BufferedOutputStream 积满后自动推送，
+ *   最后由 sendAtomicTransfer 统一 flush
+ * - WifiLock: 后台传输期间保持 WiFi 高性能模式
+ * - 进度回调节流: 每 1MB 报告一次，避免日志/UI 刷新过频
  */
 @Singleton
 class MessageSender @Inject constructor(
     private val socketManager: SocketManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
+    private val wifiLockManager: WifiLockManager,
     private val json: Json
 ) {
-
     private companion object {
-        private const val CHUNK_SIZE = 64 * 1024  // 64KB
-
         const val TAG = "MessageSender"
     }
 
-    /**
-     * 发送文本消息
-     */
     suspend fun sendTextMessage(message: MessageEntity): Result<Unit> =
         withContext(Dispatchers.IO) {
-            runCatching {
-                // 1. 确保连接存在，不存在则尝试建立
-                ensureConnected(message.receiverId, message.senderId)
-
-                // 2. 构造协议消息
+            sendSinglePacket(message) {
                 val protocol = ChatProtocol.TextMessage(
                     messageId = message.messageId,
                     senderId = message.senderId,
@@ -52,176 +51,179 @@ class MessageSender @Inject constructor(
                     content = message.content,
                     timestamp = message.timestamp
                 )
-
-                // 3. 序列化
-                val data = json.encodeToString<ChatProtocol>(protocol).toByteArray(Charsets.UTF_8)
-
-                // 4. 发送
-                socketManager.send(message.receiverId, data).getOrThrow()
-
-                // 5. 更新发送状态
-                messageDao.updateSendStatus(message.messageId, SendStatus.Sent)
-
-                Log.d(TAG, "✅ 消息已发送: ${message.messageId}")
-
-                Unit
-            }.onFailure { error ->
-                Log.e(TAG, "发送失败: ${message.messageId}", error)
-                messageDao.updateSendStatus(message.messageId, SendStatus.Failed)
+                Packet(PacketType.TEXT, serializePolymorphic(protocol))
             }
         }
 
     /**
-     * 发送媒体消息
-     * 先发 JSON 元数据，再用 FileInputStream 分块发二进制
+     * 发送媒体消息（流式，内存安全，带宽优化）
+     *
+     * 完整流程:
+     * 1. 确保连接
+     * 2. 获取 WiFi Lock（后台不降速）
+     * 3. transferMutex 原子区内:
+     *    - 写 FILE_META（flush）
+     *    - 流式读文件 → writeNoFlush FILE_CHUNK（buffer 满自动 flush）
+     *    - sendAtomicTransfer 尾部统一 flush 残余
+     * 4. 释放 WiFi Lock
      */
-    suspend fun sendMediaMessage(message: MessageEntity): Result<Unit> =
+    suspend fun sendMediaMessage(
+        message: MessageEntity,
+        file: File
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            ensureConnected(message.receiverId, message.senderId)
+
+            val fileSize = file.length()
+            val meta = ChatProtocol.MediaMessage(
+                messageId = message.messageId,
+                senderId = message.senderId,
+                receiverId = message.receiverId,
+                messageType = message.contentType,
+                content = message.content,
+                fileSize = fileSize,
+                mediaDuration = message.mediaDuration,
+                timestamp = message.timestamp
+            )
+
+            // WiFi Lock: 后台传输保持高性能
+            wifiLockManager.withLock {
+                socketManager.sendAtomicTransfer(message.receiverId) { writer ->
+                    // FILE_META: 立即 flush，让接收端尽快进入接收状态
+                    writer.write(Packet(PacketType.FILE_META, serializeMediaMeta(meta)))
+
+                    // FILE_CHUNK: writeNoFlush，由 buffer 自动 flush，减少 syscall
+                    streamFileChunks(file, fileSize, message.messageId) { chunk ->
+                        writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
+                    }
+                    // sendAtomicTransfer 会在 block 结束后调用 writer.flush()
+                }.getOrThrow()
+            }
+
+            updateStatus(message.messageId, SendStatus.Sent)
+            Log.d(TAG, "媒体消息已发送: ${message.messageId}, 大小: ${fileSize / 1024}KB")
+
+            Unit
+        }.onFailure { error ->
+            handleSendError(message.messageId, "发送媒体失败", error)
+        }
+    }
+
+    suspend fun sendReadReceipt(messageId: String, senderId: String) {
+        sendReceiptSafely(senderId) {
+            Packet(
+                PacketType.READ_RECEIPT, serializePolymorphic(
+                    ChatProtocol.MessageRead(messageId, senderId, System.currentTimeMillis())
+                )
+            )
+        }
+    }
+
+    suspend fun sendAck(messageId: String, senderId: String) {
+        sendReceiptSafely(senderId) {
+            Packet(
+                PacketType.ACK, serializePolymorphic(
+                    ChatProtocol.MessageAck(messageId, senderId, System.currentTimeMillis())
+                )
+            )
+        }
+    }
+
+    // ==================== 内部逻辑 ====================
+
+    private suspend fun sendSinglePacket(
+        message: MessageEntity,
+        packetBuilder: () -> Packet
+    ): Result<Unit> = runCatching {
+        ensureConnected(message.receiverId, message.senderId)
+        socketManager.send(message.receiverId, packetBuilder()).getOrThrow()
+        updateStatus(message.messageId, SendStatus.Sent)
+    }.onFailure { error ->
+        handleSendError(message.messageId, "发送失败", error)
+    }
+
+    private suspend fun sendReceiptSafely(receiverId: String, packetBuilder: () -> Packet) {
         withContext(Dispatchers.IO) {
             runCatching {
-                // 1. 确保连接存在，不存在则尝试建立
-                ensureConnected(message.receiverId, message.senderId)
-
-                val file = File(message.localPath ?: throw Exception("文件路径为空"))
-                if (!file.exists()) throw Exception("文件不存在: ${message.localPath}")
-
-                val startBytes = message.sentBytes
-                var totalSent = startBytes
-                val buffer = ByteArray(CHUNK_SIZE)
-
-                // 1. 发 FileHeader（JSON）
-                val header = ChatProtocol.FileHeader(
-                    messageId = message.messageId,
-                    senderId = message.senderId,
-                    receiverId = message.receiverId,
-                    messageType = message.contentType,
-                    content = message.content,
-                    fileSize = file.length(),
-                    mediaDuration = message.mediaDuration,
-                    resumeFrom = startBytes,
-                    timestamp = message.timestamp
-                )
-                val headerData = json.encodeToString<ChatProtocol>(header).toByteArray()
-                socketManager.send(message.receiverId, headerData).getOrThrow()
-
-                // 2. FileInputStream 边读边发（不会 OOM）
-                FileInputStream(file).use { fis ->
-                    if (startBytes > 0) fis.skip(startBytes)
-
-                    var bytesRead = 0
-                    while (
-                        isActive &&  // 协程取消时退出循环
-                        fis.read(buffer).also { bytesRead = it } != -1
-                    ) {
-                        // 让协程框架有机会响应取消信号
-                        yield()
-
-                        socketManager.sendBinary(
-                            userId = message.receiverId,
-                            messageId = message.messageId,
-                            data = buffer,
-                            offset = 0,
-                            length = bytesRead
-                        ).getOrThrow()
-
-                        totalSent += bytesRead
-
-                        if (totalSent % (1024 * 1024) == 0L) {
-                            messageDao.updateSentBytes(message.messageId, totalSent)
-                        }
-                    }
-                    // 确保最终进度写入
-                    messageDao.updateSentBytes(message.messageId, totalSent)
-                }
-
-                // 3. 发 FileEnd（JSON）
-                if (isActive) {
-                    val end = ChatProtocol.FileEnd(
-                        messageId = message.messageId,
-                        senderId = message.senderId
-                    )
-                    val endData = json.encodeToString<ChatProtocol>(end).toByteArray()
-                    socketManager.send(message.receiverId, endData).getOrThrow()
-
-                    messageDao.updateSendStatus(message.messageId, SendStatus.Sent)
-                    Log.d(TAG, "✅ 文件发送完成: ${message.messageId}")
-                } else {
-                    // 取消：保留 sentBytes，下次可以断点续传
-                    Log.d(TAG, "发送已取消: ${message.messageId}, 已发 $totalSent 字节")
-                }
-
-                Unit
-            }.onFailure { error ->
-                if (error is CancellationException) throw error  // ✅ 取消异常必须重新抛出
-                Log.e(TAG, "发送媒体失败: ${message.messageId}", error)
-                messageDao.updateSendStatus(message.messageId, SendStatus.Failed)
-            }
+                socketManager.send(receiverId, packetBuilder()).getOrThrow()
+            }.onFailure { Log.e(TAG, "回执发送失败: $receiverId", it) }
         }
+    }
+
+    // ==================== 流式文件分片 ====================
 
     /**
-     * 确保已连接，没有则自动重连
+     * 流式读文件，按 chunk 回调
+     *
+     * - buffer 复用，避免每片 new ByteArray
+     * - 进度按 PROGRESS_REPORT_INTERVAL 节流
      */
-    private suspend fun ensureConnected(userId: String, myUserId: String) {
-        // 已连接则直接返回
-        if (socketManager.isConnected(userId)) return
+    private inline fun streamFileChunks(
+        file: File,
+        fileSize: Long,
+        messageId: String,
+        onChunk: (ByteArray) -> Unit
+    ) {
+        val buffer = ByteArray(TransferConfig.FILE_CHUNK_SIZE)
+        var totalSent = 0L
+        var lastReportedAt = 0L
 
-        Log.d(TAG, "未找到连接，尝试建立: $userId")
+        FileInputStream(file).buffered(TransferConfig.FILE_READ_BUFFER).use { fis ->
+            while (true) {
+                val bytesRead = fis.read(buffer)
+                if (bytesRead == -1) break
 
-        // 从数据库查找连接信息
-        val connectionInfo = connectionInfoDao
-            .getConnectionsByUserId(userId)
+                val chunk = if (bytesRead == buffer.size) buffer else buffer.copyOf(bytesRead)
+                onChunk(chunk)
+
+                totalSent += bytesRead
+
+                // 进度节流: 每 1MB 报告一次
+                if (fileSize > 0 && totalSent - lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
+                    lastReportedAt = totalSent
+                    Log.d(TAG, "发送 [$messageId]: ${(totalSent * 100) / fileSize}%")
+                }
+            }
+        }
+    }
+
+    // ==================== 连接管理 ====================
+
+    private suspend fun ensureConnected(targetUserId: String, myUserId: String) {
+        if (socketManager.isConnected(targetUserId)) return
+
+        val info = connectionInfoDao.getConnectionsByUserId(targetUserId)
             .firstOrNull { it.ipAddress != null && it.port != null }
-            ?: throw Exception("未找到 $userId 的连接信息，对方可能不在同一网络")
+            ?: throw ConnectionException("未找到有效连接信息，对方可能不在同一网络")
 
-        // 建立连接
         socketManager.connect(
-            userId = userId,
-            host = connectionInfo.ipAddress!!,
-            port = connectionInfo.port!!,
+            userId = targetUserId,
+            host = info.ipAddress!!,
+            port = info.port!!,
             myUserId = myUserId
-        ).getOrElse {
-            throw Exception("连接失败，对方可能已离线")
-        }
+        ).getOrElse { throw ConnectionException("连接失败，对方可能已离线", it) }
     }
 
-    /**
-     * 发送消息已读回执
-     */
-    suspend fun sendReadReceipt(messageId: String, senderId: String) {
-        withContext(Dispatchers.IO) {
-            try {
-                val protocol = ChatProtocol.MessageRead(
-                    messageId = messageId,
-                    senderId = senderId,
-                    timestamp = System.currentTimeMillis()
-                )
+    // ==================== 序列化 ====================
 
-                val data = json.encodeToString<ChatProtocol>(protocol).toByteArray()
-                socketManager.send(senderId, data)
+    private fun serializePolymorphic(protocol: ChatProtocol): ByteArray =
+        json.encodeToString<ChatProtocol>(protocol).toByteArray(Charsets.UTF_8)
 
-            } catch (e: Exception) {
-                Log.e(TAG, "发送已读回执失败", e)
-            }
-        }
+    private fun serializeMediaMeta(meta: ChatProtocol.MediaMessage): ByteArray =
+        json.encodeToString(meta).toByteArray(Charsets.UTF_8)
+
+    // ==================== 工具 ====================
+
+    private suspend fun updateStatus(messageId: String, status: SendStatus) {
+        messageDao.updateSendStatus(messageId, status)
     }
 
-    /**
-     * 发送消息确认（ACK）
-     */
-    suspend fun sendAck(messageId: String, senderId: String) {
-        withContext(Dispatchers.IO) {
-            try {
-                val protocol = ChatProtocol.MessageAck(
-                    messageId = messageId,
-                    senderId = senderId,
-                    timestamp = System.currentTimeMillis()
-                )
-
-                val data = json.encodeToString<ChatProtocol>(protocol).toByteArray()
-                socketManager.send(senderId, data)
-
-            } catch (e: Exception) {
-                Log.e(TAG, "发送ACK失败", e)
-            }
-        }
+    private suspend fun handleSendError(messageId: String, msg: String, error: Throwable) {
+        Log.e(TAG, "$msg: $messageId", error)
+        updateStatus(messageId, SendStatus.Failed)
     }
+
+    private class ConnectionException(
+        message: String, cause: Throwable? = null
+    ) : Exception(message, cause)
 }

@@ -12,26 +12,33 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.SocketFrame
-import top.chengdongqing.wechat.data.network.protocol.SocketProtocol.TYPE_BINARY
-import top.chengdongqing.wechat.data.network.protocol.SocketProtocol.TYPE_JSON
-import java.io.DataInputStream
-import java.io.DataOutputStream
+import top.chengdongqing.wechat.data.network.protocol.Packet
+import top.chengdongqing.wechat.data.network.protocol.PacketReader
+import top.chengdongqing.wechat.data.network.protocol.PacketType
+import top.chengdongqing.wechat.data.network.protocol.PacketWriter
+import java.io.EOFException
 import java.net.ServerSocket
 import java.net.Socket
-import java.net.SocketTimeoutException
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Socket 服务器（接受其他设备的连接）
+ * TCP 服务器（被动端）
+ *
+ * 接受连接 → HANDSHAKE 握手 → 收包循环（PING→PONG / 其他→Channel）
+ *
+ * 性能配置:
+ * - Socket 收发缓冲区 512KB（跑满 LAN 带宽）
+ * - soTimeout = 0，由 Ping-Pong 判活
+ * - tcpNoDelay = true，禁用 Nagle 避免 40ms 延迟惩罚
  */
 @Singleton
 class SocketServer @Inject constructor(
     private val json: Json
 ) {
-
     private companion object {
         const val TAG = "SocketServer"
     }
@@ -42,182 +49,171 @@ class SocketServer @Inject constructor(
     private val _incomingConnections = MutableSharedFlow<IncomingConnection>()
     val incomingConnections: SharedFlow<IncomingConnection> = _incomingConnections.asSharedFlow()
 
-    private val activeClients = mutableMapOf<String, ClientConnection>()
+    private val activeClients = ConcurrentHashMap<String, ClientConnection>()
 
-    /**
-     * 启动服务器
-     */
+    // ==================== 生命周期 ====================
+
     suspend fun start(): Int = withContext(Dispatchers.IO) {
         try {
-            // 端口设为 0，系统自动分配空闲端口
-            val socket = ServerSocket(0).also { serverSocket = it }
-            val port = socket.localPort
-            Log.d(TAG, "✅ 服务器已在动态端口启动: $port")
-
-            // 在后台开启循环接受连接，不阻塞返回端口的操作
-            scope.launch {
-                acceptLoop()
+            val socket = ServerSocket(0).apply {
+                // 设置 server socket 的接收缓冲区，会被 accept 出的子 socket 继承
+                receiveBufferSize = TransferConfig.SOCKET_RECV_BUFFER
             }
+            serverSocket = socket
+            val port = socket.localPort
+            Log.d(TAG, "服务器已启动，端口: $port")
 
-            return@withContext port
+            scope.launch { acceptLoop() }
+            port
         } catch (e: Exception) {
-            Log.e(TAG, "❌ 服务器启动失败", e)
+            Log.e(TAG, "服务器启动失败", e)
             -1
         }
     }
+
+    fun stop() {
+        activeClients.values.forEach { it.close() }
+        activeClients.clear()
+        serverSocket?.close()
+        serverSocket = null
+        scope.cancel()
+        Log.d(TAG, "服务器已停止")
+    }
+
+    // ==================== 发送 ====================
+
+    suspend fun sendToClient(userId: String, packet: Packet): Result<Unit> {
+        val connection = activeClients[userId]
+            ?: return Result.failure(IllegalStateException("客户端未连接: $userId"))
+
+        return withContext(Dispatchers.IO) {
+            runCatching { connection.writer.write(packet) }
+        }
+    }
+
+    // ==================== 内部逻辑 ====================
 
     private fun acceptLoop() {
         val socket = serverSocket ?: return
         while (!socket.isClosed) {
             try {
                 val clientSocket = socket.accept()
-                Log.d(TAG, "✅ 收到新连接: ${clientSocket.inetAddress.hostAddress}")
-                handleClient(clientSocket)
+                Log.d(TAG, "新连接: ${clientSocket.inetAddress.hostAddress}")
+                scope.launch { handleClient(clientSocket) }
             } catch (e: Exception) {
                 if (!socket.isClosed) Log.e(TAG, "接受连接异常", e)
             }
         }
     }
 
-    /**
-     * 处理客户端连接
-     */
-    private fun handleClient(socket: Socket) {
-        scope.launch {
-            try {
-                val inputStream = DataInputStream(socket.getInputStream())
-                val outputStream = DataOutputStream(socket.getOutputStream())
+    private suspend fun handleClient(socket: Socket) {
+        try {
+            configureSocket(socket)
 
-                // 读握手包（第一个 JSON 帧）
-                inputStream.readByte()
-                val length = inputStream.readInt()
-                val data = ByteArray(length)
-                inputStream.readFully(data)
+            val reader = PacketReader(socket.getInputStream())
+            val writer = PacketWriter(socket.getOutputStream())
 
-                val handshake =
-                    json.decodeFromString<ChatProtocol.Heartbeat>(String(data, Charsets.UTF_8))
+            // 握手阶段: 短超时防慢连接
+            socket.soTimeout = TransferConfig.HANDSHAKE_TIMEOUT
 
-                val userId = handshake.senderId
-                Log.d(TAG, "✅ 握手成功: $userId")
-                Log.d("DEBUG", "我是被动接受方 -> 收到 ${userId} 的连接")
-
-                val connection = ClientConnection(
-                    userId = userId,
-                    socket = socket,
-                    inputStream = inputStream,
-                    outputStream = outputStream
-                )
-
-                activeClients[userId] = connection
-                _incomingConnections.emit(IncomingConnection(userId, connection))
-
-                // 持续接收，按类型分发到双通道
-                while (!socket.isClosed && socket.isConnected) {
-                    try {
-                        when (val frameType = inputStream.readByte()) {
-                            TYPE_JSON -> {
-                                val frameLength = inputStream.readInt()
-                                if (frameLength <= 0 || frameLength > 10 * 1024 * 1024) {
-                                    Log.e(
-                                        TAG,
-                                        "❌ 异常 JSON 帧长度: $frameLength，流可能已错位，断开连接"
-                                    )
-                                    break  // 错位了就断开，continue 会让错误累积
-                                }
-                                val frameData = ByteArray(frameLength)
-                                inputStream.readFully(frameData)
-                                connection.frameChannel.send(SocketFrame.JsonFrame(frameData))
-                            }
-
-                            TYPE_BINARY -> {
-                                // 读 messageId
-                                val idLength = inputStream.readByte().toInt()
-                                Log.d(TAG, "BINARY idLength: $idLength")
-
-                                if (idLength !in 1..100) {
-                                    Log.e(TAG, "❌ 异常 idLength: $idLength，流可能已错位，断开连接")
-                                    break
-                                }
-
-                                val idBytes = ByteArray(idLength)
-                                inputStream.readFully(idBytes)
-                                val messageId = String(idBytes, Charsets.UTF_8)
-                                Log.d(TAG, "BINARY messageId: $messageId")
-
-                                // 读数据
-                                val dataLength = inputStream.readInt()
-                                Log.d(TAG, "BINARY dataLength: $dataLength")
-
-                                if (dataLength <= 0 || dataLength > 10 * 1024 * 1024) {
-                                    Log.w(TAG, "异常 BINARY 帧长度: $dataLength")
-                                    break
-                                }
-                                val frameData = ByteArray(dataLength)
-                                inputStream.readFully(frameData)
-                                connection.frameChannel.send(
-                                    SocketFrame.BinaryFrame(
-                                        messageId,
-                                        frameData
-                                    )
-                                )
-                            }
-
-                            else -> {
-                                Log.w(TAG, "未知帧类型: $frameType")
-                                break
-                            }
-                        }
-                    } catch (_: SocketTimeoutException) {
-                        continue
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "处理客户端失败", e)
-            } finally {
+            val userId = performHandshake(reader) ?: run {
+                Log.w(TAG, "握手失败，关闭连接")
                 socket.close()
+                return
             }
+
+            // 通信阶段: 无限阻塞，由 Ping-Pong 判活
+            socket.soTimeout = 0
+
+            val connection = ClientConnection(userId, socket, reader, writer)
+            activeClients[userId] = connection
+
+            _incomingConnections.emit(IncomingConnection(userId, connection))
+            Log.d(TAG, "客户端已连接: $userId")
+
+            receiveLoop(connection)
+        } catch (e: Exception) {
+            Log.e(TAG, "处理客户端失败", e)
+            socket.close()
         }
     }
 
     /**
-     * 停止服务器
+     * 配置 Socket 参数以跑满 LAN 带宽
      */
-    fun stop() {
-        activeClients.values.forEach { it.close() }
-        activeClients.clear()
+    private fun configureSocket(socket: Socket) {
+        socket.sendBufferSize = TransferConfig.SOCKET_SEND_BUFFER
+        socket.receiveBufferSize = TransferConfig.SOCKET_RECV_BUFFER
+        socket.keepAlive = true
+        socket.tcpNoDelay = true    // 禁用 Nagle，避免与 Delayed ACK 叠加导致 40ms 延迟
+    }
 
-        serverSocket?.close()
-        serverSocket = null
+    private fun performHandshake(reader: PacketReader): String? {
+        return try {
+            val packet = reader.read()
+            if (packet.type != PacketType.HANDSHAKE) {
+                Log.w(TAG, "握手包类型错误: ${packet.type}")
+                return null
+            }
+            val handshake = json.decodeFromString<ChatProtocol.Heartbeat>(
+                String(packet.body, Charsets.UTF_8)
+            )
+            handshake.senderId
+        } catch (e: Exception) {
+            Log.e(TAG, "握手解析异常", e)
+            null
+        }
+    }
 
-        scope.cancel()
+    private suspend fun receiveLoop(connection: ClientConnection) {
+        try {
+            while (connection.isActive) {
+                val packet = connection.reader.read()
 
-        Log.d(TAG, "服务器已停止")
+                when (packet.type) {
+                    PacketType.PING -> connection.writer.write(Packet.pong())
+                    PacketType.PONG -> { /* 忽略 */
+                    }
+
+                    else -> connection.receiveChannel.send(packet)
+                }
+            }
+        } catch (_: EOFException) {
+            Log.d(TAG, "客户端正常断开: ${connection.userId}")
+        } catch (e: Exception) {
+            Log.e(TAG, "接收中断: ${connection.userId}", e)
+        } finally {
+            cleanupConnection(connection.userId)
+        }
+    }
+
+    private fun cleanupConnection(userId: String) {
+        activeClients.remove(userId)?.close()
+        Log.d(TAG, "连接已清理: $userId")
     }
 }
 
-/**
- * 客户端连接
- */
+// ==================== 数据类 ====================
+
 data class ClientConnection(
     val userId: String,
     val socket: Socket,
-    val inputStream: DataInputStream,
-    val outputStream: DataOutputStream,
-    val frameChannel: Channel<SocketFrame> = Channel(Channel.UNLIMITED)
+    val reader: PacketReader,
+    val writer: PacketWriter,
+    val receiveChannel: Channel<Packet> = Channel(Channel.UNLIMITED)
 ) {
+    val isActive: Boolean get() = socket.isConnected && !socket.isClosed
+
     fun close() {
         runCatching {
-            frameChannel.close()
-            inputStream.close()
-            outputStream.close()
+            receiveChannel.close()
+            reader.close()
+            writer.close()
             socket.close()
         }
     }
 }
 
-/**
- * 新连接
- */
 data class IncomingConnection(
     val userId: String,
     val connection: ClientConnection
