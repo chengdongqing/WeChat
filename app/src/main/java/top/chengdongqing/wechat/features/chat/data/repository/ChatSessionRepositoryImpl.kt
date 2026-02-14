@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.features.chat.data.repository
 
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
@@ -67,5 +68,9 @@ class ChatSessionRepositoryImpl @Inject constructor(
         return chatSessionDao.observeAll().map { list ->
             list.sumOf { it.unreadCount }
         }
+    }
+
+    override suspend fun preload() {
+        observeAllSessions().firstOrNull()
     }
 }

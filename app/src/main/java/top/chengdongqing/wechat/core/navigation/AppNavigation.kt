@@ -21,9 +21,11 @@ import top.chengdongqing.wechat.features.contacts.navigation.contactsNavGraph
 import top.chengdongqing.wechat.features.home.ui.HomeScreen
 import top.chengdongqing.wechat.features.me.navigation.meNavGraph
 import top.chengdongqing.wechat.features.me.ui.setup.ProfileSetupScreen
+import top.chengdongqing.wechat.features.startup.SplashScreen
 import top.chengdongqing.wechat.features.startup.WelcomeScreen
 
 sealed class Screen(val route: String) {
+    object Splash : Screen("splash")
     object Welcome : Screen("welcome")
     object ProfileSetup : Screen("profile_setup")
     object Home : Screen("home")
@@ -47,8 +49,8 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun AppNavigation(
-    startDestination: String = Screen.Welcome.route,
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    startDestination: String = Screen.Splash.route
 ) {
     // 页面返回
     val goBack: () -> Unit = {
@@ -59,8 +61,25 @@ fun AppNavigation(
         navController = navController,
         startDestination = startDestination
     ) {
+        // 启动页
+        composable(
+            route = Screen.Splash.route,
+            exitTransition = { fadeOut(animationSpec = tween(durationMillis = 0)) }
+        ) {
+            SplashScreen(
+                onNavigateToHome = {
+                    navController.navigate(Screen.Home.route)
+                },
+                onNavigateToWelcome = {
+                    navController.navigate(Screen.Welcome.route)
+                }
+            )
+        }
         // 欢迎页
-        composable(Screen.Welcome.route) {
+        composable(
+            route = Screen.Welcome.route,
+            enterTransition = { fadeIn(animationSpec = tween(durationMillis = 0)) }
+        ) {
             WelcomeScreen(onNavigateToSetup = {
                 navController.navigate(Screen.ProfileSetup.route)
             })
@@ -72,10 +91,10 @@ fun AppNavigation(
             exitTransition = {
                 if (targetState.destination.route == Screen.Home.route) {
                     fadeOut(
-                        animationSpec = tween(700)
+                        animationSpec = tween(300)
                     ) + scaleOut(
                         targetScale = 1.08f,
-                        animationSpec = tween(700)
+                        animationSpec = tween(300)
                     )
                 } else null
             }
@@ -94,11 +113,13 @@ fun AppNavigation(
         composable(
             route = Screen.Home.route,
             enterTransition = {
-                if (initialState.destination.route == Screen.ProfileSetup.route) {
-                    fadeIn(animationSpec = tween(700)) +
+                if (initialState.destination.route == Screen.Splash.route
+                    || initialState.destination.route == Screen.ProfileSetup.route
+                ) {
+                    fadeIn(animationSpec = tween(300)) +
                             scaleIn(
                                 initialScale = 0.92f,
-                                animationSpec = tween(700)
+                                animationSpec = tween(300)
                             )
                 } else {
                     slideIntoContainer(

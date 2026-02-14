@@ -1,38 +1,41 @@
 package top.chengdongqing.wechat.features.startup
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import kotlinx.coroutines.launch
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.R
 
 /**
- * 展示启动画面
+ * 启动页
  */
 @Composable
-fun SplashScreen(onTimeout: () -> Unit) {
-    val scale = remember { Animatable(1.05f) }
+fun SplashScreen(
+    onNavigateToHome: () -> Unit,
+    onNavigateToWelcome: () -> Unit,
+    startupViewModel: StartupViewModel = hiltViewModel()
+) {
+    val startupState by startupViewModel.state.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        launch {
-            scale.animateTo(
-                targetValue = 1.0f,
-                animationSpec = tween(durationMillis = 500, easing = LinearOutSlowInEasing)
-            )
-            onTimeout()
+    // 判断导航目标
+    LaunchedEffect(startupState) {
+        delay(500)
+
+        when (startupState) {
+            is StartupState.ReadyForHome -> onNavigateToHome()
+            is StartupState.NeedSetup -> onNavigateToWelcome()
+            else -> {}
         }
     }
 
@@ -46,12 +49,7 @@ fun SplashScreen(onTimeout: () -> Unit) {
             painter = painterResource(id = R.drawable.img_splash),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    scaleX = scale.value,
-                    scaleY = scale.value
-                )
+            modifier = Modifier.fillMaxSize()
         )
     }
 }

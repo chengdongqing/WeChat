@@ -55,13 +55,13 @@ import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 
 @Composable
 fun AddContactScreen(
+    viewModel: ProfileViewModel = hiltViewModel(),
     onBack: () -> Unit,
     onNavigateToRadar: () -> Unit,
     onNavigateToGroup: () -> Unit,
     onNavigateToContactDetail: (contactId: String) -> Unit,
     onNavigateToPlainText: (text: String) -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
-    viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }

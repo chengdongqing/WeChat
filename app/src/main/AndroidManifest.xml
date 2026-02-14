@@ -50,12 +50,12 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.App.Starting">
+        android:theme="@style/Theme.WeChat">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.App.Starting"
+            android:theme="@style/Theme.WeChat"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -74,28 +74,28 @@
         </activity>
         <activity
             android:name=".core.designsystem.components.qrcode.scanner.QRCodeScannerActivity"
-            android:theme="@style/Theme.WeTheme" />
+            android:theme="@style/Theme.WeChat" />
         <activity
             android:name=".core.designsystem.components.media.preview.MediaPreviewActivity"
-            android:theme="@style/Theme.WeTheme" />
+            android:theme="@style/Theme.WeChat" />
         <activity
             android:name=".core.designsystem.components.media.picker.MediaPickerActivity"
-            android:theme="@style/Theme.WeTheme" />
+            android:theme="@style/Theme.WeChat" />
         <activity
             android:name=".core.designsystem.components.cropper.ImageCropperActivity"
-            android:theme="@style/Theme.WeTheme" />
+            android:theme="@style/Theme.WeChat" />
         <activity
             android:name=".core.designsystem.components.camera.CameraActivity"
-            android:theme="@style/Theme.WeTheme" />
+            android:theme="@style/Theme.WeChat" />
         <activity
             android:name=".core.designsystem.components.location.preview.LocationPreviewActivity"
-            android:theme="@style/Theme.WeTheme" />
+            android:theme="@style/Theme.WeChat" />
         <activity
             android:name=".core.designsystem.components.location.picker.LocationPickerActivity"
-            android:theme="@style/Theme.WeTheme" />
+            android:theme="@style/Theme.WeChat" />
         <activity
             android:name=".features.call.CallActivity"
-            android:theme="@style/Theme.WeTheme" />
+            android:theme="@style/Theme.WeChat" />
 
         <service
             android:name=".data.network.service.P2PService"

@@ -54,8 +54,6 @@ class ProfileViewModel @Inject constructor(
      */
     private fun loadProfile() {
         viewModelScope.launch {
-            setLoading(true)
-
             profileRepository.getCurrentProfile()
                 .catch { error ->
                     handleError("加载资料失败: ${error.message}")

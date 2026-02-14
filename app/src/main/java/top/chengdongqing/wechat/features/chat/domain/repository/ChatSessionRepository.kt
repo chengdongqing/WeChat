@@ -37,4 +37,7 @@ interface ChatSessionRepository {
 
     /** 总未读数 */
     fun observeTotalUnreadCount(): Flow<Int>
+
+    /** 预加载数据，主要为了在启动时初始化数据库 */
+    suspend fun preload()
 }

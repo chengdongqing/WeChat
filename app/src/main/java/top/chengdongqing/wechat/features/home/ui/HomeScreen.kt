@@ -247,9 +247,9 @@ private fun HomeTopBar(
 
 @Composable
 private fun HomeBottomBar(
+    viewModel: HomeViewModel = hiltViewModel(),
     pagerState: PagerState,
     onTabSelected: (Int) -> Unit,
-    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val unreadCounts by viewModel.unreadCounts.collectAsStateWithLifecycle()
 

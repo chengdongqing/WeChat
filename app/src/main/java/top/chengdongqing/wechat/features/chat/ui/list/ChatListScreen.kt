@@ -55,7 +55,7 @@ fun ChatListScreen(
                     val menus = getChatMenuLabels(chat)
                     contextMenuState.show(position, menus, chats.indexOf(chat))
                 },
-                modifier = Modifier.animateItem() // 置顶/删除时平滑动画
+                modifier = Modifier.animateItem()
             )
             Box(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
                 WeDivider(modifier = Modifier.padding(start = 73.dp))
