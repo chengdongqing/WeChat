@@ -55,7 +55,7 @@ fun MessageEntity.toDomain(json: Json): ChatMessage {
         content = toMessageContent(json),
         isFromMe = isFromMe,
         timestamp = timestamp,
-        sendStatus = sendStatus.toDomain(failReason),
+        sendStatus = sendStatus.toDomain(this),
         retryCount = retryCount
     )
 }
@@ -180,13 +180,22 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
 
 // ==================== SendStatus ====================
 
-fun SendStatus.toDomain(failReason: String? = null): MessageSendStatus {
+fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
     return when (this) {
-        SendStatus.Sending -> MessageSendStatus.Sending()
+        SendStatus.Sending -> {
+            val progress = entity.fileSize?.let { fileSize ->
+                val total = fileSize.coerceAtLeast(1L)
+                val sent = entity.sentBytes.coerceAtMost(total)
+                sent.toFloat() / total.toFloat()
+            } ?: 0f
+
+            MessageSendStatus.Sending(progress)
+        }
+
         SendStatus.Sent -> MessageSendStatus.Success
         SendStatus.Delivered -> MessageSendStatus.Success
         SendStatus.Read -> MessageSendStatus.Success
-        SendStatus.Failed -> when (failReason) {
+        SendStatus.Failed -> when (entity.failReason) {
             "OFFLINE" -> MessageSendStatus.Failed.RecipientOffline()
             "NOT_REACHABLE" -> MessageSendStatus.Failed.RecipientOffline()
             "NOT_FRIEND" -> MessageSendStatus.Failed.NotFriend()

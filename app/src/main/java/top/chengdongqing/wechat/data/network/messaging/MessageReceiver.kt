@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.config.TransferConfig
@@ -133,55 +134,56 @@ class MessageReceiver @Inject constructor(
         Log.d(TAG, "开始接收媒体: messageId=${metadata.messageId}, 大小=${metadata.fileSize}")
     }
 
-    private suspend fun handleFileChunk(userId: String, chunkData: ByteArray) {
-        val state = mediaStates[userId] ?: run {
-            Log.w(TAG, "收到 FILE_CHUNK 但无对应 FILE_META (userId=$userId)")
-            return
-        }
-
-        state.outputStream.write(chunkData)
-        state.receivedBytes += chunkData.size
-
-        // 进度节流
-        if (state.receivedBytes - state.lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
-            state.lastReportedAt = state.receivedBytes
-            val percent = (state.receivedBytes * 100) / state.metadata.fileSize
-            Log.d(TAG, "接收 [${state.metadata.messageId}]: $percent%")
-        }
-
-        // 接收完毕
-        if (state.receivedBytes >= state.metadata.fileSize) {
-            state.outputStream.flush()
-            state.outputStream.close()
-
-            // MD5校验
-            val expectedChecksum = state.metadata.checksum
-            if (!expectedChecksum.isNullOrEmpty()) {
-                val actualChecksum = state.tempFile.toMD5Hex()
-
-                if (actualChecksum != expectedChecksum) {
-                    Log.e(
-                        TAG, "MD5 校验失败 [${state.metadata.messageId}]: " +
-                                "期望=$expectedChecksum, 实际=$actualChecksum"
-                    )
-                    state.tempFile.delete()
-                    mediaStates.remove(userId)
-                    // TODO 通知发送端重传
-                    return
-                } else {
-                    Log.d(
-                        TAG, "MD5 校验成功 [${state.metadata.messageId}]: " +
-                                "期望=$expectedChecksum, 实际=$actualChecksum"
-                    )
-                }
+    private suspend fun handleFileChunk(userId: String, chunkData: ByteArray) =
+        withContext(Dispatchers.IO) {
+            val state = mediaStates[userId] ?: run {
+                Log.w(TAG, "收到 FILE_CHUNK 但无对应 FILE_META (userId=$userId)")
+                return@withContext
             }
 
-            dispatcher.dispatch(state.metadata, state.tempFile)
+            state.outputStream.write(chunkData)
+            state.receivedBytes += chunkData.size
 
-            mediaStates.remove(userId)
-            Log.d(TAG, "媒体接收完成: messageId=${state.metadata.messageId}")
+            // 进度节流
+            if (state.receivedBytes - state.lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
+                state.lastReportedAt = state.receivedBytes
+                val percent = (state.receivedBytes * 100) / state.metadata.fileSize
+                Log.d(TAG, "接收 [${state.metadata.messageId}]: $percent%")
+            }
+
+            // 接收完毕
+            if (state.receivedBytes >= state.metadata.fileSize) {
+                state.outputStream.flush()
+                state.outputStream.close()
+
+                // MD5校验
+                val expectedChecksum = state.metadata.checksum
+                if (!expectedChecksum.isNullOrEmpty()) {
+                    val actualChecksum = state.tempFile.toMD5Hex()
+
+                    if (actualChecksum != expectedChecksum) {
+                        Log.e(
+                            TAG, "MD5 校验失败 [${state.metadata.messageId}]: " +
+                                    "期望=$expectedChecksum, 实际=$actualChecksum"
+                        )
+                        state.tempFile.delete()
+                        mediaStates.remove(userId)
+                        // TODO 通知发送端重传
+                        return@withContext
+                    } else {
+                        Log.d(
+                            TAG, "MD5 校验成功 [${state.metadata.messageId}]: " +
+                                    "期望=$expectedChecksum, 实际=$actualChecksum"
+                        )
+                    }
+                }
+
+                dispatcher.dispatch(state.metadata, state.tempFile)
+
+                mediaStates.remove(userId)
+                Log.d(TAG, "媒体接收完成: messageId=${state.metadata.messageId}")
+            }
         }
-    }
 
     private fun cleanupMediaState(userId: String) {
         mediaStates.remove(userId)?.let {

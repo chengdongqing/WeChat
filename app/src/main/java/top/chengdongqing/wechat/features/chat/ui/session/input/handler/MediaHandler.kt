@@ -21,6 +21,7 @@ import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememb
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
 import top.chengdongqing.wechat.core.util.prepareMediaResource
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import java.io.File
 
 /**
  * 媒体处理器
@@ -43,6 +44,7 @@ class MediaHandler(
         // 转换为消息内容
         val contents = items.map { item ->
             val localPath = context.copyUriToPrivateDir(item.uri, item.mediaType) ?: return
+            val fileSize = File(localPath).length()
 
             if (item.isImage) {
                 MessageContent.Image(
@@ -51,7 +53,7 @@ class MediaHandler(
                     filename = item.filename,
                     width = item.width,
                     height = item.height,
-                    size = 0
+                    size = fileSize
                 )
             } else {
                 MessageContent.Video(
@@ -61,7 +63,7 @@ class MediaHandler(
                     width = item.width,
                     height = item.height,
                     duration = item.duration,
-                    size = 0
+                    size = fileSize
                 )
             }
         }

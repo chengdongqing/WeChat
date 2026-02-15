@@ -1,10 +1,10 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message.content
 
-import android.content.Context
 import android.util.Size
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -54,29 +54,9 @@ fun MediaContent(message: ChatMessage) {
     val context = LocalContext.current
     val targetWidth = rememberScreenFractionWidth()
     val content = message.content as MessageContent.Media
-    val isVideo = content is MessageContent.Video
 
-    // 获取更多媒体数据，方便预览时切换
-    val mediaContext = LocalMediaContext.current
-    val (mediaItems, currentIndex) = remember(content, mediaContext) {
-        val items = mediaContext?.allMedia?.map { it.toMediaItem(context) }
-            ?: listOf(content.toMediaItem(context))
-        val index = mediaContext?.getIndexOf(content) ?: 0
-        items to index
-    }
-    // 防止数组越界
-    if (currentIndex == -1 || currentIndex > mediaItems.size - 1) return
-
-    val media = mediaItems[currentIndex]
-
-    // 异步加载缩略图
-    val thumbnail by produceState<Any?>(initialValue = null, content) {
-        value = context.loadMediaThumbnail(
-            uri = media.uri,
-            isVideo = isVideo,
-            size = Size(1200, 1200)
-        )
-    }
+    val (mediaItems, currentIndex) = rememberMediaContext(content)
+    if (currentIndex == -1) return
 
     Box(
         modifier = Modifier
@@ -89,101 +69,115 @@ fun MediaContent(message: ChatMessage) {
         contentAlignment = Alignment.Center
     ) {
         // 缩略图
-        AsyncImage(
-            model = thumbnail,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
+        ThumbnailImage(mediaItems[currentIndex], content is MessageContent.Video)
 
         when (content) {
             is MessageContent.Image -> {
                 // 发送的进度
                 if (message.isSending) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        WeLoading(size = 42.dp, color = White)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            message.sendProgress.toPercent(),
-                            color = White,
-                            fontSize = 13.sp
-                        )
-                    }
+                    SendingOverlay(message.sendProgress)
                 }
             }
 
             is MessageContent.Video -> {
-                if (message.isSending) {
-                    Box(
-                        modifier = Modifier
-                            .size(39.dp)
-                            .clip(CircleShape)
-                            .clickable {},
-                        contentAlignment = Alignment.Center
-                    ) {
-                        WeCircleProgress(
-                            message.sendProgress * 100,
-                            size = 36.dp,
-                            strokeWidth = 3.dp,
-                            trackColor = Color.LightGray.copy(alpha = 0.8f),
-                            indicatorColor = White,
-                            formatter = null
-                        )
-
-                        when (message.sendStatus) {
-                            is MessageSendStatus.Sending -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_pause_filled),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-
-                            is MessageSendStatus.Paused -> {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_play_filled),
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-
-                            else -> {}
-                        }
-                    }
-                } else {
-                    // 播放图标
-                    Icon(
-                        painter = painterResource(R.drawable.ic_play_filled),
-                        contentDescription = "Play",
-                        tint = Color.White,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(CircleShape)
-                            .border(1.dp, Color.White, CircleShape)
-                            .padding(4.dp)
-                    )
-                }
-
-                // 视频时长
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(horizontal = 8.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = content.duration.milliseconds.format(),
-                        color = Color.White,
-                        fontSize = 10.sp
-                    )
-                }
+                VideoOverlay(
+                    message = message,
+                    durationText = content.duration.milliseconds.format(),
+                    onActionClick = {}
+                )
             }
         }
     }
 }
 
-private fun MessageContent.Media.toMediaItem(context: Context) = MediaItem(
+@Composable
+private fun ThumbnailImage(media: MediaItem, isVideo: Boolean) {
+    val context = LocalContext.current
+    val thumbnail by produceState<Any?>(initialValue = null, media.uri) {
+        value = context.loadMediaThumbnail(media.uri, isVideo, Size(1200, 1200))
+    }
+
+    AsyncImage(
+        model = thumbnail,
+        contentDescription = null,
+        modifier = Modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop,
+        alpha = if (thumbnail == null) 0f else 1f
+    )
+}
+
+@Composable
+private fun SendingOverlay(progress: Float) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        WeLoading(size = 42.dp, color = Color.White)
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(progress.toPercent(), color = Color.White, fontSize = 13.sp)
+    }
+}
+
+@Composable
+private fun BoxScope.VideoOverlay(
+    message: ChatMessage,
+    durationText: String,
+    onActionClick: () -> Unit
+) {
+    // 进度显示层
+    if (message.isSending) {
+        Box(
+            modifier = Modifier
+                .size(39.dp)
+                .clip(CircleShape)
+                .clickable { onActionClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            WeCircleProgress(
+                percent = message.sendProgress * 100,
+                size = 36.dp,
+                strokeWidth = 3.dp,
+                trackColor = Color.LightGray.copy(alpha = 0.8f),
+                indicatorColor = White,
+                formatter = null
+            )
+            val icon = if (message.sendStatus is MessageSendStatus.Paused)
+                R.drawable.ic_play_filled else R.drawable.ic_pause_filled
+            Icon(painterResource(icon), null, tint = Color.White, modifier = Modifier.size(20.dp))
+        }
+    } else {
+        Icon(
+            painter = painterResource(R.drawable.ic_play_filled),
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier
+                .size(36.dp)
+                .border(1.dp, Color.White, CircleShape)
+                .padding(4.dp)
+        )
+    }
+
+    // 时长层
+    Text(
+        text = durationText,
+        color = Color.White,
+        fontSize = 10.sp,
+        modifier = Modifier
+            .padding(8.dp)
+            .align(Alignment.BottomEnd)
+    )
+}
+
+@Composable
+private fun rememberMediaContext(content: MessageContent.Media): Pair<List<MediaItem>, Int> {
+    val mediaContext = LocalMediaContext.current
+
+    return remember(content, mediaContext) {
+        val items = mediaContext?.allMedia?.map { it.toMediaItem() }
+            ?: listOf(content.toMediaItem())
+        val index = mediaContext?.getIndexOf(content) ?: 0
+        items to index
+    }
+}
+
+private fun MessageContent.Media.toMediaItem() = MediaItem(
     uri = localPath.toUri(),
     filename = filename,
     mediaType = if (this is MessageContent.Video) MediaType.Video else MediaType.Image,

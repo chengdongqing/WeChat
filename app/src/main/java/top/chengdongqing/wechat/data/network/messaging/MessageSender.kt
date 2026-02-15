@@ -178,33 +178,44 @@ class MessageSender @Inject constructor(
      * - buffer 复用，避免每片 new ByteArray
      * - 进度按 PROGRESS_REPORT_INTERVAL 节流
      */
-    private inline fun streamFileChunks(
+    private suspend inline fun streamFileChunks(
         file: File,
         fileSize: Long,
         messageId: String,
-        onChunk: (ByteArray) -> Unit
-    ) {
+        crossinline onChunk: (ByteArray) -> Unit
+    ) = withContext(Dispatchers.IO) {
         val buffer = ByteArray(TransferConfig.FILE_CHUNK_SIZE)
         var totalSent = 0L
         var lastReportedAt = 0L
 
-        FileInputStream(file).buffered(TransferConfig.FILE_READ_BUFFER).use { fis ->
+        FileInputStream(file).use { fis ->
             while (true) {
                 val bytesRead = fis.read(buffer)
-                if (bytesRead == -1) break
+                if (bytesRead <= 0) break
 
-                val chunk = if (bytesRead == buffer.size) buffer else buffer.copyOf(bytesRead)
+                val chunk = buffer.copyOf(bytesRead)
                 onChunk(chunk)
 
                 totalSent += bytesRead
 
-                // 进度节流: 每 1MB 报告一次
+                // 进度节流
                 if (fileSize > 0 && totalSent - lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
                     lastReportedAt = totalSent
-                    Log.d(TAG, "发送 [$messageId]: ${(totalSent * 100) / fileSize}%")
+                    updateProgress(messageId, totalSent, fileSize)
                 }
             }
+
+            // 最后上报100%的进度
+            if (totalSent > lastReportedAt) {
+                updateProgress(messageId, totalSent, fileSize)
+            }
         }
+    }
+
+    private suspend fun updateProgress(id: String, sent: Long, total: Long) {
+        val percent = (sent.toDouble() / total * 100).toInt()
+        Log.d(TAG, "发送 [$id]: $percent%")
+        messageDao.updateSentBytes(id, sent)
     }
 
     // ==================== 连接管理 ====================

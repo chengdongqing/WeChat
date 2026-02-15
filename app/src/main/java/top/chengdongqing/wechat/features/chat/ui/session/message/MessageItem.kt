@@ -41,23 +41,30 @@ fun MessageItem(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (!isFromMe) {
                     Avatar(peerAvatar)
-                } else {
-                    StatusIndicator(message)
                 }
 
-                ChatBubble(
-                    isFromMe = isFromMe,
-                    showArrow = content.showBubbleArrow,
-                    showDot = content.showUnreadDot,
-                    isSameBackground = content.isSameBackground
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    MessageContent(message)
+                    if (isFromMe) {
+                        StatusIndicator(message)
+                    }
+                    ChatBubble(
+                        isFromMe = isFromMe,
+                        showArrow = content.showBubbleArrow,
+                        showDot = content.showUnreadDot,
+                        isSameBackground = content.isSameBackground
+                    ) {
+                        MessageContent(message)
+                    }
+                    if (!isFromMe) {
+                        StatusIndicator(message)
+                    }
                 }
 
                 if (isFromMe) {
                     Avatar(myAvatar)
-                } else {
-                    StatusIndicator(message)
                 }
             }
         }

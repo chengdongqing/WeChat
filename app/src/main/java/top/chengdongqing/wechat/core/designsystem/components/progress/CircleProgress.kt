@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.core.designsystem.components.progress
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,9 +40,7 @@ fun WeCircleProgress(
     val textColor = WeTheme.colorScheme.textPrimary
 
     Canvas(
-        modifier = Modifier
-            .padding(vertical = 20.dp)
-            .size(size)
+        modifier = Modifier.size(size)
     ) {
         val radius = this.size.width / 2
         drawCircle(
