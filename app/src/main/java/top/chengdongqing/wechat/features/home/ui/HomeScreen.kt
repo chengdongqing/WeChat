@@ -218,30 +218,34 @@ private fun HomeTopBar(
         launchScanner = launchScanner
     )
 
-    WeTopBar(title = title) {
-        ActionIcon(
-            iconResId = R.drawable.ic_search_outlined,
-            description = "搜索"
-        )
+    Column {
+        WeTopBar(title = title) {
+            ActionIcon(
+                iconResId = R.drawable.ic_search_outlined,
+                description = "搜索"
+            )
 
-        WeTopBarIcon(
-            modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
-                anchorPosition = layoutCoordinates.positionInParent()
-                anchorSize = layoutCoordinates.size
-            },
-            iconResId = R.drawable.ic_plus_circle_outlined,
-            description = "更多"
-        ) {
-            menuExpanded = true
+            WeTopBarIcon(
+                modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
+                    anchorPosition = layoutCoordinates.positionInParent()
+                    anchorSize = layoutCoordinates.size
+                },
+                iconResId = R.drawable.ic_plus_circle_outlined,
+                description = "更多"
+            ) {
+                menuExpanded = true
+            }
+
+            QuickActions(
+                expanded = menuExpanded,
+                items = menuItems,
+                anchorPosition = anchorPosition,
+                anchorSize = anchorSize,
+                onDismiss = { menuExpanded = false }
+            )
         }
 
-        QuickActions(
-            expanded = menuExpanded,
-            items = menuItems,
-            anchorPosition = anchorPosition,
-            anchorSize = anchorSize,
-            onDismiss = { menuExpanded = false }
-        )
+        WeDivider()
     }
 }
 

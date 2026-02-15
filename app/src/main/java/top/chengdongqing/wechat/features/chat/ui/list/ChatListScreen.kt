@@ -57,7 +57,11 @@ fun ChatListScreen(
                 },
                 modifier = Modifier.animateItem()
             )
-            Box(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
+            Box(
+                modifier = Modifier.background(
+                    if (chat.isPinned) WeTheme.colorScheme.background else WeTheme.colorScheme.surface
+                )
+            ) {
                 WeDivider(modifier = Modifier.padding(start = 73.dp))
             }
         }
@@ -76,7 +80,9 @@ private fun ChatListItem(
 ) {
     Box(
         modifier = modifier
-            .background(WeTheme.colorScheme.surface)
+            .background(
+                if (chat.isPinned) WeTheme.colorScheme.background else WeTheme.colorScheme.surface
+            )
             .weContextMenu(
                 onClick = { onNavigateToDetail(chat.sessionId) },
                 onLongClick = { position -> onShowMenu(position) }

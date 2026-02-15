@@ -97,7 +97,6 @@ private fun ContactDetailTopBar(
     onMoreClick: () -> Unit
 ) {
     WeTopBar(
-        title = "",
         containerColor = Color.White,
         onBack = onBack
     ) {
