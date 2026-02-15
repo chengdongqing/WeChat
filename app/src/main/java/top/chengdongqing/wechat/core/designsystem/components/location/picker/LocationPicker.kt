@@ -23,6 +23,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -34,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.amap.api.maps.model.BitmapDescriptor
 import com.amap.api.maps.model.MarkerOptions
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -104,7 +106,14 @@ fun WeLocationPicker(
 @Composable
 private fun BoxScope.LocationMarker(state: LocationPickerState) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val locationIcon by produceState<BitmapDescriptor?>(null) {
+        value = createBitmapDescriptor(
+            context,
+            R.drawable.ic_location_marker,
+            160,
+            160
+        )
+    }
 
     if (!state.isSearchMode) {
         val offsetY = remember { Animatable(0f) }
@@ -123,19 +132,10 @@ private fun BoxScope.LocationMarker(state: LocationPickerState) {
                 .offset(y = (-25).dp + offsetY.value.dp)
         )
     } else if (state.selectedLocation != null) {
-        DisposableEffect(state.selectedLocation) {
+        DisposableEffect(state.selectedLocation, locationIcon) {
             val markerOptions = MarkerOptions().apply {
                 position(state.selectedLocation?.coordinate)
-                scope.launch {
-                    icon(
-                        createBitmapDescriptor(
-                            context,
-                            R.drawable.ic_location_marker,
-                            160,
-                            160
-                        )
-                    )
-                }
+                icon(locationIcon)
             }
             val marker = state.map.addMarker(markerOptions)
 

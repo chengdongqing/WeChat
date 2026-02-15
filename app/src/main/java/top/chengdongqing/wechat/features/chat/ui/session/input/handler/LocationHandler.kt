@@ -1,9 +1,15 @@
 package top.chengdongqing.wechat.features.chat.ui.session.input.handler
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
 import top.chengdongqing.wechat.core.designsystem.components.location.picker.rememberPickLocationLauncher
+import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
+import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 /**
@@ -17,13 +23,17 @@ class LocationHandler(
     /**
      * 处理位置选择结果
      */
-    fun handleLocationSelection(location: LocationInfo) {
+    suspend fun handleLocationSelection(location: LocationInfo, context: Context) {
+        val localPath = context.copyUriToPrivateDir(
+            location.staticMapUri ?: return, MediaType.Image
+        ) ?: return
+
         val content = MessageContent.Location(
             latitude = location.coordinate.latitude,
             longitude = location.coordinate.longitude,
             address = location.address ?: "",
             poiName = location.name,
-            snapshotPath = location.staticMapUri.toString()
+            snapshotPath = localPath
         )
         onSendMessage(content, null)
     }
@@ -42,8 +52,13 @@ fun rememberLocationHandler(
 fun rememberLocationLauncher(
     locationHandler: LocationHandler
 ): LocationLauncher {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
     val pickLocation = rememberPickLocationLauncher { location ->
-        locationHandler.handleLocationSelection(location)
+        scope.launch {
+            locationHandler.handleLocationSelection(location, context)
+        }
     }
 
     return remember(pickLocation) {

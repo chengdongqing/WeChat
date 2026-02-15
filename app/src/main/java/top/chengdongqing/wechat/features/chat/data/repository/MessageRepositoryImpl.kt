@@ -300,11 +300,11 @@ class MessageRepositoryImpl @Inject constructor(
         } catch (e: CancellationException) {
             throw e  // 取消异常必须重新抛出
         } catch (e: Exception) {
-            Log.e(TAG, "发送失败: ${e.message}", e)
+            Log.e(TAG, "发送失败: ${entity.messageId}", e)
 
             val failReason = when {
-                e.message?.contains("连接信息") == true -> SendError.NetworkTimeout
-                e.message?.contains("已离线") == true -> SendError.RecipientOffline
+                e.message?.contains("离线") == true -> SendError.RecipientOffline
+                e.message?.contains("连接") == true -> SendError.NetworkTimeout
                 else -> SendError.Unknown
             }
 

@@ -10,6 +10,7 @@ import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.exception.ConnectionException
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
@@ -75,7 +76,7 @@ class MessageSender @Inject constructor(
         }
 
     /**
-     * 发送媒体消息（流式，内存安全，带宽优化）
+     * 发送媒体消息
      *
      * 流程: 算 MD5 → 确保连接 → WiFi Lock → 原子发送 (META + CHUNK) → 释放
      */
@@ -125,7 +126,8 @@ class MessageSender @Inject constructor(
 
             Unit
         }.onFailure { error ->
-            handleSendError(message.messageId, "发送媒体失败", error)
+            handleSendError(message.messageId)
+            throw error
         }
     }
 
@@ -159,7 +161,8 @@ class MessageSender @Inject constructor(
         socketManager.send(message.receiverId, packetBuilder()).getOrThrow()
         updateStatus(message.messageId, SendStatus.Sent)
     }.onFailure { error ->
-        handleSendError(message.messageId, "发送失败", error)
+        handleSendError(message.messageId)
+        throw error
     }
 
     private suspend fun sendReceiptSafely(receiverId: String, packetBuilder: () -> Packet) {
@@ -249,12 +252,7 @@ class MessageSender @Inject constructor(
         messageDao.updateSendStatus(messageId, status)
     }
 
-    private suspend fun handleSendError(messageId: String, msg: String, error: Throwable) {
-        Log.e(TAG, "$msg: $messageId", error)
+    private suspend fun handleSendError(messageId: String) {
         updateStatus(messageId, SendStatus.Failed)
     }
-
-    private class ConnectionException(
-        message: String, cause: Throwable? = null
-    ) : Exception(message, cause)
 }
