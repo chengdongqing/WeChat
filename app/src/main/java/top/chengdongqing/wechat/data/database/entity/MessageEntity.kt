@@ -38,7 +38,7 @@ data class MessageEntity(
     val isFromMe: Boolean,              // 是否是我发送的
 
     val retryCount: Int = 0,            // 重试次数
-    val failReason: String? = null,     // 失败原因
+    val failReason: SendError? = null,  // 失败原因
 
     val createdAt: Long,                // 创建时间
     val updatedAt: Long                 // 更新时间
@@ -56,7 +56,9 @@ enum class MessageType {
     ContactCard,    // 名片
     Favorite,       // 收藏
     VoiceCall,      // 语音通话记录
-    VideoCall       // 视频通话记录
+    VideoCall;       // 视频通话记录
+
+    val isFileNameInJson: Boolean get() = this == Image || this == Video || this == File
 }
 
 enum class SendStatus {
@@ -65,6 +67,15 @@ enum class SendStatus {
     Delivered,      // 已送达
     Read,           // 已读
     Failed          // 发送失败
+}
+
+enum class SendError(val message: String, val canRetry: Boolean) {
+    NetworkTimeout("网络连接超时。", true),
+    RecipientOffline("对方不在线。", true),
+    NotFriend("对方已不是你的好友。", false),
+    Blocked("消息已发出，但被对方拒收了。", false),
+    MessageTooLarge("消息内容过大。", false),
+    Unknown("未知错误。", false)
 }
 
 fun MessageType.toPreviewText(content: String): String = when (this) {

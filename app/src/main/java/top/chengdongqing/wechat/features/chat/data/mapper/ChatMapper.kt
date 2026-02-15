@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.features.chat.domain.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.model.CallType
@@ -118,7 +119,6 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
 
         MessageType.Sticker ->
             MessageContent.Sticker(
-                stickerId = content,
                 localPath = localPath ?: ""
             )
 
@@ -195,23 +195,7 @@ fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
         SendStatus.Sent -> MessageSendStatus.Success
         SendStatus.Delivered -> MessageSendStatus.Success
         SendStatus.Read -> MessageSendStatus.Success
-        SendStatus.Failed -> when (entity.failReason) {
-            "OFFLINE" -> MessageSendStatus.Failed.RecipientOffline()
-            "NOT_REACHABLE" -> MessageSendStatus.Failed.RecipientOffline()
-            "NOT_FRIEND" -> MessageSendStatus.Failed.NotFriend()
-            "BLOCKED" -> MessageSendStatus.Failed.Blocked()
-            "TOO_LARGE" -> MessageSendStatus.Failed.MessageTooLarge()
-            else -> MessageSendStatus.Failed.NetworkError()
-        }
-    }
-}
-
-fun MessageSendStatus.toEntity(): SendStatus {
-    return when (this) {
-        is MessageSendStatus.Sending -> SendStatus.Sending
-        is MessageSendStatus.Paused -> SendStatus.Sending
-        is MessageSendStatus.Success -> SendStatus.Sent
-        is MessageSendStatus.Failed -> SendStatus.Failed
+        SendStatus.Failed -> MessageSendStatus.Failed(entity.failReason ?: SendError.Unknown)
     }
 }
 

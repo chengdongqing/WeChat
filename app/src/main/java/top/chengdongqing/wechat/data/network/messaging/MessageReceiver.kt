@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -86,7 +87,7 @@ class MessageReceiver @Inject constructor(
 
     private suspend fun consumePackets(
         userId: String,
-        channel: kotlinx.coroutines.channels.Channel<Packet>
+        channel: Channel<Packet>
     ) {
         try {
             for (packet in channel) {

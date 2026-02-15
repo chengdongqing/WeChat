@@ -268,3 +268,21 @@ fun String?.extractFileExtension(): String? {
     }
     return substring(lastDotIndex + 1)
 }
+
+/**
+ * 将 Asset 文件复制到缓存目录并返回 File 对象
+ */
+suspend fun Context.copyAssetToFile(assetName: String): File =
+    withContext(Dispatchers.IO) {
+        val file = File(filesDir, assetName)
+        if (file.exists()) return@withContext file
+        file.parentFile?.mkdirs()
+
+        assets.open(assetName).use { inputStream ->
+            FileOutputStream(file).use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+        }
+
+        file
+    }

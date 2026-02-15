@@ -294,7 +294,7 @@ private fun InputFieldArea(
             // 语音录制按钮
             VoiceRecordButton(
                 onVoiceSend = { uri, duration ->
-                    val content = MessageContent.Voice(uri.toString(), duration)
+                    val content = MessageContent.Voice(uri.path!!, duration)
                     onSendMessage(content) {
                         soundPlayer.play(R.raw.after_upload_voice)
                     }

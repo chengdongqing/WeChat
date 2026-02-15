@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -86,16 +87,15 @@ private fun RowScope.SessionContent(
             color = WeTheme.colorScheme.textPrimary,
             fontWeight = FontWeight.Medium
         )
-        lastMsg?.let {
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = it,
-                fontSize = 13.sp,
-                color = WeTheme.colorScheme.textSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = lastMsg ?: "",
+            fontSize = 13.sp,
+            color = WeTheme.colorScheme.textSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.alpha(if (lastMsg == null) 0f else 1f)
+        )
     }
 }
 
@@ -123,7 +123,6 @@ private fun SessionStatus(
                 tint = WeTheme.colorScheme.textSecondary.copy(alpha = 0.5f)
             )
         } else {
-            // 占位，保持右侧布局高度对齐
             Spacer(modifier = Modifier.size(14.dp))
         }
     }

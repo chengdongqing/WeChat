@@ -224,7 +224,13 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private fun markAsPlayed(messageId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            // messageRepo.markVoiceAsPlayed(messageId)
+            messages.value.find { it.id == messageId }?.let { message ->
+                if (message.content.showUnreadDot) {
+                    viewModelScope.launch {
+                        messageRepository.markVoiceAsPlayed(messageId)
+                    }
+                }
+            }
         }
     }
 

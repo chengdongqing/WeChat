@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
+import top.chengdongqing.wechat.data.database.entity.SendError
+
 /**
  * 消息数据类
  */
@@ -30,7 +32,7 @@ data class ChatMessage(
      * 是否可以重试
      */
     val canRetry: Boolean
-        get() = (sendStatus as? MessageSendStatus.Failed)?.canRetry == true
+        get() = (sendStatus as? MessageSendStatus.Failed)?.error?.canRetry == true
 
     /**
      * 发送进度（0-1）
@@ -62,7 +64,6 @@ sealed class MessageContent(
     ) : MessageContent(showUnreadDot = !isPlayed)
 
     data class Sticker(
-        val stickerId: String,
         val localPath: String,
         val description: String? = null
     ) : MessageContent(showBubbleArrow = false)
@@ -146,57 +147,7 @@ sealed class MessageSendStatus {
     data object Success : MessageSendStatus()
 
     /** 发送失败 */
-    sealed class Failed : MessageSendStatus() {
-        abstract val error: SendError
-        abstract val canRetry: Boolean
-
-        /** 网络错误 - 可重试 */
-        data class NetworkError(
-            override val error: SendError = SendError.NetworkTimeout
-        ) : Failed() {
-            override val canRetry: Boolean = true
-        }
-
-        /** 对方不在线 - 可重试 */
-        data class RecipientOffline(
-            override val error: SendError = SendError.RecipientOffline
-        ) : Failed() {
-            override val canRetry: Boolean = true
-        }
-
-        /** 不是好友 - 不可重试 */
-        data class NotFriend(
-            override val error: SendError = SendError.NotFriend
-        ) : Failed() {
-            override val canRetry: Boolean = false
-        }
-
-        /** 被对方拉黑 - 不可重试 */
-        data class Blocked(
-            override val error: SendError = SendError.Blocked
-        ) : Failed() {
-            override val canRetry: Boolean = false
-        }
-
-        /** 消息过大 - 不可重试 */
-        data class MessageTooLarge(
-            override val error: SendError = SendError.MessageTooLarge
-        ) : Failed() {
-            override val canRetry: Boolean = false
-        }
-    }
-}
-
-/**
- * 错误类型枚举
- */
-enum class SendError(val message: String) {
-    NetworkTimeout("网络连接超时。"),
-    RecipientOffline("对方不在线。"),
-    NotFriend("对方已不是你的好友。"),
-    Blocked("消息已发出，但被对方拒收了。"),
-    MessageTooLarge("消息内容过大。"),
-    Unknown("未知错误。")
+    data class Failed(val error: SendError) : MessageSendStatus()
 }
 
 fun MessageContent.toPreviewText(): String = when (this) {

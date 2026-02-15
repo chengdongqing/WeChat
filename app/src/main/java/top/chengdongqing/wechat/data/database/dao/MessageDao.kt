@@ -8,6 +8,7 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
+import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 
 @Dao
@@ -77,7 +78,7 @@ interface MessageDao {
     suspend fun updateSendStatus(messageId: String, status: SendStatus)
 
     @Query("UPDATE messages SET failReason = :reason WHERE messageId = :messageId")
-    suspend fun updateFailReason(messageId: String, reason: String)
+    suspend fun updateFailReason(messageId: String, reason: SendError)
 
     @Query("UPDATE messages SET isRead = 1 WHERE sessionId = :sessionId AND isFromMe = 0")
     suspend fun markAllAsRead(sessionId: String)

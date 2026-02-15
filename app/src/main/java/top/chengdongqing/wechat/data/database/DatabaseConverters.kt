@@ -6,6 +6,7 @@ import top.chengdongqing.wechat.data.database.entity.ConnectionType
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
+import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.getIndex
@@ -53,4 +54,10 @@ class DatabaseConverters {
 
     @TypeConverter
     fun toSendStatus(value: String): SendStatus = SendStatus.valueOf(value)
+
+    @TypeConverter
+    fun fromSendError(value: SendError) = value.name
+
+    @TypeConverter
+    fun toSendError(value: String): SendError = SendError.valueOf(value)
 }

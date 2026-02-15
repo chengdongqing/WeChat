@@ -106,7 +106,7 @@ class SocketServer @Inject constructor(
         }
     }
 
-    private suspend fun handleClient(socket: Socket) {
+    private suspend fun handleClient(socket: Socket) = withContext(Dispatchers.IO) {
         try {
             configureSocket(socket)
 
@@ -119,7 +119,7 @@ class SocketServer @Inject constructor(
             val userId = performHandshake(reader) ?: run {
                 Log.w(TAG, "握手失败，关闭连接")
                 socket.close()
-                return
+                return@withContext
             }
 
             // 通信阶段: 无限阻塞，由 Ping-Pong 判活
@@ -155,10 +155,10 @@ class SocketServer @Inject constructor(
                 Log.w(TAG, "握手包类型错误: ${packet.type}")
                 return null
             }
-            val handshake = json.decodeFromString<ChatProtocol.Heartbeat>(
+            val heartbeat = json.decodeFromString<ChatProtocol.Heartbeat>(
                 String(packet.body, Charsets.UTF_8)
             )
-            handshake.senderId
+            heartbeat.senderId
         } catch (e: Exception) {
             Log.e(TAG, "握手解析异常", e)
             null

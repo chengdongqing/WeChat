@@ -29,6 +29,9 @@ interface MessageRepository {
     /** 标记已读 */
     suspend fun markAllAsRead(sessionId: String)
 
+    /** 标记已播放 */
+    suspend fun markVoiceAsPlayed(messageId: String)
+
     /** 删除消息 */
     suspend fun deleteMessage(messageId: String)
 

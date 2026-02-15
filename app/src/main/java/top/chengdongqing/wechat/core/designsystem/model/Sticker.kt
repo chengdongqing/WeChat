@@ -1,15 +1,13 @@
 package top.chengdongqing.wechat.core.designsystem.model
 
 data class Sticker(
-    val stickerId: String,
     val localPath: String,
-    val sortOrder: Int
+    val orderNo: Int
 )
 
 object Stickers {
     private val rawPaths = listOf(
         "stickers/sticker_1.gif",
-        "stickers/sticker_2.gif",
         "stickers/sticker_3.jpeg",
         "stickers/sticker_4.gif",
         "stickers/sticker_5.gif",
@@ -24,7 +22,6 @@ object Stickers {
         "stickers/sticker_14.gif",
         "stickers/sticker_15.gif",
         "stickers/sticker_16.gif",
-        "stickers/sticker_17.gif",
         "stickers/sticker_18.gif",
         "stickers/sticker_19.gif",
         "stickers/sticker_20.gif",
@@ -37,7 +34,6 @@ object Stickers {
         "stickers/sticker_27.gif",
         "stickers/sticker_28.gif",
         "stickers/sticker_29.gif",
-        "stickers/sticker_30.gif",
         "stickers/sticker_31.gif",
         "stickers/sticker_32.gif",
         "stickers/sticker_33.gif",
@@ -49,10 +45,9 @@ object Stickers {
     private fun buildStickerList() = rawPaths
         .mapIndexed { index, path ->
             Sticker(
-                stickerId = path.substringAfter("/").substringBefore("."),
                 localPath = path,
-                sortOrder = index
+                orderNo = index
             )
         }
-        .sortedByDescending { it.sortOrder }
+        .sortedByDescending { it.orderNo }
 }

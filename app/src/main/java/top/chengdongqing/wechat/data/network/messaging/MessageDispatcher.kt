@@ -88,7 +88,7 @@ class MessageDispatcher @Inject constructor(
         entityBuilder: suspend () -> MessageEntity
     ) {
         try {
-            if (messageDao.getByMessageId(protocol.messageId) != null) {
+            if (messageDao.exists(protocol.messageId)) {
                 messageSender.sendAck(protocol.messageId, protocol.senderId)
                 return
             }
@@ -147,8 +147,10 @@ class MessageDispatcher @Inject constructor(
         tempFile: File
     ): MessageEntity {
         val now = System.currentTimeMillis()
-        val data = json.decodeFromString<MediaContent>(protocol.content)
-        val extension = data.filename.extractFileExtension()
+        val filename = if (protocol.messageType.isFileNameInJson)
+            json.decodeFromString<MediaContent>(protocol.content).filename
+        else protocol.content
+        val extension = filename.extractFileExtension()
 
         val localPath = fileManager.saveMediaFile(
             messageType = protocol.messageType,

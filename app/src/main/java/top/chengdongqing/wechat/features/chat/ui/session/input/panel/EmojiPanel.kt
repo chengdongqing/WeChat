@@ -54,6 +54,7 @@ import top.chengdongqing.wechat.core.designsystem.model.Stickers
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.repeatingClickable
 import top.chengdongqing.wechat.core.util.asAssetPath
+import top.chengdongqing.wechat.core.util.copyAssetToFile
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 /**
@@ -339,7 +340,7 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
         }
         items(
             items = Stickers.all,
-            key = { it.stickerId }
+            key = { it.localPath }
         ) { sticker ->
             StickerItem(
                 sticker = sticker,
@@ -358,6 +359,7 @@ private fun StickerItem(
     onSelect: (MessageContent.Sticker) -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val imageRequest = remember(sticker.localPath) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -375,14 +377,16 @@ private fun StickerItem(
             .aspectRatio(1f)
             .clip(RoundedCornerShape(4.dp))
             .clickable {
-                val stickerContent = MessageContent.Sticker(sticker.stickerId, sticker.localPath)
-                onSelect(stickerContent)
+                scope.launch {
+                    val file = context.copyAssetToFile(sticker.localPath)
+                    onSelect(MessageContent.Sticker(file.absolutePath))
+                }
             },
         contentAlignment = Alignment.Center
     ) {
         AsyncImage(
             model = imageRequest,
-            contentDescription = sticker.stickerId,
+            contentDescription = null,
             modifier = Modifier.padding(4.dp),
             contentScale = ContentScale.Inside
         )

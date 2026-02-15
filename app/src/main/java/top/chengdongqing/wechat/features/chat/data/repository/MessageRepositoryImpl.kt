@@ -9,6 +9,7 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
@@ -91,8 +92,8 @@ class MessageRepositoryImpl @Inject constructor(
             // 更新会话
             chatSessionUpdater.update(entity)
 
-            // 异步发送
             if (!isSelfSession) {
+                // 发送消息
                 sendMessageAsync(entity)
             }
 
@@ -116,6 +117,10 @@ class MessageRepositoryImpl @Inject constructor(
     override suspend fun markAllAsRead(sessionId: String) {
         messageDao.markAllAsRead(sessionId)
         chatSessionDao.clearUnreadCount(sessionId)
+    }
+
+    override suspend fun markVoiceAsPlayed(messageId: String) {
+        messageDao.markAsPlayed(messageId)
     }
 
     override suspend fun deleteMessage(messageId: String) {
@@ -224,7 +229,7 @@ class MessageRepositoryImpl @Inject constructor(
             is MessageContent.Sticker ->
                 base(
                     contentType = MessageType.Sticker,
-                    contentValue = content.stickerId,
+                    contentValue = content.localPath,
                     localPath = content.localPath
                 )
 
@@ -295,12 +300,12 @@ class MessageRepositoryImpl @Inject constructor(
         } catch (e: CancellationException) {
             throw e  // 取消异常必须重新抛出
         } catch (e: Exception) {
-            Log.e(TAG, "发送失败: ${e.message}")
+            Log.e(TAG, "发送失败: ${e.message}", e)
 
             val failReason = when {
-                e.message?.contains("连接信息") == true -> "NOT_REACHABLE"
-                e.message?.contains("已离线") == true -> "OFFLINE"
-                else -> "UNKNOWN"
+                e.message?.contains("连接信息") == true -> SendError.NetworkTimeout
+                e.message?.contains("已离线") == true -> SendError.RecipientOffline
+                else -> SendError.Unknown
             }
 
             messageDao.updateSendStatus(entity.messageId, SendStatus.Failed)

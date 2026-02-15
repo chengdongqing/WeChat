@@ -85,7 +85,6 @@ interface ChatSessionDao {
         """
         UPDATE chat_sessions 
         SET lastMessage = NULL, 
-            lastMessageTime = 0, 
             unreadCount = 0,
             updatedAt = :now 
         WHERE sessionId = :sessionId
