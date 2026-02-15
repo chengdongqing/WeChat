@@ -4,9 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,8 +21,11 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
+import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.ui.session.LocalMediaContext
 
 @Composable
 fun MessageItem(
@@ -107,6 +112,8 @@ private fun StatusIndicator(message: ChatMessage) {
  */
 @Composable
 private fun FailedMessageHint(message: ChatMessage) {
+    val mediaContext = LocalMediaContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -118,6 +125,15 @@ private fun FailedMessageHint(message: ChatMessage) {
             text = message.errorMessage ?: "发送失败",
             color = WeTheme.colorScheme.textSecondary,
             fontSize = 13.sp
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = "重试",
+            color = LinkColor,
+            fontSize = 13.sp,
+            modifier = Modifier.weClickable {
+                mediaContext?.onRetrySend(message.id)
+            }
         )
     }
 }

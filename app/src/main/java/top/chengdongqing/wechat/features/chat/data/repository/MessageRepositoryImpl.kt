@@ -110,7 +110,13 @@ class MessageRepositoryImpl @Inject constructor(
             messageDao.updateSendStatus(messageId, SendStatus.Sending)
 
             // 重新发送
-            messageSender.sendTextMessage(entity).getOrThrow()
+            when (entity.contentType) {
+                MessageType.Text -> messageSender.sendTextMessage(entity).getOrThrow()
+                else -> {
+                    val file = File(entity.localPath ?: throw Exception("文件路径为空"))
+                    messageSender.sendMediaMessage(entity, file)
+                }
+            }
         }
     }
 

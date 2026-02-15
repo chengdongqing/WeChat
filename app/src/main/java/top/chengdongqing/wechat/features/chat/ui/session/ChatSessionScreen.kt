@@ -163,7 +163,8 @@ private fun rememberMediaContext(viewModel: ChatSessionViewModel): MediaContext 
             getIndexOf = { content -> mediaList.indexOf(content) },
             playingMessageId = playingMessageId,
             onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
-            onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() }
+            onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() },
+            onRetrySend = { viewModel.retrySend(it) }
         )
     }
 }
@@ -176,7 +177,8 @@ data class MediaContext(
     val getIndexOf: (MessageContent.Media) -> Int,
     val playingMessageId: String?,
     val onVoiceToggle: (messageId: String, localPath: String) -> Unit,
-    val onVoiceStop: () -> Unit
+    val onVoiceStop: () -> Unit,
+    val onRetrySend: (messageId: String) -> Unit
 )
 
 val LocalMediaContext = compositionLocalOf<MediaContext?> { null }
