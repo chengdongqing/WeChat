@@ -68,10 +68,20 @@ fun AppNavigation(
         ) {
             SplashScreen(
                 onNavigateToHome = {
-                    navController.navigate(Screen.Home.route)
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Splash.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 },
                 onNavigateToWelcome = {
-                    navController.navigate(Screen.Welcome.route)
+                    navController.navigate(Screen.Welcome.route) {
+                        popUpTo(Screen.Splash.route) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
