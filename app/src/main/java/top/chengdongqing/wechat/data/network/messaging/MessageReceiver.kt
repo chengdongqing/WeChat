@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
@@ -144,13 +145,37 @@ class MessageReceiver @Inject constructor(
         // 进度节流
         if (state.receivedBytes - state.lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
             state.lastReportedAt = state.receivedBytes
-            val pct = (state.receivedBytes * 100) / state.metadata.fileSize
-            Log.d(TAG, "接收 [${state.metadata.messageId}]: $pct%")
+            val percent = (state.receivedBytes * 100) / state.metadata.fileSize
+            Log.d(TAG, "接收 [${state.metadata.messageId}]: $percent%")
         }
 
+        // 接收完毕
         if (state.receivedBytes >= state.metadata.fileSize) {
             state.outputStream.flush()
             state.outputStream.close()
+
+            // MD5校验
+            val expectedChecksum = state.metadata.checksum
+            if (!expectedChecksum.isNullOrEmpty()) {
+                val actualChecksum = state.tempFile.toMD5Hex()
+
+                if (actualChecksum != expectedChecksum) {
+                    Log.e(
+                        TAG, "MD5 校验失败 [${state.metadata.messageId}]: " +
+                                "期望=$expectedChecksum, 实际=$actualChecksum"
+                    )
+                    state.tempFile.delete()
+                    mediaStates.remove(userId)
+                    // TODO 通知发送端重传
+                    return
+                } else {
+                    Log.d(
+                        TAG, "MD5 校验成功 [${state.metadata.messageId}]: " +
+                                "期望=$expectedChecksum, 实际=$actualChecksum"
+                    )
+                }
+            }
+
             dispatcher.dispatch(state.metadata, state.tempFile)
 
             mediaStates.remove(userId)

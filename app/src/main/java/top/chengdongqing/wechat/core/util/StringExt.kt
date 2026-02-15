@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.core.util
 
 import android.net.Uri
-import java.security.MessageDigest
 import java.util.UUID
 
 /**
@@ -19,18 +18,3 @@ fun Float.toPercent() = "${(this * 100).toInt()}%"
  */
 fun String.encode(): String = Uri.encode(this)
 fun String.decode(): String = Uri.decode(this)
-
-/**
- * 字符串转 MD5 字节数组
- */
-fun String.toMD5Bytes(): ByteArray {
-    val md = MessageDigest.getInstance("MD5")
-    return md.digest(this.toByteArray())
-}
-
-/**
- * 字符串转 MD5 十六进制
- */
-fun String.toMD5Hex(): String {
-    return toMD5Bytes().joinToString("") { "%02x".format(it) }
-}

@@ -57,10 +57,6 @@ object TransferConfig {
     /**
      * 文件分片大小: 256KB
      *
-     * 之前 64KB 太碎:
-     * - 传 100MB 文件 = 1600 个 chunk = 1600 次 Packet 头 (5B) + flush
-     * - 每个 chunk 的 syscall 开销占比过高
-     *
      * 256KB 平衡了:
      * - 传 100MB = 400 个 chunk，开销降 4 倍
      * - 每片内存占用仅 256KB，对 Android 无压力

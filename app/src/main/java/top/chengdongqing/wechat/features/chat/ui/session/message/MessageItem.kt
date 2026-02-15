@@ -38,10 +38,7 @@ fun MessageItem(
                 .padding(vertical = 8.dp),
             horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (!isFromMe) {
                     Avatar(peerAvatar)
                 } else {

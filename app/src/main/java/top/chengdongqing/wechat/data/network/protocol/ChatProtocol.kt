@@ -36,6 +36,7 @@ sealed class ChatProtocol {
         val messageType: MessageType,
         val content: String,
         val fileSize: Long,
+        val checksum: String? = null,   // MD5
         val mediaDuration: Long? = null,
         val timestamp: Long
     ) : ChatProtocol()
