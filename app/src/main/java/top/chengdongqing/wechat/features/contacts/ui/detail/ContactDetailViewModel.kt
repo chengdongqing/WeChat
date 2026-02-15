@@ -18,6 +18,7 @@ import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import top.chengdongqing.wechat.features.me.data.mapper.toContact
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 @HiltViewModel(assistedFactory = ContactDetailViewModel.Factory::class)
@@ -46,14 +47,7 @@ class ContactDetailViewModel @AssistedInject constructor(
         val finalContact = when {
             isMyself -> {
                 // 自己
-                Contact(
-                    id = myProfile.id,
-                    nickname = myProfile.nickname,
-                    avatarPath = myProfile.avatarPath,
-                    signature = myProfile.signature,
-                    gender = myProfile.gender,
-                    relation = ContactRelation.Myself
-                )
+                myProfile.toContact()
             }
 
             contact != null -> {

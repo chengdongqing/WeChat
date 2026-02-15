@@ -33,7 +33,11 @@ class ChatSessionRepositoryImpl @Inject constructor(
         return chatSessionDao.getById(sessionId)?.toDomain()
     }
 
-    override suspend fun upsertSession(session: ChatSession) {
+    override suspend fun exists(sessionId: String): Boolean {
+        return chatSessionDao.exists(sessionId)
+    }
+
+    override suspend fun insertSession(session: ChatSession) {
         chatSessionDao.insert(session.toEntity())
     }
 
@@ -53,13 +57,22 @@ class ChatSessionRepositoryImpl @Inject constructor(
         chatSessionDao.updatePin(sessionId, isPinned)
     }
 
+    override suspend fun toggleMute(sessionId: String, isMuted: Boolean) {
+        chatSessionDao.updateMute(sessionId, isMuted)
+    }
+
     override suspend fun hideSession(sessionId: String) {
         chatSessionDao.hideSession(sessionId)
     }
 
-    override suspend fun deleteSession(sessionId: String) {
+    override suspend fun deleteSession(sessionId: String, shouldHide: Boolean) {
+        // 删除会话，不真正删除这条记录，目的是这里还保存了是否置顶/免到扰等设置
+        // 只需要清空消息，然后隐藏会话即可
         weDatabase.withTransaction {
-            chatSessionDao.deleteById(sessionId)
+            chatSessionDao.clearLastMessage(sessionId)
+            if (shouldHide) {
+                chatSessionDao.hideSession(sessionId)
+            }
             messageDao.deleteBySession(sessionId)
         }
     }

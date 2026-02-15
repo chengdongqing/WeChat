@@ -55,7 +55,7 @@ fun MediaContent(message: ChatMessage) {
     val targetWidth = rememberScreenFractionWidth()
     val content = message.content as MessageContent.Media
 
-    val (mediaItems, currentIndex) = rememberMediaContext(content)
+    val (mediaItems, currentIndex) = rememberMediaList(content)
     if (currentIndex == -1) return
 
     Box(
@@ -166,7 +166,7 @@ private fun BoxScope.VideoOverlay(
 }
 
 @Composable
-private fun rememberMediaContext(content: MessageContent.Media): Pair<List<MediaItem>, Int> {
+private fun rememberMediaList(content: MessageContent.Media): Pair<List<MediaItem>, Int> {
     val mediaContext = LocalMediaContext.current
 
     return remember(content, mediaContext) {

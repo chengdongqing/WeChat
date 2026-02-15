@@ -187,11 +187,11 @@ suspend fun Context.saveToAlbum(uri: Uri): Boolean {
  * 把 content:// Uri 复制到应用私有目录，返回真实路径
  * 用于消息发送前将媒体文件持久化到本地
  */
-fun Context.copyUriToPrivateDir(
+suspend fun Context.copyUriToPrivateDir(
     uri: Uri,
     mediaType: MediaType
-): String? {
-    return try {
+): String? = withContext(Dispatchers.IO) {
+    try {
         val subDir = when (mediaType) {
             MediaType.Image -> "images"
             MediaType.Video -> "videos"

@@ -22,6 +22,9 @@ interface ChatSessionDao {
     @Query("SELECT * FROM chat_sessions WHERE sessionId = :sessionId")
     suspend fun getById(sessionId: String): ChatSessionEntity?
 
+    @Query("SELECT EXISTS(SELECT 1 FROM chat_sessions WHERE sessionId = :sessionId)")
+    suspend fun exists(sessionId: String): Boolean
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(session: ChatSessionEntity)
 
@@ -52,6 +55,13 @@ interface ChatSessionDao {
     @Query("UPDATE chat_sessions SET isPinned = :isPinned WHERE sessionId = :sessionId")
     suspend fun updatePin(sessionId: String, isPinned: Boolean)
 
+    @Query("UPDATE chat_sessions SET isMuted = :isMuted, updatedAt = :now WHERE sessionId = :sessionId")
+    suspend fun updateMute(
+        sessionId: String,
+        isMuted: Boolean,
+        now: Long = System.currentTimeMillis()
+    )
+
     @Query(
         """
         UPDATE chat_sessions 
@@ -70,4 +80,16 @@ interface ChatSessionDao {
         lastMessageType: MessageType?,
         timestamp: Long
     )
+
+    @Query(
+        """
+        UPDATE chat_sessions 
+        SET lastMessage = NULL, 
+            lastMessageTime = 0, 
+            unreadCount = 0,
+            updatedAt = :now 
+        WHERE sessionId = :sessionId
+    """
+    )
+    suspend fun clearLastMessage(sessionId: String, now: Long = System.currentTimeMillis())
 }

@@ -103,6 +103,7 @@ fun EditContactProfileScreen(
                     WeInput(
                         value = uiState.remarkName,
                         placeholder = contact.nickname,
+                        maxLength = 17,
                         showDivider = false,
                         onValueChange = { viewModel.updateRemarkName(it) }
                     )
@@ -118,7 +119,7 @@ fun EditContactProfileScreen(
                         value = uiState.note,
                         placeholder = "添加文字",
                         singleLine = false,
-                        maxLines = 3,
+                        maxLength = 100,
                         showDivider = false,
                         onValueChange = { viewModel.updateNote(it) }
                     )

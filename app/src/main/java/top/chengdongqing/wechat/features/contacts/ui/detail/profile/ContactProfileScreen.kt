@@ -14,6 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -54,7 +56,7 @@ fun ContactProfileScreen(
             ProfileGroup("备注") {
                 ProfileItem(
                     label = "备注名",
-                    trailing = { ProfileItemText(contact.displayName) },
+                    trailing = { TextContent(contact.remarkName) },
                     onClick = onNavigateToEdit
                 )
                 ProfileItem(
@@ -67,7 +69,7 @@ fun ContactProfileScreen(
                 )
                 ProfileItem(
                     label = "备忘",
-                    trailing = { ProfileItemText(contact.note) },
+                    trailing = { TextContent(contact.note) },
                     onClick = onNavigateToEdit
                 )
                 ProfileItem(
@@ -79,30 +81,30 @@ fun ContactProfileScreen(
             ProfileGroup("朋友权限") {
                 ProfileItem(
                     label = "权限",
-                    trailing = { ProfileItemText("聊天、朋友圈、微信运动等") },
+                    trailing = { TextContent("聊天、朋友圈、微信运动等") },
                     showDivider = false
                 )
             }
             ProfileGroup("更多信息") {
                 ProfileItem(
                     label = "我和${contact.gender.safePronoun}的共同群聊",
-                    trailing = { ProfileItemText("0个") }
+                    trailing = { TextContent("0个") }
                 )
                 ProfileItem(
                     label = "签名",
-                    trailing = { ProfileItemText(contact.signature) },
+                    trailing = { TextContent(contact.signature) },
                     showArrow = false
                 )
                 contact.source?.let {
                     ProfileItem(
                         label = "来源",
-                        trailing = { ProfileItemText(it.getDescription(contact.isFromMe)) },
+                        trailing = { TextContent(it.getDescription(contact.isFromMe)) },
                         showArrow = false
                     )
                 }
                 ProfileItem(
                     label = "添加时间",
-                    trailing = { ProfileItemText(contact.addedAt?.toChatDisplayTime()) },
+                    trailing = { TextContent(contact.addedAt?.toChatDisplayTime()) },
                     showArrow = false,
                     showDivider = false
                 )
@@ -146,12 +148,16 @@ private fun ProfileItem(
 }
 
 @Composable
-private fun ProfileItemText(text: String?) {
+private fun RowScope.TextContent(text: String?) {
     text?.let {
         Text(
             text = text,
             fontSize = 16.sp,
-            color = WeTheme.colorScheme.textSecondary
+            color = WeTheme.colorScheme.textSecondary,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.End
         )
     }
 }

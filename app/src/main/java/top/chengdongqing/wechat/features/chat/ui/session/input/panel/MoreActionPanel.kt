@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollE
 
 @Composable
 fun MoreActionPanel(onAction: (actionId: MoreAction, isLongClick: Boolean) -> Unit) {
-    val pages = remember { MoreActionItems.chunked(ChunkCount) }
+    val pages = remember { MoreAction.entries.chunked(ChunkCount) }
     val pagerState = rememberPagerState { pages.size }
     val overscrollEffect = rememberBounceOverscrollEffect(Orientation.Horizontal)
 
@@ -75,7 +75,7 @@ fun MoreActionPanel(onAction: (actionId: MoreAction, isLongClick: Boolean) -> Un
 
 @Composable
 private fun MorePanelGrid(
-    items: List<MoreItemData>,
+    items: List<MoreAction>,
     onAction: (actionId: MoreAction, isLongClick: Boolean) -> Unit
 ) {
     FlowRow(
@@ -89,8 +89,8 @@ private fun MorePanelGrid(
         items.forEach { item ->
             MorePanelItem(
                 item = item,
-                onClick = { onAction(item.id, false) },
-                onLongClick = { onAction(item.id, true) }
+                onClick = { onAction(item, false) },
+                onLongClick = { onAction(item, true) }
             )
         }
         if (items.size < ChunkCount) {
@@ -103,7 +103,7 @@ private fun MorePanelGrid(
 
 @Composable
 private fun MorePanelItem(
-    item: MoreItemData,
+    item: MoreAction,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
@@ -122,7 +122,7 @@ private fun MorePanelItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(item.iconRes),
+                    painter = painterResource(item.iconResId),
                     contentDescription = null,
                     modifier = Modifier.size(30.dp),
                     tint = Color.Unspecified
@@ -131,7 +131,7 @@ private fun MorePanelItem(
         }
 
         Text(
-            text = item.title,
+            text = item.label,
             modifier = Modifier.padding(top = 4.dp),
             fontSize = 12.sp,
             color = Color(0xFF666666)
@@ -163,27 +163,20 @@ private fun PagerIndicator(
     }
 }
 
-private val MoreActionItems = listOf(
-    MoreItemData(MoreAction.Album, "照片", R.drawable.ic_album_filled),
-    MoreItemData(MoreAction.Camera, "拍摄", R.drawable.ic_camera_filled),
-    MoreItemData(MoreAction.VideoCall, "视频通话", R.drawable.ic_video_call_filled),
-    MoreItemData(MoreAction.Location, "位置", R.drawable.ic_location_filled),
-    MoreItemData(MoreAction.Transfer, "转账", R.drawable.ic_transfer_filled),
-    MoreItemData(MoreAction.Favorite, "收藏", R.drawable.ic_favorites_filled),
-    MoreItemData(MoreAction.Voice, "语音输入", R.drawable.ic_mic2_filled),
-    MoreItemData(MoreAction.Card, "个人名片", R.drawable.ic_person_filled),
-    MoreItemData(MoreAction.File, "文件", R.drawable.ic_folder_filled),
-    MoreItemData(MoreAction.Music, "音乐", R.drawable.ic_music_filled),
-)
-
 private const val ChunkCount = 8
 
-enum class MoreAction {
-    Album, Camera, VideoCall, Location, Transfer, Favorite, Voice, Card, File, Music
+enum class MoreAction(
+    val label: String,
+    @get:DrawableRes val iconResId: Int
+) {
+    Album("照片", R.drawable.ic_album_filled),
+    Camera("拍摄", R.drawable.ic_camera_filled),
+    VideoCall("视频通话", R.drawable.ic_video_call_filled),
+    Location("位置", R.drawable.ic_location_filled),
+    Transfer("转账", R.drawable.ic_transfer_filled),
+    Favorite("收藏", R.drawable.ic_favorites_filled),
+    Voice("语音输入", R.drawable.ic_mic2_filled),
+    Card("个人名片", R.drawable.ic_person_filled),
+    File("文件", R.drawable.ic_folder_filled),
+    Music("音乐", R.drawable.ic_music_filled);
 }
-
-private data class MoreItemData(
-    val id: MoreAction,
-    val title: String,
-    @get:DrawableRes val iconRes: Int
-)

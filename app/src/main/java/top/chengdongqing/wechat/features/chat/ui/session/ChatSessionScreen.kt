@@ -49,8 +49,6 @@ fun ChatSessionScreen(
 ) {
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
-    val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -78,22 +76,7 @@ fun ChatSessionScreen(
     )
 
     // 媒体上下文
-    val mediaContext = remember(mediaList, playingMessageId) {
-        MediaContext(
-            allMedia = mediaList,
-            getIndexOf = { content -> mediaList.indexOf(content) },
-            playingMessageId = playingMessageId,
-            onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
-            onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() }
-        )
-    }
-
-    // 生命周期感知的语音播放控制
-    VoicePlayingLifecycle {
-        if (playingMessageId != null) {
-            viewModel.stopVoice()
-        }
-    }
+    val mediaContext = rememberMediaContext(viewModel)
 
     CompositionLocalProvider(LocalMediaContext provides mediaContext) {
         Scaffold(
@@ -159,6 +142,29 @@ private fun ChatSessionTopBar(title: String, onBack: () -> Unit, onNavigateToInf
         ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
             onNavigateToInfo()
         }
+    }
+}
+
+@Composable
+private fun rememberMediaContext(viewModel: ChatSessionViewModel): MediaContext {
+    val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
+    val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
+
+    // 生命周期感知的语音播放控制
+    VoicePlayingLifecycle {
+        if (playingMessageId != null) {
+            viewModel.stopVoice()
+        }
+    }
+
+    return remember(mediaList, playingMessageId) {
+        MediaContext(
+            allMedia = mediaList,
+            getIndexOf = { content -> mediaList.indexOf(content) },
+            playingMessageId = playingMessageId,
+            onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
+            onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() }
+        )
     }
 }
 

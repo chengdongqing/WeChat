@@ -14,8 +14,11 @@ interface ChatSessionRepository {
     /** 获取单个会话 */
     suspend fun getSession(sessionId: String): ChatSession?
 
-    /** 创建或更新会话 */
-    suspend fun upsertSession(session: ChatSession)
+    /** 是否存在会话 */
+    suspend fun exists(sessionId: String): Boolean
+
+    /** 创建会话 */
+    suspend fun insertSession(session: ChatSession)
 
     /** 清空未读数 */
     suspend fun clearUnreadCount(sessionId: String)
@@ -29,11 +32,14 @@ interface ChatSessionRepository {
     /** 置顶/取消置顶 */
     suspend fun togglePin(sessionId: String, isPinned: Boolean)
 
+    /** 免到扰/取消免到扰 */
+    suspend fun toggleMute(sessionId: String, isMuted: Boolean)
+
     /** 隐藏会话 */
     suspend fun hideSession(sessionId: String)
 
     /** 删除会话 */
-    suspend fun deleteSession(sessionId: String)
+    suspend fun deleteSession(sessionId: String, shouldHide: Boolean = true)
 
     /** 总未读数 */
     fun observeTotalUnreadCount(): Flow<Int>

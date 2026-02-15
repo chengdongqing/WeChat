@@ -41,35 +41,36 @@ class MediaHandler(
         // 切换回文本模式
         onModeSwitch()
 
-        // 转换为消息内容
-        val contents = items.map { item ->
-            val localPath = context.copyUriToPrivateDir(item.uri, item.mediaType) ?: return
-            val fileSize = File(localPath).length()
-
-            if (item.isImage) {
-                MessageContent.Image(
-                    localPath = localPath,
-                    mimeType = item.mimeType,
-                    filename = item.filename,
-                    width = item.width,
-                    height = item.height,
-                    size = fileSize
-                )
-            } else {
-                MessageContent.Video(
-                    localPath = localPath,
-                    mimeType = item.mimeType,
-                    filename = item.filename,
-                    width = item.width,
-                    height = item.height,
-                    duration = item.duration,
-                    size = fileSize
-                )
-            }
-        }
-
-        // 批量发送
         scope.launch {
+            // 转换为消息内容
+            val contents = items.map { item ->
+                val localPath =
+                    context.copyUriToPrivateDir(item.uri, item.mediaType) ?: return@launch
+                val fileSize = File(localPath).length()
+
+                if (item.isImage) {
+                    MessageContent.Image(
+                        localPath = localPath,
+                        mimeType = item.mimeType,
+                        filename = item.filename,
+                        width = item.width,
+                        height = item.height,
+                        size = fileSize
+                    )
+                } else {
+                    MessageContent.Video(
+                        localPath = localPath,
+                        mimeType = item.mimeType,
+                        filename = item.filename,
+                        width = item.width,
+                        height = item.height,
+                        duration = item.duration,
+                        size = fileSize
+                    )
+                }
+            }
+
+            // 批量发送
             contents.forEach { content ->
                 onSendMessage(content, null)
                 delay(50) // 避免发送过快
