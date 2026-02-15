@@ -204,7 +204,13 @@ private fun queryMediaMetadata(context: Context, uri: Uri): TempMeta {
 fun Context.shareContent(content: Any, mimeType: String, title: String = "分享文件") {
     val shareUri: Uri = when (content) {
         is File -> getFileProviderUri(content)
-        is Uri -> content
+        is Uri -> {
+            when {
+                content.scheme == "file" -> getFileProviderUri(File(content.path!!))
+                else -> content
+            }
+        }
+
         else -> throw IllegalArgumentException("不支持的内容类型: ${content::class.java}")
     }
 

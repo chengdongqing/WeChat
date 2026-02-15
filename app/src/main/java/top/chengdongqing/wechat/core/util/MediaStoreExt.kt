@@ -146,7 +146,7 @@ fun ContentResolver.copyUri(from: Uri, to: Uri): Boolean {
  * 保存媒体文件到相册
  */
 suspend fun Context.saveToAlbum(media: MediaItem): Boolean = withContext(Dispatchers.IO) {
-    try {
+    runCatching {
         val contentUri = getContentUri(media.mediaType)
         val contentValues = createMediaContentValues(
             media.filename,
@@ -155,8 +155,8 @@ suspend fun Context.saveToAlbum(media: MediaItem): Boolean = withContext(Dispatc
         )
 
         // 插入数据库记录（此时文件是 IS_PENDING = 1 状态）
-        val tempUri =
-            contentResolver.insert(contentUri, contentValues) ?: return@withContext false
+        val tempUri = contentResolver.insert(contentUri, contentValues) ?: return@withContext false
+
         // 拷贝数据流
         val isSuccess = contentResolver.copyUri(media.uri, tempUri)
 
@@ -169,10 +169,9 @@ suspend fun Context.saveToAlbum(media: MediaItem): Boolean = withContext(Dispatc
             contentResolver.delete(tempUri, null, null)
             false
         }
-    } catch (e: IOException) {
-        e.printStackTrace()
-        false
-    }
+    }.onFailure { e ->
+        Log.e("MediaStoreExt", "保存媒体文件到相册", e)
+    }.getOrDefault(false)
 }
 
 /**

@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,133 +36,75 @@ class MediaHandler(
     private val onModeSwitch: () -> Unit
 ) {
     /**
-     * 处理媒体选择结果
+     * 核心逻辑：将任何来源的媒体（Uri 或 MediaItem）处理并发送
      */
+    private suspend fun processAndSend(uri: Uri, isImage: Boolean, mediaItem: MediaItem? = null) {
+        // 获取元数据
+        val resource = prepareMediaResource(context, uri) ?: return
+        val mediaType = if (isImage) MediaType.Image else MediaType.Video
+
+        // 拷贝文件
+        val localPath = context.copyUriToPrivateDir(uri, mediaType) ?: return
+        val fileSize = File(localPath).length()
+
+        // 构建消息对象
+        val content = if (isImage) {
+            MessageContent.Image(
+                localPath = localPath,
+                mimeType = resource.mimeType,
+                filename = resource.filename,
+                width = mediaItem?.width ?: resource.width,
+                height = mediaItem?.height ?: resource.height,
+                size = if (fileSize > 0) fileSize else resource.size
+            )
+        } else {
+            MessageContent.Video(
+                localPath = localPath,
+                mimeType = resource.mimeType,
+                filename = resource.filename,
+                width = mediaItem?.width ?: resource.width,
+                height = mediaItem?.height ?: resource.height,
+                duration = mediaItem?.duration ?: resource.duration,
+                size = if (fileSize > 0) fileSize else resource.size
+            )
+        }
+
+        onSendMessage(content, null)
+    }
+
+    // --- 对外接口 ---
+
     fun handleMediaSelection(items: Array<MediaItem>) {
-        // 切换回文本模式
         onModeSwitch()
-
         scope.launch {
-            // 转换为消息内容
-            val contents = items.map { item ->
-                val localPath =
-                    context.copyUriToPrivateDir(item.uri, item.mediaType) ?: return@launch
-                val fileSize = File(localPath).length()
-
-                if (item.isImage) {
-                    MessageContent.Image(
-                        localPath = localPath,
-                        mimeType = item.mimeType,
-                        filename = item.filename,
-                        width = item.width,
-                        height = item.height,
-                        size = fileSize
-                    )
-                } else {
-                    MessageContent.Video(
-                        localPath = localPath,
-                        mimeType = item.mimeType,
-                        filename = item.filename,
-                        width = item.width,
-                        height = item.height,
-                        duration = item.duration,
-                        size = fileSize
-                    )
-                }
-            }
-
-            // 批量发送
-            contents.forEach { content ->
-                onSendMessage(content, null)
-                delay(50) // 避免发送过快
+            items.forEachIndexed { index, item ->
+                processAndSend(item.uri, item.isImage, item)
+                if (index < items.size - 1) delay(50)
             }
         }
     }
 
-    /**
-     * 处理相机拍摄结果
-     */
-    fun handleCameraCapture(mediaUri: Uri, isImage: Boolean) {
+    fun handleMediaSelection(uris: List<Uri>) {
+        onModeSwitch()
         scope.launch {
-            val localPath = context.copyUriToPrivateDir(
-                mediaUri,
-                if (isImage) MediaType.Image else MediaType.Video
-            ) ?: return@launch
-            val resource = prepareMediaResource(context, mediaUri) ?: return@launch
-
-            val content = if (isImage) {
-                MessageContent.Image(
-                    localPath = localPath,
-                    mimeType = resource.mimeType,
-                    filename = resource.filename,
-                    width = resource.width,
-                    height = resource.height,
-                    size = resource.size
-                )
-            } else {
-                MessageContent.Video(
-                    localPath = localPath,
-                    mimeType = resource.mimeType,
-                    filename = resource.filename,
-                    width = resource.width,
-                    height = resource.height,
-                    duration = resource.duration,
-                    size = resource.size
-                )
+            uris.forEachIndexed { index, uri ->
+                val mimeType = context.contentResolver.getType(uri) ?: ""
+                processAndSend(uri, mimeType.startsWith("image"))
+                if (index < uris.size - 1) delay(50)
             }
-            onSendMessage(content, null)
         }
     }
 
-    /**
-     * 处理系统相机拍照结果
-     */
-    fun handleSystemPictureCapture(success: Boolean, capturedUri: Uri?) {
-        if (!success || capturedUri == null) return
-
-        scope.launch {
-            val localPath = context.copyUriToPrivateDir(
-                capturedUri,
-                MediaType.Image
-            ) ?: return@launch
-            val resource = prepareMediaResource(context, capturedUri) ?: return@launch
-
-            val content = MessageContent.Image(
-                localPath = localPath,
-                mimeType = resource.mimeType,
-                filename = resource.filename,
-                width = resource.width,
-                height = resource.height,
-                size = resource.size
-            )
-            onSendMessage(content, null)
-        }
+    fun handleCameraCapture(uri: Uri, isImage: Boolean) {
+        scope.launch { processAndSend(uri, isImage) }
     }
 
-    /**
-     * 处理系统相机录像结果
-     */
-    fun handleSystemVideoCapture(success: Boolean, capturedUri: Uri?) {
-        if (!success || capturedUri == null) return
+    fun handleSystemPictureCapture(success: Boolean, uri: Uri?) {
+        if (success && uri != null) handleCameraCapture(uri, true)
+    }
 
-        scope.launch {
-            val localPath = context.copyUriToPrivateDir(
-                capturedUri,
-                MediaType.Video
-            ) ?: return@launch
-            val resource = prepareMediaResource(context, capturedUri) ?: return@launch
-
-            val content = MessageContent.Video(
-                localPath = localPath,
-                mimeType = resource.mimeType,
-                filename = resource.filename,
-                width = resource.width,
-                height = resource.height,
-                duration = resource.duration,
-                size = resource.size
-            )
-            onSendMessage(content, null)
-        }
+    fun handleSystemVideoCapture(success: Boolean, uri: Uri?) {
+        if (success && uri != null) handleCameraCapture(uri, false)
     }
 }
 
@@ -189,12 +132,19 @@ fun rememberMediaLaunchers(
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
 
     // 媒体选择器
-    val mediaPicker = rememberPickMediasLauncher { items ->
+    val launchMediaPicker = rememberPickMediasLauncher { items ->
         mediaHandler.handleMediaSelection(items)
     }
 
+    // 系统媒体选择器
+    val launchSystemMediaPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia()
+    ) { mediaUris: List<Uri> ->
+        mediaHandler.handleMediaSelection(mediaUris)
+    }
+
     // 相机启动器
-    val camera = rememberCameraLauncher { uri, mediaType ->
+    val launchCamera = rememberCameraLauncher { uri, mediaType ->
         mediaHandler.handleCameraCapture(uri, mediaType.isImage)
     }
 
@@ -212,10 +162,11 @@ fun rememberMediaLaunchers(
         mediaHandler.handleSystemVideoCapture(success, capturedUri)
     }
 
-    return remember(mediaPicker, camera, takePicture, captureVideo) {
+    return remember(launchMediaPicker, launchCamera, takePicture, captureVideo) {
         MediaLaunchers(
-            mediaPicker = mediaPicker,
-            camera = camera,
+            launchMediaPicker = launchMediaPicker,
+            launchSystemMediaPicker = launchSystemMediaPicker,
+            launchCamera = launchCamera,
             takePicture = takePicture,
             captureVideo = captureVideo,
             capturedUri = { capturedUri },
@@ -228,8 +179,9 @@ fun rememberMediaLaunchers(
  * 媒体启动器集合
  */
 data class MediaLaunchers(
-    val mediaPicker: (VisualMediaType, Int) -> Unit,
-    val camera: (VisualMediaType) -> Unit,
+    val launchMediaPicker: (VisualMediaType, Int) -> Unit,
+    val launchSystemMediaPicker: ManagedActivityResultLauncher<PickVisualMediaRequest, List<Uri>>,
+    val launchCamera: (VisualMediaType) -> Unit,
     val takePicture: ManagedActivityResultLauncher<Uri, Boolean>,
     val captureVideo: ManagedActivityResultLauncher<Uri, Boolean>,
     val capturedUri: () -> Uri?,

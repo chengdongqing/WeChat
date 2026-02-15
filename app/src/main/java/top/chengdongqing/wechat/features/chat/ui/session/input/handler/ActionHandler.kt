@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.features.chat.ui.session.input.handler
 
 import android.content.Context
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -48,7 +50,7 @@ class ActionHandler(
      */
     fun handleAction(action: MoreAction, isLongClick: Boolean) {
         when (action) {
-            MoreAction.Album -> handleAlbum()
+            MoreAction.Album -> handleAlbum(isLongClick)
             MoreAction.Camera -> handleCamera(isLongClick)
             MoreAction.VideoCall -> handleVideoCall()
             MoreAction.Location -> handleLocation()
@@ -63,8 +65,21 @@ class ActionHandler(
     /**
      * 处理相册
      */
-    private fun handleAlbum() {
-        mediaLaunchers.mediaPicker(VisualMediaType.ImageAndVideo, 9)
+    private fun handleAlbum(isLongClick: Boolean, maxItems: Int = 9) {
+        if (isLongClick) {
+            // 长按：打开系统图库
+            scope.launch {
+                mediaLaunchers.launchSystemMediaPicker.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageAndVideo,
+                        maxItems
+                    )
+                )
+            }
+        } else {
+            // 短按：打开内置图库
+            mediaLaunchers.launchMediaPicker(VisualMediaType.ImageAndVideo, maxItems)
+        }
     }
 
     /**
@@ -84,7 +99,7 @@ class ActionHandler(
             }
         } else {
             // 短按：打开内置相机
-            mediaLaunchers.camera(VisualMediaType.ImageAndVideo)
+            mediaLaunchers.launchCamera(VisualMediaType.ImageAndVideo)
         }
     }
 

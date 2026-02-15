@@ -47,6 +47,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 import top.chengdongqing.wechat.features.chat.ui.session.LocalMediaContext
+import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -56,7 +57,8 @@ fun MediaContent(message: ChatMessage) {
     val content = message.content as MessageContent.Media
 
     val (mediaItems, currentIndex) = rememberMediaList(content)
-    if (currentIndex == -1) return
+    // 防止数组越界
+    if (currentIndex == -1 || currentIndex > mediaItems.size - 1) return
 
     Box(
         modifier = Modifier
@@ -178,7 +180,7 @@ private fun rememberMediaList(content: MessageContent.Media): Pair<List<MediaIte
 }
 
 private fun MessageContent.Media.toMediaItem() = MediaItem(
-    uri = localPath.toUri(),
+    uri = File(localPath).toUri(),
     filename = filename,
     mediaType = if (this is MessageContent.Video) MediaType.Video else MediaType.Image,
     mimeType = mimeType,
