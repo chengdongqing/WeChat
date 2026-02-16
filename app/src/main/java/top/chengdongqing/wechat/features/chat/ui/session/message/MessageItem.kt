@@ -25,7 +25,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
-import top.chengdongqing.wechat.features.chat.ui.session.LocalMediaContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
 
 @Composable
 fun MessageItem(
@@ -117,7 +117,7 @@ private fun StatusIndicator(message: ChatMessage) {
  */
 @Composable
 private fun FailedMessageHint(message: ChatMessage) {
-    val mediaContext = LocalMediaContext.current
+    val chatContext = LocalChatContext.current
 
     Row(
         modifier = Modifier
@@ -137,7 +137,7 @@ private fun FailedMessageHint(message: ChatMessage) {
             color = LinkColor,
             fontSize = 13.sp,
             modifier = Modifier.weClickable {
-                mediaContext?.onRetrySend(message.id)
+                chatContext?.onRetrySend(message.id)
             }
         )
     }

@@ -46,7 +46,7 @@ import top.chengdongqing.wechat.core.util.toPercent
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
-import top.chengdongqing.wechat.features.chat.ui.session.LocalMediaContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -169,12 +169,12 @@ private fun BoxScope.VideoOverlay(
 
 @Composable
 private fun rememberMediaList(content: MessageContent.Media): Pair<List<MediaItem>, Int> {
-    val mediaContext = LocalMediaContext.current
+    val chatContext = LocalChatContext.current
 
-    return remember(content, mediaContext) {
-        val items = mediaContext?.allMedia?.map { it.toMediaItem() }
+    return remember(content, chatContext) {
+        val items = chatContext?.mediaList?.map { it.toMediaItem() }
             ?: listOf(content.toMediaItem())
-        val index = mediaContext?.getIndexOf(content) ?: 0
+        val index = chatContext?.getMediaIndexOf(content) ?: 0
         items to index
     }
 }

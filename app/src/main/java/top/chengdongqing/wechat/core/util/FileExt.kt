@@ -47,6 +47,28 @@ fun Context.getFileProviderUri(file: File): Uri {
     return FileProvider.getUriForFile(this, "$packageName.provider", file)
 }
 
+/**
+ * 打开文件
+ */
+fun Context.openFile(file: File, mimeType: String, showChooser: Boolean = true) {
+    val uri = getFileProviderUri(file)
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, mimeType)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    val finalIntent = if (showChooser) {
+        Intent.createChooser(intent, "打开文件").apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    } else {
+        intent
+    }
+
+    startActivity(finalIntent)
+}
+
 val String.asAssetPath: String
     get() = "file:///android_asset/$this"
 

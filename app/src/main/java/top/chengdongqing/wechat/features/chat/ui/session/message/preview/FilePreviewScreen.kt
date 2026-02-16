@@ -1,0 +1,125 @@
+package top.chengdongqing.wechat.features.chat.ui.session.message.preview
+
+import android.text.format.Formatter.formatFileSize
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
+import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
+import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
+import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+
+@Composable
+fun FilePreviewScreen(
+    messageId: String, onBack: () -> Unit,
+    viewModel: FilePreviewViewModel = hiltViewModel { factory: FilePreviewViewModel.Factory ->
+        factory.create(messageId)
+    }
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val toast = rememberToastState()
+
+    LaunchedEffect(uiState.saveSuccess) {
+        if (uiState.saveSuccess) {
+            toast.show(title = "保存成功", icon = ToastIcon.Success)
+            viewModel.resetSaveSuccess()
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            toast.show(title = it, icon = ToastIcon.Fail)
+            viewModel.clearError()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            WeTopBar(onBack = onBack)
+        },
+        containerColor = WeTheme.colorScheme.background
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(vertical = 80.dp, horizontal = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_file_filled),
+                    contentDescription = null,
+                    modifier = Modifier.size(68.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = uiState.filename,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = WeTheme.colorScheme.textPrimary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(18.dp))
+                Text(
+                    text = "文件大小：" + formatFileSize(context, uiState.fileSize),
+                    color = WeTheme.colorScheme.textPrimary,
+                    fontSize = 17.sp
+                )
+
+                if (!uiState.fileExists) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "文件不存在或已被清理",
+                        color = WeTheme.colorScheme.textSecondary,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 60.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                WeButton("打开", type = ButtonType.Plain, enabled = uiState.fileExists) {
+                    viewModel.openFile()
+                }
+                WeButton("保存", loading = uiState.isSaving) {
+                    viewModel.saveToDownloads()
+                }
+            }
+        }
+    }
+}

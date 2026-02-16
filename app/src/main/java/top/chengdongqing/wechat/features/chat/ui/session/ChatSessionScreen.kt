@@ -43,6 +43,7 @@ fun ChatSessionScreen(
     chatId: String,
     onBack: () -> Unit,
     onNavigateToInfo: () -> Unit,
+    onNavigateToFilePreview: (messageId: String) -> Unit,
     viewModel: ChatSessionViewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
         factory.create(chatId)
     }
@@ -75,10 +76,13 @@ fun ChatSessionScreen(
         onLoadMore = { viewModel.loadMore() }
     )
 
-    // 媒体上下文
-    val mediaContext = rememberMediaContext(viewModel)
+    // 上下文
+    val chatContext = rememberChatContext(
+        viewModel = viewModel,
+        onPreviewFile = onNavigateToFilePreview
+    )
 
-    CompositionLocalProvider(LocalMediaContext provides mediaContext) {
+    CompositionLocalProvider(LocalChatContext provides chatContext) {
         Scaffold(
             topBar = {
                 ChatSessionTopBar(
@@ -146,7 +150,10 @@ private fun ChatSessionTopBar(title: String, onBack: () -> Unit, onNavigateToInf
 }
 
 @Composable
-private fun rememberMediaContext(viewModel: ChatSessionViewModel): MediaContext {
+private fun rememberChatContext(
+    viewModel: ChatSessionViewModel,
+    onPreviewFile: (messageId: String) -> Unit
+): ChatContext {
     val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
 
@@ -158,27 +165,29 @@ private fun rememberMediaContext(viewModel: ChatSessionViewModel): MediaContext 
     }
 
     return remember(mediaList, playingMessageId) {
-        MediaContext(
-            allMedia = mediaList,
-            getIndexOf = { content -> mediaList.indexOf(content) },
-            playingMessageId = playingMessageId,
+        ChatContext(
+            mediaList = mediaList,
+            getMediaIndexOf = { content -> mediaList.indexOf(content) },
+            playingVoiceId = playingMessageId,
             onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
             onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() },
-            onRetrySend = { viewModel.retrySend(it) }
+            onRetrySend = { viewModel.retrySend(it) },
+            onPreviewFile = { onPreviewFile(it) }
         )
     }
 }
 
 /**
- * 媒体上下文数据类
+ * 上下文定义
  */
-data class MediaContext(
-    val allMedia: List<MessageContent.Media>,
-    val getIndexOf: (MessageContent.Media) -> Int,
-    val playingMessageId: String?,
+data class ChatContext(
+    val mediaList: List<MessageContent.Media>,
+    val getMediaIndexOf: (MessageContent.Media) -> Int,
+    val playingVoiceId: String?,
     val onVoiceToggle: (messageId: String, localPath: String) -> Unit,
     val onVoiceStop: () -> Unit,
-    val onRetrySend: (messageId: String) -> Unit
+    val onRetrySend: (messageId: String) -> Unit,
+    val onPreviewFile: (messageId: String) -> Unit
 )
 
-val LocalMediaContext = compositionLocalOf<MediaContext?> { null }
+val LocalChatContext = compositionLocalOf<ChatContext?> { null }

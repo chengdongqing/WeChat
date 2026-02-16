@@ -38,13 +38,13 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWid
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.LocalMediaContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
 
 @Composable
 fun VoiceContent(message: ChatMessage) {
     val isFromMe = message.isFromMe
     val content = message.content as MessageContent.Voice
-    val mediaContext = LocalMediaContext.current
+    val chatContext = LocalChatContext.current
 
     // 根据时长计算气泡宽度
     val currentFraction = remember(content.duration) {
@@ -55,8 +55,8 @@ fun VoiceContent(message: ChatMessage) {
     val targetWidth = rememberScreenFractionWidth(currentFraction)
 
     // 是否播放中
-    val isPlaying by remember(message.id, mediaContext?.playingMessageId) {
-        derivedStateOf { mediaContext?.playingMessageId == message.id }
+    val isPlaying by remember(message.id, chatContext?.playingVoiceId) {
+        derivedStateOf { chatContext?.playingVoiceId == message.id }
     }
 
     // 时长文本
@@ -69,7 +69,7 @@ fun VoiceContent(message: ChatMessage) {
             .width(targetWidth)
             .padding(10.dp)
             .weClickable {
-                mediaContext?.onVoiceToggle(message.id, content.localPath)
+                chatContext?.onVoiceToggle(message.id, content.localPath)
             },
         horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically

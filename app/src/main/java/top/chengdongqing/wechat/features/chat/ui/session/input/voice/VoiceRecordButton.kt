@@ -33,7 +33,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.features.chat.ui.session.LocalMediaContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
 
 /**
  * 语音录制按钮
@@ -51,7 +51,7 @@ fun VoiceRecordButton(
     minDuration: Long = 1000,
     maxDuration: Long = 60000
 ) {
-    val mediaContext = LocalMediaContext.current
+    val chatContext = LocalChatContext.current
     val context = LocalContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -107,7 +107,7 @@ fun VoiceRecordButton(
                         // 申请焦点，暂停其他App的音频播放
                         focusManager.requestFocus()
                         // 停止当前播放的语音
-                        mediaContext?.onVoiceStop?.invoke()
+                        chatContext?.onVoiceStop?.invoke()
 
                         startRecording(audioRecorder) { success ->
                             if (success) {

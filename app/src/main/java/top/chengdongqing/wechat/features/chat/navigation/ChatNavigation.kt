@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import top.chengdongqing.wechat.features.chat.ui.info.ChatInfoScreen
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionScreen
+import top.chengdongqing.wechat.features.chat.ui.session.message.preview.FilePreviewScreen
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 
 sealed class ChatRoute(val route: String) {
@@ -20,6 +21,12 @@ sealed class ChatRoute(val route: String) {
         const val ARG_CHAT_ID = "chatId"
 
         fun createRoute(chatId: String) = "chats/${chatId}/info"
+    }
+
+    object FilePreview : ChatRoute("chats/{chatId}/{messageId}/file") {
+        const val ARG_MESSAGE_ID = "messageId"
+
+        fun createRoute(messageId: String) = "chats/{chatId}/${messageId}/file"
     }
 }
 
@@ -36,6 +43,9 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
             onBack = onBack,
             onNavigateToInfo = {
                 navController.navigate(ChatRoute.ChatInfo.createRoute(chatId))
+            },
+            onNavigateToFilePreview = { id ->
+                navController.navigate(ChatRoute.FilePreview.createRoute(id))
             }
         )
     }
@@ -52,6 +62,20 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
             onNavigateToContact = { id ->
                 navController.navigate(ContactsRoute.Detail.createRoute(id))
             }
+        )
+    }
+
+    composable(
+        route = ChatRoute.FilePreview.route,
+        arguments = listOf(
+            navArgument(ChatRoute.FilePreview.ARG_MESSAGE_ID) { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val messageId = backStackEntry.arguments
+            ?.getString(ChatRoute.FilePreview.ARG_MESSAGE_ID) ?: ""
+        FilePreviewScreen(
+            messageId = messageId,
+            onBack = onBack
         )
     }
 }
