@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
+import top.chengdongqing.wechat.data.network.service.modules.CallModule
 import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
 import top.chengdongqing.wechat.data.notification.NotificationHelper
@@ -28,11 +29,11 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 /**
- * P2P 通信服务
+ * 统一服务管理
  *
- * 统一管理：
  * 1. BLE 模块 - 好友添加
  * 2. Chat 模块 - 消息收发
+ * 3. Call 模块 - 通话管理
  */
 @AndroidEntryPoint
 class P2PService : Service() {
@@ -42,6 +43,9 @@ class P2PService : Service() {
 
     @Inject
     lateinit var chatModule: ChatModule
+
+    @Inject
+    lateinit var callModule: CallModule
 
     @Inject
     lateinit var profileRepository: ProfileRepository
@@ -107,6 +111,9 @@ class P2PService : Service() {
             // ✅ 启动聊天模块（消息收发）
             chatModule.start(myProfile.id, serviceScope)
 
+            // ✅ 启动通话模块（视频/语音通话）
+            callModule.start(myProfile.id, serviceScope)
+
             // ✅ 监听好友请求事件
             serviceScope.launch {
                 bleModule.friendRequestEvents.collect { event ->
@@ -134,6 +141,7 @@ class P2PService : Service() {
     private fun stopAllServices() {
         bleModule.stop()
         chatModule.stop()
+        callModule.stop()
     }
 
     // ==================== 事件处理 ====================

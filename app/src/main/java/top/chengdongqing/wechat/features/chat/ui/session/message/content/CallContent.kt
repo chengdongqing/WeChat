@@ -47,7 +47,7 @@ fun CallContent(message: ChatMessage) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(if (isVideoCall) R.drawable.ic_video_call_outlined else R.drawable.ic_voice_call_outlined),
+                painter = painterResource(if (isVideoCall) R.drawable.ic_video_call_outlined else R.drawable.ic_hangup_outlined),
                 contentDescription = content.type.label,
                 Modifier
                     .size(22.dp)

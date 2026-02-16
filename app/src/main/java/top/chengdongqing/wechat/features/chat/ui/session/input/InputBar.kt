@@ -35,6 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.Emoj
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
+import top.chengdongqing.wechat.features.chat.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon
@@ -66,7 +67,8 @@ import top.chengdongqing.wechat.features.chat.ui.session.util.ScrollToDismissEff
 fun InputBar(
     listState: LazyListState,
     isSending: Boolean,
-    onSendMessage: (MessageContent, onSent: (() -> Unit)?) -> Unit
+    onSendMessage: (MessageContent, onSent: (() -> Unit)?) -> Unit,
+    onNavigateToCall: (type: CallType) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -93,7 +95,8 @@ fun InputBar(
         mediaHandler = mediaHandler,
         locationHandler = locationHandler,
         fileHandler = fileHandler,
-        onSendMessage = onSendMessage
+        onSendMessage = onSendMessage,
+        onNavigateToCall = onNavigateToCall
     )
 
     // 对话框状态

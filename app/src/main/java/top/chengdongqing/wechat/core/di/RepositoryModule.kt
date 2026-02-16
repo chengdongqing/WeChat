@@ -57,4 +57,8 @@ interface RepositoryModule {
     fun bindMessageRepository(
         impl: MessageRepositoryImpl
     ): MessageRepository
+
+//    @Binds
+//    @Singleton
+//    fun bindCallRepository(impl: CallRepositoryImpl): CallRepository
 }

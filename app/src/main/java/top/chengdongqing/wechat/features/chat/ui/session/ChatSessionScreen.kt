@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +30,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreTyp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.features.call.ui.startCall
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.TimeDivider
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBar
@@ -51,8 +53,9 @@ fun ChatSessionScreen(
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val listState = rememberLazyListState()
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
 
     // 键盘和数据更新时的自动滚动
@@ -92,17 +95,27 @@ fun ChatSessionScreen(
                 )
             },
             bottomBar = {
-                InputBar(listState = listState, isSending = uiState.isSending) { content, onSent ->
-                    viewModel.sendMessage(content) {
-                        scope.launch {
-                            delay(100)
-                            listState.animateScrollToItem(0)
-                            delay(100)
-                            onSent?.invoke()
-                            viewModel.finishSending()
+                InputBar(
+                    listState = listState,
+                    isSending = uiState.isSending,
+                    onSendMessage = { content, onSent ->
+                        viewModel.sendMessage(content) {
+                            scope.launch {
+                                delay(100)
+                                listState.animateScrollToItem(0)
+                                delay(100)
+                                onSent?.invoke()
+                                viewModel.finishSending()
+                            }
                         }
+                    },
+                    onNavigateToCall = { callType ->
+                        context.startCall(
+                            chatId,
+                            callType
+                        )
                     }
-                }
+                )
             }
         ) { innerPadding ->
             LazyColumn(

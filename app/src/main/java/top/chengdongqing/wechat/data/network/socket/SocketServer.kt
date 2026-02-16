@@ -155,10 +155,10 @@ class SocketServer @Inject constructor(
                 Log.w(TAG, "握手包类型错误: ${packet.type}")
                 return null
             }
-            val heartbeat = json.decodeFromString<ChatProtocol.Heartbeat>(
+            val handshake = json.decodeFromString<ChatProtocol.Handshake>(
                 String(packet.body, Charsets.UTF_8)
             )
-            heartbeat.senderId
+            handshake.senderId
         } catch (e: Exception) {
             Log.e(TAG, "握手解析异常", e)
             null

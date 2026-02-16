@@ -21,14 +21,9 @@ import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualM
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.createMediaUri
 import top.chengdongqing.wechat.core.util.randomUUID
-import top.chengdongqing.wechat.features.call.startCall
-import top.chengdongqing.wechat.features.chat.domain.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 
 /**
  * 动作处理器
@@ -42,7 +37,8 @@ class ActionHandler(
     private val actionSheet: ActionSheetState,
     private val locationLauncher: LocationLauncher,
     private val fileLauncher: FileLauncher,
-    private val onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
+    private val onSendMessage: (MessageContent, (() -> Unit)?) -> Unit,
+    private val onNavigateToCall: (type: CallType) -> Unit
 ) {
     fun onSendMessage(content: MessageContent) = onSendMessage(content, null)
 
@@ -121,24 +117,15 @@ class ActionHandler(
     }
 
     /**
-     * 处理视频通话
+     * 处理视频/语音通话
      */
     private fun handleVideoCall() {
         actionSheet.show(CallOptions) { index ->
-            // 发送通话消息
-            val content = MessageContent.Call(
-                type = if (index == 0) CallType.Video else CallType.Voice,
-                status = CallStatus.Connected,
-                duration = (3.minutes + 26.seconds).toLong(DurationUnit.MILLISECONDS)
-            )
-            onSendMessage(content)
-
-            // 启动通话界面
-            context.startCall(
-                callType = if (index == 0) CallType.Video else CallType.Voice,
-                userId = randomUUID(),
-                userName = "海盐芝士不加糖"
-            )
+            val callType = when (index) {
+                0 -> CallType.Video
+                else -> CallType.Voice
+            }
+            onNavigateToCall(callType)
         }
     }
 
@@ -217,7 +204,7 @@ class ActionHandler(
             }),
             ActionSheetItem("语音通话", icon = {
                 Icon(
-                    painter = painterResource(R.drawable.ic_voice_call_filled),
+                    painter = painterResource(R.drawable.ic_call_filled),
                     contentDescription = null,
                     tint = WeTheme.colorScheme.textPrimary,
                     modifier = Modifier.size(18.dp)
@@ -241,7 +228,8 @@ fun rememberActionHandler(
     mediaHandler: MediaHandler,
     locationHandler: LocationHandler,
     fileHandler: FileHandler,
-    onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
+    onSendMessage: (MessageContent, (() -> Unit)?) -> Unit,
+    onNavigateToCall: (type: CallType) -> Unit
 ): ActionHandler {
     val scope = rememberCoroutineScope()
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)
@@ -257,7 +245,8 @@ fun rememberActionHandler(
             actionSheet = actionSheet,
             locationLauncher = locationLauncher,
             fileLauncher = fileLauncher,
-            onSendMessage = onSendMessage
+            onSendMessage = onSendMessage,
+            onNavigateToCall = onNavigateToCall
         )
     }
 }

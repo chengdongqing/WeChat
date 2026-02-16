@@ -37,6 +37,7 @@
     <uses-permission
         android:name="android.permission.REQUEST_INSTALL_PACKAGES"
         tools:ignore="RequestInstallPackagesPolicy" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <queries>
         <intent>
@@ -105,7 +106,9 @@
             android:name=".core.designsystem.components.location.picker.LocationPickerActivity"
             android:theme="@style/Theme.WeChat" />
         <activity
-            android:name=".features.call.CallActivity"
+            android:name=".features.call.ui.CallActivity"
+            android:launchMode="singleTask"
+            android:showOnLockScreen="true"
             android:theme="@style/Theme.WeChat" />
 
         <service

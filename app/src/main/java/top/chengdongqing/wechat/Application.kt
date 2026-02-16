@@ -11,9 +11,6 @@ class WeApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // 清理之前产生的缓存
-//        clearAllCache()
-
         // 启动P2P服务
         Intent(this, P2PService::class.java).also { intent ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -172,7 +172,7 @@ class SocketManager @Inject constructor(
 
     private fun sendHandshake(connection: SocketConnection, myUserId: String) {
         val body = json.encodeToString<ChatProtocol>(
-            ChatProtocol.Heartbeat(senderId = myUserId)
+            ChatProtocol.Handshake(senderId = myUserId)
         ).toByteArray(Charsets.UTF_8)
 
         connection.writer.write(Packet(PacketType.HANDSHAKE, body))

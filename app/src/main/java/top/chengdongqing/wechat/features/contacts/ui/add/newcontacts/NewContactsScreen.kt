@@ -111,7 +111,7 @@ fun NewContactsScreen(
                 item {
                     MenuListItem(
                         label = "添加手机联系人",
-                        iconResId = R.drawable.ic_voice_call_filled,
+                        iconResId = R.drawable.ic_call_filled,
                         iconColor = WeTheme.colorScheme.primary
                     )
                 }

@@ -13,6 +13,7 @@ import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
+import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
@@ -33,6 +34,7 @@ class MessageDispatcher @Inject constructor(
     private val messageSender: MessageSender,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val fileManager: FileManager,
+    private val signalingManager: SignalingManager,
     private val json: Json
 ) {
     private companion object {
@@ -58,7 +60,7 @@ class MessageDispatcher @Inject constructor(
                 is ChatProtocol.MessageAck -> handleAck(protocol)
                 is ChatProtocol.MessageRead -> handleReadReceipt(protocol)
                 is ChatProtocol.Signaling -> handleSignaling(protocol)
-                is ChatProtocol.Heartbeat -> handleHeartbeat(protocol)
+                is ChatProtocol.Handshake -> handleHeartbeat(protocol)
                 else -> {}
             }
         }.onFailure { Log.e(TAG, "分发失败: ${protocol::class.simpleName}", it) }
@@ -115,10 +117,11 @@ class MessageDispatcher @Inject constructor(
             .onFailure { Log.e(TAG, "已读更新失败: ${protocol.messageId}", it) }
     }
 
-    private suspend fun handleSignaling(protocol: ChatProtocol.Signaling) { /* TODO */
+    private suspend fun handleSignaling(protocol: ChatProtocol.Signaling) {
+        signalingManager.onSignalingReceived(protocol)
     }
 
-    private suspend fun handleHeartbeat(protocol: ChatProtocol.Heartbeat) {
+    private suspend fun handleHeartbeat(protocol: ChatProtocol.Handshake) {
         runCatching { connectionInfoDao.markOnline(protocol.senderId, protocol.timestamp) }
             .onFailure { Log.e(TAG, "心跳处理失败: ${protocol.senderId}", it) }
     }
