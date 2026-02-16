@@ -20,7 +20,7 @@ import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaTy
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
-import top.chengdongqing.wechat.core.util.prepareMediaResource
+import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import java.io.File
 
@@ -40,7 +40,7 @@ class MediaHandler(
      */
     private suspend fun processAndSend(uri: Uri, isImage: Boolean, mediaItem: MediaItem? = null) {
         // 获取元数据
-        val resource = prepareMediaResource(context, uri) ?: return
+        val resource = context.getFileMetadata(uri) ?: return
         val mediaType = if (isImage) MediaType.Image else MediaType.Video
 
         // 拷贝文件

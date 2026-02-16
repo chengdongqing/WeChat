@@ -178,9 +178,20 @@ suspend fun Context.saveToAlbum(media: MediaItem): Boolean = withContext(Dispatc
  * 保存媒体文件到相册
  */
 suspend fun Context.saveToAlbum(uri: Uri): Boolean {
-    val res = prepareMediaResource(this, uri) ?: return false
+    val res = getFileMetadata(uri) ?: return false
     return saveToAlbum(res.toMediaItem(uri))
 }
+
+fun FileMetadata.toMediaItem(uri: Uri): MediaItem =
+    MediaItem(
+        uri = uri,
+        filename = filename,
+        mediaType = if (isImage) MediaType.Image else MediaType.Video,
+        mimeType = mimeType,
+        width = width,
+        height = height,
+        duration = duration
+    )
 
 /**
  * 把 content:// Uri 复制到应用私有目录，返回真实路径
@@ -188,7 +199,7 @@ suspend fun Context.saveToAlbum(uri: Uri): Boolean {
  */
 suspend fun Context.copyUriToPrivateDir(
     uri: Uri,
-    mediaType: MediaType
+    mediaType: MediaType? = null
 ): String? = withContext(Dispatchers.IO) {
     try {
         val subDir = when (mediaType) {
@@ -196,6 +207,8 @@ suspend fun Context.copyUriToPrivateDir(
             MediaType.Video -> "videos"
             MediaType.Audio,
             MediaType.Recording -> "voices"
+
+            else -> "files"
         }
 
         val dir = File(filesDir, subDir).also { it.mkdirs() }

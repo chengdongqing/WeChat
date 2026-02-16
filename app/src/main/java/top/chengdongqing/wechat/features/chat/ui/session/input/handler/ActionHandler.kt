@@ -41,6 +41,7 @@ class ActionHandler(
     private val mediaLaunchers: MediaLaunchers,
     private val actionSheet: ActionSheetState,
     private val locationLauncher: LocationLauncher,
+    private val fileLauncher: FileLauncher,
     private val onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
 ) {
     fun onSendMessage(content: MessageContent) = onSendMessage(content, null)
@@ -164,13 +165,7 @@ class ActionHandler(
      * 处理文件
      */
     private fun handleFile() {
-        val content = MessageContent.File(
-            filename = "extra_data.b",
-            size = (6.9 * 1024 * 1024).toLong(),
-            mimeType = "file",
-            localPath = ""
-        )
-        onSendMessage(content)
+        fileLauncher.pickFile()
     }
 
     /**
@@ -245,11 +240,13 @@ fun rememberActionHandler(
     context: Context,
     mediaHandler: MediaHandler,
     locationHandler: LocationHandler,
+    fileHandler: FileHandler,
     onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
 ): ActionHandler {
     val scope = rememberCoroutineScope()
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)
     val locationLauncher = rememberLocationLauncher(locationHandler)
+    val fileLauncher = rememberFileLauncher(fileHandler)
     val actionSheet = rememberActionSheetState()
 
     return remember(context, mediaLaunchers) {
@@ -259,6 +256,7 @@ fun rememberActionHandler(
             mediaLaunchers = mediaLaunchers,
             actionSheet = actionSheet,
             locationLauncher = locationLauncher,
+            fileLauncher = fileLauncher,
             onSendMessage = onSendMessage
         )
     }

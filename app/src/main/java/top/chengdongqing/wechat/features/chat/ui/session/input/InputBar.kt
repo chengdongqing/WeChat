@@ -40,6 +40,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.ActionHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberActionHandler
+import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberFileHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberLocationHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberMediaHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.InputPanelHolder
@@ -83,12 +84,14 @@ fun InputBar(
         onModeSwitch = { controller.dismissAll() }
     )
     val locationHandler = rememberLocationHandler(onSendMessage)
+    val fileHandler = rememberFileHandler(onSendMessage)
 
     // 更多操作处理器
     val actionHandler = rememberActionHandler(
         context = context,
         mediaHandler = mediaHandler,
         locationHandler = locationHandler,
+        fileHandler = fileHandler,
         onSendMessage = onSendMessage
     )
 

@@ -98,7 +98,12 @@ private fun Avatar(localPath: String?) {
 @Composable
 private fun StatusIndicator(message: ChatMessage) {
     when {
-        message.isSending -> WeLoading()
+        message.isSending -> {
+            if (message.content.showLoading) {
+                WeLoading()
+            }
+        }
+
         message.isFailed -> Image(
             painter = painterResource(R.drawable.ic_error_circle_filled),
             contentDescription = "错误",

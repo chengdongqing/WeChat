@@ -53,6 +53,7 @@ data class ChatMessage(
 sealed class MessageContent(
     val showUnreadDot: Boolean = false,
     val showBubbleArrow: Boolean = true,
+    val showLoading: Boolean = true,
     val isSameBackground: Boolean = false
 ) {
     data class Text(val text: String) : MessageContent()
@@ -75,7 +76,7 @@ sealed class MessageContent(
         open val width: Int,
         open val height: Int,
         open val size: Long
-    ) : MessageContent(showBubbleArrow = false) {
+    ) : MessageContent(showBubbleArrow = false, showLoading = false) {
         val ratio: Float
             get() = width.toFloat() / height.toFloat()
     }
@@ -118,7 +119,7 @@ sealed class MessageContent(
         val mimeType: String,
         val filename: String,
         val size: Long
-    ) : MessageContent(isSameBackground = true)
+    ) : MessageContent(showLoading = false, isSameBackground = true)
 
     data class ContactCard(
         val userId: String,

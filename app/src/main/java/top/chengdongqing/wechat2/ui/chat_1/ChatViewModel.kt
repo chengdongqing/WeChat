@@ -3,7 +3,6 @@ package top.chengdongqing.wechat2.ui.chat_1
 import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -11,8 +10,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.util.prepareMediaResource
-import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat2.core.util.IdManager
 import top.chengdongqing.wechat2.core.util.getDeviceName
 import top.chengdongqing.wechat2.data.model_1.ChatPayload
@@ -103,25 +100,25 @@ class ChatViewModel(
      * 发送媒体信息
      */
     fun sendMedia(peer: P2PPeer, uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
-            // 获取媒体文件信息
-            val mediaResource = prepareMediaResource(application, uri) ?: return@launch
-            val payload = ChatPayload.Media(
-                fileId = randomUUID(),
-                fileName = mediaResource.filename,
-                mimeType = mediaResource.mimeType,
-                size = mediaResource.size,
-                localPath = mediaResource.file.absolutePath,
-                thumbBase64 = mediaResource.thumbBase64
-            )
-            val envelope = MessageEnvelope(
-                senderId = deviceId,
-                senderName = deviceName,
-                payload = payload
-            )
-
-            repository.sendMedia(peer, envelope, mediaResource.file)
-        }
+//        viewModelScope.launch(Dispatchers.IO) {
+//            // 获取媒体文件信息
+//            val mediaResource = application.getFileMetadata(uri) ?: return@launch
+//            val payload = ChatPayload.Media(
+//                fileId = randomUUID(),
+//                fileName = mediaResource.filename,
+//                mimeType = mediaResource.mimeType,
+//                size = mediaResource.size,
+//                localPath = mediaResource.file.absolutePath,
+//                thumbBase64 = mediaResource.thumbBase64
+//            )
+//            val envelope = MessageEnvelope(
+//                senderId = deviceId,
+//                senderName = deviceName,
+//                payload = payload
+//            )
+//
+//            repository.sendMedia(peer, envelope, mediaResource.file)
+//        }
     }
 
     /**

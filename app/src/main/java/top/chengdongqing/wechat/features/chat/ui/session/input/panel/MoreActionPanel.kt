@@ -37,7 +37,7 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 
 @Composable
-fun MoreActionPanel(onAction: (actionId: MoreAction, isLongClick: Boolean) -> Unit) {
+fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit) {
     val pages = remember { MoreAction.entries.chunked(ChunkCount) }
     val pagerState = rememberPagerState { pages.size }
     val overscrollEffect = rememberBounceOverscrollEffect(Orientation.Horizontal)
@@ -76,7 +76,7 @@ fun MoreActionPanel(onAction: (actionId: MoreAction, isLongClick: Boolean) -> Un
 @Composable
 private fun MorePanelGrid(
     items: List<MoreAction>,
-    onAction: (actionId: MoreAction, isLongClick: Boolean) -> Unit
+    onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
 ) {
     FlowRow(
         modifier = Modifier

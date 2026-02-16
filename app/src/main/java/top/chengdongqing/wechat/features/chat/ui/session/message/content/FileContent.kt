@@ -4,6 +4,7 @@ import android.text.format.Formatter.formatFileSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,21 +12,29 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 
 @Composable
-fun FileContent(content: MessageContent.File) {
+fun FileContent(message: ChatMessage) {
     val context = LocalContext.current
+    val content = message.content as MessageContent.File
 
     Row(
         modifier = Modifier
@@ -47,11 +56,47 @@ fun FileContent(content: MessageContent.File) {
                 fontSize = 12.sp
             )
         }
+
         Spacer(modifier = Modifier.width(12.dp))
-        Image(
-            painter = painterResource(id = R.drawable.ic_file_filled),
-            contentDescription = null,
-            modifier = Modifier.size(48.dp)
+
+        Box(contentAlignment = Alignment.Center) {
+            Image(
+                painter = painterResource(if (message.isSending) R.drawable.ic_file_placeholder_filled else R.drawable.ic_file_filled),
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+
+            if (message.isSending) {
+                ControlWithProgress(message)
+            }
+        }
+    }
+}
+
+@Composable
+fun ControlWithProgress(message: ChatMessage) {
+    Box(
+        modifier = Modifier
+            .size(26.dp)
+            .clip(CircleShape)
+            .clickable { },
+        contentAlignment = Alignment.Center
+    ) {
+        WeCircleProgress(
+            percent = message.sendProgress * 100,
+            size = 24.dp,
+            strokeWidth = 2.dp,
+            trackColor = Color.LightGray.copy(alpha = 0.8f),
+            indicatorColor = Color.Gray,
+            formatter = null
+        )
+        val icon = if (message.sendStatus is MessageSendStatus.Paused)
+            R.drawable.ic_play_filled else R.drawable.ic_pause_filled
+        Icon(
+            painterResource(icon),
+            null,
+            tint = Color.Gray,
+            modifier = Modifier.size(14.dp)
         )
     }
 }

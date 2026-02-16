@@ -31,7 +31,7 @@ fun InputPanelHolder(
     onEmojiSelect: (Emoji) -> Unit,
     onStickerSelect: ((MessageContent.Sticker) -> Unit)? = null,
     onBackspace: () -> Unit,
-    onMoreAction: ((actionId: MoreAction, isLongClick: Boolean) -> Unit)? = null
+    onMoreAction: ((action: MoreAction, isLongClick: Boolean) -> Unit)? = null
 ) {
     val keyboardHeight = rememberKeyboardHeight()
     var savedKeyboardHeight by rememberSaveable(stateSaver = DpSaver) {
