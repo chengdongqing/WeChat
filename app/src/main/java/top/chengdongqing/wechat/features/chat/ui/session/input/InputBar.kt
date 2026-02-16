@@ -45,6 +45,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberL
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberMediaHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.InputPanelHolder
 import top.chengdongqing.wechat.features.chat.ui.session.input.text.InputOverlay
+import top.chengdongqing.wechat.features.chat.ui.session.input.text.SpeechInputButton
 import top.chengdongqing.wechat.features.chat.ui.session.input.voice.VoiceRecordButton
 import top.chengdongqing.wechat.features.chat.ui.session.util.ScrollToDismissEffect
 
@@ -310,7 +311,17 @@ private fun InputFieldArea(
                 value = state.inputText,
                 focusRequester = controller.focusRequester,
                 onValueChange = controller::updateText,
-                onLineCountChange = controller::updateLineCount
+                onLineCountChange = controller::updateLineCount,
+                modifier = Modifier.padding(end = 12.dp)
+            )
+            // 语音输入按钮
+            SpeechInputButton(
+                onResult = { text ->
+                    controller.updateText(
+                        state.inputText.let { if (it.isNotEmpty()) "$it，" else it } + text
+                    )
+                },
+                modifier = Modifier.align(Alignment.BottomEnd)
             )
         }
     }
