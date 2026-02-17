@@ -68,7 +68,6 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.bundles.room)
-    implementation(libs.bundles.ktor)
     implementation(libs.bundles.coil)
     implementation(libs.coil.zoomable)
     implementation(libs.kotlinx.serialization.json)
