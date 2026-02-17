@@ -58,7 +58,7 @@ data class MenuItem(
 @Composable
 fun QuickActions(
     expanded: Boolean,
-    items: List<MenuItem>,
+    menus: List<MenuItem>,
     anchorPosition: Offset,
     anchorSize: IntSize,
     onDismiss: () -> Unit
@@ -128,33 +128,13 @@ fun QuickActions(
                     .drawMenuArrow()
                     .background(Grey_4C, RoundedCornerShape(4.dp))
             ) {
-                items.forEachIndexed { index, item ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(55.dp)
-                            .weClickableWithBg {
-                                item.onClick()
-                                onDismiss()
-                            }
-                            .padding(horizontal = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(item.iconResId),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = item.text,
-                            color = Color.White,
-                            fontSize = 16.sp
-                        )
+                menus.forEachIndexed { index, menu ->
+                    ActionItem(menu) {
+                        onDismiss()
+                        menu.onClick()
                     }
 
-                    if (index < items.lastIndex) {
+                    if (index < menus.lastIndex) {
                         WeDivider(
                             modifier = Modifier.padding(start = 56.dp),
                             color = Color(0xFF666666)
@@ -163,6 +143,31 @@ fun QuickActions(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ActionItem(menu: MenuItem, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(55.dp)
+            .weClickableWithBg(onClick = onClick)
+            .padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(menu.iconResId),
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = menu.text,
+            color = Color.White,
+            fontSize = 16.sp
+        )
     }
 }
 

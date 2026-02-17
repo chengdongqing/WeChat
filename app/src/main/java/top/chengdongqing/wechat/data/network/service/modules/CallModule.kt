@@ -14,7 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.features.call.data.CallState
+import top.chengdongqing.wechat.features.call.domain.model.CallState
 import top.chengdongqing.wechat.features.call.manager.CallAudioManager
 import top.chengdongqing.wechat.features.call.manager.CallManager
 import top.chengdongqing.wechat.features.call.ui.CallActivity

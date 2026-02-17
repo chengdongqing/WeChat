@@ -2,8 +2,8 @@ package top.chengdongqing.wechat.data.network.protocol
 
 import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.data.database.entity.MessageType
-import top.chengdongqing.wechat.features.call.data.HangupReason
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.HangupReason
 
 /**
  * 聊天消息协议
@@ -104,13 +104,6 @@ sealed class ChatProtocol {
         data class Busy(
             override val messageId: String,
             override val senderId: String,
-        ) : Signaling()
-
-        @Serializable
-        data class CallRequest(
-            override val messageId: String,
-            override val senderId: String,
-            val callType: CallType
         ) : Signaling()
     }
 

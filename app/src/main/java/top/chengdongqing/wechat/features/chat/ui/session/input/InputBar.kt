@@ -35,7 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.Emoj
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon

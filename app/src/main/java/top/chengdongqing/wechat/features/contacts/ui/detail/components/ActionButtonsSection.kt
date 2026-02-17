@@ -46,7 +46,7 @@ fun ActionButtonsSection(
                 if (contact.isFriend) {
                     WeDivider()
                     ContactActionButton(
-                        iconResId = R.drawable.ic_voice_video_call_outlined,
+                        iconResId = R.drawable.ic_voice_video_outlined,
                         text = "音视频通话",
                         onClick = { onAction(ContactAction.VoiceVideoCall) }
                     )

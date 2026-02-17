@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.features.call.ui
 
 import android.content.Context
 import android.content.Intent
-import android.media.AudioManager
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -11,26 +10,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 
-/**
- * 通话 Activity
- *
- * 两种启动模式:
- * 1. 主动发起: 带 peerId + callType 参数 → 自动拨打
- * 2. 被动来电: 无参数（从 CallModule 或通知启动） → 显示来电界面
- *
- * Manifest:
- * ```xml
- * <activity
- *     android:name=".features.call.ui.CallActivity"
- *     android:exported="false"
- *     android:launchMode="singleTask"
- *     android:showOnLockScreen="true"
- *     android:turnScreenOn="true"
- *     android:screenOrientation="portrait" />
- * ```
- */
 @AndroidEntryPoint
 class CallActivity : ComponentActivity() {
 
@@ -71,16 +52,8 @@ class CallActivity : ComponentActivity() {
     }
 
     private fun setupWindowFlags() {
-        // 设置音频流类型为通话
-        volumeControlStream = AudioManager.STREAM_VOICE_CALL
         // 保持屏幕常亮
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // 清理音频路由设置
-        volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
     }
 
     companion object {

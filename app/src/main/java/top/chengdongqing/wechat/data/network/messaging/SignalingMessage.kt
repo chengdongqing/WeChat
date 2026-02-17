@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.data.network.messaging
 
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 
 sealed class SignalingMessage {
     abstract val fromUserId: String

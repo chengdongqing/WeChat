@@ -7,8 +7,8 @@ import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
-import top.chengdongqing.wechat.features.chat.domain.model.CallStatus
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallStatus
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent

@@ -25,6 +25,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
 
 @Composable
@@ -118,6 +119,7 @@ private fun StatusIndicator(message: ChatMessage) {
 @Composable
 private fun FailedMessageHint(message: ChatMessage) {
     val chatContext = LocalChatContext.current
+    val canRetry = (message.sendStatus as MessageSendStatus.Failed).error.canRetry
 
     Row(
         modifier = Modifier
@@ -131,14 +133,16 @@ private fun FailedMessageHint(message: ChatMessage) {
             color = WeTheme.colorScheme.textSecondary,
             fontSize = 13.sp
         )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = "重试",
-            color = LinkColor,
-            fontSize = 13.sp,
-            modifier = Modifier.weClickable {
-                chatContext?.onRetrySend(message.id)
-            }
-        )
+        if (canRetry) {
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "重试",
+                color = LinkColor,
+                fontSize = 13.sp,
+                modifier = Modifier.weClickable {
+                    chatContext?.onRetrySend(message.id)
+                }
+            )
+        }
     }
 }

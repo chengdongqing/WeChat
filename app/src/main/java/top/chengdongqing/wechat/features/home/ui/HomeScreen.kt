@@ -238,7 +238,7 @@ private fun HomeTopBar(
 
             QuickActions(
                 expanded = menuExpanded,
-                items = menuItems,
+                menus = menuItems,
                 anchorPosition = anchorPosition,
                 anchorSize = anchorSize,
                 onDismiss = { menuExpanded = false }

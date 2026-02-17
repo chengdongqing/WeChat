@@ -18,11 +18,12 @@ import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.dao.ContactDao
+import top.chengdongqing.wechat.data.database.entity.toDomain
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.features.call.data.CallState
-import top.chengdongqing.wechat.features.call.data.CallUiState
-import top.chengdongqing.wechat.features.call.data.HangupReason
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallState
+import top.chengdongqing.wechat.features.call.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallUiState
+import top.chengdongqing.wechat.features.call.domain.model.HangupReason
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -45,6 +46,7 @@ import javax.inject.Singleton
 class CallManager @Inject constructor(
     private val signalingManager: SignalingManager,
     private val webRTCManager: WebRTCManager,
+    private val callAudioManager: CallAudioManager,
     private val contactDao: ContactDao
 ) {
     private companion object {
@@ -101,7 +103,8 @@ class CallManager @Inject constructor(
             callId = callId,
             peerId = peerId,
             peerName = peerName,
-            peerAvatar = peerAvatar
+            peerAvatar = peerAvatar,
+            isOutgoing = isOutgoing
         )
 
         scope.launch {
@@ -134,14 +137,17 @@ class CallManager @Inject constructor(
     fun accept() {
         if (_state.value.callState != CallState.Incoming) return
         cancelTimeout()
-        _state.update { it.copy(callState = CallState.Connecting) }
+        _state.update {
+            it.copy(callState = CallState.Connecting)
+        }
 
         scope.launch {
             try {
                 webRTCManager.startLocalMedia(_state.value.callType)
                 val answer = webRTCManager.createAnswer()
                 signalingManager.send(
-                    _state.value.peerId, ChatProtocol.Signaling.Answer(
+                    targetUserId = _state.value.peerId,
+                    message = ChatProtocol.Signaling.Answer(
                         messageId = _state.value.callId,
                         senderId = myUserId,
                         callType = _state.value.callType,
@@ -159,7 +165,8 @@ class CallManager @Inject constructor(
         if (_state.value.callState != CallState.Incoming) return
         scope.launch {
             signalingManager.send(
-                _state.value.peerId, ChatProtocol.Signaling.Hangup(
+                targetUserId = _state.value.peerId,
+                message = ChatProtocol.Signaling.Hangup(
                     messageId = _state.value.callId,
                     senderId = myUserId,
                     reason = HangupReason.Declined
@@ -174,7 +181,8 @@ class CallManager @Inject constructor(
         if (current.callState == CallState.Idle || current.callState == CallState.Ended) return
         scope.launch {
             signalingManager.send(
-                current.peerId, ChatProtocol.Signaling.Hangup(
+                targetUserId = current.peerId,
+                message = ChatProtocol.Signaling.Hangup(
                     messageId = current.callId,
                     senderId = myUserId,
                     reason = HangupReason.Normal
@@ -187,12 +195,12 @@ class CallManager @Inject constructor(
     // ==================== 通话中控制 ====================
 
     fun toggleMic() {
-        val wasMuted = !_state.value.isMicOn
         webRTCManager.toggleMute()
-        _state.update { it.copy(isMicOn = wasMuted) }
+        _state.update { it.copy(isMicOn = !it.isMicOn) }
     }
 
     fun toggleSpeaker() {
+        callAudioManager.toggleSpeaker()
         _state.update { it.copy(isSpeakerOn = !it.isSpeakerOn) }
     }
 
@@ -203,7 +211,7 @@ class CallManager @Inject constructor(
 
     fun toggleVideo() {
         webRTCManager.toggleVideo()
-        _state.update { it.copy(isVideoOff = !it.isVideoOff) }
+        _state.update { it.copy(isVideoOn = !it.isVideoOn) }
     }
 
     fun setLocalRenderer(renderer: SurfaceViewRenderer) = webRTCManager.setLocalRenderer(renderer)
@@ -219,15 +227,16 @@ class CallManager @Inject constructor(
             is ChatProtocol.Signaling.IceCandidate -> handleRemoteIce(message)
             is ChatProtocol.Signaling.Hangup -> handleHangup(message)
             is ChatProtocol.Signaling.Busy -> handleBusy(message)
-            else -> {}
         }
     }
 
     private suspend fun handleOffer(offer: ChatProtocol.Signaling.Offer) {
         if (_state.value.callState != CallState.Idle) {
             signalingManager.send(
-                offer.senderId, ChatProtocol.Signaling.Busy(
-                    messageId = offer.messageId, senderId = myUserId
+                targetUserId = offer.senderId,
+                message = ChatProtocol.Signaling.Busy(
+                    messageId = offer.messageId,
+                    senderId = myUserId
                 )
             )
             return
@@ -235,11 +244,11 @@ class CallManager @Inject constructor(
 
         isOutgoing = false
 
-        // ★ 查联系人信息（填充 peerName/peerAvatar）
+        // 查联系人信息
         val contact = withContext(Dispatchers.IO) {
-            contactDao.getById(offer.senderId)
+            contactDao.getById(offer.senderId)?.toDomain()
         }
-        val peerName = contact?.remarkName ?: contact?.nickname ?: offer.senderId
+        val peerName = contact?.displayName ?: offer.senderId
         val peerAvatar = contact?.avatarPath
 
         // 初始化 WebRTC
@@ -249,14 +258,15 @@ class CallManager @Inject constructor(
             SessionDescription(SessionDescription.Type.OFFER, offer.sdp)
         )
 
-        // ★ 更新状态为 Incoming（CallModule 监听到后会启动 CallActivity + 播放铃声）
+        // 更新状态为 Incoming（CallModule 监听到后会启动 CallActivity + 播放铃声）
         _state.value = CallUiState(
             callState = CallState.Incoming,
             callType = offer.callType,
             callId = offer.messageId,
             peerId = offer.senderId,
             peerName = peerName,
-            peerAvatar = peerAvatar
+            peerAvatar = peerAvatar,
+            isOutgoing = isOutgoing
         )
 
         startTimeout()
@@ -329,7 +339,8 @@ class CallManager @Inject constructor(
         timeoutJob = scope.launch {
             delay(RING_TIMEOUT_MS)
             signalingManager.send(
-                _state.value.peerId, ChatProtocol.Signaling.Hangup(
+                targetUserId = _state.value.peerId,
+                message = ChatProtocol.Signaling.Hangup(
                     messageId = _state.value.callId,
                     senderId = myUserId,
                     reason = HangupReason.Timeout

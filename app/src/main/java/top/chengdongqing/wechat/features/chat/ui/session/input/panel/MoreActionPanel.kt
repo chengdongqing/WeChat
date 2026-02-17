@@ -171,7 +171,7 @@ enum class MoreAction(
 ) {
     Album("照片", R.drawable.ic_album_filled),
     Camera("拍摄", R.drawable.ic_camera_filled),
-    VideoCall("视频通话", R.drawable.ic_video_call_filled),
+    VideoCall("视频通话", R.drawable.ic_video_filled),
     Location("位置", R.drawable.ic_location_filled),
     Transfer("转账", R.drawable.ic_transfer_filled),
     Favorite("收藏", R.drawable.ic_favorites_filled),

@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.features.call.manager
 import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
@@ -49,10 +50,10 @@ class CallAudioManager @Inject constructor(
      */
     fun enterCallMode() {
         savedAudioMode = audioManager.mode
-        savedSpeakerState = audioManager.isSpeakerphoneOn
+        savedSpeakerState = isSpeakerOn()
 
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-        audioManager.isSpeakerphoneOn = false   // 默认听筒
+        setSpeakerphoneOn(false)   // 默认听筒
         Log.d(TAG, "进入通话音频模式")
     }
 
@@ -63,7 +64,12 @@ class CallAudioManager @Inject constructor(
         stopRingtone()
         stopDialingTone()
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            audioManager.clearCommunicationDevice()
+        }
+
         audioManager.mode = savedAudioMode
+        @Suppress("DEPRECATION")
         audioManager.isSpeakerphoneOn = savedSpeakerState
         Log.d(TAG, "退出通话音频模式")
     }
@@ -71,13 +77,44 @@ class CallAudioManager @Inject constructor(
     // ==================== 免提切换 ====================
 
     fun toggleSpeaker(): Boolean {
-        val newState = !audioManager.isSpeakerphoneOn
-        audioManager.isSpeakerphoneOn = newState
+        val currentState = isSpeakerOn()
+        val newState = !currentState
+        setSpeakerphoneOn(newState)
         Log.d(TAG, "免提: $newState")
         return newState
     }
 
-    fun isSpeakerOn(): Boolean = audioManager.isSpeakerphoneOn
+    fun isSpeakerOn(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val device = audioManager.communicationDevice
+            device?.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.isSpeakerphoneOn
+        }
+    }
+
+    /**
+     * 设置免提状态（适配 Android 12+）
+     */
+    fun setSpeakerphoneOn(on: Boolean) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (on) {
+                // 开启免提：寻找类型为 BUILTIN_SPEAKER 的设备
+                val speakerDevice = audioManager.availableCommunicationDevices.firstOrNull {
+                    it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+                }
+                speakerDevice?.let { audioManager.setCommunicationDevice(it) }
+            } else {
+                // 关闭免提：清除设置，恢复系统默认路由（通常是听筒或蓝牙）
+                audioManager.clearCommunicationDevice()
+            }
+        } else {
+            // 旧版本适配
+            @Suppress("DEPRECATION")
+            audioManager.isSpeakerphoneOn = on
+        }
+    }
 
     // ==================== 铃声 ====================
 

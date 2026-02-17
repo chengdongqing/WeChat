@@ -1,6 +1,5 @@
-package top.chengdongqing.wechat.features.chat.domain.model
+package top.chengdongqing.wechat.features.call.domain.model
 
-import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.core.util.format
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -18,15 +17,4 @@ enum class CallStatus(val description: String, val descriptionForMe: String) {
             return "通话时长 ${duration.milliseconds.format()}"
         }
     }
-}
-
-/**
- * 通话类型
- */
-@Serializable
-enum class CallType(val label: String) {
-    Voice("语音通话"),
-    Video("视频通话");
-
-    val isVideoCall: Boolean get() = this == Video
 }

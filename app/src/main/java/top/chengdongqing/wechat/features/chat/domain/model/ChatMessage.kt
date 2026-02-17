@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
 import top.chengdongqing.wechat.data.database.entity.SendError
+import top.chengdongqing.wechat.features.call.domain.model.CallStatus
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 
 /**
  * 消息数据类

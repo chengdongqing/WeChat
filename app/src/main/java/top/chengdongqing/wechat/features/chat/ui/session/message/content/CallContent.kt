@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.features.chat.domain.model.CallStatus
+import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
@@ -47,7 +47,7 @@ fun CallContent(message: ChatMessage) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(if (isVideoCall) R.drawable.ic_video_call_outlined else R.drawable.ic_hangup_outlined),
+                painter = painterResource(if (isVideoCall) R.drawable.ic_video_outlined else R.drawable.ic_hangup_outlined),
                 contentDescription = content.type.label,
                 Modifier
                     .size(22.dp)

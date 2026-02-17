@@ -11,10 +11,10 @@ import org.webrtc.EglBase
 import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.network.socket.SocketManager
-import top.chengdongqing.wechat.features.call.data.CallActions
-import top.chengdongqing.wechat.features.call.data.CallState
+import top.chengdongqing.wechat.features.call.domain.model.CallActions
+import top.chengdongqing.wechat.features.call.domain.model.CallState
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.manager.CallManager
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,19 +25,13 @@ class CallViewModel @Inject constructor(
 ) : ViewModel() {
 
     val state = callManager.state.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5000), callManager.state.value
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = callManager.state.value
     )
 
     val eglContext: EglBase.Context get() = callManager.eglBase.eglBaseContext
 
-    /**
-     * ★ 修复: onReject 和 onHangup 区分
-     * - Incoming 状态 → onReject 调 reject()
-     * - 其他状态 → onHangup 调 hangup()
-     *
-     * CallControlBar 里的挂断按钮统一调 onHangup，
-     * 来电界面的拒绝按钮调 onReject。
-     */
     val actions = CallActions(
         onAccept = { callManager.accept() },
         onReject = { callManager.reject() },
@@ -70,15 +64,10 @@ class CallViewModel @Inject constructor(
         }
     }
 
-    // ==================== ★ 渲染器绑定 ====================
+    // ==================== 渲染器绑定 ====================
 
     /**
      * 绑定本地预览渲染器到 WebRTC 本地视频轨道
-     *
-     * 参考代码里的关键步骤:
-     * webRtcManager.initVideoViews(localRenderer, remoteRenderer)
-     *
-     * 我们拆成两个方法，因为 Compose 里本地和远端是独立的组件。
      */
     fun bindLocalRenderer(renderer: SurfaceViewRenderer) {
         callManager.setLocalRenderer(renderer)

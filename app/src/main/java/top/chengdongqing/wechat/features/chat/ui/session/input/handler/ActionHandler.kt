@@ -21,7 +21,7 @@ import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualM
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.createMediaUri
 import top.chengdongqing.wechat.core.util.randomUUID
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
 
@@ -196,7 +196,7 @@ class ActionHandler(
         val CallOptions = listOf(
             ActionSheetItem("视频通话", icon = {
                 Icon(
-                    painter = painterResource(R.drawable.ic_video_call_filled),
+                    painter = painterResource(R.drawable.ic_video_filled),
                     contentDescription = null,
                     tint = WeTheme.colorScheme.textPrimary,
                     modifier = Modifier.size(18.dp)

@@ -35,7 +35,7 @@ import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoSource
 import org.webrtc.VideoTrack
 import org.webrtc.audio.JavaAudioDeviceModule
-import top.chengdongqing.wechat.features.chat.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -43,14 +43,6 @@ import kotlin.coroutines.resumeWithException
 
 /**
  * WebRTC 引擎管理器
- *
- * 针对 LAN P2P 场景做极致质量优化：
- * - 视频：目标 4K@120fps，按设备能力自动降级到最佳档位
- * - 音频：48kHz 立体声 Opus，128kbps，硬件 AEC + 降噪
- * - 编码：优先 H265(HEVC) > AV1 > H264 High > VP9 > VP8
- * - 网络：无 STUN/TURN，host candidate 直连，码率上限 50Mbps
- *
- * 生命周期：每次通话 initialize() → ... → release()
  */
 @Singleton
 class WebRTCManager @Inject constructor(
@@ -98,10 +90,6 @@ class WebRTCManager @Inject constructor(
         val minBitrate: Int,
         val label: String
     ) {
-        UHD_120(3840, 2160, 120, 50_000_000, 15_000_000, "4K@120fps"),
-        UHD_60(3840, 2160, 60, 40_000_000, 12_000_000, "4K@60fps"),
-        UHD_30(3840, 2160, 30, 25_000_000, 8_000_000, "4K@30fps"),
-        QHD_120(2560, 1440, 120, 25_000_000, 8_000_000, "2K@120fps"),
         QHD_60(2560, 1440, 60, 20_000_000, 6_000_000, "2K@60fps"),
         QHD_30(2560, 1440, 30, 15_000_000, 4_000_000, "2K@30fps"),
         FHD_60(1920, 1080, 60, 12_000_000, 4_000_000, "1080p@60fps"),
