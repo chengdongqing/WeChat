@@ -143,7 +143,6 @@ class CallManager @Inject constructor(
 
         scope.launch {
             try {
-                webRTCManager.startLocalMedia(_state.value.callType)
                 val answer = webRTCManager.createAnswer()
                 signalingManager.send(
                     targetUserId = _state.value.peerId,
@@ -257,6 +256,7 @@ class CallManager @Inject constructor(
         webRTCManager.setRemoteDescription(
             SessionDescription(SessionDescription.Type.OFFER, offer.sdp)
         )
+        webRTCManager.startLocalMedia(offer.callType)
 
         // 更新状态为 Incoming（CallModule 监听到后会启动 CallActivity + 播放铃声）
         _state.value = CallUiState(

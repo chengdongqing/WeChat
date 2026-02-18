@@ -55,7 +55,7 @@ class CallModule @Inject constructor(
                     Log.d(TAG, "通话状态变化: ${state.callState}")
                     when (state.callState) {
                         CallState.Incoming -> {
-                            // ★ 来电: 启动 CallActivity + 铃声 + 通知
+                            // 来电: 启动 CallActivity + 铃声 + 通知
                             callAudioManager.startRingtone()
                             launchCallActivity()
                             showIncomingNotification(state.peerName, state.isVideoCall)

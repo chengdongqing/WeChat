@@ -420,7 +420,7 @@ class WebRTCManager @Inject constructor(
         videoSource?.dispose()
         audioSource?.dispose()
         surfaceTextureHelper?.dispose()
-        peerConnection?.close()
+        peerConnection?.dispose()
 
         videoCapturer = null
         videoSource = null
