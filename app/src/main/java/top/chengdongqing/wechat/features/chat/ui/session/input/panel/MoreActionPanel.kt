@@ -34,11 +34,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
 
 @Composable
 fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit) {
-    val pages = remember { MoreAction.entries.chunked(ChunkCount) }
+    val chatContext = LocalChatContext.current
+    val isMyself = chatContext?.isMyself.isTrue()
+
+    val pages = remember(isMyself) {
+        MoreAction.entries
+            .filter { action ->
+                // 如果是自己，则过滤掉视频通话
+                !(isMyself && action == MoreAction.VideoCall)
+            }
+            .chunked(ChunkCount)
+    }
+
     val pagerState = rememberPagerState { pages.size }
     val overscrollEffect = rememberBounceOverscrollEffect(Orientation.Horizontal)
 

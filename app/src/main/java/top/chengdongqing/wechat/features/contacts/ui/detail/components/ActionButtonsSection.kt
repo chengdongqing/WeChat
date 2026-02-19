@@ -22,7 +22,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.util.CallOptions
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 
@@ -35,6 +38,8 @@ fun ActionButtonsSection(
     contact: Contact,
     onAction: (ContactAction) -> Unit
 ) {
+    val actionSheet = rememberActionSheetState()
+
     Column(modifier = Modifier.background(Color.White)) {
         when {
             contact.isMyself || contact.isFriend -> {
@@ -48,7 +53,15 @@ fun ActionButtonsSection(
                     ContactActionButton(
                         iconResId = R.drawable.ic_voice_video_outlined,
                         text = "音视频通话",
-                        onClick = { onAction(ContactAction.VoiceVideoCall) }
+                        onClick = {
+                            actionSheet.show(CallOptions) { index ->
+                                val callType = when (index) {
+                                    0 -> CallType.Video
+                                    else -> CallType.Voice
+                                }
+                                onAction(ContactAction.VoiceVideoCall(callType))
+                            }
+                        }
                     )
                 }
             }

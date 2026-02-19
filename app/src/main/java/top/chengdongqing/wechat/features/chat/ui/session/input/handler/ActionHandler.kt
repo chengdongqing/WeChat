@@ -3,26 +3,23 @@ package top.chengdongqing.wechat.features.chat.ui.session.input.handler
 import android.content.Context
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.CallOptions
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.util.createMediaUri
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
 
 /**
@@ -38,7 +35,8 @@ class ActionHandler(
     private val locationLauncher: LocationLauncher,
     private val fileLauncher: FileLauncher,
     private val onSendMessage: (MessageContent, (() -> Unit)?) -> Unit,
-    private val onNavigateToCall: (type: CallType) -> Unit
+    private val onLaunchCall: (type: CallType) -> Unit,
+    private val isMyself: Boolean
 ) {
     fun onSendMessage(content: MessageContent) = onSendMessage(content, null)
 
@@ -125,15 +123,21 @@ class ActionHandler(
                 0 -> CallType.Video
                 else -> CallType.Voice
             }
-            onNavigateToCall(callType)
+            onLaunchCall(callType)
         }
+    }
+
+    private val currentLocationOptions = if (isMyself) {
+        listOf(LocationOptions[0])
+    } else {
+        LocationOptions
     }
 
     /**
      * 处理位置
      */
     private fun handleLocation() {
-        actionSheet.show(LocationOptions) { index ->
+        actionSheet.show(currentLocationOptions) { index ->
             when (index) {
                 0 -> locationLauncher.pickLocation()
                 1 -> handleShareLiveLocation()
@@ -191,28 +195,6 @@ class ActionHandler(
         )
 
         /**
-         * 通话选项
-         */
-        val CallOptions = listOf(
-            ActionSheetItem("视频通话", icon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_video_filled),
-                    contentDescription = null,
-                    tint = WeTheme.colorScheme.textPrimary,
-                    modifier = Modifier.size(18.dp)
-                )
-            }),
-            ActionSheetItem("语音通话", icon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_call_filled),
-                    contentDescription = null,
-                    tint = WeTheme.colorScheme.textPrimary,
-                    modifier = Modifier.size(18.dp)
-                )
-            })
-        )
-
-        /**
          * 位置选项
          */
         val LocationOptions = listOf(
@@ -224,12 +206,11 @@ class ActionHandler(
 
 @Composable
 fun rememberActionHandler(
-    context: Context,
     mediaHandler: MediaHandler,
     locationHandler: LocationHandler,
     fileHandler: FileHandler,
     onSendMessage: (MessageContent, (() -> Unit)?) -> Unit,
-    onNavigateToCall: (type: CallType) -> Unit
+    onLaunchCall: (type: CallType) -> Unit
 ): ActionHandler {
     val scope = rememberCoroutineScope()
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)
@@ -237,7 +218,11 @@ fun rememberActionHandler(
     val fileLauncher = rememberFileLauncher(fileHandler)
     val actionSheet = rememberActionSheetState()
 
-    return remember(context, mediaLaunchers) {
+    val context = LocalContext.current
+    val chatContext = LocalChatContext.current
+    val isMyself = chatContext?.isMyself.isTrue()
+
+    return remember(context, mediaLaunchers, isMyself) {
         ActionHandler(
             context = context,
             scope = scope,
@@ -246,7 +231,8 @@ fun rememberActionHandler(
             locationLauncher = locationLauncher,
             fileLauncher = fileLauncher,
             onSendMessage = onSendMessage,
-            onNavigateToCall = onNavigateToCall
+            onLaunchCall = onLaunchCall,
+            isMyself = isMyself
         )
     }
 }

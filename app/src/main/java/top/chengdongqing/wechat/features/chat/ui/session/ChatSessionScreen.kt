@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -30,6 +31,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreTyp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.ui.startCall
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -41,6 +43,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.util.LoadMoreEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.MessageDataScrollEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.VoicePlayingLifecycle
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ChatSessionScreen(
     chatId: String,
@@ -80,18 +83,17 @@ fun ChatSessionScreen(
         onLoadMore = { viewModel.loadMore() }
     )
 
-    val navigateToCall = { type: CallType ->
-        context.startCall(
-            chatId,
-            type
-        )
+    // 调起通话
+    val launchCall = rememberCallLauncher(chatId) { id, type ->
+        context.startCall(id, type)
     }
 
     // 上下文
     val chatContext = rememberChatContext(
         viewModel = viewModel,
+        uiState = uiState,
         onPreviewFile = onNavigateToFilePreview,
-        onNavigateToCall = navigateToCall
+        onLaunchCall = launchCall
     )
 
     CompositionLocalProvider(LocalChatContext provides chatContext) {
@@ -118,7 +120,7 @@ fun ChatSessionScreen(
                             }
                         }
                     },
-                    onNavigateToCall = navigateToCall
+                    onLaunchCall = launchCall
                 )
             }
         ) { innerPadding ->
@@ -169,8 +171,9 @@ private fun ChatSessionTopBar(title: String, onBack: () -> Unit, onNavigateToInf
 @Composable
 private fun rememberChatContext(
     viewModel: ChatSessionViewModel,
+    uiState: ChatSessionUiState,
     onPreviewFile: (messageId: String) -> Unit,
-    onNavigateToCall: (type: CallType) -> Unit
+    onLaunchCall: (type: CallType) -> Unit
 ): ChatContext {
     val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
@@ -182,8 +185,9 @@ private fun rememberChatContext(
         }
     }
 
-    return remember(mediaList, playingMessageId) {
+    return remember(mediaList, playingMessageId, uiState.isMyself) {
         ChatContext(
+            isMyself = uiState.isMyself,
             mediaList = mediaList,
             getMediaIndexOf = { content -> mediaList.indexOf(content) },
             playingVoiceId = playingMessageId,
@@ -191,7 +195,7 @@ private fun rememberChatContext(
             onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() },
             onRetrySend = { viewModel.retrySend(it) },
             onPreviewFile = { onPreviewFile(it) },
-            onNavigateToCall = onNavigateToCall
+            onNavigateToCall = onLaunchCall
         )
     }
 }
@@ -200,6 +204,7 @@ private fun rememberChatContext(
  * 上下文定义
  */
 data class ChatContext(
+    val isMyself: Boolean,
     val mediaList: List<MessageContent.Media>,
     val getMediaIndexOf: (MessageContent.Media) -> Int,
     val playingVoiceId: String?,

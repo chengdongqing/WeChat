@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
@@ -82,23 +83,23 @@ class ContactDetailViewModel @AssistedInject constructor(
         viewModelScope.launch {
             when (action) {
                 ContactAction.SendMessage -> {
-                    _navigationEvent.emit(NavigationEvent.NavigateToChat(contactId))
+                    _navigationEvent.emit(NavigationEvent.NavigateToChat)
                 }
 
-                ContactAction.VoiceVideoCall -> {
-                    _navigationEvent.emit(NavigationEvent.NavigateToCall(contactId))
+                is ContactAction.VoiceVideoCall -> {
+                    _navigationEvent.emit(NavigationEvent.LaunchCall(action.type))
                 }
 
                 ContactAction.ViewMoments -> {
-                    _navigationEvent.emit(NavigationEvent.NavigateToMoments(contactId))
+                    _navigationEvent.emit(NavigationEvent.NavigateToMoments)
                 }
 
                 ContactAction.ViewProfile -> {
-                    _navigationEvent.emit(NavigationEvent.NavigateToProfile(contactId))
+                    _navigationEvent.emit(NavigationEvent.NavigateToProfile)
                 }
 
                 ContactAction.ShowMore -> {
-                    _navigationEvent.emit(NavigationEvent.ShowMoreOptions(contactId))
+                    _navigationEvent.emit(NavigationEvent.ShowMoreOptions)
                 }
 
                 ContactAction.DeleteContact -> {
@@ -106,7 +107,7 @@ class ContactDetailViewModel @AssistedInject constructor(
                 }
 
                 ContactAction.AddToContacts -> {
-                    _navigationEvent.emit(NavigationEvent.NavigateToRequestAdd(contactId))
+                    _navigationEvent.emit(NavigationEvent.NavigateToRequestAdd)
                 }
             }
         }
@@ -133,18 +134,18 @@ data class ContactDetailUiState(
 )
 
 sealed class NavigationEvent {
-    data class NavigateToChat(val contactId: String) : NavigationEvent()
-    data class NavigateToCall(val contactId: String) : NavigationEvent()
-    data class NavigateToMoments(val contactId: String) : NavigationEvent()
-    data class NavigateToProfile(val contactId: String) : NavigationEvent()
-    data class NavigateToRequestAdd(val contactId: String) : NavigationEvent()
-    data class ShowMoreOptions(val contactId: String) : NavigationEvent()
+    data object NavigateToChat : NavigationEvent()
+    data class LaunchCall(val type: CallType) : NavigationEvent()
+    data object NavigateToMoments : NavigationEvent()
+    data object NavigateToProfile : NavigationEvent()
+    data object NavigateToRequestAdd : NavigationEvent()
+    data object ShowMoreOptions : NavigationEvent()
     data object ContactDeleted : NavigationEvent()
 }
 
 sealed class ContactAction {
     data object SendMessage : ContactAction()
-    data object VoiceVideoCall : ContactAction()
+    data class VoiceVideoCall(val type: CallType) : ContactAction()
     data object ViewMoments : ContactAction()
     data object ViewProfile : ContactAction()
     data object ShowMore : ContactAction()

@@ -68,7 +68,7 @@ fun InputBar(
     listState: LazyListState,
     isSending: Boolean,
     onSendMessage: (MessageContent, onSent: (() -> Unit)?) -> Unit,
-    onNavigateToCall: (type: CallType) -> Unit
+    onLaunchCall: (type: CallType) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -91,12 +91,11 @@ fun InputBar(
 
     // 更多操作处理器
     val actionHandler = rememberActionHandler(
-        context = context,
         mediaHandler = mediaHandler,
         locationHandler = locationHandler,
         fileHandler = fileHandler,
         onSendMessage = onSendMessage,
-        onNavigateToCall = onNavigateToCall
+        onLaunchCall = onLaunchCall
     )
 
     // 对话框状态

@@ -14,11 +14,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
+import top.chengdongqing.wechat.features.call.ui.startCall
 import top.chengdongqing.wechat.features.contacts.ui.detail.components.ContactDetailContent
 
 @Composable
@@ -26,7 +29,6 @@ fun ContactDetailScreen(
     contactId: String,
     onBack: () -> Unit,
     onNavigateToChat: (String) -> Unit = {},
-    onNavigateToCall: (String) -> Unit = {},
     onNavigateToMoments: (String) -> Unit = {},
     onNavigateToProfile: (String) -> Unit = {},
     onNavigateToSetting: (String) -> Unit = {},
@@ -39,16 +41,21 @@ fun ContactDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val contact = uiState.contact ?: return
 
+    val context = LocalContext.current
+    val launchCall = rememberCallLauncher(contact.id) { id, type ->
+        context.startCall(id, type)
+    }
+
     // 处理导航事件
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
-                is NavigationEvent.NavigateToChat -> onNavigateToChat(event.contactId)
-                is NavigationEvent.NavigateToCall -> onNavigateToCall(event.contactId)
-                is NavigationEvent.NavigateToMoments -> onNavigateToMoments(event.contactId)
-                is NavigationEvent.NavigateToProfile -> onNavigateToProfile(event.contactId)
-                is NavigationEvent.ShowMoreOptions -> onNavigateToSetting(event.contactId)
-                is NavigationEvent.NavigateToRequestAdd -> onNavigateToRequestAdd(event.contactId)
+                is NavigationEvent.NavigateToChat -> onNavigateToChat(contactId)
+                is NavigationEvent.LaunchCall -> launchCall(event.type)
+                is NavigationEvent.NavigateToMoments -> onNavigateToMoments(contactId)
+                is NavigationEvent.NavigateToProfile -> onNavigateToProfile(contactId)
+                is NavigationEvent.ShowMoreOptions -> onNavigateToSetting(contactId)
+                is NavigationEvent.NavigateToRequestAdd -> onNavigateToRequestAdd(contactId)
                 else -> {}
             }
         }
