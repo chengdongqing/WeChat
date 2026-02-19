@@ -32,7 +32,8 @@ class CallViewModel @Inject constructor(
 
     val actions = CallActions(
         onAccept = { callManager.accept() },
-        onReject = { callManager.reject() },
+        onDecline = { callManager.decline() },
+        onCancel = { callManager.cancel() },
         onHangup = { callManager.hangup() },
         onToggleMic = { callManager.toggleMic() },
         onToggleSpeaker = { callManager.toggleSpeaker() },
@@ -55,10 +56,6 @@ class CallViewModel @Inject constructor(
                 callType = callType
             )
         }
-    }
-
-    fun resetState() {
-        callManager.resetState()
     }
 
     fun bindLocalRenderer(renderer: SurfaceViewRenderer) {

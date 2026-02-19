@@ -13,12 +13,8 @@ import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
-import top.chengdongqing.wechat.features.chat.data.mapper.ContactCardContent
-import top.chengdongqing.wechat.features.chat.data.mapper.FavoriteContent
-import top.chengdongqing.wechat.features.chat.data.mapper.FileContent
-import top.chengdongqing.wechat.features.chat.data.mapper.LocationContent
-import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
+import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
@@ -62,37 +58,44 @@ class MessageRepositoryImpl @Inject constructor(
     override suspend fun sendMessage(
         sessionId: String,
         receiverId: String,
+        messageId: String?,
         content: MessageContent
     ): Result<ChatMessage> {
         return runCatching {
             val myProfile = profileRepository.getCurrentProfileOnce()
                 ?: throw Exception("未找到个人资料")
             val isSelfSession = receiverId == myProfile.id
+            val isCallMessage = content is MessageContent.Call
+            // 如果是给自己发的，或者是通话记录，直接设置为发送成功，且不走发送逻辑
+            val shouldSkipSend = isSelfSession || isCallMessage
 
             // 构建消息实体
-            val messageId = randomUUID()
+            val messageId = messageId ?: randomUUID()
             val now = System.currentTimeMillis()
 
-            val entity = buildMessageEntity(
+            val entity = content.toEntity(
                 messageId = messageId,
                 sessionId = sessionId,
                 senderId = myProfile.id,
                 receiverId = receiverId,
-                content = content,
-                timestamp = now
+                timestamp = now,
+                json = json
             )
             // 保存到数据库
             messageDao.insert(
                 entity.copy(
-                    // 如果是给自己发的，直接设置为发送成功
-                    sendStatus = if (isSelfSession) SendStatus.Sent else entity.sendStatus
+                    sendStatus = if (shouldSkipSend) {
+                        SendStatus.Sent
+                    } else {
+                        entity.sendStatus
+                    }
                 )
             )
 
             // 更新会话
             chatSessionUpdater.update(entity)
 
-            if (!isSelfSession) {
+            if (!shouldSkipSend) {
                 // 发送消息
                 sendMessageAsync(entity)
             }
@@ -138,158 +141,6 @@ class MessageRepositoryImpl @Inject constructor(
     }
 
     // ==================== 私有方法 ====================
-
-    private fun buildMessageEntity(
-        messageId: String,
-        sessionId: String,
-        senderId: String,
-        receiverId: String,
-        content: MessageContent,
-        timestamp: Long
-    ): MessageEntity {
-        val now = System.currentTimeMillis()
-
-        // 公共字段
-        fun base(
-            contentType: MessageType,
-            contentValue: String,
-            localPath: String? = null,
-            fileSize: Long? = null,
-            mediaDuration: Long? = null
-        ) = MessageEntity(
-            messageId = messageId,
-            sessionId = sessionId,
-            senderId = senderId,
-            receiverId = receiverId,
-            contentType = contentType,
-            content = contentValue,
-            localPath = localPath,
-            fileSize = fileSize,
-            mediaDuration = mediaDuration,
-            timestamp = timestamp,
-            sendStatus = SendStatus.Sending,
-            isFromMe = true,
-            createdAt = now,
-            updatedAt = now
-        )
-
-        return when (content) {
-            is MessageContent.Text ->
-                base(
-                    contentType = MessageType.Text,
-                    contentValue = content.text
-                )
-
-            is MessageContent.Voice ->
-                base(
-                    contentType = MessageType.Voice,
-                    contentValue = "",
-                    localPath = content.localPath,
-                    mediaDuration = content.duration
-                )
-
-            is MessageContent.Image ->
-                base(
-                    contentType = MessageType.Image,
-                    contentValue = json.encodeToString(
-                        MediaContent(
-                            width = content.width,
-                            height = content.height,
-                            mimeType = content.mimeType,
-                            filename = content.filename
-                        )
-                    ),
-                    localPath = content.localPath,
-                    fileSize = content.size
-                )
-
-            is MessageContent.Video ->
-                base(
-                    contentType = MessageType.Video,
-                    contentValue = json.encodeToString(
-                        MediaContent(
-                            width = content.width,
-                            height = content.height,
-                            mimeType = content.mimeType,
-                            filename = content.filename
-                        )
-                    ),
-                    localPath = content.localPath,
-                    fileSize = content.size,
-                    mediaDuration = content.duration
-                )
-
-            is MessageContent.File ->
-                base(
-                    contentType = MessageType.File,
-                    contentValue = json.encodeToString(
-                        FileContent(
-                            mimeType = content.mimeType,
-                            filename = content.filename
-                        )
-                    ),
-                    localPath = content.localPath,
-                    fileSize = content.size
-                )
-
-            is MessageContent.Sticker ->
-                base(
-                    contentType = MessageType.Sticker,
-                    contentValue = content.localPath,
-                    localPath = content.localPath
-                )
-
-            is MessageContent.Location ->
-                base(
-                    contentType = MessageType.Location,
-                    contentValue = json.encodeToString(
-                        LocationContent(
-                            latitude = content.latitude,
-                            longitude = content.longitude,
-                            address = content.address,
-                            poiName = content.poiName
-                        )
-                    ),
-                    localPath = content.snapshotPath
-                )
-
-            is MessageContent.ContactCard ->
-                base(
-                    contentType = MessageType.ContactCard,
-                    contentValue = json.encodeToString(
-                        ContactCardContent(
-                            userId = content.userId,
-                            name = content.name,
-                            avatar = content.avatar
-                        )
-                    )
-                )
-
-            is MessageContent.Favorite ->
-                base(
-                    contentType = MessageType.Favorite,
-                    contentValue = json.encodeToString(
-                        FavoriteContent(
-                            title = content.title,
-                            source = content.source
-                        )
-                    ),
-                    localPath = content.previewPath
-                )
-
-            is MessageContent.Call ->
-                base(
-                    contentType = if (content.type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall,
-                    contentValue = content.status.name,
-                    mediaDuration = content.duration
-                )
-
-            else -> base(
-                contentType = MessageType.Text,
-                contentValue = ""
-            )
-        }
-    }
 
     /**
      * 异步发送消息，失败时更新状态

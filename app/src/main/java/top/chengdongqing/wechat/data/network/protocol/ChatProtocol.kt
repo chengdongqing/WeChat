@@ -27,6 +27,19 @@ sealed class ChatProtocol {
     ) : ChatProtocol()
 
     /**
+     * 通话消息
+     */
+    data class CallMessage(
+        override val messageId: String,
+        override val senderId: String,
+        val receiverId: String,
+        val status: String,
+        val duration: Long,
+        val callType: CallType,
+        val timestamp: Long
+    ) : ChatProtocol()
+
+    /**
      * 媒体消息（图片、语音、视频、文件等）
      */
     @Serializable

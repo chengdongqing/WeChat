@@ -54,7 +54,7 @@ private fun VideoCallControls(
                 VideoToggle(state, actions)
             }
             ControlRow {
-                RejectButton(actions)
+                DeclineButton(actions)
                 Spacer(modifier = Modifier.size(68.dp))
                 AcceptButton(actions)
             }
@@ -73,7 +73,11 @@ private fun VideoCallControls(
             }
             ControlRow {
                 Spacer(modifier = Modifier.size(68.dp))
-                HangupButton(actions)
+                if (state.isCallActive) {
+                    HangupButton(actions)
+                } else {
+                    CancelButton(actions)
+                }
                 CameraSwitchToggle(actions, showLabel = false, showBackground = false)
             }
         }
@@ -91,7 +95,7 @@ private fun VoiceCallControls(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                RejectButton(actions, showLabel = true)
+                DeclineButton(actions, showLabel = true)
                 AcceptButton(actions, showLabel = true)
             }
         }
@@ -104,7 +108,11 @@ private fun VoiceCallControls(
         else ->
             ControlRow {
                 MicToggle(state, actions)
-                HangupButton(actions, showLabel = true)
+                if (state.isCallActive) {
+                    HangupButton(actions, showLabel = true)
+                } else {
+                    CancelButton(actions, showLabel = true)
+                }
                 SpeakerToggle(state, actions)
             }
     }
@@ -157,10 +165,23 @@ private fun CameraSwitchToggle(
 )
 
 @Composable
+private fun CancelButton(
+    actions: CallActions,
+    backgroundColor: Color = Danger,
+    showLabel: Boolean = false
+) =
+    ControlToggle(
+        icon = R.drawable.ic_hangup_filled,
+        label = if (showLabel) "取消" else null,
+        backgroundColor = backgroundColor,
+        onClick = actions.onCancel
+    )
+
+@Composable
 private fun HangupButton(
     actions: CallActions,
     backgroundColor: Color = Danger,
-    showLabel: Boolean = false,
+    showLabel: Boolean = false
 ) =
     ControlToggle(
         icon = R.drawable.ic_hangup_filled,
@@ -170,12 +191,12 @@ private fun HangupButton(
     )
 
 @Composable
-private fun RejectButton(actions: CallActions, showLabel: Boolean = false) =
+private fun DeclineButton(actions: CallActions, showLabel: Boolean = false) =
     ControlToggle(
         icon = R.drawable.ic_hangup_filled,
         label = if (showLabel) "拒绝" else null,
         backgroundColor = Danger,
-        onClick = actions.onReject
+        onClick = actions.onDecline
     )
 
 @Composable

@@ -5,7 +5,8 @@ package top.chengdongqing.wechat.features.call.domain.model
  */
 data class CallActions(
     val onAccept: () -> Unit = {},
-    val onReject: () -> Unit = {},
+    val onDecline: () -> Unit = {},
+    val onCancel: () -> Unit = {},
     val onHangup: () -> Unit = {},
     val onToggleMic: () -> Unit = {},
     val onToggleSpeaker: () -> Unit = {},

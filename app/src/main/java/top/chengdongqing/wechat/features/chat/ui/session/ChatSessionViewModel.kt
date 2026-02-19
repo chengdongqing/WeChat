@@ -145,7 +145,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun sendMessage(content: MessageContent, onSent: () -> Unit = {}) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSending = true) }
-            messageRepository.sendMessage(chatId, chatId, content)
+            messageRepository.sendMessage(chatId, chatId, content = content)
                 .onSuccess {
                     onSent()
                 }

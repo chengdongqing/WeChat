@@ -16,15 +16,18 @@ import org.webrtc.PeerConnection
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.core.util.randomUUID
-import top.chengdongqing.wechat.data.database.dao.ContactDao
-import top.chengdongqing.wechat.data.database.entity.toDomain
+import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.features.call.domain.model.CallState
+import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.domain.model.CallUiState
 import top.chengdongqing.wechat.features.call.domain.model.HangupReason
 import top.chengdongqing.wechat.features.call.domain.model.HangupResult
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,7 +52,9 @@ class CallManager @Inject constructor(
     private val messageSender: MessageSender,
     private val webRTCManager: WebRTCManager,
     private val callAudioManager: CallAudioManager,
-    private val contactDao: ContactDao
+    private val contactRepository: ContactRepository,
+    private val messageRepository: MessageRepository,
+    private val messageDispatcher: MessageDispatcher
 ) {
     private companion object {
         const val TAG = "CallManager"
@@ -169,7 +174,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    fun reject() {
+    fun decline() {
         if (_state.value.callState != CallState.Incoming) return
         scope.launch {
             signalingManager.send(
@@ -182,6 +187,21 @@ class CallManager @Inject constructor(
             )
         }
         endCall(HangupReason.Declined)
+    }
+
+    fun cancel() {
+        if (_state.value.callState != CallState.Outgoing) return
+        scope.launch {
+            signalingManager.send(
+                targetUserId = _state.value.peerId,
+                message = ChatProtocol.Signaling.Hangup(
+                    messageId = _state.value.callId,
+                    senderId = myUserId,
+                    reason = HangupReason.Cancelled
+                )
+            )
+        }
+        endCall(HangupReason.Cancelled)
     }
 
     fun hangup() {
@@ -284,7 +304,7 @@ class CallManager @Inject constructor(
 
         // 查联系人信息
         val contact = withContext(Dispatchers.IO) {
-            contactDao.getById(offer.senderId)?.toDomain()
+            contactRepository.getContactById(offer.senderId)
         }
         val peerName = contact?.displayName ?: offer.senderId
         val peerAvatar = contact?.avatarPath
@@ -411,7 +431,7 @@ class CallManager @Inject constructor(
     private fun startTimer() {
         timerJob?.cancel()
         timerJob = scope.launch {
-            var seconds = 0
+            var seconds = 0L
             while (true) {
                 delay(1000)
                 seconds++
@@ -423,6 +443,7 @@ class CallManager @Inject constructor(
     // ==================== 结束通话 ====================
 
     private fun endCall(reason: HangupReason, isFromMe: Boolean = false) {
+        // 释放资源
         cancelTimeout()
         timerJob?.cancel()
         timerJob = null
@@ -435,10 +456,54 @@ class CallManager @Inject constructor(
         webRTCManager.release()
         Log.d(TAG, "通话结束: $reason, 时长=${_state.value.duration}s")
 
-        // TODO: 写通话记录消息 messageRepository.insertCallRecord(...)
-    }
+        scope.launch {
+            // 保存通话记录
+            val status = reason.toCallStatus()
 
-    fun resetState() {
-        _state.value = CallUiState()
+            _state.value.apply {
+                if (isOutgoing) {
+                    val content = MessageContent.Call(
+                        type = callType,
+                        status = status,
+                        duration = duration
+                    )
+                    messageRepository.sendMessage(
+                        sessionId = peerId,
+                        receiverId = peerId,
+                        messageId = callId,
+                        content = content
+                    )
+                } else {
+                    val protocol = ChatProtocol.CallMessage(
+                        messageId = callId,
+                        senderId = peerId,
+                        receiverId = myUserId,
+                        status = status.name,
+                        duration = duration,
+                        callType = callType,
+                        timestamp = System.currentTimeMillis()
+                    )
+                    messageDispatcher.dispatch(protocol)
+                }
+            }
+
+            // 重置状态
+            delay(3000)
+            _state.value = CallUiState()
+        }
     }
+}
+
+/**
+ * 获取通话结果
+ */
+fun HangupReason.toCallStatus() = when (this) {
+    HangupReason.Normal -> CallStatus.Connected
+    HangupReason.Declined -> CallStatus.Declined
+    HangupReason.Cancelled -> CallStatus.Cancelled
+    HangupReason.Timeout -> CallStatus.Missed
+    HangupReason.Busy,
+    HangupReason.Offline,
+    HangupReason.Error
+        -> CallStatus.Failed
 }

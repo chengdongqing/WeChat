@@ -158,23 +158,168 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             )
         }
 
-        MessageType.VoiceCall ->
-            MessageContent.Call(
-                type = CallType.Voice,
-                status = runCatching {
-                    CallStatus.valueOf(content)
-                }.getOrDefault(CallStatus.Missed),
-                duration = mediaDuration
-            )
-
+        MessageType.VoiceCall,
         MessageType.VideoCall ->
             MessageContent.Call(
-                type = CallType.Video,
+                type = if (contentType == MessageType.VideoCall) CallType.Video else CallType.Voice,
                 status = runCatching {
                     CallStatus.valueOf(content)
                 }.getOrDefault(CallStatus.Missed),
                 duration = mediaDuration
             )
+    }
+}
+
+fun MessageContent.toEntity(
+    messageId: String,
+    sessionId: String,
+    senderId: String,
+    receiverId: String,
+    timestamp: Long,
+    json: Json
+): MessageEntity {
+    val content = this
+    val now = System.currentTimeMillis()
+
+    // 公共字段
+    fun base(
+        contentType: MessageType,
+        contentValue: String,
+        localPath: String? = null,
+        fileSize: Long? = null,
+        mediaDuration: Long? = null
+    ) = MessageEntity(
+        messageId = messageId,
+        sessionId = sessionId,
+        senderId = senderId,
+        receiverId = receiverId,
+        contentType = contentType,
+        content = contentValue,
+        localPath = localPath,
+        fileSize = fileSize,
+        mediaDuration = mediaDuration,
+        timestamp = timestamp,
+        sendStatus = SendStatus.Sending,
+        isFromMe = true,
+        createdAt = now,
+        updatedAt = now
+    )
+
+    return when (content) {
+        is MessageContent.Text ->
+            base(
+                contentType = MessageType.Text,
+                contentValue = content.text
+            )
+
+        is MessageContent.Voice ->
+            base(
+                contentType = MessageType.Voice,
+                contentValue = "",
+                localPath = content.localPath,
+                mediaDuration = content.duration
+            )
+
+        is MessageContent.Image ->
+            base(
+                contentType = MessageType.Image,
+                contentValue = json.encodeToString(
+                    MediaContent(
+                        width = content.width,
+                        height = content.height,
+                        mimeType = content.mimeType,
+                        filename = content.filename
+                    )
+                ),
+                localPath = content.localPath,
+                fileSize = content.size
+            )
+
+        is MessageContent.Video ->
+            base(
+                contentType = MessageType.Video,
+                contentValue = json.encodeToString(
+                    MediaContent(
+                        width = content.width,
+                        height = content.height,
+                        mimeType = content.mimeType,
+                        filename = content.filename
+                    )
+                ),
+                localPath = content.localPath,
+                fileSize = content.size,
+                mediaDuration = content.duration
+            )
+
+        is MessageContent.File ->
+            base(
+                contentType = MessageType.File,
+                contentValue = json.encodeToString(
+                    FileContent(
+                        mimeType = content.mimeType,
+                        filename = content.filename
+                    )
+                ),
+                localPath = content.localPath,
+                fileSize = content.size
+            )
+
+        is MessageContent.Sticker ->
+            base(
+                contentType = MessageType.Sticker,
+                contentValue = content.localPath,
+                localPath = content.localPath
+            )
+
+        is MessageContent.Location ->
+            base(
+                contentType = MessageType.Location,
+                contentValue = json.encodeToString(
+                    LocationContent(
+                        latitude = content.latitude,
+                        longitude = content.longitude,
+                        address = content.address,
+                        poiName = content.poiName
+                    )
+                ),
+                localPath = content.snapshotPath
+            )
+
+        is MessageContent.ContactCard ->
+            base(
+                contentType = MessageType.ContactCard,
+                contentValue = json.encodeToString(
+                    ContactCardContent(
+                        userId = content.userId,
+                        name = content.name,
+                        avatar = content.avatar
+                    )
+                )
+            )
+
+        is MessageContent.Favorite ->
+            base(
+                contentType = MessageType.Favorite,
+                contentValue = json.encodeToString(
+                    FavoriteContent(
+                        title = content.title,
+                        source = content.source
+                    )
+                ),
+                localPath = content.previewPath
+            )
+
+        is MessageContent.Call ->
+            base(
+                contentType = if (content.type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall,
+                contentValue = content.status.name,
+                mediaDuration = content.duration
+            )
+
+        else -> base(
+            contentType = MessageType.Text,
+            contentValue = ""
+        )
     }
 }
 

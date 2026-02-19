@@ -20,7 +20,7 @@ data class CallUiState(
     val isFrontCamera: Boolean = true,
     val isVideoSwapped: Boolean = false,
     val isControlsVisible: Boolean = true,
-    val duration: Int = 0,
+    val duration: Long = 0,
     val hangupResult: HangupResult? = null
 ) {
     val isCallActive: Boolean get() = callState == CallState.Connected
@@ -58,10 +58,11 @@ data class CallUiState(
         CallState.Ended -> when (hangupResult?.reason) {
             HangupReason.Normal -> if (hangupResult.isFromMe) "已挂断，通话结束" else "对方已挂断，通话结束"
             HangupReason.Declined -> if (isOutgoing) "对方拒绝了你的通话请求" else "已拒绝了对方的通话请求"
+            HangupReason.Cancelled -> if (isOutgoing) "已取消，通话结束" else "对方已取消，通话结束"
             HangupReason.Timeout -> "对方无应答"
             HangupReason.Busy -> "对方忙线中"
             HangupReason.Offline -> "对方不在线"
-            HangupReason.Error -> "通话异常"
+            HangupReason.Error -> "连接失败"
             else -> "通话结束"
         }
 
@@ -69,7 +70,7 @@ data class CallUiState(
     }
 
     companion object {
-        fun formatDuration(seconds: Int): String {
+        fun formatDuration(seconds: Long): String {
             val m = seconds / 60
             val s = seconds % 60
             return "%02d:%02d".format(m, s)

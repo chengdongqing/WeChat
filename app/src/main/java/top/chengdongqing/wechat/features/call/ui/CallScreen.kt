@@ -60,10 +60,6 @@ fun CallScreen(
         if (uiState.callState == CallState.Ended) {
             delay(2000)
             onDismiss()
-
-            // 重置状态（因为CallManager是单例）
-            delay(200)
-            viewModel.resetState()
         }
     }
 

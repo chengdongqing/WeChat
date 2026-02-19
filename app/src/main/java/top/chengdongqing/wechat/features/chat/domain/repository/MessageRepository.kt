@@ -20,6 +20,7 @@ interface MessageRepository {
     suspend fun sendMessage(
         sessionId: String,
         receiverId: String,
+        messageId: String? = null,
         content: MessageContent
     ): Result<ChatMessage>
 

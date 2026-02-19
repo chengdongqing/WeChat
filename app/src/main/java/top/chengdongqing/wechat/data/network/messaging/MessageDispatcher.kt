@@ -51,6 +51,7 @@ class MessageDispatcher @Inject constructor(
         runCatching {
             when (protocol) {
                 is ChatProtocol.TextMessage -> handleTextMessage(protocol)
+                is ChatProtocol.CallMessage -> handleCallMessage(protocol)
                 is ChatProtocol.MessageAck -> handleAck(protocol)
                 is ChatProtocol.MessageRead -> handleReadReceipt(protocol)
                 is ChatProtocol.Signaling -> handleSignaling(protocol)
@@ -73,6 +74,10 @@ class MessageDispatcher @Inject constructor(
 
     private suspend fun handleTextMessage(protocol: ChatProtocol.TextMessage) {
         handleIncomingChat(protocol) { createTextEntity(protocol) }
+    }
+
+    private suspend fun handleCallMessage(protocol: ChatProtocol.CallMessage) {
+        handleIncomingChat(protocol) { createCallEntity(protocol) }
     }
 
     private suspend fun handleMediaMessage(protocol: ChatProtocol.MediaMessage, tempFile: File) {
@@ -131,6 +136,24 @@ class MessageDispatcher @Inject constructor(
             receiverId = protocol.receiverId,
             contentType = MessageType.Text,
             content = protocol.content,
+            timestamp = protocol.timestamp,
+            sendStatus = SendStatus.Delivered,
+            isFromMe = false,
+            createdAt = now,
+            updatedAt = now
+        )
+    }
+
+    private fun createCallEntity(protocol: ChatProtocol.CallMessage): MessageEntity {
+        val now = System.currentTimeMillis()
+        return MessageEntity(
+            messageId = protocol.messageId,
+            sessionId = protocol.senderId,
+            senderId = protocol.senderId,
+            receiverId = protocol.receiverId,
+            contentType = if (protocol.callType.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall,
+            content = protocol.status,
+            mediaDuration = protocol.duration,
             timestamp = protocol.timestamp,
             sendStatus = SendStatus.Delivered,
             isFromMe = false,
