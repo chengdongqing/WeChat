@@ -45,12 +45,6 @@ class MessageDispatcher @Inject constructor(
         replay = 0, extraBufferCapacity = 64
     )
     val incomingMessageFlow: SharedFlow<ChatMessage> = _incomingMessageFlow.asSharedFlow()
-
-    private val _signalingFlow = MutableSharedFlow<SignalingMessage>(
-        replay = 0, extraBufferCapacity = 32
-    )
-    val signalingFlow: SharedFlow<SignalingMessage> = _signalingFlow.asSharedFlow()
-
     // ==================== 分发入口 ====================
 
     suspend fun dispatch(protocol: ChatProtocol) {

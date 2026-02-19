@@ -1,8 +1,9 @@
 package top.chengdongqing.wechat.core.designsystem.util
 
-import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -17,7 +18,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 @Composable
 fun StatusBarAppearanceEffect(isDark: Boolean = true) {
     val view = LocalView.current
-    val window = (view.context as Activity).window
+    val window = LocalActivity.current?.window ?: return
     val insetsController = remember { WindowCompat.getInsetsController(window, view) }
     val initialStyle = remember { insetsController.isAppearanceLightStatusBars }
 
@@ -33,28 +34,17 @@ fun StatusBarAppearanceEffect(isDark: Boolean = true) {
  * 设置全屏模式
  */
 @Composable
-fun ImmersiveModeEffect(enabled: Boolean = true) {
-    val view = LocalView.current
-    val window = (view.context as Activity).window
-    val insetsController = WindowCompat.getInsetsController(window, view)
+fun ImmersiveSystemBars(enabled: Boolean = true) {
+    val window = LocalActivity.current?.window ?: return
 
-    DisposableEffect(enabled) {
+    LaunchedEffect(enabled) {
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
         if (enabled) {
-            // 让状态栏区域可用于布局
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            // 隐藏系统状态栏、导航栏等
-            insetsController.hide(WindowInsetsCompat.Type.systemBars())
-            // 当手动将状态栏或导航栏滑出后只短暂显示一会儿就收起
-            insetsController.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller.show(WindowInsetsCompat.Type.systemBars())
         } else {
-            WindowCompat.setDecorFitsSystemWindows(window, true)
-            insetsController.show(WindowInsetsCompat.Type.systemBars())
-        }
-
-        onDispose {
-            WindowCompat.setDecorFitsSystemWindows(window, true)
-            insetsController.show(WindowInsetsCompat.Type.systemBars())
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 }

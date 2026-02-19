@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import org.webrtc.EglBase
 import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.data.database.dao.ContactDao
-import top.chengdongqing.wechat.data.network.socket.SocketManager
 import top.chengdongqing.wechat.features.call.domain.model.CallActions
 import top.chengdongqing.wechat.features.call.domain.model.CallState
 import top.chengdongqing.wechat.features.call.domain.model.CallType
@@ -20,8 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CallViewModel @Inject constructor(
     private val callManager: CallManager,
-    private val contactDao: ContactDao,
-    private val socketManager: SocketManager
+    private val contactDao: ContactDao
 ) : ViewModel() {
 
     val state = callManager.state.stateIn(
@@ -38,22 +36,17 @@ class CallViewModel @Inject constructor(
         onHangup = { callManager.hangup() },
         onToggleMic = { callManager.toggleMic() },
         onToggleSpeaker = { callManager.toggleSpeaker() },
-        onSwitchCamera = { callManager.switchCamera() },
         onToggleVideo = { callManager.toggleVideo() },
+        onSwitchCamera = { callManager.switchCamera() },
+        onSwapVideo = { callManager.swapVideo() },
+        onToggleControlsVisibility = { callManager.toggleControlsVisibility() },
         onMinimize = {}  // TODO: 画中画
     )
-
-    // ==================== 发起通话 ====================
 
     fun startCall(peerId: String, callType: CallType) {
         if (state.value.callState != CallState.Idle) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            if (!socketManager.isConnected(peerId)) {
-                // TODO: 提示对方不在线
-                return@launch
-            }
-
             val contact = contactDao.getById(peerId)
             callManager.startCall(
                 peerId = peerId,
@@ -64,11 +57,10 @@ class CallViewModel @Inject constructor(
         }
     }
 
-    // ==================== 渲染器绑定 ====================
+    fun resetState() {
+        callManager.resetState()
+    }
 
-    /**
-     * 绑定本地预览渲染器到 WebRTC 本地视频轨道
-     */
     fun bindLocalRenderer(renderer: SurfaceViewRenderer) {
         callManager.setLocalRenderer(renderer)
     }

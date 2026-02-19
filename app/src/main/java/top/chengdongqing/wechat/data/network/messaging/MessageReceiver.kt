@@ -45,7 +45,6 @@ class MessageReceiver @Inject constructor(
     }
 
     val incomingMessageFlow = dispatcher.incomingMessageFlow
-    val signalingFlow = dispatcher.signalingFlow
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

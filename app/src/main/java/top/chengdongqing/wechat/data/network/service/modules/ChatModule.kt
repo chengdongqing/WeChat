@@ -12,7 +12,6 @@ import top.chengdongqing.wechat.data.network.discovery.DiscoveryEvent
 import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
 import top.chengdongqing.wechat.data.network.discovery.ServiceRegistrationState
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
-import top.chengdongqing.wechat.data.network.messaging.SignalingMessage
 import top.chengdongqing.wechat.data.network.socket.ConnectionEvent
 import top.chengdongqing.wechat.data.network.socket.SocketManager
 import top.chengdongqing.wechat.data.network.socket.SocketServer
@@ -39,9 +38,6 @@ class ChatModule @Inject constructor(
     // 透传 Flow
     val incomingMessageFlow: SharedFlow<ChatMessage>
         get() = messageReceiver.incomingMessageFlow
-
-    val signalingFlow: SharedFlow<SignalingMessage>
-        get() = messageReceiver.signalingFlow
 
     // ==================== 启停 ====================
 

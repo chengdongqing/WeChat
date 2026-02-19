@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToast
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.rememberVideoPlayerState
-import top.chengdongqing.wechat.core.designsystem.util.ImmersiveModeEffect
+import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.util.saveToAlbum
 import top.chengdongqing.wechat.core.util.shareContent
 
@@ -46,7 +46,7 @@ import top.chengdongqing.wechat.core.util.shareContent
 fun WeMediaPreview(medias: Array<MediaItem>, current: Int = 0, onDismiss: () -> Unit) {
     val pagerState = rememberPagerState(current) { medias.size }
 
-    ImmersiveModeEffect()
+    ImmersiveSystemBars()
     Box {
         MediaPager(medias, pagerState, onDismiss)
         PagerInfo(

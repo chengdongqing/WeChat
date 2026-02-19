@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import top.chengdongqing.wechat.core.designsystem.util.ImmersiveModeEffect
+import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -82,7 +82,7 @@ fun RequestCameraPermission(
             .background(Color.Black)
     ) {
         if (permissionState.allPermissionsGranted) {
-            ImmersiveModeEffect()
+            ImmersiveSystemBars()
             content()
         }
     }

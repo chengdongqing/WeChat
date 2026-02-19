@@ -64,6 +64,8 @@ class WebRTCManager @Inject constructor(
     private var localVideoTrack: VideoTrack? = null
     private var localAudioTrack: AudioTrack? = null
     private var surfaceTextureHelper: SurfaceTextureHelper? = null
+    private var localRenderer: SurfaceViewRenderer? = null
+    private var remoteRenderer: SurfaceViewRenderer? = null
 
     private var isUsingFrontCamera = true
     private var activeProfile: VideoProfile = VideoProfile.FHD_30
@@ -401,11 +403,28 @@ class WebRTCManager @Inject constructor(
     }
 
     fun setLocalRenderer(renderer: SurfaceViewRenderer) {
+        localRenderer = renderer
         localVideoTrack?.addSink(renderer)
     }
 
     fun setRemoteRenderer(renderer: SurfaceViewRenderer) {
+        remoteRenderer = renderer
         _remoteVideoTrack.value?.addSink(renderer)
+    }
+
+    fun swapRenderers() {
+        val local = localRenderer ?: return
+        val remote = remoteRenderer ?: return
+
+        // 移除旧的
+        localVideoTrack?.removeSink(local)
+        _remoteVideoTrack.value?.removeSink(remote)
+        // 绑定新的
+        localVideoTrack?.addSink(remote)
+        _remoteVideoTrack.value?.addSink(local)
+        // 交换引用
+        localRenderer = remote
+        remoteRenderer = local
     }
 
     // ==================================================================================

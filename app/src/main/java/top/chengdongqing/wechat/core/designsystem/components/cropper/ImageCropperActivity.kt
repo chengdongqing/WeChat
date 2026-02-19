@@ -13,7 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.ImmersiveModeEffect
+import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
 
 class ImageCropperActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,7 +27,7 @@ class ImageCropperActivity : ComponentActivity() {
                 intent.getParcelableExtra(EXTRA_URI)
             }!!
 
-            ImmersiveModeEffect()
+            ImmersiveSystemBars()
             WeTheme(darkTheme = true) {
                 WeImageCropper(uri, onCancel = { finish() }) {
                     val intent = Intent().apply {

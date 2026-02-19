@@ -223,7 +223,7 @@ class MessageSender @Inject constructor(
 
     // ==================== 连接管理 ====================
 
-    private suspend fun ensureConnected(targetUserId: String, myUserId: String) {
+    suspend fun ensureConnected(targetUserId: String, myUserId: String) {
         if (socketManager.isConnected(targetUserId)) return
 
         val info = connectionInfoDao.getConnectionsByUserId(targetUserId)

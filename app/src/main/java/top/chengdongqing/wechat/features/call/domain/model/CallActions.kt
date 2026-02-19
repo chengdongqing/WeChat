@@ -9,7 +9,9 @@ data class CallActions(
     val onHangup: () -> Unit = {},
     val onToggleMic: () -> Unit = {},
     val onToggleSpeaker: () -> Unit = {},
-    val onSwitchCamera: () -> Unit = {},
     val onToggleVideo: () -> Unit = {},
-    val onMinimize: () -> Unit = {}
+    val onSwitchCamera: () -> Unit = {},
+    val onSwapVideo: () -> Unit = {},
+    val onToggleControlsVisibility: () -> Unit = {},
+    val onMinimize: () -> Unit = {},
 )

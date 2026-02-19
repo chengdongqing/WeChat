@@ -23,27 +23,35 @@ import top.chengdongqing.wechat.R
 fun CallUserInfo(
     userName: String,
     userAvatar: String?,
-    statusText: String?
+    largeAvatar: Boolean = false,
+    statusText: String?,
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        AsyncImage(
-            model = userAvatar,
-            contentDescription = null,
-            error = painterResource(R.drawable.img_avatar_placeholder),
-            modifier = Modifier
-                .size(100.dp)
-                .clip(RoundedCornerShape(12.dp)),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            userName,
-            style = MaterialTheme.typography.headlineSmall,
-            color = Color.White
-        )
-        statusText?.let {
-            Spacer(modifier = Modifier.height(40.dp))
-            Text(it, fontSize = 14.sp, color = Color.White.copy(0.7f))
+        UserAvatar(userAvatar)
+        if (!largeAvatar) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                userName,
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White
+            )
+            statusText?.let {
+                Spacer(modifier = Modifier.height(40.dp))
+                Text(it, fontSize = 14.sp, color = Color.White.copy(0.7f))
+            }
         }
     }
+}
+
+@Composable
+fun UserAvatar(avatarPath: String?) {
+    AsyncImage(
+        model = avatarPath,
+        contentDescription = null,
+        error = painterResource(R.drawable.img_avatar_placeholder),
+        modifier = Modifier
+            .size(100.dp)
+            .clip(RoundedCornerShape(12.dp)),
+        contentScale = ContentScale.Crop
+    )
 }
