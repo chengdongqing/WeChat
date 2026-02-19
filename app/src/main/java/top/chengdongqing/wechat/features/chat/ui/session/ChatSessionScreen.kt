@@ -30,6 +30,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreTyp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.ui.startCall
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.TimeDivider
@@ -79,10 +80,18 @@ fun ChatSessionScreen(
         onLoadMore = { viewModel.loadMore() }
     )
 
+    val navigateToCall = { type: CallType ->
+        context.startCall(
+            chatId,
+            type
+        )
+    }
+
     // 上下文
     val chatContext = rememberChatContext(
         viewModel = viewModel,
-        onPreviewFile = onNavigateToFilePreview
+        onPreviewFile = onNavigateToFilePreview,
+        onNavigateToCall = navigateToCall
     )
 
     CompositionLocalProvider(LocalChatContext provides chatContext) {
@@ -109,12 +118,7 @@ fun ChatSessionScreen(
                             }
                         }
                     },
-                    onNavigateToCall = { callType ->
-                        context.startCall(
-                            chatId,
-                            callType
-                        )
-                    }
+                    onNavigateToCall = navigateToCall
                 )
             }
         ) { innerPadding ->
@@ -165,7 +169,8 @@ private fun ChatSessionTopBar(title: String, onBack: () -> Unit, onNavigateToInf
 @Composable
 private fun rememberChatContext(
     viewModel: ChatSessionViewModel,
-    onPreviewFile: (messageId: String) -> Unit
+    onPreviewFile: (messageId: String) -> Unit,
+    onNavigateToCall: (type: CallType) -> Unit
 ): ChatContext {
     val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
@@ -185,7 +190,8 @@ private fun rememberChatContext(
             onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
             onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() },
             onRetrySend = { viewModel.retrySend(it) },
-            onPreviewFile = { onPreviewFile(it) }
+            onPreviewFile = { onPreviewFile(it) },
+            onNavigateToCall = onNavigateToCall
         )
     }
 }
@@ -200,7 +206,8 @@ data class ChatContext(
     val onVoiceToggle: (messageId: String, localPath: String) -> Unit,
     val onVoiceStop: () -> Unit,
     val onRetrySend: (messageId: String) -> Unit,
-    val onPreviewFile: (messageId: String) -> Unit
+    val onPreviewFile: (messageId: String) -> Unit,
+    val onNavigateToCall: (type: CallType) -> Unit
 )
 
 val LocalChatContext = compositionLocalOf<ChatContext?> { null }

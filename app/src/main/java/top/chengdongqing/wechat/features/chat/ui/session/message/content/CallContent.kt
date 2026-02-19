@@ -21,9 +21,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
 
 @Composable
 fun CallContent(message: ChatMessage) {
@@ -41,9 +43,15 @@ fun CallContent(message: ChatMessage) {
         if (isFromMe) status.descriptionForMe else status.description
     }
 
+    val chatContext = LocalChatContext.current
+
     CompositionLocalProvider(LocalLayoutDirection provides if (isFromMe) LayoutDirection.Rtl else LayoutDirection.Ltr) {
         Row(
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier
+                .padding(10.dp)
+                .weClickable {
+                    chatContext?.onNavigateToCall(content.type)
+                },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
