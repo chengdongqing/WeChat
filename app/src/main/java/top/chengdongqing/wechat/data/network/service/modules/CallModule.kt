@@ -55,31 +55,30 @@ class CallModule @Inject constructor(
                     Log.d(TAG, "通话状态变化: ${state.callState}")
                     when (state.callState) {
                         CallState.Incoming -> {
-                            // 来电: 启动 CallActivity + 铃声 + 通知
-                            callAudioManager.startRingtone()
                             launchCallActivity()
+                            callAudioManager.startRingtone(true)
                             showIncomingNotification(state.peerName, state.isVideoCall)
                         }
 
                         CallState.Outgoing -> {
-                            callAudioManager.enterCallMode()
-                            callAudioManager.startDialingTone()
+                            callAudioManager.startRingtone(false)
                             showOngoingNotification("正在呼叫 ${state.peerName}...")
                         }
 
                         CallState.Connecting -> {
-                            callAudioManager.stopDialingTone()
                             callAudioManager.stopRingtone()
                             showOngoingNotification("连接中...")
                         }
 
                         CallState.Connected -> {
-                            callAudioManager.enterCallMode()
+                            callAudioManager.vibrateOnConnected()
+                            callAudioManager.enterCallMode(state.isVideoCall)
                             showOngoingNotification("通话中 - ${state.peerName}")
                         }
 
                         CallState.Ended -> {
                             callAudioManager.exitCallMode()
+                            callAudioManager.playHangupTone()
                             dismissNotification()
                         }
 
@@ -102,7 +101,7 @@ class CallModule @Inject constructor(
     // ==================== 启动 CallActivity ====================
 
     /**
-     * ★ 来电时自动启动通话界面
+     * 来电时自动启动通话界面
      *
      * FLAG_ACTIVITY_NEW_TASK: 从 Service 启动 Activity 必须
      * 不传 peerId/callType: CallActivity 从 CallManager.state 读取

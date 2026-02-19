@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.call.manager
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioDeviceInfo
@@ -35,8 +34,7 @@ class CallAudioManager @Inject constructor(
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var ringtonePlayer: MediaPlayer? = null
-    private var dialingPlayer: MediaPlayer? = null
-    private var vibrator: Vibrator? = null
+    private var vibrator: Vibrator? = getVibrator()
 
     private var savedAudioMode: Int = AudioManager.MODE_NORMAL
     private var savedSpeakerState: Boolean = false
@@ -48,12 +46,12 @@ class CallAudioManager @Inject constructor(
      *
      * 保存当前音频状态，切换到通话模式。
      */
-    fun enterCallMode() {
+    fun enterCallMode(isSpeakerOn: Boolean) {
         savedAudioMode = audioManager.mode
         savedSpeakerState = isSpeakerOn()
 
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-        setSpeakerphoneOn(false)   // 默认听筒
+        setSpeakerphoneOn(isSpeakerOn)
         Log.d(TAG, "进入通话音频模式")
     }
 
@@ -62,7 +60,6 @@ class CallAudioManager @Inject constructor(
      */
     fun exitCallMode() {
         stopRingtone()
-        stopDialingTone()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             audioManager.clearCommunicationDevice()
@@ -119,37 +116,32 @@ class CallAudioManager @Inject constructor(
     // ==================== 铃声 ====================
 
     /**
-     * 播放来电铃声 + 震动
+     * 播放铃声 + 震动
      */
-    @SuppressLint("MissingPermission")
-    fun startRingtone() {
+    fun startRingtone(isIncoming: Boolean) {
+        if (ringtonePlayer?.isPlaying == true) return
+
         // 铃声
         ringtonePlayer = MediaPlayer.create(context, R.raw.phonering)?.apply {
-            isLooping = true
             setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                     .build()
             )
+            isLooping = true
             start()
         }
 
         // 震动
-        vibrator = getVibrator()?.apply {
-            val pattern = longArrayOf(0, 500, 500)  // 震 500ms 停 500ms 循环
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrate(VibrationEffect.createWaveform(pattern, 0))
-            } else {
-                @Suppress("DEPRECATION")
-                vibrate(pattern, 0)
-            }
+        if (isIncoming && shouldVibrate()) {
+            val pattern = longArrayOf(0, 1000, 1000)
+            vibrate(pattern, 0)
         }
 
         Log.d(TAG, "来电铃声已播放")
     }
 
-    @SuppressLint("MissingPermission")
     fun stopRingtone() {
         ringtonePlayer?.run {
             if (isPlaying) stop()
@@ -158,27 +150,49 @@ class CallAudioManager @Inject constructor(
         ringtonePlayer = null
 
         vibrator?.cancel()
-        vibrator = null
     }
 
-    // ==================== 拨号音 ====================
-
-    fun startDialingTone() {
-        dialingPlayer = MediaPlayer.create(context, R.raw.phonering)?.apply {
-            isLooping = true
+    /**
+     * 通话结束音
+     */
+    fun playHangupTone() {
+        MediaPlayer.create(context, R.raw.playend)?.apply {
+            setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .build()
+            )
+            setOnCompletionListener { it.release() }
             start()
         }
     }
 
-    fun stopDialingTone() {
-        dialingPlayer?.run {
-            if (isPlaying) stop()
-            release()
-        }
-        dialingPlayer = null
+    // ==================== 工具 ====================
+
+    /**
+     * 接通时的震动反馈
+     */
+    fun vibrateOnConnected() {
+        val pattern = longArrayOf(0, 200, 300, 200)
+        vibrate(pattern, -1)
     }
 
-    // ==================== 工具 ====================
+    /**
+     * 检查系统是否静音模式
+     */
+    private fun shouldVibrate(): Boolean {
+        val ringerMode = audioManager.ringerMode
+        return ringerMode != AudioManager.RINGER_MODE_SILENT
+    }
+
+    private fun vibrate(pattern: LongArray, repeat: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator?.vibrate(VibrationEffect.createWaveform(pattern, repeat))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator?.vibrate(pattern, repeat)
+        }
+    }
 
     private fun getVibrator(): Vibrator? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

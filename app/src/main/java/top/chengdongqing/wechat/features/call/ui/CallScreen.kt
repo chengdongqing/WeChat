@@ -62,7 +62,7 @@ fun CallScreen(
             onDismiss()
 
             // 重置状态（因为CallManager是单例）
-            delay(100)
+            delay(200)
             viewModel.resetState()
         }
     }
