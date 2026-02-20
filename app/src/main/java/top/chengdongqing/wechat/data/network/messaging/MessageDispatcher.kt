@@ -89,15 +89,20 @@ class MessageDispatcher @Inject constructor(
         entityBuilder: suspend () -> MessageEntity
     ) {
         try {
+            // 已存在该消息直接发送送达回执
             if (messageDao.exists(protocol.messageId)) {
                 messageSender.sendAck(protocol.messageId, protocol.senderId)
                 return
             }
 
+            // 保存消息记录到数据库
             val entity = entityBuilder()
             messageDao.insert(entity)
+            // 更新会话
             chatSessionUpdater.update(entity)
+            // 发送送达回执
             messageSender.sendAck(protocol.messageId, protocol.senderId)
+            // 推到消息流供发送消息通知
             _incomingMessageFlow.emit(entity.toDomain(json))
         } catch (e: Exception) {
             Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)

@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -23,8 +24,6 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 /**
  * 统一的通话控制按钮
- *
- * @param isActive 为 null 时表示普通动作按钮（如挂断），为 true/false 时表示状态开关（如麦克风）
  */
 @Composable
 fun ControlToggle(
@@ -32,10 +31,11 @@ fun ControlToggle(
     modifier: Modifier = Modifier,
     label: String? = null,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     isActive: Boolean? = null,
     backgroundColor: Color = Color.White.copy(alpha = 0.2f),
     activeColor: Color = Color.White,
-    iconTint: Color = Color.White
+    iconTint: Color = Color.White,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -51,14 +51,17 @@ fun ControlToggle(
                         else -> backgroundColor
                     }
                 )
-                .weClickable(onClick = onClick),
+                .alpha(if (enabled) 1f else 0.5f)
+                .weClickable(
+                    enabled = enabled,
+                    onClick = onClick
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = label,
                 modifier = Modifier.size(32.dp),
-                // 如果是激活状态，图标颜色通常反转为黑色
                 tint = if (isActive == true) Color.Black else iconTint
             )
         }

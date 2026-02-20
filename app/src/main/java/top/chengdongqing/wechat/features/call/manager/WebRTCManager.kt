@@ -176,8 +176,37 @@ class WebRTCManager @Inject constructor(
 
     fun startLocalMedia(callType: CallType, renderer: SurfaceViewRenderer? = null) {
         val f = factory ?: return
-        startAudioCapture(f)
-        if (callType == CallType.Video) startVideoCapture(f, renderer)
+
+        // 音频
+        if (localAudioTrack == null) {
+            startAudioCapture(f)
+        }
+
+        // 视频
+        if (callType == CallType.Video) {
+            if (localVideoTrack == null) {
+                // 第一次创建
+                startVideoCapture(f, renderer)
+            } else {
+                // 如果轨道已存在，尝试重启 Capturer
+                // 场景：handleOffer 时没权限，现在 accept 有权限了
+                restartVideoCapture()
+            }
+        }
+    }
+
+    private fun restartVideoCapture() {
+        try {
+            // 如果 capturer 还没启动，或者之前启动失败了，重新调用 startCapture
+            videoCapturer?.startCapture(
+                activeProfile.width,
+                activeProfile.height,
+                activeProfile.fps
+            )
+            Log.d(TAG, "尝试重新启动视频采集 (权限补救)")
+        } catch (e: Exception) {
+            Log.e(TAG, "重新启动视频采集失败: ${e.message}")
+        }
     }
 
     private fun startAudioCapture(factory: PeerConnectionFactory) {
@@ -215,7 +244,14 @@ class WebRTCManager @Inject constructor(
             setEnabled(true)
             renderer?.let { addSink(it) }
         }
-        peerConnection?.addTrack(localVideoTrack)?.also { configureVideoSender(it) }
+
+        // 检查是否已经添加过视频轨道，避免重复 addTrack
+        val existingSenders = peerConnection?.senders
+        val alreadyExists = existingSenders?.any { it.track()?.id() == "video_track" } ?: false
+
+        if (!alreadyExists) {
+            peerConnection?.addTrack(localVideoTrack)?.also { configureVideoSender(it) }
+        }
 
         Log.d(
             TAG,
@@ -393,8 +429,26 @@ class WebRTCManager @Inject constructor(
 
     fun toggleVideo(): Boolean {
         val track = localVideoTrack ?: return false
-        track.setEnabled(!track.enabled())
-        return !track.enabled()
+        val isEnabled = !track.enabled()
+        track.setEnabled(isEnabled)
+
+        if (isEnabled) {
+            // 开启轨道的同时，确保 Capturer 是运行着的
+            try {
+                // startCapture 是幂等的，如果已经在跑，内部会忽略
+                videoCapturer?.startCapture(
+                    activeProfile.width,
+                    activeProfile.height,
+                    activeProfile.fps
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "toggleVideo 启动摄像头失败: ${e.message}")
+            }
+        } else {
+            // 为了省电，关闭视频时可以 stopCapture
+            videoCapturer?.stopCapture()
+        }
+        return isEnabled
     }
 
     fun switchCamera() {
@@ -426,6 +480,8 @@ class WebRTCManager @Inject constructor(
         localRenderer = remote
         remoteRenderer = local
     }
+
+    fun isLocalVideoTrackNull(): Boolean = localVideoTrack == null
 
     // ==================================================================================
     //  资源释放

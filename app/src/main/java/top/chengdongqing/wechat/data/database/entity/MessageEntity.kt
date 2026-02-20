@@ -75,7 +75,7 @@ enum class SendError(val message: String, val canRetry: Boolean) {
     NotFriend("对方已不是你的好友。", false),
     Blocked("消息已发出，但被对方拒收了。", false),
     MessageTooLarge("消息内容过大。", false),
-    Unknown("未知错误。", false)
+    Unknown("未知错误。", true)
 }
 
 fun MessageType.toPreviewText(content: String): String = when (this) {

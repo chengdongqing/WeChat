@@ -235,9 +235,21 @@ class CallManager @Inject constructor(
     }
 
     fun toggleVideo() {
-        webRTCManager.toggleVideo()
-        _state.update { it.copy(isVideoOn = !it.isVideoOn) }
-        sendMediaState()
+        val current = _state.value
+
+        // 如果是视频通话，且当前没有本地视频轨道，或者轨道之前启动失败了
+        if (current.callType == CallType.Video && webRTCManager.isLocalVideoTrackNull()) {
+            scope.launch {
+                webRTCManager.startLocalMedia(current.callType)
+                _state.update { it.copy(isVideoOn = true) }
+                sendMediaState()
+            }
+        } else {
+            // 正常的开关逻辑
+            val newState = webRTCManager.toggleVideo()
+            _state.update { it.copy(isVideoOn = newState) }
+            sendMediaState()
+        }
     }
 
     private fun sendMediaState() {
