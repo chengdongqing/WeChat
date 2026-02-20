@@ -49,6 +49,18 @@ object PacketType {
 
     /** 已读回执 (JSON) */
     const val READ_RECEIPT: Byte = 0x09
+
+    /** Bit7 = 1 表示 body 已被 AES-256-GCM 加密 */
+    const val ENCRYPTED_FLAG: Byte = 0x80.toByte()
+
+    /** HANDSHAKE / PING / PONG 始终明文 */
+    val PLAINTEXT_TYPES = setOf(HANDSHAKE, PING, PONG)
+
+    fun isEncrypted(type: Byte) = (type.toInt() and 0x80) != 0
+
+    fun realType(type: Byte): Byte = (type.toInt() and 0x7F).toByte()
+
+    fun encryptedType(type: Byte): Byte = (type.toInt() or 0x80).toByte()
 }
 
 /**

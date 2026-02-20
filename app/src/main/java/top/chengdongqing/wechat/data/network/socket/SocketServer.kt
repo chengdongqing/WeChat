@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
@@ -37,7 +38,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class SocketServer @Inject constructor(
-    private val json: Json
+    private val json: Json,
+    private val e2e: E2ESessionManager
 ) {
     private companion object {
         const val TAG = "SocketServer"
@@ -87,7 +89,7 @@ class SocketServer @Inject constructor(
             ?: return Result.failure(IllegalStateException("客户端未连接: $userId"))
 
         return withContext(Dispatchers.IO) {
-            runCatching { connection.writer.write(packet) }
+            runCatching { connection.writer.write(encryptIfNeeded(userId, packet)) }
         }
     }
 
@@ -116,7 +118,7 @@ class SocketServer @Inject constructor(
             // 握手阶段: 短超时防慢连接
             socket.soTimeout = TransferConfig.HANDSHAKE_TIMEOUT
 
-            val userId = performHandshake(reader) ?: run {
+            val userId = performHandshake(reader, writer) ?: run {
                 Log.w(TAG, "握手失败，关闭连接")
                 socket.close()
                 return@withContext
@@ -148,16 +150,28 @@ class SocketServer @Inject constructor(
         socket.tcpNoDelay = true    // 禁用 Nagle，避免与 Delayed ACK 叠加导致 40ms 延迟
     }
 
-    private fun performHandshake(reader: PacketReader): String? {
+    private fun performHandshake(reader: PacketReader, writer: PacketWriter): String? {
         return try {
             val packet = reader.read()
             if (packet.type != PacketType.HANDSHAKE) {
                 Log.w(TAG, "握手包类型错误: ${packet.type}")
                 return null
             }
+
             val handshake = json.decodeFromString<ChatProtocol.Handshake>(
                 String(packet.body, Charsets.UTF_8)
             )
+
+            // E2E：若对方携带公钥，立即响应
+            handshake.e2ePublicKey?.let { peerKey ->
+                val myKey = e2e.acceptHandshake(handshake.senderId, peerKey)
+                val ack =
+                    ChatProtocol.Handshake(senderId = handshake.senderId, e2ePublicKeyAck = myKey)
+                val body = json.encodeToString<ChatProtocol>(ack).toByteArray(Charsets.UTF_8)
+                writer.write(Packet(PacketType.HANDSHAKE, body))
+                Log.d(TAG, "E2E 握手 ACK 已发送 (server): ${handshake.senderId}")
+            }
+
             handshake.senderId
         } catch (e: Exception) {
             Log.e(TAG, "握手解析异常", e)
@@ -168,14 +182,26 @@ class SocketServer @Inject constructor(
     private suspend fun receiveLoop(connection: ClientConnection) {
         try {
             while (connection.isActive) {
-                val packet = connection.reader.read()
+                val raw = connection.reader.read()
+                Log.d(
+                    TAG,
+                    "📦 收到包: type=0x${raw.type.toString(16)} size=${raw.body.size} from=${connection.userId}"
+                )
 
-                when (packet.type) {
+                when (raw.type) {
                     PacketType.PING -> connection.writer.write(Packet.pong())
-                    PacketType.PONG -> { /* 忽略 */
-                    }
+                    PacketType.PONG -> {} // 忽略
 
-                    else -> connection.receiveChannel.send(packet)
+                    else -> {
+                        val isEnc = PacketType.isEncrypted(raw.type)
+                        Log.d(TAG, "📨 转发包: type=0x${raw.type.toString(16)} encrypted=$isEnc")
+                        val packet = decryptIfNeeded(connection.userId, raw)
+                        if (packet.body.isNotEmpty()) {
+                            connection.receiveChannel.send(packet)
+                        } else {
+                            Log.w(TAG, "⚠️ 解密后 body 为空，丢弃: ${connection.userId}")
+                        }
+                    }
                 }
             }
         } catch (_: EOFException) {
@@ -183,6 +209,7 @@ class SocketServer @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "接收中断: ${connection.userId}", e)
         } finally {
+            e2e.removeSession(connection.userId)   // 连接断开，清理 session
             cleanupConnection(connection.userId)
         }
     }
@@ -190,6 +217,23 @@ class SocketServer @Inject constructor(
     private fun cleanupConnection(userId: String) {
         activeClients.remove(userId)?.close()
         Log.d(TAG, "连接已清理: $userId")
+    }
+
+    private fun encryptIfNeeded(peerId: String, packet: Packet): Packet {
+        if (packet.type in PacketType.PLAINTEXT_TYPES) return packet
+        if (!e2e.hasSession(peerId)) return packet
+        return runCatching {
+            Packet(PacketType.encryptedType(packet.type), e2e.encrypt(peerId, packet.body))
+        }.getOrElse { packet }
+    }
+
+    private fun decryptIfNeeded(peerId: String, packet: Packet): Packet {
+        if (!PacketType.isEncrypted(packet.type)) return packet
+        val baseType = PacketType.realType(packet.type)
+        if (!e2e.hasSession(peerId)) return Packet(baseType, ByteArray(0))
+        return runCatching {
+            Packet(baseType, e2e.decrypt(peerId, packet.body))
+        }.getOrElse { Packet(baseType, ByteArray(0)) }
     }
 }
 

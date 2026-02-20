@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
+import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
@@ -33,6 +34,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
     private val activeSessionManager: ActiveSessionManager,
+    e2eSessionManager: E2ESessionManager,
     soundTipPlayer: SoundTipPlayer,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -65,6 +67,11 @@ class ChatSessionViewModel @AssistedInject constructor(
                 .reversed()
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    // 是否启用了加密
+    val isE2EActive = e2eSessionManager.encryptedPeers
+        .map { it.contains(chatId) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     // ==================== 播放管理 ====================
 

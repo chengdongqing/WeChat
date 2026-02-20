@@ -15,6 +15,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
+import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
@@ -40,7 +42,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class SocketManager @Inject constructor(
-    private val json: Json
+    private val json: Json,
+    private val e2e: E2ESessionManager
 ) {
     private companion object {
         const val TAG = "SocketManager"
@@ -90,7 +93,7 @@ class SocketManager @Inject constructor(
     suspend fun send(userId: String, packet: Packet): Result<Unit> =
         withContext(Dispatchers.IO) {
             runCatching {
-                requireConnection(userId).writer.write(packet)
+                requireConnection(userId).writer.write(encryptIfNeeded(userId, packet))
             }.onFailure { error ->
                 Log.e(TAG, "发送失败: $userId", error)
                 disconnect(userId)
@@ -106,7 +109,7 @@ class SocketManager @Inject constructor(
      */
     suspend fun sendAtomicTransfer(
         userId: String,
-        block: suspend (PacketWriter) -> Unit
+        block: suspend (EncryptingPacketWriter) -> Unit
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val conn = activeConnections[userId]
             ?: return@withContext Result.failure(IllegalStateException("未找到连接: $userId"))
@@ -114,8 +117,9 @@ class SocketManager @Inject constructor(
         conn.transferMutex.lock()
         conn.incrementTransferCount()
         try {
-            block(conn.writer)
-            conn.writer.flush()     // 确保最后残留的数据刷出
+            // 用加密代理包裹原始 writer
+            block(EncryptingPacketWriter(conn.writer, userId, e2e))
+            conn.writer.flush()
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "原子传输失败: $userId", e)
@@ -124,6 +128,141 @@ class SocketManager @Inject constructor(
         } finally {
             conn.decrementTransferCount()
             conn.transferMutex.unlock()
+        }
+    }
+
+    private fun startReceiving(connection: SocketConnection) {
+        scope.launch {
+            try {
+                while (connection.isActive) {
+                    val raw = connection.reader.read()
+                    Log.d(
+                        TAG,
+                        "📦 收到包: type=0x${raw.type.toString(16)} size=${raw.body.size} from=${connection.userId}"
+                    )
+                    when (raw.type) {
+                        PacketType.PONG -> connection.lastPongTime.set(System.currentTimeMillis())
+                        PacketType.PING -> connection.writer.write(Packet.pong())
+                        PacketType.HANDSHAKE -> {
+                            Log.d(
+                                TAG,
+                                "📦 收到包: type=0x${raw.type.toString(16)} size=${raw.body.size} from=${connection.userId}"
+                            )
+                            // 握手包：处理 E2E，同时转发给 MessageReceiver
+                            handleE2EInHandshake(connection, raw)
+                            connection.receiveChannel.send(raw)
+                        }
+
+                        else -> {
+                            val isEnc = PacketType.isEncrypted(raw.type)
+                            Log.d(
+                                TAG,
+                                "📨 转发包: type=0x${raw.type.toString(16)} encrypted=$isEnc to channel"
+                            )
+                            val packet = decryptIfNeeded(connection.userId, raw)
+                            connection.receiveChannel.send(packet)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                if (connection.isActive) Log.e(TAG, "接收异常: ${connection.userId}", e)
+            } finally {
+                disconnect(connection.userId)
+            }
+        }
+    }
+
+    // 发起连接时，若用户已开启 E2E，在握手包里夹带公钥
+    private fun sendHandshake(connection: SocketConnection, myUserId: String) {
+        // TODO 实现在设置里面控制是否开启加密
+        val e2eKey = run {//if (settingsRepo.isE2EEnabled()) {
+            // 重连场景：重新协商
+            e2e.removeSession(connection.userId)
+            e2e.prepareHandshake(connection.userId)
+        }//  else null
+
+        val body = json.encodeToString<ChatProtocol>(
+            ChatProtocol.Handshake(
+                senderId = myUserId,
+                e2ePublicKey = e2eKey
+            )
+        ).toByteArray(Charsets.UTF_8)
+
+        connection.writer.write(Packet(PacketType.HANDSHAKE, body))
+        Log.d(TAG, "握手包已发送 (e2e=${e2eKey})")
+    }
+
+    // ==================== E2E 工具 ====================
+
+    private fun encryptIfNeeded(peerId: String, packet: Packet): Packet {
+        if (packet.type in PacketType.PLAINTEXT_TYPES) return packet
+        if (!e2e.hasSession(peerId)) return packet
+
+        Log.d(TAG, "🔒 加密发送 type=${packet.type} to=$peerId")
+
+        return runCatching {
+            Packet(PacketType.encryptedType(packet.type), e2e.encrypt(peerId, packet.body))
+        }.getOrElse {
+            Log.e(TAG, "加密失败，降级明文: $peerId", it)
+            packet
+        }
+    }
+
+    private fun decryptIfNeeded(peerId: String, packet: Packet): Packet {
+        if (!PacketType.isEncrypted(packet.type)) {
+            Log.w(TAG, "收到普通包-----")
+            return packet
+        }
+        val baseType = PacketType.realType(packet.type)
+        if (!e2e.hasSession(peerId)) {
+            Log.w(TAG, "收到加密包但无 session ($peerId)，跳过")
+            return Packet(baseType, ByteArray(0))
+        }
+
+        Log.d(TAG, "🔓 解密接收 type=${PacketType.realType(packet.type)} from=$peerId")
+
+        return runCatching {
+            Packet(baseType, e2e.decrypt(peerId, packet.body))
+        }.getOrElse {
+            Log.e(TAG, "解密失败 ($peerId)，包可能被篡改", it)
+            Packet(baseType, ByteArray(0))
+        }
+    }
+
+    private fun handleE2EInHandshake(connection: SocketConnection, packet: Packet) {
+        runCatching {
+            val body = String(packet.body, Charsets.UTF_8)
+            Log.d(TAG, "🤝 握手内容: $body")
+            val hs = json.decodeFromString<ChatProtocol.Handshake>(body)
+            Log.d(
+                TAG,
+                "🤝 e2ePublicKey=${hs.e2ePublicKey?.take(20)} e2ePublicKeyAck=${
+                    hs.e2ePublicKeyAck?.take(20)
+                }"
+            )
+
+            hs.e2ePublicKey?.let { peerKey ->
+                Log.d(TAG, "🔑 收到对方公钥，生成响应...")
+                // 对方发起握手，我生成密钥对并回传（这里只做 session 建立，回包由 MessageDispatcher 发）
+                val myKey = e2e.acceptHandshake(connection.userId, peerKey)
+                // 立即回传 ACK，不经过 MessageDispatcher，减少延迟
+                val ack =
+                    ChatProtocol.Handshake(senderId = connection.userId, e2ePublicKeyAck = myKey)
+                val body = json.encodeToString<ChatProtocol>(ack).toByteArray(Charsets.UTF_8)
+                connection.writer.write(Packet(PacketType.HANDSHAKE, body))
+                Log.d(TAG, "✅ ACK 已回传: ${connection.userId}")
+            }
+            hs.e2ePublicKeyAck?.let { peerKey ->
+                Log.d(TAG, "🔑 收到 ACK 公钥，完成握手...")
+                e2e.completeHandshake(connection.userId, peerKey)
+                Log.d(TAG, "✅ 握手完成，session 已建立: ${connection.userId}")
+            }
+
+            if (hs.e2ePublicKey == null && hs.e2ePublicKeyAck == null) {
+                Log.d(TAG, "ℹ️ 普通握手包，无 E2E 字段")
+            }
+        }.onFailure {
+            Log.e(TAG, "❌ E2E 握手处理失败: ${connection.userId}", it)
         }
     }
 
@@ -170,39 +309,8 @@ class SocketManager @Inject constructor(
             tcpNoDelay = true
         }
 
-    private fun sendHandshake(connection: SocketConnection, myUserId: String) {
-        val body = json.encodeToString<ChatProtocol>(
-            ChatProtocol.Handshake(senderId = myUserId)
-        ).toByteArray(Charsets.UTF_8)
-
-        connection.writer.write(Packet(PacketType.HANDSHAKE, body))
-        Log.d(TAG, "握手包已发送")
-    }
-
     private fun closeExisting(userId: String) {
         activeConnections.remove(userId)?.close()
-    }
-
-    private fun startReceiving(connection: SocketConnection) {
-        scope.launch {
-            try {
-                while (connection.isActive) {
-                    val packet = connection.reader.read()
-
-                    when (packet.type) {
-                        PacketType.PONG -> connection.lastPongTime.set(System.currentTimeMillis())
-                        PacketType.PING -> connection.writer.write(Packet.pong())
-                        else -> connection.receiveChannel.send(packet)
-                    }
-                }
-            } catch (e: Exception) {
-                if (connection.isActive) {
-                    Log.e(TAG, "接收异常: ${connection.userId}", e)
-                }
-            } finally {
-                disconnect(connection.userId)
-            }
-        }
     }
 
     private fun startHeartbeat(connection: SocketConnection) {

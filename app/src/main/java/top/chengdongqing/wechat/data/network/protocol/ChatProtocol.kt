@@ -89,7 +89,7 @@ sealed class ChatProtocol {
             override val messageId: String,
             override val senderId: String,
             val callType: CallType,
-            val sdp: String // 支持的编解码方式、传输协议等
+            val sdp: String // 支持的编解码方式、传输协议、加密协议等
         ) : Signaling()
 
         /**
@@ -145,6 +145,8 @@ sealed class ChatProtocol {
     data class Handshake(
         override val messageId: String = "",
         override val senderId: String,
-        val timestamp: Long = System.currentTimeMillis()
+        val timestamp: Long = System.currentTimeMillis(),
+        val e2ePublicKey: String? = null, // 主动发起 E2E 握手时，携带的公钥
+        val e2ePublicKeyAck: String? = null // 响应 E2E 握手时，携带的公钥
     ) : ChatProtocol()
 }

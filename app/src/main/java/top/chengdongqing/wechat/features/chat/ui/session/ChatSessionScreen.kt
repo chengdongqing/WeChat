@@ -56,6 +56,7 @@ fun ChatSessionScreen(
 ) {
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isE2EActive by viewModel.isE2EActive.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -101,6 +102,7 @@ fun ChatSessionScreen(
             topBar = {
                 ChatSessionTopBar(
                     title = uiState.title,
+                    isE2EActive = isE2EActive,
                     onBack = onBack,
                     onNavigateToInfo = onNavigateToInfo
                 )
@@ -160,8 +162,13 @@ fun ChatSessionScreen(
 }
 
 @Composable
-private fun ChatSessionTopBar(title: String, onBack: () -> Unit, onNavigateToInfo: () -> Unit) {
-    WeTopBar(title = title, onBack = onBack) {
+private fun ChatSessionTopBar(
+    title: String,
+    isE2EActive: Boolean,
+    onBack: () -> Unit,
+    onNavigateToInfo: () -> Unit,
+) {
+    WeTopBar(title = title + if (isE2EActive) "（已加密）" else "", onBack = onBack) {
         ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
             onNavigateToInfo()
         }
