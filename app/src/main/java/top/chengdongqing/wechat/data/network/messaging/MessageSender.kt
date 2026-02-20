@@ -14,7 +14,7 @@ import top.chengdongqing.wechat.data.network.exception.ConnectionException
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
-import top.chengdongqing.wechat.data.network.socket.SocketManager
+import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import java.io.File
 import java.io.FileInputStream
@@ -51,7 +51,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class MessageSender @Inject constructor(
-    private val socketManager: SocketManager,
+    private val socketClient: SocketClient,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
     private val wifiLockManager: WifiLockManager,
@@ -109,7 +109,7 @@ class MessageSender @Inject constructor(
 
             // WiFi Lock: 后台传输保持高性能
             wifiLockManager.withLock {
-                socketManager.sendAtomicTransfer(message.receiverId) { writer ->
+                socketClient.sendAtomicTransfer(message.receiverId) { writer ->
                     // FILE_META: 立即 flush，让接收端尽快进入接收状态
                     writer.write(Packet(PacketType.FILE_META, serializeMediaMeta(meta)))
 
@@ -158,7 +158,7 @@ class MessageSender @Inject constructor(
         packetBuilder: () -> Packet
     ): Result<Unit> = runCatching {
         ensureConnected(message.receiverId, message.senderId)
-        socketManager.send(message.receiverId, packetBuilder()).getOrThrow()
+        socketClient.send(message.receiverId, packetBuilder()).getOrThrow()
         updateStatus(message.messageId, SendStatus.Sent)
     }.onFailure { error ->
         handleSendError(message.messageId)
@@ -168,7 +168,7 @@ class MessageSender @Inject constructor(
     private suspend fun sendReceiptSafely(receiverId: String, packetBuilder: () -> Packet) {
         withContext(Dispatchers.IO) {
             runCatching {
-                socketManager.send(receiverId, packetBuilder()).getOrThrow()
+                this@MessageSender.socketClient.send(receiverId, packetBuilder()).getOrThrow()
             }.onFailure { Log.e(TAG, "回执发送失败: $receiverId", it) }
         }
     }
@@ -224,13 +224,13 @@ class MessageSender @Inject constructor(
     // ==================== 连接管理 ====================
 
     suspend fun ensureConnected(targetUserId: String, myUserId: String) {
-        if (socketManager.isConnected(targetUserId)) return
+        if (socketClient.isConnected(targetUserId)) return
 
         val info = connectionInfoDao.getConnectionsByUserId(targetUserId)
             .firstOrNull { it.ipAddress != null && it.port != null }
             ?: throw ConnectionException("未找到有效连接信息，对方可能不在同一网络")
 
-        socketManager.connect(
+        socketClient.connect(
             userId = targetUserId,
             host = info.ipAddress!!,
             port = info.port!!,

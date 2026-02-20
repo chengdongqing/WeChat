@@ -7,13 +7,13 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
-import top.chengdongqing.wechat.data.network.socket.SocketManager
+import top.chengdongqing.wechat.data.network.socket.SocketClient
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SignalingManager @Inject constructor(
-    private val socketManager: SocketManager,
+    private val socketClient: SocketClient,
     private val json: Json
 ) {
     private companion object {
@@ -29,7 +29,7 @@ class SignalingManager @Inject constructor(
         val jsonBytes = json.encodeToString<ChatProtocol.Signaling>(message)
             .toByteArray(Charsets.UTF_8)
 
-        socketManager.send(targetUserId, Packet(PacketType.SIGNALING, jsonBytes))
+        socketClient.send(targetUserId, Packet(PacketType.SIGNALING, jsonBytes))
             .onSuccess { Log.d(TAG, "→ ${message::class.simpleName} to $targetUserId") }
             .onFailure { Log.e(TAG, "发送失败: ${message::class.simpleName}", it) }
     }

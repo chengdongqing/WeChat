@@ -31,7 +31,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * TCP 客户端连接管理器（主动端）
+ * TCP 客户端
  *
  * 性能设计:
  * - Socket 收发缓冲区 512KB，匹配 LAN 带宽
@@ -41,7 +41,7 @@ import javax.inject.Singleton
  * - 心跳引用计数，传输中自动暂停
  */
 @Singleton
-class SocketManager @Inject constructor(
+class SocketClient @Inject constructor(
     private val json: Json,
     private val e2e: E2ESessionManager
 ) {
@@ -93,7 +93,9 @@ class SocketManager @Inject constructor(
     suspend fun send(userId: String, packet: Packet): Result<Unit> =
         withContext(Dispatchers.IO) {
             runCatching {
-                requireConnection(userId).writer.write(encryptIfNeeded(userId, packet))
+                val connection = requireConnection(userId)
+                val packet = e2e.encryptPacket(userId, packet)
+                connection.writer.write(packet)
             }.onFailure { error ->
                 Log.e(TAG, "发送失败: $userId", error)
                 disconnect(userId)
@@ -159,7 +161,7 @@ class SocketManager @Inject constructor(
                                 TAG,
                                 "📨 转发包: type=0x${raw.type.toString(16)} encrypted=$isEnc to channel"
                             )
-                            val packet = decryptIfNeeded(connection.userId, raw)
+                            val packet = e2e.decryptPacket(connection.userId, raw)
                             connection.receiveChannel.send(packet)
                         }
                     }
@@ -190,43 +192,6 @@ class SocketManager @Inject constructor(
 
         connection.writer.write(Packet(PacketType.HANDSHAKE, body))
         Log.d(TAG, "握手包已发送 (e2e=${e2eKey})")
-    }
-
-    // ==================== E2E 工具 ====================
-
-    private fun encryptIfNeeded(peerId: String, packet: Packet): Packet {
-        if (packet.type in PacketType.PLAINTEXT_TYPES) return packet
-        if (!e2e.hasSession(peerId)) return packet
-
-        Log.d(TAG, "🔒 加密发送 type=${packet.type} to=$peerId")
-
-        return runCatching {
-            Packet(PacketType.encryptedType(packet.type), e2e.encrypt(peerId, packet.body))
-        }.getOrElse {
-            Log.e(TAG, "加密失败，降级明文: $peerId", it)
-            packet
-        }
-    }
-
-    private fun decryptIfNeeded(peerId: String, packet: Packet): Packet {
-        if (!PacketType.isEncrypted(packet.type)) {
-            Log.w(TAG, "收到普通包-----")
-            return packet
-        }
-        val baseType = PacketType.realType(packet.type)
-        if (!e2e.hasSession(peerId)) {
-            Log.w(TAG, "收到加密包但无 session ($peerId)，跳过")
-            return Packet(baseType, ByteArray(0))
-        }
-
-        Log.d(TAG, "🔓 解密接收 type=${PacketType.realType(packet.type)} from=$peerId")
-
-        return runCatching {
-            Packet(baseType, e2e.decrypt(peerId, packet.body))
-        }.getOrElse {
-            Log.e(TAG, "解密失败 ($peerId)，包可能被篡改", it)
-            Packet(baseType, ByteArray(0))
-        }
     }
 
     private fun handleE2EInHandshake(connection: SocketConnection, packet: Packet) {

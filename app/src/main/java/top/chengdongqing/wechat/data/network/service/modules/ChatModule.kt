@@ -13,7 +13,7 @@ import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
 import top.chengdongqing.wechat.data.network.discovery.ServiceRegistrationState
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.socket.ConnectionEvent
-import top.chengdongqing.wechat.data.network.socket.SocketManager
+import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.socket.SocketServer
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import javax.inject.Inject
@@ -26,7 +26,7 @@ import javax.inject.Singleton
 class ChatModule @Inject constructor(
     private val nsdManager: NSDDiscovery,
     private val socketServer: SocketServer,
-    private val socketManager: SocketManager,
+    private val socketClient: SocketClient,
     private val messageReceiver: MessageReceiver,
     private val connectionInfoDao: ConnectionInfoDao
 ) {
@@ -82,7 +82,7 @@ class ChatModule @Inject constructor(
 
     fun stop() {
         socketServer.stop()
-        socketManager.closeAll()
+        socketClient.closeAll()
         Log.d(TAG, "聊天模块已停止")
     }
 
@@ -90,7 +90,7 @@ class ChatModule @Inject constructor(
 
     private suspend fun handleDiscoveredDevice(device: DiscoveredDevice, myUserId: String) {
         // 幂等性检查：如果已经在线或正在连接，跳过
-        if (socketManager.isConnected(device.userId)) {
+        if (socketClient.isConnected(device.userId)) {
             Log.d(TAG, "设备 ${device.userId} 已连接，跳过重复连接")
             return
         }
@@ -113,7 +113,7 @@ class ChatModule @Inject constructor(
         )
 
         // 建立 Socket 连接
-        socketManager.connect(
+        socketClient.connect(
             userId = device.userId,
             host = device.host,
             port = device.port,
@@ -132,16 +132,16 @@ class ChatModule @Inject constructor(
         Log.d(TAG, "设备离线: $userId")
 
         connectionInfoDao.markOffline(userId)
-        socketManager.disconnect(userId)
+        socketClient.disconnect(userId)
     }
 
     private fun observeNewConnections(scope: CoroutineScope) {
         scope.launch {
-            socketManager.connectionEvents.collect { event ->
+            socketClient.connectionEvents.collect { event ->
                 when (event) {
                     is ConnectionEvent.Connected -> {
                         // 统一在这里开始监听，无论是主动连接还是重连
-                        val connection = socketManager.getConnection(event.userId)
+                        val connection = socketClient.getConnection(event.userId)
                         if (connection != null) {
                             messageReceiver.startListening(connection)
                             Log.d(TAG, "✅ 开始监听: ${event.userId}")

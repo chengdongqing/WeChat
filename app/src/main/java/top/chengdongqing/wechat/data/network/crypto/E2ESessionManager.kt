@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import top.chengdongqing.wechat.data.network.protocol.Packet
+import top.chengdongqing.wechat.data.network.protocol.PacketType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -100,6 +102,63 @@ class E2ESessionManager @Inject constructor(
     fun decrypt(peerId: String, data: ByteArray): ByteArray =
         crypto.decrypt(data, requireSession(peerId).sessionKey)
 
+    fun encryptPacket(peerId: String, packet: Packet): Packet {
+        if (packet.type in PacketType.PLAINTEXT_TYPES) {
+            Log.d(TAG, "⏭️ 跳过加密 (控制包): type=0x${packet.type.toString(16)} peerId=$peerId")
+            return packet
+        }
+        if (!hasSession(peerId)) {
+            Log.d(
+                TAG,
+                "⏭️ 跳过加密 (无 session): type=0x${packet.type.toString(16)} peerId=$peerId"
+            )
+            return packet
+        }
+        return runCatching {
+            val encrypted =
+                Packet(PacketType.encryptedType(packet.type), encrypt(peerId, packet.body))
+            Log.d(
+                TAG,
+                "🔒 加密成功: type=0x${packet.type.toString(16)}→0x${encrypted.type.toString(16)} plainSize=${packet.body.size} encSize=${encrypted.body.size} peerId=$peerId"
+            )
+            encrypted
+        }.getOrElse {
+            Log.e(TAG, "❌ 加密失败，降级明文: type=0x${packet.type.toString(16)} peerId=$peerId", it)
+            packet
+        }
+    }
+
+    fun decryptPacket(peerId: String, packet: Packet): Packet {
+        if (!PacketType.isEncrypted(packet.type)) {
+            Log.d(TAG, "⏭️ 跳过解密 (明文包): type=0x${packet.type.toString(16)} peerId=$peerId")
+            return packet
+        }
+        val baseType = PacketType.realType(packet.type)
+        if (!hasSession(peerId)) {
+            Log.w(
+                TAG,
+                "⚠️ 收到加密包但无 session: type=0x${packet.type.toString(16)} peerId=$peerId"
+            )
+            return Packet(baseType, ByteArray(0))
+        }
+        return runCatching {
+            val decrypted = Packet(baseType, decrypt(peerId, packet.body))
+            Log.d(
+                TAG,
+                "🔓 解密成功: type=0x${packet.type.toString(16)}→0x${baseType.toString(16)} encSize=${packet.body.size} plainSize=${decrypted.body.size} peerId=$peerId",
+
+                )
+            decrypted
+        }.getOrElse {
+            Log.e(
+                TAG,
+                "❌ 解密失败，可能被篡改: type=0x${packet.type.toString(16)} peerId=$peerId",
+                it
+            )
+            Packet(baseType, ByteArray(0))
+        }
+    }
+
     // ==================== 生命周期 ====================
 
     /**
@@ -112,8 +171,6 @@ class E2ESessionManager @Inject constructor(
         _encryptedPeers.update { it - peerId }
         Log.d(TAG, "E2E session 已移除: $peerId")
     }
-
-    fun isTemporary(peerId: String) = sessions[peerId]?.isTemporary == true
 
     // ==================== 私有 ====================
 

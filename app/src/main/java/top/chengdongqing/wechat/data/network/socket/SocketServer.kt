@@ -27,7 +27,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * TCP 服务器（被动端）
+ * TCP 服务端
  *
  * 接受连接 → HANDSHAKE 握手 → 收包循环（PING→PONG / 其他→Channel）
  *
@@ -80,17 +80,6 @@ class SocketServer @Inject constructor(
         serverSocket = null
         scope.cancel()
         Log.d(TAG, "服务器已停止")
-    }
-
-    // ==================== 发送 ====================
-
-    suspend fun sendToClient(userId: String, packet: Packet): Result<Unit> {
-        val connection = activeClients[userId]
-            ?: return Result.failure(IllegalStateException("客户端未连接: $userId"))
-
-        return withContext(Dispatchers.IO) {
-            runCatching { connection.writer.write(encryptIfNeeded(userId, packet)) }
-        }
     }
 
     // ==================== 内部逻辑 ====================
@@ -195,7 +184,7 @@ class SocketServer @Inject constructor(
                     else -> {
                         val isEnc = PacketType.isEncrypted(raw.type)
                         Log.d(TAG, "📨 转发包: type=0x${raw.type.toString(16)} encrypted=$isEnc")
-                        val packet = decryptIfNeeded(connection.userId, raw)
+                        val packet = e2e.decryptPacket(connection.userId, raw)
                         if (packet.body.isNotEmpty()) {
                             connection.receiveChannel.send(packet)
                         } else {
@@ -217,23 +206,6 @@ class SocketServer @Inject constructor(
     private fun cleanupConnection(userId: String) {
         activeClients.remove(userId)?.close()
         Log.d(TAG, "连接已清理: $userId")
-    }
-
-    private fun encryptIfNeeded(peerId: String, packet: Packet): Packet {
-        if (packet.type in PacketType.PLAINTEXT_TYPES) return packet
-        if (!e2e.hasSession(peerId)) return packet
-        return runCatching {
-            Packet(PacketType.encryptedType(packet.type), e2e.encrypt(peerId, packet.body))
-        }.getOrElse { packet }
-    }
-
-    private fun decryptIfNeeded(peerId: String, packet: Packet): Packet {
-        if (!PacketType.isEncrypted(packet.type)) return packet
-        val baseType = PacketType.realType(packet.type)
-        if (!e2e.hasSession(peerId)) return Packet(baseType, ByteArray(0))
-        return runCatching {
-            Packet(baseType, e2e.decrypt(peerId, packet.body))
-        }.getOrElse { Packet(baseType, ByteArray(0)) }
     }
 }
 
