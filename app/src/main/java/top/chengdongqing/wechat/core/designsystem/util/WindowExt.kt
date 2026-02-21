@@ -39,7 +39,7 @@ fun ImmersiveSystemBars(enabled: Boolean = true) {
 
     LaunchedEffect(enabled) {
         val controller = WindowCompat.getInsetsController(window, window.decorView)
-        if (enabled) {
+        if (!enabled) {
             controller.show(WindowInsetsCompat.Type.systemBars())
         } else {
             controller.hide(WindowInsetsCompat.Type.systemBars())

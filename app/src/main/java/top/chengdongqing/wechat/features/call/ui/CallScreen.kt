@@ -61,7 +61,7 @@ fun CallScreen(viewModel: CallViewModel, onDismiss: () -> Unit) {
         }
     }
 
-    ImmersiveSystemBars(uiState.isControlsVisible)
+    ImmersiveSystemBars(!uiState.isControlsVisible)
     StatusBarAppearanceEffect(isDark = false)
 
     Box(
