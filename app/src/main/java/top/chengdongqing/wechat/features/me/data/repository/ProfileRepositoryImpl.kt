@@ -33,13 +33,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override fun getCurrentProfile(): Flow<UserProfile?> {
         return dataStore.data.map { preferences ->
-            preferences[PROFILE_KEY]?.let { jsonString ->
-                try {
-                    json.decodeFromString<UserProfile>(jsonString)
-                } catch (_: Exception) {
-                    null
-                }
-            }
+            preferences[PROFILE_KEY]?.toProfile()
         }
     }
 
@@ -49,9 +43,8 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun saveProfile(profile: UserProfile): Result<Unit> {
         return try {
-            val jsonString = json.encodeToString(profile)
             dataStore.edit { preferences ->
-                preferences[PROFILE_KEY] = jsonString
+                preferences[PROFILE_KEY] = profile.toJson()
             }
             Result.success(Unit)
         } catch (e: Exception) {
@@ -96,4 +89,10 @@ class ProfileRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+
+    private fun String.toProfile(): UserProfile? = runCatching {
+        json.decodeFromString<UserProfile>(this)
+    }.getOrNull()
+
+    private fun UserProfile.toJson(): String = json.encodeToString(this)
 }

@@ -32,11 +32,6 @@ import top.chengdongqing.wechat.core.media.SpeechStatus
 
 /**
  * 语音输入按钮
- *
- * 自包含组件：内部管理 SpeechRecognizer 生命周期、权限申请、音量动画。
- * 外部只需关心识别结果回调。
- *
- * @param onResult 识别出文字后回调（可能多次回调，每次说完一句触发一次）
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable

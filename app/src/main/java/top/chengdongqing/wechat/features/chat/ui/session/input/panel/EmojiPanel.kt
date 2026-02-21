@@ -101,7 +101,7 @@ private fun FullEmojiPanel(
             currentTab = pagerState.currentPage,
             onTabChange = { index ->
                 scope.launch {
-                    pagerState.animateScrollToPage(index)
+                    pagerState.scrollToPage(index)
                 }
             }
         )

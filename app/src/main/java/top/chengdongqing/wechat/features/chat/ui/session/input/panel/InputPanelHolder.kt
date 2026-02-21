@@ -18,27 +18,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
-import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.core.designsystem.util.DpSaver
 import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarActions
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputMode
 
 @Composable
 fun InputPanelHolder(
     inputMode: InputMode,
-    recentEmojis: List<Emoji> = Emojis.all.take(6),
-    onEmojiSelect: (Emoji) -> Unit,
-    onStickerSelect: ((MessageContent.Sticker) -> Unit)? = null,
-    onBackspace: () -> Unit,
-    onMoreAction: ((action: MoreAction, isLongClick: Boolean) -> Unit)? = null
+    actions: InputBarActions,
+    recentEmojis: List<Emoji> = emptyList()
 ) {
     val keyboardHeight = rememberKeyboardHeight()
     var savedKeyboardHeight by rememberSaveable(stateSaver = DpSaver) {
         mutableStateOf(InputPanelConfig.DEFAULT_PANEL_HEIGHT)
     }
 
-    // 最小高度限制，避免过小的键盘高度
+    // 最小高度限制，避免键盘高度过小
     LaunchedEffect(keyboardHeight) {
         if (keyboardHeight > savedKeyboardHeight.coerceAtLeast(InputPanelConfig.MIN_PANEL_HEIGHT)) {
             savedKeyboardHeight = keyboardHeight
@@ -69,16 +65,14 @@ fun InputPanelHolder(
             when (inputMode) {
                 InputMode.Emoji -> EmojiPanel(
                     recentEmojis = recentEmojis,
-                    onEmojiSelect = onEmojiSelect,
-                    onStickerSelect = onStickerSelect,
-                    onBackspace = onBackspace
+                    onEmojiSelect = { emoji -> actions.onInsertEmoji(emoji.description) },
+                    onStickerSelect = actions.onSendSticker,
+                    onBackspace = actions.onEmojiBackspace
                 )
 
-                InputMode.More -> MoreActionPanel { actionId, isLongClick ->
-                    onMoreAction?.invoke(actionId, isLongClick)
-                }
+                InputMode.More -> MoreActionPanel(actions.onMoreAction)
 
-                else -> Unit
+                else -> {}
             }
         }
     }

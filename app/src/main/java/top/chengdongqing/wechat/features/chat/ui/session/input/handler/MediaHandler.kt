@@ -2,9 +2,7 @@ package top.chengdongqing.wechat.features.chat.ui.session.input.handler
 
 import android.content.Context
 import android.net.Uri
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,7 +15,6 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
-import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
 import top.chengdongqing.wechat.core.util.getFileMetadata
@@ -174,16 +171,3 @@ fun rememberMediaLaunchers(
         )
     }
 }
-
-/**
- * 媒体启动器集合
- */
-data class MediaLaunchers(
-    val launchMediaPicker: (VisualMediaType, Int) -> Unit,
-    val launchSystemMediaPicker: ManagedActivityResultLauncher<PickVisualMediaRequest, List<Uri>>,
-    val launchCamera: (VisualMediaType) -> Unit,
-    val takePicture: ManagedActivityResultLauncher<Uri, Boolean>,
-    val captureVideo: ManagedActivityResultLauncher<Uri, Boolean>,
-    val capturedUri: () -> Uri?,
-    val setCapturedUri: (Uri?) -> Unit
-)

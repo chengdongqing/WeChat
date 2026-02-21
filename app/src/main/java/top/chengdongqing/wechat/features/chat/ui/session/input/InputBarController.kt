@@ -6,44 +6,23 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
-
-/**
- * 输入栏UI状态
- */
-@Stable
-data class InputBarState(
-    val inputText: String = "",
-    val inputMode: InputMode = InputMode.Text,
-    val lineCount: Int = 1,
-    val isExpanded: Boolean = false
-) {
-    /**
-     * 是否显示发送按钮
-     */
-    val shouldShowSendButton: Boolean
-        get() = inputText.isNotBlank()
-
-    /**
-     * 是否显示全屏输入按钮
-     */
-    val shouldShowExpandButton: Boolean
-        get() = lineCount >= 3 && !inputMode.isVoice
-}
+import top.chengdongqing.wechat.core.designsystem.model.Emojis
+import top.chengdongqing.wechat.features.chat.data.store.RecentEmojisStore
+import top.chengdongqing.wechat.features.chat.ui.session.input.panel.RecentEmojisViewModel
 
 /**
  * 输入栏控制器
@@ -51,12 +30,13 @@ data class InputBarState(
  * 融合了输入状态管理、模式切换、键盘控制、焦点管理等功能
  */
 class InputBarController(
-    private val scope: CoroutineScope,
     val focusRequester: NativeFocusRequester,
-    private val keyboardController: SoftwareKeyboardController?
+    private val keyboardController: SoftwareKeyboardController?,
+    private val recentEmojisStore: RecentEmojisStore,
+    private val scope: CoroutineScope
 ) {
     private val _state = MutableStateFlow(InputBarState())
-    val state: StateFlow<InputBarState> = _state.asStateFlow()
+    val state = _state.asStateFlow()
 
     // ============================================
     // 文本相关
@@ -79,8 +59,8 @@ class InputBarController(
     /**
      * 插入表情
      */
-    fun insertEmoji(emojiDescription: String) {
-        val insertText = "[$emojiDescription]"
+    fun insertEmoji(description: String) {
+        val insertText = "[$description]"
         val cursorIndex = focusRequester.selectionStart
         val newText = StringBuilder(getCurrentText())
             .insert(cursorIndex, insertText).toString()
@@ -91,6 +71,11 @@ class InputBarController(
         scope.launch {
             delay(16)
             focusRequester.setSelection(newCursorIndex)
+        }
+
+        // 记录使用
+        scope.launch {
+            recentEmojisStore.record(description)
         }
     }
 
@@ -154,6 +139,19 @@ class InputBarController(
         _state.update { it.copy(lineCount = count) }
     }
 
+    /**
+     * 加载最近使用的表情
+     */
+    private fun loadRecentEmojis() {
+        scope.launch {
+            val keys = recentEmojisStore.getRecentEmojis()
+            val emojis = keys.mapNotNull { key ->
+                Emojis.all.find { it.description == key }
+            }
+            _state.update { it.copy(recentEmojis = emojis) }
+        }
+    }
+
     // ============================================
     // 模式切换相关
     // ============================================
@@ -183,6 +181,9 @@ class InputBarController(
                         delay(200)
                         focusRequester.requestFocus(showKeyboard = false)
                     }
+
+                    // 加载最近使用的表情
+                    loadRecentEmojis()
                 }
             }
         }
@@ -228,7 +229,10 @@ class InputBarController(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun rememberInputBarController(focusRequester: NativeFocusRequester): InputBarController {
+fun rememberInputBarController(
+    focusRequester: NativeFocusRequester,
+    recentEmojisStore: RecentEmojisStore = hiltViewModel<RecentEmojisViewModel>().store
+): InputBarController {
     val scope = rememberCoroutineScope()
     val isImeVisible = WindowInsets.isImeVisible
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -236,9 +240,10 @@ fun rememberInputBarController(focusRequester: NativeFocusRequester): InputBarCo
     // 创建控制器
     val controller = remember(focusRequester) {
         InputBarController(
-            scope = scope,
             focusRequester = focusRequester,
-            keyboardController = keyboardController
+            keyboardController = keyboardController,
+            recentEmojisStore = recentEmojisStore,
+            scope = scope
         )
     }
     val state by controller.state.collectAsState()
