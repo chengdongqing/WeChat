@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.request
+package top.chengdongqing.wechat.features.contacts.ui.newcontacts.request
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -8,8 +8,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
-import top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.components.ContactHandleBase
-import top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.components.FriendActionType
+import top.chengdongqing.wechat.features.contacts.ui.newcontacts.components.ContactHandleBase
+import top.chengdongqing.wechat.features.contacts.ui.newcontacts.components.FriendActionType
 
 @Composable
 fun RequestAddScreen(

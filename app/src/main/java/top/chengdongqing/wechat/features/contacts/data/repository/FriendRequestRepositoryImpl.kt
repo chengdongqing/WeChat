@@ -19,7 +19,6 @@ import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
 import top.chengdongqing.wechat.data.database.entity.toDomain
-import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
 import top.chengdongqing.wechat.data.network.protocol.P2PMessageTransmitter
 import top.chengdongqing.wechat.data.network.protocol.RequestAction
@@ -43,8 +42,8 @@ import javax.inject.Inject
 class FriendRequestRepositoryImpl @Inject constructor(
     private val friendRequestDao: FriendRequestDao,
     private val contactDao: ContactDao,
-    private val bleDiscovery: BLEDiscovery,
     private val profileRepository: ProfileRepository,
+    private val transmitter: P2PMessageTransmitter,
     private val imageExt: ImageExt,
     private val json: Json
 ) : FriendRequestRepository {
@@ -52,10 +51,6 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private companion object {
         const val TAG = "FriendRequest"
         const val PROFILE_SEND_DELAY = 2000L  // 延迟发送完整资料
-    }
-
-    private val transmitter by lazy {
-        P2PMessageTransmitter(bleDiscovery, json)
     }
 
     // ==================== 查询 ====================

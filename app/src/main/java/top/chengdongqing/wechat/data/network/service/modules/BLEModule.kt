@@ -48,10 +48,11 @@ import javax.inject.Singleton
  * BLE 模块 - 负责好友添加功能
  *
  * 主要功能:
- * 1. 启动 BLE 广播,向附近设备广播用户身份(MD5 哈希)
- * 2. 启动 GATT 服务器,接收和发送好友请求数据
- * 3. 管理设备会话,处理数据分片传输
- * 4. 支持两阶段数据传输: JSON 元数据 + 二进制数据(如头像)
+ * 1. 启动 BLE 广播，向附近设备广播用户身份（MD5 哈希）
+ * 2. 启动 GATT 服务器，接收和发送好友请求数据
+ * 3. 管理设备会话，处理数据分片传输
+ * 4. 支持两阶段数据传输：JSON 元数据 + 二进制数据（如头像）
+ * 5. 支持碰一碰（NFC）流程的消息路由
  */
 @Singleton
 class BLEModule @Inject constructor(
@@ -65,63 +66,46 @@ class BLEModule @Inject constructor(
     companion object {
         private const val TAG = "BLEModule"
 
-        // UUID 定义
         val SERVICE_UUID: UUID = UUID.fromString("0000FE9F-0000-1000-8000-00805F9B34FB")
         val CHARACTERISTIC_UUID: UUID = UUID.fromString("0000FEA0-0000-1000-8000-00805F9B34FB")
         val DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
-        // 数据传输配置
         private const val MAX_CHUNK_SIZE = 500
         private const val CHUNK_DELAY_MS = 50L
         private const val PROFILE_SEND_DELAY_MS = 100L
 
-        // 用户 ID 哈希配置
         private const val USER_ID_HASH_LENGTH = 4
 
-        // 头像缩略图配置
         private const val AVATAR_THUMBNAIL_SIZE = 100
         private const val AVATAR_MAX_SIZE_KB = 5
 
-        // JSON 识别标记
         private const val JSON_START_MARKER = '{'
         private const val JSON_END_MARKER = '}'
     }
 
-    // 好友请求事件流
-    private val _friendRequestEvents = MutableSharedFlow<FriendRequestEvent>()
+    // 事件流：所有好友请求相关事件都从这里发出
+    private val _friendRequestEvents =
+        MutableSharedFlow<FriendRequestEvent>(extraBufferCapacity = 8)
     val friendRequestEvents: SharedFlow<FriendRequestEvent> = _friendRequestEvents.asSharedFlow()
 
-    // BLE 组件
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
     private var gattServer: BluetoothGattServer? = null
 
-    // 设备会话管理
+    // 设备会话：key = 设备MAC地址
     private val deviceSessions = ConcurrentHashMap<String, DeviceSession>()
 
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
-        val bluetoothManager =
-            context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothManager.adapter
+        (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
     }
 
-    /**
-     * 启动 BLE 服务
-     *
-     * 启动 BLE 广播和 GATT 服务器
-     * 广播用于让附近设备发现本设备
-     * GATT 服务器用于数据交换
-     */
+    // ==================== 公共接口 ====================
+
     fun start(scope: CoroutineScope) {
         startBLEAdvertising(scope)
         startGattServer(scope)
         Log.d(TAG, "✅ BLE 模块已启动")
     }
 
-    /**
-     * 停止 BLE 服务
-     *
-     * 停止广播、关闭 GATT 服务器、清理所有设备会话
-     */
     @SuppressLint("MissingPermission")
     fun stop() {
         try {
@@ -134,25 +118,13 @@ class BLEModule @Inject constructor(
         }
     }
 
-    /**
-     * 启动 BLE 广播
-     *
-     * 广播内容包括:
-     * - Service UUID: 标识 WeChat 服务
-     * - Service Data: 用户 ID 的 MD5 哈希前 4 字节(用于去重检测)
-     *
-     * 广播配置:
-     * - 低延迟模式: 快速响应连接
-     * - 高功率: 增加扫描范围
-     * - 可连接: 允许其他设备连接
-     */
+    // ==================== BLE 广播 ====================
+
     @SuppressLint("MissingPermission")
     private fun startBLEAdvertising(scope: CoroutineScope) {
         scope.launch {
             try {
-                // 检查蓝牙适配器
-                val adapter = bluetoothAdapter
-                if (adapter == null) {
+                val adapter = bluetoothAdapter ?: run {
                     Log.w(TAG, "蓝牙适配器不可用")
                     return@launch
                 }
@@ -161,47 +133,38 @@ class BLEModule @Inject constructor(
                     return@launch
                 }
 
-                // 检查 BLE 广播支持
-                bluetoothLeAdvertiser = adapter.bluetoothLeAdvertiser
-                if (bluetoothLeAdvertiser == null) {
+                bluetoothLeAdvertiser = adapter.bluetoothLeAdvertiser ?: run {
                     Log.w(TAG, "设备不支持 BLE 广播")
                     return@launch
                 }
 
-                // 获取用户 ID 哈希
-                val myProfile = profileRepository.getCurrentProfile().first()
-                if (myProfile == null) {
-                    Log.w(TAG, "无法获取个人资料,无法启动广播")
+                val myProfile = profileRepository.getCurrentProfile().first() ?: run {
+                    Log.w(TAG, "无法获取个人资料")
                     return@launch
                 }
                 val userIdHash = myProfile.id.toMD5Bytes().copyOf(USER_ID_HASH_LENGTH)
 
-                // 配置广播设置
                 val settings = AdvertiseSettings.Builder()
                     .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
                     .setConnectable(true)
-                    .setTimeout(0) // 持续广播
+                    .setTimeout(0)
                     .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
                     .build()
 
-                // 配置广播数据
                 val data = AdvertiseData.Builder()
-                    .setIncludeDeviceName(false) // 不包含设备名,节省空间
+                    .setIncludeDeviceName(false)
                     .addServiceUuid(ParcelUuid(SERVICE_UUID))
                     .addServiceData(ParcelUuid(SERVICE_UUID), userIdHash)
                     .build()
 
-                // 启动广播
                 bluetoothLeAdvertiser!!.startAdvertising(
-                    settings,
-                    data,
+                    settings, data,
                     object : AdvertiseCallback() {
                         override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
                             Log.d(TAG, "✅ BLE 广播已启动")
                         }
-
                         override fun onStartFailure(errorCode: Int) {
-                            Log.e(TAG, "BLE 广播启动失败,错误码: $errorCode")
+                            Log.e(TAG, "BLE 广播启动失败，错误码: $errorCode")
                         }
                     }
                 )
@@ -211,32 +174,14 @@ class BLEModule @Inject constructor(
         }
     }
 
-    /**
-     * 启动 GATT 服务器
-     *
-     * GATT 服务器结构:
-     * - Service: 主服务
-     *   - Characteristic: 数据特征值
-     *     - Descriptor: 通知描述符(用于订阅通知)
-     *
-     * 特征值属性:
-     * - READ: 客户端可读取
-     * - WRITE: 客户端可写入
-     * - NOTIFY: 服务器可主动推送
-     */
+    // ==================== GATT 服务器 ====================
+
     @SuppressLint("MissingPermission")
     private fun startGattServer(scope: CoroutineScope) {
         try {
             val bluetoothManager =
                 context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
 
-            // 创建服务
-            val service = BluetoothGattService(
-                SERVICE_UUID,
-                BluetoothGattService.SERVICE_TYPE_PRIMARY
-            )
-
-            // 创建特征值
             val characteristic = BluetoothGattCharacteristic(
                 CHARACTERISTIC_UUID,
                 BluetoothGattCharacteristic.PROPERTY_READ or
@@ -244,58 +189,46 @@ class BLEModule @Inject constructor(
                         BluetoothGattCharacteristic.PROPERTY_NOTIFY,
                 BluetoothGattCharacteristic.PERMISSION_READ or
                         BluetoothGattCharacteristic.PERMISSION_WRITE
-            )
+            ).apply {
+                addDescriptor(
+                    BluetoothGattDescriptor(
+                        DESCRIPTOR_UUID,
+                        BluetoothGattDescriptor.PERMISSION_READ or
+                                BluetoothGattDescriptor.PERMISSION_WRITE
+                    )
+                )
+            }
 
-            // 创建通知描述符
-            val descriptor = BluetoothGattDescriptor(
-                DESCRIPTOR_UUID,
-                BluetoothGattDescriptor.PERMISSION_READ or
-                        BluetoothGattDescriptor.PERMISSION_WRITE
-            )
+            val service = BluetoothGattService(
+                SERVICE_UUID,
+                BluetoothGattService.SERVICE_TYPE_PRIMARY
+            ).apply {
+                addCharacteristic(characteristic)
+            }
 
-            // 组装 GATT 结构
-            characteristic.addDescriptor(descriptor)
-            service.addCharacteristic(characteristic)
-
-            // 启动 GATT 服务器
             gattServer = bluetoothManager.openGattServer(
                 context,
                 GattServerCallbackImpl(scope)
             )
-
             gattServer?.addService(service)
             Log.d(TAG, "✅ GATT 服务器已启动")
-
         } catch (e: Exception) {
             Log.e(TAG, "启动 GATT 服务器异常", e)
         }
     }
 
-    /**
-     * GATT 服务器回调处理器
-     *
-     * 处理客户端的连接、断开、读写请求等事件
-     */
+    // ==================== GATT 回调 ====================
+
     private inner class GattServerCallbackImpl(
         private val scope: CoroutineScope
     ) : BluetoothGattServerCallback() {
 
-        /**
-         * 连接状态变化回调
-         *
-         * 连接时创建设备会话,断开时清理会话
-         */
-        override fun onConnectionStateChange(
-            device: BluetoothDevice,
-            status: Int,
-            newState: Int
-        ) {
+        override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     deviceSessions[device.address] = DeviceSession()
                     Log.d(TAG, "✅ 设备已连接: ${device.address}")
                 }
-
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     deviceSessions.remove(device.address)
                     Log.d(TAG, "设备已断开: ${device.address}")
@@ -303,12 +236,6 @@ class BLEModule @Inject constructor(
             }
         }
 
-        /**
-         * 描述符写入请求回调
-         *
-         * 客户端订阅通知时触发
-         * 订阅成功后,自动发送个人资料给客户端
-         */
         @SuppressLint("MissingPermission")
         override fun onDescriptorWriteRequest(
             device: BluetoothDevice,
@@ -321,28 +248,13 @@ class BLEModule @Inject constructor(
         ) {
             if (descriptor.uuid == DESCRIPTOR_UUID) {
                 Log.d(TAG, "客户端订阅了通知: ${device.address}")
-
-                // 发送成功响应
                 if (responseNeeded) {
                     gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
                 }
-
-                // 自动发送个人资料
-                scope.launch {
-                    sendProfileData(device)
-                }
+                scope.launch { sendProfileData(device) }
             }
         }
 
-        /**
-         * 处理客户端写入请求
-         *
-         * 数据接收采用两阶段模式:
-         * 1. 第一阶段: 接收 JSON 元数据,解析出消息类型和二进制数据大小
-         * 2. 第二阶段: 如果有二进制数据(如头像),继续接收二进制数据
-         *
-         * 数据可能分片传输,需要在缓冲区中累积直到完整
-         */
         @SuppressLint("MissingPermission")
         override fun onCharacteristicWriteRequest(
             device: BluetoothDevice,
@@ -367,14 +279,12 @@ class BLEModule @Inject constructor(
                         return@launch
                     }
 
-                    // 根据当前状态处理数据
                     if (!session.isReceivingBinary) {
                         handleJsonDataChunk(session, value)
                     } else {
                         handleBinaryDataChunk(session, value)
                     }
 
-                    // 发送响应
                     sendGattResponse(device, requestId, responseNeeded, BluetoothGatt.GATT_SUCCESS)
                 } catch (e: Exception) {
                     Log.e(TAG, "处理写入请求失败: ${device.address}", e)
@@ -383,44 +293,29 @@ class BLEModule @Inject constructor(
             }
         }
 
-        /**
-         * 处理 JSON 数据分片
-         *
-         * 累积接收的数据直到形成完整的 JSON 对象
-         * JSON 对象以 '{' 开始,以 '}' 结束
-         */
+        // -------- 数据接收 --------
+
         private suspend fun handleJsonDataChunk(session: DeviceSession, chunk: ByteArray) {
             session.buffer.write(chunk)
             val jsonString = String(session.buffer.toByteArray(), Charsets.UTF_8)
 
-            // 检查是否收到完整 JSON
-            if (isCompleteJson(jsonString)) {
-                val message = tryParseJsonMessage(jsonString)
-                if (message != null) {
-                    session.setCurrentMessage(message)
-                    session.buffer.reset()
+            if (jsonString.startsWith(JSON_START_MARKER) && jsonString.endsWith(JSON_END_MARKER)) {
+                val message = tryParseJsonMessage(jsonString) ?: return
+                session.setCurrentMessage(message)
+                session.buffer.reset()
 
-                    // 检查是否需要接收二进制数据
-                    val binarySize = extractBinarySizeFromMessage(message)
-                    if (binarySize > 0) {
-                        session.transitionToBinaryMode(binarySize)
-                    } else {
-                        handleCompleteMessage(message, null)
-                        session.reset()
-                    }
+                val binarySize = extractBinarySizeFromMessage(message)
+                if (binarySize > 0) {
+                    session.transitionToBinaryMode(binarySize)
+                } else {
+                    handleCompleteMessage(message, null)
+                    session.reset()
                 }
             }
         }
 
-        /**
-         * 处理二进制数据分片
-         *
-         * 累积接收的数据直到达到预期大小
-         */
         private suspend fun handleBinaryDataChunk(session: DeviceSession, chunk: ByteArray) {
             session.buffer.write(chunk)
-
-            // 检查是否收到完整二进制数据
             if (session.buffer.size() >= session.expectedBinarySize) {
                 val binaryData = session.buffer.toByteArray()
                 handleCompleteMessage(session.currentMessage, binaryData)
@@ -428,63 +323,10 @@ class BLEModule @Inject constructor(
             }
         }
 
-        /**
-         * 发送 GATT 响应
-         */
-        @SuppressLint("MissingPermission")
-        private fun sendGattResponse(
-            device: BluetoothDevice,
-            requestId: Int,
-            responseNeeded: Boolean,
-            status: Int
-        ) {
-            if (responseNeeded) {
-                gattServer?.sendResponse(device, requestId, status, 0, null)
-            }
-        }
+        // -------- 消息分发 --------
 
-        /**
-         * 检查是否为完整 JSON
-         */
-        private fun isCompleteJson(jsonString: String): Boolean {
-            return jsonString.startsWith(JSON_START_MARKER) && jsonString.endsWith(JSON_END_MARKER)
-        }
-
-        /**
-         * 尝试解析 JSON 消息
-         */
-        private fun tryParseJsonMessage(jsonString: String): P2PMessage? {
-            return try {
-                json.decodeFromString<P2PMessage>(jsonString)
-            } catch (e: Exception) {
-                Log.w(TAG, "JSON 解析失败: ${e.message}")
-                null
-            }
-        }
-
-        /**
-         * 从消息中提取二进制数据大小
-         */
-        private fun extractBinarySizeFromMessage(message: P2PMessage): Int {
-            return when (message) {
-                is P2PMessage.FriendRequest -> message.avatarSize
-                is P2PMessage.AutoAddResponse -> message.avatarSize
-                is P2PMessage.FullProfileResponse -> message.avatarSize
-                else -> 0
-            }
-        }
-
-        /**
-         * 处理完整消息(JSON + 可选的二进制数据)
-         *
-         * 根据消息类型分发到对应的处理器,并触发相应的事件
-         */
         private suspend fun handleCompleteMessage(message: P2PMessage?, binaryData: ByteArray?) {
-            if (message == null) {
-                Log.w(TAG, "消息为空,无法处理")
-                return
-            }
-
+            if (message == null) return
             try {
                 when (message) {
                     is P2PMessage.FriendRequest -> handleFriendRequest(message, binaryData)
@@ -494,15 +336,18 @@ class BLEModule @Inject constructor(
                         message,
                         binaryData
                     )
+                    // 碰一碰：收到对方的申请
+                    is P2PMessage.NfcAddRequest -> handleNfcAddRequest(message, binaryData)
+                    // 碰一碰：收到对方的确认响应
+                    is P2PMessage.NfcAddResponse -> handleNfcAddResponse(message, binaryData)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "处理消息失败: ${message::class.simpleName}", e)
             }
         }
 
-        /**
-         * 处理好友请求
-         */
+        // -------- 各类消息处理器 --------
+
         private suspend fun handleFriendRequest(
             message: P2PMessage.FriendRequest,
             binaryData: ByteArray?
@@ -517,22 +362,14 @@ class BLEModule @Inject constructor(
             Log.d(TAG, "收到好友请求: ${message.peerNickname}")
         }
 
-        /**
-         * 处理好友请求响应
-         */
         private suspend fun handleFriendRequestResponse(message: P2PMessage.FriendRequestResponse) {
             friendRequestRepository.handleRequestResponse(message.toDomain())
             if (message.action == RequestAction.ACCEPT) {
-                _friendRequestEvents.emit(
-                    FriendRequestEvent.RequestAccepted("对方已同意你的好友申请")
-                )
+                _friendRequestEvents.emit(FriendRequestEvent.RequestAccepted("对方已同意你的好友申请"))
                 Log.d(TAG, "好友请求已被接受")
             }
         }
 
-        /**
-         * 处理自动添加响应
-         */
         private suspend fun handleAutoAddResponse(
             message: P2PMessage.AutoAddResponse,
             binaryData: ByteArray?
@@ -542,9 +379,6 @@ class BLEModule @Inject constructor(
             Log.d(TAG, "自动添加好友: ${message.nickname}")
         }
 
-        /**
-         * 处理完整资料响应
-         */
         private suspend fun handleFullProfileResponse(
             message: P2PMessage.FullProfileResponse,
             binaryData: ByteArray?
@@ -554,27 +388,82 @@ class BLEModule @Inject constructor(
         }
 
         /**
-         * 发送个人资料给连接的设备
-         *
-         * 发送流程:
-         * 1. 生成头像缩略图
-         * 2. 构建资料传输对象(包含头像大小)
-         * 3. 先发送 JSON 元数据
-         * 4. 再发送头像二进制数据
+         * 碰一碰：收到对方的 NfcAddRequest
+         * 直接透传到事件流，由 NfcAddFriendViewModel 处理业务逻辑
+         */
+        private suspend fun handleNfcAddRequest(
+            message: P2PMessage.NfcAddRequest,
+            binaryData: ByteArray?
+        ) {
+            Log.d(TAG, "收到碰一碰好友申请: ${message.nickname}")
+            _friendRequestEvents.emit(
+                FriendRequestEvent.NfcPeerAddRequest(message, binaryData)
+            )
+        }
+
+        /**
+         * 碰一碰：收到对方的 NfcAddResponse（对方确认了我的申请）
+         * 直接透传到事件流，由 NfcAddFriendViewModel 处理业务逻辑
+         */
+        private suspend fun handleNfcAddResponse(
+            message: P2PMessage.NfcAddResponse,
+            binaryData: ByteArray?
+        ) {
+            Log.d(TAG, "收到碰一碰好友响应: ${message.nickname}")
+            _friendRequestEvents.emit(
+                FriendRequestEvent.NfcPeerAddResponse(message, binaryData)
+            )
+        }
+
+        // -------- 工具方法 --------
+
+        @SuppressLint("MissingPermission")
+        private fun sendGattResponse(
+            device: BluetoothDevice,
+            requestId: Int,
+            responseNeeded: Boolean,
+            status: Int
+        ) {
+            if (responseNeeded) {
+                gattServer?.sendResponse(device, requestId, status, 0, null)
+            }
+        }
+
+        private fun tryParseJsonMessage(jsonString: String): P2PMessage? {
+            return try {
+                json.decodeFromString<P2PMessage>(jsonString)
+            } catch (e: Exception) {
+                Log.w(TAG, "JSON 解析失败: ${e.message}")
+                null
+            }
+        }
+
+        private fun extractBinarySizeFromMessage(message: P2PMessage): Int {
+            return when (message) {
+                is P2PMessage.FriendRequest -> message.avatarSize
+                is P2PMessage.AutoAddResponse -> message.avatarSize
+                is P2PMessage.FullProfileResponse -> message.avatarSize
+                is P2PMessage.NfcAddRequest -> message.avatarSize
+                is P2PMessage.NfcAddResponse -> message.avatarSize
+                else -> 0
+            }
+        }
+
+        // ==================== 主动发送资料 ====================
+
+        /**
+         * 客户端订阅 Notification 后，主动推送本方资料给对方（BLE雷达场景）
          */
         @SuppressLint("MissingPermission")
         private suspend fun sendProfileData(device: BluetoothDevice) {
             try {
-                val myProfile = profileRepository.getCurrentProfile().first()
-                if (myProfile == null) {
+                val myProfile = profileRepository.getCurrentProfile().first() ?: run {
                     Log.w(TAG, "无法获取个人资料")
                     return
                 }
 
-                // 生成头像缩略图
                 val avatarBytes = generateAvatarThumbnail(myProfile.avatarPath)
 
-                // 构建资料传输对象
                 val profileTransfer = UserProfileTransfer(
                     userId = myProfile.id,
                     nickname = myProfile.nickname,
@@ -583,21 +472,18 @@ class BLEModule @Inject constructor(
                     avatarSize = avatarBytes?.size ?: 0
                 )
 
-                // 获取特征值
-                val characteristic = getCharacteristic()
-                if (characteristic == null || gattServer == null) {
-                    Log.w(TAG, "GATT 服务器或特征值不可用")
+                val characteristic = getCharacteristic() ?: run {
+                    Log.w(TAG, "GATT 特征值不可用")
                     return
                 }
+                val server = gattServer ?: return
 
-                // 发送 JSON 元数据
                 val jsonBytes = json.encodeToString(profileTransfer).toByteArray(Charsets.UTF_8)
-                sendDataChunked(gattServer!!, device, characteristic, jsonBytes, "ProfileJSON")
+                sendDataChunked(server, device, characteristic, jsonBytes, "ProfileJSON")
 
-                // 发送头像数据
                 if (avatarBytes != null) {
                     delay(PROFILE_SEND_DELAY_MS)
-                    sendDataChunked(gattServer!!, device, characteristic, avatarBytes, "Avatar")
+                    sendDataChunked(server, device, characteristic, avatarBytes, "Avatar")
                 }
 
                 Log.d(TAG, "资料发送完成: ${device.address}")
@@ -606,9 +492,6 @@ class BLEModule @Inject constructor(
             }
         }
 
-        /**
-         * 生成头像缩略图
-         */
         private suspend fun generateAvatarThumbnail(avatarPath: String?): ByteArray? {
             return avatarPath?.let { path ->
                 try {
@@ -624,26 +507,11 @@ class BLEModule @Inject constructor(
             }
         }
 
-        /**
-         * 获取特征值
-         */
         private fun getCharacteristic(): BluetoothGattCharacteristic? {
-            val service = gattServer?.getService(SERVICE_UUID)
-            return service?.getCharacteristic(CHARACTERISTIC_UUID)
+            return gattServer?.getService(SERVICE_UUID)?.getCharacteristic(CHARACTERISTIC_UUID)
         }
 
-        /**
-         * 分片发送数据
-         *
-         * 将大数据拆分为小块,逐个发送给客户端
-         * 每个分片之间有延迟,避免蓝牙缓冲区溢出
-         *
-         * @param server GATT 服务器
-         * @param device 目标设备
-         * @param characteristic 特征值
-         * @param data 要发送的数据
-         * @param dataType 数据类型描述(用于日志)
-         */
+        @SuppressLint("MissingPermission")
         private suspend fun sendDataChunked(
             server: BluetoothGattServer,
             device: BluetoothDevice,
@@ -655,48 +523,25 @@ class BLEModule @Inject constructor(
             var chunkCount = 0
 
             while (offset < data.size) {
-                val remainingSize = data.size - offset
-                val chunkSize = minOf(MAX_CHUNK_SIZE, remainingSize)
+                val chunkSize = minOf(MAX_CHUNK_SIZE, data.size - offset)
                 val chunk = data.copyOfRange(offset, offset + chunkSize)
 
-                // 发送分片
-                val success = notifyCharacteristicChangedCompat(
-                    server = server,
-                    device = device,
-                    characteristic = characteristic,
-                    value = chunk
-                )
-
+                val success =
+                    notifyCharacteristicChangedCompat(server, device, characteristic, value = chunk)
                 if (!success) {
-                    Log.w(TAG, "[$dataType] 发送失败,已发送 $chunkCount 片")
+                    Log.w(TAG, "[$dataType] 发送失败，已发送 $chunkCount 片")
                     break
                 }
 
                 offset += chunkSize
                 chunkCount++
 
-                // 延迟避免缓冲区溢出
-                if (offset < data.size) {
-                    delay(CHUNK_DELAY_MS)
-                }
+                if (offset < data.size) delay(CHUNK_DELAY_MS)
             }
 
-            Log.d(TAG, "[$dataType] 发送完成: $chunkCount 片,总大小 ${data.size} 字节")
+            Log.d(TAG, "[$dataType] 发送完成: $chunkCount 片，总大小 ${data.size} 字节")
         }
 
-        /**
-         * 兼容新旧 API 的 Notification 发送
-         *
-         * Android 13 (API 33) 引入了新的通知 API
-         * 此方法兼容新旧两种 API
-         *
-         * @param server GATT 服务器
-         * @param device 目标设备
-         * @param characteristic 特征值
-         * @param confirm 是否需要确认(false = Notification, true = Indication)
-         * @param value 要发送的数据
-         * @return 发送是否成功
-         */
         @SuppressLint("MissingPermission")
         private fun notifyCharacteristicChangedCompat(
             server: BluetoothGattServer,
@@ -707,15 +552,10 @@ class BLEModule @Inject constructor(
         ): Boolean {
             return try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    // Android 13+ 使用新 API
                     server.notifyCharacteristicChanged(
-                        device,
-                        characteristic,
-                        confirm,
-                        value
+                        device, characteristic, confirm, value
                     ) == BluetoothStatusCodes.SUCCESS
                 } else {
-                    // Android 12 及以下使用旧 API
                     @Suppress("DEPRECATION")
                     characteristic.value = value
                     @Suppress("DEPRECATION")
@@ -728,39 +568,25 @@ class BLEModule @Inject constructor(
         }
     }
 
-    /**
-     * 设备会话状态管理
-     *
-     * 管理与单个设备的数据接收状态
-     * 包括: JSON 接收、二进制接收的状态切换和缓冲区管理
-     */
+    // ==================== 设备会话 ====================
+
     private class DeviceSession {
-        // 接收状态
         var isReceivingBinary: Boolean = false
             private set
 
-        // 数据缓冲区
         val buffer: ByteArrayOutputStream = ByteArrayOutputStream()
 
-        // 当前正在处理的消息
         var currentMessage: P2PMessage? = null
             private set
 
-        // 预期接收的二进制数据大小
         var expectedBinarySize: Int = 0
             private set
 
-        /**
-         * 切换到二进制接收模式
-         */
         fun transitionToBinaryMode(binarySize: Int) {
             isReceivingBinary = true
             expectedBinarySize = binarySize
         }
 
-        /**
-         * 重置会话状态
-         */
         fun reset() {
             buffer.reset()
             currentMessage = null
@@ -768,9 +594,6 @@ class BLEModule @Inject constructor(
             isReceivingBinary = false
         }
 
-        /**
-         * 设置当前消息
-         */
         fun setCurrentMessage(message: P2PMessage) {
             currentMessage = message
         }
@@ -784,24 +607,83 @@ class BLEModule @Inject constructor(
  */
 sealed class FriendRequestEvent {
     /**
-     * 收到新的好友请求
-     *
-     * @param nickname 请求者昵称
-     * @param message 验证消息
+     * 扫一扫流程：收到新的好友请求
      */
-    data class NewRequest(val nickname: String, val message: String) : FriendRequestEvent()
+    data class NewRequest(
+        val nickname: String,
+        val message: String
+    ) : FriendRequestEvent()
 
     /**
-     * 好友请求被接受
-     *
-     * @param message 提示消息
+     * 扫一扫流程：好友请求被接受
      */
-    data class RequestAccepted(val message: String) : FriendRequestEvent()
+    data class RequestAccepted(
+        val message: String
+    ) : FriendRequestEvent()
 
     /**
-     * 好友自动添加成功
-     *
-     * @param nickname 好友昵称
+     * 自动添加成功（删除后重新添加场景）
      */
-    data class AutoAdded(val nickname: String) : FriendRequestEvent()
+    data class AutoAdded(
+        val nickname: String
+    ) : FriendRequestEvent()
+
+    /**
+     * 碰一碰流程：收到对方发来的 NfcAddRequest
+     *
+     * 表示对方已点击"添加到通讯录"，等待本方操作：
+     * - 若本方已点击：直接存库并回复 NfcAddResponse
+     * - 若本方未点击：展示"对方已准备好"提示
+     */
+    data class NfcPeerAddRequest(
+        val message: P2PMessage.NfcAddRequest,
+        val avatarBytes: ByteArray?
+    ) : FriendRequestEvent() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as NfcPeerAddRequest
+
+            if (message != other.message) return false
+            if (!avatarBytes.contentEquals(other.avatarBytes)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = message.hashCode()
+            result = 31 * result + (avatarBytes?.contentHashCode() ?: 0)
+            return result
+        }
+    }
+
+    /**
+     * 碰一碰流程：收到对方发来的 NfcAddResponse
+     *
+     * 表示对方确认了本方的添加请求，双方交换完成。
+     * 收到此事件后将对方资料存库并显示成功。
+     */
+    data class NfcPeerAddResponse(
+        val message: P2PMessage.NfcAddResponse,
+        val avatarBytes: ByteArray?
+    ) : FriendRequestEvent() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as NfcPeerAddResponse
+
+            if (message != other.message) return false
+            if (!avatarBytes.contentEquals(other.avatarBytes)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = message.hashCode()
+            result = 31 * result + (avatarBytes?.contentHashCode() ?: 0)
+            return result
+        }
+    }
 }

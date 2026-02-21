@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import java.security.MessageDigest
+import javax.inject.Inject
 
 /**
  * P2P 消息传输器
@@ -18,7 +19,7 @@ import java.security.MessageDigest
  * 2. 二进制数据传输(可选)
  * 3. 分阶段传输: 先发送 JSON 元数据,再发送二进制数据
  */
-class P2PMessageTransmitter(
+class P2PMessageTransmitter @Inject constructor(
     private val bleDiscovery: BLEDiscovery,
     private val json: Json
 ) {

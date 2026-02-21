@@ -41,6 +41,7 @@
         android:name="android.permission.REQUEST_INSTALL_PACKAGES"
         tools:ignore="RequestInstallPackagesPolicy" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.NFC" />
 
     <queries>
         <intent>
@@ -54,6 +55,9 @@
         android:required="false" />
     <uses-feature
         android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.nfc"
         android:required="false" />
 
     <application
@@ -75,6 +79,19 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- NFC NDEF 碰触 Intent Filter -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- 兼容非 NDEF 格式的 Tag -->
+            <intent-filter>
+                <action android:name="android.nfc.action.TAG_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
             <!-- Deep Link -->
@@ -110,12 +127,12 @@
             android:theme="@style/Theme.WeChat" />
         <activity
             android:name=".features.call.ui.CallActivity"
+            android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:showOnLockScreen="true"
-            android:turnScreenOn="true"
             android:taskAffinity=""
-            android:excludeFromRecents="true"
             android:theme="@style/Theme.WeChat"
+            android:turnScreenOn="true"
             tools:targetApi="27" />
 
         <service
@@ -123,6 +140,25 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+
+        <!--
+          HCE 服务声明
+          - 必须 exported=true，系统需要调用它
+          - permission 限制只有系统 NFC 服务可以绑定
+          - meta-data 指向 AID 注册文件
+        -->
+        <service
+            android:name=".core.nfc.NfcHceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NFC_SERVICE">
+
+            <intent-filter>
+                <action android:name="android.nfc.cardemulation.action.HOST_APDU_SERVICE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.nfc.cardemulation.host_apdu_service"
+                android:resource="@xml/nfc_hce_aid" />
+        </service>
 
         <meta-data
             android:name="com.amap.api.v2.apikey"

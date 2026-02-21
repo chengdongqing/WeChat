@@ -57,6 +57,7 @@ import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 fun AddContactScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
     onBack: () -> Unit,
+    onNavigateToNFC: () -> Unit,
     onNavigateToRadar: () -> Unit,
     onNavigateToGroup: () -> Unit,
     onNavigateToContactDetail: (contactId: String) -> Unit,
@@ -85,6 +86,7 @@ fun AddContactScreen(
 
     val addFriendOptions = rememberAddFriendOptions(
         launchScanner = launchScanner,
+        onNavigateToNFC = onNavigateToNFC,
         onNavigateToRadar = onNavigateToRadar,
         onNavigateToGroup = onNavigateToGroup
     )
@@ -252,6 +254,7 @@ private fun rememberBluetoothPermissions(): List<String> {
 @Composable
 private fun rememberAddFriendOptions(
     launchScanner: () -> Unit,
+    onNavigateToNFC: () -> Unit,
     onNavigateToRadar: () -> Unit,
     onNavigateToGroup: () -> Unit
 ): List<AddFriendItem> {
@@ -263,6 +266,13 @@ private fun rememberAddFriendOptions(
                 iconColor = Color(0xFF2B7CF1),
                 description = "扫描二维码名片",
                 onClick = launchScanner
+            ),
+            AddFriendItem(
+                title = "碰一碰",
+                iconResId = R.drawable.ic_radar_outlined,
+                iconColor = Color(0xFF7468BE),
+                description = "通过NFC添加好友",
+                onClick = onNavigateToNFC
             ),
             AddFriendItem(
                 title = "雷达",

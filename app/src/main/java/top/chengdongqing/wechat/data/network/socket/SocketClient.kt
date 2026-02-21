@@ -299,7 +299,6 @@ class SocketClient @Inject constructor(
                     }
 
                     runCatching { connection.writer.write(Packet.ping()) }
-                        .onSuccess { Log.d(TAG, "Ping 已发送: ${connection.userId}") }
                         .onFailure {
                             Log.e(TAG, "Ping 失败: ${connection.userId}", it)
                             disconnect(connection.userId)

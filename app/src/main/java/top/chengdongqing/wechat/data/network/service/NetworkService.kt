@@ -177,6 +177,8 @@ class NetworkService : Service() {
                 title = "新的朋友",
                 content = "你已添加了${event.nickname}，现在可以开始聊天了"
             )
+
+            else -> {}
         }
     }
 

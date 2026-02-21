@@ -9,18 +9,20 @@ import androidx.navigation.navDeepLink
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.contacts.ui.add.AddContactScreen
-import top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.NewContactsScreen
-import top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.request.RequestAddScreen
-import top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.verify.AcceptVerifyScreen
+import top.chengdongqing.wechat.features.contacts.ui.add.nfc.NfcAddFriendScreen
 import top.chengdongqing.wechat.features.contacts.ui.add.pincode.PinCodeGroupScreen
 import top.chengdongqing.wechat.features.contacts.ui.add.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.profile.ContactProfileScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.profile.edit.EditContactProfileScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
+import top.chengdongqing.wechat.features.contacts.ui.newcontacts.NewContactsScreen
+import top.chengdongqing.wechat.features.contacts.ui.newcontacts.request.RequestAddScreen
+import top.chengdongqing.wechat.features.contacts.ui.newcontacts.verify.AcceptVerifyScreen
 
 sealed class ContactsRoute(val route: String) {
     object AddContact : ContactsRoute("contacts/add")
+    object NFC : ContactsRoute("contacts/add/nfc")
     object RadarScan : ContactsRoute("contacts/add/radar_scan")
     object PinCodeGroup : ContactsRoute("contacts/add/pin_code_group")
 
@@ -67,6 +69,9 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
     composable(ContactsRoute.AddContact.route) {
         AddContactScreen(
             onBack = onBack,
+            onNavigateToNFC = {
+                navController.navigate(ContactsRoute.NFC.route)
+            },
             onNavigateToRadar = {
                 navController.navigate(ContactsRoute.RadarScan.route)
             },
@@ -83,6 +88,9 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
                 navController.navigate(Screen.WebView.createRoute(url))
             }
         )
+    }
+    composable(ContactsRoute.NFC.route) {
+        NfcAddFriendScreen(onBack = onBack)
     }
     composable(ContactsRoute.RadarScan.route) {
         RadarScanScreen(onBack)

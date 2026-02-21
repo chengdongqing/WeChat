@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.ui.add.newcontacts.verify
+package top.chengdongqing.wechat.features.contacts.ui.newcontacts.verify
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
