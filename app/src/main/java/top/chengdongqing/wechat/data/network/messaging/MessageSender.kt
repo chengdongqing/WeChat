@@ -60,6 +60,7 @@ class MessageSender @Inject constructor(
                             messageId = message.messageId,
                             senderId = message.senderId,
                             receiverId = message.receiverId,
+                            messageType = message.contentType,
                             content = message.content,
                             timestamp = message.timestamp
                         )

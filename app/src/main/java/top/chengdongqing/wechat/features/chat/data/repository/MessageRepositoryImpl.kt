@@ -148,7 +148,9 @@ class MessageRepositoryImpl @Inject constructor(
     private suspend fun sendMessageAsync(entity: MessageEntity) {
         try {
             when (entity.contentType) {
-                MessageType.Text -> messageSender.sendTextMessage(entity)
+                MessageType.Text,
+                MessageType.ContactCard -> messageSender.sendTextMessage(entity)
+
                 else -> {
                     val file = File(entity.localPath ?: throw Exception("文件路径为空"))
                     messageSender.sendMediaMessage(entity, file)

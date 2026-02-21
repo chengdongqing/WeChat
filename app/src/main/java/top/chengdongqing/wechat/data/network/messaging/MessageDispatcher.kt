@@ -171,7 +171,7 @@ class MessageDispatcher @Inject constructor(
             sessionId = protocol.senderId,
             senderId = protocol.senderId,
             receiverId = protocol.receiverId,
-            contentType = MessageType.Text,
+            contentType = protocol.messageType,
             content = protocol.content,
             timestamp = protocol.timestamp,
             sendStatus = SendStatus.Delivered,

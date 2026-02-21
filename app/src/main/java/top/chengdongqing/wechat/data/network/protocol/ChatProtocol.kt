@@ -20,6 +20,7 @@ sealed class ChatProtocol {
         override val messageId: String,
         override val senderId: String,
         val receiverId: String,
+        val messageType: MessageType,
         val content: String,
         val timestamp: Long
     ) : ChatProtocol()
