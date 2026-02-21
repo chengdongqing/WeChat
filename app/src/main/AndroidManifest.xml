@@ -119,7 +119,7 @@
             tools:targetApi="27" />
 
         <service
-            android:name=".data.network.service.P2PService"
+            android:name=".data.network.service.NetworkService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />

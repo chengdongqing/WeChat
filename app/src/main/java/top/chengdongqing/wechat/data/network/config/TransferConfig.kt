@@ -67,14 +67,6 @@ object TransferConfig {
      */
     const val FILE_CHUNK_SIZE = 256 * 1024          // 256KB
 
-    /**
-     * 文件读取缓冲区: 与 chunk 大小一致
-     *
-     * FileInputStream.read(buffer) 一次读满一个 chunk，
-     * 避免多次小读取的磁盘寻道开销。
-     */
-    const val FILE_READ_BUFFER = FILE_CHUNK_SIZE    // 256KB
-
     // ==================== Packet 协议 ====================
 
     /**

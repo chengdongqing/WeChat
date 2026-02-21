@@ -27,8 +27,14 @@ import javax.inject.Singleton
 /**
  * 消息接收器
  *
- * FILE_CHUNK 直接写磁盘临时文件，峰值内存仅一个 chunk (256KB)。
- * 使用 BufferedOutputStream 减少磁盘 write syscall。
+ * 负责从 SocketServer/SocketClient 的 receiveChannel 消费 Packet，
+ * 路由到对应处理器后交给 [MessageDispatcher]。
+ *
+ * 媒体接收设计：
+ * - FILE_META 到达时创建临时文件和 [MediaReceiveState]
+ * - FILE_CHUNK 逐片追加写入磁盘，峰值内存仅一个 chunk（256KB）
+ * - 全部 chunk 到齐后做 MD5 校验，通过后移交 [MessageDispatcher] 持久化
+ * - BufferedOutputStream 256KB 写缓冲，与 chunk 大小对齐，减少磁盘 syscall
  */
 @Singleton
 class MessageReceiver @Inject constructor(
@@ -40,7 +46,7 @@ class MessageReceiver @Inject constructor(
     private companion object {
         const val TAG = "MessageReceiver"
 
-        /** 磁盘写缓冲: 256KB，与 chunk 大小对齐 */
+        /** 磁盘写缓冲，与 FILE_CHUNK 大小对齐 */
         const val DISK_WRITE_BUFFER = 256 * 1024
     }
 
@@ -48,6 +54,12 @@ class MessageReceiver @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    /**
+     * 单个媒体文件的接收状态
+     *
+     * 以 userId 为 key 存储，同一连接同一时刻只能接收一个媒体文件。
+     * 连接断开或接收失败时由 [cleanupMediaState] 负责清理。
+     */
     private class MediaReceiveState(
         val metadata: ChatProtocol.MediaMessage,
         val tempFile: File,
@@ -63,31 +75,35 @@ class MessageReceiver @Inject constructor(
 
     private val mediaStates = mutableMapOf<String, MediaReceiveState>()
 
-    // ==================== 公开接口 ====================
-
+    /**
+     * 启动监听，订阅 SocketServer 的新连接并自动开始消费
+     */
     fun start() {
         scope.launch {
-            socketServer.incomingConnections.collect { incoming ->
-                startListening(incoming.connection)
-            }
+            socketServer.incomingConnections.collect { startListening(it.connection) }
         }
-        Log.d(TAG, "消息接收器已启动")
     }
 
+    /**
+     * 监听服务端连接（被动方）的 receiveChannel
+     */
     fun startListening(connection: SocketConnection) {
         scope.launch { consumePackets(connection.userId, connection.receiveChannel) }
     }
 
+    /**
+     * 监听客户端连接（主动方）的 receiveChannel
+     */
     fun startListening(connection: ClientConnection) {
         scope.launch { consumePackets(connection.userId, connection.receiveChannel) }
     }
 
     // ==================== 核心逻辑 ====================
 
-    private suspend fun consumePackets(
-        userId: String,
-        channel: Channel<Packet>
-    ) {
+    /**
+     * 循环消费 channel 中的 Packet，channel 关闭时退出并清理媒体状态
+     */
+    private suspend fun consumePackets(userId: String, channel: Channel<Packet>) {
         try {
             for (packet in channel) {
                 handlePacket(userId, packet)
@@ -100,6 +116,9 @@ class MessageReceiver @Inject constructor(
         }
     }
 
+    /**
+     * 按 PacketType 路由到对应处理器；FILE_CHUNK 异常时额外清理媒体状态
+     */
     private suspend fun handlePacket(userId: String, packet: Packet) {
         try {
             when (packet.type) {
@@ -109,24 +128,30 @@ class MessageReceiver @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "处理 Packet 失败 (userId=$userId, type=${packet.type})", e)
-            if (packet.type == PacketType.FILE_CHUNK) {
-                cleanupMediaState(userId)
-            }
+            if (packet.type == PacketType.FILE_CHUNK) cleanupMediaState(userId)
         }
     }
 
+    /**
+     * 反序列化 JSON 包并交给 MessageDispatcher 分发
+     */
     private suspend fun handleJsonPacket(packet: Packet) {
-        val jsonString = String(packet.body, Charsets.UTF_8)
-        val protocol = json.decodeFromString<ChatProtocol>(jsonString)
+        val protocol = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
         dispatcher.dispatch(protocol)
     }
 
+    /**
+     * 处理媒体元数据包
+     *
+     * 创建临时文件和 [MediaReceiveState]，为后续 FILE_CHUNK 做好准备。
+     * 若上一个媒体传输未完成则先清理，防止状态泄漏。
+     */
     private fun handleFileMeta(userId: String, body: ByteArray) {
         cleanupMediaState(userId)
 
-        val jsonString = String(body, Charsets.UTF_8)
-        val metadata = json.decodeFromString<ChatProtocol.MediaMessage>(jsonString)
-
+        val metadata = json.decodeFromString<ChatProtocol.MediaMessage>(
+            String(body, Charsets.UTF_8)
+        )
         val tempFile = File(context.cacheDir, "recv_${metadata.messageId}.tmp")
         val outputStream = BufferedOutputStream(FileOutputStream(tempFile), DISK_WRITE_BUFFER)
 
@@ -134,6 +159,13 @@ class MessageReceiver @Inject constructor(
         Log.d(TAG, "开始接收媒体: messageId=${metadata.messageId}, 大小=${metadata.fileSize}")
     }
 
+    /**
+     * 处理媒体分片包
+     *
+     * 追加写入临时文件；达到预期大小后：
+     * 1. MD5 校验（checksum 存在时）
+     * 2. 校验通过则移交 [MessageDispatcher]，否则删除临时文件并等待重传
+     */
     private suspend fun handleFileChunk(userId: String, chunkData: ByteArray) =
         withContext(Dispatchers.IO) {
             val state = mediaStates[userId] ?: run {
@@ -148,43 +180,40 @@ class MessageReceiver @Inject constructor(
             if (state.receivedBytes - state.lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
                 state.lastReportedAt = state.receivedBytes
                 val percent = (state.receivedBytes * 100) / state.metadata.fileSize
-                Log.d(TAG, "接收 [${state.metadata.messageId}]: $percent%")
+                Log.d(TAG, "接收进度 [${state.metadata.messageId}]: $percent%")
             }
 
-            // 接收完毕
-            if (state.receivedBytes >= state.metadata.fileSize) {
-                state.outputStream.flush()
-                state.outputStream.close()
+            if (state.receivedBytes < state.metadata.fileSize) return@withContext
 
-                // MD5校验
-                val expectedChecksum = state.metadata.checksum
-                if (!expectedChecksum.isNullOrEmpty()) {
-                    val actualChecksum = state.tempFile.toMD5Hex()
+            // 全部分片已到齐
+            state.outputStream.flush()
+            state.outputStream.close()
 
-                    if (actualChecksum != expectedChecksum) {
-                        Log.e(
-                            TAG, "MD5 校验失败 [${state.metadata.messageId}]: " +
-                                    "期望=$expectedChecksum, 实际=$actualChecksum"
-                        )
-                        state.tempFile.delete()
-                        mediaStates.remove(userId)
-                        // TODO 通知发送端重传
-                        return@withContext
-                    } else {
-                        Log.d(
-                            TAG, "MD5 校验成功 [${state.metadata.messageId}]: " +
-                                    "期望=$expectedChecksum, 实际=$actualChecksum"
-                        )
-                    }
+            // MD5 校验
+            val expectedChecksum = state.metadata.checksum
+            if (!expectedChecksum.isNullOrEmpty()) {
+                val actualChecksum = state.tempFile.toMD5Hex()
+                if (actualChecksum != expectedChecksum) {
+                    Log.e(
+                        TAG,
+                        "MD5 校验失败 [${state.metadata.messageId}]: 期望=$expectedChecksum, 实际=$actualChecksum"
+                    )
+                    state.tempFile.delete()
+                    mediaStates.remove(userId)
+                    // TODO 通知发送端重传
+                    return@withContext
                 }
-
-                dispatcher.dispatch(state.metadata, state.tempFile)
-
-                mediaStates.remove(userId)
-                Log.d(TAG, "媒体接收完成: messageId=${state.metadata.messageId}")
+                Log.d(TAG, "MD5 校验通过 [${state.metadata.messageId}]")
             }
+
+            dispatcher.dispatch(state.metadata, state.tempFile)
+            mediaStates.remove(userId)
+            Log.d(TAG, "媒体接收完成: messageId=${state.metadata.messageId}")
         }
 
+    /**
+     * 清理未完成的媒体接收状态，关闭流并删除临时文件
+     */
     private fun cleanupMediaState(userId: String) {
         mediaStates.remove(userId)?.let {
             it.cleanup()

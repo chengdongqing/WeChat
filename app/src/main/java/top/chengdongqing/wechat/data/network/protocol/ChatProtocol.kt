@@ -14,9 +14,7 @@ sealed class ChatProtocol {
     abstract val messageId: String
     abstract val senderId: String
 
-    /**
-     * 文本消息
-     */
+    /** 文本消息 */
     @Serializable
     data class TextMessage(
         override val messageId: String,
@@ -26,9 +24,7 @@ sealed class ChatProtocol {
         val timestamp: Long
     ) : ChatProtocol()
 
-    /**
-     * 通话消息
-     */
+    /** 通话结束记录，通话完成后由主动挂断方发送 */
     data class CallMessage(
         override val messageId: String,
         override val senderId: String,
@@ -41,6 +37,9 @@ sealed class ChatProtocol {
 
     /**
      * 媒体消息（图片、语音、视频、文件等）
+     *
+     * 通过 FILE_META + FILE_CHUNK 分片传输，此协议包作为元数据随 FILE_META 发送。
+     * checksum 为文件 MD5，接收端校验通过后再入库。
      */
     @Serializable
     data class MediaMessage(
@@ -55,9 +54,7 @@ sealed class ChatProtocol {
         val timestamp: Long
     ) : ChatProtocol()
 
-    /**
-     * 消息确认（已送达）
-     */
+    /** 送达回执，接收端收到消息后立即回复 */
     @Serializable
     data class MessageAck(
         override val messageId: String,
@@ -65,9 +62,7 @@ sealed class ChatProtocol {
         val timestamp: Long
     ) : ChatProtocol()
 
-    /**
-     * 消息已读回执
-     */
+    /** 已读回执，用户打开会话后对未读消息逐条发送 */
     @Serializable
     data class MessageRead(
         override val messageId: String,
@@ -81,20 +76,16 @@ sealed class ChatProtocol {
     @Serializable
     sealed class Signaling : ChatProtocol() {
 
-        /**
-         * 发起
-         */
+        /** 发起通话，携带 SDP（编解码、传输协议、加密协议等能力描述） */
         @Serializable
         data class Offer(
             override val messageId: String,
             override val senderId: String,
             val callType: CallType,
-            val sdp: String // 支持的编解码方式、传输协议、加密协议等
+            val sdp: String
         ) : Signaling()
 
-        /**
-         * 回应
-         */
+        /** 接受通话，携带己方 SDP */
         @Serializable
         data class Answer(
             override val messageId: String,
@@ -104,17 +95,22 @@ sealed class ChatProtocol {
         ) : Signaling()
 
         /**
-         * 网络候选路径
+         * ICE 候选路径
+         *
+         * candidate：候选地址，包含 IP、端口、协议（TCP/UDP）及优先级
+         * sdpMid：所属媒体流标识（audio / video）
+         * sdpMLineIndex：对应 SDP 中 m= 行的索引（通常 0=音频，1=视频）
          */
         @Serializable
         data class IceCandidate(
             override val messageId: String,
             override val senderId: String,
-            val candidate: String, // 候选地址描述：包含IP地址、端口号、协议（TCP/UDP）以及优先级
-            val sdpMid: String?, // 标识该地址属于哪个媒体流（video 或 audio）
-            val sdpMLineIndex: Int // 对应SDP中 m= 行的索引位置（通常0代表音频，1代表视频）
+            val candidate: String,
+            val sdpMid: String?,
+            val sdpMLineIndex: Int
         ) : Signaling()
 
+        /** 挂断，携带原因（主动挂断 / 超时 / 拒绝等） */
         @Serializable
         data class Hangup(
             override val messageId: String,
@@ -122,12 +118,14 @@ sealed class ChatProtocol {
             val reason: HangupReason
         ) : Signaling()
 
+        /** 忙线，对方正在通话中时回复 */
         @Serializable
         data class Busy(
             override val messageId: String,
             override val senderId: String,
         ) : Signaling()
 
+        /** 媒体状态变更（摄像头开关、麦克风静音、扬声器切换） */
         @Serializable
         data class MediaState(
             override val messageId: String,
@@ -140,13 +138,18 @@ sealed class ChatProtocol {
 
     /**
      * 握手包
+     *
+     * TCP 连接建立后的第一个包，携带 senderId 供对端识别身份。
+     * 同时承载 E2E 密钥交换：
+     *   e2ePublicKey    非空时表示主动发起 E2E 握手
+     *   e2ePublicKeyAck 非空时表示响应 E2E 握手
      */
     @Serializable
     data class Handshake(
         override val messageId: String = "",
         override val senderId: String,
         val timestamp: Long = System.currentTimeMillis(),
-        val e2ePublicKey: String? = null, // 主动发起 E2E 握手时，携带的公钥
-        val e2ePublicKeyAck: String? = null // 响应 E2E 握手时，携带的公钥
+        val e2ePublicKey: String? = null,
+        val e2ePublicKeyAck: String? = null
     ) : ChatProtocol()
 }

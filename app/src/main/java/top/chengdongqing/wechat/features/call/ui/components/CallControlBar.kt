@@ -32,11 +32,13 @@ import top.chengdongqing.wechat.features.call.domain.model.CallState
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.domain.model.CallUiState
 
+/**
+ * 通话底部控制栏
+ *
+ * 根据通话类型（视频/语音）和通话状态（来电/去电/通话中/结束）渲染对应的操作按钮。
+ */
 @Composable
-fun CallControlBar(
-    state: CallUiState,
-    actions: CallActions,
-) {
+fun CallControlBar(state: CallUiState, actions: CallActions) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -44,19 +46,20 @@ fun CallControlBar(
             .padding(bottom = 40.dp),
         verticalArrangement = Arrangement.spacedBy(40.dp)
     ) {
-        if (state.isVideoCall) {
-            VideoCallControls(state, actions)
-        } else {
-            VoiceCallControls(state, actions)
-        }
+        if (state.isVideoCall) VideoCallControls(state, actions)
+        else VoiceCallControls(state, actions)
     }
 }
 
+/**
+ * 视频通话控制区
+ *
+ * Incoming：翻转/扬声器/摄像头 + 拒绝/接听
+ * Ended：灰色挂断按钮（不可操作，仅展示结束状态）
+ * 其他：麦克风/扬声器/摄像头 + 挂断或取消
+ */
 @Composable
-private fun VideoCallControls(
-    state: CallUiState,
-    actions: CallActions,
-) {
+private fun VideoCallControls(state: CallUiState, actions: CallActions) {
     when (state.callState) {
         CallState.Incoming -> {
             ControlRow {
@@ -66,15 +69,14 @@ private fun VideoCallControls(
             }
             ControlRow {
                 DeclineButton(actions)
-                Spacer(modifier = Modifier.size(72.dp))
+                Spacer(Modifier.size(72.dp))
                 AcceptButton(type = CallType.Video, actions = actions)
             }
         }
 
-        CallState.Ended ->
-            ControlRow {
-                HangupButton(actions, backgroundColor = Color.Gray)
-            }
+        CallState.Ended -> ControlRow {
+            HangupButton(actions, backgroundColor = Color.Gray)
+        }
 
         else -> {
             ControlRow {
@@ -83,53 +85,47 @@ private fun VideoCallControls(
                 VideoToggle(state, actions)
             }
             ControlRow {
-                Spacer(modifier = Modifier.size(72.dp))
-                if (state.isCallActive) {
-                    HangupButton(actions)
-                } else {
-                    CancelButton(actions)
-                }
-                if (state.isVideoOn) {
-                    CameraSwitchToggle(actions, showLabel = false, showBackground = false)
-                } else {
-                    Spacer(modifier = Modifier.size(72.dp))
-                }
+                Spacer(Modifier.size(72.dp))
+                if (state.isCallActive) HangupButton(actions) else CancelButton(actions)
+                if (state.isVideoOn) CameraSwitchToggle(
+                    actions,
+                    showLabel = false,
+                    showBackground = false
+                )
+                else Spacer(Modifier.size(72.dp))
             }
         }
     }
 }
 
+/**
+ * 语音通话控制区
+ *
+ * Incoming：拒绝 + 接听（带标签）
+ * Ended：灰色挂断按钮
+ * 其他：麦克风 + 挂断或取消 + 扬声器
+ */
 @Composable
-private fun VoiceCallControls(
-    state: CallUiState,
-    actions: CallActions,
-) {
+private fun VoiceCallControls(state: CallUiState, actions: CallActions) {
     when (state.callState) {
-        CallState.Incoming -> {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                DeclineButton(actions, showLabel = true)
-                AcceptButton(type = CallType.Voice, actions = actions, showLabel = true)
-            }
+        CallState.Incoming -> Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            DeclineButton(actions, showLabel = true)
+            AcceptButton(type = CallType.Voice, actions = actions, showLabel = true)
         }
 
-        CallState.Ended ->
-            ControlRow {
-                HangupButton(actions, backgroundColor = Color.Gray)
-            }
+        CallState.Ended -> ControlRow {
+            HangupButton(actions, backgroundColor = Color.Gray)
+        }
 
-        else ->
-            ControlRow {
-                MicToggle(state, actions)
-                if (state.isCallActive) {
-                    HangupButton(actions, showLabel = true)
-                } else {
-                    CancelButton(actions, showLabel = true)
-                }
-                SpeakerToggle(state, actions)
-            }
+        else -> ControlRow {
+            MicToggle(state, actions)
+            if (state.isCallActive) HangupButton(actions, showLabel = true)
+            else CancelButton(actions, showLabel = true)
+            SpeakerToggle(state, actions)
+        }
     }
 }
 
@@ -143,49 +139,51 @@ private fun ControlRow(content: @Composable RowScope.() -> Unit) {
     )
 }
 
+// ==================== 控制按钮 ====================
+
 @Composable
 private fun MicToggle(state: CallUiState, actions: CallActions) = ControlToggle(
     icon = if (state.isMicOn) R.drawable.ic_mic_filled else R.drawable.ic_mic_off_filled,
-    label = state.isMicOn.toStatusText("麦克风"),
+    label = state.isMicOn.toStatusLabel("麦克风"),
     onClick = actions.onToggleMic,
-    isActive = state.isMicOn,
+    isActive = state.isMicOn
 )
 
 @Composable
 private fun SpeakerToggle(state: CallUiState, actions: CallActions) = ControlToggle(
     icon = if (state.isSpeakerOn) R.drawable.ic_speaker_filled else R.drawable.ic_speaker_off_filled,
-    label = state.isSpeakerOn.toStatusText("扬声器"),
+    label = state.isSpeakerOn.toStatusLabel("扬声器"),
     onClick = actions.onToggleSpeaker,
-    isActive = state.isSpeakerOn,
+    isActive = state.isSpeakerOn
 )
 
+/**
+ * 摄像头开关按钮
+ *
+ * 无摄像头权限时自动关闭视频；点击时若无权限则请求授权，授权后再切换。
+ */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun VideoToggle(state: CallUiState, actions: CallActions) {
-    val permissionsState = rememberPermissionState(Manifest.permission.CAMERA) { result ->
-        if (result) {
-            actions.onToggleVideo()
-        }
+    val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA) { granted ->
+        if (granted) actions.onToggleVideo()
     }
 
-    // 当没有摄像头权限时，自动关闭
+    // 无摄像头权限时自动关闭视频（来电时权限尚未授予的场景）
     LaunchedEffect(Unit) {
-        if (!permissionsState.status.isGranted && state.isVideoOn) {
+        if (!cameraPermission.status.isGranted && state.isVideoOn) {
             actions.onToggleVideo()
         }
     }
 
     ControlToggle(
         icon = if (state.isVideoOn) R.drawable.ic_video_filled else R.drawable.ic_video_off_filled,
-        label = state.isVideoOn.toStatusText("摄像头"),
+        label = state.isVideoOn.toStatusLabel("摄像头"),
         onClick = {
-            if (permissionsState.status.isGranted) {
-                actions.onToggleVideo()
-            } else {
-                permissionsState.launchPermissionRequest()
-            }
+            if (cameraPermission.status.isGranted) actions.onToggleVideo()
+            else cameraPermission.launchPermissionRequest()
         },
-        isActive = state.isVideoOn,
+        isActive = state.isVideoOn
     )
 }
 
@@ -204,66 +202,61 @@ private fun CameraSwitchToggle(
 )
 
 @Composable
-private fun CancelButton(
-    actions: CallActions,
-    backgroundColor: Color = Danger,
-    showLabel: Boolean = false
-) =
-    ControlToggle(
-        icon = R.drawable.ic_hangup_filled,
-        label = if (showLabel) "取消" else null,
-        onClick = actions.onCancel,
-        backgroundColor = backgroundColor,
-    )
+private fun CancelButton(actions: CallActions, showLabel: Boolean = false) = ControlToggle(
+    icon = R.drawable.ic_hangup_filled,
+    label = if (showLabel) "取消" else null,
+    onClick = actions.onCancel,
+    backgroundColor = Danger
+)
 
 @Composable
 private fun HangupButton(
     actions: CallActions,
     backgroundColor: Color = Danger,
     showLabel: Boolean = false
-) =
-    ControlToggle(
-        icon = R.drawable.ic_hangup_filled,
-        label = if (showLabel) "挂断" else null,
-        onClick = actions.onHangup,
-        backgroundColor = backgroundColor,
-    )
+) = ControlToggle(
+    icon = R.drawable.ic_hangup_filled,
+    label = if (showLabel) "挂断" else null,
+    onClick = actions.onHangup,
+    backgroundColor = backgroundColor
+)
 
 @Composable
-private fun DeclineButton(actions: CallActions, showLabel: Boolean = false) =
-    ControlToggle(
-        icon = R.drawable.ic_hangup_filled,
-        label = if (showLabel) "拒绝" else null,
-        onClick = actions.onDecline,
-        backgroundColor = Danger,
-    )
+private fun DeclineButton(actions: CallActions, showLabel: Boolean = false) = ControlToggle(
+    icon = R.drawable.ic_hangup_filled,
+    label = if (showLabel) "拒绝" else null,
+    onClick = actions.onDecline,
+    backgroundColor = Danger
+)
 
+/**
+ * 接听按钮
+ *
+ * 权限未授予时先请求；获得全部权限后自动接听；权限被拒绝则自动挂断。
+ * 视频通话需要 CAMERA + RECORD_AUDIO，语音通话只需 RECORD_AUDIO。
+ */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-private fun AcceptButton(
-    type: CallType,
-    actions: CallActions,
-    showLabel: Boolean = false
-) {
+private fun AcceptButton(type: CallType, actions: CallActions, showLabel: Boolean = false) {
     val requiredPermissions = remember(type) {
-        if (type == CallType.Video) {
-            listOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
-        } else {
-            listOf(Manifest.permission.RECORD_AUDIO)
+        buildList {
+            if (type == CallType.Video) {
+                add(Manifest.permission.CAMERA)
+            }
+            add(Manifest.permission.RECORD_AUDIO)
         }
     }
     val permissionsState = rememberMultiplePermissionsState(requiredPermissions)
-
     var isPendingAccept by remember { mutableStateOf(false) }
 
-    // 授予全部需要的权限后自动接听
+    // 获得全部权限后自动接听
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         if (isPendingAccept && permissionsState.allPermissionsGranted) {
             actions.onAccept()
         }
     }
 
-    // 任一需要的权限被拒绝后自动挂断
+    // 权限被拒绝，自动挂断
     LaunchedEffect(permissionsState.shouldShowRationale) {
         if (isPendingAccept && !permissionsState.allPermissionsGranted) {
             actions.onDecline()
@@ -281,8 +274,11 @@ private fun AcceptButton(
                 permissionsState.launchMultiplePermissionRequest()
             }
         },
-        backgroundColor = WeTheme.colorScheme.primary,
+        backgroundColor = WeTheme.colorScheme.primary
     )
 }
 
-private fun Boolean.toStatusText(label: String) = label + if (this) "已开" else "已关"
+// ==================== 工具 ====================
+
+/** 将开关状态转为带后缀的标签，如"麦克风已开"/"麦克风已关" */
+private fun Boolean.toStatusLabel(label: String) = "$label${if (this) "已开" else "已关"}"

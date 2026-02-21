@@ -26,40 +26,41 @@ class CallActivity : ComponentActivity() {
 
         setContent {
             WeTheme {
-                CallScreen(
-                    viewModel = viewModel,
-                    onDismiss = { finish() }
-                )
+                CallScreen(viewModel = viewModel, onDismiss = ::finish)
             }
         }
     }
 
+    /** singleTask 模式下，Activity 已在栈顶时来电走此回调 */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // singleTask 模式下，来电时已在前台会走这里
         handleIntent(intent)
     }
 
+    /**
+     * 处理 Intent 参数
+     *
+     * 携带 peerId + callType → 主动发起通话
+     * 不携带参数 → 被动来电，CallManager 已处于 Incoming 状态，UI 自动渲染
+     */
     private fun handleIntent(intent: Intent?) {
-        val peerId = intent?.getStringExtra(EXTRA_PEER_ID)
-        val callTypeName = intent?.getStringExtra(EXTRA_CALL_TYPE)
-
-        if (peerId != null && callTypeName != null) {
-            // 主动发起
-            val callType = CallType.valueOf(callTypeName)
-            viewModel.startCall(peerId, callType)
-        }
-        // 被动来电: 不做任何事，CallManager 已经是 Incoming 状态，UI 自动渲染
+        val peerId = intent?.getStringExtra(EXTRA_PEER_ID) ?: return
+        val callType =
+            intent.getStringExtra(EXTRA_CALL_TYPE)?.let { CallType.valueOf(it) } ?: return
+        viewModel.startCall(peerId, callType)
     }
 
+    /**
+     * 配置窗口标志
+     *
+     * FLAG_KEEP_SCREEN_ON：通话期间屏幕常亮
+     * showWhenLocked + turnScreenOn：来电时穿透锁屏并点亮屏幕（Android 8.1+ 新 API）
+     */
     private fun setupWindowFlags() {
-        // 保持屏幕常亮
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-        // 锁屏显示+自动点亮屏幕
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true) // 允许在锁屏上显示
-            setTurnScreenOn(true)   // 启动时点亮屏幕
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
         } else {
             @Suppress("DEPRECATION")
             window.addFlags(

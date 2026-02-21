@@ -12,92 +12,119 @@ import top.chengdongqing.wechat.data.network.discovery.DiscoveryEvent
 import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
 import top.chengdongqing.wechat.data.network.discovery.ServiceRegistrationState
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
+import top.chengdongqing.wechat.data.network.service.NetworkService
 import top.chengdongqing.wechat.data.network.socket.ConnectionEvent
 import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.socket.SocketServer
+import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * 聊天模块 - 负责消息收发功能
+ * 聊天模块
+ *
+ * LAN 消息收发的完整生命周期管理，启动顺序：
+ * 1. [SocketServer] 启动并绑定随机端口
+ * 2. NSD 注册：将本机服务广播到局域网，携带端口和 userId
+ * 3. NSD 发现：扫描局域网内其他用户，发现后主动建立 TCP 连接
+ * 4. [MessageReceiver] 启动，消费各连接的收包 Channel
+ * 5. 订阅 [SocketClient] 连接事件，连接建立时自动启动包监听
  */
 @Singleton
 class ChatModule @Inject constructor(
-    private val nsdManager: NSDDiscovery,
+    private val nsdDiscovery: NSDDiscovery,
     private val socketServer: SocketServer,
     private val socketClient: SocketClient,
+    private val wifiLockManager: WifiLockManager,
     private val messageReceiver: MessageReceiver,
     private val connectionInfoDao: ConnectionInfoDao
 ) {
-
     private companion object {
         const val TAG = "ChatModule"
     }
 
-    // 透传 Flow
+    /** 透传 [MessageReceiver] 的新消息流，供 [NetworkService] 订阅通知 */
     val incomingMessageFlow: SharedFlow<ChatMessage>
         get() = messageReceiver.incomingMessageFlow
 
     // ==================== 启停 ====================
 
     suspend fun start(userId: String, scope: CoroutineScope) {
-        // 1. 启动 Socket 服务器
+        wifiLockManager.acquireKeepAlive()
+
         val port = socketServer.start()
-        Log.d(TAG, "✅ Socket 服务器已启动")
+        Log.d(TAG, "Socket 服务端已启动，端口: $port")
 
-        // 2. 注册 NSD 服务
-        scope.launch {
-            nsdManager.registerService(userId, port).collect { state ->
-                if (state is ServiceRegistrationState.Registered) {
-                    Log.d(TAG, "✅ NSD 已注册，端口: ${state.port}")
-                } else {
-                    Log.d(TAG, "NSD 状态: $state")
-                }
-            }
-        }
+        observeConnectionEvents(scope)
+        startNsdRegistration(userId, port, scope)
+        startNsdDiscovery(userId, scope)
 
-        // 3. 发现其他设备
-        scope.launch {
-            nsdManager.discoverServices(userId).collect { event ->
-                when (event) {
-                    is DiscoveryEvent.DeviceFound ->
-                        handleDiscoveredDevice(event.device, userId)
-
-                    is DiscoveryEvent.DeviceLost ->
-                        handleDeviceLost(event.serviceName)
-                }
-            }
-        }
-
-        // 4. 启动消息接收器
         messageReceiver.start()
-        Log.d(TAG, "✅ 消息接收器已启动")
-
-        // 5. 监听连接事件（重连时自动开始监听）
-        observeNewConnections(scope)
-
-        Log.d(TAG, "✅ 聊天模块已启动")
+        Log.d(TAG, "聊天模块已启动")
     }
 
     fun stop() {
+        wifiLockManager.releaseKeepAlive()
         socketServer.stop()
         socketClient.closeAll()
         Log.d(TAG, "聊天模块已停止")
     }
 
-    // ==================== 私有方法 ====================
+    // ==================== NSD ====================
 
-    private suspend fun handleDiscoveredDevice(device: DiscoveredDevice, myUserId: String) {
-        // 幂等性检查：如果已经在线或正在连接，跳过
-        if (socketClient.isConnected(device.userId)) {
-            Log.d(TAG, "设备 ${device.userId} 已连接，跳过重复连接")
-            return
+    /**
+     * 启动 NSD 注册
+     *
+     * 将本机服务广播到局域网，其他设备发现后通过 TXT 属性的 userId 识别身份。
+     * 注：[ServiceRegistrationState.Registered] 里的 port 由系统回调返回，部分设备会返回 0，
+     * 实际注册端口以传入的 [port] 为准，详见 [NSDDiscovery.registerService]。
+     */
+    private fun startNsdRegistration(userId: String, port: Int, scope: CoroutineScope) {
+        scope.launch {
+            nsdDiscovery.registerService(userId, port).collect { state ->
+                when (state) {
+                    is ServiceRegistrationState.Registered ->
+                        Log.d(TAG, "NSD 注册成功，端口: $port")
+
+                    is ServiceRegistrationState.Failed ->
+                        Log.e(TAG, "NSD 注册失败: errorCode=${state.errorCode}")
+
+                    is ServiceRegistrationState.Unregistered ->
+                        Log.d(TAG, "NSD 已注销")
+                }
+            }
         }
+    }
 
-        Log.d(TAG, "发现设备: ${device.userId} @ ${device.host}:${device.port}")
+    /**
+     * 启动 NSD 服务发现
+     *
+     * 持续监听局域网内设备上下线事件。
+     * DeviceFound：持久化连接信息并主动建立 TCP 连接
+     * DeviceLost：标记离线并断开连接
+     */
+    private fun startNsdDiscovery(userId: String, scope: CoroutineScope) {
+        scope.launch {
+            nsdDiscovery.discoverServices(userId).collect { event ->
+                when (event) {
+                    is DiscoveryEvent.DeviceFound -> handleDeviceFound(event.device, userId)
+                    is DiscoveryEvent.DeviceLost -> handleDeviceLost(event.serviceName)
+                }
+            }
+        }
+    }
 
-        // 保存连接信息
+    // ==================== 设备发现 ====================
+
+    /**
+     * 处理新发现的设备
+     *
+     * 每次发现都更新数据库中的连接信息（对方可能重启过，端口已变）。
+     * 已有出站连接则跳过建连（幂等），否则主动发起 TCP 连接。
+     * 连接建立后由 [observeConnectionEvents] 统一启动包监听。
+     */
+    private suspend fun handleDeviceFound(device: DiscoveredDevice, myUserId: String) {
         connectionInfoDao.insert(
             ConnectionInfoEntity(
                 userId = device.userId,
@@ -112,45 +139,58 @@ class ChatModule @Inject constructor(
             )
         )
 
-        // 建立 Socket 连接
+        if (socketClient.isConnected(device.userId)) {
+            Log.d(TAG, "设备已连接，跳过: ${device.userId}")
+            return
+        }
+
+        Log.d(TAG, "发现设备: ${device.userId} @ ${device.host}:${device.port}")
         socketClient.connect(
             userId = device.userId,
             host = device.host,
             port = device.port,
             myUserId = myUserId
         ).onSuccess {
-            Log.d(TAG, "✅ Socket 已连接: ${device.userId}")
-            // 不需要手动 startListening，observeNewConnections 统一处理
-        }.onFailure { error ->
-            Log.e(TAG, "❌ 连接失败: ${device.userId} - ${error.message}")
+            Log.d(TAG, "Socket 已连接: ${device.userId}")
+        }.onFailure {
+            Log.e(TAG, "连接失败: ${device.userId} - ${it.message}")
         }
     }
 
+    /**
+     * 处理设备离线
+     *
+     * serviceName 格式为 `WeChat_{userId}_{timestamp}`，
+     * 取第二段作为 userId（兼容加时间戳后的格式）。
+     */
     private suspend fun handleDeviceLost(serviceName: String) {
-        // serviceName 格式：WeChat_{userId}
-        val userId = serviceName.removePrefix("WeChat_")
+        val userId = serviceName.removePrefix("WeChat_").substringBefore("_")
         Log.d(TAG, "设备离线: $userId")
-
         connectionInfoDao.markOffline(userId)
         socketClient.disconnect(userId)
     }
 
-    private fun observeNewConnections(scope: CoroutineScope) {
+    // ==================== 连接监听 ====================
+
+    /**
+     * 订阅 [SocketClient] 的连接状态事件
+     *
+     * Connected：将连接实例交给 [MessageReceiver] 开始消费收包 Channel
+     * Disconnected：打日志，资源清理由 [SocketClient] 内部负责
+     */
+    private fun observeConnectionEvents(scope: CoroutineScope) {
         scope.launch {
             socketClient.connectionEvents.collect { event ->
                 when (event) {
                     is ConnectionEvent.Connected -> {
-                        // 统一在这里开始监听，无论是主动连接还是重连
-                        val connection = socketClient.getConnection(event.userId)
-                        if (connection != null) {
+                        socketClient.getConnection(event.userId)?.let { connection ->
                             messageReceiver.startListening(connection)
-                            Log.d(TAG, "✅ 开始监听: ${event.userId}")
+                            Log.d(TAG, "开始监听连接: ${event.userId}")
                         }
                     }
 
-                    is ConnectionEvent.Disconnected -> {
+                    is ConnectionEvent.Disconnected ->
                         Log.d(TAG, "连接断开: ${event.userId} - ${event.reason}")
-                    }
                 }
             }
         }

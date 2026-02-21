@@ -29,14 +29,17 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 /**
- * 统一服务管理
+ * 网络后台服务
  *
- * 1. BLE 模块 - 好友添加
- * 2. Chat 模块 - 消息收发
- * 3. Call 模块 - 通话管理
+ * 以前台服务形式长期运行，统一管理多个子模块：
+ * - [BLEModule]：蓝牙设备发现与好友添加
+ * - [ChatModule]：TCP 消息收发
+ * - [CallModule]：音视频通话管理
+ *
+ * 启动流程：前台通知 → 读取个人资料 → 各模块按序启动 → 订阅事件流
  */
 @AndroidEntryPoint
-class P2PService : Service() {
+class NetworkService : Service() {
 
     @Inject
     lateinit var bleModule: BLEModule
@@ -73,21 +76,19 @@ class P2PService : Service() {
         super.onCreate()
         Log.d(TAG, "P2P 服务启动")
 
-        createForegroundServiceChannel()  // ✅ 只创建前台服务通道
+        createNotificationChannel()
         startForegroundService()
 
-        serviceScope.launch {
-            initializeServices()
-        }
+        serviceScope.launch { initializeModules() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return START_STICKY
+        return START_STICKY // 被系统杀死后自动重启，保持消息收发能力
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        stopAllServices()
+        stopAllModules()
         serviceScope.cancel()
         Log.d(TAG, "P2P 服务已停止")
     }
@@ -96,113 +97,119 @@ class P2PService : Service() {
 
     // ==================== 初始化 ====================
 
-    private suspend fun initializeServices() {
+    /**
+     * 按序启动各子模块并订阅事件流
+     *
+     * 依赖个人资料（userId）才能建立连接，资料不存在时提前退出。
+     */
+    private suspend fun initializeModules() {
         try {
-            val myProfile = profileRepository.getCurrentProfile().first()
-
-            if (myProfile == null) {
+            val myProfile = profileRepository.getCurrentProfile().first() ?: run {
                 Log.w(TAG, "未找到个人资料，服务启动失败")
                 return
             }
 
-            // ✅ 启动 BLE 模块（好友添加）
+            // 启动 BLE 模块（好友添加）
             bleModule.start(serviceScope)
-
-            // ✅ 启动聊天模块（消息收发）
+            // 启动聊天模块（消息收发）
             chatModule.start(myProfile.id, serviceScope)
-
-            // ✅ 启动通话模块（视频/语音通话）
+            // 启动通话模块（视频/语音通话）
             callModule.start(myProfile.id, serviceScope)
 
-            // ✅ 监听好友请求事件
-            serviceScope.launch {
-                bleModule.friendRequestEvents.collect { event ->
-                    handleFriendRequestEvent(event)
-                }
-            }
+            // 监听好友请求事件
+            serviceScope.launch { observeFriendRequestEvents() }
+            // 监听新消息
+            serviceScope.launch { observeIncomingMessages() }
 
-            // ✅ 监听新消息
-            serviceScope.launch {
-                chatModule.incomingMessageFlow.collect { message ->
-                    // 正在查看该会话，不发通知
-                    if (!activeSessionManager.isActive(message.sessionId)) {
-                        handleNewMessage(message)
-                    }
-                }
-            }
-
-            Log.d(TAG, "✅ 所有模块已启动")
-
+            Log.d(TAG, "所有模块已启动")
         } catch (e: Exception) {
-            Log.e(TAG, "初始化服务失败", e)
+            Log.e(TAG, "初始化模块失败", e)
         }
     }
 
-    private fun stopAllServices() {
+    private fun stopAllModules() {
         bleModule.stop()
         chatModule.stop()
         callModule.stop()
     }
 
-    // ==================== 事件处理 ====================
+    // ==================== 事件订阅 ====================
 
     /**
-     * ✅ 处理好友请求事件
+     * 监听 BLE 好友请求事件，触发对应通知
      */
-    private fun handleFriendRequestEvent(event: FriendRequestEvent) {
-        when (event) {
-            is FriendRequestEvent.NewRequest -> {
-                notificationHelper.showFriendRequestNotification(
-                    title = event.nickname,
-                    content = "请求添加你为朋友"
-                )
-            }
-
-            is FriendRequestEvent.RequestAccepted -> {
-                notificationHelper.showFriendRequestNotification(
-                    title = "好友申请",
-                    content = event.message
-                )
-            }
-
-            is FriendRequestEvent.AutoAdded -> {
-                notificationHelper.showFriendRequestNotification(
-                    title = "新的朋友",
-                    content = "你已添加了${event.nickname}，现在可以开始聊天了"
-                )
-            }
+    private suspend fun observeFriendRequestEvents() {
+        bleModule.friendRequestEvents.collect { event ->
+            handleFriendRequestEvent(event)
         }
     }
 
     /**
-     * ✅ 处理新消息
+     * 监听新消息，当前正在查看该会话时不发通知
+     * 自己发送的消息也不通知（对方 ACK 触发的流转）
+     */
+    private suspend fun observeIncomingMessages() {
+        chatModule.incomingMessageFlow.collect { message ->
+            if (!activeSessionManager.isActive(message.sessionId)) {
+                handleNewMessage(message)
+            }
+        }
+    }
+
+    // ==================== 事件处理 ====================
+
+    /**
+     * 处理好友请求事件，按类型展示不同通知文案
+     */
+    private fun handleFriendRequestEvent(event: FriendRequestEvent) {
+        when (event) {
+            is FriendRequestEvent.NewRequest -> notificationHelper.showFriendRequestNotification(
+                title = event.nickname,
+                content = "请求添加你为朋友"
+            )
+
+            is FriendRequestEvent.RequestAccepted -> notificationHelper.showFriendRequestNotification(
+                title = "好友申请",
+                content = event.message
+            )
+
+            is FriendRequestEvent.AutoAdded -> notificationHelper.showFriendRequestNotification(
+                title = "新的朋友",
+                content = "你已添加了${event.nickname}，现在可以开始聊天了"
+            )
+        }
+    }
+
+    /**
+     * 处理新消息通知
+     *
+     * 发件人优先取备注名，查不到联系人时兜底显示"新消息"。
      */
     private suspend fun handleNewMessage(message: ChatMessage) {
-        if (message.isFromMe) return  // 自己发送的消息不通知
-
-        val contentText = message.content.toPreviewText()
+        if (message.isFromMe) return // 自己发送的消息不通知
 
         // 查询联系人昵称
         val contact = contactRepository.getContactById(message.senderId)
         val senderName = contact?.displayName ?: "新消息"
+        // 获取内容预览信息
+        val previewText = message.content.toPreviewText()
 
-        // 显示通知
         notificationHelper.showMessageNotification(
             sessionId = message.sessionId,
             title = senderName,
-            content = contentText,
+            content = previewText,
             notificationId = message.id.hashCode()
         )
     }
 
-    // ==================== 前台服务 ====================
+    // ==================== 前台通知 ====================
 
     /**
-     * ✅ 只创建前台服务通道（其他通道由 NotificationHelper 创建）
+     * 创建前台服务通知渠道（其他业务通知渠道由 NotificationHelper 管理）
      */
-    private fun createForegroundServiceChannel() {
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
+            val channel = NotificationChannel(
                 CHANNEL_ID,
                 "P2P通信服务",
                 NotificationManager.IMPORTANCE_LOW
@@ -212,10 +219,13 @@ class P2PService : Service() {
             }
 
             val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannel(serviceChannel)
+            notificationManager.createNotificationChannel(channel)
         }
     }
 
+    /**
+     * 启动前台服务，展示常驻通知防止被系统回收
+     */
     private fun startForegroundService() {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
@@ -224,7 +234,6 @@ class P2PService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()
-
         startForeground(NOTIFICATION_ID, notification)
     }
 }

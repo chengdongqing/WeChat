@@ -43,6 +43,12 @@ import kotlin.coroutines.resumeWithException
 
 /**
  * WebRTC 引擎管理器
+ *
+ * 负责 PeerConnection 生命周期、媒体采集、SDP 协商和通话中控制。
+ * 单例持有 EglBase，跨通话复用，避免重复初始化 GPU 上下文。
+ *
+ * 视频质量：启动时自动探测摄像头支持的最高 [VideoProfile]，从 2K@60fps 向下兼容至 480p。
+ * 音频质量：48kHz 立体声，Opus 128kbps + 前向纠错（FEC）。
  */
 @Singleton
 class WebRTCManager @Inject constructor(
@@ -52,6 +58,7 @@ class WebRTCManager @Inject constructor(
         const val TAG = "WebRTCManager"
     }
 
+    /** EglBase 跨通话复用，不随 [release] 销毁 */
     val eglBase: EglBase = EglBase.create()
 
     private var factory: PeerConnectionFactory? = null
@@ -60,6 +67,7 @@ class WebRTCManager @Inject constructor(
     // 媒体资源
     private var videoCapturer: CameraVideoCapturer? = null
     private var videoSource: VideoSource? = null
+    private var audioDeviceModule: JavaAudioDeviceModule? = null
     private var audioSource: AudioSource? = null
     private var localVideoTrack: VideoTrack? = null
     private var localAudioTrack: AudioTrack? = null
@@ -70,20 +78,25 @@ class WebRTCManager @Inject constructor(
     private var isUsingFrontCamera = true
     private var activeProfile: VideoProfile = VideoProfile.FHD_30
 
-    // 事件流
+    /** 本端 ICE 候选，采集到后发给对端 */
     private val _localIceCandidates = MutableSharedFlow<IceCandidate>(extraBufferCapacity = 32)
     val localIceCandidates: SharedFlow<IceCandidate> = _localIceCandidates.asSharedFlow()
 
     private val _remoteVideoTrack = MutableStateFlow<VideoTrack?>(null)
 
+    /** ICE 连接状态，Connected 时通话正式建立 */
     private val _iceConnectionState = MutableStateFlow(PeerConnection.IceConnectionState.NEW)
     val iceConnectionState: StateFlow<PeerConnection.IceConnectionState> =
         _iceConnectionState.asStateFlow()
 
-    // ==================================================================================
-    //  视频质量档位（从高到低，自动选择设备支持的最高档）
-    // ==================================================================================
+    // ==================== 视频质量档位 ====================
 
+    /**
+     * 视频质量档位，从高到低排列
+     *
+     * [selectBestProfile] 会选取设备摄像头支持的最高档位，
+     * 设备不支持时自动降级，最低兜底为 [SD_30]。
+     */
     enum class VideoProfile(
         val width: Int,
         val height: Int,
@@ -100,37 +113,35 @@ class WebRTCManager @Inject constructor(
         SD_30(640, 480, 30, 1_500_000, 500_000, "480p@30fps");
     }
 
+    /** 探测摄像头支持的最高档位，找不到匹配则返回 [VideoProfile.SD_30] */
     private fun selectBestProfile(enumerator: Camera2Enumerator, cameraName: String): VideoProfile {
         val formats = enumerator.getSupportedFormats(cameraName)
         if (formats.isNullOrEmpty()) return VideoProfile.SD_30
 
-        for (profile in VideoProfile.entries) {
-            val supported = formats.any { format ->
-                format.width >= profile.width
-                        && format.height >= profile.height
-                        && format.framerate.max >= profile.fps * 1000
+        return VideoProfile.entries.firstOrNull { profile ->
+            formats.any { f ->
+                f.width >= profile.width &&
+                        f.height >= profile.height &&
+                        f.framerate.max >= profile.fps * 1000
             }
-            if (supported) {
-                Log.d(TAG, "选中视频档位: ${profile.label}")
-                return profile
-            }
-        }
-        return VideoProfile.SD_30
+        } ?: VideoProfile.SD_30.also { Log.d(TAG, "未找到匹配档位，降级至 ${it.label}") }
     }
 
-    // ==================================================================================
-    //  音频配置
-    // ==================================================================================
+    // ==================== 音频配置 ====================
 
     private object AudioConfig {
-        const val SAMPLE_RATE = 48000       // 48kHz CD 级
-        const val MAX_BITRATE = 128_000     // 128kbps Opus
+        const val SAMPLE_RATE = 48_000      // 48kHz CD 级采样率
+        const val MAX_BITRATE = 128_000     // Opus 128kbps
     }
 
-    // ==================================================================================
-    //  初始化
-    // ==================================================================================
+    // ==================== 初始化 ====================
 
+    /**
+     * 初始化 WebRTC 引擎
+     *
+     * 必须在任何 PeerConnection 操作前调用。
+     * 启用硬件 AEC（回声消除）和 NS（噪声抑制）。
+     */
     fun initialize() {
         PeerConnectionFactory.initialize(
             PeerConnectionFactory.InitializationOptions.builder(context)
@@ -138,7 +149,7 @@ class WebRTCManager @Inject constructor(
                 .createInitializationOptions()
         )
 
-        val audioModule = JavaAudioDeviceModule.builder(context)
+        audioDeviceModule = JavaAudioDeviceModule.builder(context)
             .setUseHardwareAcousticEchoCanceler(true)
             .setUseHardwareNoiseSuppressor(true)
             .setSampleRate(AudioConfig.SAMPLE_RATE)
@@ -147,19 +158,20 @@ class WebRTCManager @Inject constructor(
 
         factory = PeerConnectionFactory.builder()
             .setVideoDecoderFactory(DefaultVideoDecoderFactory(eglBase.eglBaseContext))
-            .setVideoEncoderFactory(
-                DefaultVideoEncoderFactory(eglBase.eglBaseContext, true, true)
-            )
-            .setAudioDeviceModule(audioModule)
+            .setVideoEncoderFactory(DefaultVideoEncoderFactory(eglBase.eglBaseContext, true, true))
+            .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory()
 
         Log.d(TAG, "WebRTC 引擎已初始化")
     }
 
-    // ==================================================================================
-    //  PeerConnection
-    // ==================================================================================
+    // ==================== PeerConnection ====================
 
+    /**
+     * 创建 PeerConnection
+     *
+     * 使用 UNIFIED_PLAN 语义，持续 ICE 收集，仅使用低成本候选路径（LAN 优先）。
+     */
     fun createPeerConnection() {
         val config = PeerConnection.RTCConfiguration(emptyList()).apply {
             sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
@@ -170,45 +182,44 @@ class WebRTCManager @Inject constructor(
         peerConnection = factory?.createPeerConnection(config, PeerConnectionObserver())
     }
 
-    // ==================================================================================
-    //  媒体采集
-    // ==================================================================================
+    // ==================== 媒体采集 ====================
 
+    /**
+     * 启动本端媒体采集
+     *
+     * 音频：每次调用都确保采集已启动。
+     * 视频：首次调用创建轨道；若轨道已存在但 capturer 未启动（如权限延迟获取），则重启 capturer。
+     */
     fun startLocalMedia(callType: CallType, renderer: SurfaceViewRenderer? = null) {
         val f = factory ?: return
-
-        // 音频
-        if (localAudioTrack == null) {
-            startAudioCapture(f)
-        }
-
-        // 视频
+        if (localAudioTrack == null) startAudioCapture(f)
         if (callType == CallType.Video) {
-            if (localVideoTrack == null) {
-                // 第一次创建
-                startVideoCapture(f, renderer)
-            } else {
-                // 如果轨道已存在，尝试重启 Capturer
-                // 场景：handleOffer 时没权限，现在 accept 有权限了
-                restartVideoCapture()
-            }
+            if (localVideoTrack == null) startVideoCapture(f, renderer)
+            else restartVideoCapture()
         }
     }
 
+    /**
+     * 重启视频采集
+     *
+     * 用于权限补救场景：handleOffer 时相机权限未授予，接受通话后补充启动。
+     */
     private fun restartVideoCapture() {
-        try {
-            // 如果 capturer 还没启动，或者之前启动失败了，重新调用 startCapture
+        runCatching {
             videoCapturer?.startCapture(
                 activeProfile.width,
                 activeProfile.height,
                 activeProfile.fps
             )
-            Log.d(TAG, "尝试重新启动视频采集 (权限补救)")
-        } catch (e: Exception) {
-            Log.e(TAG, "重新启动视频采集失败: ${e.message}")
-        }
+            Log.d(TAG, "视频采集已重启（权限补救）")
+        }.onFailure { Log.e(TAG, "重启视频采集失败", it) }
     }
 
+    /**
+     * 启动音频采集
+     *
+     * 关闭 AGC（自动增益）和高通滤波，保留原始音色；启用 AEC 和 NS 由硬件处理。
+     */
     private fun startAudioCapture(factory: PeerConnectionFactory) {
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("googEchoCancellation", "true"))
@@ -217,7 +228,6 @@ class WebRTCManager @Inject constructor(
             mandatory.add(MediaConstraints.KeyValuePair("googAutoGainControl2", "false"))
             mandatory.add(MediaConstraints.KeyValuePair("googHighpassFilter", "false"))
         }
-
         audioSource = factory.createAudioSource(constraints)
         localAudioTrack = factory.createAudioTrack("audio_track", audioSource).apply {
             setEnabled(true)
@@ -225,6 +235,12 @@ class WebRTCManager @Inject constructor(
         peerConnection?.addTrack(localAudioTrack)?.also { configureBitrate(it) }
     }
 
+    /**
+     * 启动视频采集
+     *
+     * 自动选取前置摄像头，探测支持的最高画质档位。
+     * 检查是否已添加视频轨道，避免重复 addTrack 导致协商异常。
+     */
     private fun startVideoCapture(factory: PeerConnectionFactory, renderer: SurfaceViewRenderer?) {
         val enumerator = Camera2Enumerator(context)
         val cameraName = enumerator.deviceNames
@@ -233,6 +249,10 @@ class WebRTCManager @Inject constructor(
             ?: return
 
         activeProfile = selectBestProfile(enumerator, cameraName)
+        Log.d(
+            TAG,
+            "视频采集: ${activeProfile.label}, ${activeProfile.minBitrate / 1_000_000}~${activeProfile.maxBitrate / 1_000_000} Mbps"
+        )
 
         videoCapturer = Camera2Capturer(context, cameraName, null)
         surfaceTextureHelper = SurfaceTextureHelper.create("CaptureThread", eglBase.eglBaseContext)
@@ -245,24 +265,17 @@ class WebRTCManager @Inject constructor(
             renderer?.let { addSink(it) }
         }
 
-        // 检查是否已经添加过视频轨道，避免重复 addTrack
-        val existingSenders = peerConnection?.senders
-        val alreadyExists = existingSenders?.any { it.track()?.id() == "video_track" } ?: false
-
-        if (!alreadyExists) {
+        // 避免重复 addTrack 导致 SDP 协商出现多余轨道
+        val alreadyAdded =
+            peerConnection?.senders?.any { it.track()?.id() == "video_track" } ?: false
+        if (!alreadyAdded) {
             peerConnection?.addTrack(localVideoTrack)?.also { configureVideoSender(it) }
         }
-
-        Log.d(
-            TAG,
-            "视频采集: ${activeProfile.label}, ${activeProfile.minBitrate / 1_000_000}~${activeProfile.maxBitrate / 1_000_000} Mbps"
-        )
     }
 
-    // ==================================================================================
-    //  码率配置
-    // ==================================================================================
+    // ==================== 码率配置 ====================
 
+    /** 配置视频发送码率和帧率上限 */
     private fun configureVideoSender(sender: RtpSender) {
         val params = sender.parameters
         params.encodings.forEach { encoding ->
@@ -274,16 +287,16 @@ class WebRTCManager @Inject constructor(
         sender.parameters = params
     }
 
+    /** 配置音频发送码率上限 */
     private fun configureBitrate(sender: RtpSender, maxBitrate: Int = AudioConfig.MAX_BITRATE) {
         val params = sender.parameters
         params.encodings.forEach { it.maxBitrateBps = maxBitrate }
         sender.parameters = params
     }
 
-    // ==================================================================================
-    //  SDP 协商
-    // ==================================================================================
+    // ==================== SDP 协商 ====================
 
+    /** 创建 Offer，自动优化 SDP 并设置为本端描述 */
     suspend fun createOffer(): SessionDescription = suspendCancellableCoroutine { cont ->
         peerConnection?.createOffer(object : SimpleSdpObserver() {
             override fun onCreateSuccess(sdp: SessionDescription) {
@@ -291,12 +304,12 @@ class WebRTCManager @Inject constructor(
                 peerConnection?.setLocalDescription(SimpleSdpObserver(), optimized)
                 cont.resume(optimized)
             }
-
             override fun onCreateFailure(error: String) =
                 cont.resumeWithException(RuntimeException("createOffer: $error"))
         }, sdpConstraints())
     }
 
+    /** 创建 Answer，自动优化 SDP 并设置为本端描述 */
     suspend fun createAnswer(): SessionDescription = suspendCancellableCoroutine { cont ->
         peerConnection?.createAnswer(object : SimpleSdpObserver() {
             override fun onCreateSuccess(sdp: SessionDescription) {
@@ -304,12 +317,12 @@ class WebRTCManager @Inject constructor(
                 peerConnection?.setLocalDescription(SimpleSdpObserver(), optimized)
                 cont.resume(optimized)
             }
-
             override fun onCreateFailure(error: String) =
                 cont.resumeWithException(RuntimeException("createAnswer: $error"))
         }, sdpConstraints())
     }
 
+    /** 设置远端 SDP 描述 */
     suspend fun setRemoteDescription(sdp: SessionDescription) =
         suspendCancellableCoroutine { cont ->
             peerConnection?.setRemoteDescription(object : SimpleSdpObserver() {
@@ -319,6 +332,7 @@ class WebRTCManager @Inject constructor(
             }, sdp)
         }
 
+    /** 添加远端 ICE 候选 */
     fun addIceCandidate(candidate: IceCandidate) {
         peerConnection?.addIceCandidate(candidate)
     }
@@ -328,39 +342,33 @@ class WebRTCManager @Inject constructor(
         mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"))
     }
 
-    // ==================================================================================
-    //  SDP 优化：编码器排序 + Opus 增强
-    // ==================================================================================
+    // ==================== SDP 优化 ====================
 
     /**
      * 优化 SDP
      *
-     * 1. 重排视频编码器优先级: H265 > AV1 > H264 > VP9 > VP8
-     *    设备不支持 H265/AV1 时 SDP 中不会有对应条目，自动 fallback
-     *
-     * 2. 增强 Opus 音频: 48kHz 立体声 128kbps + 前向纠错
+     * 1. 视频编码器优先级重排：H265 > AV1 > H264 > VP9 > VP8
+     *    设备不支持的编码器不会出现在 SDP 中，自动 fallback
+     * 2. Opus 增强：48kHz 立体声、128kbps、FEC 前向纠错、禁用 DTX
      */
     private fun optimizeSdp(sdp: SessionDescription): SessionDescription {
-        var desc = sdp.description
-        desc = reorderVideoCodecs(desc)
-        desc = enhanceOpus(desc)
+        val desc = enhanceOpus(reorderVideoCodecs(sdp.description))
         return SessionDescription(sdp.type, desc)
     }
 
     /**
      * 重排 m=video 行中的 payload type 顺序
      *
-     * SDP 格式: m=video 9 UDP/TLS/RTP/SAVPF 96 97 98 ...
-     * 每个数字对应 a=rtpmap 中的编码器，排在前面的优先协商
+     * SDP 格式：`m=video 9 UDP/TLS/RTP/SAVPF 96 97 98 ...`
+     * 排在前面的 payload type 优先协商。
      */
     private fun reorderVideoCodecs(sdp: String): String {
         val lines = sdp.split("\r\n").toMutableList()
         val mVideoIdx = lines.indexOfFirst { it.startsWith("m=video") }
         if (mVideoIdx == -1) return sdp
 
-        // payload type → codec 名称映射
         val codecMap = mutableMapOf<String, String>()
-        for (line in lines) {
+        lines.forEach { line ->
             Regex("^a=rtpmap:(\\d+) ([\\w-]+)/").find(line)?.let {
                 codecMap[it.groupValues[1]] = it.groupValues[2].uppercase()
             }
@@ -369,35 +377,31 @@ class WebRTCManager @Inject constructor(
         val parts = lines[mVideoIdx].split(" ").toMutableList()
         if (parts.size < 4) return sdp
 
-        val payloadTypes = parts.subList(3, parts.size).toMutableList()
-        val sorted = payloadTypes.sortedBy { pt ->
-            val codec = codecMap[pt] ?: ""
+        val sorted = parts.subList(3, parts.size).sortedBy { pt ->
             when {
-                codec.contains("H265") || codec.contains("HEVC") -> 0
-                codec.contains("AV1") -> 1
-                codec.contains("H264") -> 2
-                codec.contains("VP9") -> 3
-                codec.contains("VP8") -> 4
-                codec.contains("RTX") -> 10
-                codec.contains("RED") -> 11
+                codecMap[pt].orEmpty().let { it.contains("H265") || it.contains("HEVC") } -> 0
+                codecMap[pt].orEmpty().contains("AV1") -> 1
+                codecMap[pt].orEmpty().contains("H264") -> 2
+                codecMap[pt].orEmpty().contains("VP9") -> 3
+                codecMap[pt].orEmpty().contains("VP8") -> 4
+                codecMap[pt].orEmpty().contains("RTX") -> 10
+                codecMap[pt].orEmpty().contains("RED") -> 11
                 else -> 5
             }
         }
 
         lines[mVideoIdx] = parts.subList(0, 3).joinToString(" ") + " " + sorted.joinToString(" ")
-        val preferred = sorted.firstOrNull()?.let { codecMap[it] } ?: "unknown"
-        Log.d(TAG, "视频编码器首选: $preferred")
-
+        Log.d(TAG, "视频编码器首选: ${sorted.firstOrNull()?.let { codecMap[it] } ?: "unknown"}")
         return lines.joinToString("\r\n")
     }
 
     /**
      * 增强 Opus 参数
      *
-     * stereo=1          立体声
-     * maxaveragebitrate  128kbps
-     * useinbandfec=1    前向纠错（抗丢包）
-     * usedtx=0          禁用不连续传输（静音时也保持码率，音质更稳）
+     * stereo=1            立体声
+     * maxaveragebitrate   128kbps
+     * useinbandfec=1      FEC 前向纠错，抗丢包
+     * usedtx=0            禁用 DTX（静音期保持码率，音质更稳）
      */
     private fun enhanceOpus(sdp: String): String {
         val params = "stereo=1;sprop-stereo=1;maxaveragebitrate=128000;useinbandfec=1;usedtx=0"
@@ -417,76 +421,83 @@ class WebRTCManager @Inject constructor(
         }
     }
 
-    // ==================================================================================
-    //  通话中控制
-    // ==================================================================================
+    // ==================== 通话中控制 ====================
 
+    /** 切换麦克风静音状态，返回静音后的状态（true = 已静音） */
     fun toggleMute(): Boolean {
         val track = localAudioTrack ?: return false
         track.setEnabled(!track.enabled())
         return !track.enabled()
     }
 
+    /**
+     * 切换摄像头开关状态，返回切换后的状态（true = 已开启）
+     *
+     * 关闭时停止 capturer 省电；开启时重启 capturer 确保画面恢复。
+     */
     fun toggleVideo(): Boolean {
         val track = localVideoTrack ?: return false
         val isEnabled = !track.enabled()
         track.setEnabled(isEnabled)
 
         if (isEnabled) {
-            // 开启轨道的同时，确保 Capturer 是运行着的
-            try {
-                // startCapture 是幂等的，如果已经在跑，内部会忽略
+            runCatching {
                 videoCapturer?.startCapture(
                     activeProfile.width,
                     activeProfile.height,
                     activeProfile.fps
                 )
-            } catch (e: Exception) {
-                Log.e(TAG, "toggleVideo 启动摄像头失败: ${e.message}")
-            }
+            }.onFailure { Log.e(TAG, "toggleVideo 启动摄像头失败", it) }
         } else {
-            // 为了省电，关闭视频时可以 stopCapture
             videoCapturer?.stopCapture()
         }
         return isEnabled
     }
 
+    /** 前后摄像头切换 */
     fun switchCamera() {
         videoCapturer?.switchCamera(null)
         isUsingFrontCamera = !isUsingFrontCamera
     }
 
+    /** 绑定本端视频渲染器 */
     fun setLocalRenderer(renderer: SurfaceViewRenderer) {
         localRenderer = renderer
         localVideoTrack?.addSink(renderer)
     }
 
+    /** 绑定远端视频渲染器；若远端轨道已到达，立即挂载 */
     fun setRemoteRenderer(renderer: SurfaceViewRenderer) {
         remoteRenderer = renderer
         _remoteVideoTrack.value?.addSink(renderer)
     }
 
+    /**
+     * 交换本端和远端渲染器（大小屏切换）
+     *
+     * 移除旧绑定 → 交叉绑定 → 互换引用，三步保证不丢帧。
+     */
     fun swapRenderers() {
         val local = localRenderer ?: return
         val remote = remoteRenderer ?: return
-
-        // 移除旧的
         localVideoTrack?.removeSink(local)
         _remoteVideoTrack.value?.removeSink(remote)
-        // 绑定新的
         localVideoTrack?.addSink(remote)
         _remoteVideoTrack.value?.addSink(local)
-        // 交换引用
         localRenderer = remote
         remoteRenderer = local
     }
 
-    fun isLocalVideoTrackNull(): Boolean = localVideoTrack == null
+    /** 本端视频轨道是否尚未创建（用于判断摄像头是否已启动） */
+    fun isLocalVideoTrackNull() = localVideoTrack == null
 
-    // ==================================================================================
-    //  资源释放
-    // ==================================================================================
+    // ==================== 资源释放 ====================
 
+    /**
+     * 释放所有媒体资源和 PeerConnection
+     *
+     * 注意：[eglBase] 不在此处释放，跨通话复用。
+     */
     fun release() {
         runCatching { videoCapturer?.stopCapture() }
         videoCapturer?.dispose()
@@ -496,6 +507,8 @@ class WebRTCManager @Inject constructor(
         audioSource?.dispose()
         surfaceTextureHelper?.dispose()
         peerConnection?.dispose()
+        audioDeviceModule?.release()
+        factory?.dispose()
 
         videoCapturer = null
         videoSource = null
@@ -510,24 +523,26 @@ class WebRTCManager @Inject constructor(
         Log.d(TAG, "WebRTC 资源已释放")
     }
 
-    // ==================================================================================
-    //  PeerConnection 回调
-    // ==================================================================================
+    // ==================== PeerConnection 回调 ====================
 
     private inner class PeerConnectionObserver : PeerConnection.Observer {
+        /** ICE 候选采集完成，发给对端 */
         override fun onIceCandidate(candidate: IceCandidate) {
             _localIceCandidates.tryEmit(candidate)
         }
 
+        /** ICE 连接状态变化，Connected 时通话正式建立 */
         override fun onIceConnectionChange(state: PeerConnection.IceConnectionState) {
-            Log.d(TAG, "ICE: $state")
+            Log.d(TAG, "ICE 状态: $state")
             _iceConnectionState.value = state
         }
 
+        /** UNIFIED_PLAN：通过 transceiver 获取远端视频轨道 */
         override fun onTrack(transceiver: RtpTransceiver) {
             (transceiver.receiver.track() as? VideoTrack)?.let { _remoteVideoTrack.value = it }
         }
 
+        /** PLAN_B 兼容：通过 stream 获取远端视频轨道 */
         override fun onAddStream(stream: MediaStream) {
             stream.videoTracks?.firstOrNull()?.let { _remoteVideoTrack.value = it }
         }
@@ -543,14 +558,15 @@ class WebRTCManager @Inject constructor(
     }
 }
 
+/** SdpObserver 空实现基类，子类只需覆盖关心的回调 */
 open class SimpleSdpObserver : SdpObserver {
     override fun onCreateSuccess(sdp: SessionDescription) {}
     override fun onSetSuccess() {}
     override fun onCreateFailure(error: String) {
-        Log.e("SDP", "create: $error")
+        Log.e("SDP", "create 失败: $error")
     }
 
     override fun onSetFailure(error: String) {
-        Log.e("SDP", "set: $error")
+        Log.e("SDP", "set 失败: $error")
     }
 }

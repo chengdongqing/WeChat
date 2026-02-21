@@ -42,6 +42,7 @@ import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.call.domain.model.CallState
 import top.chengdongqing.wechat.features.call.domain.model.CallUiState
+import top.chengdongqing.wechat.features.call.manager.WebRTCManager
 import top.chengdongqing.wechat.features.call.ui.components.CallBackground
 import top.chengdongqing.wechat.features.call.ui.components.CallControlBar
 import top.chengdongqing.wechat.features.call.ui.components.CallTopBar
@@ -49,13 +50,10 @@ import top.chengdongqing.wechat.features.call.ui.components.CallUserInfo
 import kotlin.math.roundToInt
 
 @Composable
-fun CallScreen(
-    viewModel: CallViewModel,
-    onDismiss: () -> Unit
-) {
+fun CallScreen(viewModel: CallViewModel, onDismiss: () -> Unit) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    // 通话结束 → 自动退出
+    // 通话结束后延迟 2s 退出，给用户看到结束状态的时间
     LaunchedEffect(uiState.callState) {
         if (uiState.callState == CallState.Ended) {
             delay(2000)
@@ -63,7 +61,6 @@ fun CallScreen(
         }
     }
 
-    // 沉浸式状态栏
     ImmersiveSystemBars(uiState.isControlsVisible)
     StatusBarAppearanceEffect(isDark = false)
 
@@ -75,10 +72,9 @@ fun CallScreen(
                 viewModel.actions.onToggleControlsVisibility()
             }
     ) {
-        // 全屏视频
         FullScreenLayer(uiState, viewModel)
 
-        // 控件
+        // 控件层：显示/隐藏带动画
         AnimatedVisibility(
             visible = uiState.isControlsVisible,
             enter = fadeIn() + expandVertically(),
@@ -88,41 +84,37 @@ fun CallScreen(
             ControlsLayer(uiState, viewModel)
         }
 
-        // 画中画小窗
         if (uiState.showFloatingWindow) {
             FloatingPipWindow(uiState, viewModel)
         }
     }
 }
 
+/**
+ * 全屏背景层
+ *
+ * 视频通话中显示远端（或本端）画面；非视频或对方关闭摄像头时显示模糊背景。
+ */
 @Composable
 private fun FullScreenLayer(uiState: CallUiState, viewModel: CallViewModel) {
     when {
-        // 视频通话中：显示大画面
-        uiState.showRemoteVideo -> {
-            val isSwapped = uiState.isVideoSwapped
-            WebRtcVideoView(
-                eglContext = viewModel.eglContext,
-                onRendererReady = viewModel::bindRemoteRenderer,
-                // 本地画面 + 前置摄像头 → 镜像
-                isMirror = isSwapped && uiState.isFrontCamera
-            )
-        }
+        uiState.showRemoteVideo -> WebRtcVideoView(
+            eglContext = viewModel.eglContext,
+            onRendererReady = viewModel::bindRemoteRenderer,
+            // 交换后显示本地画面，前置摄像头需镜像
+            isMirror = uiState.isVideoSwapped && uiState.isFrontCamera
+        )
 
-        // 呼出/连接中：全屏本地预览
-        uiState.showFullScreenLocalPreview -> {
-            WebRtcVideoView(
-                eglContext = viewModel.eglContext,
-                onRendererReady = viewModel::bindLocalRenderer,
-                isMirror = uiState.isFrontCamera
-            )
-        }
-
-        // 语音通话 / 对方关闭摄像头 → 模糊背景
+        uiState.showFullScreenLocalPreview -> WebRtcVideoView(
+            eglContext = viewModel.eglContext,
+            onRendererReady = viewModel::bindLocalRenderer,
+            isMirror = uiState.isFrontCamera
+        )
         else -> CallBackground(uiState)
     }
 }
 
+/** 控件层：顶栏 + 中间用户信息 + 底部操作栏 */
 @Composable
 private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
     Column(
@@ -131,20 +123,17 @@ private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
             .navigationBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 顶栏：通话时长 + 最小化按钮
         CallTopBar(
             statusText = if (uiState.isCallActive) uiState.getStatusText() else "",
             onMinimizeClick = viewModel.actions.onMinimize,
             isDarkBackground = uiState.isVideoCall
         )
 
-        // 中间区域：头像 + 状态文字
         Box(
             modifier = Modifier
                 .weight(1f)
                 .padding(top = if (uiState.showCenterAvatar) 0.dp else 60.dp),
-            contentAlignment =
-                if (uiState.showCenterAvatar) Alignment.Center else Alignment.TopCenter
+            contentAlignment = if (uiState.showCenterAvatar) Alignment.Center else Alignment.TopCenter
         ) {
             if (uiState.showTopUserInfo) {
                 CallUserInfo(
@@ -156,48 +145,46 @@ private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
             }
         }
 
-        // 底部控制栏
         CallControlBar(state = uiState, actions = viewModel.actions)
     }
 }
 
+/**
+ * 画中画小窗（本端预览）
+ *
+ * 可拖拽；松手时吸附到左右边缘（弹簧动画）。
+ * Y 轴限制在状态栏以下，防止被系统栏遮挡。
+ */
 @Composable
 private fun FloatingPipWindow(uiState: CallUiState, viewModel: CallViewModel) {
     val density = LocalDensity.current
     val containerSize = LocalWindowInfo.current.containerSize
 
-    // 屏幕尺寸 (px)
     val screenW = containerSize.width.toFloat()
     val screenH = containerSize.height.toFloat()
-
-    // 小窗尺寸 (px)
     val pipW = with(density) { PIP_WIDTH.toPx() }
     val pipH = with(density) { PIP_HEIGHT.toPx() }
     val margin = with(density) { PIP_MARGIN.toPx() }
-
-    // 状态栏安全区
     val statusBarH = with(density) { STATUS_BAR_HEIGHT.toPx() }
 
-    // 拖拽偏移量（初始位置：右上角，避开状态栏）
-    val offsetXAnim = remember { Animatable(screenW - pipW - margin) }
-    val offsetYAnim = remember { Animatable(statusBarH + margin) }
+    // 初始位置：右上角，避开状态栏
+    val offsetX = remember { Animatable(screenW - pipW - margin) }
+    val offsetY = remember { Animatable(statusBarH + margin) }
     val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
-            .offset { IntOffset(offsetXAnim.value.roundToInt(), offsetYAnim.value.roundToInt()) }
+            .offset { IntOffset(offsetX.value.roundToInt(), offsetY.value.roundToInt()) }
             .size(PIP_WIDTH, PIP_HEIGHT)
             .background(Color.Black)
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDragEnd = {
-                        // 松手：吸附到最近边缘
-                        val centerX = offsetXAnim.value + pipW / 2
-                        val targetX = if (centerX < screenW / 2) margin
+                        // 松手时吸附到最近的左/右边缘
+                        val targetX = if (offsetX.value + pipW / 2 < screenW / 2) margin
                         else screenW - pipW - margin
-
                         scope.launch {
-                            offsetXAnim.animateTo(
+                            offsetX.animateTo(
                                 targetValue = targetX,
                                 animationSpec = spring(
                                     dampingRatio = Spring.DampingRatioNoBouncy,
@@ -209,28 +196,29 @@ private fun FloatingPipWindow(uiState: CallUiState, viewModel: CallViewModel) {
                 ) { change, dragAmount ->
                     change.consume()
                     scope.launch {
-                        offsetXAnim.snapTo(
-                            (offsetXAnim.value + dragAmount.x).coerceIn(0f, screenW - pipW)
-                        )
-                        offsetYAnim.snapTo(
-                            (offsetYAnim.value + dragAmount.y).coerceIn(statusBarH, screenH - pipH)
+                        offsetX.snapTo((offsetX.value + dragAmount.x).coerceIn(0f, screenW - pipW))
+                        offsetY.snapTo(
+                            (offsetY.value + dragAmount.y).coerceIn(
+                                statusBarH,
+                                screenH - pipH
+                            )
                         )
                     }
                 }
             }
             .weClickable { viewModel.actions.onSwapVideo() }
     ) {
-        val isSwapped = uiState.isVideoSwapped
         WebRtcVideoView(
             eglContext = viewModel.eglContext,
             onRendererReady = viewModel::bindLocalRenderer,
-            isMirror = !isSwapped && uiState.isFrontCamera,
+            // 未交换时小窗显示本端，前置摄像头需镜像
+            isMirror = !uiState.isVideoSwapped && uiState.isFrontCamera,
             isOverlay = true
         )
     }
 }
 
-// 小窗尺寸常量
+// 画中画小窗尺寸
 private val PIP_WIDTH = 110.dp
 private val PIP_HEIGHT = 160.dp
 private val PIP_MARGIN = 16.dp
@@ -239,10 +227,13 @@ private val STATUS_BAR_HEIGHT = 48.dp
 /**
  * WebRTC 视频渲染组件
  *
- * @param eglContext      共享 EGL 上下文
- * @param onRendererReady 初始化完成后回调，将 renderer 绑定到 WebRTC 视频轨道
- * @param isMirror        前置摄像头镜像显示
- * @param isOverlay       小窗置顶（防止被全屏 SurfaceView 遮挡）
+ * 基于 [SurfaceViewRenderer]，通过 [AndroidView] 嵌入 Compose。
+ * 初始化完成后回调 [onRendererReady]，将 renderer 注册到 WebRTC 视频轨道。
+ *
+ * @param eglContext      共享 EGL 上下文，与 [WebRTCManager.eglBase] 保持一致
+ * @param onRendererReady renderer 就绪回调，在此绑定视频轨道
+ * @param isMirror        是否镜像（前置摄像头本端预览需开启）
+ * @param isOverlay       是否置顶层（小窗需开启，防止被全屏 SurfaceView 遮挡）
  */
 @Composable
 fun WebRtcVideoView(
@@ -258,15 +249,11 @@ fun WebRtcVideoView(
                 setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
                 setEnableHardwareScaler(true)
                 setMirror(isMirror)
-                if (isOverlay) {
-                    setZOrderMediaOverlay(true)
-                }
+                if (isOverlay) setZOrderMediaOverlay(true)
                 onRendererReady(this)
             }
         },
-        update = { view ->
-            view.setMirror(isMirror)
-        },
+        update = { it.setMirror(isMirror) },
         modifier = Modifier.fillMaxSize(),
         onRelease = { it.release() }
     )
