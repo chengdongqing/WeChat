@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -43,7 +44,7 @@ import top.chengdongqing.wechat.core.util.saveToAlbum
 import top.chengdongqing.wechat.core.util.shareContent
 
 @Composable
-fun WeMediaPreview(medias: Array<MediaItem>, current: Int = 0, onDismiss: () -> Unit) {
+fun WeMediaPreview(medias: List<MediaItem>, current: Int = 0, onDismiss: () -> Unit) {
     val pagerState = rememberPagerState(current) { medias.size }
 
     ImmersiveSystemBars()
@@ -58,7 +59,7 @@ fun WeMediaPreview(medias: Array<MediaItem>, current: Int = 0, onDismiss: () -> 
 }
 
 @Composable
-private fun MediaPager(medias: Array<MediaItem>, pagerState: PagerState, onDismiss: () -> Unit) {
+private fun MediaPager(medias: List<MediaItem>, pagerState: PagerState, onDismiss: () -> Unit) {
     HorizontalPager(
         state = pagerState,
         modifier = Modifier
@@ -108,7 +109,7 @@ private fun BoxScope.PagerInfo(total: Int, current: Int) {
 }
 
 @Composable
-private fun BoxScope.ToolBar(medias: Array<MediaItem>, pagerState: PagerState) {
+private fun BoxScope.ToolBar(medias: List<MediaItem>, pagerState: PagerState) {
     val context = LocalContext.current
     val toast = rememberToastState()
     val coroutineScope = rememberCoroutineScope()
@@ -117,7 +118,8 @@ private fun BoxScope.ToolBar(medias: Array<MediaItem>, pagerState: PagerState) {
     Row(
         modifier = Modifier
             .align(Alignment.BottomEnd)
-            .padding(end = 26.dp, bottom = 16.dp),
+            .padding(end = 26.dp, bottom = 16.dp)
+            .navigationBarsPadding(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ActionIcon(imageVector = Icons.Outlined.Share, label = "分享") {
