@@ -215,7 +215,8 @@ class CallManager @Inject constructor(
                 message = ChatProtocol.Signaling.Hangup(
                     messageId = state.callId,
                     senderId = myUserId,
-                    reason = reason
+                    reason = reason,
+                    duration = state.duration
                 )
             )
         }
@@ -326,8 +327,9 @@ class CallManager @Inject constructor(
 
         isOutgoing = false
 
-        val contact =
-            withContext(Dispatchers.IO) { contactRepository.getContactById(offer.senderId) }
+        val contact = withContext(Dispatchers.IO) {
+            contactRepository.getContactById(offer.senderId)
+        }
 
         webRTCManager.initialize()
         webRTCManager.createPeerConnection()
@@ -375,7 +377,7 @@ class CallManager @Inject constructor(
 
     private fun handleHangup(hangup: ChatProtocol.Signaling.Hangup) {
         if (_state.value.callId != hangup.messageId) return
-        endCall(hangup.reason)
+        endCall(hangup.reason, duration = hangup.duration)
     }
 
     private fun handleBusy(busy: ChatProtocol.Signaling.Busy) {
@@ -413,7 +415,10 @@ class CallManager @Inject constructor(
                 }
             }
 
-            PeerConnection.IceConnectionState.DISCONNECTED,
+            PeerConnection.IceConnectionState.DISCONNECTED -> {
+                Log.d(TAG, "ICE 断开，等待信令处理...")
+            }
+
             PeerConnection.IceConnectionState.FAILED -> {
                 if (_state.value.callState == CallState.Connected) {
                     endCall(HangupReason.Error)
@@ -481,7 +486,12 @@ class CallManager @Inject constructor(
      * 3. 写通话记录（发起方走 MessageRepository，接收方走 MessageDispatcher）
      * 4. 延迟 3s 重置状态为 Idle（给 UI 展示结果的时间）
      */
-    private fun endCall(reason: HangupReason, isFromMe: Boolean = false) {
+    private fun endCall(reason: HangupReason, isFromMe: Boolean = false, duration: Long? = null) {
+        // 如果已经在 Ending 或 Idle 状态，不再重复执行释放逻辑
+        if (_state.value.callState == CallState.Ended || _state.value.callState == CallState.Idle) {
+            return
+        }
+
         cancelTimeout()
         timerJob?.cancel()
         timerJob = null
@@ -494,10 +504,10 @@ class CallManager @Inject constructor(
             )
         }
         webRTCManager.release()
-        Log.d(TAG, "通话结束: reason=$reason duration=${snapshot.duration}s")
+        Log.d(TAG, "通话结束: reason=$reason duration=${duration}s")
 
         scope.launch {
-            saveCallRecord(snapshot, reason)
+            saveCallRecord(snapshot, reason, duration)
             delay(3000)
             _state.value = CallUiState()
         }
@@ -509,7 +519,11 @@ class CallManager @Inject constructor(
      * 发起方：通过 [MessageRepository] 发送通话消息（走正常发消息流程）
      * 接收方：通过 [MessageDispatcher] 直接入库（对方的通话记录由对方发，我方本地生成）
      */
-    private suspend fun saveCallRecord(snapshot: CallUiState, reason: HangupReason) {
+    private suspend fun saveCallRecord(
+        snapshot: CallUiState,
+        reason: HangupReason,
+        duration: Long? = null
+    ) {
         val status = reason.toCallStatus()
         if (isOutgoing) {
             messageRepository.sendMessage(
@@ -519,7 +533,7 @@ class CallManager @Inject constructor(
                 content = MessageContent.Call(
                     type = snapshot.callType,
                     status = status,
-                    duration = snapshot.duration
+                    duration = duration ?: snapshot.duration
                 )
             )
         } else {
@@ -529,7 +543,7 @@ class CallManager @Inject constructor(
                     senderId = snapshot.peerId,
                     receiverId = myUserId,
                     status = status.name,
-                    duration = snapshot.duration,
+                    duration = duration ?: snapshot.duration,
                     callType = snapshot.callType,
                     timestamp = System.currentTimeMillis()
                 )
@@ -540,7 +554,7 @@ class CallManager @Inject constructor(
 
 /** 将挂断原因映射为通话记录状态 */
 fun HangupReason.toCallStatus() = when (this) {
-    HangupReason.Normal -> CallStatus.Connected
+    HangupReason.Normal -> CallStatus.Finished
     HangupReason.Declined -> CallStatus.Declined
     HangupReason.Cancelled -> CallStatus.Cancelled
     HangupReason.Timeout -> CallStatus.Missed

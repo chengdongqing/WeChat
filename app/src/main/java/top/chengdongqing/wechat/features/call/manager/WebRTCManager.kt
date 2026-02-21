@@ -59,7 +59,7 @@ class WebRTCManager @Inject constructor(
     }
 
     /** EglBase 跨通话复用，不随 [release] 销毁 */
-    val eglBase: EglBase = EglBase.create()
+    val eglBase: EglBase by lazy { EglBase.create() }
 
     private var factory: PeerConnectionFactory? = null
     private var peerConnection: PeerConnection? = null
@@ -143,6 +143,9 @@ class WebRTCManager @Inject constructor(
      * 启用硬件 AEC（回声消除）和 NS（噪声抑制）。
      */
     fun initialize() {
+        // 如果 factory 还在且没被销毁，不重复初始化
+        if (factory != null) return
+
         PeerConnectionFactory.initialize(
             PeerConnectionFactory.InitializationOptions.builder(context)
                 .setEnableInternalTracer(false)
@@ -156,9 +159,12 @@ class WebRTCManager @Inject constructor(
             .setAudioFormat(AudioFormat.ENCODING_PCM_16BIT)
             .createAudioDeviceModule()
 
+        val encoderFactory = DefaultVideoEncoderFactory(eglBase.eglBaseContext, true, true)
+        val decoderFactory = DefaultVideoDecoderFactory(eglBase.eglBaseContext)
+
         factory = PeerConnectionFactory.builder()
-            .setVideoDecoderFactory(DefaultVideoDecoderFactory(eglBase.eglBaseContext))
-            .setVideoEncoderFactory(DefaultVideoEncoderFactory(eglBase.eglBaseContext, true, true))
+            .setVideoEncoderFactory(encoderFactory)
+            .setVideoDecoderFactory(decoderFactory)
             .setAudioDeviceModule(audioDeviceModule)
             .createPeerConnectionFactory()
 
@@ -499,28 +505,51 @@ class WebRTCManager @Inject constructor(
      * 注意：[eglBase] 不在此处释放，跨通话复用。
      */
     fun release() {
-        runCatching { videoCapturer?.stopCapture() }
-        videoCapturer?.dispose()
+        Log.d(TAG, "正在释放 WebRTC 资源...")
+
+        // 1. 先停掉采集器，防止它继续往 Source 送帧
+        try {
+            videoCapturer?.stopCapture()
+        } catch (e: Exception) {
+            Log.e(TAG, "stopCapture failed", e)
+        }
+
+        // 2. 移除渲染器绑定
+        localVideoTrack?.removeSink(localRenderer)
+        _remoteVideoTrack.value?.removeSink(remoteRenderer)
+
+        // 3. 释放轨道 (Track)
         localVideoTrack?.dispose()
-        localAudioTrack?.dispose()
-        videoSource?.dispose()
-        audioSource?.dispose()
-        surfaceTextureHelper?.dispose()
-        peerConnection?.dispose()
-        audioDeviceModule?.release()
-        factory?.dispose()
-
-        videoCapturer = null
-        videoSource = null
-        audioSource = null
         localVideoTrack = null
+        localAudioTrack?.dispose()
         localAudioTrack = null
-        surfaceTextureHelper = null
-        peerConnection = null
-        _remoteVideoTrack.value = null
-        _iceConnectionState.value = PeerConnection.IceConnectionState.NEW
 
-        Log.d(TAG, "WebRTC 资源已释放")
+        // 4. 释放源 (Source)
+        videoSource?.dispose()
+        videoSource = null
+        audioSource?.dispose()
+        audioSource = null
+
+        // 5. 释放辅助工具
+        surfaceTextureHelper?.dispose()
+        surfaceTextureHelper = null
+
+        // 6. 释放采集器
+        videoCapturer?.dispose()
+        videoCapturer = null
+
+        // 7. 关闭连接
+        peerConnection?.close()
+        peerConnection?.dispose()
+        peerConnection = null
+
+        // 8. 销毁 Factory
+        val currentFactory = factory
+        factory = null
+        currentFactory?.dispose()
+
+        // 9. 清理远端轨道状态
+        _remoteVideoTrack.value = null
     }
 
     // ==================== PeerConnection 回调 ====================

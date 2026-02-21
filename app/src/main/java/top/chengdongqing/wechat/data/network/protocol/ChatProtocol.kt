@@ -115,7 +115,8 @@ sealed class ChatProtocol {
         data class Hangup(
             override val messageId: String,
             override val senderId: String,
-            val reason: HangupReason
+            val reason: HangupReason,
+            val duration: Long
         ) : Signaling()
 
         /** 忙线，对方正在通话中时回复 */

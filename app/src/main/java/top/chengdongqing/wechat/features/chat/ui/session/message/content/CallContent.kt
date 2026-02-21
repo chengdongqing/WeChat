@@ -35,7 +35,7 @@ fun CallContent(message: ChatMessage) {
     val status = content.status
 
     val description = remember {
-        if (status == CallStatus.Connected) {
+        if (status == CallStatus.Finished) {
             content.duration?.let {
                 return@remember CallStatus.describeDuration(it)
             }
