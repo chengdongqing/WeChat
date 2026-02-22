@@ -12,9 +12,11 @@ import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepositor
 import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepositoryImpl
 import top.chengdongqing.wechat.features.contacts.data.repository.ContactRepositoryImpl
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepositoryImpl
+import top.chengdongqing.wechat.features.contacts.data.repository.RadarDiscoveryRepositoryImpl
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscoveryRepository
 import top.chengdongqing.wechat.features.me.data.repository.ProfileRepositoryImpl
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
@@ -57,4 +59,10 @@ interface RepositoryModule {
     fun bindMessageRepository(
         impl: MessageRepositoryImpl
     ): MessageRepository
+
+    @Binds
+    @Singleton
+    fun bindRadarRepository(
+        impl: RadarDiscoveryRepositoryImpl
+    ): RadarDiscoveryRepository
 }

@@ -30,7 +30,7 @@ interface ContactP2PRepository {
     fun getContactFromCache(contactId: String): Contact?
 
     /**
-     * NFC 碰触后，通过 BLE 拉取对方资料
+     * 通过 BLE 拉取对方资料
      */
     suspend fun fetchPeerContactViaBle(peerUserId: String): Contact?
 

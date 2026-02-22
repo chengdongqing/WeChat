@@ -93,7 +93,12 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
         NfcAddFriendScreen(onBack = onBack)
     }
     composable(ContactsRoute.RadarScan.route) {
-        RadarScanScreen(onBack)
+        RadarScanScreen(
+            onBack = onBack,
+            onNavigateToContact = { id ->
+                navController.navigate(ContactsRoute.Detail.createRoute(id))
+            }
+        )
     }
     composable(ContactsRoute.PinCodeGroup.route) {
         PinCodeGroupScreen(onBack)

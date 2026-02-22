@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.NfcAddState
@@ -270,10 +270,9 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
 
             is NfcAddState.Exchanging ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(
-                        color = GreenPrimary,
-                        strokeWidth = 3.dp,
-                        modifier = Modifier.size(36.dp)
+                    WeLoading(
+                        size = 36.dp,
+                        color = GreenPrimary
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(

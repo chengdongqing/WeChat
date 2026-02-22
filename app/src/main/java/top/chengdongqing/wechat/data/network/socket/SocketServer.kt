@@ -3,7 +3,6 @@ package top.chengdongqing.wechat.data.network.socket
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -12,6 +11,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
@@ -41,14 +41,14 @@ import javax.inject.Singleton
 @Singleton
 class SocketServer @Inject constructor(
     private val json: Json,
-    private val e2e: E2ESessionManager
+    private val e2e: E2ESessionManager,
+    @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
         const val TAG = "SocketServer"
     }
 
     private var serverSocket: ServerSocket? = null
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _incomingConnections = MutableSharedFlow<IncomingConnection>()
 

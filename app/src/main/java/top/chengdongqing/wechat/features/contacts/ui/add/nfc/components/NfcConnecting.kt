@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 
 @Composable
@@ -53,10 +53,9 @@ fun NfcConnecting() {
                 .border(2.dp, GreenPrimary.copy(alpha = alpha), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(
-                color = GreenPrimary.copy(alpha = alpha),
-                strokeWidth = 3.dp,
-                modifier = Modifier.size(42.dp)
+            WeLoading(
+                size = 42.dp,
+                color = GreenPrimary.copy(alpha = alpha)
             )
         }
 

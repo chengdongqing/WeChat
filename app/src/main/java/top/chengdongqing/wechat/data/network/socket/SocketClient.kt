@@ -4,7 +4,6 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -14,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
@@ -45,14 +45,14 @@ import javax.inject.Singleton
 @Singleton
 class SocketClient @Inject constructor(
     private val json: Json,
-    private val e2e: E2ESessionManager
+    private val e2e: E2ESessionManager,
+    @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
         const val TAG = "SocketClient"
     }
 
     private val activeConnections = ConcurrentHashMap<String, SocketConnection>()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _connectionEvents = MutableSharedFlow<ConnectionEvent>()
 

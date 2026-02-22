@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.model
+package top.chengdongqing.wechat.data.network.model
 
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -13,8 +13,6 @@ object ConnectionCapabilities {
     const val WIFI_DIRECT = 1 shl 1     // 0x02
     const val BLUETOOTH = 1 shl 2       // 0x04
     const val NFC = 1 shl 3             // 0x08
-    const val SOUND_WAVE = 1 shl 4      // 0x10
-    const val UWB = 1 shl 5             // 0x20
 
     /**
      * 检查是否支持某个能力

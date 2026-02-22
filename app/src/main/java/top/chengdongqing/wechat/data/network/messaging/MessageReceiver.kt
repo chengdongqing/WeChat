@@ -5,11 +5,11 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
@@ -41,6 +41,7 @@ class MessageReceiver @Inject constructor(
     private val socketServer: SocketServer,
     private val dispatcher: MessageDispatcher,
     private val json: Json,
+    @param:IoScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
 ) {
     private companion object {
@@ -51,8 +52,6 @@ class MessageReceiver @Inject constructor(
     }
 
     val incomingMessageFlow = dispatcher.incomingMessageFlow
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /**
      * 单个媒体文件的接收状态

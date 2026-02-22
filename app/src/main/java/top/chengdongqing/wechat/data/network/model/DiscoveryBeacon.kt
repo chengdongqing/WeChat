@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.model
+package top.chengdongqing.wechat.data.network.model
 
 import top.chengdongqing.wechat.core.util.toMD5Bytes
 import java.nio.ByteBuffer

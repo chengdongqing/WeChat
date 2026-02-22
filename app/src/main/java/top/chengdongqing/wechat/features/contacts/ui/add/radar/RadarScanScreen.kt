@@ -22,8 +22,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,19 +35,47 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
+import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
+import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
 @Composable
-fun RadarScanScreen(onBack: () -> Unit) {
-    val fakeUsers = remember {
-        listOf(
-            RadarUser("1", R.drawable.img_avatar, 45.0, 0.6f),
-            RadarUser("2", R.drawable.img_avatar, 150.0, 0.8f),
-            RadarUser("3", R.drawable.img_avatar, 280.0, 1f)
-        )
+fun RadarScanScreen(
+    onBack: () -> Unit,
+    onNavigateToContact: (id: String) -> Unit,
+    viewModel: RadarScanViewModel = hiltViewModel()
+) {
+    val radarUsers by viewModel.radarUsers.collectAsStateWithLifecycle()
+    val myProfile by viewModel.myProfile.collectAsStateWithLifecycle(null)
+    val loadingUserId by viewModel.loadingUserId.collectAsStateWithLifecycle()
+    val navigateToContact by viewModel.navigateToContact.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
+
+    // 跳转联系人详情
+    LaunchedEffect(navigateToContact) {
+        navigateToContact?.let {
+            onNavigateToContact(it.id)
+            viewModel.onNavigateConsumed()
+        }
+    }
+
+    val toast = rememberToastState()
+    // 错误提示
+    LaunchedEffect(error) {
+        error?.let {
+            toast.show(title = it, icon = ToastIcon.Fail)
+            viewModel.onErrorConsumed()
+        }
     }
 
     Box(
@@ -61,10 +90,12 @@ fun RadarScanScreen(onBack: () -> Unit) {
             contentScale = ContentScale.Crop
         )
         RotatingRadar()
-
-        MyAvatar()
-        DiscoveredUsers(users = fakeUsers)
-
+        MyAvatar(myProfile)
+        DiscoveredUsers(
+            users = radarUsers,
+            loadingUserId = loadingUserId,
+            onUserClick = viewModel::onUserClicked
+        )
         BackButton(onBack)
     }
 }
@@ -85,7 +116,7 @@ private fun BackButton(onBack: () -> Unit) {
 }
 
 @Composable
-private fun BoxScope.MyAvatar() {
+private fun BoxScope.MyAvatar(myProfile: UserProfile?) {
     Box(
         modifier = Modifier
             .size(74.dp)
@@ -94,8 +125,9 @@ private fun BoxScope.MyAvatar() {
             .padding(2.dp)
             .align(Alignment.Center)
     ) {
-        Image(
-            painter = painterResource(R.drawable.img_avatar),
+        AsyncImage(
+            model = myProfile?.avatarPath,
+            error = painterResource(R.drawable.img_avatar_placeholder),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -131,7 +163,11 @@ private fun RotatingRadar() {
 }
 
 @Composable
-private fun DiscoveredUsers(users: List<RadarUser>) {
+private fun DiscoveredUsers(
+    users: List<RadarUser>,
+    loadingUserId: String?,
+    onUserClick: (RadarUser) -> Unit
+) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         // 计算雷达可用半径（取宽高最小值的一半，再留点边距）
         val maxRadius = min(constraints.maxWidth, constraints.maxHeight) / 2f * 0.8f
@@ -139,19 +175,50 @@ private fun DiscoveredUsers(users: List<RadarUser>) {
         users.forEach { user ->
             val offset = calculateOffset(user.angle, user.distance, maxRadius)
 
+            key(user.id) {
+                UserAvatar(
+                    user = user,
+                    isLoading = user.id == loadingUserId,
+                    onClick = { onUserClick(user) },
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .offset { offset }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UserAvatar(
+    user: RadarUser,
+    isLoading: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(50.dp)
+            .clip(CircleShape)
+            .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+            .weClickable(enabled = !isLoading, onClick = onClick)
+    ) {
+        AsyncImage(
+            model = user.avatarUrl,
+            error = painterResource(R.drawable.img_avatar_placeholder),
+            contentDescription = user.nickname,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // loading 遮罩
+        if (isLoading) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.Center) // 先居中
-                    .offset { offset }       // 根据极坐标偏移
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.45f)),
+                contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(user.avatarRes),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                )
+                WeLoading(size = 24.dp, color = White)
             }
         }
     }
@@ -163,10 +230,3 @@ private fun calculateOffset(angle: Double, distance: Float, maxRadius: Float): I
     val y = (distance * maxRadius * sin(radian)).toInt()
     return IntOffset(x, y)
 }
-
-private data class RadarUser(
-    val id: String,
-    val avatarRes: Int,
-    val angle: Double, // 0..360
-    val distance: Float // 0..1 (0代表中心，1代表雷达边缘)
-)

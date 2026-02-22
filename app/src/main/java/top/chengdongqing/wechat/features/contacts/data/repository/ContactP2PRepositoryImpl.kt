@@ -11,12 +11,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.di.ApplicationScope
+import top.chengdongqing.wechat.core.di.DefaultScope
 import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.toMD5Hex
-import top.chengdongqing.wechat.data.model.ConnectionCapabilities
-import top.chengdongqing.wechat.data.model.DiscoveryBeacon
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
+import top.chengdongqing.wechat.data.network.model.ConnectionCapabilities
+import top.chengdongqing.wechat.data.network.model.DiscoveryBeacon
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
 import top.chengdongqing.wechat.data.network.protocol.P2PMessageTransmitter
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
@@ -39,7 +39,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
     private val imageExt: ImageExt,
-    @param:ApplicationScope private val scope: CoroutineScope,
+    @param:DefaultScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
 ) : ContactP2PRepository {
 
