@@ -42,7 +42,7 @@ import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaIt
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.preview.previewMedias
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.util.RequestMediaPermission
+import top.chengdongqing.wechat.core.designsystem.util.RequestMediaPermission
 
 @Composable
 fun WeMediaPicker(

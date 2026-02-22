@@ -66,6 +66,7 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToast
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.createImageUri
@@ -84,73 +85,76 @@ fun QRCodeScreen(
     onNavigateToWebView: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    RequestAddFriendPermission(onRevoked = onBack) {
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = remember { SnackbarHostState() }
 
-    // 提前返回，避免后续空值检查
-    val profile = uiState.profile ?: return
-    if (uiState.qrCode.isEmpty()) return
+        // 提前返回，避免后续空值检查
+        val profile = uiState.profile ?: return@RequestAddFriendPermission
+        if (uiState.qrCode.isEmpty()) return@RequestAddFriendPermission
 
-    // 事件处理复用
-    HandleProfileNavigationEvents(
-        viewModel = viewModel,
-        snackbarHostState = snackbarHostState,
-        onNavigateToContactDetail = onNavigateToContactDetail,
-        onNavigateToPlainText = onNavigateToPlainText,
-        onNavigateToWebView = onNavigateToWebView
-    )
-
-    val targetWidth = rememberScreenFractionWidth(0.65f)
-    val scope = rememberCoroutineScope()
-    val toast = rememberToastState()
-
-    // QR 码样式状态
-    var styleIndex by remember { mutableIntStateOf(0) }
-    val qrCodeState = rememberQRCodeState(
-        content = uiState.qrCode,
-        logoPainter = painterResource(R.drawable.img_logo_outlined),
-        brush = QR_CODE_STYLES[styleIndex],
-        backgroundColor = Color.Transparent
-    )
-
-    // 准备生成图片所需的资源
-    val context = LocalContext.current
-    val density = LocalDensity.current
-    val avatarBitmap = rememberAvatarBitmap(profile.avatarPath) ?: return
-    val textMeasurer = rememberTextMeasurer()
-
-    val cardRenderer = remember(profile, qrCodeState, avatarBitmap) {
-        QrCardRenderer(profile, qrCodeState, avatarBitmap, textMeasurer)
-    }
-
-    Scaffold(
-        topBar = { WeTopBar(onBack = onBack) },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = WeTheme.colorScheme.background
-    ) { innerPadding ->
-        QRCodeContent(
-            profile = profile,
-            qrCodeState = qrCodeState,
-            targetWidth = targetWidth,
-            innerPadding = innerPadding,
-            onScanQRCode = viewModel::handleScannedQRCode,
-            onChangeStyle = {
-                styleIndex = (styleIndex + 1) % QR_CODE_STYLES.size
-                qrCodeState.brush = QR_CODE_STYLES[styleIndex]
-            },
-            onSaveToAlbum = {
-                handleSaveToAlbum(
-                    cardRenderer = cardRenderer,
-                    density = density,
-                    context = context,
-                    toast = toast,
-                    scope = scope
-                )
-            }
+        // 事件处理复用
+        HandleProfileNavigationEvents(
+            viewModel = viewModel,
+            snackbarHostState = snackbarHostState,
+            onNavigateToContactDetail = onNavigateToContactDetail,
+            onNavigateToPlainText = onNavigateToPlainText,
+            onNavigateToWebView = onNavigateToWebView
         )
-    }
 
-    LoadingDialog(uiState.isLoading)
+        val targetWidth = rememberScreenFractionWidth(0.65f)
+        val scope = rememberCoroutineScope()
+        val toast = rememberToastState()
+
+        // QR 码样式状态
+        var styleIndex by remember { mutableIntStateOf(0) }
+        val qrCodeState = rememberQRCodeState(
+            content = uiState.qrCode,
+            logoPainter = painterResource(R.drawable.img_logo_outlined),
+            brush = QR_CODE_STYLES[styleIndex],
+            backgroundColor = Color.Transparent
+        )
+
+        // 准备生成图片所需的资源
+        val context = LocalContext.current
+        val density = LocalDensity.current
+        val avatarBitmap =
+            rememberAvatarBitmap(profile.avatarPath) ?: return@RequestAddFriendPermission
+        val textMeasurer = rememberTextMeasurer()
+
+        val cardRenderer = remember(profile, qrCodeState, avatarBitmap) {
+            QrCardRenderer(profile, qrCodeState, avatarBitmap, textMeasurer)
+        }
+
+        Scaffold(
+            topBar = { WeTopBar(onBack = onBack) },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = WeTheme.colorScheme.background
+        ) { innerPadding ->
+            QRCodeContent(
+                profile = profile,
+                qrCodeState = qrCodeState,
+                targetWidth = targetWidth,
+                innerPadding = innerPadding,
+                onScanQRCode = viewModel::handleScannedQRCode,
+                onChangeStyle = {
+                    styleIndex = (styleIndex + 1) % QR_CODE_STYLES.size
+                    qrCodeState.brush = QR_CODE_STYLES[styleIndex]
+                },
+                onSaveToAlbum = {
+                    handleSaveToAlbum(
+                        cardRenderer = cardRenderer,
+                        density = density,
+                        context = context,
+                        toast = toast,
+                        scope = scope
+                    )
+                }
+            )
+        }
+
+        LoadingDialog(uiState.isLoading)
+    }
 }
 
 /**

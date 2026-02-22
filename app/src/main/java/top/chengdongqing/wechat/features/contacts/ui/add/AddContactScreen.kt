@@ -1,11 +1,9 @@
 package top.chengdongqing.wechat.features.contacts.ui.add
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,21 +20,17 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
@@ -47,8 +41,8 @@ import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.re
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
-import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileUiState
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
@@ -64,71 +58,44 @@ fun AddContactScreen(
     onNavigateToPlainText: (text: String) -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    RequestAddFriendPermission(onRevoked = onBack) {
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        val snackbarHostState = remember { SnackbarHostState() }
 
-    // 处理扫码
-    val launchScanner = rememberScanCodeLauncher { qrCodes ->
-        viewModel.handleScannedQRCode(qrCodes.first())
-    }
-
-    // 处理导航事件
-    HandleProfileNavigationEvents(
-        viewModel = viewModel,
-        snackbarHostState = snackbarHostState,
-        onNavigateToContactDetail = onNavigateToContactDetail,
-        onNavigateToPlainText = onNavigateToPlainText,
-        onNavigateToWebView = onNavigateToWebView
-    )
-
-    // 蓝牙权限和初始化
-    HandleBluetoothSetup()
-
-    val addFriendOptions = rememberAddFriendOptions(
-        launchScanner = launchScanner,
-        onNavigateToNFC = onNavigateToNFC,
-        onNavigateToRadar = onNavigateToRadar,
-        onNavigateToGroup = onNavigateToGroup
-    )
-
-    Scaffold(
-        topBar = { WeTopBar(title = "添加朋友", onBack = onBack) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { innerPadding ->
-        AddFriendContent(
-            uiState = uiState,
-            innerPadding = innerPadding,
-            options = addFriendOptions
-        )
-    }
-
-    LoadingDialog(uiState.isLoading)
-}
-
-/**
- * 处理蓝牙设置和权限
- */
-@SuppressLint("MissingPermission")
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-private fun HandleBluetoothSetup() {
-    val context = LocalContext.current
-    val bluetoothAdapter = rememberBluetoothAdapter(context)
-    val permissions = rememberBluetoothPermissions()
-    val permissionState =
-        rememberMultiplePermissionsState(permissions + listOf(Manifest.permission.POST_NOTIFICATIONS))
-
-    LaunchedEffect(bluetoothAdapter) {
-        when {
-            bluetoothAdapter == null -> {
-                context.showToast("此设备不支持蓝牙")
-            }
-
-            !bluetoothAdapter.isEnabled -> {
-                context.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
-            }
+        // 处理扫码
+        val launchScanner = rememberScanCodeLauncher { qrCodes ->
+            viewModel.handleScannedQRCode(qrCodes.first())
         }
-        permissionState.launchMultiplePermissionRequest()
+
+        // 处理导航事件
+        HandleProfileNavigationEvents(
+            viewModel = viewModel,
+            snackbarHostState = snackbarHostState,
+            onNavigateToContactDetail = onNavigateToContactDetail,
+            onNavigateToPlainText = onNavigateToPlainText,
+            onNavigateToWebView = onNavigateToWebView
+        )
+
+        val addFriendOptions = rememberAddFriendOptions(
+            launchScanner = launchScanner,
+            onNavigateToNFC = onNavigateToNFC,
+            onNavigateToRadar = onNavigateToRadar,
+            onNavigateToGroup = onNavigateToGroup
+        )
+
+        // 请求权限
+        Scaffold(
+            topBar = { WeTopBar(title = "添加朋友", onBack = onBack) },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
+        ) { innerPadding ->
+            AddFriendContent(
+                uiState = uiState,
+                innerPadding = innerPadding,
+                options = addFriendOptions
+            )
+        }
+
+        LoadingDialog(uiState.isLoading)
     }
 }
 

@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.network.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
@@ -10,12 +11,9 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import top.chengdongqing.wechat.data.network.service.modules.CallModule
 import top.chengdongqing.wechat.data.network.service.modules.ChatModule
@@ -62,34 +60,47 @@ class NetworkService : Service() {
     @Inject
     lateinit var activeSessionManager: ActiveSessionManager
 
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Inject
+    @IoScope
+    lateinit var scope: CoroutineScope
 
-    private companion object {
-        const val TAG = "P2PService"
-        const val NOTIFICATION_ID = 1001
-        const val CHANNEL_ID = "p2p_service_channel"
+    companion object {
+        private const val TAG = "P2PService"
+        private const val NOTIFICATION_ID = 1001
+        private const val CHANNEL_ID = "p2p_service_channel"
+
+        const val ACTION_START_CONNECT = "action_start_connect" // 登录成功后调用
+        const val ACTION_STOP_CONNECT = "action_stop_connect"   // 退出登录调用
+        const val ACTION_RETRY_BLE = "action_retry_ble"         // 权限授予后调用
     }
 
     // ==================== 生命周期 ====================
 
-    override fun onCreate() {
-        super.onCreate()
-        Log.d(TAG, "P2P 服务启动")
-
-        createNotificationChannel()
-        startForegroundService()
-
-        serviceScope.launch { initializeModules() }
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_START_CONNECT -> {
+                // 注册通知
+                createNotificationChannel()
+                startForegroundService()
+                // 启动各个子模块
+                scope.launch { initializeModules() }
+            }
+
+            ACTION_RETRY_BLE -> {
+                bleModule.start(scope)
+            }
+
+            ACTION_STOP_CONNECT -> {
+                stopAllModules()
+            }
+        }
+
         return START_STICKY // 被系统杀死后自动重启，保持消息收发能力
     }
 
     override fun onDestroy() {
         super.onDestroy()
         stopAllModules()
-        serviceScope.cancel()
         Log.d(TAG, "P2P 服务已停止")
     }
 
@@ -104,22 +115,22 @@ class NetworkService : Service() {
      */
     private suspend fun initializeModules() {
         try {
-            val myProfile = profileRepository.getCurrentProfile().first() ?: run {
+            val myProfile = profileRepository.getCurrentProfileOnce() ?: run {
                 Log.w(TAG, "未找到个人资料，服务启动失败")
                 return
             }
 
             // 启动 BLE 模块（好友添加）
-            bleModule.start(serviceScope)
+            bleModule.start(scope)
             // 启动聊天模块（消息收发）
-            chatModule.start(myProfile.id, serviceScope)
+            chatModule.start(myProfile.id, scope)
             // 启动通话模块（视频/语音通话）
-            callModule.start(myProfile.id, serviceScope)
+            callModule.start(myProfile.id, scope)
 
             // 监听好友请求事件
-            serviceScope.launch { observeFriendRequestEvents() }
+            scope.launch { observeFriendRequestEvents() }
             // 监听新消息
-            serviceScope.launch { observeIncomingMessages() }
+            scope.launch { observeIncomingMessages() }
 
             Log.d(TAG, "所有模块已启动")
         } catch (e: Exception) {
@@ -237,5 +248,12 @@ class NetworkService : Service() {
             .setOngoing(true)
             .build()
         startForeground(NOTIFICATION_ID, notification)
+    }
+}
+
+fun Context.createNetworkServiceIntent(action: String): Intent {
+    return Intent(this, NetworkService::class.java).apply {
+        this.action = action
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 }
