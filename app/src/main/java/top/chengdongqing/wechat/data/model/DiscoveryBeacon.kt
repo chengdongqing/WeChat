@@ -1,8 +1,7 @@
 package top.chengdongqing.wechat.data.model
 
+import top.chengdongqing.wechat.core.util.toMD5Bytes
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.security.MessageDigest
 
 /**
  * 发现信标 - 用于所有加好友方式的统一数据格式
@@ -103,19 +102,4 @@ data class DiscoveryBeacon(
         val age = System.currentTimeMillis() - timestamp
         return age <= 5 * 60 * 1000
     }
-}
-
-/**
- * 将字符串转换为MD5哈希（16字节）
- */
-private fun String.toMD5Bytes(): ByteArray {
-    val md = MessageDigest.getInstance("MD5")
-    return md.digest(this.toByteArray(StandardCharsets.UTF_8))
-}
-
-/**
- * 字节数组转十六进制字符串
- */
-private fun ByteArray.toHexString(): String {
-    return joinToString("") { "%02x".format(it) }
 }

@@ -492,7 +492,7 @@ class BLEModule @Inject constructor(
             }
         }
 
-        private suspend fun generateAvatarThumbnail(avatarPath: String?): ByteArray? {
+        private fun generateAvatarThumbnail(avatarPath: String?): ByteArray? {
             return avatarPath?.let { path ->
                 try {
                     imageExt.generateThumbnailBytes(

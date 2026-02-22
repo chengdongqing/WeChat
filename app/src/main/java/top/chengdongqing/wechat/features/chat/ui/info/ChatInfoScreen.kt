@@ -128,7 +128,7 @@ private fun ContactListBar(
         ) {
             AsyncImage(
                 model = avatarPath,
-                error = painterResource(R.drawable.img_avatar),
+                error = painterResource(R.drawable.img_avatar_placeholder),
                 contentDescription = null,
                 modifier = Modifier
                     .size(60.dp)

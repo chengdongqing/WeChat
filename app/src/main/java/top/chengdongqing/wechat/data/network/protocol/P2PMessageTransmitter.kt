@@ -6,15 +6,14 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
-import java.security.MessageDigest
 import javax.inject.Inject
 
 /**
- * P2P 消息传输器
+ * 基于 BLE (低功耗蓝牙) 的点对点消息传输
  *
- * 基于 BLE (低功耗蓝牙) 实现的点对点消息传输,支持:
  * 1. JSON 消息传输
  * 2. 二进制数据传输(可选)
  * 3. 分阶段传输: 先发送 JSON 元数据,再发送二进制数据
@@ -25,7 +24,7 @@ class P2PMessageTransmitter @Inject constructor(
 ) {
 
     private companion object {
-        const val TAG = "P2PTransmitter"
+        const val TAG = "P2PMessageTransmitter"
 
         // 延迟配置
         const val DELAY_BEFORE_BINARY_MS = 200L  // JSON 发送后等待
@@ -98,7 +97,7 @@ class P2PMessageTransmitter @Inject constructor(
      */
     @SuppressLint("MissingPermission")
     private suspend fun connectToDevice(targetUserId: String): BluetoothGatt? {
-        val deviceId = targetUserId.toMD5()
+        val deviceId = targetUserId.toMD5Hex()
         Log.d(TAG, "正在连接设备: userId=$targetUserId, deviceId=$deviceId")
 
         val gatt = bleDiscovery.scanAndConnect(deviceId)
@@ -180,14 +179,4 @@ class P2PMessageTransmitter @Inject constructor(
 
         return success
     }
-}
-
-// ==================== 扩展函数 ====================
-
-/**
- * 将字符串转换为 MD5 哈希值(十六进制)
- */
-private fun String.toMD5(): String {
-    val digest = MessageDigest.getInstance("MD5").digest(toByteArray())
-    return digest.joinToString("") { "%02x".format(it) }
 }

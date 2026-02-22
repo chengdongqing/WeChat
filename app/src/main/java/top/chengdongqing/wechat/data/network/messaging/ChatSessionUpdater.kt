@@ -49,6 +49,8 @@ class ChatSessionUpdater @Inject constructor(
         } else {
             // 会话不存在：创建新会话，联系人信息需要实时解析
             val (contactName, contactAvatar) = resolveContactInfo(entity, isSelfSession)
+            val now = System.currentTimeMillis()
+
             chatSessionDao.insert(
                 ChatSessionEntity(
                     sessionId = entity.sessionId,
@@ -59,8 +61,8 @@ class ChatSessionUpdater @Inject constructor(
                     lastMessageType = entity.contentType,
                     lastMessageTime = entity.timestamp,
                     unreadCount = unreadIncrement,
-                    createdAt = System.currentTimeMillis(),
-                    updatedAt = System.currentTimeMillis()
+                    createdAt = now,
+                    updatedAt = now
                 )
             )
         }
@@ -81,11 +83,15 @@ class ChatSessionUpdater @Inject constructor(
         return if (isSelfSession) {
             Pair(profile?.nickname ?: "", profile?.avatarPath)
         } else {
-            val contactId =
-                if (entity.senderId == profile?.id) entity.receiverId else entity.senderId
+            val contactId = if (entity.senderId == profile?.id) {
+                entity.receiverId
+            } else {
+                entity.senderId
+            }
             val contact = contactDao.getById(contactId)
+
             Pair(
-                contact?.remarkName?.takeIf { it.isNotBlank() } ?: contact?.nickname ?: "",
+                contact?.remarkName ?: contact?.nickname ?: "",
                 contact?.avatarPath
             )
         }

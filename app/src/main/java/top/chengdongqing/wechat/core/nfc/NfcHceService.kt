@@ -77,5 +77,3 @@ class NfcHceService : HostApduService() {
         null
     }
 }
-
-private fun ByteArray.toHexString() = joinToString(" ") { "%02X".format(it) }
