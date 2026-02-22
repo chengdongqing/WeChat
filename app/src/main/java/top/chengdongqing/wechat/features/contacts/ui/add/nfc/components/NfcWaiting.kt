@@ -121,7 +121,7 @@ private fun PulsingNfcIcon() {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_radar_outlined),
+                painter = painterResource(R.drawable.ic_nfc_outlined),
                 contentDescription = "NFC",
                 tint = GreenPrimary,
                 modifier = Modifier.size(42.dp)

@@ -38,11 +38,13 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.util.NeonGreenIndication
+import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 
 @Composable
 fun PinCodeGroupScreen(onBack: () -> Unit) {
     var inputCode by remember { mutableStateOf("") }
 
+    StatusBarAppearanceEffect(false)
     Scaffold(
         containerColor = Color(0xFF1E1E1E),
         topBar = {

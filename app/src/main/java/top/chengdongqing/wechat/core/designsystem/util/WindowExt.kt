@@ -3,7 +3,6 @@ package top.chengdongqing.wechat.core.designsystem.util
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -37,14 +36,19 @@ fun StatusBarAppearanceEffect(isDark: Boolean = true) {
 fun ImmersiveSystemBars(enabled: Boolean = true) {
     val window = LocalActivity.current?.window ?: return
 
-    LaunchedEffect(enabled) {
+    DisposableEffect(enabled) {
         val controller = WindowCompat.getInsetsController(window, window.decorView)
-        if (!enabled) {
-            controller.show(WindowInsetsCompat.Type.systemBars())
-        } else {
+
+        if (enabled) {
             controller.hide(WindowInsetsCompat.Type.systemBars())
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        } else {
+            controller.show(WindowInsetsCompat.Type.systemBars())
+        }
+
+        onDispose {
+            controller.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 }

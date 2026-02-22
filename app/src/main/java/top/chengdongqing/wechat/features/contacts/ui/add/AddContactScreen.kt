@@ -269,9 +269,9 @@ private fun rememberAddFriendOptions(
             ),
             AddFriendItem(
                 title = "碰一碰",
-                iconResId = R.drawable.ic_radar_outlined,
-                iconColor = Color(0xFF7468BE),
-                description = "通过NFC添加好友",
+                iconResId = R.drawable.ic_nfc_outlined,
+                iconColor = Color(0xFF10AEFF),
+                description = "通过NFC添加朋友",
                 onClick = onNavigateToNFC
             ),
             AddFriendItem(
