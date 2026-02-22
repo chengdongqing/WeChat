@@ -111,7 +111,9 @@ class ChatSessionViewModel @AssistedInject constructor(
                 _uiState.update {
                     it.copy(
                         title = contact?.displayName ?: profile?.nickname ?: "",
+                        peerId = contact?.id,
                         peerAvatar = contact?.avatarPath,
+                        myId = profile?.id,
                         myAvatar = profile?.avatarPath,
                         isMyself = contact == null
                     )
@@ -255,7 +257,9 @@ class ChatSessionViewModel @AssistedInject constructor(
 
 data class ChatSessionUiState(
     val title: String = "",
+    val peerId: String? = null,
     val peerAvatar: String? = null,
+    val myId: String? = null,
     val myAvatar: String? = null,
     val isMyself: Boolean = false,
     val isSending: Boolean = false,

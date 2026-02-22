@@ -44,6 +44,9 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
             onNavigateToInfo = {
                 navController.navigate(ChatRoute.ChatInfo.createRoute(chatId))
             },
+            onNavigateToContact = { id ->
+                navController.navigate(ContactsRoute.Detail.createRoute(id))
+            },
             onNavigateToFilePreview = { id ->
                 navController.navigate(ChatRoute.FilePreview.createRoute(id))
             }

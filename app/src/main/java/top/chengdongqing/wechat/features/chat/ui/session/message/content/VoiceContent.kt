@@ -55,8 +55,10 @@ fun VoiceContent(message: ChatMessage) {
     val targetWidth = rememberScreenFractionWidth(currentFraction)
 
     // 是否播放中
-    val isPlaying by remember(message.id, chatContext?.playingVoiceId) {
-        derivedStateOf { chatContext?.playingVoiceId == message.id }
+    val isPlaying by remember(message.id, chatContext?.playingMessageId) {
+        derivedStateOf {
+            chatContext?.playingMessageId == message.id
+        }
     }
 
     // 时长文本

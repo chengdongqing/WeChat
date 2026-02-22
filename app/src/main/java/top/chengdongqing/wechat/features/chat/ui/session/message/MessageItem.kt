@@ -46,7 +46,7 @@ fun MessageItem(
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (!isFromMe) {
-                    Avatar(peerAvatar)
+                    Avatar(localPath = peerAvatar, isPeer = true)
                 }
 
                 Row(
@@ -70,7 +70,7 @@ fun MessageItem(
                 }
 
                 if (isFromMe) {
-                    Avatar(myAvatar)
+                    Avatar(localPath = myAvatar, isPeer = false)
                 }
             }
         }
@@ -82,7 +82,9 @@ fun MessageItem(
 }
 
 @Composable
-private fun Avatar(localPath: String?) {
+private fun Avatar(localPath: String?, isPeer: Boolean) {
+    val chatContext = LocalChatContext.current
+
     AsyncImage(
         model = localPath,
         contentDescription = null,
@@ -90,6 +92,9 @@ private fun Avatar(localPath: String?) {
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))
+            .weClickable {
+                chatContext?.onNavigateToContact(isPeer)
+            }
     )
 }
 

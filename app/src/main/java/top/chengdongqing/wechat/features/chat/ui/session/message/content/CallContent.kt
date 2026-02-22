@@ -50,7 +50,7 @@ fun CallContent(message: ChatMessage) {
             modifier = Modifier
                 .padding(10.dp)
                 .weClickable {
-                    chatContext?.onNavigateToCall(content.type)
+                    chatContext?.onLaunchCall(content.type)
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {

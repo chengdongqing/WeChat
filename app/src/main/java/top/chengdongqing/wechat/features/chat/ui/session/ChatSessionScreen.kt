@@ -49,6 +49,7 @@ fun ChatSessionScreen(
     chatId: String,
     onBack: () -> Unit,
     onNavigateToInfo: () -> Unit,
+    onNavigateToContact: (id: String) -> Unit,
     onNavigateToFilePreview: (messageId: String) -> Unit,
     viewModel: ChatSessionViewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
         factory.create(chatId)
@@ -94,7 +95,11 @@ fun ChatSessionScreen(
         viewModel = viewModel,
         uiState = uiState,
         onPreviewFile = onNavigateToFilePreview,
-        onLaunchCall = launchCall
+        onLaunchCall = launchCall,
+        onNavigateToContact = { isPeer ->
+            val id = if (isPeer) uiState.peerId else uiState.myId
+            onNavigateToContact(id!!)
+        }
     )
 
     CompositionLocalProvider(LocalChatContext provides chatContext) {
@@ -180,7 +185,8 @@ private fun rememberChatContext(
     viewModel: ChatSessionViewModel,
     uiState: ChatSessionUiState,
     onPreviewFile: (messageId: String) -> Unit,
-    onLaunchCall: (type: CallType) -> Unit
+    onLaunchCall: (type: CallType) -> Unit,
+    onNavigateToContact: (isPeer: Boolean) -> Unit
 ): ChatContext {
     val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
@@ -197,12 +203,13 @@ private fun rememberChatContext(
             isMyself = uiState.isMyself,
             mediaList = mediaList,
             getMediaIndexOf = { content -> mediaList.indexOf(content) },
-            playingVoiceId = playingMessageId,
+            playingMessageId = playingMessageId,
             onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
             onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() },
             onRetrySend = { viewModel.retrySend(it) },
             onPreviewFile = { onPreviewFile(it) },
-            onNavigateToCall = onLaunchCall
+            onLaunchCall = onLaunchCall,
+            onNavigateToContact = onNavigateToContact
         )
     }
 }
@@ -214,12 +221,13 @@ data class ChatContext(
     val isMyself: Boolean,
     val mediaList: List<MessageContent.Media>,
     val getMediaIndexOf: (MessageContent.Media) -> Int,
-    val playingVoiceId: String?,
+    val playingMessageId: String?,
     val onVoiceToggle: (messageId: String, localPath: String) -> Unit,
     val onVoiceStop: () -> Unit,
     val onRetrySend: (messageId: String) -> Unit,
     val onPreviewFile: (messageId: String) -> Unit,
-    val onNavigateToCall: (type: CallType) -> Unit
+    val onLaunchCall: (type: CallType) -> Unit,
+    val onNavigateToContact: (isPeer: Boolean) -> Unit
 )
 
 val LocalChatContext = compositionLocalOf<ChatContext?> { null }
