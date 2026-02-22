@@ -59,7 +59,11 @@ fun ChatListScreen(
             )
             Box(
                 modifier = Modifier.background(
-                    if (chat.isPinned) WeTheme.colorScheme.background else WeTheme.colorScheme.surface
+                    if (chat.isPinned) {
+                        WeTheme.colorScheme.background
+                    } else {
+                        WeTheme.colorScheme.surface
+                    }
                 )
             ) {
                 WeDivider(modifier = Modifier.padding(start = 73.dp))

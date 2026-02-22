@@ -32,7 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
@@ -227,7 +227,7 @@ private fun HomeTopBar(
 
             WeTopBarIcon(
                 modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
-                    anchorPosition = layoutCoordinates.positionInParent()
+                    anchorPosition = layoutCoordinates.positionInWindow()
                     anchorSize = layoutCoordinates.size
                 },
                 iconResId = R.drawable.ic_plus_circle_outlined,
@@ -235,18 +235,18 @@ private fun HomeTopBar(
             ) {
                 menuExpanded = true
             }
-
-            QuickActions(
-                expanded = menuExpanded,
-                menus = menuItems,
-                anchorPosition = anchorPosition,
-                anchorSize = anchorSize,
-                onDismiss = { menuExpanded = false }
-            )
         }
 
         WeDivider()
     }
+
+    QuickActions(
+        expanded = menuExpanded,
+        menus = menuItems,
+        anchorPosition = anchorPosition,
+        anchorSize = anchorSize,
+        onDismiss = { menuExpanded = false }
+    )
 }
 
 @Composable
