@@ -98,7 +98,7 @@ private fun RadarBeacon.toRadarUser(): RadarUser {
         nickname = nickname,
         avatarUrl = avatarUrl,
         angle = random.nextDouble() * 360.0,
-        distance = 0.4f + random.nextFloat() * 0.5f  // 保持在 0.4~0.9 之间，不紧贴中心也不超出边界
+        distance = 0.6f + random.nextFloat() * 0.5f  // 保持在 0.4~0.9 之间，不紧贴中心也不超出边界
     )
 }
 

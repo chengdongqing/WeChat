@@ -13,11 +13,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -33,8 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -196,31 +200,45 @@ private fun UserAvatar(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
-            .size(50.dp)
-            .clip(CircleShape)
-            .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
-            .weClickable(enabled = !isLoading, onClick = onClick)
+    Column(
+        modifier = modifier.widthIn(max = 100.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        AsyncImage(
-            model = user.avatarUrl,
-            error = painterResource(R.drawable.img_avatar_placeholder),
-            contentDescription = user.nickname,
-            modifier = Modifier.fillMaxSize()
-        )
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                .weClickable(enabled = !isLoading, onClick = onClick)
+        ) {
+            AsyncImage(
+                model = user.avatarUrl,
+                error = painterResource(R.drawable.img_avatar_placeholder),
+                contentDescription = user.nickname,
+                modifier = Modifier.fillMaxSize()
+            )
 
-        // loading 遮罩
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.45f)),
-                contentAlignment = Alignment.Center
-            ) {
-                WeLoading(size = 24.dp, color = White)
+            // loading 遮罩
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.45f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    WeLoading(size = 24.dp, color = White)
+                }
             }
         }
+
+        Text(
+            text = user.nickname,
+            color = White,
+            fontSize = 13.sp,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1,
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }
 
