@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -61,6 +62,13 @@ fun InputBar(
         isPanelMode = state.inputMode.isPanelMode,
         onDismiss = controller::dismissAll
     )
+
+    // 退出页面时收起键盘
+    DisposableEffect(focusRequester) {
+        onDispose {
+            controller.dismissAll()
+        }
+    }
 
     Column(
         modifier = Modifier
