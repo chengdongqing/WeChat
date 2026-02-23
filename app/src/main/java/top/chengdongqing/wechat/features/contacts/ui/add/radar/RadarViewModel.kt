@@ -16,7 +16,6 @@ import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscoveryRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
-import kotlin.random.Random
 
 @HiltViewModel
 class RadarScanViewModel @Inject constructor(
@@ -26,7 +25,7 @@ class RadarScanViewModel @Inject constructor(
 ) : ViewModel() {
 
     val radarUsers = radarRepository.nearbyUsers
-        .map { beacons -> beacons.map { it.toRadarUser() } }
+        .map { beacons -> beacons.toRadarUsers() }
         .distinctUntilChanged()
         .stateIn(
             scope = viewModelScope,
@@ -88,19 +87,42 @@ class RadarScanViewModel @Inject constructor(
     }
 }
 
-private fun RadarBeacon.toRadarUser(): RadarUser {
-    // 用 userId hashCode 作种子，保证坐标稳定不抖动
-    val seed = userId.hashCode().toLong()
-    val random = Random(seed)
+private fun List<RadarBeacon>.toRadarUsers(): List<RadarUser> {
+    val result = mutableListOf<RadarUser>()
 
-    return RadarUser(
-        id = userId,
-        nickname = nickname,
-        avatarUrl = avatarUrl,
-        angle = random.nextDouble() * 360.0,
-        distance = 0.6f + random.nextFloat() * 0.5f  // 保持在 0.4~0.9 之间，不紧贴中心也不超出边界
-    )
+    val rings = when {
+        this.size <= 4 -> listOf(RingConfig(radius = 0.75f, slotCount = this.size))
+        else -> listOf(
+            RingConfig(radius = 0.72f, slotCount = 4),
+            RingConfig(radius = 1.0f, slotCount = this.size - 4)
+        )
+    }
+
+    var processedCount = 0
+    rings.forEach { ring ->
+        val countInThisRing = ring.slotCount
+        repeat(countInThisRing) { i ->
+            if (processedCount >= this.size) return@repeat
+
+            val initialRotation = 45.0
+            val angle = (360.0 / countInThisRing) * i + initialRotation
+
+            result.add(
+                RadarUser(
+                    id = this[processedCount].userId,
+                    nickname = this[processedCount].nickname,
+                    avatarUrl = this[processedCount].avatarUrl,
+                    angle = angle % 360.0,
+                    distance = ring.radius
+                )
+            )
+            processedCount++
+        }
+    }
+    return result
 }
+
+private data class RingConfig(val radius: Float, val slotCount: Int)
 
 data class RadarUser(
     val id: String,
