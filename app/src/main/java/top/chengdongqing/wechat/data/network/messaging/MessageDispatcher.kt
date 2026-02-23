@@ -14,6 +14,7 @@ import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
+import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
@@ -64,10 +65,7 @@ class MessageDispatcher @Inject constructor(
             when (protocol) {
                 is ChatProtocol.TextMessage -> handleTextMessage(protocol)
                 is ChatProtocol.CallMessage -> handleCallMessage(protocol)
-                is ChatProtocol.MessageAck -> handleAck(protocol)
-                is ChatProtocol.MessageRead -> handleReadReceipt(protocol)
-                is ChatProtocol.MessageReject -> handleReject(protocol)
-                is ChatProtocol.NotFriendAck -> handleNotFriend(protocol)
+                is ChatProtocol.MessageReceipt -> handleReceipt(protocol)
                 is ChatProtocol.Signaling -> handleSignaling(protocol)
                 is ChatProtocol.Handshake -> handleHeartbeat(protocol)
                 else -> {}
@@ -118,14 +116,18 @@ class MessageDispatcher @Inject constructor(
     ) {
         try {
             if (messageDao.exists(protocol.messageId)) {
-                messageSender.sendAck(protocol.messageId, protocol.senderId)
+                messageSender.sendReceipt(
+                    protocol.messageId,
+                    protocol.senderId,
+                    ReceiptType.Delivered
+                )
                 return
             }
 
             val entity = entityBuilder()
             messageDao.insert(entity)
             chatSessionUpdater.update(entity)
-            messageSender.sendAck(protocol.messageId, protocol.senderId)
+            messageSender.sendReceipt(protocol.messageId, protocol.senderId, ReceiptType.Delivered)
             _incomingMessageFlow.emit(entity.toDomain(json))
         } catch (e: Exception) {
             Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)
@@ -135,51 +137,38 @@ class MessageDispatcher @Inject constructor(
     // ==================== 回执 ====================
 
     /**
-     * 对方已收到我的消息，更新状态为 Delivered
+     * 处理回执消息
      */
-    private suspend fun handleAck(protocol: ChatProtocol.MessageAck) {
+    private suspend fun handleReceipt(protocol: ChatProtocol.MessageReceipt) {
         runCatching {
-            messageDao.updateSendStatus(protocol.messageId, SendStatus.Delivered)
-        }.onFailure { Log.e(TAG, "ACK 更新失败: ${protocol.messageId}", it) }
-    }
+            when (protocol.receiptType) {
+                ReceiptType.Delivered,
+                ReceiptType.Read -> {
+                    val status = if (protocol.receiptType == ReceiptType.Delivered) {
+                        SendStatus.Delivered
+                    } else {
+                        SendStatus.Read
+                    }
+                    messageDao.updateSendStatus(protocol.messageId, status)
+                }
 
-    /**
-     * 对方已读我的消息，更新状态为 Read
-     */
-    private suspend fun handleReadReceipt(protocol: ChatProtocol.MessageRead) {
-        runCatching {
-            messageDao.updateSendStatus(protocol.messageId, SendStatus.Read)
-        }.onFailure { Log.e(TAG, "已读更新失败: ${protocol.messageId}", it) }
-    }
-
-    /**
-     * 对方拒收了我的消息，更新状态为 Failed
-     */
-    private suspend fun handleReject(protocol: ChatProtocol.MessageReject) {
-        runCatching {
-            messageDao.updateSendStatusAndFailReason(
-                messageId = protocol.messageId,
-                status = SendStatus.Failed,
-                reason = SendError.Blocked
-            )
-            // 停止发送文件（如果有）
-            transferManager.setCancelled(protocol.messageId)
-        }.onFailure { Log.e(TAG, "拒收更新失败: ${protocol.messageId}", it) }
-    }
-
-    /**
-     * 对方已不是我的好友，更新状态为 Failed
-     */
-    private suspend fun handleNotFriend(protocol: ChatProtocol.NotFriendAck) {
-        runCatching {
-            messageDao.updateSendStatusAndFailReason(
-                messageId = protocol.messageId,
-                status = SendStatus.Failed,
-                reason = SendError.NotFriend
-            )
-            // 停止发送文件（如果有）
-            transferManager.setCancelled(protocol.messageId)
-        }.onFailure { Log.e(TAG, "拒收更新失败: ${protocol.messageId}", it) }
+                ReceiptType.Blocked,
+                ReceiptType.NotFriend -> {
+                    val reason = if (protocol.receiptType == ReceiptType.Blocked) {
+                        SendError.Blocked
+                    } else {
+                        SendError.NotFriend
+                    }
+                    messageDao.updateSendStatusAndFailReason(
+                        messageId = protocol.messageId,
+                        status = SendStatus.Failed,
+                        reason = reason
+                    )
+                    // 停止发送文件（如果有）
+                    transferManager.setCancelled(protocol.messageId)
+                }
+            }
+        }.onFailure { Log.e(TAG, "回执处理失败: ${protocol.messageId}", it) }
     }
 
     /** 转发 WebRTC 信令给 SignalingManager 处理（Offer/Answer/ICE/Hangup 等） */

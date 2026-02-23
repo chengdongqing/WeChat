@@ -17,6 +17,7 @@ import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
+import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.socket.ClientConnection
 import top.chengdongqing.wechat.data.network.socket.SocketConnection
 import top.chengdongqing.wechat.data.network.socket.SocketServer
@@ -142,8 +143,8 @@ class MessageReceiver @Inject constructor(
     private suspend fun handleJsonPacket(userId: String, packet: Packet) {
         val protocol = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
 
-        // 非回执包时拦截非好友/已拉黑
-        if (protocol !is ChatProtocol.MessageAck
+        // 拦截非好友/已拉黑（在非回执包时判断）
+        if (protocol !is ChatProtocol.MessageReceipt
             && !canProcessMessage(userId, protocol.messageId)
         ) return
 
@@ -151,17 +152,17 @@ class MessageReceiver @Inject constructor(
     }
 
     /**
-     * 校验发送者权限：非好友或被拉黑则发送 Reject 并返回 false
+     * 校验发送者权限：非好友或被拉黑则发送拒收回执 并返回 false
      */
     private suspend fun canProcessMessage(userId: String, messageId: String): Boolean {
         return when (checkMessagePermission(userId)) {
             PermissionResult.Blocked -> {
-                messageSender.sendRejectAck(messageId, userId)
+                messageSender.sendReceipt(messageId, userId, ReceiptType.Blocked)
                 false
             }
 
             PermissionResult.NotFriend -> {
-                messageSender.sendNotFriendAck(messageId, userId)
+                messageSender.sendReceipt(messageId, userId, ReceiptType.NotFriend)
                 false
             }
 

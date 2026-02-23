@@ -13,6 +13,7 @@ import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
+import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.socket.SocketServer
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
@@ -120,49 +121,18 @@ class MessageSender @Inject constructor(
             }
         }
 
-    /** 发送送达回执 */
-    suspend fun sendAck(messageId: String, senderId: String) {
+    /** 发送回执消息 */
+    suspend fun sendReceipt(messageId: String, senderId: String, type: ReceiptType) {
         sendReceiptSafely(senderId) {
             Packet(
-                PacketType.ACK,
+                PacketType.RECEIPT,
                 serializePolymorphic(
-                    ChatProtocol.MessageAck(messageId, senderId, System.currentTimeMillis())
-                )
-            )
-        }
-    }
-
-    /** 发送已读回执 */
-    suspend fun sendReadReceipt(messageId: String, senderId: String) {
-        sendReceiptSafely(senderId) {
-            Packet(
-                PacketType.READ_RECEIPT,
-                serializePolymorphic(
-                    ChatProtocol.MessageRead(messageId, senderId, System.currentTimeMillis())
-                )
-            )
-        }
-    }
-
-    /** 发送拒收回执 */
-    suspend fun sendRejectAck(messageId: String, senderId: String) {
-        sendReceiptSafely(senderId) {
-            Packet(
-                PacketType.REJECT,
-                serializePolymorphic(
-                    ChatProtocol.MessageReject(messageId, senderId, System.currentTimeMillis())
-                )
-            )
-        }
-    }
-
-    /** 发送不是好友回执 */
-    suspend fun sendNotFriendAck(messageId: String, senderId: String) {
-        sendReceiptSafely(senderId) {
-            Packet(
-                PacketType.REJECT,
-                serializePolymorphic(
-                    ChatProtocol.NotFriendAck(messageId, senderId, System.currentTimeMillis())
+                    ChatProtocol.MessageReceipt(
+                        messageId = messageId,
+                        senderId = senderId,
+                        receiptType = type,
+                        timestamp = System.currentTimeMillis()
+                    )
                 )
             )
         }

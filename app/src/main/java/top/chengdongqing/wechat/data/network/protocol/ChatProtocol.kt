@@ -55,36 +55,15 @@ sealed class ChatProtocol {
         val timestamp: Long
     ) : ChatProtocol()
 
-    /** 送达回执，接收端收到消息后立即回复 */
+    /**
+     * 回执消息，接收端收到消息后立即回复
+     */
     @Serializable
-    data class MessageAck(
-        override val messageId: String,
+    data class MessageReceipt(
+        override val messageId: String, // 被引用的原消息 ID
         override val senderId: String,
-        val timestamp: Long
-    ) : ChatProtocol()
-
-    /** 已读回执，用户打开会话后对未读消息逐条发送 */
-    @Serializable
-    data class MessageRead(
-        override val messageId: String,
-        override val senderId: String,
-        val timestamp: Long
-    ) : ChatProtocol()
-
-    /** 拒收回执 */
-    @Serializable
-    data class MessageReject(
-        override val messageId: String,
-        override val senderId: String,
-        val timestamp: Long
-    ) : ChatProtocol()
-
-    /** 不是好友回执 */
-    @Serializable
-    data class NotFriendAck(
-        override val messageId: String,
-        override val senderId: String,
-        val timestamp: Long
+        val receiptType: ReceiptType,
+        val timestamp: Long = System.currentTimeMillis()
     ) : ChatProtocol()
 
     /**
@@ -170,4 +149,11 @@ sealed class ChatProtocol {
         val e2ePublicKey: String? = null,
         val e2ePublicKeyAck: String? = null
     ) : ChatProtocol()
+}
+
+enum class ReceiptType {
+    Delivered, // 送达
+    Read, // 已读
+    Blocked, // 拉黑拒收
+    NotFriend // 非好友拒收
 }

@@ -26,13 +26,11 @@ object PacketType {
     const val TEXT: Byte = 0x01          // 文本消息 (JSON)
     const val FILE_META: Byte = 0x02     // 媒体文件元数据 (JSON)，后续紧跟 N 个 FILE_CHUNK
     const val FILE_CHUNK: Byte = 0x03    // 媒体文件分片 (raw bytes)
-    const val ACK: Byte = 0x04           // 送达回执 (JSON)
+    const val RECEIPT: Byte = 0x04       // 回执消息 (JSON)
     const val PING: Byte = 0x05          // 心跳探测，期望对端回 PONG
     const val PONG: Byte = 0x06          // 心跳响应
     const val HANDSHAKE: Byte = 0x07     // 握手包 (JSON)，连接建立后的第一个包
     const val SIGNALING: Byte = 0x08     // WebRTC 信令 (JSON)
-    const val READ_RECEIPT: Byte = 0x09  // 已读回执 (JSON)
-    const val REJECT: Byte = 0x0A        // 拒绝/拦截包
 
     /** 始终明文传输的类型，不做加密 */
     val PLAINTEXT_TYPES = setOf(HANDSHAKE, PING, PONG)
