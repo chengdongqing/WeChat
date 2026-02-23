@@ -27,7 +27,8 @@ fun ChatSessionEntity.toDomain() = ChatSession(
     unreadCount = unreadCount,
     isPinned = isPinned,
     isMuted = isMuted,
-    draftMessage = draftMessage
+    draftMessage = draftMessage,
+    backgroundPath = backgroundPath
 )
 
 fun ChatSession.toEntity() = ChatSessionEntity(
@@ -42,6 +43,7 @@ fun ChatSession.toEntity() = ChatSessionEntity(
     isPinned = isPinned,
     isMuted = isMuted,
     draftMessage = draftMessage,
+    backgroundPath = backgroundPath,
     createdAt = System.currentTimeMillis(),
     updatedAt = System.currentTimeMillis()
 )

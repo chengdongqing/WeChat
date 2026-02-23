@@ -21,6 +21,9 @@ interface ConnectionInfoDao {
     @Query("SELECT * FROM connection_info WHERE isOnline = 1")
     fun observeOnlineUsers(): Flow<List<ConnectionInfoEntity>>
 
+    @Query("SELECT isOnline FROM connection_info WHERE userId = :userId")
+    fun observeOnlineStatus(userId: String): Flow<Boolean?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(info: ConnectionInfoEntity)
 

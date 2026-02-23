@@ -11,8 +11,10 @@ data class ChatSession(
     val lastMessageType: MessageType? = null,
     val lastMessageTime: Long? = null,
     val draftMessage: String? = null,
+    val backgroundPath: String? = null,
     val unreadCount: Int = 0,
     val isPinned: Boolean = false,
     val isMuted: Boolean = false,
-    val isHidden: Boolean = false
+    val isHidden: Boolean = false,
+    val isOnline: Boolean = false
 )

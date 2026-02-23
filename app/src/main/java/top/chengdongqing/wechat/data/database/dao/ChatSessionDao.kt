@@ -66,6 +66,13 @@ interface ChatSessionDao {
         now: Long = System.currentTimeMillis()
     )
 
+    @Query("UPDATE chat_sessions SET backgroundPath = :backgroundPath, updatedAt = :now WHERE sessionId = :sessionId")
+    suspend fun updateBackground(
+        sessionId: String,
+        backgroundPath: String?,
+        now: Long = System.currentTimeMillis()
+    )
+
     @Query(
         """
         UPDATE chat_sessions 

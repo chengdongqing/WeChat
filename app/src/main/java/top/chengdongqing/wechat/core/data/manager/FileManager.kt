@@ -109,6 +109,29 @@ class FileManager @Inject constructor(
     }
 
     /**
+     * 保存图片
+     */
+    suspend fun saveImage(sourceUri: Uri): Result<String> =
+        withContext(Dispatchers.IO) {
+            try {
+                // 生成文件名：timestamp.jpg
+                val fileName = "${System.currentTimeMillis()}.jpg"
+                val targetFile = File(imagesDir, fileName)
+
+                // 复制文件
+                context.contentResolver.openInputStream(sourceUri)?.use { input ->
+                    FileOutputStream(targetFile).use { output ->
+                        input.copyTo(output)
+                    }
+                } ?: return@withContext Result.failure(Exception("无法打开图片文件"))
+
+                Result.success(targetFile.absolutePath)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+    /**
      * 保存媒体文件（图片/视频/音频/文件）
      *
      * @param messageType 消息类型

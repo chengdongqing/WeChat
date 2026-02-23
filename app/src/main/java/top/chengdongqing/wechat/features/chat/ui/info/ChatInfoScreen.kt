@@ -41,6 +41,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.features.chat.ui.info.components.ChatBackgroundSetting
 
 @Composable
 fun ChatInfoScreen(
@@ -85,11 +86,13 @@ fun ChatInfoScreen(
                         viewModel.togglePinned()
                     }
                 }
-                SettingItem(label = "提醒", showArrow = false) {
+                SettingItem(label = "提醒", showArrow = false, showDivider = false) {
                     WeSwitch()
                 }
             }
-            SettingItem("设置当前聊天背景", showDivider = false)
+            ChatBackgroundSetting(background = uiState.backgroundPath) {
+                viewModel.updateBackground(it)
+            }
             SettingItem(
                 label = "清空聊天记录",
                 showDivider = false,
@@ -153,7 +156,7 @@ private fun ContactListBar(
 }
 
 @Composable
-private fun SettingItem(
+internal fun SettingItem(
     label: String,
     showDivider: Boolean = true,
     showArrow: Boolean = true,

@@ -23,6 +23,7 @@ data class ChatSessionEntity(
     val isHidden: Boolean = false,      // 是否隐藏
 
     val draftMessage: String? = null,   // 草稿消息
+    val backgroundPath: String? = null, // 聊天背景
 
     val createdAt: Long,                // 创建时间
     val updatedAt: Long                 // 更新时间

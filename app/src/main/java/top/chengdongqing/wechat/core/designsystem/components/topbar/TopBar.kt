@@ -32,6 +32,7 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 fun WeTopBar(
     modifier: Modifier = Modifier,
     title: String? = null,
+    titleContent: (@Composable () -> Unit)? = null,
     containerColor: Color = WeTheme.colorScheme.background,
     contentColor: Color = WeTheme.colorScheme.textPrimary,
     onBack: (() -> Unit)? = null,
@@ -75,7 +76,7 @@ fun WeTopBar(
             }
 
             // 标题
-            title?.let {
+            if (title != null) {
                 Text(
                     text = title,
                     modifier = Modifier.padding(horizontal = 56.dp),
@@ -85,6 +86,8 @@ fun WeTopBar(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+            } else {
+                titleContent?.invoke()
             }
 
             // 右侧操作按钮

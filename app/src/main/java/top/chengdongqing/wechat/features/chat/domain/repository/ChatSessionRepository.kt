@@ -35,6 +35,9 @@ interface ChatSessionRepository {
     /** 免到扰/取消免到扰 */
     suspend fun toggleMute(sessionId: String, isMuted: Boolean)
 
+    /** 修改聊天背景 */
+    suspend fun updateBackground(sessionId: String, backgroundPath: String?)
+
     /** 隐藏会话 */
     suspend fun hideSession(sessionId: String)
 

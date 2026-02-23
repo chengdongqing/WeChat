@@ -1,26 +1,44 @@
 package top.chengdongqing.wechat.features.chat.ui.session
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -28,6 +46,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.features.call.ui.startCall
@@ -102,62 +121,75 @@ fun ChatSessionScreen(
     )
 
     CompositionLocalProvider(LocalChatSessionContext provides chatContext) {
-        Scaffold(
-            topBar = {
-                ChatSessionTopBar(
-                    title = uiState.title,
-                    isE2EActive = isE2EActive,
-                    onBack = onBack,
-                    onNavigateToInfo = onNavigateToInfo
-                )
-            },
-            bottomBar = {
-                InputBar(
-                    listState = listState,
-                    isSending = uiState.isSending,
-                    onSendMessage = { content, onSent ->
-                        viewModel.sendMessage(content) {
-                            scope.launch {
-                                delay(100)
-                                listState.animateScrollToItem(0)
-                                delay(100)
-                                onSent?.invoke()
-                                viewModel.finishSending()
-                            }
-                        }
-                    },
-                    onLaunchCall = launchCall
+        Box {
+            // 聊天背景图片
+            uiState.backgroundPath?.let {
+                AsyncImage(
+                    model = it,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
             }
-        ) { innerPadding ->
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(Color(0xFFF3F3F3))
-                    .overscroll(overscrollEffect),
-                contentPadding = PaddingValues(10.dp),
-                reverseLayout = true,
-                verticalArrangement = Arrangement.Top,
-                overscrollEffect = overscrollEffect
-            ) {
-                itemsIndexed(
-                    items = messages,
-                    key = { _, message -> message.id }
-                ) { index, message ->
-                    MessageItem(
-                        message = message,
-                        peerAvatar = uiState.peerAvatar,
-                        myAvatar = uiState.myAvatar
-                    )
-                    TimeDivider(messages, index)
-                }
 
-                // 加载更多指示器
-                if (uiState.hasMoreMessages) {
-                    item(key = "load_more") {
-                        WeLoadMore(type = LoadMoreType.Loading)
+            Scaffold(
+                topBar = {
+                    ChatSessionTopBar(
+                        title = uiState.title,
+                        isE2EActive = isE2EActive,
+                        isOnline = uiState.isOnline,
+                        onBack = onBack,
+                        onNavigateToInfo = onNavigateToInfo
+                    )
+                },
+                bottomBar = {
+                    InputBar(
+                        listState = listState,
+                        isSending = uiState.isSending,
+                        onSendMessage = { content, onSent ->
+                            viewModel.sendMessage(content) {
+                                scope.launch {
+                                    delay(100)
+                                    listState.animateScrollToItem(0)
+                                    delay(100)
+                                    onSent?.invoke()
+                                    viewModel.finishSending()
+                                }
+                            }
+                        },
+                        onLaunchCall = launchCall
+                    )
+                },
+                containerColor = if (uiState.backgroundPath == null) Color(0xFFF3F3F3) else Color.Unspecified
+            ) { innerPadding ->
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .overscroll(overscrollEffect),
+                    contentPadding = PaddingValues(10.dp),
+                    reverseLayout = true,
+                    verticalArrangement = Arrangement.Top,
+                    overscrollEffect = overscrollEffect
+                ) {
+                    itemsIndexed(
+                        items = messages,
+                        key = { _, message -> message.id }
+                    ) { index, message ->
+                        MessageItem(
+                            message = message,
+                            peerAvatar = uiState.peerAvatar,
+                            myAvatar = uiState.myAvatar
+                        )
+                        TimeDivider(messages, index)
+                    }
+
+                    // 加载更多指示器
+                    if (uiState.hasMoreMessages) {
+                        item(key = "load_more") {
+                            WeLoadMore(type = LoadMoreType.Loading)
+                        }
                     }
                 }
             }
@@ -169,12 +201,70 @@ fun ChatSessionScreen(
 private fun ChatSessionTopBar(
     title: String,
     isE2EActive: Boolean,
+    isOnline: Boolean,
     onBack: () -> Unit,
-    onNavigateToInfo: () -> Unit,
+    onNavigateToInfo: () -> Unit
 ) {
-    WeTopBar(title = title + if (isE2EActive) "（已加密）" else "", onBack = onBack) {
+    WeTopBar(
+        titleContent = {
+            ChatSessionTitle(title, isE2EActive, isOnline)
+        },
+        onBack = onBack
+    ) {
         ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
             onNavigateToInfo()
         }
+    }
+}
+
+@Composable
+private fun ChatSessionTitle(
+    title: String,
+    isE2EActive: Boolean,
+    isOnline: Boolean
+) {
+    val statusColor = if (isOnline) WeTheme.colorScheme.primary else WeTheme.colorScheme.divider
+    val statusDesc = if (isOnline) "在线" else "离线"
+
+    Row(
+        modifier = Modifier.fillMaxHeight(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        // 名字
+        Text(
+            text = title,
+            style = TextStyle(
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = WeTheme.colorScheme.textPrimary
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f, fill = false)
+        )
+
+        // 加密锁图标
+        if (isE2EActive) {
+            Icon(
+                painter = painterResource(R.drawable.ic_lock_filled),
+                contentDescription = "已加密",
+                modifier = Modifier.size(16.dp),
+                tint = WeTheme.colorScheme.textSecondary
+            )
+        }
+
+        // 在线状态小圆点
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .semantics { contentDescription = statusDesc }
+                .background(statusColor, CircleShape)
+                .border(
+                    1.dp,
+                    Color.White.copy(alpha = 0.4f),
+                    CircleShape
+                )
+        )
     }
 }

@@ -22,6 +22,7 @@ import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
@@ -32,6 +33,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
+    chatSessionRepository: ChatSessionRepository,
     private val messageRepository: MessageRepository,
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
@@ -76,6 +78,8 @@ class ChatSessionViewModel @AssistedInject constructor(
         .map { it.contains(chatId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    private val sessionFlow = chatSessionRepository.observeSession(chatId)
+
     // ==================== 播放管理 ====================
 
     private val audioPlaybackManager = AudioPlaybackManager(
@@ -93,6 +97,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     init {
         activeSessionManager.enter(chatId)
         loadInitialData()
+        observeSessionChanges()
     }
 
     // ==================== 初始化逻辑 ====================
@@ -131,6 +136,22 @@ class ChatSessionViewModel @AssistedInject constructor(
             // 标记已读
             launch(Dispatchers.IO) {
                 messageRepository.markAllAsRead(chatId)
+            }
+        }
+    }
+
+    private fun observeSessionChanges() {
+        viewModelScope.launch {
+            sessionFlow.collect { session ->
+                session?.let { s ->
+                    _uiState.update {
+                        it.copy(
+                            backgroundPath = s.backgroundPath,
+                            isMuted = s.isMuted,
+                            isOnline = s.isOnline
+                        )
+                    }
+                }
             }
         }
     }
@@ -284,5 +305,8 @@ data class ChatSessionUiState(
     val isSending: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMoreMessages: Boolean = true,
-    val shouldScrollToBottom: Boolean = false
+    val shouldScrollToBottom: Boolean = false,
+    val backgroundPath: String? = null,
+    val isMuted: Boolean = false,
+    val isOnline: Boolean = false
 )

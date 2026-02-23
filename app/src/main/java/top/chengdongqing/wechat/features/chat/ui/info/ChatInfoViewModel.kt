@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.chat.ui.info
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
@@ -25,6 +27,7 @@ data class ChatInfoUiState(
     /** 会话设置 */
     val isMuted: Boolean = false,
     val isPinned: Boolean = false,
+    val backgroundPath: String? = null
 )
 
 @HiltViewModel(assistedFactory = ChatInfoViewModel.Factory::class)
@@ -32,7 +35,8 @@ class ChatInfoViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
     private val chatSessionRepository: ChatSessionRepository,
     private val contactRepository: ContactRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val fileManager: FileManager
 ) : ViewModel() {
 
     @AssistedFactory
@@ -87,6 +91,7 @@ class ChatInfoViewModel @AssistedInject constructor(
             contactAvatar = finalContact?.avatarPath ?: session.contactAvatar,
             isMuted = session.isMuted,
             isPinned = session.isPinned,
+            backgroundPath = session.backgroundPath
         )
     }.stateIn(
         scope = viewModelScope,
@@ -103,6 +108,20 @@ class ChatInfoViewModel @AssistedInject constructor(
     fun togglePinned() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.togglePin(chatId, !uiState.value.isPinned)
+        }
+    }
+
+    fun updateBackground(uri: Uri?) {
+        viewModelScope.launch {
+            // 保存新头像
+            val backgroundPath = uri?.let { uri ->
+                fileManager.saveImage(uri).getOrThrow()
+            }
+            // 删除旧头像
+            uiState.value.backgroundPath?.let {
+                fileManager.deleteMediaFile(it)
+            }
+            chatSessionRepository.updateBackground(chatId, backgroundPath)
         }
     }
 

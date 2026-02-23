@@ -135,7 +135,7 @@ private fun AvatarDisplay(
  * 提取头像选择逻辑状态
  */
 @OptIn(ExperimentalPermissionsApi::class)
-class AvatarSelectorState(
+private class AvatarSelectorState(
     val context: Context,
     val cameraPermission: PermissionState,
     val cameraLauncher: ManagedActivityResultLauncher<Uri, Boolean>,
@@ -163,7 +163,7 @@ class AvatarSelectorState(
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun rememberAvatarSelectorState(
+private fun rememberAvatarSelectorState(
     onAvatarCropped: (Uri?) -> Unit
 ): AvatarSelectorState {
     val context = LocalContext.current
