@@ -13,9 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,16 +30,13 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
-import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.ui.startCall
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.TimeDivider
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageItem
 import top.chengdongqing.wechat.features.chat.ui.session.util.KeyboardScrollEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.LoadMoreEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.MessageDataScrollEffect
-import top.chengdongqing.wechat.features.chat.ui.session.util.VoicePlayingLifecycle
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -51,6 +46,8 @@ fun ChatSessionScreen(
     onNavigateToInfo: () -> Unit,
     onNavigateToContact: (id: String) -> Unit,
     onNavigateToFilePreview: (messageId: String) -> Unit,
+    onNavigateToRequestAddFriend: () -> Unit,
+    onNavigateToWebView: (url: String) -> Unit,
     viewModel: ChatSessionViewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
         factory.create(chatId)
     }
@@ -91,7 +88,7 @@ fun ChatSessionScreen(
     }
 
     // 上下文
-    val chatContext = rememberChatContext(
+    val chatContext = rememberChatSessionContext(
         viewModel = viewModel,
         uiState = uiState,
         onPreviewFile = onNavigateToFilePreview,
@@ -99,10 +96,12 @@ fun ChatSessionScreen(
         onNavigateToContact = { isPeer ->
             val id = if (isPeer) uiState.peerId else uiState.myId
             onNavigateToContact(id!!)
-        }
+        },
+        onNavigateToRequestAddFriend = onNavigateToRequestAddFriend,
+        onNavigateToWebView = onNavigateToWebView
     )
 
-    CompositionLocalProvider(LocalChatContext provides chatContext) {
+    CompositionLocalProvider(LocalChatSessionContext provides chatContext) {
         Scaffold(
             topBar = {
                 ChatSessionTopBar(
@@ -179,55 +178,3 @@ private fun ChatSessionTopBar(
         }
     }
 }
-
-@Composable
-private fun rememberChatContext(
-    viewModel: ChatSessionViewModel,
-    uiState: ChatSessionUiState,
-    onPreviewFile: (messageId: String) -> Unit,
-    onLaunchCall: (type: CallType) -> Unit,
-    onNavigateToContact: (isPeer: Boolean) -> Unit
-): ChatContext {
-    val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
-    val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
-
-    // 生命周期感知的语音播放控制
-    VoicePlayingLifecycle {
-        if (playingMessageId != null) {
-            viewModel.stopVoice()
-        }
-    }
-
-    return remember(mediaList, playingMessageId, uiState.isMyself) {
-        ChatContext(
-            isMyself = uiState.isMyself,
-            mediaList = mediaList,
-            getMediaIndexOf = { content -> mediaList.indexOf(content) },
-            playingMessageId = playingMessageId,
-            onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
-            onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() },
-            onRetrySend = { viewModel.retrySend(it) },
-            onPreviewFile = { onPreviewFile(it) },
-            onLaunchCall = onLaunchCall,
-            onNavigateToContact = onNavigateToContact
-        )
-    }
-}
-
-/**
- * 上下文定义
- */
-data class ChatContext(
-    val isMyself: Boolean,
-    val mediaList: List<MessageContent.Media>,
-    val getMediaIndexOf: (MessageContent.Media) -> Int,
-    val playingMessageId: String?,
-    val onVoiceToggle: (messageId: String, localPath: String) -> Unit,
-    val onVoiceStop: () -> Unit,
-    val onRetrySend: (messageId: String) -> Unit,
-    val onPreviewFile: (messageId: String) -> Unit,
-    val onLaunchCall: (type: CallType) -> Unit,
-    val onNavigateToContact: (isPeer: Boolean) -> Unit
-)
-
-val LocalChatContext = compositionLocalOf<ChatContext?> { null }

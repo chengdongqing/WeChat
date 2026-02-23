@@ -52,8 +52,12 @@ interface ChatSessionDao {
     @Query("DELETE FROM chat_sessions WHERE sessionId = :sessionId")
     suspend fun deleteById(sessionId: String)
 
-    @Query("UPDATE chat_sessions SET isPinned = :isPinned WHERE sessionId = :sessionId")
-    suspend fun updatePin(sessionId: String, isPinned: Boolean)
+    @Query("UPDATE chat_sessions SET isPinned = :isPinned, updatedAt = :now WHERE sessionId = :sessionId")
+    suspend fun updatePin(
+        sessionId: String,
+        isPinned: Boolean,
+        now: Long = System.currentTimeMillis()
+    )
 
     @Query("UPDATE chat_sessions SET isMuted = :isMuted, updatedAt = :now WHERE sessionId = :sessionId")
     suspend fun updateMute(

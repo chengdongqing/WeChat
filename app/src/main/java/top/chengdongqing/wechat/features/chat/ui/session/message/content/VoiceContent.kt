@@ -38,13 +38,13 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWid
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 @Composable
 fun VoiceContent(message: ChatMessage) {
     val isFromMe = message.isFromMe
     val content = message.content as MessageContent.Voice
-    val chatContext = LocalChatContext.current
+    val chatContext = LocalChatSessionContext.current
 
     // 根据时长计算气泡宽度
     val currentFraction = remember(content.duration) {

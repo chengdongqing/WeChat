@@ -18,8 +18,8 @@ import androidx.core.view.WindowCompat
 
 @Immutable
 class WeColorScheme(
-    val primary: Color,
-    val primaryPressed: Color,
+    val primary: Color = GreenPrimary,
+    val primaryPressed: Color = GreenPressed,
     // 基础表面
     val background: Color,       // 页面底色
     val surface: Color,          // 容器/卡片色
@@ -27,16 +27,15 @@ class WeColorScheme(
     // 内容色
     val textPrimary: Color,
     val textSecondary: Color,    // 副文本色
+    val link: Color = LinkColor,
     val divider: Color,
     // 特定组件色
     val tabBarBackground: Color,
     val tabBarIconInactive: Color,
-    val error: Color
+    val error: Color = Danger
 )
 
 private val LightColorScheme = WeColorScheme(
-    primary = GreenPrimary,
-    primaryPressed = GreenPressed,
     background = Grey_ED,
     surface = White,
     surfaceVariant = Grey_F7,
@@ -44,13 +43,10 @@ private val LightColorScheme = WeColorScheme(
     textSecondary = TextSecondaryLight,
     divider = DividerLight,
     tabBarBackground = Grey_F7,
-    tabBarIconInactive = Black,
-    error = Danger
+    tabBarIconInactive = Black
 )
 
 private val DarkColorScheme = WeColorScheme(
-    primary = GreenPrimary,
-    primaryPressed = GreenPressed,
     background = Black,
     surface = Grey_4C,
     surfaceVariant = Grey_2B,
@@ -58,8 +54,7 @@ private val DarkColorScheme = WeColorScheme(
     textSecondary = TextSecondaryDark,
     divider = DividerDark,
     tabBarBackground = Grey_19,
-    tabBarIconInactive = TabBarIconInactiveDark,
-    error = Danger
+    tabBarIconInactive = TabBarIconInactiveDark
 )
 
 val LocalWeColorScheme = staticCompositionLocalOf { LightColorScheme }

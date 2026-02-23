@@ -23,11 +23,13 @@ interface ContactP2PRepository {
 
     /**
      * 从缓存获取联系人
-     *
-     * @param contactId 联系人ID
-     * @return 联系人信息（如果存在）
      */
     fun getContactFromCache(contactId: String): Contact?
+
+    /**
+     * 保存联系人信息到缓存备用
+     */
+    fun setContactToCache(contactId: String, contact: Contact)
 
     /**
      * 通过 BLE 拉取对方资料

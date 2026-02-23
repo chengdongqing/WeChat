@@ -19,6 +19,9 @@ data class ContactEntity(
     val tags: String? = null,
     val note: String? = null,
 
+    // 是否拉黑
+    val isBlocked: Boolean = false,
+
     // 添加方式
     val source: AddSource? = null,
     val isFromMe: Boolean = true,

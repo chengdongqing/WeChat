@@ -13,6 +13,7 @@ fun ContactEntity.toDomain(): Contact {
         remarkName = remarkName,
         note = note,
         source = source,
+        isBlocked = isBlocked,
         isFromMe = isFromMe,
         addedAt = addedAt
     )
@@ -27,6 +28,7 @@ fun Contact.toEntity(): ContactEntity {
         gender = gender,
         remarkName = remarkName,
         note = note,
+        isBlocked = isBlocked,
         addedAt = addedAt ?: System.currentTimeMillis(),
         updatedAt = System.currentTimeMillis()
     )

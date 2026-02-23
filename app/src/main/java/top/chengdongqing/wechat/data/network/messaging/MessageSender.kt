@@ -15,11 +15,13 @@ import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.socket.SocketServer
+import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import java.io.File
 import java.io.FileInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 消息发送器
@@ -41,6 +43,7 @@ class MessageSender @Inject constructor(
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
     private val wifiLockManager: WifiLockManager,
+    private val transferManager: TransferManager,
     private val json: Json
 ) {
     private companion object {
@@ -141,6 +144,30 @@ class MessageSender @Inject constructor(
         }
     }
 
+    /** 发送拒收回执 */
+    suspend fun sendRejectAck(messageId: String, senderId: String) {
+        sendReceiptSafely(senderId) {
+            Packet(
+                PacketType.REJECT,
+                serializePolymorphic(
+                    ChatProtocol.MessageReject(messageId, senderId, System.currentTimeMillis())
+                )
+            )
+        }
+    }
+
+    /** 发送不是好友回执 */
+    suspend fun sendNotFriendAck(messageId: String, senderId: String) {
+        sendReceiptSafely(senderId) {
+            Packet(
+                PacketType.REJECT,
+                serializePolymorphic(
+                    ChatProtocol.NotFriendAck(messageId, senderId, System.currentTimeMillis())
+                )
+            )
+        }
+    }
+
     // ==================== 连接管理 ====================
 
     /**
@@ -202,7 +229,9 @@ class MessageSender @Inject constructor(
         withContext(Dispatchers.IO) {
             runCatching {
                 sendPacket(receiverId, packetBuilder()).getOrThrow()
-            }.onFailure { Log.e(TAG, "回执发送失败: $receiverId", it) }
+            }.onFailure { e ->
+                Log.e(TAG, "回执发送失败: $receiverId", e)
+            }
         }
     }
 
@@ -236,6 +265,13 @@ class MessageSender @Inject constructor(
             while (true) {
                 val bytesRead = fis.read(buffer)
                 if (bytesRead <= 0) break
+
+                // 判断是否要取消传输
+                if (transferManager.isCancelled(messageId)) {
+                    transferManager.remove(messageId)
+                    throw CancellationException("已取消发送")
+                }
+
                 onChunk(buffer.copyOf(bytesRead))
                 totalSent += bytesRead
                 if (fileSize > 0 && totalSent - lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {

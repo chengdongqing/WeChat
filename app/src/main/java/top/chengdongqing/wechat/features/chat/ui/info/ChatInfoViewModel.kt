@@ -48,7 +48,7 @@ class ChatInfoViewModel @AssistedInject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val existSession = chatSessionRepository.exists(chatId)
             if (!existSession) {
-                val myProfile = profileRepository.getCurrentProfileOnce()
+                val myProfile = profileRepository.getCurrentProfileSnapshot()
                 val contact = contactRepository.getContactById(chatId)
                 val isMyself = chatId == myProfile?.id
 

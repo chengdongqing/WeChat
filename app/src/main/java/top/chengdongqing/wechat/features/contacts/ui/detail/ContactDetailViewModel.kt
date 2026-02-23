@@ -102,10 +102,6 @@ class ContactDetailViewModel @AssistedInject constructor(
                     _navigationEvent.emit(NavigationEvent.ShowMoreOptions)
                 }
 
-                ContactAction.DeleteContact -> {
-                    deleteContact()
-                }
-
                 ContactAction.AddToContacts -> {
                     _navigationEvent.emit(NavigationEvent.NavigateToRequestAdd)
                 }
@@ -114,9 +110,22 @@ class ContactDetailViewModel @AssistedInject constructor(
     }
 
     /**
+     * 拉黑/取消拉黑联系人
+     */
+    fun toggleBlock() {
+        viewModelScope.launch {
+            uiState.value.contact?.let { contact ->
+                contactRepository.updateContact(
+                    contact.copy(isBlocked = !contact.isBlocked)
+                )
+            }
+        }
+    }
+
+    /**
      * 删除联系人
      */
-    private fun deleteContact() {
+    fun deleteContact() {
         viewModelScope.launch {
             try {
                 contactRepository.deleteContact(contactId)
@@ -149,6 +158,5 @@ sealed class ContactAction {
     data object ViewMoments : ContactAction()
     data object ViewProfile : ContactAction()
     data object ShowMore : ContactAction()
-    data object DeleteContact : ContactAction()
     data object AddToContacts : ContactAction()
 }

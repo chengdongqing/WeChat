@@ -7,10 +7,13 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -21,8 +24,9 @@ private val Context.profileDataStore: DataStore<Preferences> by preferencesDataS
 )
 
 class ProfileRepositoryImpl @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    private val json: Json
+    private val json: Json,
+    @param:IoScope private val scope: CoroutineScope,
+    @param:ApplicationContext private val context: Context
 ) : ProfileRepository {
 
     private val dataStore = context.profileDataStore
@@ -31,15 +35,21 @@ class ProfileRepositoryImpl @Inject constructor(
         val PROFILE_KEY = stringPreferencesKey("current_profile")
     }
 
-    override fun getCurrentProfile(): Flow<UserProfile?> {
-        return dataStore.data.map { preferences ->
+    private val profileState = dataStore.data
+        .map { preferences ->
             preferences[PROFILE_KEY]?.toProfile()
         }
-    }
+        .stateIn(
+            scope = scope,
+            started = SharingStarted.Eagerly, // App 启动就加载并保持最新
+            initialValue = null
+        )
 
-    override suspend fun getCurrentProfileOnce(): UserProfile? {
-        return getCurrentProfile().first()
-    }
+    // 实时流
+    override fun getCurrentProfile(): Flow<UserProfile?> = profileState
+
+    // 内存快照
+    override fun getCurrentProfileSnapshot(): UserProfile? = profileState.value
 
     override suspend fun saveProfile(profile: UserProfile): Result<Unit> {
         return try {
@@ -59,7 +69,7 @@ class ProfileRepositoryImpl @Inject constructor(
         avatarPath: String?
     ): Result<Unit> {
         return try {
-            val currentProfile = getCurrentProfileOnce()
+            val currentProfile = getCurrentProfileSnapshot()
                 ?: return Result.failure(IllegalStateException("Profile not found"))
 
             val updatedProfile = currentProfile.copyWithUpdate(
@@ -76,7 +86,7 @@ class ProfileRepositoryImpl @Inject constructor(
     }
 
     override suspend fun hasProfile(): Boolean {
-        return getCurrentProfileOnce() != null
+        return getCurrentProfileSnapshot() != null
     }
 
     override suspend fun clearProfile(): Result<Unit> {

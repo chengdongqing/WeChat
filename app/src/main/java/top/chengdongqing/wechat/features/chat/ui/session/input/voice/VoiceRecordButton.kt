@@ -33,7 +33,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 /**
  * 语音录制按钮
@@ -51,7 +51,7 @@ fun VoiceRecordButton(
     minDuration: Long = 1000,
     maxDuration: Long = 60000
 ) {
-    val chatContext = LocalChatContext.current
+    val chatContext = LocalChatSessionContext.current
     val context = LocalContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()

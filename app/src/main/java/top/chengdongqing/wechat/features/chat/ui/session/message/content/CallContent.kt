@@ -25,7 +25,7 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 @Composable
 fun CallContent(message: ChatMessage) {
@@ -43,7 +43,7 @@ fun CallContent(message: ChatMessage) {
         if (isFromMe) status.descriptionForMe else status.description
     }
 
-    val chatContext = LocalChatContext.current
+    val chatContext = LocalChatSessionContext.current
 
     CompositionLocalProvider(LocalLayoutDirection provides if (isFromMe) LayoutDirection.Rtl else LayoutDirection.Ltr) {
         Row(

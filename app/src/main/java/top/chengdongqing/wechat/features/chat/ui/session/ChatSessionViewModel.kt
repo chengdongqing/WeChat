@@ -24,6 +24,8 @@ import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
@@ -33,6 +35,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val messageRepository: MessageRepository,
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
+    private val contactP2PRepository: ContactP2PRepository,
     private val activeSessionManager: ActiveSessionManager,
     e2eSessionManager: E2ESessionManager,
     soundTipPlayer: SoundTipPlayer,
@@ -100,7 +103,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                 contactRepository.getContactById(chatId)
             }
             val profileDeferred = async(Dispatchers.IO) {
-                profileRepository.getCurrentProfileOnce()
+                profileRepository.getCurrentProfileSnapshot()
             }
 
             try {
@@ -240,6 +243,22 @@ class ChatSessionViewModel @AssistedInject constructor(
                         messageRepository.markVoiceAsPlayed(messageId)
                     }
                 }
+            }
+        }
+    }
+
+    fun prepareRequestAddFriend() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.value.let { state ->
+                val contact = Contact(
+                    id = state.peerId!!,
+                    nickname = state.title,
+                    avatarPath = state.peerAvatar
+                )
+                contactP2PRepository.setContactToCache(
+                    contactId = chatId,
+                    contact = contact
+                )
             }
         }
     }

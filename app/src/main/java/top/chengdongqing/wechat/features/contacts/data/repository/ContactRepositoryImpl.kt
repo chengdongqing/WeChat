@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.data.repository
 
+import android.util.LruCache
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -19,13 +20,27 @@ class ContactRepositoryImpl @Inject constructor(
     private val messageDao: MessageDao,
     private val weDatabase: WeDatabase
 ) : ContactRepository {
+    // 缓存最多 100 个联系人
+    private val contactCache = LruCache<String, Contact>(100)
 
     override fun getAllContacts(): Flow<List<Contact>> {
         return contactDao.getAll().map { it.toDomain() }
     }
 
     override suspend fun getContactById(userId: String): Contact? {
-        return contactDao.getById(userId)?.toDomain()
+        // 先从缓存拿
+        synchronized(contactCache) {
+            contactCache.get(userId)?.let { return it }
+        }
+        // 缓存没有，查库
+        val contact = contactDao.getById(userId)?.toDomain()
+        // 查到后回填缓存
+        if (contact != null) {
+            synchronized(contactCache) {
+                contactCache.put(userId, contact)
+            }
+        }
+        return contact
     }
 
     override fun observeContactById(userId: String): Flow<Contact?> {
@@ -41,7 +56,13 @@ class ContactRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateContact(contact: Contact) {
-        contactDao.update(contact.toEntity())
+        contactDao.update(
+            contact.toEntity().copy(
+                updatedAt = System.currentTimeMillis()
+            )
+        )
+
+        contactCache.remove(contact.id)
     }
 
     override suspend fun deleteContact(userId: String) {
@@ -54,5 +75,7 @@ class ContactRepositoryImpl @Inject constructor(
             messageDao.deleteBySession(userId)
             // TODO 删除文件缓存
         }
+
+        contactCache.remove(userId)
     }
 }

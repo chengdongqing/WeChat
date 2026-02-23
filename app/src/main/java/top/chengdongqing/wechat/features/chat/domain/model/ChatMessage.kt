@@ -45,8 +45,8 @@ data class ChatMessage(
     /**
      * 错误信息
      */
-    val errorMessage: String?
-        get() = (sendStatus as? MessageSendStatus.Failed)?.error?.message
+    val error: SendError?
+        get() = (sendStatus as? MessageSendStatus.Failed)?.error
 }
 
 /**

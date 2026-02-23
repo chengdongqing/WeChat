@@ -32,6 +32,7 @@ object PacketType {
     const val HANDSHAKE: Byte = 0x07     // 握手包 (JSON)，连接建立后的第一个包
     const val SIGNALING: Byte = 0x08     // WebRTC 信令 (JSON)
     const val READ_RECEIPT: Byte = 0x09  // 已读回执 (JSON)
+    const val REJECT: Byte = 0x0A        // 拒绝/拦截包
 
     /** 始终明文传输的类型，不做加密 */
     val PLAINTEXT_TYPES = setOf(HANDSHAKE, PING, PONG)

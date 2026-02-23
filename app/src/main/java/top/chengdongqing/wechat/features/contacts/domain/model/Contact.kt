@@ -18,6 +18,7 @@ data class Contact(
     val relation: ContactRelation = ContactRelation.NotFriend,
     val source: AddSource? = null,
     val isFromMe: Boolean = true,
+    val isBlocked: Boolean = false,
     val addedAt: Long? = null
 ) {
     val displayName: String

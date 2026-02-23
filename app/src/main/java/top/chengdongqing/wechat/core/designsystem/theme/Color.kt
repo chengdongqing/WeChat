@@ -22,7 +22,7 @@ val Grey_19 = Color(0xFF191919)
 
 // 浅色模式专用
 val TextPrimaryLight = Color(0xE6000000)   // 90% Black
-val TextSecondaryLight = Color(0x80000000) // 50% Black
+val TextSecondaryLight = Color(0x65000000) // 50% Black
 val DividerLight = Color(0x1A000000)       // 10% Black
 
 // 深色模式专用

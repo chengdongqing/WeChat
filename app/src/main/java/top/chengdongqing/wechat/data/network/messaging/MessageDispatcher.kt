@@ -11,8 +11,10 @@ import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
+import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
@@ -34,6 +36,7 @@ class MessageDispatcher @Inject constructor(
     private val chatSessionUpdater: ChatSessionUpdater,
     private val fileManager: FileManager,
     private val signalingManager: SignalingManager,
+    private val transferManager: TransferManager,
     private val json: Json
 ) {
     private companion object {
@@ -63,6 +66,8 @@ class MessageDispatcher @Inject constructor(
                 is ChatProtocol.CallMessage -> handleCallMessage(protocol)
                 is ChatProtocol.MessageAck -> handleAck(protocol)
                 is ChatProtocol.MessageRead -> handleReadReceipt(protocol)
+                is ChatProtocol.MessageReject -> handleReject(protocol)
+                is ChatProtocol.NotFriendAck -> handleNotFriend(protocol)
                 is ChatProtocol.Signaling -> handleSignaling(protocol)
                 is ChatProtocol.Handshake -> handleHeartbeat(protocol)
                 else -> {}
@@ -133,16 +138,48 @@ class MessageDispatcher @Inject constructor(
      * 对方已收到我的消息，更新状态为 Delivered
      */
     private suspend fun handleAck(protocol: ChatProtocol.MessageAck) {
-        runCatching { messageDao.updateSendStatus(protocol.messageId, SendStatus.Delivered) }
-            .onFailure { Log.e(TAG, "ACK 更新失败: ${protocol.messageId}", it) }
+        runCatching {
+            messageDao.updateSendStatus(protocol.messageId, SendStatus.Delivered)
+        }.onFailure { Log.e(TAG, "ACK 更新失败: ${protocol.messageId}", it) }
     }
 
     /**
      * 对方已读我的消息，更新状态为 Read
      */
     private suspend fun handleReadReceipt(protocol: ChatProtocol.MessageRead) {
-        runCatching { messageDao.updateSendStatus(protocol.messageId, SendStatus.Read) }
-            .onFailure { Log.e(TAG, "已读更新失败: ${protocol.messageId}", it) }
+        runCatching {
+            messageDao.updateSendStatus(protocol.messageId, SendStatus.Read)
+        }.onFailure { Log.e(TAG, "已读更新失败: ${protocol.messageId}", it) }
+    }
+
+    /**
+     * 对方拒收了我的消息，更新状态为 Failed
+     */
+    private suspend fun handleReject(protocol: ChatProtocol.MessageReject) {
+        runCatching {
+            messageDao.updateSendStatusAndFailReason(
+                messageId = protocol.messageId,
+                status = SendStatus.Failed,
+                reason = SendError.Blocked
+            )
+            // 停止发送文件（如果有）
+            transferManager.setCancelled(protocol.messageId)
+        }.onFailure { Log.e(TAG, "拒收更新失败: ${protocol.messageId}", it) }
+    }
+
+    /**
+     * 对方已不是我的好友，更新状态为 Failed
+     */
+    private suspend fun handleNotFriend(protocol: ChatProtocol.NotFriendAck) {
+        runCatching {
+            messageDao.updateSendStatusAndFailReason(
+                messageId = protocol.messageId,
+                status = SendStatus.Failed,
+                reason = SendError.NotFriend
+            )
+            // 停止发送文件（如果有）
+            transferManager.setCancelled(protocol.messageId)
+        }.onFailure { Log.e(TAG, "拒收更新失败: ${protocol.messageId}", it) }
     }
 
     /** 转发 WebRTC 信令给 SignalingManager 处理（Offer/Answer/ICE/Hangup 等） */

@@ -16,7 +16,7 @@ import top.chengdongqing.wechat.core.util.createMediaUri
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
 
 /**
@@ -62,7 +62,7 @@ fun rememberActionHandler(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val actionSheet = rememberActionSheetState()
-    val chatContext = LocalChatContext.current
+    val chatContext = LocalChatSessionContext.current
     val isMyself = chatContext?.isMyself.isTrue()
 
     // 动态生成位置选项根据

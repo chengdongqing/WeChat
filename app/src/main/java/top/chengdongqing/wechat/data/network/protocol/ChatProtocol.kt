@@ -71,6 +71,22 @@ sealed class ChatProtocol {
         val timestamp: Long
     ) : ChatProtocol()
 
+    /** 拒收回执 */
+    @Serializable
+    data class MessageReject(
+        override val messageId: String,
+        override val senderId: String,
+        val timestamp: Long
+    ) : ChatProtocol()
+
+    /** 不是好友回执 */
+    @Serializable
+    data class NotFriendAck(
+        override val messageId: String,
+        override val senderId: String,
+        val timestamp: Long
+    ) : ChatProtocol()
+
     /**
      * WebRTC 信令消息
      */

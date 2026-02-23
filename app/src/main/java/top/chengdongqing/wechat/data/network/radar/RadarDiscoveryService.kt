@@ -50,9 +50,9 @@ class RadarDiscoveryService @Inject constructor(
      * 依次初始化头像服务、多播 Socket，并并发启动接收、广播、超时清理三个协程。
      */
     fun start(wifiManager: WifiManager) {
-        scope.launch {
-            myProfile = profileRepository.getCurrentProfileOnce()
+        myProfile = profileRepository.getCurrentProfileSnapshot()
 
+        scope.launch {
             val profile = myProfile ?: return@launch
             val localPort = avatarServer.start(scope, profile.avatarPath!!)
             val avatarUrl =

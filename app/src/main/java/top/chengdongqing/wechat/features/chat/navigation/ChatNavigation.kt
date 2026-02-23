@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.ui.info.ChatInfoScreen
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionScreen
 import top.chengdongqing.wechat.features.chat.ui.session.message.preview.FilePreviewScreen
@@ -49,6 +50,12 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
             },
             onNavigateToFilePreview = { id ->
                 navController.navigate(ChatRoute.FilePreview.createRoute(id))
+            },
+            onNavigateToRequestAddFriend = {
+                navController.navigate(ContactsRoute.RequestAdd.createRoute(chatId))
+            },
+            onNavigateToWebView = { url ->
+                navController.navigate(Screen.WebView.createRoute(url))
             }
         )
     }

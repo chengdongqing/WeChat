@@ -108,7 +108,8 @@ class SocketClient @Inject constructor(
     suspend fun send(userId: String, packet: Packet): Result<Unit> =
         withContext(Dispatchers.IO) {
             runCatching {
-                requireConnection(userId).writer.write(e2e.encryptPacket(userId, packet))
+                val conn = requireConnection(userId)
+                conn.writer.write(e2e.encryptPacket(userId, packet))
             }.onFailure {
                 Log.e(TAG, "发送失败: $userId", it)
                 disconnect(userId)
@@ -214,9 +215,14 @@ class SocketClient @Inject constructor(
                 String(packet.body, Charsets.UTF_8)
             )
             hs.e2ePublicKey?.let { peerKey ->
-                val myKey = e2e.acceptHandshake(connection.userId, peerKey)
-                val ack =
-                    ChatProtocol.Handshake(senderId = connection.userId, e2ePublicKeyAck = myKey)
+                val myKey = e2e.acceptHandshake(
+                    peerId = connection.userId,
+                    peerPublicKey = peerKey
+                )
+                val ack = ChatProtocol.Handshake(
+                    senderId = connection.userId,
+                    e2ePublicKeyAck = myKey
+                )
                 connection.writer.write(
                     Packet(
                         PacketType.HANDSHAKE,

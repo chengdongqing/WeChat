@@ -32,12 +32,6 @@ fun RequestAddScreen(
                     onSuccess()
                 }
 
-                SendEvent.AutoAdded -> {
-                    toast.show("已添加", icon = ToastIcon.Success)
-                    delay(1000)
-                    onSuccess()
-                }
-
                 is SendEvent.Error -> {
                     toast.show(event.message, icon = ToastIcon.Fail)
                 }

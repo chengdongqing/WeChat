@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.TextStyle
@@ -25,12 +24,13 @@ import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.core.designsystem.util.parseRichText
 import top.chengdongqing.wechat.core.designsystem.util.toBitmap
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 @Composable
 fun TextContent(content: MessageContent.Text) {
     val context = LocalContext.current
     val density = LocalDensity.current
-    val uriHandler = LocalUriHandler.current
+    val chatContext = LocalChatSessionContext.current
 
     val emojiSize = 22.sp
     val emojiSizePx = with(density) { emojiSize.toPx().toInt() }
@@ -39,7 +39,7 @@ fun TextContent(content: MessageContent.Text) {
     // 解析富文本
     val annotatedString = remember(content.text) {
         content.text.parseRichText(
-            onUrlClick = { url -> uriHandler.openUri(url) },
+            onUrlClick = { url -> chatContext?.onNavigateToWebView(url) },
             onPhoneClick = { phone ->
                 val intent = Intent(Intent.ACTION_DIAL, "tel:$phone".toUri())
                 context.startActivity(intent)

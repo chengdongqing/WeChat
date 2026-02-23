@@ -9,8 +9,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
+import top.chengdongqing.wechat.data.model.PermissionResult
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
@@ -18,6 +20,7 @@ import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.socket.ClientConnection
 import top.chengdongqing.wechat.data.network.socket.SocketConnection
 import top.chengdongqing.wechat.data.network.socket.SocketServer
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -40,6 +43,8 @@ import javax.inject.Singleton
 class MessageReceiver @Inject constructor(
     private val socketServer: SocketServer,
     private val dispatcher: MessageDispatcher,
+    private val contactRepository: ContactRepository,
+    private val messageSender: MessageSender,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
@@ -123,7 +128,7 @@ class MessageReceiver @Inject constructor(
             when (packet.type) {
                 PacketType.FILE_META -> handleFileMeta(userId, packet.body)
                 PacketType.FILE_CHUNK -> handleFileChunk(userId, packet.body)
-                else -> handleJsonPacket(packet)
+                else -> handleJsonPacket(userId, packet)
             }
         } catch (e: Exception) {
             Log.e(TAG, "处理 Packet 失败 (userId=$userId, type=${packet.type})", e)
@@ -134,9 +139,43 @@ class MessageReceiver @Inject constructor(
     /**
      * 反序列化 JSON 包并交给 MessageDispatcher 分发
      */
-    private suspend fun handleJsonPacket(packet: Packet) {
+    private suspend fun handleJsonPacket(userId: String, packet: Packet) {
         val protocol = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
+
+        // 非回执包时拦截非好友/已拉黑
+        if (protocol !is ChatProtocol.MessageAck
+            && !canProcessMessage(userId, protocol.messageId)
+        ) return
+
         dispatcher.dispatch(protocol)
+    }
+
+    /**
+     * 校验发送者权限：非好友或被拉黑则发送 Reject 并返回 false
+     */
+    private suspend fun canProcessMessage(userId: String, messageId: String): Boolean {
+        return when (checkMessagePermission(userId)) {
+            PermissionResult.Blocked -> {
+                messageSender.sendRejectAck(messageId, userId)
+                false
+            }
+
+            PermissionResult.NotFriend -> {
+                messageSender.sendNotFriendAck(messageId, userId)
+                false
+            }
+
+            else -> true
+        }
+    }
+
+    private suspend fun checkMessagePermission(userId: String): PermissionResult {
+        val contact = contactRepository.getContactById(userId)
+        return when {
+            contact?.isBlocked.isTrue() -> PermissionResult.Blocked
+            contact == null -> PermissionResult.NotFriend
+            else -> PermissionResult.Allowed
+        }
     }
 
     /**
@@ -145,17 +184,23 @@ class MessageReceiver @Inject constructor(
      * 创建临时文件和 [MediaReceiveState]，为后续 FILE_CHUNK 做好准备。
      * 若上一个媒体传输未完成则先清理，防止状态泄漏。
      */
-    private fun handleFileMeta(userId: String, body: ByteArray) {
+    private suspend fun handleFileMeta(userId: String, body: ByteArray) {
         cleanupMediaState(userId)
 
         val metadata = json.decodeFromString<ChatProtocol.MediaMessage>(
             String(body, Charsets.UTF_8)
         )
-        val tempFile = File(context.cacheDir, "recv_${metadata.messageId}.tmp")
-        val outputStream = BufferedOutputStream(FileOutputStream(tempFile), DISK_WRITE_BUFFER)
 
-        mediaStates[userId] = MediaReceiveState(metadata, tempFile, outputStream)
-        Log.d(TAG, "开始接收媒体: messageId=${metadata.messageId}, 大小=${metadata.fileSize}")
+        // 拦截非好友/已拉黑
+        if (!canProcessMessage(metadata.senderId, metadata.messageId)) return
+
+        withContext(Dispatchers.IO) {
+            val tempFile = File(context.cacheDir, "recv_${metadata.messageId}.tmp")
+            val outputStream = BufferedOutputStream(FileOutputStream(tempFile), DISK_WRITE_BUFFER)
+
+            mediaStates[userId] = MediaReceiveState(metadata, tempFile, outputStream)
+            Log.d(TAG, "开始接收媒体: messageId=${metadata.messageId}, 大小=${metadata.fileSize}")
+        }
     }
 
     /**

@@ -129,7 +129,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
 
     override suspend fun generateMyQRCode(): String {
         return withContext(Dispatchers.IO) {
-            val profile = profileRepository.getCurrentProfileOnce()
+            val profile = profileRepository.getCurrentProfileSnapshot()
                 ?: throw Exception("未找到个人资料")
 
             val beacon = DiscoveryBeacon.create(
@@ -144,6 +144,10 @@ class ContactP2PRepositoryImpl @Inject constructor(
 
     override fun getContactFromCache(contactId: String): Contact? {
         return contactCache[contactId]
+    }
+
+    override fun setContactToCache(contactId: String, contact: Contact) {
+        contactCache[contactId] = contact
     }
 
     // ==================== NFC：BLE 拉取对方资料 ====================
@@ -196,7 +200,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
     override suspend fun sendNfcAddRequest(peerUserId: String, sessionId: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                val my = profileRepository.getCurrentProfileOnce()
+                val my = profileRepository.getCurrentProfileSnapshot()
                     ?: return@withContext false.also {
                         Log.e(
                             TAG,
@@ -237,7 +241,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
     override suspend fun sendNfcAddResponse(peerUserId: String, requestId: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                val my = profileRepository.getCurrentProfileOnce()
+                val my = profileRepository.getCurrentProfileSnapshot()
                     ?: return@withContext false.also {
                         Log.e(
                             TAG,
@@ -371,8 +375,8 @@ class ContactP2PRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun getCurrentUserId(): String {
-        return profileRepository.getCurrentProfileOnce()?.id
+    private fun getCurrentUserId(): String {
+        return profileRepository.getCurrentProfileSnapshot()?.id
             ?: throw Exception("未找到个人资料")
     }
 

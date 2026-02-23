@@ -30,13 +30,13 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
-import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 @Composable
 fun FileContent(message: ChatMessage) {
     val context = LocalContext.current
     val content = message.content as MessageContent.File
-    val chatContext = LocalChatContext.current
+    val chatContext = LocalChatSessionContext.current
 
     Row(
         modifier = Modifier

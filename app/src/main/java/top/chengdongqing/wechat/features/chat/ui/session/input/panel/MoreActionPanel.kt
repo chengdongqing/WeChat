@@ -34,11 +34,11 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.features.chat.ui.session.LocalChatContext
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 @Composable
 fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit) {
-    val chatContext = LocalChatContext.current
+    val chatContext = LocalChatSessionContext.current
     val isMyself = chatContext?.isMyself.isTrue()
 
     val pages = remember(isMyself) {

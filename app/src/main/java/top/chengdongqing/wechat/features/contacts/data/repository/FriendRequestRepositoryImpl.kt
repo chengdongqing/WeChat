@@ -112,7 +112,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             // 1. 获取个人资料
-            val myProfile = profileRepository.getCurrentProfileOnce()
+            val myProfile = profileRepository.getCurrentProfileSnapshot()
                 ?: throw Exception("未找到个人资料")
 
             // 2. 准备头像数据
@@ -343,7 +343,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
      */
     private suspend fun sendAutoAddResponse(targetUserId: String, requestId: String) {
         try {
-            val myProfile = profileRepository.getCurrentProfileOnce() ?: return
+            val myProfile = profileRepository.getCurrentProfileSnapshot() ?: return
 
             val avatarBytes = myProfile.avatarPath?.let {
                 imageExt.generateThumbnailBytes(it)
@@ -433,7 +433,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
      */
     private suspend fun sendFullProfile(targetUserId: String) {
         try {
-            val myProfile = profileRepository.getCurrentProfileOnce() ?: return
+            val myProfile = profileRepository.getCurrentProfileSnapshot() ?: return
 
             val avatarBytes = myProfile.avatarPath?.let {
                 imageExt.generateFullAvatarBytes(it)

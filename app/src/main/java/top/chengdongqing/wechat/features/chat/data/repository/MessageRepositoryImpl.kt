@@ -62,7 +62,7 @@ class MessageRepositoryImpl @Inject constructor(
         content: MessageContent
     ): Result<ChatMessage> {
         return runCatching {
-            val myProfile = profileRepository.getCurrentProfileOnce()
+            val myProfile = profileRepository.getCurrentProfileSnapshot()
                 ?: throw Exception("未找到个人资料")
             val isSelfSession = receiverId == myProfile.id
             val isCallMessage = content is MessageContent.Call
@@ -167,8 +167,11 @@ class MessageRepositoryImpl @Inject constructor(
                 else -> SendError.Unknown
             }
 
-            messageDao.updateSendStatus(entity.messageId, SendStatus.Failed)
-            messageDao.updateFailReason(entity.messageId, failReason)
+            messageDao.updateSendStatusAndFailReason(
+                messageId = entity.messageId,
+                status = SendStatus.Failed,
+                reason = failReason
+            )
         }
     }
 }

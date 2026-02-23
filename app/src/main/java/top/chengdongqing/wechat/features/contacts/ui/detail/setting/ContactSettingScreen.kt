@@ -33,7 +33,6 @@ import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewModel
 import top.chengdongqing.wechat.features.contacts.ui.detail.NavigationEvent
 
@@ -94,13 +93,15 @@ fun ContactSettingScreen(
             }
             Column {
                 SettingItem("加入黑名单") {
-                    WeSwitch()
+                    WeSwitch(checked = contact.isBlocked) {
+                        viewModel.toggleBlock()
+                    }
                 }
                 SettingItem("投诉", showDivider = false)
             }
 
             DeleteButton(contact) {
-                viewModel.handleAction(ContactAction.DeleteContact)
+                viewModel.deleteContact()
             }
         }
     }

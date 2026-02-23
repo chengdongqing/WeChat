@@ -14,7 +14,7 @@ interface ProfileRepository {
     /**
      * 获取当前用户资料（挂起）
      */
-    suspend fun getCurrentProfileOnce(): UserProfile?
+    fun getCurrentProfileSnapshot(): UserProfile?
 
     /**
      * 保存用户资料

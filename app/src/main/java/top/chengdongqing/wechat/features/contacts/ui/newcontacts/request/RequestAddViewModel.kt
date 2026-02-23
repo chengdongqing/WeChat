@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 
 data class RequestAddUiState(
@@ -31,7 +30,6 @@ data class RequestAddUiState(
 class RequestAddViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
     private val friendRequestRepository: FriendRequestRepository,
-    private val contactRepository: ContactRepository,
     private val contactP2PRepository: ContactP2PRepository
 ) : ViewModel() {
 
@@ -87,13 +85,7 @@ class RequestAddViewModel @AssistedInject constructor(
                 note = state.note.takeIf { it.isNotBlank() }
             ).fold(
                 onSuccess = {
-                    // 检查是否已自动添加
-                    val isNowFriend = contactRepository.exists(contactId)
-                    if (isNowFriend) {
-                        _eventFlow.emit(SendEvent.AutoAdded)  // 自动添加成功
-                    } else {
-                        _eventFlow.emit(SendEvent.WaitingVerify)
-                    }
+                    _eventFlow.emit(SendEvent.WaitingVerify)
                     _uiState.update { it.copy(isLoading = false) }
                 },
                 onFailure = { e ->
@@ -106,7 +98,6 @@ class RequestAddViewModel @AssistedInject constructor(
 }
 
 sealed class SendEvent {
-    object AutoAdded : SendEvent()
     object WaitingVerify : SendEvent()
     data class Error(val message: String) : SendEvent()
 }

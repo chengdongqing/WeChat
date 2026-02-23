@@ -18,6 +18,7 @@ import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.socket.SocketServer
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,7 +39,8 @@ class ChatModule @Inject constructor(
     private val socketClient: SocketClient,
     private val wifiLockManager: WifiLockManager,
     private val messageReceiver: MessageReceiver,
-    private val connectionInfoDao: ConnectionInfoDao
+    private val connectionInfoDao: ConnectionInfoDao,
+    private val contactRepository: ContactRepository
 ) {
     private companion object {
         const val TAG = "ChatModule"
@@ -125,22 +127,14 @@ class ChatModule @Inject constructor(
      * 连接建立后由 [observeConnectionEvents] 统一启动包监听。
      */
     private suspend fun handleDeviceFound(device: DiscoveredDevice, myUserId: String) {
-        connectionInfoDao.insert(
-            ConnectionInfoEntity(
-                userId = device.userId,
-                connectionType = ConnectionType.WiFiLan,
-                ipAddress = device.host,
-                port = device.port,
-                serviceName = device.serviceName,
-                isOnline = true,
-                lastSeen = System.currentTimeMillis(),
-                priority = 0,
-                updatedAt = System.currentTimeMillis()
-            )
-        )
-
+        // 是否是连接状态
         if (socketClient.isConnected(device.userId)) {
-            Log.d(TAG, "设备已连接，跳过: ${device.userId}")
+            Log.d(TAG, "发现设备 - 设备已连接，跳过: ${device.userId}")
+            return
+        }
+        // 是否是好友
+        if (!contactRepository.exists(device.userId)) {
+            Log.d(TAG, "发现设备 - 对方不是好友，跳过: ${device.userId}")
             return
         }
 
@@ -155,6 +149,21 @@ class ChatModule @Inject constructor(
         }.onFailure {
             Log.e(TAG, "连接失败: ${device.userId} - ${it.message}")
         }
+
+        // 保存连接信息
+        connectionInfoDao.insert(
+            ConnectionInfoEntity(
+                userId = device.userId,
+                connectionType = ConnectionType.WiFiLan,
+                ipAddress = device.host,
+                port = device.port,
+                serviceName = device.serviceName,
+                isOnline = true,
+                lastSeen = System.currentTimeMillis(),
+                priority = 0,
+                updatedAt = System.currentTimeMillis()
+            )
+        )
     }
 
     /**

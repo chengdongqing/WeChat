@@ -12,6 +12,7 @@ import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.toPreviewText
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
@@ -24,7 +25,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 @Singleton
 class ChatSessionUpdater @Inject constructor(
     private val chatSessionDao: ChatSessionDao,
-    private val contactDao: ContactDao,
+    private val contactRepository: ContactRepository,
     profileRepository: ProfileRepository,
     private val activeSessionManager: ActiveSessionManager,
     @param:IoScope private val scope: CoroutineScope
@@ -117,7 +118,7 @@ class ChatSessionUpdater @Inject constructor(
                 } else {
                     entity.senderId
                 }
-                val contact = contactDao.getById(contactId)
+                val contact = contactRepository.getContactById(contactId)
 
                 Pair(contact?.displayName ?: "", contact?.avatarPath)
             }
