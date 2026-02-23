@@ -2,52 +2,78 @@ package top.chengdongqing.wechat.data.network.messaging
 
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.toPreviewText
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
+import top.chengdongqing.wechat.features.call.domain.model.CallStatus
+import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 /**
  * 会话状态更新器
  *
  * 每条消息入库后调用，负责维护 ChatSession 的最新消息预览和未读计数。
- * 会话不存在时自动创建，联系人信息从 [ContactDao] / [ProfileRepository] 实时解析。
+ * 会话不存在时自动创建，联系人信息从 [ContactDao] / [ProfileRepository] 获取。
  */
 @Singleton
 class ChatSessionUpdater @Inject constructor(
     private val chatSessionDao: ChatSessionDao,
     private val contactDao: ContactDao,
-    private val profileRepository: ProfileRepository,
-    private val activeSessionManager: ActiveSessionManager
+    profileRepository: ProfileRepository,
+    private val activeSessionManager: ActiveSessionManager,
+    @param:IoScope private val scope: CoroutineScope
 ) {
+    private var currentProfile: UserProfile? = null
+
+    init {
+        scope.launch {
+            profileRepository.getCurrentProfile().collect {
+                currentProfile = it
+            }
+        }
+    }
+
     /**
      * 根据新消息更新对应会话
      *
      * 未读计数规则：自己发的、给自己发的（自我会话）、当前正在查看的，均不计未读。
      */
     suspend fun update(entity: MessageEntity) {
+        // 是否是和自己的会话
         val isSelfSession = entity.receiverId == entity.senderId
-        val isCurrentlyViewing = activeSessionManager.isActive(entity.sessionId)
-        val unreadIncrement = if (entity.isFromMe || isSelfSession || isCurrentlyViewing) 0 else 1
-        val lastMessageText = entity.contentType.toPreviewText(entity.content)
 
-        val existing = chatSessionDao.getById(entity.sessionId)
-        if (existing != null) {
-            // 会话已存在：更新最新消息，按需累加未读数
+        // 是否需要更新未读计数
+        val shouldIncrementUnread = when {
+            entity.isFromMe -> false // 我发的消息
+            isSelfSession -> false // 发给我自己的
+            activeSessionManager.isActive(entity.sessionId) -> false // 当前正在和ta聊天
+            entity.isFinishedCall -> false // 是已接通的通话消息
+            else -> true
+        }
+
+        val lastMessageText = entity.contentType.toPreviewText(entity.content)
+        val existing = chatSessionDao.exists(entity.sessionId)
+
+        if (existing) {
+            // 会话已存在：更新最新消息
             chatSessionDao.updateLastMessage(
-                entity.sessionId,
-                lastMessageText,
-                entity.contentType,
-                entity.timestamp
+                sessionId = entity.sessionId,
+                lastMessage = lastMessageText,
+                lastMessageType = entity.contentType,
+                timestamp = entity.timestamp
             )
-            if (unreadIncrement > 0) {
+            // 累加未读数
+            if (shouldIncrementUnread) {
                 chatSessionDao.incrementUnreadCount(entity.sessionId)
             }
         } else {
-            // 会话不存在：创建新会话，联系人信息需要实时解析
+            // 创建新会话
             val (contactName, contactAvatar) = resolveContactInfo(entity, isSelfSession)
             val now = System.currentTimeMillis()
 
@@ -60,7 +86,7 @@ class ChatSessionUpdater @Inject constructor(
                     lastMessage = lastMessageText,
                     lastMessageType = entity.contentType,
                     lastMessageTime = entity.timestamp,
-                    unreadCount = unreadIncrement,
+                    unreadCount = if (shouldIncrementUnread) 1 else 0,
                     createdAt = now,
                     updatedAt = now
                 )
@@ -76,24 +102,29 @@ class ChatSessionUpdater @Inject constructor(
      */
     private suspend fun resolveContactInfo(
         entity: MessageEntity,
-        isSelfSession: Boolean
+        isSelfSession: Boolean,
     ): Pair<String, String?> {
-        val profile = profileRepository.getCurrentProfileOnce()
-
-        return if (isSelfSession) {
-            Pair(profile?.nickname ?: "", profile?.avatarPath)
-        } else {
-            val contactId = if (entity.senderId == profile?.id) {
-                entity.receiverId
-            } else {
-                entity.senderId
+        return when {
+            // 使用自己的个人资料
+            isSelfSession -> {
+                Pair(currentProfile?.nickname ?: "", currentProfile?.avatarPath)
             }
-            val contact = contactDao.getById(contactId)
 
-            Pair(
-                contact?.remarkName ?: contact?.nickname ?: "",
-                contact?.avatarPath
-            )
+            // 去数据库查询联系人信息
+            else -> {
+                val contactId = if (entity.senderId == currentProfile?.id) {
+                    entity.receiverId
+                } else {
+                    entity.senderId
+                }
+                val contact = contactDao.getById(contactId)
+
+                Pair(contact?.displayName ?: "", contact?.avatarPath)
+            }
         }
     }
 }
+
+private val MessageEntity.isFinishedCall: Boolean
+    get() = contentType.isCallMessage
+            && CallStatus.valueOf(content) == CallStatus.Finished

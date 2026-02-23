@@ -25,6 +25,7 @@ import top.chengdongqing.wechat.data.network.protocol.PacketWriter
 import java.io.EOFException
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.net.SocketException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -265,10 +266,14 @@ class SocketClient @Inject constructor(
                         )
                     }
                 }
-            } catch (_: EOFException) {
-                Log.d(TAG, "连接正常断开: ${connection.userId}")
             } catch (e: Exception) {
-                if (connection.isActive) Log.e(TAG, "接收异常: ${connection.userId}", e)
+                when (e) {
+                    is EOFException, is SocketException -> {
+                        Log.d(TAG, "接收中断: ${connection.userId}, ${e.message}")
+                    }
+
+                    else -> Log.e(TAG, "接收中断: ${connection.userId}", e)
+                }
             } finally {
                 disconnect(connection.userId)
             }

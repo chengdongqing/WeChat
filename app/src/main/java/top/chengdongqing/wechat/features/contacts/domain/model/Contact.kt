@@ -20,9 +20,6 @@ data class Contact(
     val isFromMe: Boolean = true,
     val addedAt: Long? = null
 ) {
-    /**
-     * UI 显示名称：优先显示备注名 [remarkName]，若无备注则显示原始昵称 [nickname]
-     */
     val displayName: String
         get() = remarkName ?: nickname
 

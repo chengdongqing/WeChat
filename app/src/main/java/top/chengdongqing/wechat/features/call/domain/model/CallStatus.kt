@@ -11,7 +11,7 @@ enum class CallStatus(val description: String, val descriptionForMe: String) {
     Declined("已拒绝", "对方已拒绝"),
     Finished("已接通", "已接通"),
     Missed("未应答", "对方无应答"),
-    Failed("", "连接失败");
+    Failed("连接失败", "连接失败");
 
     companion object {
         fun describeDuration(duration: Long): String {

@@ -58,7 +58,13 @@ enum class MessageType {
     VoiceCall,      // 语音通话记录
     VideoCall;       // 视频通话记录
 
-    val isFileNameInJson: Boolean get() = this == Image || this == Video || this == File
+    // 是否需要解析json来获取文件名
+    val isFileNameInJson: Boolean
+        get() = this == Image || this == Video || this == File
+
+    // 是否为通话消息
+    val isCallMessage: Boolean
+        get() = this == VideoCall || this == VoiceCall
 }
 
 enum class SendStatus {

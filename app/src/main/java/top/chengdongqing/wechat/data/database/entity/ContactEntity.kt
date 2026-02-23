@@ -26,7 +26,10 @@ data class ContactEntity(
     // 时间
     val addedAt: Long,
     val updatedAt: Long
-)
+) {
+    val displayName: String
+        get() = remarkName ?: nickname
+}
 
 enum class AddSource(val label: String) {
     Search("搜索账号"),

@@ -9,11 +9,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.webrtc.EglBase
 import org.webrtc.SurfaceViewRenderer
-import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.features.call.domain.model.CallActions
 import top.chengdongqing.wechat.features.call.domain.model.CallState
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.manager.CallManager
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import javax.inject.Inject
 
 /**
@@ -25,7 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CallViewModel @Inject constructor(
     private val callManager: CallManager,
-    private val contactDao: ContactDao
+    private val contactRepository: ContactRepository
 ) : ViewModel() {
 
     val state = callManager.state.stateIn(
@@ -61,10 +61,10 @@ class CallViewModel @Inject constructor(
     fun startCall(peerId: String, callType: CallType) {
         if (state.value.callState != CallState.Idle) return
         viewModelScope.launch(Dispatchers.IO) {
-            val contact = contactDao.getById(peerId)
+            val contact = contactRepository.getContactById(peerId)
             callManager.startCall(
                 peerId = peerId,
-                peerName = contact?.remarkName ?: contact?.nickname ?: peerId,
+                peerName = contact?.displayName ?: peerId,
                 peerAvatar = contact?.avatarPath,
                 callType = callType
             )
