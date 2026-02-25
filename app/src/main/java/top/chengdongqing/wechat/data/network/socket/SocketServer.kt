@@ -4,15 +4,15 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
+import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
@@ -24,7 +24,6 @@ import java.io.EOFException
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,6 +40,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SocketServer @Inject constructor(
+    private val connectionManager: ConnectionManager,
     private val json: Json,
     private val e2e: E2ESessionManager,
     @param:IoScope private val scope: CoroutineScope
@@ -53,10 +53,8 @@ class SocketServer @Inject constructor(
 
     private val _incomingConnections = MutableSharedFlow<IncomingConnection>()
 
-    /** 新入站连接事件流，[MessageReceiver] 订阅后自动启动包监听 */
-    val incomingConnections: SharedFlow<IncomingConnection> = _incomingConnections.asSharedFlow()
-
-    private val activeClients = ConcurrentHashMap<String, ClientConnection>()
+    /** 新入站连接事件流，[MessageReceiver] 订阅后自动启动包监听，以此解耦消息的接收 */
+    val incomingConnections = _incomingConnections.asSharedFlow()
 
     // ==================== 生命周期 ====================
 
@@ -83,28 +81,10 @@ class SocketServer @Inject constructor(
 
     /** 停止监听，关闭所有入站连接 */
     fun stop() {
-        activeClients.values.forEach { it.close() }
-        activeClients.clear()
         serverSocket?.close()
         serverSocket = null
         scope.cancel()
         Log.d(TAG, "服务端已停止")
-    }
-
-    /** 检查指定用户是否有活跃的入站连接 */
-    fun isClientConnected(userId: String): Boolean = activeClients[userId]?.isActive == true
-
-    /**
-     * 通过入站连接向指定客户端发包
-     *
-     * 用于对方主动连进来、我方无出站连接时的回包场景（如回执）。
-     */
-    suspend fun sendToClient(userId: String, packet: Packet): Result<Unit> {
-        val connection = activeClients[userId]
-            ?: return Result.failure(IllegalStateException("客户端未连接: $userId"))
-        return withContext(Dispatchers.IO) {
-            runCatching { connection.writer.write(e2e.encryptPacket(userId, packet)) }
-        }
     }
 
     // ==================== 内部逻辑 ====================
@@ -143,8 +123,8 @@ class SocketServer @Inject constructor(
             }
             socket.soTimeout = 0  // 通信阶段：无限阻塞，由 Ping-Pong 判活
 
-            val connection = ClientConnection(userId, socket, reader, writer)
-            activeClients[userId] = connection
+            val connection = PeerConnection(userId, socket, reader, writer)
+            connectionManager.register(connection)
             _incomingConnections.emit(IncomingConnection(userId, connection))
             Log.d(TAG, "客户端已连接: $userId")
 
@@ -215,7 +195,7 @@ class SocketServer @Inject constructor(
      * EOFException 表示对端正常关闭，其他异常打 error 日志。
      * finally 统一清理 E2E session 和连接记录。
      */
-    private suspend fun receiveLoop(connection: ClientConnection) {
+    private suspend fun receiveLoop(connection: PeerConnection) {
         try {
             while (connection.isActive) {
                 val raw = connection.reader.read()
@@ -247,36 +227,13 @@ class SocketServer @Inject constructor(
     }
 
     private fun cleanupConnection(userId: String) {
-        activeClients.remove(userId)?.close()
+        connectionManager.close(userId)
         Log.d(TAG, "连接已清理: $userId")
-    }
-}
-
-// ==================== 数据类 ====================
-
-/** 服务端接受的入站连接 */
-data class ClientConnection(
-    val userId: String,
-    val socket: Socket,
-    val reader: PacketReader,
-    val writer: PacketWriter,
-    val receiveChannel: Channel<Packet> = Channel(Channel.UNLIMITED)
-) {
-    val isActive: Boolean get() = socket.isConnected && !socket.isClosed
-
-    /** 关闭连接，释放所有 IO 资源 */
-    fun close() {
-        runCatching {
-            receiveChannel.close()
-            reader.close()
-            writer.close()
-            socket.close()
-        }
     }
 }
 
 /** 新入站连接通知，携带 userId 和连接实例供 [MessageReceiver] 订阅 */
 data class IncomingConnection(
     val userId: String,
-    val connection: ClientConnection
+    val connection: PeerConnection
 )

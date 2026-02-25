@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.data.database.entity.ConnectionType
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.discovery.DiscoveredDevice
 import top.chengdongqing.wechat.data.network.discovery.DiscoveryEvent
 import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
@@ -37,6 +38,7 @@ class ChatModule @Inject constructor(
     private val nsdDiscovery: NSDDiscovery,
     private val socketServer: SocketServer,
     private val socketClient: SocketClient,
+    private val connectionManager: ConnectionManager,
     private val wifiLockManager: WifiLockManager,
     private val messageReceiver: MessageReceiver,
     private val connectionInfoDao: ConnectionInfoDao,
@@ -69,7 +71,7 @@ class ChatModule @Inject constructor(
     fun stop() {
         wifiLockManager.releaseKeepAlive()
         socketServer.stop()
-        socketClient.closeAll()
+        connectionManager.closeAll()
         Log.d(TAG, "聊天模块已停止")
     }
 
@@ -128,7 +130,7 @@ class ChatModule @Inject constructor(
      */
     private suspend fun handleDeviceFound(device: DiscoveredDevice, myUserId: String) {
         // 是否是连接状态
-        if (socketClient.isConnected(device.userId)) {
+        if (connectionManager.isConnected(device.userId)) {
             Log.d(TAG, "发现设备 - 设备已连接，跳过: ${device.userId}")
             return
         }
@@ -192,7 +194,7 @@ class ChatModule @Inject constructor(
             socketClient.connectionEvents.collect { event ->
                 when (event) {
                     is ConnectionEvent.Connected -> {
-                        socketClient.getConnection(event.userId)?.let { connection ->
+                        connectionManager.getConnection(event.userId)?.let { connection ->
                             messageReceiver.startListening(connection)
                             Log.d(TAG, "开始监听连接: ${event.userId}")
                         }

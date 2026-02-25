@@ -114,7 +114,9 @@ class MessageRepositoryImpl @Inject constructor(
 
             // 重新发送
             when (entity.contentType) {
-                MessageType.Text -> messageSender.sendTextMessage(entity).getOrThrow()
+                MessageType.Text,
+                MessageType.ContactCard -> messageSender.sendTextMessage(entity).getOrThrow()
+
                 else -> {
                     val file = File(entity.localPath ?: throw Exception("文件路径为空"))
                     messageSender.sendMediaMessage(entity, file)

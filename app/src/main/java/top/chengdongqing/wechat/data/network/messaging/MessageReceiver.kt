@@ -14,12 +14,11 @@ import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.model.PermissionResult
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
-import top.chengdongqing.wechat.data.network.socket.ClientConnection
-import top.chengdongqing.wechat.data.network.socket.SocketConnection
 import top.chengdongqing.wechat.data.network.socket.SocketServer
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import java.io.BufferedOutputStream
@@ -90,16 +89,9 @@ class MessageReceiver @Inject constructor(
     }
 
     /**
-     * 监听服务端连接（被动方）的 receiveChannel
-     */
-    fun startListening(connection: SocketConnection) {
-        scope.launch { consumePackets(connection.userId, connection.receiveChannel) }
-    }
-
-    /**
      * 监听客户端连接（主动方）的 receiveChannel
      */
-    fun startListening(connection: ClientConnection) {
+    fun startListening(connection: PeerConnection) {
         scope.launch { consumePackets(connection.userId, connection.receiveChannel) }
     }
 

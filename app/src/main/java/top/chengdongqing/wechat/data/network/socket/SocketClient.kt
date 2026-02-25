@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -15,6 +14,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
+import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
@@ -22,11 +23,11 @@ import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.PacketWriter
+import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import java.io.EOFException
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketException
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -45,6 +46,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SocketClient @Inject constructor(
+    private val connectionManager: ConnectionManager,
     private val json: Json,
     private val e2e: E2ESessionManager,
     @param:IoScope private val scope: CoroutineScope
@@ -53,12 +55,10 @@ class SocketClient @Inject constructor(
         const val TAG = "SocketClient"
     }
 
-    private val activeConnections = ConcurrentHashMap<String, SocketConnection>()
-
     private val _connectionEvents = MutableSharedFlow<ConnectionEvent>()
 
-    /** 连接状态事件流，[top.chengdongqing.wechat.data.network.service.modules.ChatModule] 订阅后启动包监听 */
-    val connectionEvents: Flow<ConnectionEvent> = _connectionEvents.asSharedFlow()
+    /** 连接状态事件流，[ChatModule] 订阅后启动包监听 */
+    val connectionEvents = _connectionEvents.asSharedFlow()
 
     // ==================== 公开接口 ====================
 
@@ -73,19 +73,17 @@ class SocketClient @Inject constructor(
         host: String,
         port: Int,
         myUserId: String
-    ): Result<SocketConnection> = withContext(Dispatchers.IO) {
+    ): Result<PeerConnection> = withContext(Dispatchers.IO) {
         runCatching {
-            closeExisting(userId)
             Log.d(TAG, "正在连接: $host:$port")
-
             val socket = createSocket(host, port)
-            val connection = SocketConnection(
+            val connection = PeerConnection(
                 userId = userId,
                 socket = socket,
                 reader = PacketReader(socket.getInputStream()),
                 writer = PacketWriter(socket.getOutputStream())
             )
-            activeConnections[userId] = connection
+            connectionManager.register(connection)
 
             sendHandshake(connection, myUserId)
             startReceiving(connection)
@@ -108,7 +106,7 @@ class SocketClient @Inject constructor(
     suspend fun send(userId: String, packet: Packet): Result<Unit> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val conn = requireConnection(userId)
+                val conn = connectionManager.requireConnection(userId)
                 conn.writer.write(e2e.encryptPacket(userId, packet))
             }.onFailure {
                 Log.e(TAG, "发送失败: $userId", it)
@@ -127,7 +125,7 @@ class SocketClient @Inject constructor(
         userId: String,
         block: suspend (EncryptingPacketWriter) -> Unit
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        val conn = requireConnection(userId)
+        val conn = connectionManager.requireConnection(userId)
         conn.transferMutex.lock()
         conn.incrementTransferCount()
         try {
@@ -146,31 +144,12 @@ class SocketClient @Inject constructor(
 
     /** 主动断开指定连接，释放资源并发出 Disconnected 事件 */
     suspend fun disconnect(userId: String) = withContext(Dispatchers.IO) {
-        activeConnections.remove(userId)?.close()
+        connectionManager.close(userId)
         _connectionEvents.emit(ConnectionEvent.Disconnected(userId, "主动断开"))
         Log.d(TAG, "已断开: $userId")
     }
 
-    /** 获取指定用户的连接实例，不存在返回 null */
-    fun getConnection(userId: String): SocketConnection? = activeConnections[userId]
-
-    /** 检查指定用户是否有活跃的出站连接 */
-    fun isConnected(userId: String): Boolean = getConnection(userId)?.isActive == true
-
-    /** 关闭所有出站连接，应用退出时调用 */
-    fun closeAll() {
-        activeConnections.values.forEach { it.close() }
-        activeConnections.clear()
-    }
-
     // ==================== 内部逻辑 ====================
-
-    private fun requireConnection(userId: String): SocketConnection =
-        getConnection(userId) ?: throw IllegalStateException("未找到连接: $userId")
-
-    private fun closeExisting(userId: String) {
-        activeConnections.remove(userId)?.close()
-    }
 
     /**
      * 创建并配置 Socket
@@ -192,7 +171,7 @@ class SocketClient @Inject constructor(
      *
      * 重连场景先清除旧 E2E session，生成新密钥对后随握手包发出公钥。
      */
-    private fun sendHandshake(connection: SocketConnection, myUserId: String) {
+    private fun sendHandshake(connection: PeerConnection, myUserId: String) {
         e2e.removeSession(connection.userId)
         val e2eKey = e2e.prepareHandshake(connection.userId)
         val body = json.encodeToString<ChatProtocol>(
@@ -209,7 +188,7 @@ class SocketClient @Inject constructor(
      * e2ePublicKeyAck 非空 → 主动方：用暂存私钥完成派生，握手结束
      * 两者均空             → 普通握手，无需 E2E 处理
      */
-    private fun handleE2EInHandshake(connection: SocketConnection, packet: Packet) {
+    private fun handleE2EInHandshake(connection: PeerConnection, packet: Packet) {
         runCatching {
             val hs = json.decodeFromString<ChatProtocol.Handshake>(
                 String(packet.body, Charsets.UTF_8)
@@ -251,7 +230,7 @@ class SocketClient @Inject constructor(
      * EOFException 表示对端正常关闭，其他异常打 error 日志。
      * 无论何种退出原因，finally 里统一断开连接并清理资源。
      */
-    private fun startReceiving(connection: SocketConnection) {
+    private fun startReceiving(connection: PeerConnection) {
         scope.launch {
             try {
                 while (connection.isActive) {
@@ -294,7 +273,7 @@ class SocketClient @Inject constructor(
      * 文件传输中（[SocketConnection.activeTransferCount] > 0）跳过，
      * 传输结束时 [SocketConnection.decrementTransferCount] 会重置 lastPongTime 防止误判。
      */
-    private fun startHeartbeat(connection: SocketConnection) {
+    private fun startHeartbeat(connection: PeerConnection) {
         connection.lastPongTime.set(System.currentTimeMillis())
         connection.heartbeatJob = scope.launch {
             try {

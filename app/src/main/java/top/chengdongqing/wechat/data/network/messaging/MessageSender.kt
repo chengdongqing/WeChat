@@ -10,12 +10,12 @@ import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.socket.SocketClient
-import top.chengdongqing.wechat.data.network.socket.SocketServer
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import java.io.File
@@ -40,7 +40,7 @@ import kotlin.coroutines.cancellation.CancellationException
 @Singleton
 class MessageSender @Inject constructor(
     private val socketClient: SocketClient,
-    private val socketServer: SocketServer,
+    private val connectionManager: ConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
     private val wifiLockManager: WifiLockManager,
@@ -85,7 +85,7 @@ class MessageSender @Inject constructor(
                 val checksum = file.toMD5Hex()
                 Log.d(TAG, "MD5 计算完成 [${message.messageId}]: $checksum")
 
-                ensureOutboundConnected(message.receiverId, message.senderId)
+                ensureConnected(message.receiverId, message.senderId)
 
                 val meta = ChatProtocol.MediaMessage(
                     messageId = message.messageId,
@@ -147,17 +147,7 @@ class MessageSender @Inject constructor(
      * 若两者均无，从数据库取地址主动建出站连接。
      */
     suspend fun ensureConnected(targetUserId: String, myUserId: String) {
-        if (socketClient.isConnected(targetUserId) || socketServer.isClientConnected(targetUserId)) return
-        connectFromDb(targetUserId, myUserId)
-    }
-
-    /**
-     * 确保与目标用户有出站连接（媒体传输专用）
-     *
-     * [SocketClient.sendAtomicTransfer] 需要出站连接的 Mutex，不能走入站连接降级。
-     */
-    suspend fun ensureOutboundConnected(targetUserId: String, myUserId: String) {
-        if (socketClient.isConnected(targetUserId)) return
+        if (connectionManager.isConnected(targetUserId)) return
         connectFromDb(targetUserId, myUserId)
     }
 
@@ -211,8 +201,7 @@ class MessageSender @Inject constructor(
      * 优先走出站连接，无则降级走入站连接，两者均无则失败。
      */
     private suspend fun sendPacket(receiverId: String, packet: Packet): Result<Unit> = when {
-        socketClient.isConnected(receiverId) -> socketClient.send(receiverId, packet)
-        socketServer.isClientConnected(receiverId) -> socketServer.sendToClient(receiverId, packet)
+        connectionManager.isConnected(receiverId) -> socketClient.send(receiverId, packet)
         else -> Result.failure(IllegalStateException("无可用连接: $receiverId"))
     }
 
