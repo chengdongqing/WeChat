@@ -1,20 +1,18 @@
 package top.chengdongqing.wechat.data.database.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
 
 @Dao
-interface FriendRequestDao {
+interface FriendRequestDao : BaseDao<FriendRequestEntity> {
 
-    @Query("SELECT * FROM friend_requests ORDER BY createAt DESC")
-    fun getAll(): Flow<List<FriendRequestEntity>>
+    @Query("SELECT * FROM friend_requests ORDER BY createdAt DESC")
+    fun observeAll(): Flow<List<FriendRequestEntity>>
 
     @Query("SELECT * FROM friend_requests WHERE id = :requestId")
     suspend fun getById(requestId: String): FriendRequestEntity?
@@ -22,28 +20,16 @@ interface FriendRequestDao {
     @Query(
         """
         SELECT * FROM friend_requests 
-        WHERE peerUserId = :peerUserId 
+        WHERE peerId = :peerId 
         AND direction = :direction 
-        ORDER BY createAt DESC 
+        ORDER BY createdAt DESC 
         LIMIT 1
     """
     )
-    suspend fun getByPeerUserId(
-        peerUserId: String,
+    suspend fun getByPeerId(
+        peerId: String,
         direction: RequestDirection
     ): FriendRequestEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(request: FriendRequestEntity)
-
-    @Update
-    suspend fun update(request: FriendRequestEntity)
-
-    @Query("UPDATE friend_requests SET status = :status, updatedAt = :updatedAt WHERE id = :requestId")
-    suspend fun updateStatus(requestId: String, status: RequestStatus, updatedAt: Long)
-
-    @Query("DELETE FROM friend_requests WHERE id = :requestId")
-    suspend fun delete(requestId: String)
 
     @Query("SELECT COUNT(*) FROM friend_requests WHERE direction = :direction AND status = :status")
     fun getPendingCount(
@@ -51,7 +37,6 @@ interface FriendRequestDao {
         status: RequestStatus = RequestStatus.Pending
     ): Flow<Int>
 
-    // 查询未读数量（只统计收到的待处理申请）
     @Query(
         """
         SELECT COUNT(*) FROM friend_requests 
@@ -65,16 +50,30 @@ interface FriendRequestDao {
         status: RequestStatus = RequestStatus.Pending
     ): Flow<Int>
 
-    // 标记所有收到的申请为已读
     @Query(
         """
         UPDATE friend_requests 
-        SET isRead = 1, updatedAt = :updatedAt 
+        SET isRead = 1, updatedAt = :now 
         WHERE direction = :direction
     """
     )
     suspend fun markAllIncomingAsRead(
-        updatedAt: Long,
-        direction: RequestDirection = RequestDirection.Incoming
+        direction: RequestDirection = RequestDirection.Incoming,
+        now: Long = System.currentTimeMillis()
     )
+
+    @Transaction
+    suspend fun update(
+        requestId: String,
+        updateBlock: (FriendRequestEntity) -> FriendRequestEntity
+    ) {
+        val old = getById(requestId) ?: return
+        val new = updateBlock(old).copy(
+            audit = old.audit.copy(updatedAt = System.currentTimeMillis())
+        )
+        update(new)
+    }
+
+    @Query("DELETE FROM friend_requests WHERE id = :requestId")
+    suspend fun deleteById(requestId: String)
 }

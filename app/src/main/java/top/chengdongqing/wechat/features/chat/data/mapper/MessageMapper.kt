@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.features.chat.data.mapper
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendError
@@ -10,56 +9,18 @@ import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
-import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 
-// ==================== ChatSession ====================
-
-fun ChatSessionEntity.toDomain() = ChatSession(
-    sessionId = sessionId,
-    contactId = contactId,
-    contactName = contactName,
-    contactAvatar = contactAvatar,
-    lastMessage = lastMessage,
-    lastMessageType = lastMessageType,
-    lastMessageTime = lastMessageTime,
-    unreadCount = unreadCount,
-    isPinned = isPinned,
-    isMuted = isMuted,
-    draftMessage = draftMessage,
-    backgroundPath = backgroundPath
-)
-
-fun ChatSession.toEntity() = ChatSessionEntity(
-    sessionId = sessionId,
-    contactId = contactId,
-    contactName = contactName,
-    contactAvatar = contactAvatar,
-    lastMessage = lastMessage,
-    lastMessageType = lastMessageType,
-    lastMessageTime = lastMessageTime,
-    unreadCount = unreadCount,
-    isPinned = isPinned,
-    isMuted = isMuted,
-    draftMessage = draftMessage,
-    backgroundPath = backgroundPath,
-    createdAt = System.currentTimeMillis(),
-    updatedAt = System.currentTimeMillis()
-)
-
-// ==================== Message ====================
-
 fun MessageEntity.toDomain(json: Json): ChatMessage {
     return ChatMessage(
-        id = messageId,
+        id = id,
         sessionId = sessionId,
         senderId = senderId,
         content = toMessageContent(json),
         isFromMe = isFromMe,
         timestamp = timestamp,
-        sendStatus = sendStatus.toDomain(this),
-        retryCount = retryCount
+        sendStatus = sendStatus.toDomain(this)
     )
 }
 
@@ -181,7 +142,6 @@ fun MessageContent.toEntity(
     json: Json
 ): MessageEntity {
     val content = this
-    val now = System.currentTimeMillis()
 
     // 公共字段
     fun base(
@@ -191,7 +151,7 @@ fun MessageContent.toEntity(
         fileSize: Long? = null,
         mediaDuration: Long? = null
     ) = MessageEntity(
-        messageId = messageId,
+        id = messageId,
         sessionId = sessionId,
         senderId = senderId,
         receiverId = receiverId,
@@ -202,9 +162,7 @@ fun MessageContent.toEntity(
         mediaDuration = mediaDuration,
         timestamp = timestamp,
         sendStatus = SendStatus.Sending,
-        isFromMe = true,
-        createdAt = now,
-        updatedAt = now
+        isFromMe = true
     )
 
     return when (content) {
@@ -325,8 +283,6 @@ fun MessageContent.toEntity(
     }
 }
 
-// ==================== SendStatus ====================
-
 fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
     return when (this) {
         SendStatus.Sending -> {
@@ -345,8 +301,6 @@ fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
         SendStatus.Failed -> MessageSendStatus.Failed(entity.failReason ?: SendError.Unknown)
     }
 }
-
-// ==================== 辅助数据类（JSON 序列化用）====================
 
 @Serializable
 data class MediaContent(

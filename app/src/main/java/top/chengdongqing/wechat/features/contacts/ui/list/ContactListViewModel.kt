@@ -25,7 +25,7 @@ class ContactListViewModel @Inject constructor(
      * 组合多个数据流
      */
     val state: StateFlow<ContactListUiState> = combine(
-        contactRepository.getAllContacts(),
+        contactRepository.observeAllContacts(),
         profileRepository.getCurrentProfile(),
         friendRequestRepository.observeUnreadCount()
     ) { contacts, myProfile, unreadCount ->

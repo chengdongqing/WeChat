@@ -4,17 +4,15 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
 import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
-import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
@@ -32,11 +30,6 @@ import javax.inject.Singleton
  *
  * 监听随机端口，接受对方 [SocketClient] 的入站连接。
  * 每条连接独立协程处理：握手验证 → E2E 密钥交换 → 收包循环。
- *
- * 性能配置：
- * - Socket 收发缓冲区 512KB，跑满 LAN 带宽
- * - tcpNoDelay = true，禁用 Nagle 避免 40ms 延迟
- * - soTimeout = 0，由 Ping-Pong 判活
  */
 @Singleton
 class SocketServer @Inject constructor(
@@ -51,13 +44,6 @@ class SocketServer @Inject constructor(
 
     private var serverSocket: ServerSocket? = null
 
-    private val _incomingConnections = MutableSharedFlow<IncomingConnection>()
-
-    /** 新入站连接事件流，[MessageReceiver] 订阅后自动启动包监听，以此解耦消息的接收 */
-    val incomingConnections = _incomingConnections.asSharedFlow()
-
-    // ==================== 生命周期 ====================
-
     /**
      * 启动监听，返回实际绑定的端口；失败返回 -1
      *
@@ -71,7 +57,6 @@ class SocketServer @Inject constructor(
             }
             serverSocket = socket
             scope.launch { acceptLoop() }
-            Log.d(TAG, "服务端已启动，端口: ${socket.localPort}")
             socket.localPort
         } catch (e: Exception) {
             Log.e(TAG, "服务端启动失败", e)
@@ -79,26 +64,28 @@ class SocketServer @Inject constructor(
         }
     }
 
-    /** 停止监听，关闭所有入站连接 */
+    /**
+     * 停止监听，关闭所有入站连接
+     */
     fun stop() {
         serverSocket?.close()
         serverSocket = null
         scope.cancel()
-        Log.d(TAG, "服务端已停止")
     }
 
-    // ==================== 内部逻辑 ====================
-
-    /** 循环 accept 新连接，每条连接启动独立协程处理 */
+    /**
+     * 处理新连接
+     */
     private fun acceptLoop() {
         val socket = serverSocket ?: return
         while (!socket.isClosed) {
             try {
                 val clientSocket = socket.accept()
-                Log.d(TAG, "新连接: ${clientSocket.inetAddress.hostAddress}")
                 scope.launch { handleClient(clientSocket) }
             } catch (e: Exception) {
-                if (!socket.isClosed) Log.e(TAG, "接受连接异常", e)
+                if (!socket.isClosed) {
+                    Log.e(TAG, "接受连接异常", e)
+                }
             }
         }
     }
@@ -107,28 +94,34 @@ class SocketServer @Inject constructor(
      * 处理新客户端连接
      *
      * 握手阶段设置短超时防慢连接攻击，握手完成后切换为无限阻塞由 Ping-Pong 判活。
-     * 握手失败直接关闭 socket。
      */
     private suspend fun handleClient(socket: Socket) = withContext(Dispatchers.IO) {
         try {
+            // 配置socket
             configureSocket(socket)
+            // 构建reader和writer
             val reader = PacketReader(socket.getInputStream())
             val writer = PacketWriter(socket.getOutputStream())
 
-            socket.soTimeout = TransferConfig.HANDSHAKE_TIMEOUT  // 握手阶段：短超时防慢连接
+            // 短超时防慢连接攻击
+            socket.soTimeout = TransferConfig.HANDSHAKE_TIMEOUT
+            // 执行握手
             val userId = performHandshake(reader, writer) ?: run {
                 Log.w(TAG, "握手失败，关闭连接")
                 socket.close()
                 return@withContext
             }
-            socket.soTimeout = 0  // 通信阶段：无限阻塞，由 Ping-Pong 判活
+            // 取消超时限制
+            socket.soTimeout = 0
 
-            val connection = PeerConnection(userId, socket, reader, writer)
-            connectionManager.register(connection)
-            _incomingConnections.emit(IncomingConnection(userId, connection))
-            Log.d(TAG, "客户端已连接: $userId")
+            val conn = PeerConnection(userId, socket, reader, writer)
+            // 保存连接
+            connectionManager.register(conn)
+            // 推送连接事件
+            connectionManager.emitEvent(ConnectionEvent.Connected(userId, conn))
 
-            receiveLoop(connection)
+            // 开始接收数据
+            receiveLoop(conn)
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()
@@ -175,12 +168,10 @@ class SocketServer @Inject constructor(
                         json.encodeToString<ChatProtocol>(ack).toByteArray(Charsets.UTF_8)
                     )
                 )
-                Log.d(TAG, "E2E 握手 ACK 已回传: ${hs.senderId}")
             }
 
             hs.senderId
-        } catch (e: Exception) {
-            Log.e(TAG, "握手解析异常", e)
+        } catch (_: Exception) {
             null
         }
     }
@@ -189,25 +180,24 @@ class SocketServer @Inject constructor(
      * 收包循环
      *
      * PING → 回 PONG
-     * PONG → 忽略（服务端不发 Ping）
-     * 其他 → 解密后推入 receiveChannel；body 为空说明解密失败，丢弃
-     *
-     * EOFException 表示对端正常关闭，其他异常打 error 日志。
-     * finally 统一清理 E2E session 和连接记录。
+     * PONG → 忽略
+     * 其他 → 解密后推送到处理队列
      */
-    private suspend fun receiveLoop(connection: PeerConnection) {
+    private suspend fun receiveLoop(conn: PeerConnection) {
         try {
-            while (connection.isActive) {
-                val raw = connection.reader.read()
-                when (raw.type) {
-                    PacketType.PING -> connection.writer.write(Packet.pong())
+            while (conn.isActive) {
+                val packet = conn.reader.read()
+                when (packet.type) {
+                    PacketType.PING -> handleHeartbeat(conn)
                     PacketType.PONG -> {}
                     else -> {
-                        val packet = e2e.decryptPacket(connection.userId, raw)
+                        // 解密数据包
+                        val packet = e2e.decryptPacket(conn.userId, packet)
                         if (packet.body.isNotEmpty()) {
-                            connection.receiveChannel.send(packet)
+                            // 推送到处理队列
+                            conn.receiveChannel.send(packet)
                         } else {
-                            Log.w(TAG, "解密后 body 为空，丢弃: ${connection.userId}")
+                            Log.w(TAG, "解密后 body 为空，丢弃: ${conn.userId}")
                         }
                     }
                 }
@@ -215,25 +205,21 @@ class SocketServer @Inject constructor(
         } catch (e: Exception) {
             when (e) {
                 is EOFException, is SocketException -> {
-                    Log.d(TAG, "接收中断: ${connection.userId}, ${e.message}")
+                    Log.d(TAG, "接收中断: ${conn.userId}, ${e.message}")
                 }
 
-                else -> Log.e(TAG, "接收中断: ${connection.userId}", e)
+                else -> Log.e(TAG, "接收中断: ${conn.userId}", e)
             }
         } finally {
-            e2e.removeSession(connection.userId)
-            cleanupConnection(connection.userId)
+            e2e.removeSession(conn.userId)
+            connectionManager.close(conn.userId)
         }
     }
 
-    private fun cleanupConnection(userId: String) {
-        connectionManager.close(userId)
-        Log.d(TAG, "连接已清理: $userId")
+    /**
+     * 处理心跳包
+     */
+    private fun handleHeartbeat(conn: PeerConnection) {
+        conn.writer.write(Packet.pong())
     }
 }
-
-/** 新入站连接通知，携带 userId 和连接实例供 [MessageReceiver] 订阅 */
-data class IncomingConnection(
-    val userId: String,
-    val connection: PeerConnection
-)

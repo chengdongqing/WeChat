@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.data.network.connection
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -10,7 +12,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class ConnectionManager @Inject constructor() {
+
+    // Socket 连接池
     private val connections = ConcurrentHashMap<String, PeerConnection>()
+
+    // 连接状态事件流
+    private val _connectionEvents = MutableSharedFlow<ConnectionEvent>()
+    val connectionEvents = _connectionEvents.asSharedFlow()
 
     /**
      * 获取指定连接
@@ -53,4 +61,28 @@ class ConnectionManager @Inject constructor() {
         connections.values.forEach { it.close() }
         connections.clear()
     }
+
+    /**
+     * 推送连接事件
+     */
+    suspend fun emitEvent(event: ConnectionEvent) {
+        _connectionEvents.emit(event)
+    }
+}
+
+/**
+ * 连接事件
+ */
+sealed class ConnectionEvent {
+    /**
+     * TCP 连接已建立并完成握手
+     */
+    data class Connected(val userId: String, val conn: PeerConnection) : ConnectionEvent()
+
+    /**
+     * 连接已断开
+     *
+     * @param reason 说明原因（主动断开 / Pong 超时 / 接收异常等）
+     */
+    data class Disconnected(val userId: String, val reason: String?) : ConnectionEvent()
 }

@@ -6,25 +6,29 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
+import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
-import top.chengdongqing.wechat.data.database.entity.toDomain
-import top.chengdongqing.wechat.data.database.entity.toEntity
+import top.chengdongqing.wechat.data.database.entity.ContactEntity
+import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
+import top.chengdongqing.wechat.features.contacts.data.mapper.toEntity
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import javax.inject.Inject
 
 class ContactRepositoryImpl @Inject constructor(
+    private val weDatabase: WeDatabase,
     private val contactDao: ContactDao,
     private val chatSessionDao: ChatSessionDao,
     private val messageDao: MessageDao,
-    private val weDatabase: WeDatabase
+    private val connectionInfoDao: ConnectionInfoDao
 ) : ContactRepository {
-    // 缓存最多 100 个联系人
+
+    // 联系人缓存
     private val contactCache = LruCache<String, Contact>(100)
 
-    override fun getAllContacts(): Flow<List<Contact>> {
-        return contactDao.getAll().map { it.toDomain() }
+    override fun observeAllContacts(): Flow<List<Contact>> {
+        return contactDao.observeAll().map { it.toDomain() }
     }
 
     override suspend fun getContactById(userId: String): Contact? {
@@ -44,7 +48,7 @@ class ContactRepositoryImpl @Inject constructor(
     }
 
     override fun observeContactById(userId: String): Flow<Contact?> {
-        return contactDao.getByIdFlow(userId).map { it?.toDomain() }
+        return contactDao.observeById(userId).map { it?.toDomain() }
     }
 
     override suspend fun exists(userId: String): Boolean {
@@ -55,24 +59,24 @@ class ContactRepositoryImpl @Inject constructor(
         contactDao.insert(contact.toEntity())
     }
 
-    override suspend fun updateContact(contact: Contact) {
-        contactDao.update(
-            contact.toEntity().copy(
-                updatedAt = System.currentTimeMillis()
-            )
-        )
-
-        contactCache.remove(contact.id)
+    override suspend fun updateContact(
+        contactId: String,
+        updateBlock: (ContactEntity) -> ContactEntity
+    ) {
+        contactDao.update(contactId, updateBlock)
+        contactCache.remove(contactId)
     }
 
     override suspend fun deleteContact(userId: String) {
         weDatabase.withTransaction {
             // 删除联系人
-            contactDao.delete(userId)
+            contactDao.deleteById(userId)
             // 删除会话
             chatSessionDao.deleteById(userId)
             // 删除所有消息
-            messageDao.deleteBySession(userId)
+            messageDao.deleteBySessionId(userId)
+            // 删除连接信息
+            connectionInfoDao.deleteById(userId)
             // TODO 删除文件缓存
         }
 

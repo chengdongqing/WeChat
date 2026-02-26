@@ -1,34 +1,29 @@
 package top.chengdongqing.wechat.data.database.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "friend_requests")
 data class FriendRequestEntity(
     @PrimaryKey
-    val id: String,              // 请求ID
+    val id: String,                     // 请求ID
 
-    // 基本信息
-    val peerUserId: String,             // 对方的ID
-    val peerNickname: String,           // 对方的昵称
+    val peerId: String,                 // 对方的ID
+    val peerName: String,               // 对方的昵称
     val peerAvatarPath: String?,        // 对方的头像路径
 
-    // 申请内容
     val greetingMessage: String,        // 打招呼内容
     val remark: String? = null,         // 备注
-    val tags: String? = null,           // 标签
     val note: String? = null,           // 备忘
 
-    // 状态
     val status: RequestStatus,          // 状态
     val direction: RequestDirection,    // 方向（发出/收到）
 
-    // 新增：是否已读
-    val isRead: Boolean = false,
+    val isRead: Boolean = false,        // 是否已读
 
-    // 时间
-    val createAt: Long,                // 创建时间
-    val updatedAt: Long                 // 更新时间
+    @Embedded
+    val audit: EntityAudit = EntityAudit()
 )
 
 enum class RequestStatus {

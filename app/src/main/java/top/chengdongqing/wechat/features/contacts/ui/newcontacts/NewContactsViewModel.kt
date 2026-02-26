@@ -28,7 +28,7 @@ class NewContactsViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
 
     val uiState: StateFlow<NewContactsUiState> = combine(
-        friendRequestRepository.getRequests(),
+        friendRequestRepository.observeAllRequest(),
         friendRequestRepository.getPendingCount(),
         _searchQuery
     ) { requests, count, query ->
@@ -66,7 +66,7 @@ class NewContactsViewModel @Inject constructor(
 
     fun delete(requestId: String) {
         viewModelScope.launch {
-            friendRequestRepository.delete(requestId)
+            friendRequestRepository.deleteRequest(requestId)
         }
     }
 }

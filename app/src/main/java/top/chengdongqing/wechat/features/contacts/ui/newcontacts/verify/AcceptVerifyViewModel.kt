@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
-import top.chengdongqing.wechat.data.database.entity.toDomain
+import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 
@@ -81,7 +81,6 @@ class AcceptVerifyViewModel @AssistedInject constructor(
             friendRequestRepository.acceptFriendRequest(
                 requestId = requestId,
                 remark = state.remark.takeIf { it.isNotBlank() },
-                tags = state.tags.takeIf { it.isNotEmpty() },
                 note = state.note.takeIf { it.isNotBlank() }
             ).fold(
                 onSuccess = {
@@ -100,7 +99,6 @@ class AcceptVerifyViewModel @AssistedInject constructor(
 data class AcceptVerifyUiState(
     val request: FriendRequest? = null,
     val remark: String = "",
-    val tags: List<String> = emptyList(),
     val note: String = "",
     val isLoading: Boolean = false,
     val error: String? = null

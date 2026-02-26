@@ -27,7 +27,7 @@ interface ChatSessionRepository {
     suspend fun markAsUnread(sessionId: String)
 
     /** 保存草稿 */
-    suspend fun saveDraft(sessionId: String, draft: String?)
+    suspend fun updateDraft(sessionId: String, draft: String?)
 
     /** 置顶/取消置顶 */
     suspend fun togglePin(sessionId: String, isPinned: Boolean)
@@ -47,6 +47,6 @@ interface ChatSessionRepository {
     /** 总未读数 */
     fun observeTotalUnreadCount(): Flow<Int>
 
-    /** 预加载数据，主要为了在启动时初始化数据库 */
+    /** 数据库预热 */
     suspend fun preload()
 }

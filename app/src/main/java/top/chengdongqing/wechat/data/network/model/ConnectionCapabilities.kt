@@ -12,7 +12,6 @@ object ConnectionCapabilities {
     const val WIFI_LAN = 1 shl 0        // 0x01
     const val WIFI_DIRECT = 1 shl 1     // 0x02
     const val BLUETOOTH = 1 shl 2       // 0x04
-    const val NFC = 1 shl 3             // 0x08
 
     /**
      * 检查是否支持某个能力

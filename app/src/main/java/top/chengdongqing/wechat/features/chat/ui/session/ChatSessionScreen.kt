@@ -73,7 +73,6 @@ fun ChatSessionScreen(
 ) {
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val isE2EActive by viewModel.isE2EActive.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -135,9 +134,8 @@ fun ChatSessionScreen(
             Scaffold(
                 topBar = {
                     ChatSessionTopBar(
-                        title = uiState.title,
-                        isE2EActive = isE2EActive,
-                        isOnline = uiState.isOnline,
+                        viewModel = viewModel,
+                        uiState = uiState,
                         onBack = onBack,
                         onNavigateToInfo = onNavigateToInfo
                     )
@@ -186,7 +184,7 @@ fun ChatSessionScreen(
                     }
 
                     // 加载更多指示器
-                    if (uiState.hasMoreMessages) {
+                    if (uiState.isLoadingMore) {
                         item(key = "load_more") {
                             WeLoadMore(type = LoadMoreType.Loading)
                         }
@@ -199,15 +197,14 @@ fun ChatSessionScreen(
 
 @Composable
 private fun ChatSessionTopBar(
-    title: String,
-    isE2EActive: Boolean,
-    isOnline: Boolean,
+    viewModel: ChatSessionViewModel,
+    uiState: ChatSessionUiState,
     onBack: () -> Unit,
     onNavigateToInfo: () -> Unit
 ) {
     WeTopBar(
         titleContent = {
-            ChatSessionTitle(title, isE2EActive, isOnline)
+            ChatSessionTitle(viewModel, uiState)
         },
         onBack = onBack
     ) {
@@ -219,12 +216,13 @@ private fun ChatSessionTopBar(
 
 @Composable
 private fun ChatSessionTitle(
-    title: String,
-    isE2EActive: Boolean,
-    isOnline: Boolean
+    viewModel: ChatSessionViewModel,
+    uiState: ChatSessionUiState,
 ) {
-    val statusColor = if (isOnline) WeTheme.colorScheme.primary else WeTheme.colorScheme.divider
-    val statusDesc = if (isOnline) "在线" else "离线"
+    val isE2EActive by viewModel.isE2EActive.collectAsStateWithLifecycle()
+    val statusColor =
+        if (uiState.isOnline) WeTheme.colorScheme.primary else WeTheme.colorScheme.divider
+    val statusDesc = if (uiState.isOnline) "在线" else "离线"
 
     Row(
         modifier = Modifier.fillMaxHeight(),
@@ -233,7 +231,7 @@ private fun ChatSessionTitle(
     ) {
         // 名字
         Text(
-            text = title,
+            text = uiState.title,
             style = TextStyle(
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
@@ -244,27 +242,29 @@ private fun ChatSessionTitle(
             modifier = Modifier.weight(1f, fill = false)
         )
 
-        // 加密锁图标
-        if (isE2EActive) {
-            Icon(
-                painter = painterResource(R.drawable.ic_lock_filled),
-                contentDescription = "已加密",
-                modifier = Modifier.size(16.dp),
-                tint = WeTheme.colorScheme.textSecondary
+        if (!uiState.isMyself) {
+            // 加密锁图标
+            if (isE2EActive) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_lock_filled),
+                    contentDescription = "已加密",
+                    modifier = Modifier.size(16.dp),
+                    tint = WeTheme.colorScheme.textSecondary
+                )
+            }
+
+            // 在线状态小圆点
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .semantics { contentDescription = statusDesc }
+                    .background(statusColor, CircleShape)
+                    .border(
+                        1.dp,
+                        Color.White.copy(alpha = 0.4f),
+                        CircleShape
+                    )
             )
         }
-
-        // 在线状态小圆点
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .semantics { contentDescription = statusDesc }
-                .background(statusColor, CircleShape)
-                .border(
-                    1.dp,
-                    Color.White.copy(alpha = 0.4f),
-                    CircleShape
-                )
-        )
     }
 }

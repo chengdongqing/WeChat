@@ -6,15 +6,11 @@ import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 interface MessageRepository {
 
-    /** 分页加载消息 */
-    suspend fun getMessages(
-        sessionId: String,
-        limit: Int,
-        beforeTimestamp: Long? = null
-    ): List<ChatMessage>
-
     /** 监听消息 */
-    fun observeMessages(sessionId: String): Flow<List<ChatMessage>>
+    fun observeMessages(sessionId: String, limit: Int): Flow<List<ChatMessage>>
+
+    /** 查询是否有更多数据 */
+    suspend fun hasOlderMessages(sessionId: String, lastTimestamp: Long): Boolean
 
     /** 发送消息 */
     suspend fun sendMessage(

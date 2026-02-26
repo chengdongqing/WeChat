@@ -1,11 +1,29 @@
 package top.chengdongqing.wechat.core.util
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.security.MessageDigest
 
 /**
- * 字符串转 MD5 字节数组
+ * 字节数组转 MD5 十六进制
+ *
+ * 性能优于 joinToString + String.format
+ */
+fun ByteArray.toMD5Hex(): String {
+    val hexChars = "0123456789abcdef"
+    val result = StringBuilder(size * 2)
+    forEach { byte ->
+        val i = byte.toInt() and 0xFF
+        result.append(hexChars[i shr 4])
+        result.append(hexChars[i and 0x0F])
+    }
+    return result.toString()
+}
+
+/**
+ * 字符串转 MD5 字符数组
  */
 fun String.toMD5Bytes(): ByteArray {
     val md = MessageDigest.getInstance("MD5")
@@ -16,26 +34,28 @@ fun String.toMD5Bytes(): ByteArray {
  * 字符串转 MD5 十六进制
  */
 fun String.toMD5Hex(): String {
-    return toMD5Bytes().joinToString("") { "%02x".format(it) }
+    return toMD5Bytes().toMD5Hex()
 }
 
 /**
  * 流式计算文件 MD5 十六进制
- *
- * 磁盘顺序读 + MD5 计算，在 Android 设备上约 200-400 MB/s。
  */
-fun File.toMD5Hex(): String {
+suspend fun File.toMD5Hex(): String = withContext(Dispatchers.IO) {
+    if (!exists() || !isFile) return@withContext ""
+
     val digest = MessageDigest.getInstance("MD5")
-    val chunkSize = 256 * 1024
-    val buffer = ByteArray(chunkSize)
+    val buffer = ByteArray(8192)
 
-    FileInputStream(this).buffered(chunkSize).use { fis ->
-        while (true) {
-            val bytesRead = fis.read(buffer)
-            if (bytesRead == -1) break
-            digest.update(buffer, 0, bytesRead)
+    try {
+        FileInputStream(this@toMD5Hex).use { fis ->
+            var bytesRead: Int
+            while (fis.read(buffer).also { bytesRead = it } != -1) {
+                digest.update(buffer, 0, bytesRead)
+            }
         }
+        digest.digest().toMD5Hex()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ""
     }
-
-    return digest.digest().joinToString("") { "%02x".format(it) }
 }

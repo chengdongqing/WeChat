@@ -11,6 +11,9 @@ import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 
+/**
+ * 轻量级的头像服务器
+ */
 class AvatarServer @Inject constructor() {
 
     private var serverSocket: ServerSocket? = null
@@ -22,7 +25,6 @@ class AvatarServer @Inject constructor() {
         withContext(Dispatchers.IO) {
             val socket = ServerSocket(0, 50, InetAddress.getByName("0.0.0.0")).also {
                 serverSocket = it
-                Log.d("AvatarServer", "服务器已启动，端口: ${it.localPort}, 路径: $avatarPath")
             }
             val assignedPort = socket.localPort
 
@@ -30,7 +32,6 @@ class AvatarServer @Inject constructor() {
                 while (!socket.isClosed) {
                     try {
                         val client = socket.accept()
-                        Log.d("AvatarServer", "收到连接: ${client.inetAddress}")
                         launch { handleRequest(client, avatarPath) }
                     } catch (e: Exception) {
                         Log.e("AvatarServer", "accept 异常: $e")

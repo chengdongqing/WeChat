@@ -65,7 +65,7 @@ class FilePreviewViewModel @AssistedInject constructor(
     private fun loadFileInfo() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val entity = messageDao.getByMessageId(messageId)
+                val entity = messageDao.getById(messageId)
                 if (entity == null) {
                     _uiState.update { it.copy(isLoading = false, error = "消息不存在") }
                     return@launch

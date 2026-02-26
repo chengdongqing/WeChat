@@ -64,8 +64,6 @@ class WifiLockManager @Inject constructor(
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Chat:WakeLock")
     }
 
-    // ==================== KeepAlive ====================
-
     /** 获取 WiFi 活跃锁，引用计数为 1 时实际加锁 */
     fun acquireKeepAlive() {
         if (wifiRefCount.incrementAndGet() == 1 && !wifiLock.isHeld) {
@@ -85,8 +83,6 @@ class WifiLockManager @Inject constructor(
         }
     }
 
-    // ==================== Transfer ====================
-
     /**
      * 在文件传输锁保护下执行 [block]
      *
@@ -97,7 +93,6 @@ class WifiLockManager @Inject constructor(
         acquireKeepAlive()
         if (wakeRefCount.incrementAndGet() == 1 && !wakeLock.isHeld) {
             wakeLock.acquire(TRANSFER_WAKE_LOCK_TIMEOUT_MS)
-            Log.d(TAG, "CPU 唤醒锁已获取")
         }
         try {
             return block()
@@ -106,7 +101,6 @@ class WifiLockManager @Inject constructor(
                 wakeRefCount.set(0)
                 if (wakeLock.isHeld) {
                     wakeLock.release()
-                    Log.d(TAG, "CPU 唤醒锁已释放")
                 }
             }
             releaseKeepAlive()

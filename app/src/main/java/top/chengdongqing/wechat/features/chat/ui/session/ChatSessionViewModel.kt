@@ -9,15 +9,16 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -49,19 +50,24 @@ class ChatSessionViewModel @AssistedInject constructor(
         fun create(chatId: String): ChatSessionViewModel
     }
 
-    // ==================== UI 状态 ====================
+    companion object {
+        private const val PAGE_SIZE = 20
+    }
 
     private val _uiState = MutableStateFlow(ChatSessionUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val _visibleCount = MutableStateFlow(PAGE_SIZE)
+
     // 消息流
-    val messages = messageRepository
-        .observeMessages(chatId)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val messages = _visibleCount.flatMapLatest { count ->
+        messageRepository.observeMessages(chatId, count)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     // 派生状态：媒体预览列表
     val mediaList = messages
@@ -71,7 +77,11 @@ class ChatSessionViewModel @AssistedInject constructor(
                 .toList()
                 .reversed()
         }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = emptyList()
+        )
 
     // 是否启用了加密
     val isE2EActive = e2eSessionManager.encryptedPeers
@@ -79,8 +89,6 @@ class ChatSessionViewModel @AssistedInject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val sessionFlow = chatSessionRepository.observeSession(chatId)
-
-    // ==================== 播放管理 ====================
 
     private val audioPlaybackManager = AudioPlaybackManager(
         context = context,
@@ -92,30 +100,18 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val _playingMessageId = MutableStateFlow<String?>(null)
     val playingMessageId = _playingMessageId.asStateFlow()
 
-    private var lastLoadedTimestamp: Long? = null
-
     init {
         activeSessionManager.enter(chatId)
         loadInitialData()
         observeSessionChanges()
     }
 
-    // ==================== 初始化逻辑 ====================
-
     private fun loadInitialData() {
         viewModelScope.launch {
-            val contactDeferred = async(Dispatchers.IO) {
-                contactRepository.getContactById(chatId)
-            }
-            val profileDeferred = async(Dispatchers.IO) {
-                profileRepository.getCurrentProfileSnapshot()
-            }
-
             try {
-                val contact = contactDeferred.await()
-                val profile = profileDeferred.await()
+                val contact = contactRepository.getContactById(chatId)
+                val profile = profileRepository.getCurrentProfileSnapshot()
 
-                // 更新基础 UI 状态
                 _uiState.update {
                     it.copy(
                         title = contact?.displayName ?: profile?.nickname ?: "",
@@ -126,11 +122,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                         isMyself = contact == null
                     )
                 }
-
-                // 加载第一页消息
-                loadInitialMessages()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (_: Exception) {
             }
 
             // 标记已读
@@ -156,36 +148,18 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    private suspend fun loadInitialMessages() {
-        val result = withContext(Dispatchers.IO) {
-            runCatching { messageRepository.getMessages(chatId, PAGE_SIZE) }
-        }
-
-        result.onSuccess { msgs ->
-            lastLoadedTimestamp = msgs.lastOrNull()?.timestamp
-            _uiState.update {
-                it.copy(
-                    hasMoreMessages = msgs.size >= PAGE_SIZE,
-                    shouldScrollToBottom = true
-                )
-            }
-        }.onFailure {
-            _uiState.update { it.copy(hasMoreMessages = false) }
-        }
-    }
-
-    // ==================== 交互操作 ====================
-
     fun sendMessage(content: MessageContent, onSent: () -> Unit = {}) {
         viewModelScope.launch {
             _uiState.update { it.copy(isSending = true) }
-            messageRepository.sendMessage(chatId, chatId, content = content)
-                .onSuccess {
-                    onSent()
-                }
-                .onFailure {
-                    _uiState.update { it.copy(isSending = false) }
-                }
+            messageRepository.sendMessage(
+                sessionId = chatId,
+                receiverId = chatId,
+                content = content
+            ).onSuccess {
+                onSent()
+            }.onFailure {
+                _uiState.update { it.copy(isSending = false) }
+            }
         }
     }
 
@@ -197,32 +171,34 @@ class ChatSessionViewModel @AssistedInject constructor(
      * 加载更多历史
      */
     fun loadMore() {
-        val state = _uiState.value
-        if (state.isLoadingMore || !state.hasMoreMessages) return
+        if (messages.value.size < PAGE_SIZE
+            || _uiState.value.isLoadingMore
+            || !_uiState.value.hasMoreMessages
+        ) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
 
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    messageRepository.getMessages(chatId, PAGE_SIZE, lastLoadedTimestamp)
-                }
-            }
+            // 增加观察计数
+            val newCount = _visibleCount.value + PAGE_SIZE
+            _visibleCount.value = newCount
 
-            result.onSuccess { moreMsgs ->
-                if (moreMsgs.isNotEmpty()) {
-                    lastLoadedTimestamp = moreMsgs.lastOrNull()?.timestamp
-                }
-                _uiState.update {
-                    it.copy(
-                        isLoadingMore = false,
-                        hasMoreMessages = moreMsgs.size >= PAGE_SIZE
-                    )
-                }
-            }.onFailure {
-                _uiState.update { it.copy(isLoadingMore = false) }
+            // 查询是否还有更多数据
+            val hasMore = checkHasMore()
+
+            delay(1000)
+            _uiState.update {
+                it.copy(
+                    isLoadingMore = false,
+                    hasMoreMessages = hasMore
+                )
             }
         }
+    }
+
+    private suspend fun checkHasMore(): Boolean {
+        val oldestTimestamp = messages.value.lastOrNull()?.timestamp ?: return false
+        return messageRepository.hasOlderMessages(chatId, oldestTimestamp)
     }
 
     /**
@@ -288,10 +264,6 @@ class ChatSessionViewModel @AssistedInject constructor(
         super.onCleared()
         audioPlaybackManager.release()
         activeSessionManager.leave()
-    }
-
-    companion object {
-        private const val PAGE_SIZE = 20
     }
 }
 

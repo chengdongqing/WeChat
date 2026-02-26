@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.data.database.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -28,7 +29,8 @@ data class ConnectionInfoEntity(
 
     val priority: Int = 0,              // 连接优先级（0最高）
 
-    val updatedAt: Long                 // 更新时间
+    @Embedded
+    val audit: EntityAudit = EntityAudit()
 )
 
 enum class ConnectionType {

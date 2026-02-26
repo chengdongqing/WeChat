@@ -7,12 +7,14 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
@@ -35,12 +37,12 @@ class ContactDetailViewModel @AssistedInject constructor(
         fun create(contactId: String): ContactDetailViewModel
     }
 
-    val uiState: StateFlow<ContactDetailUiState> = combine(
+    val contact: StateFlow<Contact?> = combine(
         profileRepository.getCurrentProfile(),
         contactRepository.observeContactById(contactId)
     ) { myProfile, contact ->
         if (myProfile == null) {
-            return@combine ContactDetailUiState(isLoading = false, error = "未找到个人资料")
+            return@combine null
         }
 
         val isMyself = contactId == myProfile.id
@@ -62,19 +64,18 @@ class ContactDetailViewModel @AssistedInject constructor(
             }
         }
 
-        ContactDetailUiState(
-            contact = finalContact,
-            isLoading = false,
-            error = if (finalContact == null) "未找到联系人信息" else null
-        )
+        finalContact
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ContactDetailUiState(isLoading = true)
+        initialValue = null
     )
 
+    private val _uiState = MutableStateFlow(ContactDetailUiState())
+    val uiState = _uiState.asStateFlow()
+
     private val _navigationEvent = MutableSharedFlow<NavigationEvent>()
-    val navigationEvent: SharedFlow<NavigationEvent> = _navigationEvent.asSharedFlow()
+    val navigationEvent = _navigationEvent.asSharedFlow()
 
     /**
      * 处理联系人操作
@@ -114,10 +115,10 @@ class ContactDetailViewModel @AssistedInject constructor(
      */
     fun toggleBlock() {
         viewModelScope.launch {
-            uiState.value.contact?.let { contact ->
-                contactRepository.updateContact(
-                    contact.copy(isBlocked = !contact.isBlocked)
-                )
+            contactRepository.updateContact(
+                contact.value?.id ?: return@launch
+            ) { contact ->
+                contact.copy(isBlocked = !contact.isBlocked)
             }
         }
     }
@@ -131,14 +132,13 @@ class ContactDetailViewModel @AssistedInject constructor(
                 contactRepository.deleteContact(contactId)
                 _navigationEvent.emit(NavigationEvent.ContactDeleted)
             } catch (_: Exception) {
+                _uiState.update { it.copy(error = "删除联系人失败") }
             }
         }
     }
 }
 
 data class ContactDetailUiState(
-    val contact: Contact? = null,
-    val isLoading: Boolean = false,
     val error: String? = null
 )
 

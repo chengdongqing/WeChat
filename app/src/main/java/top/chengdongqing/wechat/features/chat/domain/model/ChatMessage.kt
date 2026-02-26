@@ -15,8 +15,7 @@ data class ChatMessage(
     val isFromMe: Boolean,
     val timestamp: Long,
     val sendStatus: MessageSendStatus = MessageSendStatus.Success,
-    val isSelected: Boolean = false,
-    val retryCount: Int = 0  // 重试次数
+    val isSelected: Boolean = false
 ) {
     /**
      * 是否正在发送中

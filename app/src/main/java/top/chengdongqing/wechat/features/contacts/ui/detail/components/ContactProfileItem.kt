@@ -50,12 +50,6 @@ fun ContactProfileItem(
                 value = contact.signature ?: ""
             )
         }
-        if (contact.tags?.isNotEmpty().isTrue()) {
-            ProfileInfoRow(
-                label = "标签",
-                value = contact.tags!!.joinToString(", ")
-            )
-        }
         if (contact.note?.isNotEmpty().isTrue()) {
             ProfileInfoRow(
                 label = "备忘",

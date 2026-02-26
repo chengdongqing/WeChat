@@ -81,7 +81,6 @@ class RequestAddViewModel @AssistedInject constructor(
                 targetContact = contact,
                 greetingMessage = state.greetingMessage,
                 remark = state.remark.takeIf { it.isNotBlank() },
-                tags = state.tags.takeIf { it.isNotEmpty() },
                 note = state.note.takeIf { it.isNotBlank() }
             ).fold(
                 onSuccess = {

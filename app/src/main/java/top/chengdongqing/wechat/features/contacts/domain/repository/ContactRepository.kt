@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.features.contacts.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import top.chengdongqing.wechat.data.database.entity.ContactEntity
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 interface ContactRepository {
@@ -8,7 +9,7 @@ interface ContactRepository {
     /**
      * 获取所有联系人
      */
-    fun getAllContacts(): Flow<List<Contact>>
+    fun observeAllContacts(): Flow<List<Contact>>
 
     /**
      * 根据ID获取联系人
@@ -33,7 +34,7 @@ interface ContactRepository {
     /**
      * 更新联系人
      */
-    suspend fun updateContact(contact: Contact)
+    suspend fun updateContact(contactId: String, updateBlock: (ContactEntity) -> ContactEntity)
 
     /**
      * 删除联系人

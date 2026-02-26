@@ -38,8 +38,8 @@ fun ContactDetailScreen(
     }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val contact = viewModel.contact.collectAsStateWithLifecycle().value ?: return
     val snackbarHostState = remember { SnackbarHostState() }
-    val contact = uiState.contact ?: return
 
     val context = LocalContext.current
     val launchCall = rememberCallLauncher(contact.id) { id, type ->

@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.data.database.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import top.chengdongqing.wechat.features.me.domain.model.Gender
@@ -7,28 +8,23 @@ import top.chengdongqing.wechat.features.me.domain.model.Gender
 @Entity(tableName = "contacts")
 data class ContactEntity(
     @PrimaryKey
-    val userId: String,
+    val id: String,                       // 联系人id
 
-    val nickname: String,
-    val avatarPath: String?,
-    val signature: String? = null,
-    val gender: Gender? = null,
+    val nickname: String,                 // 昵称
+    val avatarPath: String?,              // 头像
+    val signature: String? = null,        // 签名
+    val gender: Gender? = null,           // 性别
 
-    // 备注信息
-    val remarkName: String? = null,
-    val tags: String? = null,
-    val note: String? = null,
+    val remarkName: String? = null,       // 备注名
+    val note: String? = null,             // 备忘
 
-    // 是否拉黑
-    val isBlocked: Boolean = false,
+    val isBlocked: Boolean = false,       // 是否拉黑
 
-    // 添加方式
-    val source: AddSource? = null,
-    val isFromMe: Boolean = true,
+    val source: AddSource? = null,        // 添加方式
+    val isFromMe: Boolean = true,         // 是否我主动添加
 
-    // 时间
-    val addedAt: Long,
-    val updatedAt: Long
+    @Embedded
+    val audit: EntityAudit = EntityAudit()
 ) {
     val displayName: String
         get() = remarkName ?: nickname

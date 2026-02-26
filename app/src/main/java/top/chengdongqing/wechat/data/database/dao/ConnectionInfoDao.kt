@@ -1,41 +1,38 @@
 package top.chengdongqing.wechat.data.database.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 
 @Dao
-interface ConnectionInfoDao {
-
-    @Query("SELECT * FROM connection_info WHERE userId = :userId")
-    fun observeByUserId(userId: String): Flow<List<ConnectionInfoEntity>>
+interface ConnectionInfoDao : BaseDao<ConnectionInfoEntity> {
 
     @Query("SELECT * FROM connection_info WHERE userId = :userId ORDER BY priority ASC")
-    suspend fun getConnectionsByUserId(userId: String): List<ConnectionInfoEntity>
-
-    @Query("SELECT * FROM connection_info WHERE isOnline = 1")
-    fun observeOnlineUsers(): Flow<List<ConnectionInfoEntity>>
+    suspend fun getById(userId: String): ConnectionInfoEntity?
 
     @Query("SELECT isOnline FROM connection_info WHERE userId = :userId")
     fun observeOnlineStatus(userId: String): Flow<Boolean?>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(info: ConnectionInfoEntity)
+    @Transaction
+    suspend fun update(
+        userId: String,
+        updateBlock: (ConnectionInfoEntity) -> ConnectionInfoEntity
+    ) {
+        val old = getById(userId) ?: return
+        val new = updateBlock(old).copy(
+            audit = old.audit.copy(updatedAt = System.currentTimeMillis())
+        )
+        update(new)
+    }
 
-    @Update
-    suspend fun update(info: ConnectionInfoEntity)
+    @Query("UPDATE connection_info SET isOnline = 0, updatedAt = :now WHERE userId = :userId")
+    suspend fun markOffline(userId: String, now: Long = System.currentTimeMillis())
 
-    @Query("UPDATE connection_info SET isOnline = 0 WHERE userId = :userId")
-    suspend fun markOffline(userId: String)
+    @Query("UPDATE connection_info SET isOnline = 1, lastSeen = :timestamp, updatedAt = :now WHERE userId = :userId")
+    suspend fun markOnline(userId: String, timestamp: Long, now: Long = System.currentTimeMillis())
 
-    @Query("UPDATE connection_info SET isOnline = 1, lastSeen = :timestamp WHERE userId = :userId")
-    suspend fun markOnline(userId: String, timestamp: Long)
-
-    @Delete
-    suspend fun delete(info: ConnectionInfoEntity)
+    @Query("DELETE FROM connection_info WHERE userId = :userId")
+    suspend fun deleteById(userId: String)
 }

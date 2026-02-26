@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.data.database.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -9,14 +10,11 @@ import kotlinx.serialization.Serializable
     tableName = "messages",
     indices = [
         Index(value = ["sessionId", "timestamp"]),  // 按会话和时间查询
-        Index(value = ["messageId"], unique = true)  // 消息ID唯一索引
     ]
 )
 data class MessageEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,                   // 本地自增ID
-
-    val messageId: String,              // 全局唯一消息ID
+    @PrimaryKey
+    val id: String,                     // 消息ID
     val sessionId: String,              // 所属会话ID
     val senderId: String,               // 发送者ID
     val receiverId: String,             // 接收者ID
@@ -37,11 +35,10 @@ data class MessageEntity(
 
     val isFromMe: Boolean,              // 是否是我发送的
 
-    val retryCount: Int = 0,            // 重试次数
     val failReason: SendError? = null,  // 失败原因
 
-    val createdAt: Long,                // 创建时间
-    val updatedAt: Long                 // 更新时间
+    @Embedded
+    val audit: EntityAudit = EntityAudit()
 )
 
 @Serializable
@@ -56,7 +53,7 @@ enum class MessageType {
     ContactCard,    // 名片
     Favorite,       // 收藏
     VoiceCall,      // 语音通话记录
-    VideoCall;       // 视频通话记录
+    VideoCall;      // 视频通话记录
 
     // 是否需要解析json来获取文件名
     val isFileNameInJson: Boolean

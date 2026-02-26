@@ -52,42 +52,56 @@ class ChatSessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun clearUnreadCount(sessionId: String) {
-        chatSessionDao.clearUnreadCount(sessionId)
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(unreadCount = 0)
+        }
     }
 
     override suspend fun markAsUnread(sessionId: String) {
-        chatSessionDao.markAsUnread(sessionId)
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(unreadCount = 1)
+        }
     }
 
-    override suspend fun saveDraft(sessionId: String, draft: String?) {
-        chatSessionDao.updateDraft(sessionId, draft)
+    override suspend fun updateDraft(sessionId: String, draft: String?) {
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(draftMessage = draft)
+        }
     }
 
     override suspend fun togglePin(sessionId: String, isPinned: Boolean) {
-        chatSessionDao.updatePin(sessionId, isPinned)
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(isPinned = isPinned)
+        }
     }
 
     override suspend fun toggleMute(sessionId: String, isMuted: Boolean) {
-        chatSessionDao.updateMute(sessionId, isMuted)
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(isMuted = isMuted)
+        }
     }
 
     override suspend fun updateBackground(sessionId: String, backgroundPath: String?) {
-        chatSessionDao.updateBackground(sessionId, backgroundPath)
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(backgroundPath = backgroundPath)
+        }
     }
 
     override suspend fun hideSession(sessionId: String) {
-        chatSessionDao.hideSession(sessionId)
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(isHidden = true)
+        }
     }
 
     override suspend fun deleteSession(sessionId: String, shouldHide: Boolean) {
         // 删除会话，不真正删除这条记录，目的是保留 置顶/免到扰 等设置
-        // 清空消息+隐藏会话
+        // 执行：清空消息+隐藏会话
         weDatabase.withTransaction {
             chatSessionDao.clearLastMessage(sessionId)
             if (shouldHide) {
-                chatSessionDao.hideSession(sessionId)
+                hideSession(sessionId)
             }
-            messageDao.deleteBySession(sessionId)
+            messageDao.deleteBySessionId(sessionId)
         }
     }
 

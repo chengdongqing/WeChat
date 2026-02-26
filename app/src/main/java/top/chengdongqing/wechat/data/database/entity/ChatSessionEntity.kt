@@ -1,12 +1,13 @@
 package top.chengdongqing.wechat.data.database.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "chat_sessions")
 data class ChatSessionEntity(
     @PrimaryKey
-    val sessionId: String,              // 会话ID（通常是对方的 userId）
+    val id: String,                     // 会话ID
 
     val contactId: String,              // 联系人ID
     val contactName: String,            // 联系人名称（冗余，方便显示）
@@ -25,6 +26,6 @@ data class ChatSessionEntity(
     val draftMessage: String? = null,   // 草稿消息
     val backgroundPath: String? = null, // 聊天背景
 
-    val createdAt: Long,                // 创建时间
-    val updatedAt: Long                 // 更新时间
+    @Embedded
+    val audit: EntityAudit = EntityAudit()
 )

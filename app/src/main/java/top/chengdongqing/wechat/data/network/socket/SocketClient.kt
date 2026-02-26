@@ -3,17 +3,14 @@ package top.chengdongqing.wechat.data.network.socket
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
 import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
@@ -23,13 +20,10 @@ import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.PacketWriter
-import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import java.io.EOFException
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketException
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,12 +31,6 @@ import javax.inject.Singleton
  * TCP 出站连接管理器
  *
  * 负责主动发起连接、E2E 握手、收包路由和心跳保活。
- *
- * 性能设计：
- * - Socket 收发缓冲区 512KB，匹配 LAN 带宽
- * - tcpNoDelay = true，禁用 Nagle 避免 40ms 延迟
- * - [sendAtomicTransfer] 通过 Mutex 保证 FILE_META + FILE_CHUNK 序列原子
- * - 心跳引用计数（[SocketConnection.activeTransferCount]），文件传输中自动暂停心跳
  */
 @Singleton
 class SocketClient @Inject constructor(
@@ -54,13 +42,6 @@ class SocketClient @Inject constructor(
     private companion object {
         const val TAG = "SocketClient"
     }
-
-    private val _connectionEvents = MutableSharedFlow<ConnectionEvent>()
-
-    /** 连接状态事件流，[ChatModule] 订阅后启动包监听 */
-    val connectionEvents = _connectionEvents.asSharedFlow()
-
-    // ==================== 公开接口 ====================
 
     /**
      * 主动连接指定用户
@@ -75,26 +56,24 @@ class SocketClient @Inject constructor(
         myUserId: String
     ): Result<PeerConnection> = withContext(Dispatchers.IO) {
         runCatching {
-            Log.d(TAG, "正在连接: $host:$port")
             val socket = createSocket(host, port)
-            val connection = PeerConnection(
+            val conn = PeerConnection(
                 userId = userId,
                 socket = socket,
                 reader = PacketReader(socket.getInputStream()),
                 writer = PacketWriter(socket.getOutputStream())
             )
-            connectionManager.register(connection)
+            connectionManager.register(conn)
 
-            sendHandshake(connection, myUserId)
-            startReceiving(connection)
-            startHeartbeat(connection)
+            sendHandshake(conn, myUserId)
+            startReceiving(conn)
+            startHeartbeat(conn)
 
-            _connectionEvents.emit(ConnectionEvent.Connected(userId))
-            Log.d(TAG, "连接成功: $userId")
-            connection
-        }.onFailure {
-            Log.e(TAG, "连接失败: $userId", it)
-            _connectionEvents.emit(ConnectionEvent.Disconnected(userId, it.message))
+            connectionManager.emitEvent(ConnectionEvent.Connected(userId, conn))
+            conn
+        }.onFailure { e ->
+            Log.e(TAG, "连接失败: $userId", e)
+            connectionManager.emitEvent(ConnectionEvent.Disconnected(userId, e.message))
         }
     }
 
@@ -142,14 +121,13 @@ class SocketClient @Inject constructor(
         }
     }
 
-    /** 主动断开指定连接，释放资源并发出 Disconnected 事件 */
+    /**
+     * 断开指定连接
+     */
     suspend fun disconnect(userId: String) = withContext(Dispatchers.IO) {
         connectionManager.close(userId)
-        _connectionEvents.emit(ConnectionEvent.Disconnected(userId, "主动断开"))
-        Log.d(TAG, "已断开: $userId")
+        connectionManager.emitEvent(ConnectionEvent.Disconnected(userId, "主动断开"))
     }
-
-    // ==================== 内部逻辑 ====================
 
     /**
      * 创建并配置 Socket
@@ -208,11 +186,9 @@ class SocketClient @Inject constructor(
                         json.encodeToString<ChatProtocol>(ack).toByteArray(Charsets.UTF_8)
                     )
                 )
-                Log.d(TAG, "E2E ACK 已回传: ${connection.userId}")
             }
             hs.e2ePublicKeyAck?.let { peerKey ->
                 e2e.completeHandshake(connection.userId, peerKey)
-                Log.d(TAG, "E2E 握手完成: ${connection.userId}")
             }
         }.onFailure {
             Log.e(TAG, "E2E 握手处理失败: ${connection.userId}", it)
@@ -234,19 +210,19 @@ class SocketClient @Inject constructor(
         scope.launch {
             try {
                 while (connection.isActive) {
-                    val raw = connection.reader.read()
-                    when (raw.type) {
+                    val packet = connection.reader.read()
+                    when (packet.type) {
                         PacketType.PONG -> connection.lastPongTime.set(System.currentTimeMillis())
                         PacketType.PING -> connection.writer.write(Packet.pong())
                         PacketType.HANDSHAKE -> {
-                            handleE2EInHandshake(connection, raw)
-                            connection.receiveChannel.send(raw)
+                            handleE2EInHandshake(connection, packet)
+                            connection.receiveChannel.send(packet)
                         }
 
                         else -> connection.receiveChannel.send(
                             e2e.decryptPacket(
-                                connection.userId,
-                                raw
+                                peerId = connection.userId,
+                                packet = packet
                             )
                         )
                     }
@@ -254,7 +230,7 @@ class SocketClient @Inject constructor(
             } catch (e: Exception) {
                 when (e) {
                     is EOFException, is SocketException -> {
-                        Log.d(TAG, "接收中断: ${connection.userId}, ${e.message}")
+                        Log.w(TAG, "接收中断: ${connection.userId}, ${e.message}")
                     }
 
                     else -> Log.e(TAG, "接收中断: ${connection.userId}", e)
@@ -270,8 +246,8 @@ class SocketClient @Inject constructor(
      *
      * 每隔 [TransferConfig.PING_INTERVAL] 发一次 Ping。
      * 超过 [TransferConfig.PONG_TIMEOUT] 未收到 Pong 则主动断开。
-     * 文件传输中（[SocketConnection.activeTransferCount] > 0）跳过，
-     * 传输结束时 [SocketConnection.decrementTransferCount] 会重置 lastPongTime 防止误判。
+     * 文件传输中（[PeerConnection.activeTransferCount] > 0）跳过，
+     * 传输结束时 [PeerConnection.decrementTransferCount] 会重置 lastPongTime 防止误判。
      */
     private fun startHeartbeat(connection: PeerConnection) {
         connection.lastPongTime.set(System.currentTimeMillis())
@@ -300,60 +276,4 @@ class SocketClient @Inject constructor(
             }
         }
     }
-}
-
-// ==================== 数据类 ====================
-
-/**
- * 出站连接实例
- *
- * @param transferMutex      文件传输时加锁，保证 META+CHUNK 序列原子不被插入
- * @param activeTransferCount 传输引用计数，> 0 时心跳自动暂停
- * @param lastPongTime       最后收到 Pong 的时间戳，超时判断依据
- */
-data class SocketConnection(
-    val userId: String,
-    val socket: Socket,
-    val reader: PacketReader,
-    val writer: PacketWriter,
-    val receiveChannel: Channel<Packet> = Channel(Channel.UNLIMITED),
-    val transferMutex: Mutex = Mutex(),
-    val activeTransferCount: AtomicInteger = AtomicInteger(0),
-    val lastPongTime: AtomicLong = AtomicLong(System.currentTimeMillis()),
-    var heartbeatJob: Job? = null
-) {
-    val isActive: Boolean get() = socket.isConnected && !socket.isClosed
-
-    /** 传输开始，心跳自动暂停 */
-    fun incrementTransferCount() = activeTransferCount.incrementAndGet()
-
-    /**
-     * 传输结束
-     *
-     * 计数归零时重置 [lastPongTime]，避免传输期间心跳暂停积累的时间触发误判超时。
-     */
-    fun decrementTransferCount() {
-        if (activeTransferCount.decrementAndGet() <= 0) {
-            lastPongTime.set(System.currentTimeMillis())
-        }
-    }
-
-    /** 关闭连接，取消心跳并释放所有 IO 资源 */
-    fun close() {
-        runCatching {
-            heartbeatJob?.cancel()
-            receiveChannel.close()
-            reader.close()
-            writer.close()
-            socket.close()
-        }
-    }
-}
-
-sealed class ConnectionEvent {
-    /** TCP 连接已建立并完成握手 */
-    data class Connected(val userId: String) : ConnectionEvent()
-
-    /** 连接已断开，[reason] 说明原因（主动断开 / Pong 超时 / 接收异常等） */
-    data class Disconnected(val userId: String, val reason: String?) : ConnectionEvent()
 }

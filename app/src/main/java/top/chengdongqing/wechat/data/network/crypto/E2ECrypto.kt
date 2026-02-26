@@ -41,8 +41,6 @@ class E2ECrypto @Inject constructor() {
         private val secureRandom = SecureRandom()
     }
 
-    // ==================== 密钥对 ====================
-
     /**
      * 本地密钥对
      *
@@ -81,8 +79,10 @@ class E2ECrypto @Inject constructor() {
             }
     }
 
-    // ==================== 密钥生成 ====================
 
+    /**
+     * 生成密钥对
+     */
     fun generateKeyPair(): LocalKeyPair {
         val kp = KeyPairGenerator.getInstance("EC").run {
             initialize(ECGenParameterSpec("secp256r1"))
@@ -94,9 +94,9 @@ class E2ECrypto @Inject constructor() {
         )
     }
 
-    // ==================== 加解密 ====================
-
-    /** 加密，输出格式：[IV 12B][密文 + GCM Tag] */
+    /**
+     * 加密，输出格式：[IV 12B][密文 + GCM Tag]
+     */
     fun encrypt(plaintext: ByteArray, sessionKey: ByteArray): ByteArray {
         val iv = ByteArray(GCM_IV_LENGTH).also { secureRandom.nextBytes(it) }
         val ciphertext = tlsCipher.get()!!.run {
@@ -110,7 +110,9 @@ class E2ECrypto @Inject constructor() {
         return iv + ciphertext
     }
 
-    /** 解密，输入格式：[IV 12B][密文 + GCM Tag] */
+    /**
+     * 解密，输入格式：[IV 12B][密文 + GCM Tag]
+     */
     fun decrypt(data: ByteArray, sessionKey: ByteArray): ByteArray {
         require(data.size > GCM_IV_LENGTH) { "数据过短，不是合法的加密包" }
         return tlsCipher.get()!!.run {

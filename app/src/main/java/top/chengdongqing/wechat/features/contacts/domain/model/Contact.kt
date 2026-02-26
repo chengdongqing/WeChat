@@ -13,7 +13,6 @@ data class Contact(
     val remarkName: String? = null,
     val gender: Gender? = null,
     val signature: String? = null,
-    val tags: List<String>? = null,
     val note: String? = null,
     val relation: ContactRelation = ContactRelation.NotFriend,
     val source: AddSource? = null,

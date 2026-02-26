@@ -14,7 +14,6 @@ import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
 import top.chengdongqing.wechat.data.network.discovery.ServiceRegistrationState
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.service.NetworkService
-import top.chengdongqing.wechat.data.network.socket.ConnectionEvent
 import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.socket.SocketServer
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
@@ -25,13 +24,6 @@ import javax.inject.Singleton
 
 /**
  * 聊天模块
- *
- * LAN 消息收发的完整生命周期管理，启动顺序：
- * 1. [SocketServer] 启动并绑定随机端口
- * 2. NSD 注册：将本机服务广播到局域网，携带端口和 userId
- * 3. NSD 发现：扫描局域网内其他用户，发现后主动建立 TCP 连接
- * 4. [MessageReceiver] 启动，消费各连接的收包 Channel
- * 5. 订阅 [SocketClient] 连接事件，连接建立时自动启动包监听
  */
 @Singleton
 class ChatModule @Inject constructor(
@@ -52,37 +44,39 @@ class ChatModule @Inject constructor(
     val incomingMessageFlow: SharedFlow<ChatMessage>
         get() = messageReceiver.incomingMessageFlow
 
-    // ==================== 启停 ====================
-
+    /**
+     * 启动聊天服务模块
+     */
     suspend fun start(userId: String, scope: CoroutineScope) {
+        // 申请Wi-Fi锁，后台通信保活
         wifiLockManager.acquireKeepAlive()
-
+        // 启动TCP服务
         val port = socketServer.start()
-        Log.d(TAG, "Socket 服务端已启动，端口: $port")
-
-        observeConnectionEvents(scope)
+        // 注册NSD服务
         startNsdRegistration(userId, port, scope)
+        // 开始搜索NSD设备
         startNsdDiscovery(userId, scope)
-
+        // 启动消息接收服务
         messageReceiver.start()
+
         Log.d(TAG, "聊天模块已启动")
     }
 
     fun stop() {
-        wifiLockManager.releaseKeepAlive()
+        // 停止TCP服务
         socketServer.stop()
+        // 关闭所有连接
         connectionManager.closeAll()
+        // 释放Wi-Fi锁
+        wifiLockManager.releaseKeepAlive()
+
         Log.d(TAG, "聊天模块已停止")
     }
-
-    // ==================== NSD ====================
 
     /**
      * 启动 NSD 注册
      *
      * 将本机服务广播到局域网，其他设备发现后通过 TXT 属性的 userId 识别身份。
-     * 注：[ServiceRegistrationState.Registered] 里的 port 由系统回调返回，部分设备会返回 0，
-     * 实际注册端口以传入的 [port] 为准，详见 [NSDDiscovery.registerService]。
      */
     private fun startNsdRegistration(userId: String, port: Int, scope: CoroutineScope) {
         scope.launch {
@@ -105,8 +99,6 @@ class ChatModule @Inject constructor(
      * 启动 NSD 服务发现
      *
      * 持续监听局域网内设备上下线事件。
-     * DeviceFound：持久化连接信息并主动建立 TCP 连接
-     * DeviceLost：标记离线并断开连接
      */
     private fun startNsdDiscovery(userId: String, scope: CoroutineScope) {
         scope.launch {
@@ -119,28 +111,20 @@ class ChatModule @Inject constructor(
         }
     }
 
-    // ==================== 设备发现 ====================
-
     /**
      * 处理新发现的设备
-     *
-     * 每次发现都更新数据库中的连接信息（对方可能重启过，端口已变）。
-     * 已有出站连接则跳过建连（幂等），否则主动发起 TCP 连接。
-     * 连接建立后由 [observeConnectionEvents] 统一启动包监听。
      */
     private suspend fun handleDeviceFound(device: DiscoveredDevice, myUserId: String) {
-        // 是否是连接状态
+        // 已连接跳过
         if (connectionManager.isConnected(device.userId)) {
-            Log.d(TAG, "发现设备 - 设备已连接，跳过: ${device.userId}")
             return
         }
-        // 是否是好友
+        // 不是好友跳过
         if (!contactRepository.exists(device.userId)) {
-            Log.d(TAG, "发现设备 - 对方不是好友，跳过: ${device.userId}")
             return
         }
 
-        Log.d(TAG, "发现设备: ${device.userId} @ ${device.host}:${device.port}")
+        // 尝试连接
         socketClient.connect(
             userId = device.userId,
             host = device.host,
@@ -148,24 +132,21 @@ class ChatModule @Inject constructor(
             myUserId = myUserId
         ).onSuccess {
             Log.d(TAG, "Socket 已连接: ${device.userId}")
-        }.onFailure {
-            Log.e(TAG, "连接失败: ${device.userId} - ${it.message}")
-        }
 
-        // 保存连接信息
-        connectionInfoDao.insert(
-            ConnectionInfoEntity(
-                userId = device.userId,
-                connectionType = ConnectionType.WiFiLan,
-                ipAddress = device.host,
-                port = device.port,
-                serviceName = device.serviceName,
-                isOnline = true,
-                lastSeen = System.currentTimeMillis(),
-                priority = 0,
-                updatedAt = System.currentTimeMillis()
+            // 保存连接信息
+            connectionInfoDao.insert(
+                ConnectionInfoEntity(
+                    userId = device.userId,
+                    connectionType = ConnectionType.WiFiLan,
+                    ipAddress = device.host,
+                    port = device.port,
+                    serviceName = device.serviceName,
+                    isOnline = true,
+                    lastSeen = System.currentTimeMillis(),
+                    priority = 0
+                )
             )
-        )
+        }
     }
 
     /**
@@ -176,34 +157,7 @@ class ChatModule @Inject constructor(
      */
     private suspend fun handleDeviceLost(serviceName: String) {
         val userId = serviceName.removePrefix("WeChat_").substringBefore("_")
-        Log.d(TAG, "设备离线: $userId")
         connectionInfoDao.markOffline(userId)
         socketClient.disconnect(userId)
-    }
-
-    // ==================== 连接监听 ====================
-
-    /**
-     * 订阅 [SocketClient] 的连接状态事件
-     *
-     * Connected：将连接实例交给 [MessageReceiver] 开始消费收包 Channel
-     * Disconnected：打日志，资源清理由 [SocketClient] 内部负责
-     */
-    private fun observeConnectionEvents(scope: CoroutineScope) {
-        scope.launch {
-            socketClient.connectionEvents.collect { event ->
-                when (event) {
-                    is ConnectionEvent.Connected -> {
-                        connectionManager.getConnection(event.userId)?.let { connection ->
-                            messageReceiver.startListening(connection)
-                            Log.d(TAG, "开始监听连接: ${event.userId}")
-                        }
-                    }
-
-                    is ConnectionEvent.Disconnected ->
-                        Log.d(TAG, "连接断开: ${event.userId} - ${event.reason}")
-                }
-            }
-        }
     }
 }

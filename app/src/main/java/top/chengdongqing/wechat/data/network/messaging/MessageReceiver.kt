@@ -14,12 +14,13 @@ import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.model.PermissionResult
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
-import top.chengdongqing.wechat.data.network.socket.SocketServer
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import java.io.BufferedOutputStream
 import java.io.File
@@ -41,10 +42,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class MessageReceiver @Inject constructor(
-    private val socketServer: SocketServer,
-    private val dispatcher: MessageDispatcher,
-    private val contactRepository: ContactRepository,
+    private val connectionManager: ConnectionManager,
     private val messageSender: MessageSender,
+    private val messageDispatcher: MessageDispatcher,
+    private val contactRepository: ContactRepository,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
@@ -56,46 +57,36 @@ class MessageReceiver @Inject constructor(
         const val DISK_WRITE_BUFFER = 256 * 1024
     }
 
-    val incomingMessageFlow = dispatcher.incomingMessageFlow
-
-    /**
-     * 单个媒体文件的接收状态
-     *
-     * 以 userId 为 key 存储，同一连接同一时刻只能接收一个媒体文件。
-     * 连接断开或接收失败时由 [cleanupMediaState] 负责清理。
-     */
-    private class MediaReceiveState(
-        val metadata: ChatProtocol.MediaMessage,
-        val tempFile: File,
-        val outputStream: BufferedOutputStream,
-        var receivedBytes: Long = 0,
-        var lastReportedAt: Long = 0
-    ) {
-        fun cleanup() {
-            runCatching { outputStream.close() }
-            runCatching { tempFile.delete() }
-        }
-    }
+    val incomingMessageFlow = messageDispatcher.incomingMessageFlow
 
     private val mediaStates = mutableMapOf<String, MediaReceiveState>()
 
     /**
-     * 启动监听，订阅 SocketServer 的新连接并自动开始消费
+     * 启动监听，订阅新连接并自动开始消费
      */
     fun start() {
         scope.launch {
-            socketServer.incomingConnections.collect { startListening(it.connection) }
+            connectionManager.connectionEvents.collect { event ->
+                when (event) {
+                    is ConnectionEvent.Connected -> {
+                        startListening(event.conn)
+                    }
+
+                    is ConnectionEvent.Disconnected ->
+                        Log.d(TAG, "连接断开: ${event.userId} - ${event.reason}")
+                }
+            }
         }
     }
 
     /**
-     * 监听客户端连接（主动方）的 receiveChannel
+     * 监听数据
      */
-    fun startListening(connection: PeerConnection) {
-        scope.launch { consumePackets(connection.userId, connection.receiveChannel) }
+    private fun startListening(conn: PeerConnection) {
+        scope.launch {
+            consumePackets(conn.userId, conn.receiveChannel)
+        }
     }
-
-    // ==================== 核心逻辑 ====================
 
     /**
      * 循环消费 channel 中的 Packet，channel 关闭时退出并清理媒体状态
@@ -109,12 +100,14 @@ class MessageReceiver @Inject constructor(
             Log.e(TAG, "消费异常: $userId", e)
         } finally {
             cleanupMediaState(userId)
-            Log.d(TAG, "连接已关闭: $userId")
+            Log.w(TAG, "连接已关闭: $userId")
         }
     }
 
     /**
-     * 按 PacketType 路由到对应处理器；FILE_CHUNK 异常时额外清理媒体状态
+     * 按 PacketType 路由到对应处理器
+     *
+     * FILE_CHUNK 异常时额外清理媒体状态
      */
     private suspend fun handlePacket(userId: String, packet: Packet) {
         try {
@@ -140,7 +133,7 @@ class MessageReceiver @Inject constructor(
             && !canProcessMessage(userId, protocol.messageId)
         ) return
 
-        dispatcher.dispatch(protocol)
+        messageDispatcher.dispatch(protocol)
     }
 
     /**
@@ -216,8 +209,6 @@ class MessageReceiver @Inject constructor(
             // 进度节流
             if (state.receivedBytes - state.lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
                 state.lastReportedAt = state.receivedBytes
-                val percent = (state.receivedBytes * 100) / state.metadata.fileSize
-                Log.d(TAG, "接收进度 [${state.metadata.messageId}]: $percent%")
             }
 
             if (state.receivedBytes < state.metadata.fileSize) return@withContext
@@ -240,12 +231,10 @@ class MessageReceiver @Inject constructor(
                     // TODO 通知发送端重传
                     return@withContext
                 }
-                Log.d(TAG, "MD5 校验通过 [${state.metadata.messageId}]")
             }
 
-            dispatcher.dispatch(state.metadata, state.tempFile)
+            messageDispatcher.dispatch(state.metadata, state.tempFile)
             mediaStates.remove(userId)
-            Log.d(TAG, "媒体接收完成: messageId=${state.metadata.messageId}")
         }
 
     /**
@@ -254,7 +243,25 @@ class MessageReceiver @Inject constructor(
     private fun cleanupMediaState(userId: String) {
         mediaStates.remove(userId)?.let {
             it.cleanup()
-            Log.w(TAG, "清理未完成的媒体接收: messageId=${it.metadata.messageId}")
+            Log.w(TAG, "已清理未完成的媒体接收: messageId=${it.metadata.messageId}")
         }
+    }
+}
+
+/**
+ * 单个媒体文件的接收状态
+ *
+ * 以 userId 为 key 存储，同一连接同一时刻只能接收一个媒体文件。
+ */
+private class MediaReceiveState(
+    val metadata: ChatProtocol.MediaMessage,
+    val tempFile: File,
+    val outputStream: BufferedOutputStream,
+    var receivedBytes: Long = 0,
+    var lastReportedAt: Long = 0
+) {
+    fun cleanup() {
+        runCatching { outputStream.close() }
+        runCatching { tempFile.delete() }
     }
 }

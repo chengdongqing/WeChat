@@ -38,7 +38,7 @@ fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Uni
     val actionSheet = rememberActionSheetState()
     val options = remember(background) {
         val list = mutableListOf(
-            ActionSheetItem("拍照"),
+            ActionSheetItem("拍一张"),
             ActionSheetItem("从相册选择")
         )
         if (background != null) {

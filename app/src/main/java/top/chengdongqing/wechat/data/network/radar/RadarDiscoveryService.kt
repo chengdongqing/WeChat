@@ -22,6 +22,11 @@ import java.net.MulticastSocket
 import java.net.SocketTimeoutException
 import javax.inject.Inject
 
+/**
+ * 雷达发现服务
+ *
+ * 基于UDP组播
+ */
 class RadarDiscoveryService @Inject constructor(
     private val json: Json,
     private val profileRepository: ProfileRepository,

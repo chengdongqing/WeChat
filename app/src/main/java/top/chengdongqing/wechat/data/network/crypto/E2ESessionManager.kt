@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.data.network.crypto
 
 import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import top.chengdongqing.wechat.data.network.protocol.Packet
@@ -30,7 +29,7 @@ class E2ESessionManager @Inject constructor(
 
     private data class Session(
         val sessionKey: ByteArray,
-        val isTemporary: Boolean    // true = 因对方开启而被动激活
+        val isTemporary: Boolean    // true = 因对方开启加密而被动激活
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -44,16 +43,14 @@ class E2ESessionManager @Inject constructor(
     private val sessions = mutableMapOf<String, Session>()
     private val pendingKeyPairs = mutableMapOf<String, E2ECrypto.LocalKeyPair>()
 
-    /** 活跃加密连接，UI 可据此显示锁头图标 */
+    // 活跃的加密连接
     private val _encryptedPeers = MutableStateFlow<Set<String>>(emptySet())
-    val encryptedPeers: StateFlow<Set<String>> = _encryptedPeers.asStateFlow()
+    val encryptedPeers = _encryptedPeers.asStateFlow()
 
     /**
      * 当前是否与指定 peer 存在加密 session
      */
-    fun hasSession(peerId: String) = peerId in sessions
-
-    // ==================== 握手 ====================
+    private fun hasSession(peerId: String) = peerId in sessions
 
     /**
      * 【主动方 Step1】生成本次握手的密钥对，返回公钥
@@ -63,7 +60,6 @@ class E2ESessionManager @Inject constructor(
     fun prepareHandshake(peerId: String): String {
         val kp = crypto.generateKeyPair()
         pendingKeyPairs[peerId] = kp
-        Log.d(TAG, "准备握手: $peerId")
         return kp.publicKeyEncoded
     }
 
@@ -75,7 +71,6 @@ class E2ESessionManager @Inject constructor(
     fun acceptHandshake(peerId: String, peerPublicKey: String): String {
         val kp = crypto.generateKeyPair()
         saveSession(peerId, kp.deriveSessionKey(peerPublicKey), isTemporary = true)
-        Log.d(TAG, "握手完成 (被动方): $peerId")
         return kp.publicKeyEncoded
     }
 
@@ -90,10 +85,7 @@ class E2ESessionManager @Inject constructor(
             return
         }
         saveSession(peerId, kp.deriveSessionKey(peerPublicKey), isTemporary = false)
-        Log.d(TAG, "握手完成 (主动方): $peerId")
     }
-
-    // ==================== 加解密 ====================
 
     /**
      * 加密 Packet body
@@ -102,16 +94,13 @@ class E2ESessionManager @Inject constructor(
      */
     fun encryptPacket(peerId: String, packet: Packet): Packet {
         if (packet.type in PacketType.PLAINTEXT_TYPES) return packet
-        if (!hasSession(peerId)) {
-            Log.d(TAG, "⏭️ 跳过加密 (无 session): peerId=$peerId")
-            return packet
-        }
+        if (!hasSession(peerId)) return packet
+
         return runCatching {
             val encryptedBody = crypto.encrypt(packet.body, requireSession(peerId).sessionKey)
-            Log.d(TAG, buildEncryptLog(packet, encryptedBody, peerId))
             Packet(PacketType.encryptedType(packet.type), encryptedBody)
         }.getOrElse {
-            Log.e(TAG, "❌ 加密失败: peerId=$peerId", it)
+            Log.e(TAG, "加密失败: peerId=$peerId", it)
             packet
         }
     }
@@ -125,20 +114,17 @@ class E2ESessionManager @Inject constructor(
         if (!PacketType.isEncrypted(packet.type)) return packet
         val baseType = PacketType.realType(packet.type)
         if (!hasSession(peerId)) {
-            Log.w(TAG, "⚠️ 收到加密包但无 session: peerId=$peerId")
+            Log.w(TAG, "收到加密包但无 session: peerId=$peerId")
             return Packet(baseType, ByteArray(0))
         }
         return runCatching {
             val decryptedBody = crypto.decrypt(packet.body, requireSession(peerId).sessionKey)
-            Log.d(TAG, buildDecryptLog(packet, decryptedBody, peerId))
             Packet(baseType, decryptedBody)
         }.getOrElse {
-            Log.e(TAG, "❌ 解密失败，包可能被篡改: peerId=$peerId", it)
+            Log.e(TAG, "解密失败，包可能被篡改: peerId=$peerId", it)
             Packet(baseType, ByteArray(0))
         }
     }
-
-    // ==================== 生命周期 ====================
 
     /**
      * 移除 session
@@ -150,45 +136,13 @@ class E2ESessionManager @Inject constructor(
         sessions.remove(peerId)
         pendingKeyPairs.remove(peerId)
         _encryptedPeers.update { it - peerId }
-        Log.d(TAG, "session 已移除: $peerId")
     }
-
-    // ==================== 私有 ====================
 
     private fun saveSession(peerId: String, key: ByteArray, isTemporary: Boolean) {
         sessions[peerId] = Session(key, isTemporary)
         _encryptedPeers.update { it + peerId }
-        Log.d(TAG, "✅ session 建立: $peerId isTemporary=$isTemporary key[0..3]=${key.take(4)}")
     }
 
     private fun requireSession(peerId: String): Session =
         sessions[peerId] ?: throw IllegalStateException("无 E2E session: $peerId")
-
-    private fun buildEncryptLog(plain: Packet, encryptedBody: ByteArray, peerId: String): String {
-        val plainText = plain.body.toUtf8OrBinary()
-        val cipherPreview = encryptedBody.hexPreview()
-        return """
-            🔒 加密:
-               明文(${plain.body.size}B): ${plainText.take(100) + "..."}
-               密文(${encryptedBody.size}B): $cipherPreview [IV=前12B, 密文+Tag=后${encryptedBody.size - 12}B]
-               peerId=$peerId
-        """.trimIndent()
-    }
-
-    private fun buildDecryptLog(cipher: Packet, decryptedBody: ByteArray, peerId: String): String {
-        val cipherPreview = cipher.body.hexPreview()
-        val plainText = decryptedBody.toUtf8OrBinary()
-        return """
-            🔓 解密:
-               密文(${cipher.body.size}B): $cipherPreview [IV=前12B]
-               明文(${decryptedBody.size}B): ${plainText.take(100) + "..."}
-               peerId=$peerId
-        """.trimIndent()
-    }
-
-    private fun ByteArray.hexPreview() =
-        take(16).joinToString("") { "%02x".format(it) } + "..."
-
-    private fun ByteArray.toUtf8OrBinary() =
-        runCatching { String(this, Charsets.UTF_8) }.getOrElse { "[binary ${size}B]" }
 }

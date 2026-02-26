@@ -1,12 +1,13 @@
 package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.core.util.extractFileExtension
+import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
@@ -31,6 +32,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class MessageDispatcher @Inject constructor(
+    private val weDatabase: WeDatabase,
     private val messageDao: MessageDao,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageSender: MessageSender,
@@ -53,9 +55,7 @@ class MessageDispatcher @Inject constructor(
     private val _incomingMessageFlow = MutableSharedFlow<ChatMessage>(
         replay = 0, extraBufferCapacity = 64
     )
-    val incomingMessageFlow: SharedFlow<ChatMessage> = _incomingMessageFlow.asSharedFlow()
-
-    // ==================== 分发入口 ====================
+    val incomingMessageFlow = _incomingMessageFlow.asSharedFlow()
 
     /**
      * 分发 JSON 类协议包（文本、回执、信令、心跳等）
@@ -70,7 +70,9 @@ class MessageDispatcher @Inject constructor(
                 is ChatProtocol.Handshake -> handleHeartbeat(protocol)
                 else -> {}
             }
-        }.onFailure { Log.e(TAG, "分发失败: ${protocol::class.simpleName}", it) }
+        }.onFailure {
+            Log.e(TAG, "分发失败: ${protocol::class.simpleName}", it)
+        }
     }
 
     /**
@@ -86,8 +88,6 @@ class MessageDispatcher @Inject constructor(
             tempFile.delete()
         }
     }
-
-    // ==================== 聊天消息 ====================
 
     private suspend fun handleTextMessage(protocol: ChatProtocol.TextMessage) {
         handleIncomingChat(protocol) { createTextEntity(protocol) }
@@ -115,26 +115,38 @@ class MessageDispatcher @Inject constructor(
         entityBuilder: suspend () -> MessageEntity
     ) {
         try {
+            // 已存在该消息直接发送送达回执
             if (messageDao.exists(protocol.messageId)) {
-                messageSender.sendReceipt(
-                    protocol.messageId,
-                    protocol.senderId,
-                    ReceiptType.Delivered
-                )
+                sendAck(protocol)
                 return
             }
 
             val entity = entityBuilder()
-            messageDao.insert(entity)
-            chatSessionUpdater.update(entity)
-            messageSender.sendReceipt(protocol.messageId, protocol.senderId, ReceiptType.Delivered)
+            weDatabase.withTransaction {
+                // 保存消息
+                messageDao.insert(entity)
+                // 更新会话
+                chatSessionUpdater.update(entity)
+            }
+            // 发送送达回执
+            sendAck(protocol)
+            // 推送到消息流
             _incomingMessageFlow.emit(entity.toDomain(json))
         } catch (e: Exception) {
             Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)
         }
     }
 
-    // ==================== 回执 ====================
+    /**
+     * 发送送达回执
+     */
+    private suspend fun sendAck(protocol: ChatProtocol) {
+        messageSender.sendReceipt(
+            messageId = protocol.messageId,
+            senderId = protocol.senderId,
+            type = ReceiptType.Delivered
+        )
+    }
 
     /**
      * 处理回执消息
@@ -149,7 +161,9 @@ class MessageDispatcher @Inject constructor(
                     } else {
                         SendStatus.Read
                     }
-                    messageDao.updateSendStatus(protocol.messageId, status)
+                    messageDao.update(protocol.messageId) { message ->
+                        message.copy(sendStatus = status)
+                    }
                 }
 
                 ReceiptType.Blocked,
@@ -159,11 +173,12 @@ class MessageDispatcher @Inject constructor(
                     } else {
                         SendError.NotFriend
                     }
-                    messageDao.updateSendStatusAndFailReason(
-                        messageId = protocol.messageId,
-                        status = SendStatus.Failed,
-                        reason = reason
-                    )
+                    messageDao.update(protocol.messageId) { message ->
+                        message.copy(
+                            sendStatus = SendStatus.Failed,
+                            failReason = reason
+                        )
+                    }
                     // 停止发送文件（如果有）
                     transferManager.setCancelled(protocol.messageId)
                 }
@@ -171,7 +186,9 @@ class MessageDispatcher @Inject constructor(
         }.onFailure { Log.e(TAG, "回执处理失败: ${protocol.messageId}", it) }
     }
 
-    /** 转发 WebRTC 信令给 SignalingManager 处理（Offer/Answer/ICE/Hangup 等） */
+    /**
+     * 转发 WebRTC 信令给 SignalingManager 处理（Offer/Answer/ICE/Hangup 等）
+     */
     private suspend fun handleSignaling(protocol: ChatProtocol.Signaling) {
         signalingManager.onSignalingReceived(protocol)
     }
@@ -184,16 +201,12 @@ class MessageDispatcher @Inject constructor(
             .onFailure { Log.e(TAG, "心跳处理失败: ${protocol.senderId}", it) }
     }
 
-    // ==================== 实体构建 ====================
-
     /**
      * 构建文本消息实体
      */
     private fun createTextEntity(protocol: ChatProtocol.TextMessage): MessageEntity {
-        val now = System.currentTimeMillis()
-
         return MessageEntity(
-            messageId = protocol.messageId,
+            id = protocol.messageId,
             sessionId = protocol.senderId,
             senderId = protocol.senderId,
             receiverId = protocol.receiverId,
@@ -201,9 +214,7 @@ class MessageDispatcher @Inject constructor(
             content = protocol.content,
             timestamp = protocol.timestamp,
             sendStatus = SendStatus.Delivered,
-            isFromMe = false,
-            createdAt = now,
-            updatedAt = now
+            isFromMe = false
         )
     }
 
@@ -211,7 +222,6 @@ class MessageDispatcher @Inject constructor(
      * 构建通话记录实体
      */
     private fun createCallEntity(protocol: ChatProtocol.CallMessage): MessageEntity {
-        val now = System.currentTimeMillis()
         val contentType = if (protocol.callType.isVideoCall) {
             MessageType.VideoCall
         } else {
@@ -219,7 +229,7 @@ class MessageDispatcher @Inject constructor(
         }
 
         return MessageEntity(
-            messageId = protocol.messageId,
+            id = protocol.messageId,
             sessionId = protocol.senderId,
             senderId = protocol.senderId,
             receiverId = protocol.receiverId,
@@ -228,9 +238,7 @@ class MessageDispatcher @Inject constructor(
             mediaDuration = protocol.duration,
             timestamp = protocol.timestamp,
             sendStatus = SendStatus.Delivered,
-            isFromMe = false,
-            createdAt = now,
-            updatedAt = now
+            isFromMe = false
         )
     }
 
@@ -244,7 +252,6 @@ class MessageDispatcher @Inject constructor(
         protocol: ChatProtocol.MediaMessage,
         tempFile: File
     ): MessageEntity {
-        val now = System.currentTimeMillis()
         val filename = if (protocol.messageType.isFileNameInJson) {
             json.decodeFromString<MediaContent>(protocol.content).filename
         } else {
@@ -264,7 +271,7 @@ class MessageDispatcher @Inject constructor(
         }
 
         return MessageEntity(
-            messageId = protocol.messageId,
+            id = protocol.messageId,
             sessionId = protocol.senderId,
             senderId = protocol.senderId,
             receiverId = protocol.receiverId,
@@ -275,9 +282,7 @@ class MessageDispatcher @Inject constructor(
             mediaDuration = protocol.mediaDuration,
             timestamp = protocol.timestamp,
             sendStatus = SendStatus.Delivered,
-            isFromMe = false,
-            createdAt = now,
-            updatedAt = now
+            isFromMe = false
         )
     }
 }

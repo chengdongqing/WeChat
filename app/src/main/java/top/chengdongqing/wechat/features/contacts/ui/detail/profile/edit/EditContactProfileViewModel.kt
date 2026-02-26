@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -43,7 +42,7 @@ class EditContactProfileViewModel @AssistedInject constructor(
     }
 
     private val _uiState = MutableStateFlow(EditContactProfileUiState())
-    val uiState: StateFlow<EditContactProfileUiState> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     private val _events = MutableSharedFlow<EditProfileEvent>()
     val events: SharedFlow<EditProfileEvent> = _events.asSharedFlow()
@@ -113,22 +112,21 @@ class EditContactProfileViewModel @AssistedInject constructor(
 
             try {
                 val currentState = _uiState.value
-                val contact = currentState.contact ?: return@launch
 
-                // 更新联系人
-                val updatedContact = contact.copy(
-                    remarkName = currentState.remarkName.ifBlank { null },
-                    note = currentState.note.ifBlank { null }
-                )
+                contactRepository.updateContact(
+                    currentState.contact?.id ?: return@launch
+                ) { contact ->
+                    contact.copy(
+                        remarkName = currentState.remarkName.ifBlank { null },
+                        note = currentState.note.ifBlank { null }
+                    )
+                }
 
-                contactRepository.updateContact(updatedContact)
-
-                _uiState.update { it.copy(isSaving = false) }
                 _events.emit(EditProfileEvent.SaveSuccess)
-
             } catch (e: Exception) {
-                _uiState.update { it.copy(isSaving = false) }
                 _events.emit(EditProfileEvent.SaveError(e.message ?: "保存失败"))
+            } finally {
+                _uiState.update { it.copy(isSaving = false) }
             }
         }
     }

@@ -1,34 +1,35 @@
 package top.chengdongqing.wechat.data.database.dao
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
 
 @Dao
-interface ContactDao {
+interface ContactDao : BaseDao<ContactEntity> {
 
-    @Query("SELECT * FROM contacts ORDER BY addedAt DESC")
-    fun getAll(): Flow<List<ContactEntity>>
+    @Query("SELECT * FROM contacts")
+    fun observeAll(): Flow<List<ContactEntity>>
 
-    @Query("SELECT * FROM contacts WHERE userId = :userId")
+    @Query("SELECT * FROM contacts WHERE id = :userId")
+    fun observeById(userId: String): Flow<ContactEntity?>
+
+    @Query("SELECT * FROM contacts WHERE id = :userId")
     suspend fun getById(userId: String): ContactEntity?
 
-    @Query("SELECT * FROM contacts WHERE userId = :userId")
-    fun getByIdFlow(userId: String): Flow<ContactEntity?>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(contact: ContactEntity)
-
-    @Update
-    suspend fun update(contact: ContactEntity)
-
-    @Query("DELETE FROM contacts WHERE userId = :userId")
-    suspend fun delete(userId: String)
-
-    @Query("SELECT EXISTS(SELECT 1 FROM contacts WHERE userId = :userId)")
+    @Query("SELECT EXISTS(SELECT 1 FROM contacts WHERE id = :userId)")
     suspend fun exists(userId: String): Boolean
+
+    @Transaction
+    suspend fun update(contactId: String, updateBlock: (ContactEntity) -> ContactEntity) {
+        val old = getById(contactId) ?: return
+        val new = updateBlock(old).copy(
+            audit = old.audit.copy(updatedAt = System.currentTimeMillis())
+        )
+        update(new)
+    }
+
+    @Query("DELETE FROM contacts WHERE id = :userId")
+    suspend fun deleteById(userId: String)
 }

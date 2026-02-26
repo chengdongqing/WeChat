@@ -45,51 +45,49 @@ class ChatSessionUpdater @Inject constructor(
      *
      * 未读计数规则：自己发的、给自己发的（自我会话）、当前正在查看的，均不计未读。
      */
-    suspend fun update(entity: MessageEntity) {
+    suspend fun update(message: MessageEntity) {
         // 是否是和自己的会话
-        val isSelfSession = entity.receiverId == entity.senderId
+        val isSelfSession = message.receiverId == message.senderId
 
         // 是否需要更新未读计数
         val shouldIncrementUnread = when {
-            entity.isFromMe -> false // 我发的消息
+            message.isFromMe -> false // 我发的消息
             isSelfSession -> false // 发给我自己的
-            activeSessionManager.isActive(entity.sessionId) -> false // 当前正在和ta聊天
-            entity.isFinishedCall -> false // 是已接通的通话消息
+            activeSessionManager.isActive(message.sessionId) -> false // 当前正在和ta聊天
+            message.isFinishedCall -> false // 是已接通的通话消息
             else -> true
         }
 
-        val lastMessageText = entity.contentType.toPreviewText(entity.content)
-        val existing = chatSessionDao.exists(entity.sessionId)
+        val lastMessageText = message.contentType.toPreviewText(message.content)
+        val existing = chatSessionDao.exists(message.sessionId)
 
         if (existing) {
             // 会话已存在：更新最新消息
             chatSessionDao.updateLastMessage(
-                sessionId = entity.sessionId,
+                sessionId = message.sessionId,
                 lastMessage = lastMessageText,
-                lastMessageType = entity.contentType,
-                timestamp = entity.timestamp
+                lastMessageType = message.contentType,
+                timestamp = message.timestamp
             )
             // 累加未读数
             if (shouldIncrementUnread) {
-                chatSessionDao.incrementUnreadCount(entity.sessionId)
+                chatSessionDao.incrementUnreadCount(message.sessionId)
             }
         } else {
             // 创建新会话
-            val (contactName, contactAvatar) = resolveContactInfo(entity, isSelfSession)
+            val (contactName, contactAvatar) = resolveContactInfo(message, isSelfSession)
             val now = System.currentTimeMillis()
 
             chatSessionDao.insert(
                 ChatSessionEntity(
-                    sessionId = entity.sessionId,
-                    contactId = entity.senderId,
+                    id = message.sessionId,
+                    contactId = message.senderId,
                     contactName = contactName,
                     contactAvatar = contactAvatar,
                     lastMessage = lastMessageText,
-                    lastMessageType = entity.contentType,
-                    lastMessageTime = entity.timestamp,
-                    unreadCount = if (shouldIncrementUnread) 1 else 0,
-                    createdAt = now,
-                    updatedAt = now
+                    lastMessageType = message.contentType,
+                    lastMessageTime = message.timestamp,
+                    unreadCount = if (shouldIncrementUnread) 1 else 0
                 )
             )
         }

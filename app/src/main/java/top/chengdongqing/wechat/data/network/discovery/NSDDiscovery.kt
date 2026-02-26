@@ -50,8 +50,6 @@ class NSDDiscovery @Inject constructor(
     }
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
-    // ==================== 服务注册 ====================
-
     /**
      * 注册本地服务，使局域网内其他设备能发现本机
      *
@@ -86,14 +84,12 @@ class NSDDiscovery @Inject constructor(
 
             awaitClose {
                 runCatching { nsdManager.unregisterService(listener) }
-                Log.d(TAG, "服务已注销")
             }
         }
 
     private fun ProducerScope<ServiceRegistrationState>.createRegistrationListener(localPort: Int) =
         object : NsdManager.RegistrationListener {
             override fun onServiceRegistered(info: NsdServiceInfo) {
-                Log.d(TAG, "服务注册成功: ${info.serviceName} 端口: $localPort")
                 trySend(ServiceRegistrationState.Registered(info.serviceName, localPort))
             }
 
@@ -103,7 +99,6 @@ class NSDDiscovery @Inject constructor(
             }
 
             override fun onServiceUnregistered(info: NsdServiceInfo) {
-                Log.d(TAG, "服务注销成功: ${info.serviceName}")
                 trySend(ServiceRegistrationState.Unregistered)
             }
 
@@ -111,8 +106,6 @@ class NSDDiscovery @Inject constructor(
                 Log.e(TAG, "服务注销失败: errorCode=$errorCode")
             }
         }
-
-    // ==================== 服务发现 ====================
 
     /**
      * 发现局域网内其他用户，持续监听直到 Flow 被取消
@@ -128,7 +121,9 @@ class NSDDiscovery @Inject constructor(
 
         runCatching {
             nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, listener)
-        }.onFailure { Log.e(TAG, "启动服务发现失败", it) }
+        }.onFailure {
+            Log.e(TAG, "启动服务发现失败", it)
+        }
 
         awaitClose {
             runCatching { nsdManager.stopServiceDiscovery(listener) }
@@ -149,17 +144,14 @@ class NSDDiscovery @Inject constructor(
         }
 
         override fun onServiceFound(serviceInfo: NsdServiceInfo) {
-            Log.d(TAG, "发现服务: ${serviceInfo.serviceName}")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 registerServiceInfoCallback(serviceInfo, currentUserId)
             } else {
-                // onServiceFound 里的 port 可能是缓存旧值，必须 resolve 拿最新值
                 serialResolver?.enqueue(serviceInfo)
             }
         }
 
         override fun onServiceLost(serviceInfo: NsdServiceInfo) {
-            Log.d(TAG, "服务丢失: ${serviceInfo.serviceName}")
             // Android 14+ 由 ServiceInfoCallback.onServiceLost 通知，此处只处理 13-
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 trySend(DiscoveryEvent.DeviceLost(serviceInfo.serviceName))
@@ -195,7 +187,6 @@ class NSDDiscovery @Inject constructor(
                 }
 
                 override fun onServiceLost() {
-                    Log.d(TAG, "服务丢失(回调): ${serviceInfo.serviceName}")
                     trySend(DiscoveryEvent.DeviceLost(serviceInfo.serviceName))
                 }
 
@@ -209,8 +200,6 @@ class NSDDiscovery @Inject constructor(
             }
         )
     }
-
-    // ==================== 串行解析器（Android 13-）====================
 
     /**
      * 串行服务解析器
@@ -295,16 +284,8 @@ class NSDDiscovery @Inject constructor(
         })
     }
 
-    // ==================== 工具方法 ====================
-
     private fun shouldNotify(device: DiscoveredDevice, currentUserId: String): Boolean {
-        return if (device.userId == currentUserId) {
-            Log.d(TAG, "过滤自身: ${device.userId}")
-            false
-        } else {
-            Log.d(TAG, "发现设备: ${device.userId} @ ${device.host}:${device.port}")
-            true
-        }
+        return device.userId != currentUserId
     }
 
     private fun NsdServiceInfo.toDiscoveredDevice(): DiscoveredDevice? {
@@ -339,8 +320,6 @@ class NSDDiscovery @Inject constructor(
             ?.hostAddress
     }
 }
-
-// ==================== 数据类 ====================
 
 sealed class DiscoveryEvent {
     data class DeviceFound(val device: DiscoveredDevice) : DiscoveryEvent()
