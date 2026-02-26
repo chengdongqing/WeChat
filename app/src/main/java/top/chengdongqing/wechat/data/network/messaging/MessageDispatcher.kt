@@ -8,7 +8,6 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.core.util.extractFileExtension
 import top.chengdongqing.wechat.data.database.WeDatabase
-import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
@@ -34,7 +33,6 @@ import javax.inject.Singleton
 class MessageDispatcher @Inject constructor(
     private val weDatabase: WeDatabase,
     private val messageDao: MessageDao,
-    private val connectionInfoDao: ConnectionInfoDao,
     private val messageSender: MessageSender,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val fileManager: FileManager,
@@ -67,7 +65,6 @@ class MessageDispatcher @Inject constructor(
                 is ChatProtocol.CallMessage -> handleCallMessage(protocol)
                 is ChatProtocol.MessageReceipt -> handleReceipt(protocol)
                 is ChatProtocol.Signaling -> handleSignaling(protocol)
-                is ChatProtocol.Handshake -> handleHeartbeat(protocol)
                 else -> {}
             }
         }.onFailure {
@@ -191,14 +188,6 @@ class MessageDispatcher @Inject constructor(
      */
     private suspend fun handleSignaling(protocol: ChatProtocol.Signaling) {
         signalingManager.onSignalingReceived(protocol)
-    }
-
-    /**
-     * 收到心跳包，更新对方的在线时间戳
-     */
-    private suspend fun handleHeartbeat(protocol: ChatProtocol.Handshake) {
-        runCatching { connectionInfoDao.markOnline(protocol.senderId, protocol.timestamp) }
-            .onFailure { Log.e(TAG, "心跳处理失败: ${protocol.senderId}", it) }
     }
 
     /**

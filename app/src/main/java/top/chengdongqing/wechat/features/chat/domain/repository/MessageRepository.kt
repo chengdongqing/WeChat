@@ -18,7 +18,7 @@ interface MessageRepository {
         receiverId: String,
         messageId: String? = null,
         content: MessageContent
-    ): Result<ChatMessage>
+    ): Result<Unit>
 
     /** 重试发送 */
     suspend fun retrySend(messageId: String): Result<Unit>

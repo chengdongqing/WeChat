@@ -156,8 +156,7 @@ class ChatModule @Inject constructor(
      * 取第二段作为 userId（兼容加时间戳后的格式）。
      */
     private suspend fun handleDeviceLost(serviceName: String) {
-        val userId = serviceName.removePrefix("WeChat_").substringBefore("_")
-        connectionInfoDao.markOffline(userId)
-        socketClient.disconnect(userId)
+        val userId = serviceName.removePrefix("WeChat_").substringBeforeLast("_")
+        connectionManager.disconnect(userId)
     }
 }

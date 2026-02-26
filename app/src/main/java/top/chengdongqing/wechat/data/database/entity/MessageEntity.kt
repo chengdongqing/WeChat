@@ -73,7 +73,7 @@ enum class SendStatus {
 }
 
 enum class SendError(val message: String, val canRetry: Boolean) {
-    NetworkTimeout("网络连接超时。", true),
+    ConnectionFailed("连接失败。", true),
     RecipientOffline("对方不在线。", true),
     NotFriend(
         "对方开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证，对方验证通过后，才能聊天。",

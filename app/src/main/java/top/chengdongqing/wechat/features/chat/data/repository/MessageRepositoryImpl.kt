@@ -10,7 +10,6 @@ import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
-import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
@@ -23,7 +22,6 @@ import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepositor
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.File
 import javax.inject.Inject
-import kotlin.coroutines.cancellation.CancellationException
 
 class MessageRepositoryImpl @Inject constructor(
     private val weDatabase: WeDatabase,
@@ -55,7 +53,7 @@ class MessageRepositoryImpl @Inject constructor(
         receiverId: String,
         messageId: String?,
         content: MessageContent
-    ): Result<ChatMessage> {
+    ): Result<Unit> {
         return runCatching {
             val myProfile = profileRepository.getCurrentProfileSnapshot()
                 ?: throw Exception("未找到个人资料")
@@ -94,8 +92,6 @@ class MessageRepositoryImpl @Inject constructor(
                 // 发送消息
                 sendMessageAsync(entity)
             }
-
-            entity.toDomain(json)
         }
     }
 
@@ -112,7 +108,7 @@ class MessageRepositoryImpl @Inject constructor(
             // 重新发送
             when (entity.contentType) {
                 MessageType.Text,
-                MessageType.ContactCard -> messageSender.sendTextMessage(entity).getOrThrow()
+                MessageType.ContactCard -> messageSender.sendTextMessage(entity)
 
                 else -> {
                     val file = File(entity.localPath ?: throw Exception("文件路径为空"))
@@ -143,10 +139,8 @@ class MessageRepositoryImpl @Inject constructor(
         messageDao.deleteBySessionId(sessionId)
     }
 
-    // ==================== 私有方法 ====================
-
     /**
-     * 异步发送消息，失败时更新状态
+     * 异步发送消息
      */
     private suspend fun sendMessageAsync(entity: MessageEntity) {
         try {
@@ -159,23 +153,8 @@ class MessageRepositoryImpl @Inject constructor(
                     messageSender.sendMediaMessage(entity, file)
                 }
             }
-        } catch (e: CancellationException) {
-            throw e  // 取消异常必须重新抛出
         } catch (e: Exception) {
             Log.e(TAG, "发送失败: ${entity.id}", e)
-
-            val failReason = when {
-                e.message?.contains("离线") == true -> SendError.RecipientOffline
-                e.message?.contains("连接") == true -> SendError.NetworkTimeout
-                else -> SendError.Unknown
-            }
-
-            messageDao.update(entity.id) { message ->
-                message.copy(
-                    sendStatus = SendStatus.Failed,
-                    failReason = failReason
-                )
-            }
         }
     }
 }

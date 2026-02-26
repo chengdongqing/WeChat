@@ -4,11 +4,11 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
-import top.chengdongqing.wechat.data.network.socket.SocketClient
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,13 +16,13 @@ import javax.inject.Singleton
  * WebRTC 信令管理器
  *
  * 负责信令的发送和接收路由：
- * - 发送：将 [ChatProtocol.Signaling] 序列化后通过 [SocketClient] 发出
+ * - 发送：将 [ChatProtocol.Signaling] 序列化后通过 [ConnectionManager] 发出
  * - 接收：由 [MessageDispatcher] 调用
  *   [onSignalingReceived]，推入 [incomingSignaling] 供 [CallManager] 订阅
  */
 @Singleton
 class SignalingManager @Inject constructor(
-    private val socketClient: SocketClient,
+    private val connectionManager: ConnectionManager,
     private val json: Json
 ) {
     private companion object {
@@ -42,8 +42,7 @@ class SignalingManager @Inject constructor(
      */
     suspend fun send(targetUserId: String, message: ChatProtocol.Signaling) {
         val body = json.encodeToString<ChatProtocol.Signaling>(message).toByteArray(Charsets.UTF_8)
-        socketClient.send(targetUserId, Packet(PacketType.SIGNALING, body))
-            .onSuccess { Log.d(TAG, "→ ${message::class.simpleName} to $targetUserId") }
+        connectionManager.send(targetUserId, Packet(PacketType.SIGNALING, body))
             .onFailure { Log.e(TAG, "发送失败: ${message::class.simpleName}", it) }
     }
 

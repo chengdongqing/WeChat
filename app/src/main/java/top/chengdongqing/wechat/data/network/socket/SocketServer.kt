@@ -18,10 +18,8 @@ import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.PacketWriter
-import java.io.EOFException
 import java.net.ServerSocket
 import java.net.Socket
-import java.net.SocketException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,9 +31,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class SocketServer @Inject constructor(
-    private val connectionManager: ConnectionManager,
     private val json: Json,
     private val e2e: E2ESessionManager,
+    private val connectionManager: ConnectionManager,
     @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
@@ -102,9 +100,9 @@ class SocketServer @Inject constructor(
             // 构建reader和writer
             val reader = PacketReader(socket.getInputStream())
             val writer = PacketWriter(socket.getOutputStream())
-
             // 短超时防慢连接攻击
             socket.soTimeout = TransferConfig.HANDSHAKE_TIMEOUT
+
             // 执行握手
             val userId = performHandshake(reader, writer) ?: run {
                 Log.w(TAG, "握手失败，关闭连接")
@@ -121,7 +119,9 @@ class SocketServer @Inject constructor(
             connectionManager.emitEvent(ConnectionEvent.Connected(userId, conn))
 
             // 开始接收数据
-            receiveLoop(conn)
+            connectionManager.startReceiving(conn)
+            // 开始维持心跳
+            connectionManager.startHeartbeat(conn)
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()
@@ -174,52 +174,5 @@ class SocketServer @Inject constructor(
         } catch (_: Exception) {
             null
         }
-    }
-
-    /**
-     * 收包循环
-     *
-     * PING → 回 PONG
-     * PONG → 忽略
-     * 其他 → 解密后推送到处理队列
-     */
-    private suspend fun receiveLoop(conn: PeerConnection) {
-        try {
-            while (conn.isActive) {
-                val packet = conn.reader.read()
-                when (packet.type) {
-                    PacketType.PING -> handleHeartbeat(conn)
-                    PacketType.PONG -> {}
-                    else -> {
-                        // 解密数据包
-                        val packet = e2e.decryptPacket(conn.userId, packet)
-                        if (packet.body.isNotEmpty()) {
-                            // 推送到处理队列
-                            conn.receiveChannel.send(packet)
-                        } else {
-                            Log.w(TAG, "解密后 body 为空，丢弃: ${conn.userId}")
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            when (e) {
-                is EOFException, is SocketException -> {
-                    Log.d(TAG, "接收中断: ${conn.userId}, ${e.message}")
-                }
-
-                else -> Log.e(TAG, "接收中断: ${conn.userId}", e)
-            }
-        } finally {
-            e2e.removeSession(conn.userId)
-            connectionManager.close(conn.userId)
-        }
-    }
-
-    /**
-     * 处理心跳包
-     */
-    private fun handleHeartbeat(conn: PeerConnection) {
-        conn.writer.write(Packet.pong())
     }
 }

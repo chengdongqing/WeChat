@@ -8,8 +8,10 @@ import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
+import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ConnectionException
 import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
@@ -61,11 +63,11 @@ class MessageSender @Inject constructor(
 
         return runCatching {
             ensureConnected(message.receiverId, message.senderId)
-            sendPacket(message.receiverId, packet).getOrThrow()
+            connectionManager.send(message.receiverId, packet)
             updateStatus(message.id, SendStatus.Sent)
-        }.onFailure {
-            handleSendError(message.id)
-            throw it
+        }.onFailure { e ->
+            handleSendError(message.id, message.receiverId, e)
+            throw e
         }
     }
 
@@ -100,7 +102,7 @@ class MessageSender @Inject constructor(
 
                 // 获取 Wi-Fi 锁，避免在后台传输时被系统限制性能
                 wifiLockManager.withTransferLock {
-                    socketClient.sendAtomicTransfer(message.receiverId) { writer ->
+                    connectionManager.sendAtomicTransfer(message.receiverId) { writer ->
                         // 发送消息元数据；FILE_META 立即 flush，让接收端尽快进入接收状态
                         writer.write(Packet(PacketType.FILE_META, serializeMediaMeta(meta)))
                         // 分片分送文件；FILE_CHUNK writeNoFlush，由 buffer 自动 flush 减少 syscall
@@ -112,9 +114,9 @@ class MessageSender @Inject constructor(
 
                 // 更新消息的发送状态
                 updateStatus(message.id, SendStatus.Sent)
-            }.onFailure {
-                handleSendError(message.id)
-                throw it
+            }.onFailure { e ->
+                handleSendError(message.id, message.receiverId, e)
+                throw e
             }
         }
 
@@ -135,7 +137,7 @@ class MessageSender @Inject constructor(
         )
 
         runCatching {
-            sendPacket(senderId, packet).getOrThrow()
+            connectionManager.send(senderId, packet)
         }.onFailure { e ->
             Log.e(TAG, "回执发送失败: $senderId", e)
         }
@@ -151,13 +153,14 @@ class MessageSender @Inject constructor(
 
     /**
      * 从数据库取连接信息并建立出站连接
-     *
-     * 数据库无记录或连接失败均抛 [ConnectionException]
      */
     private suspend fun connectFromDb(targetUserId: String, myUserId: String) {
         val info = connectionInfoDao.getById(targetUserId)
             .takeIf { it?.ipAddress != null && it.port != null }
-            ?: throw ConnectionException("未找到连接信息: $targetUserId")
+            ?: throw ConnectionException(
+                "未找到连接信息: $targetUserId",
+                SendError.RecipientOffline
+            )
 
         socketClient.connect(
             userId = targetUserId,
@@ -165,18 +168,8 @@ class MessageSender @Inject constructor(
             port = info.port!!,
             myUserId = myUserId
         ).getOrElse {
-            throw ConnectionException("连接失败: $targetUserId", it)
+            throw ConnectionException("连接失败: $targetUserId", SendError.ConnectionFailed)
         }
-    }
-
-    /**
-     * 向指定用户发送单个 Packet
-     *
-     * 优先走出站连接，无则降级走入站连接，两者均无则失败。
-     */
-    private suspend fun sendPacket(receiverId: String, packet: Packet): Result<Unit> = when {
-        connectionManager.isConnected(receiverId) -> socketClient.send(receiverId, packet)
-        else -> Result.failure(IllegalStateException("无可用连接: $receiverId"))
     }
 
     /**
@@ -235,8 +228,23 @@ class MessageSender @Inject constructor(
     /**
      * 更新发送状态为失败
      */
-    private suspend fun handleSendError(messageId: String) =
-        updateStatus(messageId, SendStatus.Failed)
+    private suspend fun handleSendError(
+        messageId: String,
+        receiverId: String,
+        error: Throwable
+    ) {
+        val failReason = if (error is ConnectionException) error.failReason else SendError.Unknown
+
+        // 更新状态
+        messageDao.update(messageId) { message ->
+            message.copy(
+                sendStatus = SendStatus.Failed,
+                failReason = failReason
+            )
+        }
+        // 标记为离线
+        connectionInfoDao.markOffline(receiverId)
+    }
 
     /**
      * 多态序列化
@@ -250,11 +258,3 @@ class MessageSender @Inject constructor(
     private fun serializeMediaMeta(meta: ChatProtocol.MediaMessage): ByteArray =
         json.encodeToString(meta).toByteArray(Charsets.UTF_8)
 }
-
-/**
- * 连接异常类
- */
-class ConnectionException(
-    message: String,
-    cause: Throwable? = null
-) : Exception(message, cause)

@@ -72,8 +72,9 @@ class MessageReceiver @Inject constructor(
                         startListening(event.conn)
                     }
 
-                    is ConnectionEvent.Disconnected ->
+                    is ConnectionEvent.Disconnected -> {
                         Log.d(TAG, "连接断开: ${event.userId} - ${event.reason}")
+                    }
                 }
             }
         }
