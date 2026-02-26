@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import top.chengdongqing.wechat.core.util.PinyinHelper.getInitial
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -35,7 +36,8 @@ class ContactListViewModel @Inject constructor(
                 nickname = myProfile.nickname,
                 avatarPath = myProfile.avatarPath,
                 signature = myProfile.signature,
-                gender = myProfile.gender
+                gender = myProfile.gender,
+                relation = ContactRelation.Myself
             )
             // 合并列表（自己 + 其他联系人）
             listOf(myselfAsContact) + contacts
@@ -71,6 +73,7 @@ class ContactListViewModel @Inject constructor(
                     name = contact.displayName,
                     note = contact.note,
                     avatarPath = contact.avatarPath,
+                    isMyself = contact.isMyself,
                     initial = contact.displayName.getInitial()
                 )
             }
@@ -105,7 +108,8 @@ data class ContactItem(
     val name: String,
     val note: String?,
     val avatarPath: String?,
-    val initial: Char
+    val isMyself: Boolean,
+    val initial: Char,
 )
 
 // UI State

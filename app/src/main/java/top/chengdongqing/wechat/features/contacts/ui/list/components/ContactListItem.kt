@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.ui.list.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,17 +21,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeContextMenu
+import top.chengdongqing.wechat.core.designsystem.components.contextmenu.rememberContextMenuState
+import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.contacts.ui.list.ContactItem
 
 @Composable
-fun ContactListItem(contact: ContactItem, onNavigateToDetail: () -> Unit) {
+fun ContactListItem(
+    contact: ContactItem,
+    onNavigateToDetail: () -> Unit,
+    onNavigateToProfileEdit: () -> Unit
+) {
+    val contextMenuState = rememberContextMenuState()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
             .background(WeTheme.colorScheme.surface)
-            .clickable { onNavigateToDetail() }
+            .weContextMenu(
+                onClick = onNavigateToDetail,
+                onLongClick = { position ->
+                    if (!contact.isMyself) {
+                        contextMenuState.show(position, listOf("设置朋友资料"), 0)
+                    }
+                }
+            )
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -63,5 +78,9 @@ fun ContactListItem(contact: ContactItem, onNavigateToDetail: () -> Unit) {
                 )
             }
         }
+    }
+
+    WeContextMenu(contextMenuState) { _, _ ->
+        onNavigateToProfileEdit()
     }
 }

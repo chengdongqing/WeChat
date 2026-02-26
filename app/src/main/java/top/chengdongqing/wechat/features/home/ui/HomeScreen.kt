@@ -181,11 +181,14 @@ private fun HomeContentPager(
             )
 
             HomeTab.Contacts -> ContactListScreen(
+                onNavigateToNewFriends = {
+                    navController.navigate(ContactsRoute.NewFriends.route)
+                },
                 onNavigateToDetail = { id ->
                     navController.navigate(ContactsRoute.Detail.createRoute(id))
                 },
-                onNavigateToNewFriends = {
-                    navController.navigate(ContactsRoute.NewFriends.route)
+                onNavigateToProfileEdit = { id ->
+                    navController.navigate(ContactsRoute.ProfileEdit.createRoute(id))
                 }
             )
 

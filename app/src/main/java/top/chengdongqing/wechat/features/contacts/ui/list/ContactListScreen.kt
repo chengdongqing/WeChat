@@ -33,8 +33,9 @@ import top.chengdongqing.wechat.features.contacts.ui.list.components.TopFunction
 
 @Composable
 fun ContactListScreen(
-    onNavigateToDetail: (contactId: String) -> Unit,
     onNavigateToNewFriends: () -> Unit,
+    onNavigateToDetail: (contactId: String) -> Unit,
+    onNavigateToProfileEdit: (contactId: String) -> Unit,
     viewModel: ContactListViewModel = hiltViewModel(),
 ) {
     val scope = rememberCoroutineScope()
@@ -106,9 +107,15 @@ fun ContactListScreen(
                             Column(
                                 modifier = Modifier.background(WeTheme.colorScheme.surface)
                             ) {
-                                ContactListItem(contact) {
-                                    onNavigateToDetail(contact.id)
-                                }
+                                ContactListItem(
+                                    contact = contact,
+                                    onNavigateToDetail = {
+                                        onNavigateToDetail(contact.id)
+                                    },
+                                    onNavigateToProfileEdit = {
+                                        onNavigateToProfileEdit(contact.id)
+                                    }
+                                )
 
                                 if (index < contacts.size - 1) {
                                     WeDivider(modifier = Modifier.padding(start = 68.dp))
