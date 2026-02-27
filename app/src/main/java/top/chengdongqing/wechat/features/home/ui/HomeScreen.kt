@@ -68,11 +68,13 @@ import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
+    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+    val unreadCounts by viewModel.unreadCounts.collectAsStateWithLifecycle()
 
+    val snackbarHostState = remember { SnackbarHostState() }
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { HomeTab.tabs.size }
@@ -82,7 +84,7 @@ fun HomeScreen(
 
     // 处理导航事件
     HandleProfileNavigationEvents(
-        viewModel = viewModel,
+        viewModel = profileViewModel,
         snackbarHostState = snackbarHostState,
         onNavigateToContactDetail = { id ->
             navController.navigate(ContactsRoute.Detail.createRoute(id))
@@ -99,12 +101,14 @@ fun HomeScreen(
         topBar = {
             HomeTopBarWrapper(
                 currentTab = currentTab,
-                viewModel = viewModel,
+                unreadCounts = unreadCounts,
+                viewModel = profileViewModel,
                 navController = navController
             )
         },
         bottomBar = {
             HomeBottomBar(
+                unreadCounts = unreadCounts,
                 pagerState = pagerState,
                 onTabSelected = { index ->
                     scope.launch {
@@ -132,11 +136,14 @@ fun HomeScreen(
 private fun HomeTopBarWrapper(
     currentTab: HomeTab,
     viewModel: ProfileViewModel,
-    navController: NavHostController
+    navController: NavHostController,
+    unreadCounts: Map<HomeTab, Int>
 ) {
     if (currentTab.route != HomeTab.Me.route) {
+        val title = currentTab.getDisplayTitle(unreadCounts)
+
         HomeTopBar(
-            title = currentTab.label,
+            title = title,
             viewModel = viewModel,
             onNavigateToAddFriend = {
                 navController.navigate(ContactsRoute.AddContact.route)
@@ -254,12 +261,10 @@ private fun HomeTopBar(
 
 @Composable
 private fun HomeBottomBar(
-    viewModel: HomeViewModel = hiltViewModel(),
+    unreadCounts: Map<HomeTab, Int>,
     pagerState: PagerState,
-    onTabSelected: (Int) -> Unit,
+    onTabSelected: (Int) -> Unit
 ) {
-    val unreadCounts by viewModel.unreadCounts.collectAsStateWithLifecycle()
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -331,4 +336,13 @@ private fun rememberHomeMenuItems(
             MenuItem(R.drawable.ic_pay_vendor_filled, "收付款") { }
         )
     }
+}
+
+private fun HomeTab.getDisplayTitle(unreadCounts: Map<HomeTab, Int>): String = when {
+    this == HomeTab.Chats -> {
+        val unread = unreadCounts[this] ?: 0
+        if (unread > 0) "$label($unread)" else label
+    }
+
+    else -> label
 }
