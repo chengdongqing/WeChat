@@ -1,10 +1,12 @@
 package top.chengdongqing.wechat.data.notification
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
@@ -42,6 +44,9 @@ class NotificationHelper @Inject constructor(
      */
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // 获取系统默认通知音的 URI
+            val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
             // 好友请求通道
             val friendRequestChannel = NotificationChannel(
                 FRIEND_REQUEST_CHANNEL_ID,
@@ -49,6 +54,7 @@ class NotificationHelper @Inject constructor(
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "新的好友请求通知"
+                setSound(alarmSound, Notification.AUDIO_ATTRIBUTES_DEFAULT)
                 setShowBadge(true)
                 enableLights(true)
                 enableVibration(true)
@@ -61,6 +67,7 @@ class NotificationHelper @Inject constructor(
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "接收新消息通知"
+                setSound(alarmSound, Notification.AUDIO_ATTRIBUTES_DEFAULT)
                 setShowBadge(true)
                 enableLights(true)
                 enableVibration(true)
@@ -81,7 +88,7 @@ class NotificationHelper @Inject constructor(
     ) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = "wechat://contacts/new_friends".toUri()
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
 
         val pendingIntent = PendingIntent.getActivity(
@@ -98,6 +105,7 @@ class NotificationHelper @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .build()
 
@@ -132,6 +140,7 @@ class NotificationHelper @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
             .setDefaults(NotificationCompat.DEFAULT_ALL)
             .build()
 
