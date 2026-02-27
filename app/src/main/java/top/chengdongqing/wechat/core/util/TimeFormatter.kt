@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.core.util
 
 import java.time.DayOfWeek
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -13,6 +14,7 @@ private const val MinuteInSeconds = 60
 private val TimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val MonthDayFormatter = DateTimeFormatter.ofPattern("M月d日 HH:mm")
 private val YearMonthDayFormatter = DateTimeFormatter.ofPattern("yyyy年M月d日 HH:mm")
+private val YearMonthFormatter = DateTimeFormatter.ofPattern("yyyy年MM月")
 
 /**
  * 格式化时长
@@ -77,4 +79,13 @@ fun Long.toChatDisplayTime(): String {
             target.format(YearMonthDayFormatter)
         }
     }
+}
+
+/**
+ * 格式化为：xxxx年xx月
+ */
+fun Long.toYearMonthDisplay(): String {
+    val targetInstant = Instant.ofEpochMilli(this)
+    val target = LocalDate.ofInstant(targetInstant, ZoneId.systemDefault())
+    return target.format(YearMonthFormatter)
 }

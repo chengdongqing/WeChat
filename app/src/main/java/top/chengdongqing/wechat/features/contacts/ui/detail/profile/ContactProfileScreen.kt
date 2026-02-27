@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuLi
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.util.toChatDisplayTime
+import top.chengdongqing.wechat.core.util.toYearMonthDisplay
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewModel
 import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.safePronoun
 
@@ -102,7 +102,7 @@ fun ContactProfileScreen(
                 }
                 ProfileItem(
                     label = "添加时间",
-                    trailing = { TextContent(contact.addedAt?.toChatDisplayTime()) },
+                    trailing = { TextContent(contact.addedAt?.toYearMonthDisplay()) },
                     showArrow = false,
                     showDivider = false
                 )
