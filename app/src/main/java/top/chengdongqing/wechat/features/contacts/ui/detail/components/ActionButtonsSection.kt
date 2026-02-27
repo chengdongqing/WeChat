@@ -42,7 +42,7 @@ fun ActionButtonsSection(
 
     Column(modifier = Modifier.background(Color.White)) {
         when {
-            contact.isMyself || contact.isFriend -> {
+            contact.isSelf || contact.isFriend -> {
                 ContactActionButton(
                     iconResId = R.drawable.ic_message_outlined,
                     text = "发消息",

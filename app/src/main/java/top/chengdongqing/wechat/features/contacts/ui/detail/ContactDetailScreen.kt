@@ -71,7 +71,7 @@ fun ContactDetailScreen(
     Scaffold(
         topBar = {
             ContactDetailTopBar(
-                showMoreAction = !contact.isMyself,
+                showMoreAction = !contact.isSelf,
                 onBack = onBack
             ) {
                 viewModel.handleAction(ContactAction.ShowMore)

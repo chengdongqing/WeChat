@@ -73,7 +73,7 @@ class ContactListViewModel @Inject constructor(
                     name = contact.displayName,
                     note = contact.note,
                     avatarPath = contact.avatarPath,
-                    isMyself = contact.isMyself,
+                    isSelf = contact.isSelf,
                     initial = contact.displayName.getInitial()
                 )
             }
@@ -108,7 +108,7 @@ data class ContactItem(
     val name: String,
     val note: String?,
     val avatarPath: String?,
-    val isMyself: Boolean,
+    val isSelf: Boolean,
     val initial: Char,
 )
 

@@ -39,13 +39,13 @@ import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 @Composable
 fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit) {
     val chatContext = LocalChatSessionContext.current
-    val isMyself = chatContext?.isMyself.isTrue()
+    val isSelf = chatContext?.isSelf.isTrue()
 
-    val pages = remember(isMyself) {
+    val pages = remember(isSelf) {
         MoreAction.entries
             .filter { action ->
                 // 如果是自己，则过滤掉视频通话
-                !(isMyself && action == MoreAction.VideoCall)
+                !(isSelf && action == MoreAction.VideoCall)
             }
             .chunked(ChunkCount)
     }

@@ -45,10 +45,10 @@ class ContactDetailViewModel @AssistedInject constructor(
             return@combine null
         }
 
-        val isMyself = contactId == myProfile.id
+        val isSelf = contactId == myProfile.id
 
         val finalContact = when {
-            isMyself -> {
+            isSelf -> {
                 // 自己
                 myProfile.toContact()
             }

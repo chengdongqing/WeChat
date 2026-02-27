@@ -26,7 +26,7 @@ data class Contact(
     val isFriend: Boolean
         get() = relation == ContactRelation.Friend
 
-    val isMyself: Boolean
+    val isSelf: Boolean
         get() = relation == ContactRelation.Myself
 }
 

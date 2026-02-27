@@ -30,7 +30,7 @@ fun ContactDetailContent(
         }
 
         // 朋友圈
-        if (contact.isFriend || contact.isMyself) {
+        if (contact.isFriend || contact.isSelf) {
             MomentPhotosSection {
                 onAction(ContactAction.ViewMoments)
             }
@@ -57,7 +57,7 @@ private fun BasicInfoSection(
         ContactBasicInfoCard(contact = contact)
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (!contact.isMyself) {
+        if (!contact.isSelf) {
             WeDivider(modifier = Modifier.padding(start = 16.dp))
 
             // 朋友资料信息

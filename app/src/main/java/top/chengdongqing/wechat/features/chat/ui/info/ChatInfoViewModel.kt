@@ -54,15 +54,15 @@ class ChatInfoViewModel @AssistedInject constructor(
             if (!existSession) {
                 val myProfile = profileRepository.getCurrentProfileSnapshot()
                 val contact = contactRepository.getContactById(chatId)
-                val isMyself = chatId == myProfile?.id
+                val isSelf = chatId == myProfile?.id
 
                 chatSessionRepository.insertSession(
                     ChatSession(
                         id = chatId,
                         contactId = chatId,
-                        contactName = if (isMyself) myProfile.nickname else contact?.displayName
+                        contactName = if (isSelf) myProfile.nickname else contact?.displayName
                             ?: "",
-                        contactAvatar = if (isMyself) myProfile.avatarPath else contact?.avatarPath,
+                        contactAvatar = if (isSelf) myProfile.avatarPath else contact?.avatarPath,
                         isHidden = true, // 初始隐藏，发消息才显示
                     )
                 )
@@ -79,8 +79,8 @@ class ChatInfoViewModel @AssistedInject constructor(
             return@combine ChatInfoUiState()
         }
 
-        val isMyself = chatId == myProfile.id
-        val finalContact = if (isMyself) {
+        val isSelf = chatId == myProfile.id
+        val finalContact = if (isSelf) {
             myProfile.toContact()
         } else {
             contact

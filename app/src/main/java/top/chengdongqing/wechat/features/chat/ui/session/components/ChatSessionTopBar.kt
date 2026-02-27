@@ -83,7 +83,7 @@ private fun ChatSessionTitle(
             modifier = Modifier.weight(1f, fill = false)
         )
 
-        if (!uiState.isMyself) {
+        if (!uiState.isSelf) {
             // 免打扰
             if (uiState.isMuted) {
                 Icon(

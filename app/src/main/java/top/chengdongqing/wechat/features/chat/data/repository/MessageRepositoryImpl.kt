@@ -2,9 +2,12 @@ package top.chengdongqing.wechat.features.chat.data.repository
 
 import android.util.Log
 import androidx.room.withTransaction
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.MessageDao
@@ -32,7 +35,8 @@ class MessageRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val transferManager: TransferManager,
-    private val json: Json
+    private val json: Json,
+    @param:IoScope private val scope: CoroutineScope
 ) : MessageRepository {
 
     companion object {
@@ -55,45 +59,37 @@ class MessageRepositoryImpl @Inject constructor(
         receiverId: String,
         messageId: String?,
         content: MessageContent
-    ): Result<Unit> {
-        return runCatching {
-            val myProfile = profileRepository.getCurrentProfileSnapshot()
-                ?: throw Exception("未找到个人资料")
-            val isSelfSession = receiverId == myProfile.id
-            val isCallMessage = content is MessageContent.Call
-            // 如果是给自己发的，或者是通话记录，直接设置为发送成功，且不走发送逻辑
-            val shouldSkipSend = isSelfSession || isCallMessage
+    ): Result<Unit> = runCatching {
+        val myProfile = profileRepository.getCurrentProfileSnapshot()
+            ?: throw Exception("未找到个人资料")
+        val finalMessageId = messageId ?: randomUUID()
+        val isSelf = receiverId == myProfile.id
+        val isCall = content is MessageContent.Call
+        val shouldSkipSend = isSelf || isCall // 如果是给自己发的，或者是通话记录，直接设置为发送成功，且不走发送逻辑
 
-            // 构建消息实体
-            val messageId = messageId ?: randomUUID()
-            val now = System.currentTimeMillis()
+        // 构建消息实体
+        val entity = content.toEntity(
+            messageId = finalMessageId,
+            sessionId = sessionId,
+            senderId = myProfile.id,
+            receiverId = receiverId,
+            timestamp = System.currentTimeMillis(),
+            json = json
+        ).copy(
+            // 如果需要发送，初始状态设为 Sending，否则直接 Sent
+            sendStatus = if (shouldSkipSend) SendStatus.Sent else SendStatus.Sending
+        )
 
-            val entity = content.toEntity(
-                messageId = messageId,
-                sessionId = sessionId,
-                senderId = myProfile.id,
-                receiverId = receiverId,
-                timestamp = now,
-                json = json
-            )
+        weDatabase.withTransaction {
+            // 保存到数据库
+            messageDao.insert(entity)
+            // 更新会话
+            chatSessionUpdater.update(entity, !shouldSkipSend)
+        }
 
-            weDatabase.withTransaction {
-                // 保存到数据库
-                messageDao.insert(
-                    entity.copy(
-                        sendStatus = if (shouldSkipSend) {
-                            SendStatus.Sent
-                        } else {
-                            entity.sendStatus
-                        }
-                    )
-                )
-                // 更新会话
-                chatSessionUpdater.update(entity, !shouldSkipSend)
-            }
-
-            if (!shouldSkipSend) {
-                // 发送消息
+        if (!shouldSkipSend) {
+            // 切入后台作用域执行网络发送
+            scope.launch {
                 sendMessageAsync(entity)
             }
         }

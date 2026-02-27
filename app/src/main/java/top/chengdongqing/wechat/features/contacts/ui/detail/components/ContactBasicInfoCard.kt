@@ -40,7 +40,7 @@ fun ContactBasicInfoCard(
             .fillMaxWidth()
             .background(Color.White)
             .padding(16.dp),
-        verticalAlignment = if (contact.isMyself) Alignment.CenterVertically else Alignment.Top
+        verticalAlignment = if (contact.isSelf) Alignment.CenterVertically else Alignment.Top
     ) {
         ContactAvatar(contact.avatarPath ?: R.drawable.img_avatar_placeholder)
         Spacer(modifier = Modifier.width(16.dp))
@@ -79,7 +79,7 @@ private fun ContactBasicInfo(
         )
 
         // 昵称
-        if (!contact.isMyself) {
+        if (!contact.isSelf) {
             InfoText(
                 label = "昵称：",
                 value = contact.nickname,

@@ -43,7 +43,7 @@ fun ContactListItem(
             .weContextMenu(
                 onClick = onNavigateToDetail,
                 onLongClick = { position ->
-                    if (!contact.isMyself) {
+                    if (!contact.isSelf) {
                         contextMenuState.show(position, listOf("设置朋友资料"), 0)
                     }
                 }

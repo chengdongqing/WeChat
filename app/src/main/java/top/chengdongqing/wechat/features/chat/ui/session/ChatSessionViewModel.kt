@@ -131,7 +131,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                         peerAvatar = contact?.avatarPath,
                         myId = profile?.id,
                         myAvatar = profile?.avatarPath,
-                        isMyself = contact == null
+                        isSelf = contact == null
                     )
                 }
 
@@ -302,7 +302,7 @@ data class ChatSessionUiState(
     val peerAvatar: String? = null,
     val myId: String? = null,
     val myAvatar: String? = null,
-    val isMyself: Boolean = false,
+    val isSelf: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMoreMessages: Boolean = true,
     val backgroundPath: String? = null,

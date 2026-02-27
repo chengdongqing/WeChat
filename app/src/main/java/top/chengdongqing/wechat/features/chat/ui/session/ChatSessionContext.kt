@@ -14,7 +14,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.util.VoicePlayingLifecy
  */
 data class ChatSessionContext(
     val title: String,
-    val isMyself: Boolean,
+    val isSelf: Boolean,
     val mediaList: List<MessageContent.Media>,
     val getMediaIndexOf: (MessageContent.Media) -> Int,
     val playingMessageId: String?,
@@ -51,10 +51,10 @@ fun rememberChatSessionContext(
         }
     }
 
-    return remember(mediaList, playingMessageId, uiState.isMyself) {
+    return remember(mediaList, playingMessageId, uiState.isSelf) {
         ChatSessionContext(
             title = uiState.title,
-            isMyself = uiState.isMyself,
+            isSelf = uiState.isSelf,
             mediaList = mediaList,
             getMediaIndexOf = { content -> mediaList.indexOf(content) },
             playingMessageId = playingMessageId,

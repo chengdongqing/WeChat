@@ -63,11 +63,11 @@ fun rememberActionHandler(
     val scope = rememberCoroutineScope()
     val actionSheet = rememberActionSheetState()
     val chatContext = LocalChatSessionContext.current
-    val isMyself = chatContext?.isMyself.isTrue()
+    val isSelf = chatContext?.isSelf.isTrue()
 
     // 动态生成位置选项根据
-    val locationOptions = remember(isMyself) {
-        if (isMyself) listOf(LocationOptions[0]) else LocationOptions
+    val locationOptions = remember(isSelf) {
+        if (isSelf) listOf(LocationOptions[0]) else LocationOptions
     }
 
     /**
@@ -86,7 +86,7 @@ fun rememberActionHandler(
         }
     }
 
-    return remember(mediaLaunchers, locationLauncher, fileLauncher, isMyself) {
+    return remember(mediaLaunchers, locationLauncher, fileLauncher, isSelf) {
         ActionHandler(
             onAlbum = { isLongClick ->
                 if (isLongClick) {
