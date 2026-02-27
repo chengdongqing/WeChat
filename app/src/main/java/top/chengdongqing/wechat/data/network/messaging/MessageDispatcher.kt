@@ -20,6 +20,7 @@ import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,6 +35,7 @@ class MessageDispatcher @Inject constructor(
     private val weDatabase: WeDatabase,
     private val messageDao: MessageDao,
     private val messageSender: MessageSender,
+    private val chatSessionRepository: ChatSessionRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val fileManager: FileManager,
     private val signalingManager: SignalingManager,
@@ -127,8 +129,13 @@ class MessageDispatcher @Inject constructor(
             }
             // 发送送达回执
             sendAck(protocol)
-            // 推送到消息流
-            _incomingMessageFlow.emit(entity.toDomain(json))
+
+            // 没有开启免到扰就推送到消息流
+            chatSessionRepository.isSessionMuted(protocol.senderId).let { isMuted ->
+                if (!isMuted) {
+                    _incomingMessageFlow.emit(entity.toDomain(json))
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)
         }

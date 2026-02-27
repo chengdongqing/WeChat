@@ -19,9 +19,6 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
     @Query("SELECT * FROM chat_sessions WHERE id = :sessionId")
     suspend fun getById(sessionId: String): ChatSessionEntity?
 
-    @Query("SELECT EXISTS(SELECT 1 FROM chat_sessions WHERE id = :sessionId)")
-    suspend fun exists(sessionId: String): Boolean
-
     @Transaction
     suspend fun update(sessionId: String, updateBlock: (ChatSessionEntity) -> ChatSessionEntity) {
         val old = getById(sessionId) ?: return

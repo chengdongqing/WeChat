@@ -18,9 +18,6 @@ interface ContactDao : BaseDao<ContactEntity> {
     @Query("SELECT * FROM contacts WHERE id = :userId")
     suspend fun getById(userId: String): ContactEntity?
 
-    @Query("SELECT EXISTS(SELECT 1 FROM contacts WHERE id = :userId)")
-    suspend fun exists(userId: String): Boolean
-
     @Transaction
     suspend fun update(contactId: String, updateBlock: (ContactEntity) -> ContactEntity) {
         val old = getById(contactId) ?: return

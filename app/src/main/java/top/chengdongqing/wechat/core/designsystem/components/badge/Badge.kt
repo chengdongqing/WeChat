@@ -81,7 +81,7 @@ fun WeBadge(
                 .offset(x = finalOffset.x, y = finalOffset.y)
                 .clip(if (localWidth > size) RoundedCornerShape(20.dp) else CircleShape)
                 .background(containerColor)
-                .padding(horizontal = if (localWidth > size) 6.dp else 0.dp),
+                .padding(horizontal = if (localWidth > size && content != null) 6.dp else 0.dp),
             contentAlignment = Alignment.Center
         ) {
             content?.let {

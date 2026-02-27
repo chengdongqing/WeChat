@@ -12,7 +12,10 @@ interface ChatSessionRepository {
     fun observeSession(sessionId: String): Flow<ChatSession?>
 
     /** 获取单个会话 */
-    suspend fun getSession(sessionId: String): ChatSession?
+    suspend fun getSessionById(sessionId: String): ChatSession?
+
+    /** 是否开启了免到扰 */
+    suspend fun isSessionMuted(sessionId: String): Boolean
 
     /** 是否存在会话 */
     suspend fun exists(sessionId: String): Boolean
@@ -42,7 +45,7 @@ interface ChatSessionRepository {
     suspend fun hideSession(sessionId: String)
 
     /** 删除会话 */
-    suspend fun deleteSession(sessionId: String, shouldHide: Boolean = true)
+    suspend fun deleteSessionById(sessionId: String, shouldHide: Boolean = true)
 
     /** 总未读数 */
     fun observeTotalUnreadCount(): Flow<Int>

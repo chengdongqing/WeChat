@@ -127,7 +127,7 @@ class ChatInfoViewModel @AssistedInject constructor(
 
     fun clearMessages() {
         viewModelScope.launch(Dispatchers.IO) {
-            chatSessionRepository.deleteSession(chatId, false)
+            chatSessionRepository.deleteSessionById(chatId, false)
         }
     }
 }

@@ -54,11 +54,15 @@ fun ChatItem(chat: ChatSession) {
 
 @Composable
 private fun SessionAvatar(chat: ChatSession) {
+    val badgeContent = if (!chat.isMuted) chat.unreadCount.toBadgeText() else null
+    val badgeSize = if (!chat.isMuted) 20.dp else 10.dp
+    val badgeOffset = DpOffset(x = if (!chat.isMuted) 8.dp else 4.dp, y = (-4).dp)
+
     WeBadge(
         visible = chat.unreadCount > 0,
-        content = chat.unreadCount.toBadgeText(),
-        size = 20.dp,
-        offset = DpOffset(x = 8.dp, y = (-4).dp)
+        content = badgeContent,
+        size = badgeSize,
+        offset = badgeOffset
     ) {
         AsyncImage(
             model = chat.contactAvatar,

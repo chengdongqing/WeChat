@@ -52,7 +52,7 @@ class ContactRepositoryImpl @Inject constructor(
     }
 
     override suspend fun exists(userId: String): Boolean {
-        return contactDao.exists(userId)
+        return getContactById(userId) != null
     }
 
     override suspend fun addContact(contact: Contact) {
