@@ -18,7 +18,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
  * 文件处理器
  */
 class FileHandler(
-    private val onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
+    private val onSendMessage: (MessageContent) -> Unit
 ) {
     /**
      * 处理文件选择结果
@@ -39,7 +39,7 @@ class FileHandler(
             )
 
             // 发送
-            onSendMessage(content, null)
+            onSendMessage(content)
 
             if (index < uris.size - 1) delay(50)
         }
@@ -47,9 +47,7 @@ class FileHandler(
 }
 
 @Composable
-fun rememberFileHandler(
-    onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
-): FileHandler {
+fun rememberFileHandler(onSendMessage: (MessageContent) -> Unit): FileHandler {
     return remember(onSendMessage) {
         FileHandler(onSendMessage)
     }

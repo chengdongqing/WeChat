@@ -18,7 +18,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
  * 封装位置相关的所有操作
  */
 class LocationHandler(
-    private val onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
+    private val onSendMessage: (MessageContent) -> Unit
 ) {
     /**
      * 处理位置选择结果
@@ -35,13 +35,13 @@ class LocationHandler(
             poiName = location.name,
             snapshotPath = localPath
         )
-        onSendMessage(content, null)
+        onSendMessage(content)
     }
 }
 
 @Composable
 fun rememberLocationHandler(
-    onSendMessage: (MessageContent, (() -> Unit)?) -> Unit
+    onSendMessage: (MessageContent) -> Unit
 ): LocationHandler {
     return remember(onSendMessage) {
         LocationHandler(onSendMessage)

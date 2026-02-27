@@ -29,9 +29,8 @@ import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.EmojiTextField
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
-import top.chengdongqing.wechat.core.media.rememberSoundTipPlayer
 import top.chengdongqing.wechat.features.call.domain.model.CallType
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionViewModel
 import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.InputPanelHolder
@@ -45,20 +44,17 @@ import top.chengdongqing.wechat.features.chat.ui.session.util.ScrollToDismissEff
  */
 @Composable
 fun InputBar(
+    viewModel: ChatSessionViewModel,
     listState: LazyListState,
-    isSending: Boolean,
-    onSendMessage: (MessageContent, onSent: (() -> Unit)?) -> Unit,
     onLaunchCall: (type: CallType) -> Unit
 ) {
     val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputBarController(focusRequester)
     val state by controller.state.collectAsStateWithLifecycle()
-    val soundPlayer = rememberSoundTipPlayer()
-    val actions = rememberInputBarActions(controller, onSendMessage, onLaunchCall, soundPlayer)
+    val actions = rememberInputBarActions(controller, viewModel::sendMessage, onLaunchCall)
 
     ScrollToDismissEffect(
         listState = listState,
-        isSending = isSending,
         isPanelMode = state.inputMode.isPanelMode,
         onDismiss = controller::dismissAll
     )

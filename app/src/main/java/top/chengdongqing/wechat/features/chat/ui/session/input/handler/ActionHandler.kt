@@ -56,7 +56,7 @@ fun rememberActionHandler(
     mediaLaunchers: MediaLaunchers,
     locationLauncher: LocationLauncher,
     fileLauncher: FileLauncher,
-    onSendMessage: (MessageContent, (() -> Unit)?) -> Unit,
+    onSendMessage: (MessageContent) -> Unit,
     onLaunchCall: (CallType) -> Unit
 ): ActionHandler {
     val context = LocalContext.current
@@ -139,13 +139,12 @@ fun rememberActionHandler(
             },
             onFile = fileLauncher.pickFile,
             onCard = {
-                onSendMessage(
-                    MessageContent.ContactCard(
-                        userId = randomUUID(),
-                        name = "文件传输助手",
-                        avatar = ""
-                    ), null
+                val content = MessageContent.ContactCard(
+                    userId = randomUUID(),
+                    name = "文件传输助手",
+                    avatar = ""
                 )
+                onSendMessage(content)
             },
             onFavorite = { /* TODO */ },
             onVoiceInput = { /* TODO */ }

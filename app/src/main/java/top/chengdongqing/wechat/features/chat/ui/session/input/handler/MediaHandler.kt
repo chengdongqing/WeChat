@@ -29,7 +29,7 @@ import java.io.File
 class MediaHandler(
     private val context: Context,
     private val scope: CoroutineScope,
-    private val onSendMessage: (MessageContent, (() -> Unit)?) -> Unit,
+    private val onSendMessage: (MessageContent) -> Unit,
     private val onModeSwitch: () -> Unit
 ) {
     /**
@@ -66,10 +66,8 @@ class MediaHandler(
             )
         }
 
-        onSendMessage(content, null)
+        onSendMessage(content)
     }
-
-    // --- 对外接口 ---
 
     fun handleMediaSelection(items: Array<MediaItem>) {
         onModeSwitch()
@@ -109,7 +107,7 @@ class MediaHandler(
 fun rememberMediaHandler(
     context: Context,
     scope: CoroutineScope,
-    onSendMessage: (MessageContent, (() -> Unit)?) -> Unit,
+    onSendMessage: (MessageContent) -> Unit,
     onModeSwitch: () -> Unit
 ): MediaHandler {
     return remember(context, scope) {

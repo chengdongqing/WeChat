@@ -86,6 +86,7 @@ interface SoundPlayerEntryPoint {
 @Composable
 fun rememberSoundTipPlayer(): SoundTipPlayer {
     val context = LocalContext.current.applicationContext
+
     return remember(context) {
         EntryPointAccessors.fromApplication(
             context,

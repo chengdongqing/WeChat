@@ -8,9 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
-import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberActionHandler
@@ -30,9 +28,8 @@ import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberM
 @Composable
 fun rememberInputBarActions(
     controller: InputBarController,
-    onSendMessage: (MessageContent, (() -> Unit)?) -> Unit,
-    onLaunchCall: (CallType) -> Unit,
-    soundPlayer: SoundTipPlayer
+    onSendMessage: (MessageContent) -> Unit,
+    onLaunchCall: (CallType) -> Unit
 ): InputBarActions {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -63,14 +60,14 @@ fun rememberInputBarActions(
         onLaunchCall = onLaunchCall
     )
 
-    return remember(controller, actionHandler, soundPlayer) {
+    return remember(controller, actionHandler) {
         InputBarActions(
             // 文本
             onTextChange = controller::updateText,
             onLineCountChange = controller::updateLineCount,
             onSendText = {
                 if (state.inputText.isNotBlank()) {
-                    onSendMessage(MessageContent.Text(state.inputText), null)
+                    onSendMessage(MessageContent.Text(state.inputText))
                     controller.clearInput()
                 } else {
                     dialog.show("提示", "不能发送空白消息", onCancel = null)
@@ -94,9 +91,7 @@ fun rememberInputBarActions(
             // 媒体 / 更多
             onMoreAction = actionHandler::handleAction,
             onVoiceSend = { path, duration ->
-                onSendMessage(MessageContent.Voice(path, duration)) {
-                    soundPlayer.play(R.raw.after_upload_voice)
-                }
+                onSendMessage(MessageContent.Voice(path, duration))
             },
             onSpeechResult = { text ->
                 val current = state.inputText
@@ -104,7 +99,7 @@ fun rememberInputBarActions(
                     if (current.isNotEmpty()) "$current，$text" else text
                 )
             },
-            onSendSticker = { sticker -> onSendMessage(sticker, null) },
+            onSendSticker = { sticker -> onSendMessage(sticker) },
 
             // 透传
             onLaunchCall = onLaunchCall

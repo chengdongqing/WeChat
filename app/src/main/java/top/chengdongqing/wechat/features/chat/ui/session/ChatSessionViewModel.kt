@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -39,9 +40,9 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
     private val contactP2PRepository: ContactP2PRepository,
+    private val soundTipPlayer: SoundTipPlayer,
     val activeSessionManager: ActiveSessionManager,
     e2eSessionManager: E2ESessionManager,
-    soundTipPlayer: SoundTipPlayer,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -159,23 +160,23 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun sendMessage(content: MessageContent, onSent: () -> Unit = {}) {
+    /**
+     * 发送消息
+     */
+    fun sendMessage(content: MessageContent) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isSending = true) }
             messageRepository.sendMessage(
                 sessionId = chatId,
                 receiverId = chatId,
                 content = content
             ).onSuccess {
-                onSent()
-            }.onFailure {
-                _uiState.update { it.copy(isSending = false) }
+                when {
+                    content is MessageContent.Voice -> {
+                        soundTipPlayer.play(R.raw.after_upload_voice)
+                    }
+                }
             }
         }
-    }
-
-    fun finishSending() {
-        _uiState.update { it.copy(isSending = false) }
     }
 
     /**
@@ -239,10 +240,6 @@ class ChatSessionViewModel @AssistedInject constructor(
         audioPlaybackManager.stop()
     }
 
-    fun onScrolledToBottomHandled() {
-        _uiState.update { it.copy(shouldScrollToBottom = false) }
-    }
-
     private fun markAsPlayed(messageId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             messages.value.find { it.id == messageId }?.let { message ->
@@ -284,10 +281,8 @@ data class ChatSessionUiState(
     val myId: String? = null,
     val myAvatar: String? = null,
     val isMyself: Boolean = false,
-    val isSending: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMoreMessages: Boolean = true,
-    val shouldScrollToBottom: Boolean = false,
     val backgroundPath: String? = null,
     val isMuted: Boolean = false,
     val isOnline: Boolean = false

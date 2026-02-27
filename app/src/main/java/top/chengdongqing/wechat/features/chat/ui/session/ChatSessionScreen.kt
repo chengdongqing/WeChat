@@ -20,9 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -41,8 +39,6 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
@@ -76,21 +72,12 @@ fun ChatSessionScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
 
     // 键盘和数据更新时的自动滚动
     KeyboardScrollEffect(listState, messages.size)
     MessageDataScrollEffect(listState, messages)
-
-    // 初始加载完成后滚动到底部
-    LaunchedEffect(uiState.shouldScrollToBottom) {
-        if (uiState.shouldScrollToBottom) {
-            listState.scrollToItem(0)
-            viewModel.onScrolledToBottomHandled()
-        }
-    }
 
     // 上拉加载更多的监听
     LoadMoreEffect(
@@ -153,18 +140,7 @@ fun ChatSessionScreen(
                 bottomBar = {
                     InputBar(
                         listState = listState,
-                        isSending = uiState.isSending,
-                        onSendMessage = { content, onSent ->
-                            viewModel.sendMessage(content) {
-                                scope.launch {
-                                    delay(100)
-                                    listState.animateScrollToItem(0)
-                                    delay(100)
-                                    onSent?.invoke()
-                                    viewModel.finishSending()
-                                }
-                            }
-                        },
+                        viewModel = viewModel,
                         onLaunchCall = launchCall
                     )
                 },
