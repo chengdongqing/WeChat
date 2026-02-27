@@ -39,7 +39,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
     private val contactP2PRepository: ContactP2PRepository,
-    private val activeSessionManager: ActiveSessionManager,
+    val activeSessionManager: ActiveSessionManager,
     e2eSessionManager: E2ESessionManager,
     soundTipPlayer: SoundTipPlayer,
     @param:ApplicationContext private val context: Context
@@ -101,7 +101,6 @@ class ChatSessionViewModel @AssistedInject constructor(
     val playingMessageId = _playingMessageId.asStateFlow()
 
     init {
-        activeSessionManager.enter(chatId)
         loadInitialData()
         observeSessionChanges()
     }
@@ -263,7 +262,6 @@ class ChatSessionViewModel @AssistedInject constructor(
     override fun onCleared() {
         super.onCleared()
         audioPlaybackManager.release()
-        activeSessionManager.leave()
     }
 }
 

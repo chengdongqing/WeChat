@@ -115,6 +115,20 @@ class ChatModule @Inject constructor(
      * 处理新发现的设备
      */
     private suspend fun handleDeviceFound(device: DiscoveredDevice, myUserId: String) {
+        // 保存连接信息
+        connectionInfoDao.insert(
+            ConnectionInfoEntity(
+                userId = device.userId,
+                connectionType = ConnectionType.WiFiLan,
+                ipAddress = device.host,
+                port = device.port,
+                serviceName = device.serviceName,
+                isOnline = true,
+                lastSeen = System.currentTimeMillis(),
+                priority = 0
+            )
+        )
+
         // 已连接跳过
         if (connectionManager.isConnected(device.userId)) {
             return
@@ -132,20 +146,6 @@ class ChatModule @Inject constructor(
             myUserId = myUserId
         ).onSuccess {
             Log.d(TAG, "Socket 已连接: ${device.userId}")
-
-            // 保存连接信息
-            connectionInfoDao.insert(
-                ConnectionInfoEntity(
-                    userId = device.userId,
-                    connectionType = ConnectionType.WiFiLan,
-                    ipAddress = device.host,
-                    port = device.port,
-                    serviceName = device.serviceName,
-                    isOnline = true,
-                    lastSeen = System.currentTimeMillis(),
-                    priority = 0
-                )
-            )
         }
     }
 
