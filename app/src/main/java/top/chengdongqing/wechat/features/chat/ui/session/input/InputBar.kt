@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -24,12 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.EmojiTextField
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.features.call.domain.model.CallType
+import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionUiState
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionViewModel
 import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon
@@ -45,6 +48,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.util.ScrollToDismissEff
 @Composable
 fun InputBar(
     viewModel: ChatSessionViewModel,
+    uiState: ChatSessionUiState,
     listState: LazyListState,
     onLaunchCall: (type: CallType) -> Unit
 ) {
@@ -59,10 +63,22 @@ fun InputBar(
         onDismiss = controller::dismissAll
     )
 
-    // 退出页面时收起键盘
-    DisposableEffect(focusRequester) {
+    LaunchedEffect(uiState.draftMessage) {
+        uiState.draftMessage?.let {
+            // 恢复草稿消息
+            controller.updateText(it)
+            // 自动弹出键盘
+            delay(500)
+            focusRequester.requestFocus()
+        }
+    }
+
+    DisposableEffect(Unit) {
         onDispose {
+            // 退出页面时收起键盘
             controller.dismissAll()
+            // 保存草稿消息
+            viewModel.saveDraftMessage(state.inputText)
         }
     }
 

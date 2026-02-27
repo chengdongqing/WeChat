@@ -20,8 +20,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +33,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.util.toChatDisplayTime
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 
@@ -42,36 +46,22 @@ fun ChatItem(chat: ChatSession) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SessionAvatar(
-            avatar = chat.contactAvatar,
-            unreadCount = chat.unreadCount
-        )
-        SessionContent(
-            name = chat.contactName,
-            lastMsg = chat.lastMessage,
-            isSending = chat.isSending
-        )
-        SessionStatus(
-            time = chat.lastMessageTime?.toChatDisplayTime(),
-            isSending = chat.isSending,
-            isMuted = chat.isMuted
-        )
+        SessionAvatar(chat)
+        SessionContent(chat)
+        SessionStatus(chat)
     }
 }
 
 @Composable
-private fun SessionAvatar(
-    avatar: String?,
-    unreadCount: Int
-) {
+private fun SessionAvatar(chat: ChatSession) {
     WeBadge(
-        visible = unreadCount > 0,
-        content = unreadCount.toBadgeText(),
+        visible = chat.unreadCount > 0,
+        content = chat.unreadCount.toBadgeText(),
         size = 20.dp,
         offset = DpOffset(x = 8.dp, y = (-4).dp)
     ) {
         AsyncImage(
-            model = avatar,
+            model = chat.contactAvatar,
             contentDescription = null,
             error = painterResource(R.drawable.img_avatar_placeholder),
             modifier = Modifier
@@ -83,18 +73,19 @@ private fun SessionAvatar(
 }
 
 @Composable
-private fun RowScope.SessionContent(
-    name: String,
-    lastMsg: String?,
-    isSending: Boolean
-) {
+private fun RowScope.SessionContent(chat: ChatSession) {
+    val isDraft = chat.draftMessage?.isNotBlank().isTrue()
+
+    val draftColor = WeTheme.colorScheme.error
+    val normalColor = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
+
     Column(
         modifier = Modifier
             .weight(1f)
             .padding(vertical = 2.dp)
     ) {
         Text(
-            text = name,
+            text = chat.contactName,
             fontSize = 16.sp,
             maxLines = 1,
             color = WeTheme.colorScheme.textPrimary,
@@ -102,40 +93,48 @@ private fun RowScope.SessionContent(
         )
         Spacer(modifier = Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (isSending) {
+            if (chat.isSending) {
                 Icon(
                     painter = painterResource(R.drawable.ic_sending_filled),
                     contentDescription = null,
                     modifier = Modifier
                         .size(24.dp)
                         .offset(y = 1.dp),
-                    tint = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
+                    tint = normalColor
                 )
             }
+
+            val annotatedText = buildAnnotatedString {
+                if (isDraft) {
+                    withStyle(style = SpanStyle(color = draftColor)) {
+                        append("[草稿] ")
+                    }
+                    append(chat.draftMessage!!)
+                } else {
+                    append(chat.lastMessage ?: "")
+                }
+            }
             Text(
-                text = lastMsg ?: "",
+                text = annotatedText,
                 fontSize = 13.sp,
-                color = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f),
+                color = normalColor,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.alpha(if (lastMsg == null) 0f else 1f)
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
 }
 
 @Composable
-private fun SessionStatus(
-    time: String?,
-    isSending: Boolean,
-    isMuted: Boolean
-) {
+private fun SessionStatus(chat: ChatSession) {
+    val lastMessageTime = chat.lastMessageTime?.toChatDisplayTime() ?: ""
+
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = if (isSending) "正在发送中" else time ?: "",
+            text = if (chat.isSending) "正在发送中" else lastMessageTime,
             fontSize = 11.sp,
             color = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
         )
@@ -144,7 +143,7 @@ private fun SessionStatus(
             contentDescription = null,
             modifier = Modifier
                 .size(14.dp)
-                .alpha(if (isMuted) 1f else 0f),
+                .alpha(if (chat.isMuted) 1f else 0f),
             tint = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
         )
     }

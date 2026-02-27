@@ -139,8 +139,9 @@ fun ChatSessionScreen(
                 },
                 bottomBar = {
                     InputBar(
-                        listState = listState,
                         viewModel = viewModel,
+                        uiState = uiState,
+                        listState = listState,
                         onLaunchCall = launchCall
                     )
                 },

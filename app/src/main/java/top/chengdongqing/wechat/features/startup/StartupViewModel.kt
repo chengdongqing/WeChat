@@ -65,12 +65,4 @@ class StartupViewModel @Inject constructor(
             }
         }
     }
-
-    /**
-     * 重新检查（用于用户完成设置后）
-     */
-    fun recheckState() {
-        _state.value = StartupState.Checking
-        checkStartupState()
-    }
 }

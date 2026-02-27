@@ -256,12 +256,18 @@ class MessageSender @Inject constructor(
     ) {
         val failReason = if (error is ConnectionException) error.failReason else SendError.Unknown
 
-        // 更新状态
-        messageDao.update(messageId) { message ->
-            message.copy(
-                sendStatus = SendStatus.Failed,
-                failReason = failReason
-            )
+        weDatabase.withTransaction {
+            // 更新状态
+            messageDao.update(messageId) { message ->
+                message.copy(
+                    sendStatus = SendStatus.Failed,
+                    failReason = failReason
+                )
+            }
+            // 更新会话状态
+            chatSessionDao.update(receiverId) { session ->
+                session.copy(isSending = false)
+            }
         }
         // 标记为离线
         connectionInfoDao.markOffline(receiverId)

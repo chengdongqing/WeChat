@@ -35,7 +35,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
-    chatSessionRepository: ChatSessionRepository,
+    private val chatSessionRepository: ChatSessionRepository,
     private val messageRepository: MessageRepository,
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
@@ -134,12 +134,12 @@ class ChatSessionViewModel @AssistedInject constructor(
                         isMyself = contact == null
                     )
                 }
-            } catch (_: Exception) {
-            }
 
-            // 标记已读
-            launch(Dispatchers.IO) {
-                messageRepository.markAllAsRead(chatId)
+                // 标记已读
+                launch {
+                    messageRepository.markAllAsRead(chatId)
+                }
+            } catch (_: Exception) {
             }
         }
     }
@@ -152,27 +152,9 @@ class ChatSessionViewModel @AssistedInject constructor(
                         it.copy(
                             backgroundPath = s.backgroundPath,
                             isMuted = s.isMuted,
-                            isOnline = s.isOnline
+                            isOnline = s.isOnline,
+                            draftMessage = s.draftMessage
                         )
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * 发送消息
-     */
-    fun sendMessage(content: MessageContent) {
-        viewModelScope.launch {
-            messageRepository.sendMessage(
-                sessionId = chatId,
-                receiverId = chatId,
-                content = content
-            ).onSuccess {
-                when {
-                    content is MessageContent.Voice -> {
-                        soundTipPlayer.play(R.raw.after_upload_voice)
                     }
                 }
             }
@@ -214,11 +196,42 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     /**
+     * 发送消息
+     */
+    fun sendMessage(content: MessageContent) {
+        viewModelScope.launch {
+            messageRepository.sendMessage(
+                sessionId = chatId,
+                receiverId = chatId,
+                content = content
+            ).onSuccess {
+                when {
+                    content is MessageContent.Voice -> {
+                        soundTipPlayer.play(R.raw.after_upload_voice)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * 重试发送失败的消息
      */
     fun retrySend(messageId: String) {
         viewModelScope.launch {
             messageRepository.retrySend(messageId)
+        }
+    }
+
+    /**
+     * 保存草稿消息
+     */
+    fun saveDraftMessage(draft: String) {
+        viewModelScope.launch {
+            chatSessionRepository.updateDraft(
+                sessionId = chatId,
+                draft = draft.takeIf { it.isNotBlank() }
+            )
         }
     }
 
@@ -285,5 +298,6 @@ data class ChatSessionUiState(
     val hasMoreMessages: Boolean = true,
     val backgroundPath: String? = null,
     val isMuted: Boolean = false,
-    val isOnline: Boolean = false
+    val isOnline: Boolean = false,
+    val draftMessage: String? = null
 )
