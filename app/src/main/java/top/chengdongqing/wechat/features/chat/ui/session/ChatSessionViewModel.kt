@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
+import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
@@ -41,6 +42,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val contactRepository: ContactRepository,
     private val contactP2PRepository: ContactP2PRepository,
     private val soundTipPlayer: SoundTipPlayer,
+    private val notificationHelper: NotificationHelper,
     val activeSessionManager: ActiveSessionManager,
     e2eSessionManager: E2ESessionManager,
     @param:ApplicationContext private val context: Context
@@ -116,32 +118,35 @@ class ChatSessionViewModel @AssistedInject constructor(
     init {
         loadInitialData()
         observeSessionChanges()
+        clearUnreadState()
     }
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            try {
-                val contact = contactRepository.getContactById(chatId)
-                val profile = profileRepository.getCurrentProfileSnapshot()
+            val contact = contactRepository.getContactById(chatId)
+            val profile = profileRepository.getCurrentProfileSnapshot()
 
-                _uiState.update {
-                    it.copy(
-                        title = contact?.displayName ?: profile?.nickname ?: "",
-                        peerId = contact?.id,
-                        peerAvatar = contact?.avatarPath,
-                        myId = profile?.id,
-                        myAvatar = profile?.avatarPath,
-                        isSelf = contact == null
-                    )
-                }
-
-                // 标记已读
-                launch {
-                    messageRepository.markAllAsRead(chatId)
-                }
-            } catch (_: Exception) {
+            _uiState.update {
+                it.copy(
+                    title = contact?.displayName ?: profile?.nickname ?: "",
+                    peerId = contact?.id,
+                    peerAvatar = contact?.avatarPath,
+                    myId = profile?.id,
+                    myAvatar = profile?.avatarPath,
+                    isSelf = contact == null
+                )
             }
         }
+    }
+
+    private fun clearUnreadState() {
+        // 标记已读
+        viewModelScope.launch {
+            messageRepository.markAllAsRead(chatId)
+        }
+
+        // 清除通知
+        notificationHelper.cancelNotification(chatId.hashCode())
     }
 
     private fun observeSessionChanges() {

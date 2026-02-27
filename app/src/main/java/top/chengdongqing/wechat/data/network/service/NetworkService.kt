@@ -211,7 +211,7 @@ class NetworkService : Service() {
             sessionId = message.sessionId,
             title = senderName,
             content = previewText,
-            notificationId = message.id.hashCode()
+            notificationId = message.sessionId.hashCode()
         )
     }
 
