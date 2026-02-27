@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.features.chat.domain.model
 import top.chengdongqing.wechat.data.database.entity.MessageType
 
 data class ChatSession(
-    val sessionId: String,
+    val id: String,
     val contactId: String,
     val contactName: String,
     val contactAvatar: String? = null,
@@ -13,6 +13,7 @@ data class ChatSession(
     val draftMessage: String? = null,
     val backgroundPath: String? = null,
     val unreadCount: Int = 0,
+    val isSending: Boolean = false,
     val isPinned: Boolean = false,
     val isMuted: Boolean = false,
     val isHidden: Boolean = false,

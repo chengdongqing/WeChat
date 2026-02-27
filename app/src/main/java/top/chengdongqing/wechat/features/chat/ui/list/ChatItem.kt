@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,9 +42,20 @@ fun ChatItem(chat: ChatSession) {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        SessionAvatar(chat.contactAvatar, chat.unreadCount)
-        SessionContent(chat.contactName, chat.lastMessage)
-        SessionStatus(chat.lastMessageTime?.toChatDisplayTime(), chat.isMuted)
+        SessionAvatar(
+            avatar = chat.contactAvatar,
+            unreadCount = chat.unreadCount
+        )
+        SessionContent(
+            name = chat.contactName,
+            lastMsg = chat.lastMessage,
+            isSending = chat.isSending
+        )
+        SessionStatus(
+            time = chat.lastMessageTime?.toChatDisplayTime(),
+            isSending = chat.isSending,
+            isMuted = chat.isMuted
+        )
     }
 }
 
@@ -73,7 +85,8 @@ private fun SessionAvatar(
 @Composable
 private fun RowScope.SessionContent(
     name: String,
-    lastMsg: String?
+    lastMsg: String?,
+    isSending: Boolean
 ) {
     Column(
         modifier = Modifier
@@ -88,42 +101,51 @@ private fun RowScope.SessionContent(
             fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = lastMsg ?: "",
-            fontSize = 13.sp,
-            color = WeTheme.colorScheme.textSecondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.alpha(if (lastMsg == null) 0f else 1f)
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (isSending) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_sending_filled),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .offset(y = 1.dp),
+                    tint = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
+                )
+            }
+            Text(
+                text = lastMsg ?: "",
+                fontSize = 13.sp,
+                color = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.alpha(if (lastMsg == null) 0f else 1f)
+            )
+        }
     }
 }
 
 @Composable
 private fun SessionStatus(
     time: String?,
+    isSending: Boolean,
     isMuted: Boolean
 ) {
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        time?.let {
-            Text(
-                text = it,
-                fontSize = 11.sp,
-                color = WeTheme.colorScheme.textSecondary
-            )
-        }
-        if (isMuted) {
-            Icon(
-                painter = painterResource(R.drawable.ic_mute_outlined),
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = WeTheme.colorScheme.textSecondary.copy(alpha = 0.5f)
-            )
-        } else {
-            Spacer(modifier = Modifier.size(14.dp))
-        }
+        Text(
+            text = if (isSending) "正在发送中" else time ?: "",
+            fontSize = 11.sp,
+            color = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_mute_outlined),
+            contentDescription = null,
+            modifier = Modifier
+                .size(14.dp)
+                .alpha(if (isMuted) 1f else 0f),
+            tint = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
+        )
     }
 }

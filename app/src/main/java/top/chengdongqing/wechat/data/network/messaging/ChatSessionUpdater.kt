@@ -45,7 +45,7 @@ class ChatSessionUpdater @Inject constructor(
      *
      * 未读计数规则：自己发的、给自己发的（自我会话）、当前正在查看的，均不计未读。
      */
-    suspend fun update(message: MessageEntity) {
+    suspend fun update(message: MessageEntity, isSending: Boolean = false) {
         // 是否是和自己的会话
         val isSelfSession = message.receiverId == message.senderId
 
@@ -67,7 +67,8 @@ class ChatSessionUpdater @Inject constructor(
                 sessionId = message.sessionId,
                 lastMessage = lastMessageText,
                 lastMessageType = message.contentType,
-                timestamp = message.timestamp
+                isSending = isSending,
+                lastMessageTime = message.timestamp
             )
             // 累加未读数
             if (shouldIncrementUnread) {
@@ -76,7 +77,6 @@ class ChatSessionUpdater @Inject constructor(
         } else {
             // 创建新会话
             val (contactName, contactAvatar) = resolveContactInfo(message, isSelfSession)
-            val now = System.currentTimeMillis()
 
             chatSessionDao.insert(
                 ChatSessionEntity(
@@ -87,6 +87,7 @@ class ChatSessionUpdater @Inject constructor(
                     lastMessage = lastMessageText,
                     lastMessageType = message.contentType,
                     lastMessageTime = message.timestamp,
+                    isSending = isSending,
                     unreadCount = if (shouldIncrementUnread) 1 else 0
                 )
             )

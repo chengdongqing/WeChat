@@ -74,19 +74,21 @@ class MessageRepositoryImpl @Inject constructor(
                 timestamp = now,
                 json = json
             )
-            // 保存到数据库
-            messageDao.insert(
-                entity.copy(
-                    sendStatus = if (shouldSkipSend) {
-                        SendStatus.Sent
-                    } else {
-                        entity.sendStatus
-                    }
-                )
-            )
 
-            // 更新会话
-            chatSessionUpdater.update(entity)
+            weDatabase.withTransaction {
+                // 保存到数据库
+                messageDao.insert(
+                    entity.copy(
+                        sendStatus = if (shouldSkipSend) {
+                            SendStatus.Sent
+                        } else {
+                            entity.sendStatus
+                        }
+                    )
+                )
+                // 更新会话
+                chatSessionUpdater.update(entity, !shouldSkipSend)
+            }
 
             if (!shouldSkipSend) {
                 // 发送消息

@@ -58,7 +58,7 @@ class ChatInfoViewModel @AssistedInject constructor(
 
                 chatSessionRepository.insertSession(
                     ChatSession(
-                        sessionId = chatId,
+                        id = chatId,
                         contactId = chatId,
                         contactName = if (isMyself) myProfile.nickname else contact?.displayName
                             ?: "",

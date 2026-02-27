@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,9 +21,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
@@ -41,8 +43,8 @@ enum class InformationBarType(
     Info(backgroundColor = Color(0f, 0f, 0f, 0.3f)),
     TipsStrong(backgroundColor = Color(0xFFFA9D3B)),
     TipsWeak(
-        backgroundColor = Color.White,
-        iconColor = Color(0f, 0f, 0f, 0.55f),
+        backgroundColor = Color(1f, 0.945f, 0.957f),
+        iconColor = Danger,
         textColor = Color(0f, 0f, 0f, 0.55f),
         linkColor = LinkColor,
         closeIconColor = Color(0f, 0f, 0f, 0.55f)
@@ -56,11 +58,18 @@ fun WeInformationBar(
     visible: Boolean = true,
     message: String,
     type: InformationBarType = InformationBarType.Success,
+    shape: Shape = RoundedCornerShape(8.dp),
     linkText: String? = null,
     autoClose: Boolean = false,
     onLink: (() -> Unit)? = null,
     onClose: (() -> Unit)? = null
 ) {
+    val iconResId = if (type == InformationBarType.Success) {
+        R.drawable.ic_check
+    } else {
+        R.drawable.ic_error_circle_filled
+    }
+
     // 自动关闭
     LaunchedEffect(visible, autoClose, message) {
         if (visible && autoClose) {
@@ -78,13 +87,13 @@ fun WeInformationBar(
             modifier = modifier
                 .fillMaxWidth()
                 .height(48.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(shape)
                 .background(type.backgroundColor)
                 .padding(16.dp, 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                if (type == InformationBarType.Success) Icons.Outlined.Check else Icons.Outlined.Info,
+                painter = painterResource(iconResId),
                 contentDescription = null,
                 tint = type.iconColor
             )

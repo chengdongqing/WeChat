@@ -1,10 +1,13 @@
 package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
+import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.util.toMD5Hex
+import top.chengdongqing.wechat.data.database.WeDatabase
+import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
@@ -31,10 +34,12 @@ import kotlin.coroutines.cancellation.CancellationException
  */
 @Singleton
 class MessageSender @Inject constructor(
+    private val weDatabase: WeDatabase,
     private val socketClient: SocketClient,
     private val connectionManager: ConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
+    private val chatSessionDao: ChatSessionDao,
     private val wifiLockManager: WifiLockManager,
     private val transferManager: TransferManager,
     private val json: Json
@@ -64,7 +69,11 @@ class MessageSender @Inject constructor(
         return runCatching {
             ensureConnected(message.receiverId, message.senderId)
             connectionManager.send(message.receiverId, packet)
-            updateStatus(message.id, SendStatus.Sent)
+            updateStatus(
+                messageId = message.id,
+                sessionId = message.receiverId,
+                status = SendStatus.Sent
+            )
         }.onFailure { e ->
             handleSendError(message.id, message.receiverId, e)
             throw e
@@ -113,7 +122,11 @@ class MessageSender @Inject constructor(
                 }
 
                 // 更新消息的发送状态
-                updateStatus(message.id, SendStatus.Sent)
+                updateStatus(
+                    messageId = message.id,
+                    sessionId = message.receiverId,
+                    status = SendStatus.Sent
+                )
             }.onFailure { e ->
                 handleSendError(message.id, message.receiverId, e)
                 throw e
@@ -219,9 +232,17 @@ class MessageSender @Inject constructor(
     /**
      * 更新发送状态
      */
-    private suspend fun updateStatus(messageId: String, status: SendStatus) {
-        messageDao.update(messageId) { message ->
-            message.copy(sendStatus = status)
+    private suspend fun updateStatus(messageId: String, sessionId: String, status: SendStatus) {
+        weDatabase.withTransaction {
+            messageDao.update(messageId) { message ->
+                message.copy(sendStatus = status)
+            }
+            // 更新会话状态
+            if (status == SendStatus.Sent) {
+                chatSessionDao.update(sessionId) { session ->
+                    session.copy(isSending = false)
+                }
+            }
         }
     }
 

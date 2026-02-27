@@ -4,7 +4,7 @@ import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 
 fun ChatSessionEntity.toDomain() = ChatSession(
-    sessionId = id,
+    id = id,
     contactId = contactId,
     contactName = contactName,
     contactAvatar = contactAvatar,
@@ -12,6 +12,7 @@ fun ChatSessionEntity.toDomain() = ChatSession(
     lastMessageType = lastMessageType,
     lastMessageTime = lastMessageTime,
     unreadCount = unreadCount,
+    isSending = isSending,
     isPinned = isPinned,
     isMuted = isMuted,
     draftMessage = draftMessage,
@@ -19,7 +20,7 @@ fun ChatSessionEntity.toDomain() = ChatSession(
 )
 
 fun ChatSession.toEntity() = ChatSessionEntity(
-    id = sessionId,
+    id = id,
     contactId = contactId,
     contactName = contactName,
     contactAvatar = contactAvatar,
@@ -27,6 +28,7 @@ fun ChatSession.toEntity() = ChatSessionEntity(
     lastMessageType = lastMessageType,
     lastMessageTime = lastMessageTime,
     unreadCount = unreadCount,
+    isSending = isSending,
     isPinned = isPinned,
     isMuted = isMuted,
     draftMessage = draftMessage,

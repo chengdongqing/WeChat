@@ -19,6 +19,7 @@ data class ChatSessionEntity(
 
     val unreadCount: Int = 0,           // 未读消息数
 
+    val isSending: Boolean = false,     // 是否发送中
     val isPinned: Boolean = false,      // 是否置顶
     val isMuted: Boolean = false,       // 是否免打扰
     val isHidden: Boolean = false,      // 是否隐藏

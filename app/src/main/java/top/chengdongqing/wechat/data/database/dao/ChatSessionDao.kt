@@ -39,7 +39,8 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
         UPDATE chat_sessions 
         SET lastMessage = :lastMessage,
             lastMessageType = :lastMessageType,
-            lastMessageTime = :timestamp,
+            lastMessageTime = :lastMessageTime,
+            isSending = :isSending,
             updatedAt = :now,
             -- 如果隐藏了，则取消隐藏
             isHidden = CASE WHEN isHidden = 1 THEN 0 ELSE isHidden END
@@ -50,7 +51,8 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
         sessionId: String,
         lastMessage: String,
         lastMessageType: MessageType?,
-        timestamp: Long,
+        lastMessageTime: Long,
+        isSending: Boolean,
         now: Long = System.currentTimeMillis()
     )
 
