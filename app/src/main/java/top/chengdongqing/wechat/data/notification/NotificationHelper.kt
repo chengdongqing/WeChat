@@ -23,10 +23,10 @@ class NotificationHelper @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
 
-    private companion object {
+    companion object {
         // 通知渠道
-        const val FRIEND_REQUEST_CHANNEL_ID = "friend_request_channel"
-        const val MESSAGE_CHANNEL_ID = "message_channel"
+        private const val FRIEND_REQUEST_CHANNEL_ID = "friend_request_channel"
+        private const val MESSAGE_CHANNEL_ID = "message_channel"
 
         // 通知 ID
         const val FRIEND_REQUEST_NOTIFICATION_ID = 2001

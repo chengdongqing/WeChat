@@ -111,7 +111,7 @@ fun RequestAddFriendPermission(
                 permissions = permissions,
                 onRevoked = onRevoked,
                 onGranted = {
-                    // 重启蓝牙服务
+                    // 启动蓝牙服务
                     val intent = context.createNetworkServiceIntent(NetworkService.ACTION_RETRY_BLE)
                     context.startService(intent)
                 }

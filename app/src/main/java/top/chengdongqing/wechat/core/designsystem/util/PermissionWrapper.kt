@@ -36,7 +36,7 @@ fun PermissionWrapper(
         }
     }
 
-    LaunchedUpdateEffect(permissionState) {
+    LaunchedUpdateEffect(permissionState.allPermissionsGranted) {
         if (permissionState.allPermissionsGranted) {
             onGranted?.invoke()
         }

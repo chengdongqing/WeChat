@@ -138,7 +138,7 @@ class BLEModule @Inject constructor(
                     return@launch
                 }
 
-                val myProfile = profileRepository.getCurrentProfile().first() ?: run {
+                val myProfile = profileRepository.getCurrentProfileSnapshot() ?: run {
                     Log.w(TAG, "无法获取个人资料")
                     return@launch
                 }

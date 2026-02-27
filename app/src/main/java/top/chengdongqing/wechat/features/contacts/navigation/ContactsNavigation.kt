@@ -9,7 +9,7 @@ import androidx.navigation.navDeepLink
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.contacts.ui.add.AddContactScreen
-import top.chengdongqing.wechat.features.contacts.ui.add.nfc.NfcAddFriendScreen
+import top.chengdongqing.wechat.features.contacts.ui.add.nfc.NfcAddContactScreen
 import top.chengdongqing.wechat.features.contacts.ui.add.pincode.PinCodeGroupScreen
 import top.chengdongqing.wechat.features.contacts.ui.add.radar.RadarScanScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
@@ -90,7 +90,7 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
         )
     }
     composable(ContactsRoute.NFC.route) {
-        NfcAddFriendScreen(onBack = onBack)
+        NfcAddContactScreen(onBack = onBack)
     }
     composable(ContactsRoute.RadarScan.route) {
         RadarScanScreen(

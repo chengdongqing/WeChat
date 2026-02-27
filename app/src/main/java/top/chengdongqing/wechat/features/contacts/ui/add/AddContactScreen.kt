@@ -1,10 +1,5 @@
 package top.chengdongqing.wechat.features.contacts.ui.add
 
-import android.Manifest
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
-import android.content.Context
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -179,39 +174,6 @@ private fun QrCodeSection(
             color = WeTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Center
         )
-    }
-}
-
-/**
- * 记忆化蓝牙适配器
- */
-@Composable
-private fun rememberBluetoothAdapter(context: Context): BluetoothAdapter? {
-    return remember {
-        (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
-    }
-}
-
-/**
- * 记忆化蓝牙权限列表
- */
-@Composable
-private fun rememberBluetoothPermissions(): List<String> {
-    return remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            listOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-        } else {
-            listOf(
-                Manifest.permission.BLUETOOTH,
-                Manifest.permission.BLUETOOTH_ADMIN,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
-        }
     }
 }
 

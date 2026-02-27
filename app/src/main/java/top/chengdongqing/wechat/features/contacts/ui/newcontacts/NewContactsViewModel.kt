@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import javax.inject.Inject
@@ -22,7 +23,8 @@ data class NewContactsUiState(
 
 @HiltViewModel
 class NewContactsViewModel @Inject constructor(
-    private val friendRequestRepository: FriendRequestRepository
+    private val friendRequestRepository: FriendRequestRepository,
+    private val notificationHelper: NotificationHelper
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -54,10 +56,18 @@ class NewContactsViewModel @Inject constructor(
         initialValue = NewContactsUiState()
     )
 
-    fun markAllAsRead() {
+    init {
+        clearUnreadState()
+    }
+
+    private fun clearUnreadState() {
+        // 标记已读
         viewModelScope.launch {
             friendRequestRepository.markAllIncomingAsRead()
         }
+
+        // 清除通知
+        notificationHelper.cancelNotification(NotificationHelper.FRIEND_REQUEST_NOTIFICATION_ID)
     }
 
     fun onSearchQueryChange(newQuery: String) {

@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.data.network.radar
 
-import android.util.Log
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,8 +32,7 @@ class AvatarServer @Inject constructor() {
                     try {
                         val client = socket.accept()
                         launch { handleRequest(client, avatarPath) }
-                    } catch (e: Exception) {
-                        Log.e("AvatarServer", "accept 异常: $e")
+                    } catch (_: Exception) {
                         break
                     }
                 }

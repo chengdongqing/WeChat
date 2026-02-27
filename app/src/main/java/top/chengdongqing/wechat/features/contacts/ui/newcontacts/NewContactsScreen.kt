@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -59,11 +58,6 @@ fun NewContactsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val overscrollEffect = rememberBounceOverscrollEffect()
-
-    // 进入页面时标记所有为已读
-    LaunchedEffect(Unit) {
-        viewModel.markAllAsRead()
-    }
 
     // 按时间分组
     val (recent, older) = remember(uiState.filteredRequests) {

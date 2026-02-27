@@ -20,21 +20,21 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRe
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
-private const val TAG = "NfcAddFriendVM"
+private const val TAG = "NfcAddContactVM"
 
-data class NfcAddFriendUiState(
+data class NfcAddContactUiState(
     val connectionState: NfcConnectionState = NfcConnectionState.Waiting,
     val profile: Contact? = null,
     val addState: NfcAddState = NfcAddState.Idle
 )
 
 @HiltViewModel
-class NfcAddFriendViewModel @Inject constructor(
+class NfcAddContactViewModel @Inject constructor(
     private val contactP2PRepository: ContactP2PRepository,
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(NfcAddFriendUiState())
+    private val _uiState = MutableStateFlow(NfcAddContactUiState())
     val uiState = _uiState.asStateFlow()
 
     /**
@@ -121,7 +121,7 @@ class NfcAddFriendViewModel @Inject constructor(
     /** 连接失败或超时后重置所有状态，回到初始界面 */
     fun onRetry() {
         timeoutJob?.cancel()
-        _uiState.value = NfcAddFriendUiState()
+        _uiState.value = NfcAddContactUiState()
         pendingPeerRequest = null
         sessionRequestId = ""
         peerUserId = ""

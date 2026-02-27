@@ -43,8 +43,8 @@ import top.chengdongqing.wechat.features.contacts.ui.add.nfc.components.NfcUnava
 import top.chengdongqing.wechat.features.contacts.ui.add.nfc.components.NfcWaiting
 
 @Composable
-fun NfcAddFriendScreen(
-    viewModel: NfcAddFriendViewModel = hiltViewModel(),
+fun NfcAddContactScreen(
+    viewModel: NfcAddContactViewModel = hiltViewModel(),
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -103,7 +103,7 @@ fun NfcAddFriendScreen(
 
 @Composable
 private fun NfcMainContent(
-    uiState: NfcAddFriendUiState,
+    uiState: NfcAddContactUiState,
     isReaderMode: Boolean,
     onModeChange: (Boolean) -> Unit,
     onAddFriend: () -> Unit,
