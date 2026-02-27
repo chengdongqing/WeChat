@@ -212,11 +212,14 @@ private fun ChatSessionTopBar(
     onBack: () -> Unit,
     onNavigateToInfo: () -> Unit
 ) {
+    val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle(0)
+
     WeTopBar(
         titleContent = {
             ChatSessionTitle(viewModel, uiState)
         },
-        onBack = onBack
+        onBack = onBack,
+        unreadCount = unreadCount
     ) {
         ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
             onNavigateToInfo()

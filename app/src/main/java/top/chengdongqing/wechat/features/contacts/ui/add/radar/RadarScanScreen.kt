@@ -62,7 +62,7 @@ fun RadarScanScreen(
     viewModel: RadarScanViewModel = hiltViewModel()
 ) {
     val radarUsers by viewModel.radarUsers.collectAsStateWithLifecycle()
-    val myProfile by viewModel.myProfile.collectAsStateWithLifecycle(null)
+    val myProfile by viewModel.myProfile.collectAsStateWithLifecycle()
     val loadingUserId by viewModel.loadingUserId.collectAsStateWithLifecycle()
     val navigateToContact by viewModel.navigateToContact.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()

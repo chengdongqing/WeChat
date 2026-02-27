@@ -7,21 +7,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
+import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
@@ -37,6 +36,7 @@ fun WeTopBar(
     contentColor: Color = WeTheme.colorScheme.textPrimary,
     onBack: (() -> Unit)? = null,
     @DrawableRes backIconResId: Int = R.drawable.ic_back_outlined,
+    unreadCount: Int = 0,
     backText: String? = null,
     actions: @Composable WeTopBarScope.() -> Unit = {}
 ) {
@@ -55,13 +55,23 @@ fun WeTopBar(
             // 返回按钮
             if (onBack != null) {
                 if (backText == null) {
-                    WeTopBarIcon(
-                        modifier = Modifier.align(Alignment.CenterStart),
-                        iconResId = backIconResId,
-                        description = "返回",
-                        tint = contentColor,
-                        onClick = onBack
-                    )
+                    WeBadge(
+                        visible = unreadCount > 0,
+                        content = unreadCount.toBadgeText(),
+                        alignment = Alignment.CenterEnd,
+                        size = 20.dp,
+                        gap = (-8).dp,
+                        contentColor = WeTheme.colorScheme.textPrimary,
+                        containerColor = WeTheme.colorScheme.divider,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    ) {
+                        WeTopBarIcon(
+                            iconResId = backIconResId,
+                            description = "返回",
+                            tint = contentColor,
+                            onClick = onBack
+                        )
+                    }
                 } else {
                     Text(
                         text = backText,
@@ -99,104 +109,5 @@ fun WeTopBar(
                 WeTopBarScopeImpl(contentColor).actions()
             }
         }
-    }
-}
-
-/**
- * TopBar 操作按钮作用域
- */
-@DslMarker
-annotation class TopBarScopeMarker
-
-@TopBarScopeMarker
-interface WeTopBarScope {
-    /**
-     * 操作按钮（图标）
-     */
-    @Composable
-    fun ActionIcon(
-        @DrawableRes iconResId: Int,
-        modifier: Modifier = Modifier,
-        description: String? = null,
-        onClick: (() -> Unit)? = null
-    )
-
-    /**
-     * 操作按钮（文字）
-     */
-    @Composable
-    fun ActionText(
-        text: String,
-        modifier: Modifier = Modifier,
-        onClick: (() -> Unit)? = null
-    )
-}
-
-/**
- * Scope 实现（内部类，外部不可见）
- */
-private class WeTopBarScopeImpl(
-    private val contentColor: Color
-) : WeTopBarScope {
-
-    @Composable
-    override fun ActionIcon(
-        iconResId: Int,
-        modifier: Modifier,
-        description: String?,
-        onClick: (() -> Unit)?
-    ) {
-        WeTopBarIcon(
-            iconResId = iconResId,
-            description = description,
-            tint = contentColor,
-            modifier = modifier,
-            onClick = onClick
-        )
-    }
-
-    @Composable
-    override fun ActionText(
-        text: String,
-        modifier: Modifier,
-        onClick: (() -> Unit)?
-    ) {
-        Text(
-            text = text,
-            color = contentColor,
-            fontSize = 16.sp,
-            modifier = modifier
-                .padding(horizontal = 8.dp)
-                .weClickable(onClick = onClick ?: {})
-        )
-    }
-}
-
-/**
- * TopBar 图标按钮（可独立使用）
- */
-@Composable
-fun WeTopBarIcon(
-    @DrawableRes iconResId: Int,
-    modifier: Modifier = Modifier,
-    description: String? = null,
-    tint: Color = WeTheme.colorScheme.textPrimary,
-    onClick: (() -> Unit)? = null
-) {
-    Box(
-        modifier = modifier
-            .size(40.dp)
-            .weClickable(
-                enabled = onClick != null,
-                onClick = { onClick?.invoke() }
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(iconResId),
-            contentDescription = description,
-            modifier = Modifier.size(24.dp),
-            tint = tint
-        )
     }
 }

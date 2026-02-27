@@ -34,6 +34,11 @@ class RadarScanViewModel @Inject constructor(
         )
 
     val myProfile = profileRepository.getCurrentProfile()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = null
+        )
 
     /** 正在加载中的用户ID，用于在头像上显示 loading */
     private val _loadingUserId = MutableStateFlow<String?>(null)

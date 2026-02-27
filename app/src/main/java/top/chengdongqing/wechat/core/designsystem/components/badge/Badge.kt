@@ -25,24 +25,27 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.theme.White
 
 @Composable
 fun WeBadge(
+    modifier: Modifier = Modifier,
     visible: Boolean = true,
     content: String? = null,
-    size: Dp = 10.dp,
-    color: Color = Danger,
     alignment: Alignment = Alignment.TopEnd,
+    size: Dp = 10.dp,
+    gap: Dp = 8.dp,
     offset: DpOffset? = null,
+    contentColor: Color = White,
+    containerColor: Color = Danger,
     holder: (@Composable () -> Unit)? = null
 ) {
-    if (!visible) {
+    Box(modifier = modifier) {
         holder?.invoke()
-        return
-    }
 
-    Box {
-        holder?.invoke()
+        if (!visible) {
+            return
+        }
 
         val density = LocalDensity.current
         var localWidth by remember {
@@ -53,8 +56,8 @@ fun WeBadge(
             val offsetX = when (alignment) {
                 Alignment.TopEnd, Alignment.BottomEnd -> localWidth / 2
                 Alignment.TopCenter, Alignment.BottomCenter, Alignment.Center -> 0.dp
-                Alignment.CenterStart -> -(localWidth + 8.dp)
-                Alignment.CenterEnd -> localWidth + 8.dp
+                Alignment.CenterStart -> -(localWidth + gap)
+                Alignment.CenterEnd -> localWidth + gap
                 else -> -localWidth / 2
             }
             val offsetY = when (alignment) {
@@ -77,12 +80,12 @@ fun WeBadge(
                 }
                 .offset(x = finalOffset.x, y = finalOffset.y)
                 .clip(if (localWidth > size) RoundedCornerShape(20.dp) else CircleShape)
-                .background(color)
+                .background(containerColor)
                 .padding(horizontal = if (localWidth > size) 6.dp else 0.dp),
             contentAlignment = Alignment.Center
         ) {
             content?.let {
-                Text(text = content, color = Color.White, fontSize = 12.sp)
+                Text(text = content, color = contentColor, fontSize = 12.sp)
             }
         }
     }

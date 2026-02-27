@@ -86,7 +86,19 @@ class ChatSessionViewModel @AssistedInject constructor(
     // 是否启用了加密
     val isE2EActive = e2eSessionManager.encryptedPeers
         .map { it.contains(chatId) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false
+        )
+
+    // 未读数
+    val unreadCount = chatSessionRepository.observeTotalUnreadCount()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = 0
+        )
 
     private val sessionFlow = chatSessionRepository.observeSession(chatId)
 
