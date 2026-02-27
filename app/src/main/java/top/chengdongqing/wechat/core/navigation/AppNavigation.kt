@@ -10,7 +10,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import top.chengdongqing.wechat.core.util.decode
 import top.chengdongqing.wechat.core.util.encode
@@ -49,7 +48,7 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController(),
+    navController: NavHostController,
     startDestination: String = Screen.Splash.route
 ) {
     // 页面返回

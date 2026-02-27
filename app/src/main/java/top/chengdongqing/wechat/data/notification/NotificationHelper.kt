@@ -115,7 +115,7 @@ class NotificationHelper @Inject constructor(
     ) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = "wechat://chat/$sessionId".toUri()
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
 
         val pendingIntent = PendingIntent.getActivity(

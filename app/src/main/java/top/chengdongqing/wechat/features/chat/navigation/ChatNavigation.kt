@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.ui.info.ChatInfoScreen
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionScreen
@@ -34,6 +35,11 @@ sealed class ChatRoute(val route: String) {
 fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () -> Unit) {
     composable(
         route = ChatRoute.ChatSession.route,
+        deepLinks = listOf(
+            navDeepLink {
+                uriPattern = "wechat://chat/{${ChatRoute.ChatSession.ARG_CHAT_ID}}"
+            }
+        ),
         arguments = listOf(
             navArgument(ChatRoute.ChatSession.ARG_CHAT_ID) { type = NavType.StringType }
         )
