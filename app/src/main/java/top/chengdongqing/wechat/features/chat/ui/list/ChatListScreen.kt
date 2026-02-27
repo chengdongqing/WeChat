@@ -27,6 +27,7 @@ import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeIn
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.util.rememberWifiConnected
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 
 @Composable
@@ -36,16 +37,19 @@ fun ChatListScreen(
 ) {
     val chats by viewModel.chats.collectAsStateWithLifecycle()
 
+    val isWifiConnected = rememberWifiConnected()
     val contextMenuState = rememberContextMenuState()
     val overscrollEffect = rememberBounceOverscrollEffect()
 
     Column {
-        WeInformationBar(
-            type = InformationBarType.TipsWeak,
-            message = "当前无法连接网络，可检查网络设置是否正常。",
-            shape = RectangleShape
-        )
-        WeDivider()
+        if (!isWifiConnected) {
+            WeInformationBar(
+                type = InformationBarType.TipsWeak,
+                message = "当前无法连接网络，可检查网络设置是否正常。",
+                shape = RectangleShape
+            )
+            WeDivider()
+        }
 
         LazyColumn(
             modifier = Modifier
