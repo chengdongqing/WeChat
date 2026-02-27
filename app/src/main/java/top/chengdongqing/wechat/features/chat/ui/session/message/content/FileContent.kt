@@ -69,19 +69,24 @@ fun FileContent(message: ChatMessage) {
             )
 
             if (message.isSending) {
-                ControlWithProgress(message)
+                ControlWithProgress(message) {
+                    chatContext?.onStopTransfer(message.id)
+                }
             }
         }
     }
 }
 
 @Composable
-fun ControlWithProgress(message: ChatMessage) {
+fun ControlWithProgress(message: ChatMessage, onClick: () -> Unit) {
+    val icon = if (message.sendStatus is MessageSendStatus.Paused)
+        R.drawable.ic_play_filled else R.drawable.ic_pause_filled
+
     Box(
         modifier = Modifier
             .size(26.dp)
             .clip(CircleShape)
-            .clickable { },
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         WeCircleProgress(
@@ -92,8 +97,7 @@ fun ControlWithProgress(message: ChatMessage) {
             indicatorColor = Color.Gray,
             formatter = null
         )
-        val icon = if (message.sendStatus is MessageSendStatus.Paused)
-            R.drawable.ic_play_filled else R.drawable.ic_pause_filled
+
         Icon(
             painterResource(icon),
             null,

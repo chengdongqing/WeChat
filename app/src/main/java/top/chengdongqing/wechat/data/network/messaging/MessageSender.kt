@@ -172,7 +172,7 @@ class MessageSender @Inject constructor(
             .takeIf { it?.ipAddress != null && it.port != null }
             ?: throw ConnectionException(
                 "未找到连接信息: $targetUserId",
-                SendError.RecipientOffline
+                SendError.ConnectionFailed
             )
 
         socketClient.connect(
@@ -247,14 +247,22 @@ class MessageSender @Inject constructor(
     }
 
     /**
-     * 更新发送状态为失败
+     * 处理发送失败
      */
     private suspend fun handleSendError(
         messageId: String,
         receiverId: String,
         error: Throwable
     ) {
-        val failReason = if (error is ConnectionException) error.failReason else SendError.Unknown
+        val failReason = if (error is ConnectionException) {
+            error.failReason
+        } else {
+            if (error is CancellationException) {
+                SendError.Cancelled
+            } else {
+                SendError.Unknown
+            }
+        }
 
         weDatabase.withTransaction {
             // 更新状态

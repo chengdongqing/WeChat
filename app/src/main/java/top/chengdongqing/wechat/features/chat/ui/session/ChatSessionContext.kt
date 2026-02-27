@@ -25,7 +25,8 @@ data class ChatSessionContext(
     val onPreviewFile: (messageId: String) -> Unit,
     val onLaunchCall: (type: CallType) -> Unit,
     val onNavigateToContact: (isPeer: Boolean) -> Unit,
-    val onNavigateToWebView: (url: String) -> Unit
+    val onNavigateToWebView: (url: String) -> Unit,
+    val onStopTransfer: (messageId: String) -> Unit
 )
 
 val LocalChatSessionContext = compositionLocalOf<ChatSessionContext?> { null }
@@ -67,7 +68,8 @@ fun rememberChatSessionContext(
             onPreviewFile = { onPreviewFile(it) },
             onLaunchCall = onLaunchCall,
             onNavigateToContact = onNavigateToContact,
-            onNavigateToWebView = onNavigateToWebView
+            onNavigateToWebView = onNavigateToWebView,
+            onStopTransfer = viewModel::stopTransfer
         )
     }
 }

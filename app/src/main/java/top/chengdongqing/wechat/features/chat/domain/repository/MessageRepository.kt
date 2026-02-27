@@ -23,6 +23,9 @@ interface MessageRepository {
     /** 重试发送 */
     suspend fun retrySend(messageId: String): Result<Unit>
 
+    /** 停止文件传输 */
+    fun stopTransfer(messageId: String)
+
     /** 标记已读 */
     suspend fun markAllAsRead(sessionId: String)
 

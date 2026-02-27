@@ -13,6 +13,7 @@ import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
+import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
@@ -30,6 +31,7 @@ class MessageRepositoryImpl @Inject constructor(
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
+    private val transferManager: TransferManager,
     private val json: Json
 ) : MessageRepository {
 
@@ -118,6 +120,10 @@ class MessageRepositoryImpl @Inject constructor(
                 }
             }
         }
+    }
+
+    override fun stopTransfer(messageId: String) {
+        transferManager.setCancelled(messageId)
     }
 
     override suspend fun markAllAsRead(sessionId: String) {

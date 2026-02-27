@@ -244,6 +244,15 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * 停止文件传输
+     */
+    fun stopTransfer(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.stopTransfer(messageId)
+        }
+    }
+
     fun toggleVoicePlay(messageId: String, localPath: String) {
         val voiceMessages = messages.value.filter { it.content is MessageContent.Voice }
         audioPlaybackManager.togglePlay(messageId, localPath, voiceMessages)

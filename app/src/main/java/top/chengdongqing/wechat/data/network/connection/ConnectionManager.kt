@@ -59,7 +59,7 @@ class ConnectionManager @Inject constructor(
     fun requireConnection(userId: String) =
         getConnection(userId) ?: throw ConnectionException(
             "未找到连接: $userId",
-            SendError.RecipientOffline
+            SendError.ConnectionFailed
         )
 
     /**
