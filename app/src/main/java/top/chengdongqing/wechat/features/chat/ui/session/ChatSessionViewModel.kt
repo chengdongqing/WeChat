@@ -118,7 +118,6 @@ class ChatSessionViewModel @AssistedInject constructor(
     init {
         loadInitialData()
         observeSessionChanges()
-        clearUnreadState()
     }
 
     private fun loadInitialData() {
@@ -139,7 +138,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    private fun clearUnreadState() {
+    fun clearUnreadState() {
         // 标记已读
         viewModelScope.launch {
             messageRepository.markAllAsRead(chatId)

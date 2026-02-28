@@ -92,6 +92,7 @@ fun ChatSessionScreen(
     // 注册/清除 当前聚焦的会话
     LifecycleResumeEffect(chatId) {
         viewModel.activeSessionManager.enter(chatId)
+        viewModel.clearUnreadState()
 
         onPauseOrDispose {
             viewModel.activeSessionManager.leave()
