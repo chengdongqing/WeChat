@@ -158,7 +158,7 @@ class MessageRepositoryImpl @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "发送失败: ${entity.id}", e)
+            Log.w(TAG, "发送失败: ${entity.id}, ${e.message}")
         }
     }
 }

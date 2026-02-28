@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.core.nfc
 
 import android.nfc.NfcAdapter
 import android.nfc.NfcManager
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -13,8 +12,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-
-private const val TAG = "NfcAvailability"
 
 /**
  * NFC 可用性状态。
@@ -50,16 +47,13 @@ fun rememberNfcAvailability(): NfcAvailability {
     }
 
     var availability by remember {
-        mutableStateOf(nfcAdapter.toAvailability()).also {
-            Log.d(TAG, "初始 NFC 状态: ${it::class.simpleName}")
-        }
+        mutableStateOf(nfcAdapter.toAvailability())
     }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 availability = nfcAdapter.toAvailability()
-                Log.d(TAG, "onResume 重检 NFC 状态: ${availability::class.simpleName}")
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

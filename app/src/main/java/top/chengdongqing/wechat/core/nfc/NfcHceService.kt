@@ -10,7 +10,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 /**
- * NFC HCE 服务（全链路日志版本）
+ * NFC HCE 服务
  */
 @AndroidEntryPoint
 class NfcHceService : HostApduService() {
@@ -29,24 +29,21 @@ class NfcHceService : HostApduService() {
     }
 
     override fun processCommandApdu(commandApdu: ByteArray, extras: Bundle?): ByteArray {
-        Log.d("NfcHce", "📥 收到 APDU: ${commandApdu.toHexString()}")
-
         if (!isSelectAidApdu(commandApdu)) {
-            Log.w("NfcHce", "⚠️ 非 SELECT AID，忽略")
+            Log.w("NfcHce", "非 SELECT AID，忽略")
             return byteArrayOf(0x00, 0x00)
         }
 
         val userId = getUserIdBlocking()
-        Log.d("NfcHce", "📋 userId: $userId")
 
         if (userId == null) {
-            Log.e("NfcHce", "❌ userId 为 null")
+            Log.e("NfcHce", "userId 为 null")
             return FAILURE_SW
         }
 
         val bytes = userId.toByteArray(Charsets.UTF_8)
         val response = byteArrayOf(bytes.size.toByte()) + bytes + SUCCESS_SW
-        Log.d("NfcHce", "📤 返回: ${response.toHexString()}")
+        Log.d("NfcHce", "返回: ${response.toHexString()}")
         return response
     }
 
@@ -73,7 +70,7 @@ class NfcHceService : HostApduService() {
             profileRepository.getCurrentProfile().firstOrNull()?.id
         }
     } catch (e: Exception) {
-        Log.e("NfcHce", "❌ 获取 userId 异常: ${e.message}", e)
+        Log.e("NfcHce", "获取 userId 异常: ${e.message}", e)
         null
     }
 }

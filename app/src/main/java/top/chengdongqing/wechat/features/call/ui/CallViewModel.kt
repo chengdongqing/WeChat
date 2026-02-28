@@ -76,4 +76,7 @@ class CallViewModel @Inject constructor(
 
     /** 将远端渲染器绑定到 WebRTC 远端视频轨道 */
     fun bindRemoteRenderer(renderer: SurfaceViewRenderer) = callManager.setRemoteRenderer(renderer)
+
+    /** 重新采集本地视频 */
+    fun restartVideoCapture() = callManager.restartVideoCapture()
 }

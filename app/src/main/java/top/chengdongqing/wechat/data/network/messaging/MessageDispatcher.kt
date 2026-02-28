@@ -16,6 +16,7 @@ import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
+import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
@@ -40,6 +41,7 @@ class MessageDispatcher @Inject constructor(
     private val fileManager: FileManager,
     private val signalingManager: SignalingManager,
     private val transferManager: TransferManager,
+    private val activeSessionManager: ActiveSessionManager,
     private val json: Json
 ) {
     private companion object {
@@ -130,11 +132,16 @@ class MessageDispatcher @Inject constructor(
             // 发送送达回执
             sendAck(protocol)
 
-            // 没有开启免到扰就推送到消息流
-            chatSessionRepository.isSessionMuted(protocol.senderId).let { isMuted ->
-                if (!isMuted) {
-                    _incomingMessageFlow.emit(entity.toDomain(json))
-                }
+            // 查询是否开启免打扰
+            val isMuted = chatSessionRepository.isSessionMuted(protocol.senderId)
+
+            // 满足指定条件就推送到消息流以触发消息通知
+            val isNotifyRequired = !isMuted && // 未开启免打扰
+                    !entity.isFromMe && // 不是给自己发的
+                    !entity.contentType.isCallMessage && // 不是通话消息
+                    !activeSessionManager.isActive(entity.sessionId) // 当前未在消息所在的会话页
+            if (isNotifyRequired) {
+                _incomingMessageFlow.emit(entity.toDomain(json))
             }
         } catch (e: Exception) {
             Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)

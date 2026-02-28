@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -39,14 +38,13 @@ class ProfileViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
-    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+    val uiState = _uiState.asStateFlow()
 
     private val _eventFlow = MutableSharedFlow<ProfileUiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     init {
         loadProfile()
-        generateQRCode()
     }
 
     /**
@@ -73,7 +71,7 @@ class ProfileViewModel @Inject constructor(
     /**
      * 生成我的二维码
      */
-    private fun generateQRCode() {
+    fun generateQRCode() {
         viewModelScope.launch {
             qrCodeUseCase.generateMyQRCode().fold(
                 onSuccess = { qrCode ->
@@ -231,6 +229,7 @@ sealed class ProfileField {
     data class Nickname(val value: String) : ProfileField()
     data class Gender(val value: top.chengdongqing.wechat.features.me.domain.model.Gender) :
         ProfileField()
+
     data class Signature(val value: String) : ProfileField()
     data class Avatar(val uri: Uri) : ProfileField()
 }

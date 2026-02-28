@@ -42,8 +42,12 @@ class SignalingManager @Inject constructor(
      */
     suspend fun send(targetUserId: String, message: ChatProtocol.Signaling) {
         val body = json.encodeToString<ChatProtocol.Signaling>(message).toByteArray(Charsets.UTF_8)
-        connectionManager.send(targetUserId, Packet(PacketType.SIGNALING, body))
-            .onFailure { Log.e(TAG, "发送失败: ${message::class.simpleName}", it) }
+        connectionManager.send(
+            userId = targetUserId,
+            packet = Packet(PacketType.SIGNALING, body)
+        ).onFailure {
+            Log.e(TAG, "发送失败: ${message::class.simpleName}", it)
+        }
     }
 
     /**
@@ -53,7 +57,6 @@ class SignalingManager @Inject constructor(
      * 推入流后由 [CallManager] 消费。
      */
     suspend fun onSignalingReceived(protocol: ChatProtocol.Signaling) {
-        Log.d(TAG, "← ${protocol::class.simpleName} from ${protocol.senderId}")
         runCatching { _incomingSignaling.emit(protocol) }
             .onFailure { Log.e(TAG, "信令推送失败", it) }
     }

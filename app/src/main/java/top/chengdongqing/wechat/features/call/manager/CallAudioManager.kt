@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import top.chengdongqing.wechat.R
 import javax.inject.Inject
@@ -30,10 +29,6 @@ import javax.inject.Singleton
 class CallAudioManager @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
-    private companion object {
-        const val TAG = "CallAudioManager"
-    }
-
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var ringtonePlayer: MediaPlayer? = null
     private val vibrator: Vibrator? = resolveVibrator()
@@ -53,7 +48,6 @@ class CallAudioManager @Inject constructor(
         savedSpeakerState = isSpeakerOn()
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
         setSpeakerphoneOn(isSpeakerOn)
-        Log.d(TAG, "进入通话音频模式")
     }
 
     /**
@@ -67,9 +61,7 @@ class CallAudioManager @Inject constructor(
             audioManager.clearCommunicationDevice()
         }
         audioManager.mode = savedAudioMode
-        @Suppress("DEPRECATION")
-        audioManager.isSpeakerphoneOn = savedSpeakerState
-        Log.d(TAG, "退出通话音频模式")
+        setSpeakerphoneOn(savedSpeakerState)
     }
 
     // ==================== 免提切换 ====================
@@ -78,7 +70,6 @@ class CallAudioManager @Inject constructor(
     fun toggleSpeaker(): Boolean {
         val newState = !isSpeakerOn()
         setSpeakerphoneOn(newState)
-        Log.d(TAG, "免提: $newState")
         return newState
     }
 
@@ -139,8 +130,6 @@ class CallAudioManager @Inject constructor(
         if (isIncoming && shouldVibrate()) {
             vibrate(pattern = longArrayOf(0, 1000, 1000), repeat = 0)
         }
-
-        Log.d(TAG, "铃声已播放 (incoming=$isIncoming)")
     }
 
     /** 停止铃声和震动 */
@@ -154,14 +143,17 @@ class CallAudioManager @Inject constructor(
     }
 
     /** 播放通话结束提示音，播完自动释放 */
-    fun playHangupTone() {
+    fun playHangupTone(onComplete: () -> Unit) {
         MediaPlayer.create(context, R.raw.playend)?.apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
                     .build()
             )
-            setOnCompletionListener { it.release() }
+            setOnCompletionListener {
+                it.release()
+                onComplete()
+            }
             start()
         }
     }

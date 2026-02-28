@@ -210,14 +210,13 @@ class WebRTCManager @Inject constructor(
      *
      * 用于权限补救场景：handleOffer 时相机权限未授予，接受通话后补充启动。
      */
-    private fun restartVideoCapture() {
+    fun restartVideoCapture() {
         runCatching {
             videoCapturer?.startCapture(
                 activeProfile.width,
                 activeProfile.height,
                 activeProfile.fps
             )
-            Log.d(TAG, "视频采集已重启（权限补救）")
         }.onFailure { Log.e(TAG, "重启视频采集失败", it) }
     }
 
@@ -310,6 +309,7 @@ class WebRTCManager @Inject constructor(
                 peerConnection?.setLocalDescription(SimpleSdpObserver(), optimized)
                 cont.resume(optimized)
             }
+
             override fun onCreateFailure(error: String) =
                 cont.resumeWithException(RuntimeException("createOffer: $error"))
         }, sdpConstraints())
@@ -323,6 +323,7 @@ class WebRTCManager @Inject constructor(
                 peerConnection?.setLocalDescription(SimpleSdpObserver(), optimized)
                 cont.resume(optimized)
             }
+
             override fun onCreateFailure(error: String) =
                 cont.resumeWithException(RuntimeException("createAnswer: $error"))
         }, sdpConstraints())
@@ -505,8 +506,6 @@ class WebRTCManager @Inject constructor(
      * 注意：[eglBase] 不在此处释放，跨通话复用。
      */
     fun release() {
-        Log.d(TAG, "正在释放 WebRTC 资源...")
-
         // 1. 先停掉采集器，防止它继续往 Source 送帧
         try {
             videoCapturer?.stopCapture()
@@ -544,9 +543,8 @@ class WebRTCManager @Inject constructor(
         peerConnection = null
 
         // 8. 销毁 Factory
-        val currentFactory = factory
+        factory?.dispose()
         factory = null
-        currentFactory?.dispose()
 
         // 9. 清理远端轨道状态
         _remoteVideoTrack.value = null
@@ -562,7 +560,6 @@ class WebRTCManager @Inject constructor(
 
         /** ICE 连接状态变化，Connected 时通话正式建立 */
         override fun onIceConnectionChange(state: PeerConnection.IceConnectionState) {
-            Log.d(TAG, "ICE 状态: $state")
             _iceConnectionState.value = state
         }
 

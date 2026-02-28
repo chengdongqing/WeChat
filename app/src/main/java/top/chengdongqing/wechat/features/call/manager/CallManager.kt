@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.webrtc.IceCandidate
 import org.webrtc.PeerConnection
 import org.webrtc.SessionDescription
@@ -94,8 +93,6 @@ class CallManager @Inject constructor(
         scope.launch { signalingManager.incomingSignaling.collect { handleIncomingSignaling(it) } }
         scope.launch { webRTCManager.iceConnectionState.collect { handleIceStateChange(it) } }
         scope.launch { webRTCManager.localIceCandidates.collect { sendIceCandidate(it) } }
-
-        Log.d(TAG, "CallManager 已初始化: myUserId=$myUserId")
     }
 
     // ==================== 发起通话 ====================
@@ -108,7 +105,6 @@ class CallManager @Inject constructor(
      */
     fun startCall(peerId: String, peerName: String, peerAvatar: String?, callType: CallType) {
         if (_state.value.callState != CallState.Idle) {
-            Log.w(TAG, "当前有通话进行中，忽略: peerId=$peerId")
             return
         }
 
@@ -291,6 +287,7 @@ class CallManager @Inject constructor(
 
     fun setLocalRenderer(renderer: SurfaceViewRenderer) = webRTCManager.setLocalRenderer(renderer)
     fun setRemoteRenderer(renderer: SurfaceViewRenderer) = webRTCManager.setRemoteRenderer(renderer)
+    fun restartVideoCapture() = webRTCManager.restartVideoCapture()
     val eglBase get() = webRTCManager.eglBase
 
     // ==================== 信令处理 ====================
@@ -327,9 +324,7 @@ class CallManager @Inject constructor(
 
         isOutgoing = false
 
-        val contact = withContext(Dispatchers.IO) {
-            contactRepository.getContactById(offer.senderId)
-        }
+        val contact = contactRepository.getContactById(offer.senderId)
 
         webRTCManager.initialize()
         webRTCManager.createPeerConnection()
@@ -353,7 +348,6 @@ class CallManager @Inject constructor(
         )
 
         startTimeout()
-        Log.d(TAG, "来电: ${contact?.displayName ?: offer.senderId} type=${offer.callType}")
     }
 
     /** 收到 Answer，设置远端 SDP，切换为 Connecting 等待 ICE 建立 */
@@ -492,10 +486,9 @@ class CallManager @Inject constructor(
             return
         }
 
+        // 取消计时器
         cancelTimeout()
-        timerJob?.cancel()
-        timerJob = null
-
+        // 更新通话状态
         val snapshot = _state.value
         _state.update {
             it.copy(
@@ -503,12 +496,14 @@ class CallManager @Inject constructor(
                 hangupResult = HangupResult(reason, isFromMe)
             )
         }
+        // 释放 WebRTC 相关资源
         webRTCManager.release()
-        Log.d(TAG, "通话结束: reason=$reason duration=${duration}s")
 
         scope.launch {
+            // 保存通话记录
             saveCallRecord(snapshot, reason, duration)
             delay(3000)
+            // 重置通话状态
             _state.value = CallUiState()
         }
     }

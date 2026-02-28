@@ -15,6 +15,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -57,6 +58,10 @@ fun AddContactScreen(
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         val snackbarHostState = remember { SnackbarHostState() }
 
+        // 生成二维码
+        LaunchedEffect(Unit) {
+            viewModel.generateQRCode()
+        }
         // 处理扫码
         val launchScanner = rememberScanCodeLauncher { qrCodes ->
             viewModel.handleScannedQRCode(qrCodes.first())

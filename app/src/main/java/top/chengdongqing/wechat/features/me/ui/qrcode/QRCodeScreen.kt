@@ -88,6 +88,10 @@ fun QRCodeScreen(
     RequestAddFriendPermission(onRevoked = onBack) {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         val snackbarHostState = remember { SnackbarHostState() }
+        // 生成二维码
+        LaunchedEffect(Unit) {
+            viewModel.generateQRCode()
+        }
 
         // 提前返回，避免后续空值检查
         val profile = uiState.profile ?: return@RequestAddFriendPermission

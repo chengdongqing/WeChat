@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,12 +54,20 @@ import kotlin.math.roundToInt
 fun CallScreen(viewModel: CallViewModel, onDismiss: () -> Unit) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    // 通话结束后延迟 2s 退出，给用户看到结束状态的时间
+    // 通话结束后延迟 2s 退出，给用户看到结束状态
     LaunchedEffect(uiState.callState) {
         if (uiState.callState == CallState.Ended) {
             delay(2000)
             onDismiss()
         }
+    }
+
+    LifecycleResumeEffect(Unit) {
+        // 刚进入接听页面有时会黑屏，可能需要重新采集摄像头数据
+        if (uiState.callState == CallState.Incoming && uiState.isVideoCall && uiState.isVideoOn) {
+            viewModel.restartVideoCapture()
+        }
+        onPauseOrDispose {}
     }
 
     ImmersiveSystemBars(!uiState.isControlsVisible)
@@ -110,6 +119,7 @@ private fun FullScreenLayer(uiState: CallUiState, viewModel: CallViewModel) {
             onRendererReady = viewModel::bindLocalRenderer,
             isMirror = uiState.isFrontCamera
         )
+
         else -> CallBackground(uiState)
     }
 }

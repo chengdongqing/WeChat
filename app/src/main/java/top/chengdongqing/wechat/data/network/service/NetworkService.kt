@@ -19,7 +19,6 @@ import top.chengdongqing.wechat.data.network.service.modules.CallModule
 import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
 import top.chengdongqing.wechat.data.notification.NotificationHelper
-import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.toPreviewText
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
@@ -27,7 +26,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 /**
- * 网络后台服务
+ * 网络前台服务
  *
  * 以前台服务形式长期运行，统一管理多个子模块：
  * - [BLEModule]：蓝牙设备发现与好友添加
@@ -56,9 +55,6 @@ class NetworkService : Service() {
 
     @Inject
     lateinit var notificationHelper: NotificationHelper
-
-    @Inject
-    lateinit var activeSessionManager: ActiveSessionManager
 
     @Inject
     @IoScope
@@ -161,9 +157,7 @@ class NetworkService : Service() {
      */
     private suspend fun observeIncomingMessages() {
         chatModule.incomingMessageFlow.collect { message ->
-            if (!activeSessionManager.isActive(message.sessionId)) {
-                handleNewMessage(message)
-            }
+            handleNewMessage(message)
         }
     }
 
@@ -199,8 +193,6 @@ class NetworkService : Service() {
      * 发件人优先取备注名，查不到联系人时兜底显示"新消息"。
      */
     private suspend fun handleNewMessage(message: ChatMessage) {
-        if (message.isFromMe) return // 自己发送的消息不通知
-
         // 查询联系人昵称
         val contact = contactRepository.getContactById(message.senderId)
         val senderName = contact?.displayName ?: "新消息"
@@ -214,8 +206,6 @@ class NetworkService : Service() {
             notificationId = message.sessionId.hashCode()
         )
     }
-
-    // ==================== 前台通知 ====================
 
     /**
      * 创建前台服务通知渠道（其他业务通知渠道由 NotificationHelper 管理）

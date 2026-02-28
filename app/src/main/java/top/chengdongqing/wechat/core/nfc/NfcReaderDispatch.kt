@@ -42,7 +42,6 @@ fun NfcReaderDispatch(
         val nfcAdapter = NfcAdapter.getDefaultAdapter(activity)
 
         if (isReaderMode && nfcAdapter != null) {
-            Log.d(TAG, "🚀 启用读卡器模式")
             nfcAdapter.enableReaderMode(
                 activity,
                 { tag -> handleTag(tag, mainHandler, onUserIdRead) },
@@ -51,12 +50,10 @@ fun NfcReaderDispatch(
             )
         } else {
             // 关闭读卡器，确保本机 HCE 服务可以被对方扫描
-            Log.d(TAG, "😴 关闭读卡器模式，切换为被扫描")
             nfcAdapter?.disableReaderMode(activity)
         }
 
         onDispose {
-            Log.d(TAG, "♻️ 释放读卡器模式")
             nfcAdapter?.disableReaderMode(activity)
         }
     }
@@ -90,7 +87,7 @@ private fun handleTag(
  */
 private fun readUserIdFromTag(tag: Tag): String? {
     val isoDep = IsoDep.get(tag) ?: run {
-        Log.e(TAG, "❌ Tag 不支持 IsoDep")
+        Log.e(TAG, "Tag 不支持 IsoDep")
         return null
     }
 
@@ -101,11 +98,11 @@ private fun readUserIdFromTag(tag: Tag): String? {
         // 构造 SELECT AID 指令
         val apdu = buildSelectApdu(NfcHceService.AID)
         val response = isoDep.transceive(apdu)
-        Log.d(TAG, "📥 响应原始数据: ${response.toHexString()}")
+        Log.d(TAG, "响应原始数据: ${response.toHexString()}")
 
         parseUserIdFromResponse(response)
     } catch (e: Exception) {
-        Log.e(TAG, "❌ APDU 通信异常: ${e.message}")
+        Log.e(TAG, "APDU 通信异常: ${e.message}")
         null
     } finally {
         runCatching { isoDep.close() }
@@ -128,14 +125,14 @@ private fun buildSelectApdu(aid: ByteArray): ByteArray =
  */
 private fun parseUserIdFromResponse(response: ByteArray): String? {
     if (response.size < 3) {
-        Log.e(TAG, "❌ 响应长度不足: ${response.size}")
+        Log.e(TAG, "响应长度不足: ${response.size}")
         return null
     }
 
     val sw1 = response[response.size - 2]
     val sw2 = response[response.size - 1]
     if (sw1 != 0x90.toByte() || sw2 != 0x00.toByte()) {
-        Log.e(TAG, "❌ 响应状态码异常: ${sw1.toHexByte()} ${sw2.toHexByte()}")
+        Log.e(TAG, "响应状态码异常: ${sw1.toHexByte()} ${sw2.toHexByte()}")
         return null
     }
 
