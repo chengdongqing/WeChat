@@ -23,7 +23,9 @@ import javax.inject.Singleton
  * - 通话接通震动反馈
  * - 通话结束提示音
  *
- * 状态：[enterCallMode] 保存进入前的音频状态，[exitCallMode] 完整恢复。
+ * 状态管理：
+ * enterCallMode 保存进入前的音频状态
+ * exitCallMode 完整恢复原始状态
  */
 @Singleton
 class CallAudioManager @Inject constructor(
@@ -33,15 +35,18 @@ class CallAudioManager @Inject constructor(
     private var ringtonePlayer: MediaPlayer? = null
     private val vibrator: Vibrator? = resolveVibrator()
 
+    /**
+     * 保存通话前的音频设置
+     */
     private var savedAudioMode = AudioManager.MODE_NORMAL
     private var savedSpeakerState = false
-
-    // ==================== 通话音频模式 ====================
 
     /**
      * 进入通话音频模式
      *
-     * 保存当前音频模式和免提状态，切换为 MODE_IN_COMMUNICATION。
+     * 保存当前音频模式和免提状态，切换为 MODE_IN_COMMUNICATION
+     *
+     * @param isSpeakerOn 是否开启免提
      */
     fun enterCallMode(isSpeakerOn: Boolean) {
         savedAudioMode = audioManager.mode
@@ -51,29 +56,40 @@ class CallAudioManager @Inject constructor(
     }
 
     /**
-     * 退出通话音频模式，恢复进入前的状态
+     * 退出通话音频模式
      *
-     * 同时停止铃声，清除通信设备路由（Android 12+）。
+     * 恢复进入前的音频状态，停止铃声，清除通信设备路由
      */
     fun exitCallMode() {
         stopRingtone()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             audioManager.clearCommunicationDevice()
         }
+
         audioManager.mode = savedAudioMode
         setSpeakerphoneOn(savedSpeakerState)
     }
 
-    // ==================== 免提切换 ====================
-
-    /** 切换免提状态，返回切换后的状态（true = 免提已开） */
+    /**
+     * 切换免提状态
+     *
+     * @return 切换后的状态（true = 免提已开启）
+     */
     fun toggleSpeaker(): Boolean {
         val newState = !isSpeakerOn()
         setSpeakerphoneOn(newState)
         return newState
     }
 
-    /** 查询当前免提状态，Android 12+ 通过通信设备类型判断 */
+    /**
+     * 查询当前免提状态
+     *
+     * Android 12+ 通过通信设备类型判断
+     * Android 12- 通过 isSpeakerphoneOn 判断
+     *
+     * @return true-免提开启，false-免提关闭
+     */
     fun isSpeakerOn(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             audioManager.communicationDevice?.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
@@ -84,18 +100,30 @@ class CallAudioManager @Inject constructor(
     }
 
     /**
-     * 设置免提路由，适配 Android 12+
+     * 设置免提路由
      *
-     * Android 12+：开启时查找 BUILTIN_SPEAKER 设备并设为通信设备；
-     *              关闭时 clearCommunicationDevice，恢复系统默认路由（听筒或蓝牙）。
-     * Android 12-：直接设置 isSpeakerphoneOn。
+     * Android 12+：
+     * - 开启时查找 BUILTIN_SPEAKER 设备并设为通信设备
+     * - 关闭时 clearCommunicationDevice，恢复系统默认路由（听筒或蓝牙）
+     *
+     * Android 12-：
+     * - 直接设置 isSpeakerphoneOn
+     *
+     * @param on true-开启免提，false-关闭免提
      */
     fun setSpeakerphoneOn(on: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (on) {
-                audioManager.availableCommunicationDevices
-                    .firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
-                    ?.let { audioManager.setCommunicationDevice(it) }
+            val deviceType = if (on) {
+                AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+            } else {
+                AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
+            }
+
+            val device = audioManager.availableCommunicationDevices
+                .firstOrNull { it.type == deviceType }
+
+            if (device != null) {
+                audioManager.setCommunicationDevice(device)
             } else {
                 audioManager.clearCommunicationDevice()
             }
@@ -105,13 +133,13 @@ class CallAudioManager @Inject constructor(
         }
     }
 
-    // ==================== 铃声 ====================
-
     /**
      * 播放铃声并震动
      *
-     * 铃声循环播放直到 [stopRingtone]。
-     * 来电时额外触发震动（静音模式下跳过）。
+     * 铃声循环播放直到调用 stopRingtone
+     * 来电时额外触发震动（静音模式下跳过）
+     *
+     * @param isIncoming 是否为来电（来电时会震动）
      */
     fun startRingtone(isIncoming: Boolean) {
         if (ringtonePlayer?.isPlaying == true) return
@@ -132,7 +160,9 @@ class CallAudioManager @Inject constructor(
         }
     }
 
-    /** 停止铃声和震动 */
+    /**
+     * 停止铃声和震动
+     */
     fun stopRingtone() {
         ringtonePlayer?.run {
             if (isPlaying) stop()
@@ -142,7 +172,13 @@ class CallAudioManager @Inject constructor(
         vibrator?.cancel()
     }
 
-    /** 播放通话结束提示音，播完自动释放 */
+    /**
+     * 播放通话结束提示音
+     *
+     * 播放完成后自动释放资源
+     *
+     * @param onComplete 播放完成回调
+     */
     fun playHangupTone(onComplete: () -> Unit) {
         MediaPlayer.create(context, R.raw.playend)?.apply {
             setAudioAttributes(
@@ -158,17 +194,27 @@ class CallAudioManager @Inject constructor(
         }
     }
 
-    // ==================== 震动 ====================
-
-    /** 接通时的双击震动反馈 */
+    /**
+     * 接通时的双击震动反馈
+     */
     fun vibrateOnConnected() {
         vibrate(pattern = longArrayOf(0, 200, 300, 200), repeat = -1)
     }
 
-    /** 非静音模式下才震动 */
+    /**
+     * 判断是否应该震动
+     *
+     * 非静音模式下才震动
+     */
     private fun shouldVibrate() =
         audioManager.ringerMode != AudioManager.RINGER_MODE_SILENT
 
+    /**
+     * 执行震动
+     *
+     * @param pattern 震动模式数组（毫秒）
+     * @param repeat 重复索引（-1 表示不重复）
+     */
     private fun vibrate(pattern: LongArray, repeat: Int) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vibrator?.vibrate(VibrationEffect.createWaveform(pattern, repeat))
@@ -178,7 +224,12 @@ class CallAudioManager @Inject constructor(
         }
     }
 
-    /** 获取 Vibrator，适配 Android 12+ VibratorManager */
+    /**
+     * 获取 Vibrator 实例
+     *
+     * Android 12+ 通过 VibratorManager 获取
+     * Android 12- 直接获取系统服务
+     */
     private fun resolveVibrator(): Vibrator? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)

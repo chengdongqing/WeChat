@@ -196,6 +196,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                         it.copy(
                             backgroundPath = s.backgroundPath,
                             isMuted = s.isMuted,
+                            isSpeakerOn = s.isSpeakerOn,
                             isOnline = s.isOnline,
                             draftMessage = s.draftMessage
                         )
@@ -298,6 +299,16 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     /**
+     * 切换语音播放模式
+     */
+    fun toggleSpeaker() {
+        val isSpeakerOn = !_uiState.value.isSpeakerOn
+        viewModelScope.launch {
+            chatSessionRepository.toggleSpeaker(chatId, isSpeakerOn)
+        }
+    }
+
+    /**
      * 停止文件传输
      */
     fun stopTransfer(messageId: String) {
@@ -315,9 +326,18 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * 控制语音 播放/停止
+     */
     fun toggleVoicePlay(messageId: String, localPath: String) {
         val voiceMessages = messages.value.filter { it.content is MessageContent.Voice }
-        audioPlaybackManager.togglePlay(messageId, localPath, voiceMessages)
+
+        audioPlaybackManager.togglePlay(
+            messageId = messageId,
+            localPath = localPath,
+            messages = voiceMessages,
+            isSpeakerOn = _uiState.value.isSpeakerOn
+        )
     }
 
     fun stopVoice() {
@@ -359,7 +379,11 @@ class ChatSessionViewModel @AssistedInject constructor(
         when (val content = message.content) {
             is MessageContent.Image,
             is MessageContent.Video -> {
-                // 已由MediaContent内部处理
+
+            }
+
+            is MessageContent.Voice -> {
+                toggleVoicePlay(message.id, message.content.localPath)
             }
 
             is MessageContent.File -> {
@@ -393,7 +417,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         bubblePosition: Offset,
         bubbleHeight: Float
     ) {
-        val actions = getAvailableActions(message)
+        val actions = getAvailableActions(message, _uiState.value.isSpeakerOn)
 
         /**
          * 文本消息特殊处理：默认全选文本
@@ -481,6 +505,11 @@ class ChatSessionViewModel @AssistedInject constructor(
                 recallMessage(message.id)
             }
 
+            MessageAction.SpeakerMode,
+            MessageAction.EarpieceMode -> {
+                toggleSpeaker()
+            }
+
             else -> {}
         }
 
@@ -492,7 +521,7 @@ class ChatSessionViewModel @AssistedInject constructor(
      */
     private fun getAvailableActions(
         message: ChatMessage,
-        isSpeakerOn: Boolean = false
+        isSpeakerOn: Boolean = true
     ): List<MessageAction> {
         val allowRecall = message.isFromMe && message.timestamp.isWithinMinutes()
         val deleteOrRecall = if (allowRecall) MessageAction.Recall else MessageAction.Delete
@@ -575,6 +604,7 @@ data class ChatSessionUiState(
     val hasMoreMessages: Boolean = true,
     val backgroundPath: String? = null,
     val isMuted: Boolean = false,
+    val isSpeakerOn: Boolean = true,
     val isOnline: Boolean = false,
     val draftMessage: String? = null
 )

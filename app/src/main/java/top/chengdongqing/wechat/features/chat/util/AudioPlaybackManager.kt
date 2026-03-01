@@ -24,16 +24,27 @@ class AudioPlaybackManager(
     private val onMessagePlayed: (String) -> Unit
 ) {
     private val audioFocusManager = AudioFocusManager(context)
-    private val voicePlayer = VoicePlayer()
+    private val voicePlayer = VoicePlayer(context)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private var currentPlayingId: String? = null
 
-    fun togglePlay(messageId: String, localPath: String, messages: List<ChatMessage>) {
+    fun togglePlay(
+        messageId: String,
+        localPath: String,
+        messages: List<ChatMessage>,
+        isSpeakerOn: Boolean
+    ) {
         if (currentPlayingId == messageId) {
             stop()
         } else {
-            startPlaying(messageId, localPath, messages, isContinuous = false)
+            startPlaying(
+                messageId = messageId,
+                localPath = localPath,
+                messages = messages,
+                isSpeakerOn = isSpeakerOn,
+                isContinuous = false
+            )
         }
     }
 
@@ -53,6 +64,7 @@ class AudioPlaybackManager(
         messageId: String,
         localPath: String,
         messages: List<ChatMessage>,
+        isSpeakerOn: Boolean,
         isContinuous: Boolean
     ) {
         // 首次播放时申请音频焦点
@@ -64,12 +76,16 @@ class AudioPlaybackManager(
         onPlayingStateChanged(messageId)
         onMessagePlayed(messageId)
 
-        voicePlayer.play(localPath) {
-            handlePlaybackCompleted(messageId, messages)
+        voicePlayer.play(localPath, isSpeakerOn) {
+            handlePlaybackCompleted(messageId, messages, isSpeakerOn)
         }
     }
 
-    private fun handlePlaybackCompleted(messageId: String, messages: List<ChatMessage>) {
+    private fun handlePlaybackCompleted(
+        messageId: String,
+        messages: List<ChatMessage>,
+        isSpeakerOn: Boolean
+    ) {
         soundTipPlayer.play(R.raw.play_completed)
 
         val nextVoice = findNextUnreadVoice(messageId, messages)
@@ -82,6 +98,7 @@ class AudioPlaybackManager(
                     messageId = nextVoice.id,
                     localPath = nextVoice.localPath,
                     messages = messages,
+                    isSpeakerOn = isSpeakerOn,
                     isContinuous = true
                 )
             }

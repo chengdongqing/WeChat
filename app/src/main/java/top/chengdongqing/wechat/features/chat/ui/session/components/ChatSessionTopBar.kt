@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -65,55 +66,70 @@ private fun ChatSessionTitle(
     }
     val statusDesc = if (uiState.isOnline) "在线" else "离线"
 
-    Row(
-        modifier = Modifier.fillMaxHeight(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(0.7f),
+        contentAlignment = Alignment.Center
     ) {
-        // 名字
-        Text(
-            text = uiState.title,
-            style = TextStyle(
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = WeTheme.colorScheme.textPrimary
-            ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f, fill = false)
-        )
-
-        if (!uiState.isSelf) {
-            // 免打扰
-            if (uiState.isMuted) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_mute_outlined),
-                    contentDescription = "免打扰",
-                    modifier = Modifier.size(16.dp),
-                    tint = WeTheme.colorScheme.textSecondary
-                )
-            }
-            // 加密锁图标
-            if (isE2EActive) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_lock_filled),
-                    contentDescription = "已加密",
-                    modifier = Modifier.size(16.dp),
-                    tint = WeTheme.colorScheme.textSecondary
-                )
-            }
-            // 在线状态小圆点
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .semantics { contentDescription = statusDesc }
-                    .background(statusColor, CircleShape)
-                    .border(
-                        1.dp,
-                        Color.White.copy(alpha = 0.4f),
-                        CircleShape
-                    )
+        Row(
+            modifier = Modifier.fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // 标题
+            Text(
+                text = uiState.title,
+                style = TextStyle(
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = WeTheme.colorScheme.textPrimary
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
             )
+
+            if (!uiState.isSelf) {
+                // 免打扰
+                if (uiState.isMuted) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_mute_outlined),
+                        contentDescription = "免打扰",
+                        modifier = Modifier.size(16.dp),
+                        tint = WeTheme.colorScheme.textSecondary
+                    )
+                }
+                // 通过听筒播放
+                if (!uiState.isSpeakerOn) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_ear_outlined),
+                        contentDescription = "通过听筒播放语音",
+                        modifier = Modifier.size(16.dp),
+                        tint = WeTheme.colorScheme.textSecondary
+                    )
+                }
+                // 加密锁图标
+                if (isE2EActive) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_lock_filled),
+                        contentDescription = "已加密",
+                        modifier = Modifier.size(16.dp),
+                        tint = WeTheme.colorScheme.textSecondary
+                    )
+                }
+                // 在线状态小圆点
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .semantics { contentDescription = statusDesc }
+                        .background(statusColor, CircleShape)
+                        .border(
+                            1.dp,
+                            Color.White.copy(alpha = 0.4f),
+                            CircleShape
+                        )
+                )
+            }
         }
     }
 }

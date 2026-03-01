@@ -18,7 +18,6 @@ data class ChatSessionContext(
     val mediaList: List<MessageContent.Media>,
     val getMediaIndexOf: (MessageContent.Media) -> Int,
     val playingMessageId: String?,
-    val onVoiceToggle: (messageId: String, localPath: String) -> Unit,
     val onVoiceStop: () -> Unit,
     val onRetrySend: (messageId: String) -> Unit,
     val onNavigateToRequestAddFriend: () -> Unit,
@@ -64,7 +63,6 @@ fun rememberChatSessionContext(
             mediaList = mediaList,
             getMediaIndexOf = { content -> mediaList.indexOf(content) },
             playingMessageId = playingMessageId,
-            onVoiceToggle = { id, localPath -> viewModel.toggleVoicePlay(id, localPath) },
             onVoiceStop = { if (playingMessageId != null) viewModel.stopVoice() },
             onRetrySend = { viewModel.retrySend(it) },
             onNavigateToRequestAddFriend = {
