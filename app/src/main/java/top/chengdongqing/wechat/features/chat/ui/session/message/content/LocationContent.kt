@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message.content
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -10,42 +9,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.fallback
-import com.amap.api.maps.model.LatLng
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationPreviewInfo
-import top.chengdongqing.wechat.core.designsystem.components.location.preview.previewLocation
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 @Composable
 fun LocationContent(content: MessageContent.Location) {
-    val context = LocalContext.current
     val targetWidth = rememberScreenFractionWidth(0.6f)
 
-    Column(
-        modifier = Modifier
-            .width(targetWidth)
-            .clickable {
-                val location = LocationPreviewInfo(
-                    coordinate = LatLng(
-                        content.latitude,
-                        content.longitude
-                    ),
-                    address = content.address,
-                    name = content.poiName
-                )
-                context.previewLocation(location)
-            }
-    ) {
+    Column(modifier = Modifier.width(targetWidth)) {
         // 位置基础信息
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             Text(
@@ -70,11 +49,9 @@ fun LocationContent(content: MessageContent.Location) {
 
         // 位置快照图片
         AsyncImage(
-            model = ImageRequest.Builder(context)
-                .data(content.snapshotPath)
-                .fallback(R.drawable.img_location_placeholder)
-                .build(),
+            model = content.snapshotPath,
             contentDescription = "Location",
+            error = painterResource(R.drawable.img_location_placeholder),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(95.dp),

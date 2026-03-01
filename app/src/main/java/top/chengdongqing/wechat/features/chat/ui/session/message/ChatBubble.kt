@@ -19,12 +19,16 @@ import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import kotlin.math.sqrt
 
+/**
+ * 聊天气泡组件
+ */
 @Composable
 fun ChatBubble(
     isFromMe: Boolean,
     showArrow: Boolean,
     showDot: Boolean,
     isSameBackground: Boolean,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     val bubbleColor = if (isFromMe && !isSameBackground) Color(0xFF95EC69) else Color.White
@@ -38,7 +42,7 @@ fun ChatBubble(
         Surface(
             color = if (showArrow) bubbleColor else Color.Transparent,
             shape = RoundedCornerShape(4.dp),
-            modifier = Modifier
+            modifier = modifier
                 .widthIn(max = maxBubbleWidth)
                 .then(if (showArrow) Modifier.drawBubbleArrow(isFromMe, bubbleColor) else Modifier)
         ) {
@@ -47,6 +51,9 @@ fun ChatBubble(
     }
 }
 
+/**
+ * 计算气泡最大宽度
+ */
 @Composable
 private fun rememberMaxBubbleWidth(): Dp {
     val windowInfo = LocalWindowInfo.current
@@ -64,24 +71,24 @@ private fun Modifier.drawBubbleArrow(
     isFromMe: Boolean,
     color: Color,
     arrowSize: Dp = 8.dp,
-    verticalOffset: Dp = 16.dp // 距离顶部的距离
+    verticalOffset: Dp = 16.dp
 ): Modifier = this.drawWithCache {
-    // 这里的逻辑只在 Size 改变时执行一次
     val sizePx = arrowSize.toPx()
     val offsetPx = verticalOffset.toPx()
     // 旋转 45 度后，顶点到中心的距离是 (边长 * √2) / 2
     val halfDiagonal = (sizePx * sqrt(2.0) / 2.0).toFloat()
+
     // 计算旋转中心
     val pivotX = if (isFromMe) size.width - 1.5f else 1f
     val pivotY = offsetPx + halfDiagonal
-    // 计算正方形的左上角位置，使其中心点与 pivot 对齐
+
+    // 计算正方形的左上角位置
     val topLeft = Offset(
         x = pivotX - sizePx / 2f,
         y = pivotY - sizePx / 2f
     )
 
     onDrawBehind {
-        // 这里的逻辑在重绘时执行
         rotate(
             degrees = 45f,
             pivot = Offset(pivotX, pivotY)

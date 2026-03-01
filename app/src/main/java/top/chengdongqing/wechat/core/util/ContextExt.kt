@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.core.util
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +17,7 @@ fun Context.showToast(text: String) {
 }
 
 /**
- * 清除之前产生的所有缓存
+ * 清除所有缓存
  */
 fun Context.clearAllCache() {
     CoroutineScope(Dispatchers.IO).launch {
@@ -42,4 +44,13 @@ private fun deleteDirContent(dir: File?): Boolean {
     } else {
         false
     }
+}
+
+/**
+ * 复制到剪贴板
+ */
+fun Context.copyToClipboard(text: String, label: String) {
+    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText(label, text)
+    clipboard.setPrimaryClip(clip)
 }

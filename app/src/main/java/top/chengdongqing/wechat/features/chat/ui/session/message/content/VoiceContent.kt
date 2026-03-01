@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
@@ -69,10 +68,7 @@ fun VoiceContent(message: ChatMessage) {
     Row(
         modifier = Modifier
             .width(targetWidth)
-            .padding(10.dp)
-            .weClickable {
-                chatContext?.onVoiceToggle(message.id, content.localPath)
-            },
+            .padding(10.dp),
         horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {

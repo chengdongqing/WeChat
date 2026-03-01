@@ -36,7 +36,6 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
-import top.chengdongqing.wechat.core.designsystem.components.media.preview.previewMedias
 import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
@@ -64,10 +63,10 @@ fun MediaContent(message: ChatMessage) {
         modifier = Modifier
             .heightIn(max = targetWidth)
             .widthIn(max = targetWidth)
-            .then(if (content.ratio > 0) Modifier.aspectRatio(content.ratio) else Modifier)
-            .clickable {
-                context.previewMedias(mediaItems, currentIndex)
-            },
+            .then(if (content.ratio > 0) Modifier.aspectRatio(content.ratio) else Modifier),
+//            .clickable {
+//                context.previewMedias(mediaItems, currentIndex)
+//            },
         contentAlignment = Alignment.Center
     ) {
         // 缩略图

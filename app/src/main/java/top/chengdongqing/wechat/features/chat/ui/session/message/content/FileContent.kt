@@ -39,9 +39,7 @@ fun FileContent(message: ChatMessage) {
     val chatContext = LocalChatSessionContext.current
 
     Row(
-        modifier = Modifier
-            .clickable { chatContext?.onPreviewFile(message.id) }
-            .padding(10.dp),
+        modifier = Modifier.padding(10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

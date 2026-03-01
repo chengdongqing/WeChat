@@ -10,7 +10,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.util.VoicePlayingLifecycle
 
 /**
- * 上下文定义
+ * 聊天会话上下文
  */
 data class ChatSessionContext(
     val title: String,
@@ -31,6 +31,9 @@ data class ChatSessionContext(
 
 val LocalChatSessionContext = compositionLocalOf<ChatSessionContext?> { null }
 
+/**
+ * 创建聊天会话上下文
+ */
 @Composable
 fun rememberChatSessionContext(
     viewModel: ChatSessionViewModel,
@@ -44,7 +47,9 @@ fun rememberChatSessionContext(
     val mediaList by viewModel.mediaList.collectAsStateWithLifecycle()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
 
-    // 生命周期感知的语音播放控制
+    /**
+     * 生命周期感知的语音播放控制
+     */
     VoicePlayingLifecycle {
         if (playingMessageId != null) {
             viewModel.stopVoice()

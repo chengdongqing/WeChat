@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message.content
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,11 +23,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 @Composable
 fun UserCardContent(content: MessageContent.ContactCard) {
-    Column(
-        modifier = Modifier
-            .clickable {}
-            .padding(10.dp)
-    ) {
+    Column(modifier = Modifier.padding(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
                 model = R.drawable.img_avatar_placeholder,

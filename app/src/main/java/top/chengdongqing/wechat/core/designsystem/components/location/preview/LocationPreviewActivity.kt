@@ -41,6 +41,7 @@ class LocationPreviewActivity : ComponentActivity() {
 fun Context.previewLocation(location: LocationPreviewInfo) {
     val intent = LocationPreviewActivity.newIntent(this).apply {
         putExtra(LocationPreviewActivity.EXTRA_LOCATION, location)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
     }
     startActivity(intent)
 }

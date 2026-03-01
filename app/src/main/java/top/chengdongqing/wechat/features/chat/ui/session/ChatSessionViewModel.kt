@@ -1,8 +1,11 @@
 package top.chengdongqing.wechat.features.chat.ui.session
 
 import android.content.Context
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.TextRange
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.amap.api.maps.model.LatLng
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -11,8 +14,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -20,13 +25,21 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationPreviewInfo
+import top.chengdongqing.wechat.core.designsystem.components.location.preview.previewLocation
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
+import top.chengdongqing.wechat.core.util.copyToClipboard
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
+import top.chengdongqing.wechat.features.chat.ui.session.message.MessageAction
+import top.chengdongqing.wechat.features.chat.ui.session.message.MessageToolbarState
+import top.chengdongqing.wechat.features.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
@@ -62,7 +75,15 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private val _visibleCount = MutableStateFlow(PAGE_SIZE)
 
-    // 消息流
+    /**
+     * 工具条状态
+     */
+    private val _toolbarState = MutableStateFlow(MessageToolbarState())
+    val toolbarState = _toolbarState.asStateFlow()
+
+    /**
+     * 消息流
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     val messages = _visibleCount.flatMapLatest { count ->
         messageRepository.observeMessages(chatId, count)
@@ -72,7 +93,9 @@ class ChatSessionViewModel @AssistedInject constructor(
         initialValue = emptyList()
     )
 
-    // 派生状态：媒体预览列表
+    /**
+     * 派生状态：媒体预览列表
+     */
     val mediaList = messages
         .map { list ->
             list.asSequence()
@@ -86,7 +109,9 @@ class ChatSessionViewModel @AssistedInject constructor(
             initialValue = emptyList()
         )
 
-    // 是否启用了加密
+    /**
+     * 是否启用了加密
+     */
     val isE2EActive = e2eSessionManager.encryptedPeers
         .map { it.contains(chatId) }
         .stateIn(
@@ -95,7 +120,9 @@ class ChatSessionViewModel @AssistedInject constructor(
             initialValue = false
         )
 
-    // 未读数
+    /**
+     * 未读数
+     */
     val unreadCount = chatSessionRepository.observeTotalUnreadCount()
         .stateIn(
             scope = viewModelScope,
@@ -114,6 +141,21 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private val _playingMessageId = MutableStateFlow<String?>(null)
     val playingMessageId = _playingMessageId.asStateFlow()
+
+    /**
+     * UI事件流（一次性事件）
+     */
+    private val _uiEvent = MutableSharedFlow<MessageUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+    /**
+     * 多选模式状态
+     */
+    private val _multiSelectMode = MutableStateFlow(false)
+    val multiSelectMode = _multiSelectMode.asStateFlow()
+
+    private val _selectedMessages = MutableStateFlow<Set<String>>(emptySet())
+    val selectedMessages = _selectedMessages.asStateFlow()
 
     init {
         loadInitialData()
@@ -139,12 +181,9 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun clearUnreadState() {
-        // 标记已读
         viewModelScope.launch {
             messageRepository.markAllAsRead(chatId)
         }
-
-        // 清除通知
         notificationHelper.cancelNotification(chatId.hashCode())
     }
 
@@ -177,11 +216,9 @@ class ChatSessionViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
 
-            // 增加观察计数
             val newCount = _visibleCount.value + PAGE_SIZE
             _visibleCount.value = newCount
 
-            // 查询是否还有更多数据
             val hasMore = checkHasMore()
 
             delay(1000)
@@ -290,6 +327,210 @@ class ChatSessionViewModel @AssistedInject constructor(
                     contactId = chatId,
                     contact = contact
                 )
+            }
+        }
+    }
+
+    /**
+     * 处理消息点击事件
+     */
+    fun handleMessageClick(message: ChatMessage) {
+        when (val content = message.content) {
+            is MessageContent.Image,
+            is MessageContent.Video -> {
+                // 已由MediaContent内部处理
+            }
+
+            is MessageContent.File -> {
+
+            }
+
+            is MessageContent.Location -> {
+                val location = LocationPreviewInfo(
+                    coordinate = LatLng(
+                        content.latitude,
+                        content.longitude
+                    ),
+                    address = content.address,
+                    name = content.poiName
+                )
+                context.previewLocation(location)
+            }
+
+            else -> {
+                // 其他类型不处理点击
+            }
+        }
+    }
+
+    /**
+     * 处理消息长按事件
+     */
+    fun handleMessageLongPress(
+        message: ChatMessage,
+        position: Offset,
+        bubblePosition: Offset,
+        bubbleHeight: Float
+    ) {
+        val actions = getAvailableActions(message)
+
+        /**
+         * 文本消息特殊处理：默认全选文本
+         */
+        if (message.content is MessageContent.Text) {
+            val textContent = message.content
+            val fullSelection = TextRange(0, textContent.text.length)
+
+            _toolbarState.update {
+                it.copy(
+                    visible = true,
+                    message = message,
+                    position = position,
+                    bubblePosition = bubblePosition,
+                    bubbleHeight = bubbleHeight,
+                    actions = actions,
+                    textSelection = fullSelection,
+                    selectedText = textContent.text
+                )
+            }
+        } else {
+            _toolbarState.update {
+                it.copy(
+                    visible = true,
+                    message = message,
+                    position = position,
+                    bubblePosition = bubblePosition,
+                    bubbleHeight = bubbleHeight,
+                    actions = actions
+                )
+            }
+        }
+    }
+
+    /**
+     * 处理文本选择变化
+     */
+    fun handleTextSelectionChange(selection: TextRange) {
+        val currentState = _toolbarState.value
+        if (currentState.message?.content is MessageContent.Text) {
+            val textContent = currentState.message.content
+            val selectedText = textContent.text.substring(selection.start, selection.end)
+
+            _toolbarState.update {
+                it.copy(
+                    textSelection = selection,
+                    selectedText = selectedText,
+                    position = Offset.Zero // 选择变化时重新计算位置
+                )
+            }
+        }
+    }
+
+    /**
+     * 隐藏工具条
+     */
+    fun dismissToolbar() {
+        _toolbarState.update {
+            MessageToolbarState()
+        }
+    }
+
+    /**
+     * 处理工具条操作
+     */
+    fun handleToolbarAction(action: MessageAction) {
+        val state = _toolbarState.value
+        val message = state.message ?: return
+
+        when (action) {
+            MessageAction.Copy -> {
+                state.selectedText?.let {
+                    context.copyToClipboard(it, "message")
+                    context.showToast("已复制")
+                }
+            }
+
+            MessageAction.Delete -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(MessageUiEvent.ShowDeleteConfirm(message.id))
+                }
+            }
+
+            else -> {}
+        }
+
+        dismissToolbar()
+    }
+
+    /**
+     * 获取消息可用的操作列表
+     */
+    private fun getAvailableActions(
+        message: ChatMessage,
+        isSpeakerOn: Boolean = false
+    ): List<MessageAction> {
+        // 我发送的消息5分钟内可以撤回
+        val allowRecall =
+            message.isFromMe && System.currentTimeMillis() - message.timestamp < 5 * 60 * 1000
+        val deleteOrRecall = if (allowRecall) MessageAction.Recall else MessageAction.Delete
+
+        return buildList {
+            when (message.content) {
+                is MessageContent.Text -> {
+                    add(MessageAction.Copy)
+                    add(MessageAction.Forward)
+                    add(MessageAction.Favorite)
+                    add(deleteOrRecall)
+                    add(MessageAction.MultiSelect)
+                    add(MessageAction.Quote)
+                    add(MessageAction.Remind)
+                }
+
+                is MessageContent.Voice -> {
+                    add(if (isSpeakerOn) MessageAction.EarpieceMode else MessageAction.SpeakerMode)
+                    add(MessageAction.Favorite)
+                    add(MessageAction.Quote)
+                    add(deleteOrRecall)
+                    add(MessageAction.MultiSelect)
+                    add(MessageAction.Remind)
+                }
+
+                is MessageContent.Sticker -> {
+                    add(MessageAction.Forward)
+                    add(deleteOrRecall)
+                    add(MessageAction.Quote)
+                    add(MessageAction.Remind)
+                    add(MessageAction.MultiSelect)
+                }
+
+                is MessageContent.Call -> {
+                    add(MessageAction.Quote)
+                    add(MessageAction.Remind)
+                    add(deleteOrRecall)
+                }
+
+                is MessageContent.ContactCard -> {
+                    add(MessageAction.Forward)
+                    add(MessageAction.Quote)
+                    add(MessageAction.Remind)
+                    add(deleteOrRecall)
+                    add(MessageAction.MultiSelect)
+                }
+
+                is MessageContent.Image,
+                is MessageContent.Video,
+                is MessageContent.Location,
+                is MessageContent.Favorite,
+                is MessageContent.File -> {
+                    add(MessageAction.Forward)
+                    add(MessageAction.Favorite)
+                    add(MessageAction.Quote)
+                    add(deleteOrRecall)
+                    add(MessageAction.MultiSelect)
+                    add(MessageAction.Remind)
+                }
+
+                else -> {}
             }
         }
     }

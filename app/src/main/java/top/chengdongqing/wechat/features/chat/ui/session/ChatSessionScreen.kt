@@ -12,6 +12,7 @@ import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,21 +23,24 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
+import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.features.call.ui.startCall
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.ChatSessionTopBar
 import top.chengdongqing.wechat.features.chat.ui.session.components.TimeDivider
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageItem
+import top.chengdongqing.wechat.features.chat.ui.session.message.MessageUiEvent
+import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.MessageToolbar
 import top.chengdongqing.wechat.features.chat.ui.session.util.KeyboardScrollEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.LoadMoreEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.MessageDataScrollEffect
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ChatSessionScreen(
     chatId: String,
@@ -52,16 +56,21 @@ fun ChatSessionScreen(
 ) {
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
 
-    // 键盘和数据更新时的自动滚动
+    /**
+     * 键盘和数据更新时的自动滚动
+     */
     KeyboardScrollEffect(listState, messages.size)
     MessageDataScrollEffect(listState, messages)
 
-    // 上拉加载更多的监听
+    /**
+     * 上拉加载更多的监听
+     */
     LoadMoreEffect(
         listState = listState,
         messages = messages,
@@ -70,12 +79,16 @@ fun ChatSessionScreen(
         onLoadMore = { viewModel.loadMore() }
     )
 
-    // 调起通话
+    /**
+     * 调起通话
+     */
     val launchCall = rememberCallLauncher(chatId) { id, type ->
         context.startCall(id, type)
     }
 
-    // 上下文
+    /**
+     * 上下文
+     */
     val chatContext = rememberChatSessionContext(
         viewModel = viewModel,
         uiState = uiState,
@@ -89,7 +102,9 @@ fun ChatSessionScreen(
         onNavigateToWebView = onNavigateToWebView
     )
 
-    // 注册/清除 当前聚焦的会话
+    /**
+     * 注册/清除当前聚焦的会话
+     */
     LifecycleResumeEffect(chatId) {
         viewModel.activeSessionManager.enter(chatId)
         viewModel.clearUnreadState()
@@ -99,9 +114,36 @@ fun ChatSessionScreen(
         }
     }
 
+    val dialog = rememberDialogState()
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is MessageUiEvent.ShowDeleteConfirm -> {
+                    dialog.show(
+                        title = "确认删除？",
+                        okText = "删除",
+                        okColor = Danger
+                    ) {
+                        viewModel.deleteMessage(event.messageId)
+                    }
+                }
+
+                is MessageUiEvent.EnterMultiSelectMode -> {
+
+                }
+
+                is MessageUiEvent.ForwardMessage -> {
+
+                }
+            }
+        }
+    }
+
     CompositionLocalProvider(LocalChatSessionContext provides chatContext) {
         Box {
-            // 聊天背景图片
+            /**
+             * 聊天背景图片
+             */
             uiState.backgroundPath?.let {
                 AsyncImage(
                     model = it,
@@ -145,15 +187,30 @@ fun ChatSessionScreen(
                         items = messages,
                         key = { _, message -> message.id }
                     ) { index, message ->
+                        val isCurrentMessage =
+                            toolbarState.visible && toolbarState.message?.id == message.id
+
                         MessageItem(
                             message = message,
                             peerAvatar = uiState.peerAvatar,
-                            myAvatar = uiState.myAvatar
+                            myAvatar = uiState.myAvatar,
+                            isTextSelectable = isCurrentMessage && toolbarState.textSelection != null,
+                            textSelection = if (isCurrentMessage) toolbarState.textSelection else null,
+                            onMessageClick = viewModel::handleMessageClick,
+                            onMessageLongPress = viewModel::handleMessageLongPress,
+                            onTextSelectionChange = viewModel::handleTextSelectionChange,
+                            onTextSelectionDismiss = viewModel::dismissToolbar
                         )
+
+                        /**
+                         * 时间分隔线
+                         */
                         TimeDivider(messages, index)
                     }
 
-                    // 加载更多指示器
+                    /**
+                     * 加载更多指示器
+                     */
                     if (uiState.isLoadingMore) {
                         item(key = "load_more") {
                             WeLoadMore(type = LoadMoreType.Loading)
@@ -161,6 +218,17 @@ fun ChatSessionScreen(
                     }
                 }
             }
+
+            MessageToolbar(
+                visible = toolbarState.visible,
+                actions = toolbarState.actions,
+                position = toolbarState.position,
+                bubblePosition = toolbarState.bubblePosition,
+                bubbleHeight = toolbarState.bubbleHeight,
+                isTextMessage = toolbarState.message?.content is MessageContent.Text,
+                onActionClick = viewModel::handleToolbarAction,
+                onDismiss = viewModel::dismissToolbar
+            )
         }
     }
 }
