@@ -25,6 +25,16 @@ interface MessageDao : BaseDao<MessageEntity> {
     @Query("SELECT COUNT(*) FROM messages WHERE sessionId = :sessionId AND isFromMe = 0 AND isRead = 0")
     suspend fun getUnreadCountBySessionId(sessionId: String): Int
 
+    @Query(
+        """
+        SELECT DISTINCT localPath FROM messages 
+        WHERE sessionId = :sessionId 
+        AND localPath IS NOT NULL 
+        AND localPath != ''
+    """
+    )
+    suspend fun getLocalPathsBySessionId(sessionId: String): List<String>
+
     @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE id = :messageId)")
     suspend fun exists(messageId: String): Boolean
 

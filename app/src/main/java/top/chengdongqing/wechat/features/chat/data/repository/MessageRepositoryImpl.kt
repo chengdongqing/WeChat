@@ -3,9 +3,11 @@ package top.chengdongqing.wechat.features.chat.data.repository
 import android.util.Log
 import androidx.room.withTransaction
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.randomUUID
@@ -135,8 +137,23 @@ class MessageRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteMessage(messageId: String) {
-        messageDao.deleteById(messageId)
+    override suspend fun deleteMessage(messageId: String) = withContext(Dispatchers.IO) {
+        messageDao.getById(messageId).let {
+            // 删除可能存在的媒体文件
+            try {
+                it?.localPath?.let { path ->
+                    val file = File(path)
+                    if (file.exists()) {
+                        file.delete()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("DeleteMessage", "Error deleting file of message $messageId", e)
+            }
+
+            // 删除消息
+            messageDao.deleteById(messageId)
+        }
     }
 
     override suspend fun deleteSessionMessages(sessionId: String) {

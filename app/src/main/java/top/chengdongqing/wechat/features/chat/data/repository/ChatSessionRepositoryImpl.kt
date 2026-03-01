@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.chat.data.repository
 
+import android.util.Log
 import android.util.LruCache
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,7 @@ import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
+import java.io.File
 import javax.inject.Inject
 
 class ChatSessionRepositoryImpl @Inject constructor(
@@ -122,6 +124,9 @@ class ChatSessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteSessionById(sessionId: String, shouldHide: Boolean) {
+        // 查询当前会话所有的媒体文件，方便统一删除
+        val paths = messageDao.getLocalPathsBySessionId(sessionId)
+
         // 删除会话，不真正删除这条记录，目的是保留 置顶/免到扰 等设置
         // 执行：清空消息+隐藏会话
         weDatabase.withTransaction {
@@ -131,6 +136,20 @@ class ChatSessionRepositoryImpl @Inject constructor(
             }
             messageDao.deleteBySessionId(sessionId)
         }
+
+        // 删除媒体文件
+        try {
+            paths.forEach { path ->
+                val file = File(path)
+                if (file.exists()) {
+                    file.delete()
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("DeleteSessionById", "Error deleting file", e)
+        }
+
+        // 从缓存清除
         sessionCache.remove(sessionId)
     }
 
