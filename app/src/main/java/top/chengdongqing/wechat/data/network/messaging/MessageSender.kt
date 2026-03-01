@@ -23,6 +23,7 @@ import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.File
 import java.io.FileInputStream
 import javax.inject.Inject
@@ -42,11 +43,14 @@ class MessageSender @Inject constructor(
     private val chatSessionDao: ChatSessionDao,
     private val wifiLockManager: WifiLockManager,
     private val transferManager: TransferManager,
+    private val profileRepository: ProfileRepository,
     private val json: Json
 ) {
     private companion object {
         const val TAG = "MessageSender"
     }
+
+    private val myUserId: String? by lazy { profileRepository.getCurrentProfileSnapshot()?.id }
 
     /**
      * 发送文本消息
@@ -136,13 +140,14 @@ class MessageSender @Inject constructor(
     /**
      * 发送回执消息
      */
-    suspend fun sendReceipt(messageId: String, senderId: String, type: ReceiptType) {
+    suspend fun sendReceipt(messageId: String, receiverId: String, type: ReceiptType) {
         val packet = Packet(
             PacketType.RECEIPT,
             serializePolymorphic(
                 ChatProtocol.MessageReceipt(
                     messageId = messageId,
-                    senderId = senderId,
+                    senderId = myUserId ?: "",
+                    receiverId = receiverId,
                     receiptType = type,
                     timestamp = System.currentTimeMillis()
                 )
@@ -150,9 +155,10 @@ class MessageSender @Inject constructor(
         )
 
         runCatching {
-            connectionManager.send(senderId, packet)
-        }.onFailure { e ->
-            Log.e(TAG, "回执发送失败: $senderId", e)
+            ensureConnected(receiverId, myUserId ?: "")
+            connectionManager.send(receiverId, packet)
+        }.onFailure {
+            Log.w(TAG, "回执发送失败: $receiverId")
         }
     }
 

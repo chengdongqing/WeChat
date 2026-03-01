@@ -29,6 +29,7 @@ import top.chengdongqing.wechat.core.designsystem.components.location.model.Loca
 import top.chengdongqing.wechat.core.designsystem.components.location.preview.previewLocation
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.copyToClipboard
+import top.chengdongqing.wechat.core.util.isWithinMinutes
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
@@ -286,11 +287,31 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     /**
+     * 撤回消息
+     */
+    fun recallMessage(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.recallMessage(messageId).onFailure {
+                context.showToast(it.message!!)
+            }
+        }
+    }
+
+    /**
      * 停止文件传输
      */
     fun stopTransfer(messageId: String) {
         viewModelScope.launch {
             messageRepository.stopTransfer(messageId)
+        }
+    }
+
+    /**
+     * 重新编辑消息
+     */
+    fun reeditMessage(text: String) {
+        viewModelScope.launch {
+            _uiEvent.emit(MessageUiEvent.ReeditMessage(text))
         }
     }
 
@@ -456,6 +477,10 @@ class ChatSessionViewModel @AssistedInject constructor(
                 }
             }
 
+            MessageAction.Recall -> {
+                recallMessage(message.id)
+            }
+
             else -> {}
         }
 
@@ -469,9 +494,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         message: ChatMessage,
         isSpeakerOn: Boolean = false
     ): List<MessageAction> {
-        // 我发送的消息5分钟内可以撤回
-        val allowRecall =
-            message.isFromMe && System.currentTimeMillis() - message.timestamp < 5 * 60 * 1000
+        val allowRecall = message.isFromMe && message.timestamp.isWithinMinutes()
         val deleteOrRecall = if (allowRecall) MessageAction.Recall else MessageAction.Delete
 
         return buildList {

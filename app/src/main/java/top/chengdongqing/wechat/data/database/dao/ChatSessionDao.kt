@@ -34,7 +34,8 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
     @Query(
         """
         UPDATE chat_sessions 
-        SET lastMessage = :lastMessage,
+        SET lastMessageId = :lastMessageId,
+            lastMessage = :lastMessage,
             lastMessageType = :lastMessageType,
             lastMessageTime = :lastMessageTime,
             isSending = :isSending,
@@ -46,6 +47,7 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
     )
     suspend fun updateLastMessage(
         sessionId: String,
+        lastMessageId: String,
         lastMessage: String,
         lastMessageType: MessageType?,
         lastMessageTime: Long,
@@ -56,7 +58,27 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
     @Query(
         """
         UPDATE chat_sessions 
-        SET lastMessage = NULL, 
+        SET lastMessage = :lastMessage,
+            updatedAt = :now,
+            -- 如果隐藏了，则取消隐藏
+            isHidden = CASE WHEN isHidden = 1 THEN 0 ELSE isHidden END
+        WHERE id = :sessionId
+            -- 以messageId为前提更新，避免并发时出现不一致
+            AND lastMessageId = :messageId
+        """
+    )
+    suspend fun markAsRecalledByMessageId(
+        sessionId: String,
+        messageId: String,
+        lastMessage: String,
+        now: Long = System.currentTimeMillis()
+    )
+
+    @Query(
+        """
+        UPDATE chat_sessions 
+        SET lastMessage = NULL,
+            lastMessageId = NULL,
             unreadCount = 0,
             updatedAt = :now 
         WHERE id = :sessionId

@@ -7,6 +7,7 @@ data class ChatSession(
     val contactId: String,
     val contactName: String,
     val contactAvatar: String? = null,
+    val lastMessageId: String? = null,
     val lastMessage: String? = null,
     val lastMessageType: MessageType? = null,
     val lastMessageTime: Long? = null,
@@ -17,5 +18,6 @@ data class ChatSession(
     val isPinned: Boolean = false,
     val isMuted: Boolean = false,
     val isHidden: Boolean = false,
+    val isSpeakerOn: Boolean = true,
     val isOnline: Boolean = false
 )

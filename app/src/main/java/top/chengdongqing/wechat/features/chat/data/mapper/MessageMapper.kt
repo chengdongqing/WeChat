@@ -19,6 +19,7 @@ fun MessageEntity.toDomain(json: Json): ChatMessage {
         senderId = senderId,
         content = toMessageContent(json),
         isFromMe = isFromMe,
+        isRecalled = isRecalled,
         timestamp = timestamp,
         sendStatus = sendStatus.toDomain(this)
     )
@@ -160,9 +161,9 @@ fun MessageContent.toEntity(
         localPath = localPath,
         fileSize = fileSize,
         mediaDuration = mediaDuration,
+        isFromMe = true,
         timestamp = timestamp,
         sendStatus = SendStatus.Sending,
-        isFromMe = true
     )
 
     return when (content) {

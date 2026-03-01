@@ -35,6 +35,6 @@ interface MessageRepository {
     /** 删除消息 */
     suspend fun deleteMessage(messageId: String)
 
-    /** 删除会话所有消息 */
-    suspend fun deleteSessionMessages(sessionId: String)
+    /** 撤回消息 */
+    suspend fun recallMessage(messageId: String): Result<Unit>
 }

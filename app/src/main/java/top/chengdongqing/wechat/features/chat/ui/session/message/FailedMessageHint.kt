@@ -16,8 +16,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 /**
@@ -25,7 +27,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
  */
 @Composable
 fun FailedMessageHint(message: ChatMessage) {
-    val hintText = rememberHintText(message.id, message.error ?: return)
+    val hintText = rememberHintText(message)
 
     Text(
         text = hintText,
@@ -38,26 +40,36 @@ fun FailedMessageHint(message: ChatMessage) {
 }
 
 @Composable
-private fun rememberHintText(messageId: String, error: SendError): AnnotatedString {
+private fun rememberHintText(message: ChatMessage): AnnotatedString {
     val chatContext = LocalChatSessionContext.current
     val textColor = WeTheme.colorScheme.textSecondary
     val linkStyles = rememberLinkStyles()
+    val error = message.error
 
-    return remember(messageId, error) {
+    return remember(message) {
         buildAnnotatedString {
             // 绘制主体提示文字
             withStyle(style = SpanStyle(color = textColor, fontSize = 13.sp)) {
-                append(error.message)
+                when {
+                    error != null -> append(error.message)
+                    message.isRecalled -> {
+                        if (message.isFromMe) {
+                            append("你撤回了一条消息")
+                        } else {
+                            append("对方撤回了一条消息")
+                        }
+                    }
+                }
             }
 
             // 根据错误类型添加可点击链接
             val (actionLabel, actionAnnotation) = when {
-                error.canRetry -> {
+                error?.canRetry.isTrue() -> {
                     val label = if (error == SendError.Cancelled) "再次发送" else "重试"
                     label to LinkAnnotation.Clickable(
                         tag = "retry",
                         styles = linkStyles,
-                        linkInteractionListener = { chatContext?.onRetrySend(messageId) }
+                        linkInteractionListener = { chatContext?.onRetrySend(message.id) }
                     )
                 }
 
@@ -66,6 +78,14 @@ private fun rememberHintText(messageId: String, error: SendError): AnnotatedStri
                         tag = "verify",
                         styles = linkStyles,
                         linkInteractionListener = { chatContext?.onNavigateToRequestAddFriend() }
+                    )
+                }
+
+                message.isRecalled && message.isFromMe && message.content is MessageContent.Text -> {
+                    "重新编辑" to LinkAnnotation.Clickable(
+                        tag = "reedit",
+                        styles = linkStyles,
+                        linkInteractionListener = { chatContext?.onReeditMessage(message.content.text) }
                     )
                 }
 

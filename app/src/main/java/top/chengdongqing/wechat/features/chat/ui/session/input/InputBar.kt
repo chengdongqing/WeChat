@@ -40,6 +40,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.input.panel.InputPanelH
 import top.chengdongqing.wechat.features.chat.ui.session.input.text.InputOverlay
 import top.chengdongqing.wechat.features.chat.ui.session.input.text.SpeechInputButton
 import top.chengdongqing.wechat.features.chat.ui.session.input.voice.VoiceRecordButton
+import top.chengdongqing.wechat.features.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.features.chat.ui.session.util.ScrollToDismissEffect
 
 /**
@@ -63,13 +64,30 @@ fun InputBar(
         onDismiss = controller::dismissAll
     )
 
+    /**
+     * 恢复草稿消息
+     */
     LaunchedEffect(uiState.draftMessage) {
         uiState.draftMessage?.let {
-            // 恢复草稿消息
             controller.updateText(it)
-            // 自动弹出键盘
             delay(500)
+            // 自动弹出键盘
             focusRequester.requestFocus()
+        }
+    }
+
+    /**
+     * 重新编辑消息
+     */
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is MessageUiEvent.ReeditMessage -> {
+                    controller.updateText(state.inputText + event.text)
+                }
+
+                else -> {}
+            }
         }
     }
 

@@ -10,14 +10,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.util.deleteLocalFile
+import top.chengdongqing.wechat.core.util.isWithinMinutes
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.WeDatabase
+import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
+import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
@@ -32,6 +36,7 @@ import javax.inject.Inject
 class MessageRepositoryImpl @Inject constructor(
     private val weDatabase: WeDatabase,
     private val messageDao: MessageDao,
+    private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
@@ -141,14 +146,9 @@ class MessageRepositoryImpl @Inject constructor(
         messageDao.getById(messageId).let {
             // 删除可能存在的媒体文件
             try {
-                it?.localPath?.let { path ->
-                    val file = File(path)
-                    if (file.exists()) {
-                        file.delete()
-                    }
-                }
+                deleteLocalFile(it?.localPath)
             } catch (e: Exception) {
-                Log.e("DeleteMessage", "Error deleting file of message $messageId", e)
+                Log.w("DeleteLocalFile", "删除文件失败", e)
             }
 
             // 删除消息
@@ -156,8 +156,46 @@ class MessageRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteSessionMessages(sessionId: String) {
-        messageDao.deleteBySessionId(sessionId)
+    override suspend fun recallMessage(messageId: String): Result<Unit> = runCatching {
+        val message = messageDao.getById(messageId) ?: throw IllegalStateException("消息不存在")
+
+        // 判断是否是我发送的
+        if (!message.isFromMe) {
+            throw IllegalStateException("只能撤回自己发送的消息")
+        }
+
+        // 判断是否是5分钟内发送的消息
+        if (!message.timestamp.isWithinMinutes()) {
+            throw IllegalStateException("只能撤回5分钟内发送的消息")
+        }
+
+        // 标记为已撤回
+        weDatabase.withTransaction {
+            // 更新消息
+            messageDao.markAsRecalledById(messageId)
+            // 更新会话
+            chatSessionDao.markAsRecalledByMessageId(
+                message.sessionId,
+                messageId,
+                "你撤回了一条消息"
+            )
+        }
+
+        // 删除可能存在的媒体文件
+        try {
+            deleteLocalFile(message.localPath)
+        } catch (e: Exception) {
+            Log.w("DeleteLocalFile", "删除文件失败", e)
+        }
+
+        // 给对方发送撤回申请
+        scope.launch {
+            messageSender.sendReceipt(
+                messageId = messageId,
+                receiverId = message.receiverId,
+                type = ReceiptType.Recalled
+            )
+        }
     }
 
     /**

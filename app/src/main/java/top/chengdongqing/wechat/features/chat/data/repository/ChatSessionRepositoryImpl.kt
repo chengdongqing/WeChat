@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
+import top.chengdongqing.wechat.core.util.deleteLocalFileBatch
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
@@ -16,7 +17,6 @@ import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
-import java.io.File
 import javax.inject.Inject
 
 class ChatSessionRepositoryImpl @Inject constructor(
@@ -139,14 +139,9 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
         // 删除媒体文件
         try {
-            paths.forEach { path ->
-                val file = File(path)
-                if (file.exists()) {
-                    file.delete()
-                }
-            }
+            deleteLocalFileBatch(paths)
         } catch (e: Exception) {
-            Log.e("DeleteSessionById", "Error deleting file", e)
+            Log.e("DeleteSessionById", "删除文件失败", e)
         }
 
         // 从缓存清除

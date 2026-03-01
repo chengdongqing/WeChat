@@ -2,12 +2,18 @@ package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
 import androidx.room.withTransaction
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.manager.FileManager
+import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.util.deleteLocalFile
 import top.chengdongqing.wechat.core.util.extractFileExtension
+import top.chengdongqing.wechat.core.util.isWithinMinutes
 import top.chengdongqing.wechat.data.database.WeDatabase
+import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.MessageType
@@ -16,6 +22,7 @@ import top.chengdongqing.wechat.data.database.entity.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
+import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
@@ -36,13 +43,16 @@ class MessageDispatcher @Inject constructor(
     private val weDatabase: WeDatabase,
     private val messageDao: MessageDao,
     private val messageSender: MessageSender,
+    private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val fileManager: FileManager,
     private val signalingManager: SignalingManager,
     private val transferManager: TransferManager,
     private val activeSessionManager: ActiveSessionManager,
-    private val json: Json
+    private val notificationHelper: NotificationHelper,
+    private val json: Json,
+    @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
         const val TAG = "MessageDispatcher"
@@ -151,50 +161,90 @@ class MessageDispatcher @Inject constructor(
     /**
      * 发送送达回执
      */
-    private suspend fun sendAck(protocol: ChatProtocol) {
-        messageSender.sendReceipt(
-            messageId = protocol.messageId,
-            senderId = protocol.senderId,
-            type = ReceiptType.Delivered
-        )
+    private fun sendAck(protocol: ChatProtocol) {
+        scope.launch {
+            messageSender.sendReceipt(
+                messageId = protocol.messageId,
+                receiverId = protocol.senderId,
+                type = ReceiptType.Delivered
+            )
+        }
     }
 
     /**
      * 处理回执消息
      */
     private suspend fun handleReceipt(protocol: ChatProtocol.MessageReceipt) {
+        val messageId = protocol.messageId
+
         runCatching {
-            when (protocol.receiptType) {
+            when (val type = protocol.receiptType) {
+                // 送达/已读
                 ReceiptType.Delivered,
                 ReceiptType.Read -> {
-                    val status = if (protocol.receiptType == ReceiptType.Delivered) {
+                    val status = if (type == ReceiptType.Delivered) {
                         SendStatus.Delivered
                     } else {
                         SendStatus.Read
                     }
-                    messageDao.update(protocol.messageId) { message ->
+                    messageDao.update(messageId) { message ->
                         message.copy(sendStatus = status)
                     }
                 }
 
+                // 撤回消息
+                ReceiptType.Recalled -> {
+                    val message = messageDao.getById(messageId) ?: return
+                    // 安全校验
+                    if (message.senderId != protocol.senderId || message.isFromMe || !message.timestamp.isWithinMinutes()) return
+
+                    // 清除通知
+                    notificationHelper.cancelNotification(message.sessionId.hashCode())
+
+                    // 标记为已撤回
+                    weDatabase.withTransaction {
+                        // 更新消息
+                        messageDao.update(messageId) { message ->
+                            message.copy(
+                                isRecalled = true,
+                                content = "" // 置空消息内容
+                            )
+                        }
+                        // 更新会话
+                        chatSessionDao.markAsRecalledByMessageId(
+                            message.sessionId,
+                            messageId,
+                            "对方撤回了一条消息"
+                        )
+                    }
+
+                    // 删除可能存在的媒体文件
+                    try {
+                        deleteLocalFile(message.localPath)
+                    } catch (e: Exception) {
+                        Log.w("DeleteLocalFile", "删除文件失败", e)
+                    }
+                }
+
+                // 拉黑/非好友
                 ReceiptType.Blocked,
                 ReceiptType.NotFriend -> {
-                    val reason = if (protocol.receiptType == ReceiptType.Blocked) {
+                    val reason = if (type == ReceiptType.Blocked) {
                         SendError.Blocked
                     } else {
                         SendError.NotFriend
                     }
-                    messageDao.update(protocol.messageId) { message ->
+                    messageDao.update(messageId) { message ->
                         message.copy(
                             sendStatus = SendStatus.Failed,
                             failReason = reason
                         )
                     }
                     // 停止发送文件（如果有）
-                    transferManager.setCancelled(protocol.messageId)
+                    transferManager.setCancelled(messageId)
                 }
             }
-        }.onFailure { Log.e(TAG, "回执处理失败: ${protocol.messageId}", it) }
+        }.onFailure { Log.e(TAG, "回执处理失败: $messageId", it) }
     }
 
     /**

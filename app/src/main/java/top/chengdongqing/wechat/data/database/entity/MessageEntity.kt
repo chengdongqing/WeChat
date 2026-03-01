@@ -32,6 +32,7 @@ data class MessageEntity(
     val sendStatus: SendStatus,         // 发送状态
     val isRead: Boolean = false,        // 是否已读
     val isPlayed: Boolean = false,      // 是否已播放（语音/视频）
+    val isRecalled: Boolean = false,    // 是否已撤回
 
     val isFromMe: Boolean,              // 是否是我发送的
 

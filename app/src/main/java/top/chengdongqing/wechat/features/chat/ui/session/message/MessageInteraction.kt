@@ -57,4 +57,9 @@ sealed class MessageUiEvent {
      * 转发消息
      */
     data class ForwardMessage(val messageId: String) : MessageUiEvent()
+
+    /**
+     * 重新编辑消息
+     */
+    data class ReeditMessage(val text: String) : MessageUiEvent()
 }

@@ -135,6 +135,8 @@ fun ChatSessionScreen(
                 is MessageUiEvent.ForwardMessage -> {
 
                 }
+
+                else -> {}
             }
         }
     }

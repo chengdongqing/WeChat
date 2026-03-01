@@ -249,3 +249,22 @@ private fun Context.getCorrectedDimensions(uri: Uri, w: Int, h: Int): Pair<Int, 
         w to h
     }
 }
+
+/**
+ * 批量删除文件
+ */
+suspend fun deleteLocalFileBatch(paths: List<String>) {
+    paths.forEach { path ->
+        deleteLocalFile(path)
+    }
+}
+
+/**
+ * 删除文件
+ */
+suspend fun deleteLocalFile(path: String?) = withContext(Dispatchers.IO) {
+    path?.let {
+        val file = File(it)
+        if (file.exists()) file.delete()
+    }
+}

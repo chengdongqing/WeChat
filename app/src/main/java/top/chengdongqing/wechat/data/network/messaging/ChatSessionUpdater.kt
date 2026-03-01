@@ -60,14 +60,15 @@ class ChatSessionUpdater @Inject constructor(
             else -> true
         }
 
-        val lastMessageText = message.contentType.toPreviewText(message.content)
+        val previewText = message.contentType.toPreviewText(message.content)
         val existing = chatSessionRepository.exists(message.sessionId)
 
         if (existing) {
             // 会话已存在：更新最新消息
             chatSessionDao.updateLastMessage(
                 sessionId = message.sessionId,
-                lastMessage = lastMessageText,
+                lastMessageId = message.id,
+                lastMessage = previewText,
                 lastMessageType = message.contentType,
                 isSending = isSending,
                 lastMessageTime = message.timestamp
@@ -86,7 +87,8 @@ class ChatSessionUpdater @Inject constructor(
                     contactId = message.senderId,
                     contactName = contactName,
                     contactAvatar = contactAvatar,
-                    lastMessage = lastMessageText,
+                    lastMessageId = message.id,
+                    lastMessage = previewText,
                     lastMessageType = message.contentType,
                     lastMessageTime = message.timestamp,
                     isSending = isSending,

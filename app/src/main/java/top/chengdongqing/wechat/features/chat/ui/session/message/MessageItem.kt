@@ -3,7 +3,6 @@ package top.chengdongqing.wechat.features.chat.ui.session.message
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -57,8 +56,8 @@ fun MessageItem(
     var bubblePosition by remember { mutableStateOf(Offset.Zero) }
     var bubbleHeight by remember { mutableFloatStateOf(0f) }
 
-    Box {
-        Column {
+    Column {
+        if (!message.isRecalled) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -128,10 +127,10 @@ fun MessageItem(
                     }
                 }
             }
+        }
 
-            if (message.isFailed) {
-                FailedMessageHint(message)
-            }
+        if (message.isFailed || message.isRecalled) {
+            FailedMessageHint(message)
         }
     }
 }

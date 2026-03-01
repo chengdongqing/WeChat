@@ -12,10 +12,10 @@ data class ChatMessage(
     val sessionId: String,
     val senderId: String,
     val content: MessageContent,
+    val isRecalled: Boolean,
     val isFromMe: Boolean,
     val timestamp: Long,
-    val sendStatus: MessageSendStatus = MessageSendStatus.Success,
-    val isSelected: Boolean = false
+    val sendStatus: MessageSendStatus = MessageSendStatus.Success
 ) {
     /**
      * 是否正在发送中
@@ -28,12 +28,6 @@ data class ChatMessage(
      */
     val isFailed: Boolean
         get() = sendStatus is MessageSendStatus.Failed
-
-    /**
-     * 是否可以重试
-     */
-    val canRetry: Boolean
-        get() = (sendStatus as? MessageSendStatus.Failed)?.error?.canRetry == true
 
     /**
      * 发送进度（0-1）

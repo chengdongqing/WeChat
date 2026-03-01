@@ -46,7 +46,7 @@ class SignalingManager @Inject constructor(
             userId = targetUserId,
             packet = Packet(PacketType.SIGNALING, body)
         ).onFailure {
-            Log.e(TAG, "发送失败: ${message::class.simpleName}", it)
+            Log.w(TAG, "发送失败: ${message::class.simpleName}")
         }
     }
 

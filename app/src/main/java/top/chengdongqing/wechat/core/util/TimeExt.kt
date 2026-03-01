@@ -89,3 +89,12 @@ fun Long.toYearMonthDisplay(): String {
     val target = LocalDate.ofInstant(targetInstant, ZoneId.systemDefault())
     return target.format(YearMonthFormatter)
 }
+
+/**
+ * 判断该时间戳是否在当前时间的前 [minutes] 分钟内
+ */
+fun Long.isWithinMinutes(minutes: Int = 5): Boolean {
+    val diff = System.currentTimeMillis() - this
+    val threshold = minutes * 60 * 1000L
+    return diff in 0..threshold
+}

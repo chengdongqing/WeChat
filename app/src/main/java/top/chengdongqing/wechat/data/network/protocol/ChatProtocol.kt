@@ -62,6 +62,7 @@ sealed class ChatProtocol {
     data class MessageReceipt(
         override val messageId: String, // 被引用的原消息 ID
         override val senderId: String,
+        val receiverId: String,
         val receiptType: ReceiptType,
         val timestamp: Long = System.currentTimeMillis()
     ) : ChatProtocol()
@@ -154,6 +155,7 @@ sealed class ChatProtocol {
 enum class ReceiptType {
     Delivered, // 送达
     Read, // 已读
+    Recalled, // 已撤回
     Blocked, // 拉黑拒收
     NotFriend // 非好友拒收
 }

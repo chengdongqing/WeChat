@@ -26,7 +26,8 @@ data class ChatSessionContext(
     val onLaunchCall: (type: CallType) -> Unit,
     val onNavigateToContact: (isPeer: Boolean) -> Unit,
     val onNavigateToWebView: (url: String) -> Unit,
-    val onStopTransfer: (messageId: String) -> Unit
+    val onStopTransfer: (messageId: String) -> Unit,
+    val onReeditMessage: (text: String) -> Unit
 )
 
 val LocalChatSessionContext = compositionLocalOf<ChatSessionContext?> { null }
@@ -74,7 +75,8 @@ fun rememberChatSessionContext(
             onLaunchCall = onLaunchCall,
             onNavigateToContact = onNavigateToContact,
             onNavigateToWebView = onNavigateToWebView,
-            onStopTransfer = viewModel::stopTransfer
+            onStopTransfer = viewModel::stopTransfer,
+            onReeditMessage = viewModel::reeditMessage
         )
     }
 }
