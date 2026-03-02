@@ -27,12 +27,14 @@ fun ChatBubble(
     isFromMe: Boolean,
     showArrow: Boolean,
     showDot: Boolean,
+    isSelectMode: Boolean,
+    isFailed: Boolean,
     isSameBackground: Boolean,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     val bubbleColor = if (isFromMe && !isSameBackground) Color(0xFF95EC69) else Color.White
-    val maxBubbleWidth = rememberMaxBubbleWidth()
+    val maxBubbleWidth = rememberMaxBubbleWidth(isSelectMode, isFailed)
 
     WeBadge(
         visible = showDot,
@@ -55,12 +57,17 @@ fun ChatBubble(
  * 计算气泡最大宽度
  */
 @Composable
-private fun rememberMaxBubbleWidth(): Dp {
+private fun rememberMaxBubbleWidth(isSelectMode: Boolean, isFailed: Boolean): Dp {
     val windowInfo = LocalWindowInfo.current
     val screenWidth = windowInfo.containerDpSize.width
 
-    return remember {
-        screenWidth - 60.dp - 40.dp - 24.dp
+    return remember(isSelectMode, isFailed) {
+        val width = screenWidth - 60.dp - 40.dp - 24.dp
+        if (isSelectMode && isFailed) {
+            width - 22.dp
+        } else {
+            width
+        }
     }
 }
 

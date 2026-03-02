@@ -38,17 +38,27 @@ fun ChatSessionTopBar(
     onBack: () -> Unit,
     onNavigateToInfo: () -> Unit
 ) {
+    val isSelectMode = uiState.isSelectMode
     val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle(0)
 
     WeTopBar(
         titleContent = {
             ChatSessionTitle(viewModel, uiState)
         },
-        onBack = onBack,
+        backText = if (isSelectMode) "取消" else null,
+        onBack = {
+            if (isSelectMode) {
+                viewModel.exitSelectMode()
+            } else {
+                onBack()
+            }
+        },
         unreadCount = unreadCount
     ) {
-        ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
-            onNavigateToInfo()
+        if (!isSelectMode) {
+            ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
+                onNavigateToInfo()
+            }
         }
     }
 }
@@ -65,6 +75,11 @@ private fun ChatSessionTitle(
         WeTheme.colorScheme.divider
     }
     val statusDesc = if (uiState.isOnline) "在线" else "离线"
+    val title = when {
+        !uiState.isSelectMode -> uiState.title
+        viewModel.selectedCount > 0 -> "已选择${viewModel.selectedCount}条消息"
+        else -> "选择消息"
+    }
 
     Box(
         modifier = Modifier
@@ -78,7 +93,7 @@ private fun ChatSessionTitle(
         ) {
             // 标题
             Text(
-                text = uiState.title,
+                text = title,
                 style = TextStyle(
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.util.copyToClipboard
-import top.chengdongqing.wechat.core.util.isWithinMinutes
+import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -31,7 +31,8 @@ class MessageToolbarManager(
     private val scope: CoroutineScope,
     private val uiEvent: MutableSharedFlow<MessageUiEvent>,
     private val onRecallMessage: (String) -> Unit,
-    private val onToggleSpeaker: () -> Unit
+    private val onToggleSpeaker: () -> Unit,
+    private val onMultiSelect: (messageId: String) -> Unit
 ) {
     private val _state = MutableStateFlow(MessageToolbarState())
     val state = _state.asStateFlow()
@@ -115,6 +116,8 @@ class MessageToolbarManager(
             MessageAction.SpeakerMode,
             MessageAction.EarpieceMode -> onToggleSpeaker()
 
+            MessageAction.MultiSelect -> onMultiSelect(message.id)
+
             else -> {}
         }
 
@@ -128,7 +131,7 @@ class MessageToolbarManager(
         message: ChatMessage,
         isSpeakerOn: Boolean
     ): List<MessageAction> {
-        val canRecall = message.isFromMe && message.timestamp.isWithinMinutes()
+        val canRecall = message.isFromMe && message.timestamp.isWithinSeconds()
         val deleteOrRecall = if (canRecall) MessageAction.Recall else MessageAction.Delete
 
         return buildList {

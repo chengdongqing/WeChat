@@ -91,10 +91,10 @@ fun Long.toYearMonthDisplay(): String {
 }
 
 /**
- * 判断该时间戳是否在当前时间的前 [minutes] 分钟内
+ * 判断该时间戳是否在当前时间的前 [seconds] 秒内
  */
-fun Long.isWithinMinutes(minutes: Int = 5): Boolean {
+fun Long.isWithinSeconds(seconds: Int = 5 * 60): Boolean {
     val diff = System.currentTimeMillis() - this
-    val threshold = minutes * 60 * 1000L
+    val threshold = seconds * 1000L
     return diff in 0..threshold
 }

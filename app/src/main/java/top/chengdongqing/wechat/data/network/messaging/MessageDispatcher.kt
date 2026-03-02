@@ -11,7 +11,7 @@ import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.FileNameUtils.extractExtension
 import top.chengdongqing.wechat.core.util.deleteLocalFile
-import top.chengdongqing.wechat.core.util.isWithinMinutes
+import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
@@ -196,7 +196,7 @@ class MessageDispatcher @Inject constructor(
                 ReceiptType.Recalled -> {
                     val message = messageDao.getById(messageId) ?: return
                     // 安全校验
-                    if (message.senderId != protocol.senderId || message.isFromMe || !message.timestamp.isWithinMinutes()) return
+                    if (message.senderId != protocol.senderId || message.isFromMe || !message.timestamp.isWithinSeconds()) return
 
                     // 清除通知
                     notificationHelper.cancelNotification(message.sessionId.hashCode())

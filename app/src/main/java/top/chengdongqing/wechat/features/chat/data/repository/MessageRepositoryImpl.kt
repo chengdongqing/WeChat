@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.deleteLocalFile
 import top.chengdongqing.wechat.core.util.deleteLocalFiles
-import top.chengdongqing.wechat.core.util.isWithinMinutes
+import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
@@ -187,7 +187,7 @@ class MessageRepositoryImpl @Inject constructor(
         }
 
         // 判断是否是5分钟内发送的消息
-        if (!message.timestamp.isWithinMinutes()) {
+        if (!message.timestamp.isWithinSeconds()) {
             throw IllegalStateException("只能撤回5分钟内发送的消息")
         }
 

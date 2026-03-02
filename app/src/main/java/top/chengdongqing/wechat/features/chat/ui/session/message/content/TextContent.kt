@@ -29,7 +29,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 /**
  * 文本消息内容
  *
- * 支持富文本（URL、电话、表情）和自定义文本选择。
+ * 支持富文本（URL、电话、表情）
  */
 @Composable
 fun TextContent(message: ChatMessage) {

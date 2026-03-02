@@ -74,7 +74,7 @@ fun MeScreen(
         }
         MenuListItem("服务", R.drawable.ic_pay_logo_outlined, Color(0xFF07C160))
         Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
-            MenuListItem("收藏", R.drawable.ic_favorites_outlined, Color.Unspecified)
+            MenuListItem("收藏", R.drawable.ic_favorites_outlined_colorful, Color.Unspecified)
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             MenuListItem("朋友圈", R.drawable.ic_album_outlined, Color(0xFF2782D7))
             WeDivider(modifier = Modifier.padding(start = 56.dp))

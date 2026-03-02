@@ -48,6 +48,19 @@ enum class MessageAction(
 }
 
 /**
+ * 多选时消息操作类型枚举
+ */
+enum class MultiMessageAction(
+    @param:DrawableRes val icon: Int,
+    val label: String
+) {
+    Forward(R.drawable.ic_forward_outlined, "转发"),
+    Favorite(R.drawable.ic_favorites_outlined, "收藏"),
+    Delete(R.drawable.ic_delete_outlined, "删除"),
+    Email(R.drawable.ic_email_outlined, "发邮件"),
+}
+
+/**
  * 工具条显示状态
  */
 data class MessageToolbarState(
@@ -67,17 +80,12 @@ sealed class MessageUiEvent {
     /**
      * 显示删除确认对话框
      */
-    data class ShowDeleteConfirm(val messageId: String) : MessageUiEvent()
-
-    /**
-     * 进入多选模式
-     */
-    data object EnterMultiSelectMode : MessageUiEvent()
+    data class ShowDeleteConfirm(val messageId: String? = null) : MessageUiEvent()
 
     /**
      * 转发消息
      */
-    data class ForwardMessage(val messageId: String) : MessageUiEvent()
+    data class ForwardMessage(val messageId: String? = null) : MessageUiEvent()
 
     /**
      * 重新编辑消息

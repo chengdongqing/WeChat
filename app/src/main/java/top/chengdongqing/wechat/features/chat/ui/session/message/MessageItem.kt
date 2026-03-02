@@ -1,13 +1,17 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,13 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
@@ -37,10 +42,12 @@ import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 @Composable
 fun MessageItem(
     message: ChatMessage,
-    peerAvatar: String? = null,
-    myAvatar: String? = null,
-    onMessageClick: (ChatMessage) -> Unit = {},
-    onMessageLongPress: (ChatMessage, Offset, Float) -> Unit = { _, _, _ -> }
+    peerAvatar: String?,
+    myAvatar: String?,
+    isSelectMode: Boolean,
+    isMessageSelected: Boolean,
+    onMessageClick: () -> Unit,
+    onMessageLongPress: (bubblePosition: Offset, bubbleHeight: Float) -> Unit,
 ) {
     val isFromMe = message.isFromMe
     val content = message.content
@@ -51,67 +58,88 @@ fun MessageItem(
 
     Column {
         if (!message.isRecalled) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (!isFromMe) {
-                        Avatar(localPath = peerAvatar, isPeer = true)
+            Box {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
+                ) {
+                    if (isSelectMode) {
+                        Box(
+                            modifier = Modifier
+                                .height(40.dp)
+                                .then(
+                                    if (isFromMe) Modifier.weight(1f) else Modifier
+                                ),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            WeCheckBox(checked = isMessageSelected)
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
                     }
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (isFromMe) {
-                            StatusIndicator(message)
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (!isFromMe) {
+                            Avatar(localPath = peerAvatar, isPeer = true)
                         }
 
-                        /*
-                         * 气泡容器
-                         */
-                        ChatBubble(
-                            isFromMe = isFromMe,
-                            showArrow = content.showBubbleArrow,
-                            showDot = content.showUnreadDot && !isFromMe,
-                            isSameBackground = content.isSameBackground,
-                            modifier = Modifier
-                                .onGloballyPositioned { coordinates ->
-                                    bubblePosition = coordinates.positionInWindow()
-                                    bubbleHeight = coordinates.size.height.toFloat()
-                                }
-                                .pointerInput(message.id) {
-                                    detectTapGestures(
-                                        onTap = { onMessageClick(message) },
-                                        onLongPress = {
-                                            onMessageLongPress(
-                                                message,
-                                                bubblePosition,
-                                                bubbleHeight
-                                            )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (isFromMe) {
+                                StatusIndicator(message)
+                            }
+
+                            // 气泡容器
+                            ChatBubble(
+                                isFromMe = isFromMe,
+                                showArrow = content.showBubbleArrow,
+                                showDot = content.showUnreadDot && !isFromMe,
+                                isSelectMode = isSelectMode,
+                                isFailed = message.isFailed,
+                                isSameBackground = content.isSameBackground,
+                                modifier = Modifier
+                                    .onGloballyPositioned { coordinates ->
+                                        bubblePosition = coordinates.positionInWindow()
+                                        bubbleHeight = coordinates.size.height.toFloat()
+                                    }
+                                    .combinedClickable(
+                                        onClick = onMessageClick,
+                                        onLongClick = {
+                                            onMessageLongPress(bubblePosition, bubbleHeight)
                                         }
                                     )
-                                }
-                        ) {
-                            MessageContent(message)
+                            ) {
+                                MessageContent(message)
+                            }
+
+                            if (!isFromMe) {
+                                StatusIndicator(message)
+                            }
                         }
 
-                        if (!isFromMe) {
-                            StatusIndicator(message)
+                        if (isFromMe) {
+                            Avatar(localPath = myAvatar, isPeer = false)
                         }
                     }
+                }
 
-                    if (isFromMe) {
-                        Avatar(localPath = myAvatar, isPeer = false)
-                    }
+                // 多选模式下方便点击的遮罩
+                if (isSelectMode) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .zIndex(1f)
+                            .weClickable(onClick = onMessageClick)
+                    )
                 }
             }
         }
 
-        if (message.isFailed || message.isRecalled) {
+        // 发送失败/撤回 等情况下的提示信息
+        if (message.isFailed || message.isSent || message.isRecalled) {
             FailedMessageHint(message)
         }
     }
@@ -133,8 +161,7 @@ private fun Avatar(localPath: String?, isPeer: Boolean) {
             .clip(RoundedCornerShape(4.dp))
             .weClickable {
                 chatContext?.onNavigateToContact(isPeer)
-            }
-    )
+            })
 }
 
 /**

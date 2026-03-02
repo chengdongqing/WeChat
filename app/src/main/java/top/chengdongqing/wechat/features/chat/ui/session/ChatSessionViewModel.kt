@@ -44,6 +44,7 @@ import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepositor
 import top.chengdongqing.wechat.features.chat.ui.session.message.ChatSessionUiState
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageAction
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageUiEvent
+import top.chengdongqing.wechat.features.chat.ui.session.message.MultiMessageAction
 import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.MessageToolbarManager
 import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
@@ -90,7 +91,8 @@ class ChatSessionViewModel @AssistedInject constructor(
         scope = viewModelScope,
         uiEvent = _uiEvent,
         onRecallMessage = ::recallMessage,
-        onToggleSpeaker = ::toggleSpeaker
+        onToggleSpeaker = ::toggleSpeaker,
+        onMultiSelect = ::enterSelectMode
     )
 
     val toolbarState = toolbarManager.state
@@ -338,7 +340,9 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun deleteMessage(messageId: String) {
-        viewModelScope.launch { messageRepository.deleteMessage(messageId) }
+        viewModelScope.launch {
+            messageRepository.deleteMessage(messageId)
+        }
     }
 
     fun recallMessage(messageId: String) {
@@ -437,9 +441,16 @@ class ChatSessionViewModel @AssistedInject constructor(
     val selectedCount: Int
         get() = _uiState.value.selectedMessageIds.size
 
-    fun enterSelectMode() {
+    fun isMessageSelected(messageId: String): Boolean {
+        return messageId in _uiState.value.selectedMessageIds
+    }
+
+    fun enterSelectMode(messageId: String) {
         _uiState.update {
-            it.copy(isSelectMode = true)
+            it.copy(
+                isSelectMode = true,
+                selectedMessageIds = setOf(messageId)
+            )
         }
     }
 
@@ -463,10 +474,6 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun isMessageSelected(messageId: String): Boolean {
-        return messageId in _uiState.value.selectedMessageIds
-    }
-
     fun deleteSelectedMessages() {
         val ids = _uiState.value.selectedMessageIds
 
@@ -485,6 +492,24 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
 
         exitSelectMode()
+    }
+
+    fun handleMultiSelectAction(action: MultiMessageAction) {
+        when (action) {
+            MultiMessageAction.Forward -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(MessageUiEvent.ForwardMessage())
+                }
+            }
+
+            MultiMessageAction.Delete -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(MessageUiEvent.ShowDeleteConfirm())
+                }
+            }
+
+            else -> {}
+        }
     }
 
     // endregion

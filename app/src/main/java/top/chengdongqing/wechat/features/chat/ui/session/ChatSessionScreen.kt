@@ -32,6 +32,7 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.features.call.ui.startCall
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.ChatSessionTopBar
+import top.chengdongqing.wechat.features.chat.ui.session.components.MultiSelectBottomBar
 import top.chengdongqing.wechat.features.chat.ui.session.components.TimeDivider
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageItem
@@ -127,12 +128,12 @@ fun ChatSessionScreen(
                         okText = "删除",
                         okColor = Danger
                     ) {
-                        viewModel.deleteMessage(event.messageId)
+                        if (event.messageId != null) {
+                            viewModel.deleteMessage(event.messageId)
+                        } else {
+                            viewModel.deleteSelectedMessages()
+                        }
                     }
-                }
-
-                is MessageUiEvent.EnterMultiSelectMode -> {
-
                 }
 
                 is MessageUiEvent.ForwardMessage -> {
@@ -176,12 +177,20 @@ fun ChatSessionScreen(
                     )
                 },
                 bottomBar = {
-                    InputBar(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        listState = listState,
-                        onLaunchCall = launchCall
-                    )
+                    if (!uiState.isSelectMode) {
+                        InputBar(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            listState = listState,
+                            onLaunchCall = launchCall
+                        )
+                    } else {
+                        MultiSelectBottomBar(
+                            enabled = viewModel.selectedCount > 0,
+                            onActionClick = viewModel::handleMultiSelectAction,
+                            onExitSelectMode = viewModel::exitSelectMode
+                        )
+                    }
                 },
                 containerColor = if (uiState.backgroundPath == null) Color(0xFFF3F3F3) else Color.Unspecified
             ) { innerPadding ->
@@ -204,8 +213,22 @@ fun ChatSessionScreen(
                             message = message,
                             peerAvatar = uiState.peerAvatar,
                             myAvatar = uiState.myAvatar,
-                            onMessageClick = viewModel::handleMessageClick,
-                            onMessageLongPress = viewModel::handleMessageLongPress
+                            isSelectMode = uiState.isSelectMode,
+                            isMessageSelected = viewModel.isMessageSelected(message.id),
+                            onMessageClick = {
+                                if (!uiState.isSelectMode) {
+                                    viewModel.handleMessageClick(message)
+                                } else {
+                                    viewModel.toggleMessageSelection(message.id)
+                                }
+                            },
+                            onMessageLongPress = { bubblePosition, bubbleHeight ->
+                                viewModel.handleMessageLongPress(
+                                    message,
+                                    bubblePosition,
+                                    bubbleHeight
+                                )
+                            }
                         )
 
                         /**

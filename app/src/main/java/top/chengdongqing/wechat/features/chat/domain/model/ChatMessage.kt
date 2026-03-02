@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
+import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.call.domain.model.CallType
@@ -22,6 +23,14 @@ data class ChatMessage(
      */
     val isSending: Boolean
         get() = sendStatus is MessageSendStatus.Sending
+
+    /**
+     * 是否已发送完成
+     *
+     * 在发送完成15秒之后还没有收到送达回执将给出提示
+     */
+    val isSent: Boolean
+        get() = sendStatus is MessageSendStatus.Sent && !timestamp.isWithinSeconds(15)
 
     /**
      * 是否发送失败
@@ -138,6 +147,9 @@ sealed class MessageSendStatus {
 
     /** 暂停发送 */
     data class Paused(val progress: Float) : MessageSendStatus()
+
+    /** 已发送，未收到回执 */
+    data object Sent : MessageSendStatus()
 
     /** 发送成功 */
     data object Success : MessageSendStatus()

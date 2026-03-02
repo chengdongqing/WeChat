@@ -59,6 +59,8 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                         }
                     }
 
+                    message.isSent -> append("已发送，但未收到对方的回执。")
+
                     error != null -> append(error.message)
                 }
             }

@@ -223,7 +223,9 @@ private fun ActionButtonGroup(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 rowActions.forEach { action ->
-                    ActionButton(action = action, onClick = { onActionClick(action) })
+                    ActionButton(action) {
+                        onActionClick(action)
+                    }
                 }
             }
 

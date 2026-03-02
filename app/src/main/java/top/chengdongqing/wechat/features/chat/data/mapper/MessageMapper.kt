@@ -296,8 +296,8 @@ fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
             MessageSendStatus.Sending(progress)
         }
 
-        SendStatus.Sent -> MessageSendStatus.Success
-        SendStatus.Delivered -> MessageSendStatus.Success
+        SendStatus.Sent -> MessageSendStatus.Sent
+        SendStatus.Delivered,
         SendStatus.Read -> MessageSendStatus.Success
         SendStatus.Failed -> MessageSendStatus.Failed(entity.failReason ?: SendError.Unknown)
     }
