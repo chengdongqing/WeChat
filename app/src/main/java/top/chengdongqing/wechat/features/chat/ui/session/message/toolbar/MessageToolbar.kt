@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -39,12 +40,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.times
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageAction
+
+private const val ANIM_ENTER_MS = 200
+private const val ANIM_EXIT_MS = 150
+private const val ITEMS_PER_ROW = 5
+private const val ITEM_WIDTH_DP = 60
+private const val SCREEN_MARGIN_PX = 10f
+
+/**
+ * 工具条位置参数（缓存用，避免关闭动画期间参数跳动）
+ */
+@Immutable
+private data class CachedToolbarParams(
+    val bubblePosition: Offset = Offset.Zero,
+    val bubbleHeight: Float = 0f,
+    val isTextMessage: Boolean = false,
+    val actions: List<MessageAction> = emptyList()
+)
 
 /**
  * 消息操作工具条
@@ -53,7 +70,6 @@ import top.chengdongqing.wechat.features.chat.ui.session.message.MessageAction
 fun MessageToolbar(
     visible: Boolean,
     actions: List<MessageAction>,
-    position: Offset,
     bubblePosition: Offset,
     bubbleHeight: Float,
     isTextMessage: Boolean,
@@ -62,38 +78,23 @@ fun MessageToolbar(
 ) {
     var showContent by remember { mutableStateOf(false) }
     var shouldShowPopup by remember { mutableStateOf(false) }
+    var cached by remember { mutableStateOf(CachedToolbarParams()) }
+    var measuredHeight by remember { mutableFloatStateOf(0f) }
 
-    /**
-     * 缓存参数，防止关闭时跳动
-     */
-    var cachedPosition by remember { mutableStateOf(Offset.Zero) }
-    var cachedBubblePosition by remember { mutableStateOf(Offset.Zero) }
-    var cachedBubbleHeight by remember { mutableFloatStateOf(0f) }
-    var cachedIsTextMessage by remember { mutableStateOf(false) }
-    var cachedActions by remember { mutableStateOf<List<MessageAction>>(emptyList()) }
-
-    /**
-     * 工具条实际高度（动态测量）
-     */
-    var toolbarActualHeight by remember { mutableFloatStateOf(0f) }
-
-    /**
-     * 控制显示/隐藏动画
-     */
     LaunchedEffect(visible) {
         if (visible) {
-            cachedPosition = position
-            cachedBubblePosition = bubblePosition
-            cachedBubbleHeight = bubbleHeight
-            cachedIsTextMessage = isTextMessage
-            cachedActions = actions
-
+            cached = CachedToolbarParams(
+                bubblePosition = bubblePosition,
+                bubbleHeight = bubbleHeight,
+                isTextMessage = isTextMessage,
+                actions = actions
+            )
             shouldShowPopup = true
             delay(50)
             showContent = true
         } else {
             showContent = false
-            delay(200)
+            delay(ANIM_EXIT_MS.toLong() + 50)
             shouldShowPopup = false
         }
     }
@@ -103,106 +104,101 @@ fun MessageToolbar(
     val density = LocalDensity.current
     val containerSize = LocalWindowInfo.current.containerSize
 
-    /**
-     * 计算行数和预估高度
-     */
-    val rows = remember(cachedActions) {
-        cachedActions.chunked(5)
+    val position = remember(cached, measuredHeight, containerSize) {
+        computeToolbarPosition(
+            params = cached,
+            measuredHeight = measuredHeight,
+            screenWidth = containerSize.width.toFloat(),
+            density = density.density
+        )
     }
-
-    /**
-     * 预估高度：每行约62dp(16*2+24+4+2) + 分隔线1dp
-     */
-    val estimatedHeight = with(density) {
-        (rows.size * 62.dp + (rows.size - 1) * 1.dp).toPx()
-    }
-
-    /**
-     * 使用实际高度或预估高度
-     */
-    val effectiveHeight = if (toolbarActualHeight > 0) toolbarActualHeight else estimatedHeight
-
-    /**
-     * 判断是否显示在下方
-     */
-    val showBelow = cachedBubblePosition.y < effectiveHeight + with(density) { 20.dp.toPx() }
-
-    /**
-     * 计算工具条宽度（5列或实际列数）
-     */
-    val toolbarWidth = with(density) {
-        (minOf(cachedActions.size, 5) * 60.dp).toPx()
-    }
-
-    /**
-     * X轴位置：居中对齐，考虑屏幕边界
-     */
-    val toolbarX = (cachedPosition.x - toolbarWidth / 2)
-        .coerceIn(10f, containerSize.width - toolbarWidth - 10f)
-
-    /**
-     * Y轴位置：根据消息类型和显示位置计算
-     */
-    val toolbarY = if (cachedIsTextMessage) {
-        // 文本消息：跟随手指位置
-        if (showBelow) {
-            cachedPosition.y + 20
-        } else {
-            cachedPosition.y - effectiveHeight - 10
-        }
-    } else {
-        // 其他消息：固定在气泡上方/下方
-        if (showBelow) {
-            cachedBubblePosition.y + cachedBubbleHeight + 10
-        } else {
-            cachedBubblePosition.y - effectiveHeight - 10
-        }
-    }
-
-    val offset = IntOffset(toolbarX.toInt(), toolbarY.toInt())
-    val transformOrigin = TransformOrigin(0.5f, if (showBelow) 0f else 1f)
 
     Popup(
-        offset = offset,
+        offset = position.offset,
         onDismissRequest = onDismiss,
-        properties = PopupProperties(
-            focusable = true
-        )
+        properties = PopupProperties(focusable = true)
     ) {
         AnimatedVisibility(
             visible = showContent,
-            enter = fadeIn(
-                animationSpec = tween(durationMillis = 200)
-            ) + scaleIn(
+            enter = fadeIn(tween(ANIM_ENTER_MS)) + scaleIn(
                 initialScale = 0.8f,
-                transformOrigin = transformOrigin,
-                animationSpec = tween(durationMillis = 200)
+                transformOrigin = position.transformOrigin,
+                animationSpec = tween(ANIM_ENTER_MS)
             ),
-            exit = fadeOut(
-                animationSpec = tween(durationMillis = 150)
-            ) + scaleOut(
+            exit = fadeOut(tween(ANIM_EXIT_MS)) + scaleOut(
                 targetScale = 0.8f,
-                transformOrigin = transformOrigin,
-                animationSpec = tween(durationMillis = 150)
+                transformOrigin = position.transformOrigin,
+                animationSpec = tween(ANIM_EXIT_MS)
             )
         ) {
             ActionButtonGroup(
-                actions = cachedActions,
+                actions = cached.actions,
                 onActionClick = {
                     onActionClick(it)
                     onDismiss()
                 },
-                onHeightMeasured = { height ->
-                    toolbarActualHeight = height
-                }
+                onHeightMeasured = { measuredHeight = it }
             )
         }
     }
 }
 
 /**
+ * 工具条定位结果
+ */
+@Immutable
+private data class ToolbarPosition(
+    val offset: IntOffset,
+    val transformOrigin: TransformOrigin
+)
+
+/**
+ * 计算工具条显示位置
+ *
+ * 文本消息跟随气泡位置，其他消息固定在气泡上方或下方。
+ * 屏幕顶部空间不足时自动切换到下方显示。
+ */
+private fun computeToolbarPosition(
+    params: CachedToolbarParams,
+    measuredHeight: Float,
+    screenWidth: Float,
+    density: Float
+): ToolbarPosition {
+    val rows = (params.actions.size + ITEMS_PER_ROW - 1) / ITEMS_PER_ROW
+    val rowHeightPx = 62f * density
+    val dividerPx = 1f * density
+    val estimatedHeight = rows * rowHeightPx + (rows - 1) * dividerPx
+    val effectiveHeight = if (measuredHeight > 0f) measuredHeight else estimatedHeight
+
+    val toolbarWidth = minOf(params.actions.size, ITEMS_PER_ROW) * ITEM_WIDTH_DP * density
+    val margin = 20f * density
+    val gap = 10f * density
+
+    val showBelow = params.bubblePosition.y < effectiveHeight + margin
+
+    val x = (params.bubblePosition.x - toolbarWidth / 2f)
+        .coerceIn(SCREEN_MARGIN_PX, screenWidth - toolbarWidth - SCREEN_MARGIN_PX)
+
+    val y = if (params.isTextMessage) {
+        if (showBelow) params.bubblePosition.y + margin
+        else params.bubblePosition.y - effectiveHeight - gap
+    } else {
+        if (showBelow) params.bubblePosition.y + params.bubbleHeight + gap
+        else params.bubblePosition.y - effectiveHeight - gap
+    }
+
+    val origin = TransformOrigin(0.5f, if (showBelow) 0f else 1f)
+
+    return ToolbarPosition(
+        offset = IntOffset(x.toInt(), y.toInt()),
+        transformOrigin = origin
+    )
+}
+
+/**
  * 操作按钮组
- * 支持多行显示（每行最多5个）
+ *
+ * 每行最多5个按钮，行间用分隔线隔开
  */
 @Composable
 private fun ActionButtonGroup(
@@ -210,9 +206,7 @@ private fun ActionButtonGroup(
     onActionClick: (MessageAction) -> Unit,
     onHeightMeasured: (Float) -> Unit
 ) {
-    val rows = remember(actions) {
-        actions.chunked(5)
-    }
+    val rows = remember(actions) { actions.chunked(ITEMS_PER_ROW) }
 
     Column(
         modifier = Modifier
@@ -229,12 +223,7 @@ private fun ActionButtonGroup(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 rowActions.forEach { action ->
-                    ActionButton(
-                        action = action,
-                        onClick = {
-                            onActionClick(action)
-                        }
-                    )
+                    ActionButton(action = action, onClick = { onActionClick(action) })
                 }
             }
 

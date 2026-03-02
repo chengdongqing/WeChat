@@ -2,16 +2,12 @@ package top.chengdongqing.wechat.features.chat.ui.session.message.content
 
 import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -19,8 +15,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,20 +25,14 @@ import top.chengdongqing.wechat.core.designsystem.util.toBitmap
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
-import top.chengdongqing.wechat.features.chat.ui.session.message.selection.CustomTextSelection
 
 /**
  * 文本消息内容
- * 支持自定义文本选择和长按操作
+ *
+ * 支持富文本（URL、电话、表情）和自定义文本选择。
  */
 @Composable
-fun TextContent(
-    message: ChatMessage,
-    isSelectable: Boolean = false,
-    selection: TextRange? = null,
-    onSelectionChange: (TextRange) -> Unit = {},
-    onSelectionDismiss: () -> Unit = {}
-) {
+fun TextContent(message: ChatMessage) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val chatContext = LocalChatSessionContext.current
@@ -54,11 +42,7 @@ fun TextContent(
     val emojiSizePx = with(density) { emojiSize.toPx().toInt() }
     val emojiSizeDp = with(density) { emojiSize.toDp() }
 
-    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-
-    /**
-     * 解析富文本
-     */
+    /* 解析富文本（URL、电话高亮+点击） */
     val annotatedString = remember(content.text) {
         content.text.parseRichText(
             onUrlClick = { url -> chatContext?.onNavigateToWebView(url) },
@@ -69,9 +53,7 @@ fun TextContent(
         )
     }
 
-    /**
-     * 提取所有表情描述
-     */
+    /* 提取所有表情描述 */
     val emojiDescriptions = remember(annotatedString) {
         annotatedString.getStringAnnotations(
             "androidx.compose.foundation.text.inlineContent",
@@ -80,9 +62,7 @@ fun TextContent(
         ).map { it.item }
     }
 
-    /**
-     * 预加载所有表情 Bitmap
-     */
+    /* 预加载表情 Bitmap */
     val emojiBitmaps = remember(emojiDescriptions, emojiSizePx) {
         emojiDescriptions.mapNotNull { description ->
             Emojis.findByDescription(description)?.let { emoji ->
@@ -91,9 +71,7 @@ fun TextContent(
         }.toMap()
     }
 
-    /**
-     * 创建 InlineContent
-     */
+    /* 创建 InlineContent */
     val inlineContent = remember(emojiBitmaps, emojiSize) {
         emojiBitmaps.mapValues { (description, bitmap) ->
             InlineTextContent(
@@ -112,29 +90,14 @@ fun TextContent(
         }
     }
 
-    Box {
-        Text(
-            text = annotatedString,
-            inlineContent = inlineContent,
-            modifier = Modifier.padding(10.dp),
-            style = TextStyle(
-                fontSize = 16.sp,
-                color = Color.Black,
-                lineHeight = 22.sp
-            ),
-            onTextLayout = { textLayoutResult = it }
+    Text(
+        text = annotatedString,
+        inlineContent = inlineContent,
+        modifier = Modifier.padding(10.dp),
+        style = TextStyle(
+            fontSize = 16.sp,
+            color = Color.Black,
+            lineHeight = 22.sp
         )
-
-        /**
-         * 自定义文本选择 - 只在选择模式时显示
-         */
-        if (isSelectable && selection != null && textLayoutResult != null) {
-            CustomTextSelection(
-                textLayoutResult = textLayoutResult,
-                selection = selection,
-                onSelectionChange = onSelectionChange,
-                onDismiss = onSelectionDismiss
-            )
-        }
-    }
+    )
 }

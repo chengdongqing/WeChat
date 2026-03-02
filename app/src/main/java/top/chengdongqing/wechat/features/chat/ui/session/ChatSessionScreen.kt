@@ -200,19 +200,12 @@ fun ChatSessionScreen(
                         items = messages,
                         key = { _, message -> message.id }
                     ) { index, message ->
-                        val isCurrentMessage =
-                            toolbarState.visible && toolbarState.message?.id == message.id
-
                         MessageItem(
                             message = message,
                             peerAvatar = uiState.peerAvatar,
                             myAvatar = uiState.myAvatar,
-                            isTextSelectable = isCurrentMessage && toolbarState.textSelection != null,
-                            textSelection = if (isCurrentMessage) toolbarState.textSelection else null,
                             onMessageClick = viewModel::handleMessageClick,
-                            onMessageLongPress = viewModel::handleMessageLongPress,
-                            onTextSelectionChange = viewModel::handleTextSelectionChange,
-                            onTextSelectionDismiss = viewModel::dismissToolbar
+                            onMessageLongPress = viewModel::handleMessageLongPress
                         )
 
                         /**
@@ -235,7 +228,6 @@ fun ChatSessionScreen(
             MessageToolbar(
                 visible = toolbarState.visible,
                 actions = toolbarState.actions,
-                position = toolbarState.position,
                 bubblePosition = toolbarState.bubblePosition,
                 bubbleHeight = toolbarState.bubbleHeight,
                 isTextMessage = toolbarState.message?.content is MessageContent.Text,

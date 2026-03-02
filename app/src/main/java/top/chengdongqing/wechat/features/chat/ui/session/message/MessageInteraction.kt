@@ -32,7 +32,6 @@ enum class MessageAction(
 data class MessageToolbarState(
     val visible: Boolean = false,
     val message: ChatMessage? = null,
-    val position: Offset = Offset.Zero,
     val bubblePosition: Offset = Offset.Zero,
     val bubbleHeight: Float = 0f,
     val actions: List<MessageAction> = emptyList(),

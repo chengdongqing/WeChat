@@ -23,7 +23,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
@@ -40,19 +39,13 @@ fun MessageItem(
     message: ChatMessage,
     peerAvatar: String? = null,
     myAvatar: String? = null,
-    isTextSelectable: Boolean = false,
-    textSelection: TextRange? = null,
-    onTextSelectionChange: (TextRange) -> Unit = {},
-    onTextSelectionDismiss: () -> Unit = {},
     onMessageClick: (ChatMessage) -> Unit = {},
-    onMessageLongPress: (ChatMessage, Offset, Offset, Float) -> Unit = { _, _, _, _ -> }
+    onMessageLongPress: (ChatMessage, Offset, Float) -> Unit = { _, _, _ -> }
 ) {
     val isFromMe = message.isFromMe
     val content = message.content
 
-    /**
-     * 记录气泡位置和高度
-     */
+    /* 记录气泡在窗口中的位置和高度 */
     var bubblePosition by remember { mutableStateOf(Offset.Zero) }
     var bubbleHeight by remember { mutableFloatStateOf(0f) }
 
@@ -77,8 +70,8 @@ fun MessageItem(
                             StatusIndicator(message)
                         }
 
-                        /**
-                         * 气泡 - 记录位置并处理事件
+                        /*
+                         * 气泡容器
                          */
                         ChatBubble(
                             isFromMe = isFromMe,
@@ -90,17 +83,12 @@ fun MessageItem(
                                     bubblePosition = coordinates.positionInWindow()
                                     bubbleHeight = coordinates.size.height.toFloat()
                                 }
-                                .pointerInput(message.id, isTextSelectable) {
+                                .pointerInput(message.id) {
                                     detectTapGestures(
-                                        onTap = { _ ->
-                                            if (!isTextSelectable) {
-                                                onMessageClick(message)
-                                            }
-                                        },
-                                        onLongPress = { offset ->
+                                        onTap = { onMessageClick(message) },
+                                        onLongPress = {
                                             onMessageLongPress(
                                                 message,
-                                                bubblePosition + offset,
                                                 bubblePosition,
                                                 bubbleHeight
                                             )
@@ -108,13 +96,7 @@ fun MessageItem(
                                     )
                                 }
                         ) {
-                            MessageContent(
-                                message = message,
-                                isTextSelectable = isTextSelectable,
-                                textSelection = textSelection,
-                                onTextSelectionChange = onTextSelectionChange,
-                                onTextSelectionDismiss = onTextSelectionDismiss
-                            )
+                            MessageContent(message)
                         }
 
                         if (!isFromMe) {
