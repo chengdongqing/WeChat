@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.room.withTransaction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -11,6 +13,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.deleteLocalFile
+import top.chengdongqing.wechat.core.util.deleteLocalFiles
 import top.chengdongqing.wechat.core.util.isWithinMinutes
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.WeDatabase
@@ -102,6 +105,25 @@ class MessageRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * 异步发送消息
+     */
+    private suspend fun sendMessageAsync(entity: MessageEntity) {
+        try {
+            when (entity.contentType) {
+                MessageType.Text,
+                MessageType.ContactCard -> messageSender.sendTextMessage(entity)
+
+                else -> {
+                    val file = File(entity.localPath ?: throw Exception("文件路径为空"))
+                    messageSender.sendMediaMessage(entity, file)
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "发送失败: ${entity.id}, ${e.message}")
+        }
+    }
+
     override suspend fun retrySend(messageId: String): Result<Unit> {
         return runCatching {
             val entity = messageDao.getById(messageId)
@@ -150,10 +172,10 @@ class MessageRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 Log.w("DeleteLocalFile", "删除文件失败", e)
             }
-
-            // 删除消息
-            messageDao.deleteById(messageId)
         }
+
+        // 删除消息
+        messageDao.deleteById(messageId)
     }
 
     override suspend fun recallMessage(messageId: String): Result<Unit> = runCatching {
@@ -198,22 +220,42 @@ class MessageRepositoryImpl @Inject constructor(
         }
     }
 
-    /**
-     * 异步发送消息
-     */
-    private suspend fun sendMessageAsync(entity: MessageEntity) {
-        try {
-            when (entity.contentType) {
-                MessageType.Text,
-                MessageType.ContactCard -> messageSender.sendTextMessage(entity)
+    override suspend fun deleteMessages(ids: Set<String>) = withContext(Dispatchers.IO) {
+        // 查询消息关联的媒体文件
+        val localPaths = messageDao.getLocalPathsByIds(ids)
 
-                else -> {
-                    val file = File(entity.localPath ?: throw Exception("文件路径为空"))
-                    messageSender.sendMediaMessage(entity, file)
+        // 批量删除本地文件
+        try {
+            deleteLocalFiles(localPaths)
+        } catch (e: Exception) {
+            Log.w("DeleteLocalFile", "删除文件失败", e)
+        }
+
+        // 批量删除消息记录
+        messageDao.deleteByIds(ids)
+    }
+
+    override suspend fun forwardMessages(
+        ids: Set<String>,
+        targetChatIds: Set<String>
+    ) = withContext(Dispatchers.IO) {
+        // 查询原消息
+        val messages = messageDao.getByIds(ids)
+
+        // 为每个目标会话并行转发
+        targetChatIds.map { targetChatId ->
+            async {
+                messages.forEach { entity ->
+                    val content = entity.toDomain(json).content
+                    sendMessage(
+                        sessionId = targetChatId,
+                        receiverId = targetChatId,
+                        content = content
+                    )
                 }
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "发送失败: ${entity.id}, ${e.message}")
-        }
+        }.awaitAll()
+
+        Unit
     }
 }

@@ -41,6 +41,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
+import top.chengdongqing.wechat.features.chat.ui.session.message.ChatSessionUiState
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageAction
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.MessageToolbarManager
@@ -431,27 +432,68 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     // endregion
 
+    // region 消息多选
+
+    val selectedCount: Int
+        get() = _uiState.value.selectedMessageIds.size
+
+    fun enterSelectMode() {
+        _uiState.update {
+            it.copy(isSelectMode = true)
+        }
+    }
+
+    fun exitSelectMode() {
+        _uiState.update {
+            it.copy(
+                isSelectMode = false,
+                selectedMessageIds = emptySet()
+            )
+        }
+    }
+
+    fun toggleMessageSelection(messageId: String) {
+        _uiState.update {
+            val newSet = if (messageId in it.selectedMessageIds) {
+                it.selectedMessageIds - messageId
+            } else {
+                it.selectedMessageIds + messageId
+            }
+            it.copy(selectedMessageIds = newSet)
+        }
+    }
+
+    fun isMessageSelected(messageId: String): Boolean {
+        return messageId in _uiState.value.selectedMessageIds
+    }
+
+    fun deleteSelectedMessages() {
+        val ids = _uiState.value.selectedMessageIds
+
+        viewModelScope.launch {
+            messageRepository.deleteMessages(ids)
+        }
+
+        exitSelectMode()
+    }
+
+    fun forwardSelectedMessages(targetChatIds: Set<String>) {
+        val ids = _uiState.value.selectedMessageIds
+
+        viewModelScope.launch {
+            messageRepository.forwardMessages(ids, targetChatIds)
+        }
+
+        exitSelectMode()
+    }
+
+    // endregion
+
     override fun onCleared() {
         super.onCleared()
         audioPlaybackManager.release()
     }
 }
-
-data class ChatSessionUiState(
-    val title: String = "",
-    val peerId: String? = null,
-    val peerAvatar: String? = null,
-    val myId: String? = null,
-    val myAvatar: String? = null,
-    val isSelf: Boolean = false,
-    val isLoadingMore: Boolean = false,
-    val hasMoreMessages: Boolean = true,
-    val backgroundPath: String? = null,
-    val isMuted: Boolean = false,
-    val isSpeakerOn: Boolean = true,
-    val isOnline: Boolean = false,
-    val draftMessage: String? = null
-)
 
 private data class MediaState(
     val list: List<MediaItem> = emptyList(),

@@ -8,6 +8,27 @@ import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 
 /**
+ * 会话基础状态
+ */
+data class ChatSessionUiState(
+    val title: String = "",
+    val peerId: String? = null,
+    val peerAvatar: String? = null,
+    val myId: String? = null,
+    val myAvatar: String? = null,
+    val isSelf: Boolean = false,
+    val isLoadingMore: Boolean = false,
+    val hasMoreMessages: Boolean = true,
+    val backgroundPath: String? = null,
+    val isMuted: Boolean = false,
+    val isSpeakerOn: Boolean = true,
+    val isOnline: Boolean = false,
+    val draftMessage: String? = null,
+    val isSelectMode: Boolean = false,
+    val selectedMessageIds: Set<String> = emptySet()
+)
+
+/**
  * 消息操作类型枚举
  */
 enum class MessageAction(

@@ -37,4 +37,10 @@ interface MessageRepository {
 
     /** 撤回消息 */
     suspend fun recallMessage(messageId: String): Result<Unit>
+
+    /** 批量删除消息 */
+    suspend fun deleteMessages(ids: Set<String>)
+
+    /** 批量转发消息 */
+    suspend fun forwardMessages(ids: Set<String>, targetChatIds: Set<String>)
 }

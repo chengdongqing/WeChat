@@ -22,6 +22,9 @@ interface MessageDao : BaseDao<MessageEntity> {
     @Query("SELECT * FROM messages WHERE id = :messageId")
     suspend fun getById(messageId: String): MessageEntity?
 
+    @Query("SELECT * FROM messages WHERE id IN (:ids) ORDER BY timestamp ASC")
+    suspend fun getByIds(ids: Set<String>): List<MessageEntity>
+
     @Query("SELECT COUNT(*) FROM messages WHERE sessionId = :sessionId AND isFromMe = 0 AND isRead = 0")
     suspend fun getUnreadCountBySessionId(sessionId: String): Int
 
@@ -30,10 +33,18 @@ interface MessageDao : BaseDao<MessageEntity> {
         SELECT DISTINCT localPath FROM messages 
         WHERE sessionId = :sessionId 
         AND localPath IS NOT NULL 
-        AND localPath != ''
     """
     )
     suspend fun getLocalPathsBySessionId(sessionId: String): List<String>
+
+    @Query(
+        """
+      SELECT DISTINCT localPath FROM messages 
+      WHERE id IN (:ids) 
+      AND localPath IS NOT NULL
+    """
+    )
+    suspend fun getLocalPathsByIds(ids: Set<String>): List<String>
 
     @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE id = :messageId)")
     suspend fun exists(messageId: String): Boolean
@@ -61,4 +72,7 @@ interface MessageDao : BaseDao<MessageEntity> {
 
     @Query("DELETE FROM messages WHERE sessionId = :sessionId")
     suspend fun deleteBySessionId(sessionId: String)
+
+    @Query("DELETE FROM messages WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: Set<String>)
 }

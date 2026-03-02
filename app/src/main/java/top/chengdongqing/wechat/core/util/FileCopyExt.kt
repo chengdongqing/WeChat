@@ -8,6 +8,8 @@ import android.os.Build
 import android.util.Log
 import android.util.Size
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -49,7 +51,7 @@ suspend fun Context.loadMediaThumbnail(
                  */
                 loadVideoThumbnail(uri)
             }
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             if (!isVideo) uri else loadVideoThumbnail(uri)
         }
     }
@@ -65,7 +67,7 @@ fun Context.loadVideoThumbnail(uri: Uri): Bitmap? {
         try {
             retriever.setDataSource(this, uri)
             retriever.getFrameAtTime(1, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -149,16 +151,24 @@ suspend fun Context.createImageUri(
  * 批量删除本地文件
  */
 suspend fun deleteLocalFiles(paths: List<String>) = withContext(Dispatchers.IO) {
-    paths.forEach { path ->
-        File(path).takeIf { it.exists() }?.delete()
-    }
+    paths.map { path ->
+        async {
+            deleteLocalFile(path)
+        }
+    }.awaitAll()
 }
 
 /**
  * 删除单个本地文件
  */
 suspend fun deleteLocalFile(path: String?) = withContext(Dispatchers.IO) {
+    deleteFile(path)
+}
+
+private fun deleteFile(path: String?) {
     path?.let {
-        File(it).takeIf { file -> file.exists() }?.delete()
+        File(it).takeIf { file ->
+            file.exists()
+        }?.delete()
     }
 }
