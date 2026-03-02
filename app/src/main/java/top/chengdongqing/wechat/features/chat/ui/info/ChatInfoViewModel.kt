@@ -1,18 +1,23 @@
 package top.chengdongqing.wechat.features.chat.ui.info
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.manager.FileManager
+import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
@@ -36,7 +41,8 @@ class ChatInfoViewModel @AssistedInject constructor(
     private val chatSessionRepository: ChatSessionRepository,
     private val contactRepository: ContactRepository,
     private val profileRepository: ProfileRepository,
-    private val fileManager: FileManager
+    private val fileManager: FileManager,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     @AssistedFactory
@@ -113,15 +119,25 @@ class ChatInfoViewModel @AssistedInject constructor(
 
     fun updateBackground(uri: Uri?) {
         viewModelScope.launch {
-            // 保存新头像
-            val backgroundPath = uri?.let { uri ->
-                fileManager.saveImage(uri).getOrThrow()
+            try {
+                // 保存新背景
+                val backgroundPath = uri?.let { uri ->
+                    fileManager.saveMediaFileFromUri(
+                        messageType = MessageType.Image,
+                        sourceUri = uri
+                    ).getOrThrow()
+                }
+                // 删除旧背景
+                uiState.value.backgroundPath?.let {
+                    fileManager.deleteMediaFile(it)
+                }
+                chatSessionRepository.updateBackground(chatId, backgroundPath)
+
+                context.showToast(if (uri == null) "背景清除成功" else "背景设置成功")
+            } catch (e: Exception) {
+                Log.e("ChatInfoVM", "更新背景图片失败", e)
+                context.showToast("背景设置失败")
             }
-            // 删除旧头像
-            uiState.value.backgroundPath?.let {
-                fileManager.deleteMediaFile(it)
-            }
-            chatSessionRepository.updateBackground(chatId, backgroundPath)
         }
     }
 

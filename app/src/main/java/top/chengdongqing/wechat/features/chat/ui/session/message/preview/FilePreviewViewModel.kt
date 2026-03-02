@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message.preview
 
 import android.content.Context
-import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,10 +15,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.data.manager.MediaStoreManager
 import top.chengdongqing.wechat.core.util.openFile
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.features.chat.data.mapper.FileContent
 import java.io.File
@@ -30,9 +29,7 @@ data class FilePreviewUiState(
     val mimeType: String = "*/*",
     val localPath: String? = null,
     val isLoading: Boolean = true,
-    val isSaving: Boolean = false,
-    val saveSuccess: Boolean = false,
-    val error: String? = null
+    val isSaving: Boolean = false
 ) {
     val fileExists: Boolean
         get() = localPath != null && File(localPath).exists()
@@ -43,6 +40,7 @@ class FilePreviewViewModel @AssistedInject constructor(
     @Assisted private val messageId: String,
     private val messageDao: MessageDao,
     private val json: Json,
+    private val mediaStoreManager: MediaStoreManager,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -65,11 +63,8 @@ class FilePreviewViewModel @AssistedInject constructor(
     private fun loadFileInfo() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val entity = messageDao.getById(messageId)
-                if (entity == null) {
-                    _uiState.update { it.copy(isLoading = false, error = "消息不存在") }
-                    return@launch
-                }
+                val entity =
+                    messageDao.getById(messageId) ?: throw IllegalStateException("消息不存在")
 
                 // 解析文件元数据
                 val file = json.decodeFromString<FileContent>(entity.content)
@@ -84,81 +79,46 @@ class FilePreviewViewModel @AssistedInject constructor(
                     )
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "加载文件信息失败", e)
-                _uiState.update { it.copy(isLoading = false, error = "加载失败") }
+                Log.e(TAG, "文件信息加载失败", e)
+                context.showToast("文件信息加载失败")
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
 
     /**
-     * 用系统应用打开文件
+     * 打开文件
      */
     fun openFile() {
         val state = _uiState.value
         val path = state.localPath ?: return
         val file = File(path)
-        if (!file.exists()) {
-            _uiState.update { it.copy(error = "文件不存在") }
-            return
-        }
 
         try {
             context.openFile(file, state.mimeType)
         } catch (e: Exception) {
             Log.e(TAG, "打开文件失败", e)
-            _uiState.update { it.copy(error = "没有找到可以打开此文件的应用") }
+            context.showToast("没有找到可以打开此文件的应用")
         }
     }
 
     /**
-     * 保存到公共下载目录
+     * 保存文件
      */
-    fun saveToDownloads() {
-        val path = _uiState.value.localPath ?: return
-        val sourceFile = File(path)
-        if (!sourceFile.exists()) {
-            _uiState.update { it.copy(error = "文件不存在") }
-            return
-        }
-
-        _uiState.update { it.copy(isSaving = true) }
-
+    fun saveFile() {
         viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    val downloadsDir = Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DOWNLOADS
-                    )
-                    val appName = context.getString(R.string.app_name)
-                    val relativePath = "$downloadsDir/$appName"
-                    val targetFile = File(relativePath, _uiState.value.filename)
+            _uiState.update { it.copy(isSaving = true) }
 
-                    // 同名文件处理
-                    val finalFile = if (targetFile.exists()) {
-                        val name = targetFile.nameWithoutExtension
-                        val ext = targetFile.extension
-                        val timestamp = System.currentTimeMillis()
-                        File(relativePath, "${name}_$timestamp.$ext")
-                    } else {
-                        targetFile
-                    }
+            val success = mediaStoreManager.saveToDownloads(
+                sourceFile = File(_uiState.value.localPath!!),
+                filename = _uiState.value.filename
+            )
 
-                    sourceFile.copyTo(finalFile, overwrite = true)
-                }
-
-                _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
-            } catch (e: Exception) {
-                Log.e(TAG, "保存文件失败", e)
-                _uiState.update { it.copy(isSaving = false, error = "保存失败") }
+            context.showToast("文件保存${if (success) "成功" else "失败"}")
+            _uiState.update {
+                it.copy(isSaving = false)
             }
         }
-    }
-
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
-
-    fun resetSaveSuccess() {
-        _uiState.update { it.copy(saveSuccess = false) }
     }
 }

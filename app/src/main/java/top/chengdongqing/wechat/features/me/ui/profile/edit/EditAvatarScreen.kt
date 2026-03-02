@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.me.ui.profile.edit
 
-import android.net.Uri
 import androidx.compose.animation.core.SnapSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,8 +10,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.zIndex
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
@@ -31,7 +30,6 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToast
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.util.saveToAlbum
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileField
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 import java.io.File
@@ -44,7 +42,6 @@ fun EditAvatarScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profile = uiState.profile
 
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val toast = rememberToastState()
     val actionSheet = rememberActionSheetState()
@@ -64,11 +61,9 @@ fun EditAvatarScreen(
 
     val saveAvatar = {
         scope.launch {
-            val avatarUri = profile?.avatarPath?.let { path ->
-                val file = File(path)
-                if (file.exists()) Uri.fromFile(file) else null
-            }
-            val success = avatarUri?.let { context.saveToAlbum(avatarUri) } ?: false
+            val localPath = profile?.avatarPath ?: return@launch
+            val uri = File(localPath).toUri()
+            val success = viewModel.saveImage(uri, "image/jpeg")
 
             toast.show(
                 title = if (success) "已保存到相册" else "保存失败",

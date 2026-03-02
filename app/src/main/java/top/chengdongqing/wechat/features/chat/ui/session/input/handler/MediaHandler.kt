@@ -14,10 +14,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
-import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememberPickMediasLauncher
+import top.chengdongqing.wechat.core.util.FileNameUtils.getFileConfig
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
 import top.chengdongqing.wechat.core.util.getFileMetadata
+import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import java.io.File
 
@@ -38,10 +39,13 @@ class MediaHandler(
     private suspend fun processAndSend(uri: Uri, isImage: Boolean, mediaItem: MediaItem? = null) {
         // 获取元数据
         val resource = context.getFileMetadata(uri) ?: return
-        val mediaType = if (isImage) MediaType.Image else MediaType.Video
+        val messageType = if (isImage) MessageType.Image else MessageType.Video
 
         // 拷贝文件
-        val localPath = context.copyUriToPrivateDir(uri, mediaType) ?: return
+        val localPath = context.copyUriToPrivateDir(
+            uri = uri,
+            subDir = getFileConfig(messageType).dirName
+        ) ?: return
         val fileSize = File(localPath).length()
 
         // 构建消息对象

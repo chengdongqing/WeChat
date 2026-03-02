@@ -22,17 +22,12 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionS
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
-import top.chengdongqing.wechat.core.util.createMediaUri
-import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.core.util.createImageUri
 import top.chengdongqing.wechat.features.chat.ui.info.SettingItem
 
 @Composable
 fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Unit) {
-    val context = LocalContext.current
-    val selectorState = rememberBackgroundSelectorState { uri ->
-        onBackgroundChange(uri)
-        context.showToast("背景设置成功")
-    }
+    val selectorState = rememberBackgroundSelectorState(onBackgroundChange)
     val scope = rememberCoroutineScope()
     val dialog = rememberDialogState()
     val actionSheet = rememberActionSheetState()
@@ -55,7 +50,6 @@ fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Uni
                 2 -> {
                     dialog.show("确定清除当前聊天背景吗？", onOk = {
                         onBackgroundChange(null)
-                        context.showToast("背景清除成功")
                     })
                 }
             }
@@ -74,7 +68,7 @@ private class BackgroundSelectorState(
     val tempUri: MutableState<Uri?>
 ) {
     suspend fun takePicture() {
-        val uri = context.createMediaUri()
+        val uri = context.createImageUri()
         tempUri.value = uri
         cameraLauncher.launch(uri)
     }
@@ -114,7 +108,7 @@ private fun rememberBackgroundSelectorState(
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA) { granted ->
         if (granted) {
             scope.launch {
-                val uri = context.createMediaUri()
+                val uri = context.createImageUri()
                 tempUri.value = uri
                 cameraLauncher.launch(uri)
             }

@@ -70,7 +70,6 @@ import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermissio
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.createImageUri
-import top.chengdongqing.wechat.core.util.saveToAlbum
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
@@ -151,7 +150,8 @@ fun QRCodeScreen(
                         density = density,
                         context = context,
                         toast = toast,
-                        scope = scope
+                        scope = scope,
+                        viewModel = viewModel
                     )
                 }
             )
@@ -331,7 +331,8 @@ private fun handleSaveToAlbum(
     density: Density,
     context: Context,
     toast: ToastState,
-    scope: CoroutineScope
+    scope: CoroutineScope,
+    viewModel: ProfileViewModel
 ) {
     toast.show(
         title = "正在处理...",
@@ -344,7 +345,7 @@ private fun handleSaveToAlbum(
         try {
             val bitmap = cardRenderer.generateBitmap(density = density)
             val uri = context.createImageUri(bitmap)
-            val success = context.saveToAlbum(uri)
+            val success = viewModel.saveImage(uri)
 
             delay(200)
             toast.hide()

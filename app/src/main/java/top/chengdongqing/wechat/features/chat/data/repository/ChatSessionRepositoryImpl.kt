@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
-import top.chengdongqing.wechat.core.util.deleteLocalFileBatch
+import top.chengdongqing.wechat.core.util.deleteLocalFiles
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
@@ -146,7 +146,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
         // 删除媒体文件
         try {
-            deleteLocalFileBatch(paths)
+            deleteLocalFiles(paths)
         } catch (e: Exception) {
             Log.e("DeleteSessionById", "删除文件失败", e)
         }

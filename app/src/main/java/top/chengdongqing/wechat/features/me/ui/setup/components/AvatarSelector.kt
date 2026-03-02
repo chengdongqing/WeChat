@@ -42,7 +42,7 @@ import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.cropper.rememberImageCropperLauncher
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.core.util.createMediaUri
+import top.chengdongqing.wechat.core.util.createImageUri
 
 /**
  * 头像选择器组件
@@ -143,7 +143,7 @@ private class AvatarSelectorState(
     val tempUri: MutableState<Uri?>
 ) {
     suspend fun takePicture() {
-        val uri = context.createMediaUri()
+        val uri = context.createImageUri()
         tempUri.value = uri
         cameraLauncher.launch(uri)
     }
@@ -185,7 +185,7 @@ private fun rememberAvatarSelectorState(
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA) { granted ->
         if (granted) {
             scope.launch {
-                val uri = context.createMediaUri()
+                val uri = context.createImageUri()
                 tempUri.value = uri
                 cameraLauncher.launch(uri)
             }

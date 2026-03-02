@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,8 +33,6 @@ import androidx.core.net.toUri
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
-import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
-import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
 import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
@@ -45,32 +42,23 @@ import top.chengdongqing.wechat.core.util.toPercent
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
-import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun MediaContent(message: ChatMessage) {
-    val context = LocalContext.current
     val targetWidth = rememberScreenFractionWidth()
     val content = message.content as MessageContent.Media
-
-    val (mediaItems, currentIndex) = rememberMediaList(content)
-    // 防止数组越界
-    if (currentIndex == -1 || currentIndex > mediaItems.size - 1) return
 
     Box(
         modifier = Modifier
             .heightIn(max = targetWidth)
             .widthIn(max = targetWidth)
             .then(if (content.ratio > 0) Modifier.aspectRatio(content.ratio) else Modifier),
-//            .clickable {
-//                context.previewMedias(mediaItems, currentIndex)
-//            },
         contentAlignment = Alignment.Center
     ) {
         // 缩略图
-        ThumbnailImage(mediaItems[currentIndex], content is MessageContent.Video)
+        ThumbnailImage(content.localPath, content is MessageContent.Video)
 
         when (content) {
             is MessageContent.Image -> {
@@ -92,10 +80,10 @@ fun MediaContent(message: ChatMessage) {
 }
 
 @Composable
-private fun ThumbnailImage(media: MediaItem, isVideo: Boolean) {
+private fun ThumbnailImage(localPath: String, isVideo: Boolean) {
     val context = LocalContext.current
-    val thumbnail by produceState<Any?>(initialValue = null, media.uri) {
-        value = context.loadMediaThumbnail(media.uri, isVideo, Size(1200, 1200))
+    val thumbnail by produceState<Any?>(initialValue = null, localPath) {
+        value = context.loadMediaThumbnail(File(localPath).toUri(), isVideo, Size(1200, 1200))
     }
 
     AsyncImage(
@@ -165,25 +153,3 @@ private fun BoxScope.VideoOverlay(
             .align(Alignment.BottomEnd)
     )
 }
-
-@Composable
-private fun rememberMediaList(content: MessageContent.Media): Pair<List<MediaItem>, Int> {
-    val chatContext = LocalChatSessionContext.current
-
-    return remember(content, chatContext) {
-        val items = chatContext?.mediaList?.map { it.toMediaItem() }
-            ?: listOf(content.toMediaItem())
-        val index = chatContext?.getMediaIndexOf(content) ?: 0
-        items to index
-    }
-}
-
-private fun MessageContent.Media.toMediaItem() = MediaItem(
-    uri = File(localPath).toUri(),
-    filename = filename,
-    mediaType = if (this is MessageContent.Video) MediaType.Video else MediaType.Image,
-    mimeType = mimeType,
-    width = width,
-    height = height,
-    duration = if (this is MessageContent.Video) duration else 0
-)

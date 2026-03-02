@@ -244,6 +244,6 @@ class NetworkService : Service() {
 fun Context.createNetworkServiceIntent(action: String): Intent {
     return Intent(this, NetworkService::class.java).apply {
         this.action = action
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
     }
 }

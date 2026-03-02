@@ -92,8 +92,6 @@ fun ChatSessionScreen(
     val chatContext = rememberChatSessionContext(
         viewModel = viewModel,
         uiState = uiState,
-        onPreviewFile = onNavigateToFilePreview,
-        onLaunchCall = launchCall,
         onNavigateToContact = { isPeer ->
             val id = if (isPeer) uiState.peerId else uiState.myId
             onNavigateToContact(id!!)
@@ -103,14 +101,19 @@ fun ChatSessionScreen(
     )
 
     /**
-     * 注册/清除当前聚焦的会话
+     * 生命周期感知
      */
     LifecycleResumeEffect(chatId) {
+        // 注册当前会话为聚焦的会话
         viewModel.activeSessionManager.enter(chatId)
+        // 清除消息未读状态
         viewModel.clearUnreadState()
 
         onPauseOrDispose {
+            // 清除当前会话的聚焦状态
             viewModel.activeSessionManager.leave()
+            // 切到后台自动停止播放语音
+            viewModel.stopVoice()
         }
     }
 
@@ -134,6 +137,14 @@ fun ChatSessionScreen(
 
                 is MessageUiEvent.ForwardMessage -> {
 
+                }
+
+                is MessageUiEvent.PreviewFile -> {
+                    onNavigateToFilePreview(event.messageId)
+                }
+
+                is MessageUiEvent.LaunchCall -> {
+                    launchCall(event.callType)
                 }
 
                 else -> {}

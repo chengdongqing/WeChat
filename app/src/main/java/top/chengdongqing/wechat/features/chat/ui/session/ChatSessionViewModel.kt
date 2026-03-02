@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.features.chat.ui.session
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextRange
 import androidx.lifecycle.ViewModel
@@ -19,14 +20,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.designsystem.components.location.preview.previewLocation
+import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
+import top.chengdongqing.wechat.core.designsystem.components.media.preview.previewMedias
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.copyToClipboard
 import top.chengdongqing.wechat.core.util.isWithinMinutes
@@ -34,6 +39,7 @@ import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
+import top.chengdongqing.wechat.features.chat.data.mapper.toMediaItem
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
@@ -95,19 +101,40 @@ class ChatSessionViewModel @AssistedInject constructor(
     )
 
     /**
-     * 派生状态：媒体预览列表
+     * 媒体预览列表
      */
-    val mediaList = messages
+    private val mediaState = messages
         .map { list ->
-            list.asSequence()
-                .mapNotNull { it.content as? MessageContent.Media }
-                .toList()
-                .reversed()
+            // 提取一个只包含【ID + 是否是媒体内容】的特征列表
+            // 只有当这个“特征”变了，下游才需要重新计算 Map
+            list.map { it.id to (it.content is MessageContent.Media) }
+        }
+        .distinctUntilChanged()
+        .map {
+            val allMessages = messages.value
+            withContext(Dispatchers.Default) {
+                val mediaItems = mutableListOf<MediaItem>()
+                val idToIndexMap = mutableMapOf<String, Int>()
+
+                // 从后往前遍历：一次性完成 过滤 + 转换 + 倒序
+                for (i in allMessages.indices.reversed()) {
+                    val message = allMessages[i]
+                    (message.content as? MessageContent.Media)?.toMediaItem()?.let {
+                        mediaItems.add(it)
+                        idToIndexMap[message.id] = mediaItems.size - 1
+                    }
+                }
+
+                MediaState(
+                    list = mediaItems,
+                    indexMap = idToIndexMap
+                )
+            }
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = emptyList()
+            started = SharingStarted.Eagerly,
+            initialValue = MediaState()
         )
 
     /**
@@ -340,8 +367,13 @@ class ChatSessionViewModel @AssistedInject constructor(
         )
     }
 
+    /**
+     * 停止播放语音
+     */
     fun stopVoice() {
-        audioPlaybackManager.stop()
+        if (_playingMessageId.value != null) {
+            audioPlaybackManager.stop()
+        }
     }
 
     private fun markAsPlayed(messageId: String) {
@@ -377,19 +409,37 @@ class ChatSessionViewModel @AssistedInject constructor(
      */
     fun handleMessageClick(message: ChatMessage) {
         when (val content = message.content) {
+            // 预览图片/视频
             is MessageContent.Image,
             is MessageContent.Video -> {
-
+                val (mediaList, indexMap) = mediaState.value
+                val index = indexMap[message.id] ?: run {
+                    Log.e("MediaPreview", "找不到该消息的媒体索引: ${message.id}")
+                    return
+                }
+                context.previewMedias(mediaList, index)
             }
 
+            // 开始/停止播放语音
             is MessageContent.Voice -> {
                 toggleVoicePlay(message.id, message.content.localPath)
             }
 
+            // 预览文件
             is MessageContent.File -> {
-
+                viewModelScope.launch {
+                    _uiEvent.emit(MessageUiEvent.PreviewFile(message.id))
+                }
             }
 
+            // 调起通话
+            is MessageContent.Call -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(MessageUiEvent.LaunchCall(message.content.type))
+                }
+            }
+
+            // 预览位置
             is MessageContent.Location -> {
                 val location = LocationPreviewInfo(
                     coordinate = LatLng(
@@ -402,9 +452,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                 context.previewLocation(location)
             }
 
-            else -> {
-                // 其他类型不处理点击
-            }
+            else -> {}
         }
     }
 
@@ -607,4 +655,9 @@ data class ChatSessionUiState(
     val isSpeakerOn: Boolean = true,
     val isOnline: Boolean = false,
     val draftMessage: String? = null
+)
+
+private data class MediaState(
+    val list: List<MediaItem> = emptyList(),
+    val indexMap: Map<String, Int> = emptyMap()
 )

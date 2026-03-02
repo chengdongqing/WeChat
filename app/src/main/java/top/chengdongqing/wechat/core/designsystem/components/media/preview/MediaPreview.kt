@@ -23,25 +23,19 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import me.saket.telephoto.zoomable.rememberZoomableState
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.rememberVideoPlayerState
 import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
-import top.chengdongqing.wechat.core.util.saveToAlbum
-import top.chengdongqing.wechat.core.util.shareContent
 
 @Composable
 fun WeMediaPreview(medias: List<MediaItem>, current: Int = 0, onDismiss: () -> Unit) {
@@ -109,10 +103,11 @@ private fun BoxScope.PagerInfo(total: Int, current: Int) {
 }
 
 @Composable
-private fun BoxScope.ToolBar(medias: List<MediaItem>, pagerState: PagerState) {
-    val context = LocalContext.current
-    val toast = rememberToastState()
-    val coroutineScope = rememberCoroutineScope()
+private fun BoxScope.ToolBar(
+    medias: List<MediaItem>,
+    pagerState: PagerState,
+    viewModel: MediaPreviewViewModel = hiltViewModel()
+) {
     val media = medias[pagerState.currentPage]
 
     Row(
@@ -123,16 +118,10 @@ private fun BoxScope.ToolBar(medias: List<MediaItem>, pagerState: PagerState) {
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ActionIcon(imageVector = Icons.Outlined.Share, label = "分享") {
-            context.shareContent(media.uri, media.mimeType, "分享媒体文件")
+            viewModel.shareMedia(media)
         }
         ActionIcon(imageVector = Icons.Outlined.Download, label = "保存") {
-            coroutineScope.launch {
-                if (context.saveToAlbum(media)) {
-                    toast.show("已保存到相册", icon = ToastIcon.Success)
-                } else {
-                    toast.show("保存失败", icon = ToastIcon.Fail)
-                }
-            }
+            viewModel.saveMedia(media)
         }
     }
 }

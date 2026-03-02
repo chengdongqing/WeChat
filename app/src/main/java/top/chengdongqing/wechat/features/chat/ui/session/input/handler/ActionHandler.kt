@@ -12,7 +12,8 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.remembe
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.util.CallOptions
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
-import top.chengdongqing.wechat.core.util.createMediaUri
+import top.chengdongqing.wechat.core.util.createImageUri
+import top.chengdongqing.wechat.core.util.createVideoUri
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -75,7 +76,11 @@ fun rememberActionHandler(
      */
     fun launchSystemCamera(isVideo: Boolean) {
         scope.launch {
-            val uri = context.createMediaUri(isVideo)
+            val uri = if (isVideo) {
+                context.createVideoUri()
+            } else {
+                context.createImageUri()
+            }
             mediaLaunchers.setCapturedUri(uri)
 
             if (isVideo) {

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,8 +27,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
@@ -42,21 +39,6 @@ fun FilePreviewScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val toast = rememberToastState()
-
-    LaunchedEffect(uiState.saveSuccess) {
-        if (uiState.saveSuccess) {
-            toast.show(title = "保存成功", icon = ToastIcon.Success)
-            viewModel.resetSaveSuccess()
-        }
-    }
-
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            toast.show(title = it, icon = ToastIcon.Fail)
-            viewModel.clearError()
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -116,8 +98,8 @@ fun FilePreviewScreen(
                 WeButton("打开", type = ButtonType.Plain, enabled = uiState.fileExists) {
                     viewModel.openFile()
                 }
-                WeButton("保存", loading = uiState.isSaving) {
-                    viewModel.saveToDownloads()
+                WeButton("保存", loading = uiState.isSaving, enabled = uiState.fileExists) {
+                    viewModel.saveFile()
                 }
             }
         }

@@ -9,9 +9,14 @@ import android.media.MediaCodecInfo
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.media.MediaRecorder
-import android.net.Uri
 import android.util.Log
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.core.data.manager.FileManager
+import top.chengdongqing.wechat.data.database.entity.MessageType
 import java.io.File
+import javax.inject.Inject
 import kotlin.math.log10
 import kotlin.math.sqrt
 
@@ -19,7 +24,10 @@ import kotlin.math.sqrt
  * 音频录制管理类
  * 采用 AudioRecord 采集 + MediaCodec AAC 编码 + MediaMuxer 封装 M4A
  */
-class AudioRecorderManager(private val context: Context) {
+class AudioRecorderManager @Inject constructor(
+    @param:ApplicationContext private val context: Context,
+    private val fileManager: FileManager
+) {
 
     private var audioRecord: AudioRecord? = null
     private var mediaCodec: MediaCodec? = null
@@ -58,7 +66,7 @@ class AudioRecorderManager(private val context: Context) {
             cleanup()
 
             // 文件准备
-            val audioDir = File(context.cacheDir, "audio").apply { if (!exists()) mkdirs() }
+            val audioDir = File(context.cacheDir, "audios").apply { if (!exists()) mkdirs() }
             currentFile = File(audioDir, "REC_${System.currentTimeMillis()}.m4a")
 
             // 初始化 AudioRecord (硬件降噪模式)
@@ -183,29 +191,48 @@ class AudioRecorderManager(private val context: Context) {
     /**
      * 停止录音并保存
      */
-    fun stopRecording(): Uri? {
+    suspend fun stopRecording(): String? {
         if (!isRecording) return null
-        isRecording = false
 
-        return try {
-            recordingThread?.join(2000)
-            drainEncoder() // 处理剩余缓冲
+        return withContext(Dispatchers.IO) {
+            try {
+                // 发送结束信号给编码线程
+                isRecording = false
+                // 等待读取线程结束（确保所有 PCM 都塞进了 Codec）
+                recordingThread?.join(1000)
+                // 彻底排空编码器并关闭封装器
+                drainEncoderAndStopMuxer()
 
-            val file = currentFile
-            val result = if (file != null && file.exists() && file.length() > 100) {
-                Log.i(TAG, "录音保存成功: ${file.length()} bytes")
-                Uri.fromFile(file)
-            } else {
-                Log.e(TAG, "录音文件无效")
-                file?.delete()
+                val file = currentFile
+                if (file != null && file.exists() && file.length() > 500) {
+                    val result = fileManager.saveMediaFile(
+                        messageType = MessageType.Voice,
+                        sourceFile = file
+                    ).getOrNull()
+
+                    Log.i(TAG, "录音保存成功: $result, 大小: ${file.length()}")
+                    result
+                } else {
+                    Log.e(TAG, "录音文件无效或太小: ${file?.length()} bytes")
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "停止录音失败", e)
                 null
+            } finally {
+                cleanup()
+                currentFile?.delete()
             }
-            cleanup()
-            result
-        } catch (e: Exception) {
-            Log.e(TAG, "停止录音异常", e)
-            cleanup()
-            null
+        }
+    }
+
+    private fun drainEncoderAndStopMuxer() {
+        runCatching {
+            drainEncoder()
+            if (muxerStarted) {
+                mediaMuxer?.stop()
+                muxerStarted = false
+            }
         }
     }
 

@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.features.chat.ui.session.input.voice
 
 import android.Manifest
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Box
@@ -28,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 /**
  * 语音录制按钮
  *
- * @param onVoiceSend 发送语音回调 (文件URI, 录音时长毫秒)
+ * @param onVoiceSend 发送语音回调 (文件路径, 录音时长毫秒)
  * @param onConvertToText 转文字回调
  * @param minDuration 最小录音时长（毫秒）
  * @param maxDuration 最大录音时长（毫秒）
@@ -46,10 +46,11 @@ import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun VoiceRecordButton(
-    onVoiceSend: (uri: Uri, duration: Long) -> Unit,
-    onConvertToText: (uri: Uri, duration: Long) -> Unit,
+    onVoiceSend: (localPath: String, duration: Long) -> Unit,
+    onConvertToText: (localPath: String, duration: Long) -> Unit,
     minDuration: Long = 1000,
-    maxDuration: Long = 60000
+    maxDuration: Long = 60000,
+    viewModel: VoiceViewModel = hiltViewModel()
 ) {
     val chatContext = LocalChatSessionContext.current
     val context = LocalContext.current
@@ -63,7 +64,7 @@ fun VoiceRecordButton(
     var audioAmplitude by remember { mutableFloatStateOf(0f) }
     var dragOffset by remember { mutableStateOf(Offset.Zero) }
 
-    val audioRecorder = remember { AudioRecorderManager(context) }
+    val audioRecorder = viewModel.audioRecorder
     val focusManager = remember { AudioFocusManager(context) }
 
     // ========== 录音计时器 ==========
@@ -224,8 +225,8 @@ private suspend fun handleDragEnd(
     recordDuration: Long,
     minDuration: Long,
     audioRecorder: AudioRecorderManager,
-    onSend: (Uri, Long) -> Unit,
-    onConvertToText: ((Uri, Long) -> Unit)?,
+    onSend: (String, Long) -> Unit,
+    onConvertToText: ((String, Long) -> Unit)?,
     onStateChange: (RecordState) -> Unit
 ) {
     when (recordState) {
@@ -266,10 +267,10 @@ private suspend fun handleDragEnd(
 /**
  * 处理录音完成
  */
-private fun handleRecordingComplete(
+private suspend fun handleRecordingComplete(
     audioRecorder: AudioRecorderManager,
     recordDuration: Long,
-    onSend: (Uri, Long) -> Unit
+    onSend: (String, Long) -> Unit
 ) {
     val uri = audioRecorder.stopRecording()
     if (uri != null) {

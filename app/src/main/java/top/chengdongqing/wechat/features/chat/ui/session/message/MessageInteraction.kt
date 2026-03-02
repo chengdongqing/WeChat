@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextRange
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 
 /**
@@ -62,4 +63,14 @@ sealed class MessageUiEvent {
      * 重新编辑消息
      */
     data class ReeditMessage(val text: String) : MessageUiEvent()
+
+    /**
+     * 预览文件
+     */
+    data class PreviewFile(val messageId: String) : MessageUiEvent()
+
+    /**
+     * 调起通话
+     */
+    data class LaunchCall(val callType: CallType) : MessageUiEvent()
 }

@@ -10,8 +10,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.util.FileNameUtils.getFileConfig
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
 import top.chengdongqing.wechat.core.util.getFileMetadata
+import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 /**
@@ -26,7 +28,10 @@ class FileHandler(
     suspend fun handleFileSelection(uris: List<Uri>, context: Context) {
         uris.forEachIndexed { index, uri ->
             // 拷贝到私有目录
-            val localPath = context.copyUriToPrivateDir(uri) ?: return
+            val localPath = context.copyUriToPrivateDir(
+                uri = uri,
+                subDir = getFileConfig(MessageType.File).dirName
+            ) ?: return
             // 解析元数据
             val metadata = context.getFileMetadata(uri) ?: return
 

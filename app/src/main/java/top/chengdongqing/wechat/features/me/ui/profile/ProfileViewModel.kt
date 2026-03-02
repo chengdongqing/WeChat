@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.me.ui.profile
 
+import android.content.Context
 import android.net.Uri
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -7,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -16,6 +18,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.manager.FileManager
+import top.chengdongqing.wechat.core.data.manager.MediaStoreManager
+import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
+import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
@@ -34,7 +39,9 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val fileManager: FileManager,
+    private val mediaStoreManager: MediaStoreManager,
     private val qrCodeUseCase: QRCodeUseCase,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -186,6 +193,20 @@ class ProfileViewModel @Inject constructor(
 
             else -> null // 其他字段暂不强制验证
         }
+    }
+
+    /**
+     * 保存图片
+     */
+    suspend fun saveImage(uri: Uri, mimeType: String? = null): Boolean {
+        val res = context.getFileMetadata(uri) ?: return false
+
+        return mediaStoreManager.saveToAlbum(
+            sourceUri = uri,
+            filename = res.filename,
+            mimeType = mimeType ?: res.mimeType,
+            mediaType = MediaType.Image
+        )
     }
 
     /**

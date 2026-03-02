@@ -32,7 +32,7 @@ fun Context.navigateToLocation(
     runCatching {
         val uri = mapType.buildUri(location.latitude, location.longitude, name)
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         startActivity(intent)
     }.onFailure {

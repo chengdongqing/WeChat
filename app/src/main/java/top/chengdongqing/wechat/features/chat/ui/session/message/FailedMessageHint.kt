@@ -51,7 +51,6 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
             // 绘制主体提示文字
             withStyle(style = SpanStyle(color = textColor, fontSize = 13.sp)) {
                 when {
-                    error != null -> append(error.message)
                     message.isRecalled -> {
                         if (message.isFromMe) {
                             append("你撤回了一条消息")
@@ -59,12 +58,14 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                             append("对方撤回了一条消息")
                         }
                     }
+
+                    error != null -> append(error.message)
                 }
             }
 
             // 根据错误类型添加可点击链接
             val (actionLabel, actionAnnotation) = when {
-                error?.canRetry.isTrue() -> {
+                !message.isRecalled && error?.canRetry.isTrue() -> {
                     val label = if (error == SendError.Cancelled) "再次发送" else "重试"
                     label to LinkAnnotation.Clickable(
                         tag = "retry",
@@ -73,7 +74,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                     )
                 }
 
-                error == SendError.NotFriend -> {
+                !message.isRecalled && error == SendError.NotFriend -> {
                     "发送朋友验证" to LinkAnnotation.Clickable(
                         tag = "verify",
                         styles = linkStyles,

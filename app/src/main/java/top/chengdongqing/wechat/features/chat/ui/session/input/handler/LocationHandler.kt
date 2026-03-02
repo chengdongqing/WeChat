@@ -8,8 +8,9 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
 import top.chengdongqing.wechat.core.designsystem.components.location.picker.rememberPickLocationLauncher
-import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
+import top.chengdongqing.wechat.core.util.FileNameUtils
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
+import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 /**
@@ -25,7 +26,8 @@ class LocationHandler(
      */
     suspend fun handleLocationSelection(location: LocationInfo, context: Context) {
         val localPath = context.copyUriToPrivateDir(
-            location.staticMapUri ?: return, MediaType.Image
+            uri = location.staticMapUri ?: return,
+            subDir = FileNameUtils.getFileConfig(MessageType.Image).dirName
         ) ?: return
 
         val content = MessageContent.Location(

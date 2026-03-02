@@ -9,8 +9,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.util.FileNameUtils.extractExtension
 import top.chengdongqing.wechat.core.util.deleteLocalFile
-import top.chengdongqing.wechat.core.util.extractFileExtension
 import top.chengdongqing.wechat.core.util.isWithinMinutes
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
@@ -314,8 +314,7 @@ class MessageDispatcher @Inject constructor(
         val localPath = fileManager.saveMediaFile(
             messageType = protocol.messageType,
             sourceFile = tempFile,
-            messageId = protocol.messageId,
-            extension = filename.extractFileExtension()
+            extension = extractExtension(filename)
         ).also {
             tempFile.delete()
         }.getOrElse {

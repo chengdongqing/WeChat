@@ -182,8 +182,8 @@ private fun InputFieldArea(
     ) {
         if (state.inputMode.isVoice) {
             VoiceRecordButton(
-                onVoiceSend = { uri, duration ->
-                    actions.onVoiceSend(uri.path!!, duration)
+                onVoiceSend = { localPath, duration ->
+                    actions.onVoiceSend(localPath, duration)
                 },
                 onConvertToText = { _, _ -> }
             )
