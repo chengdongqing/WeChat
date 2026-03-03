@@ -113,7 +113,7 @@ private fun BoxScope.ToolBar(
     Row(
         modifier = Modifier
             .align(Alignment.BottomEnd)
-            .padding(end = 26.dp, bottom = 16.dp)
+            .padding(end = 26.dp, bottom = 26.dp)
             .navigationBarsPadding(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
