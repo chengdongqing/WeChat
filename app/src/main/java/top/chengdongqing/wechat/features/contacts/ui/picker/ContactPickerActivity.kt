@@ -23,9 +23,11 @@ class ContactPickerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val count = intent.getIntExtra(EXTRA_CONTACT_COUNT, 99)
+
         setContent {
             WeTheme {
-                ContactPicker(onCancel = ::finish) { chatIds, isGroupChat ->
+                ContactPicker(count, onCancel = ::finish) { chatIds, isGroupChat ->
                     val intent = Intent().apply {
                         putExtra(EXTRA_CHAT_IDS, ArrayList(chatIds))
                         putExtra(EXTRA_IS_GROUP_CHAT, isGroupChat)
@@ -55,13 +57,14 @@ class ContactPickerActivity : ComponentActivity() {
     companion object {
         const val EXTRA_CHAT_IDS = "extra_chat_ids"
         const val EXTRA_IS_GROUP_CHAT = "extra_is_group_chat"
+        const val EXTRA_CONTACT_COUNT = "extra_contact_count"
 
         fun newIntent(context: Context) = Intent(context, ContactPickerActivity::class.java)
     }
 }
 
 @Composable
-fun rememberPickContactLauncher(onResult: (chatIds: List<String>, isGroupChat: Boolean) -> Unit): () -> Unit {
+fun rememberPickContactLauncher(onResult: (chatIds: Set<String>, isGroupChat: Boolean) -> Unit): (count: Int) -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -74,13 +77,15 @@ fun rememberPickContactLauncher(onResult: (chatIds: List<String>, isGroupChat: B
                 data?.getBooleanExtra(ContactPickerActivity.EXTRA_IS_GROUP_CHAT, false) ?: false
 
             if (chatIds != null) {
-                onResult(chatIds, isGroupChat)
+                onResult(chatIds.toSet(), isGroupChat)
             }
         }
     }
 
-    return {
-        val intent = ContactPickerActivity.newIntent(context)
+    return { count ->
+        val intent = ContactPickerActivity.newIntent(context).apply {
+            putExtra(ContactPickerActivity.EXTRA_CONTACT_COUNT, count)
+        }
 
         val options = ActivityOptionsCompat.makeCustomAnimation(
             context,

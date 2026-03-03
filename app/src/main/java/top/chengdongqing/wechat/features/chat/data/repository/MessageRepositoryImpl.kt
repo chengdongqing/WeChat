@@ -87,7 +87,7 @@ class MessageRepositoryImpl @Inject constructor(
             json = json
         ).copy(
             // 如果需要发送，初始状态设为 Sending，否则直接 Sent
-            sendStatus = if (shouldSkipSend) SendStatus.Sent else SendStatus.Sending
+            sendStatus = if (shouldSkipSend) SendStatus.Delivered else SendStatus.Sending
         )
 
         weDatabase.withTransaction {

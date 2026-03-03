@@ -483,9 +483,11 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     fun forwardSelectedMessages(targetChatIds: Set<String>) {
         val ids = _uiState.value.selectedMessageIds
+        if (ids.isEmpty()) return
 
         viewModelScope.launch {
             messageRepository.forwardMessages(ids, targetChatIds)
+            context.showToast("已发送")
         }
 
         exitSelectMode()

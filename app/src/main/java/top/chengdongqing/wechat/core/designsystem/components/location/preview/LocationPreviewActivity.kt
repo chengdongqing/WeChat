@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
@@ -31,6 +32,17 @@ class LocationPreviewActivity : ComponentActivity() {
         }
     }
 
+    override fun finish() {
+        super.finish()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, R.anim.fade_out)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, R.anim.fade_out)
+        }
+    }
+
     companion object {
         const val EXTRA_LOCATION = "extra_location"
 
@@ -41,7 +53,7 @@ class LocationPreviewActivity : ComponentActivity() {
 fun Context.previewLocation(location: LocationPreviewInfo) {
     val intent = LocationPreviewActivity.newIntent(this).apply {
         putExtra(LocationPreviewActivity.EXTRA_LOCATION, location)
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION
     }
     startActivity(intent)
 }

@@ -63,6 +63,7 @@ fun ChatSessionScreen(
     val context = LocalContext.current
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
+    val dialog = rememberDialogState()
 
     /**
      * 键盘和数据更新时的自动滚动
@@ -119,14 +120,15 @@ fun ChatSessionScreen(
         }
     }
 
-    val pickContact = rememberPickContactLauncher { contactIds, isGroupChat ->
-
+    val pickContact = rememberPickContactLauncher { contactIds, _ ->
+        dialog.show("确定转发给选定的${contactIds.size}位联系人吗？") {
+            viewModel.forwardSelectedMessages(contactIds)
+        }
     }
 
     /**
      * UI事件处理
      */
-    val dialog = rememberDialogState()
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
@@ -145,7 +147,10 @@ fun ChatSessionScreen(
                 }
 
                 is MessageUiEvent.ForwardMessage -> {
-                    pickContact()
+                    event.messageId?.let { id ->
+                        viewModel.toggleMessageSelection(id)
+                    }
+                    pickContact(99)
                 }
 
                 is MessageUiEvent.PreviewFile -> {

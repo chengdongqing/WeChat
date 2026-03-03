@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -40,13 +41,16 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.util.showToast
 
 @Composable
 fun ContactPicker(
+    count: Int,
     onCancel: () -> Unit,
     viewModel: ContactPickerViewModel = hiltViewModel(),
     onSelect: (chatIds: Set<String>, isGroupChat: Boolean) -> Unit,
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
@@ -131,17 +135,25 @@ fun ContactPicker(
                                 key = { _, contact -> contact.id },
                                 contentType = { _, _ -> "ContactItem" }
                             ) { index, contact ->
+                                val isSelected = viewModel.isContactSelected(contact.id)
+
                                 Column(
                                     modifier = Modifier.background(WeTheme.colorScheme.surface)
                                 ) {
                                     Row(
                                         modifier = Modifier.weClickable {
+                                            println("---uiState.selectedCount:${uiState.selectedCount}, count:$count")
+
+                                            if (uiState.selectedCount >= count && !isSelected) {
+                                                context.showToast("你最多只能选择${count}个")
+                                                return@weClickable
+                                            }
                                             viewModel.toggleContactSelection(contact.id)
                                         },
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Spacer(modifier = Modifier.width(16.dp))
-                                        WeCheckBox(checked = viewModel.isContactSelected(contact.id))
+                                        WeCheckBox(isSelected)
                                         ContactListItem(contact)
                                     }
 

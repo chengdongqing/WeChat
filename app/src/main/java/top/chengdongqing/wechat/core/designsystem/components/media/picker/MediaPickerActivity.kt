@@ -58,9 +58,9 @@ class MediaPickerActivity : ComponentActivity() {
     }
 
     companion object {
-        const val EXTRA_MEDIA_TYPE = "extra_extra_media_type"
-        const val EXTRA_MEDIA_COUNT = "extra_extra_media_count"
-        const val EXTRA_MEDIA_LIST = "extra_extra_media_list"
+        const val EXTRA_MEDIA_TYPE = "extra_media_type"
+        const val EXTRA_MEDIA_COUNT = "extra_media_count"
+        const val EXTRA_MEDIA_LIST = "extra_media_list"
 
         fun newIntent(context: Context) = Intent(context, MediaPickerActivity::class.java)
     }
