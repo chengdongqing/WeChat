@@ -9,34 +9,19 @@ import androidx.compose.ui.text.buildAnnotatedString
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 
-// 提取配置常量
-private object RichTextConfig {
-    val EMOJI_PATTERN = Regex("\\[(.*?)]")
-    val URL_PATTERN = Regex("(https?://[\\w-]+(\\.[\\w-]+)+(/\\S*)?)")
-    val PHONE_PATTERN = Regex("(\\d{3}-\\d{8}|\\d{11})")
-
-    val LinkStyles = TextLinkStyles(
-        style = SpanStyle(LinkColor),
-        pressedStyle = SpanStyle(
-            color = LinkColor,
-            background = LinkColor.copy(alpha = 0.1f)
-        )
-    )
-}
-
 /**
- * 解析富文本（增强版）
+ * 解析富文本
  */
 fun String.parseRichText(
-    onUrlClick: (String) -> Unit,
-    onPhoneClick: (String) -> Unit
+    mode: RichTextMode = RichTextMode.Full,
+    onUrlClick: (String) -> Unit = {},
+    onPhoneClick: (String) -> Unit = {}
 ): AnnotatedString {
     return buildAnnotatedString {
         val matches = findAllRichTextMatches(this@parseRichText)
         var lastIndex = 0
 
         matches.forEach { match ->
-            // 填充普通文本
             if (match.range.first > lastIndex) {
                 append(this@parseRichText.substring(lastIndex, match.range.first))
             }
@@ -53,43 +38,55 @@ fun String.parseRichText(
                     }
                 }
 
+                // EmojiOnly 模式下，URL/电话直接当普通文本输出
                 MatchType.Url -> {
                     append(match.text)
-                    addLink(
-                        url = LinkAnnotation.Url(
-                            url = match.text,
-                            styles = RichTextConfig.LinkStyles,
-                            linkInteractionListener = {
-                                onUrlClick((it as LinkAnnotation.Url).url)
-                            }
-                        ),
-                        start = start,
-                        end = length
-                    )
+                    if (mode == RichTextMode.Full) {
+                        addLink(
+                            url = LinkAnnotation.Url(
+                                url = match.text,
+                                styles = RichTextConfig.LinkStyles,
+                                linkInteractionListener = {
+                                    onUrlClick((it as LinkAnnotation.Url).url)
+                                }
+                            ),
+                            start = start,
+                            end = length
+                        )
+                    }
                 }
 
                 MatchType.Phone -> {
                     append(match.text)
-                    addLink(
-                        clickable = LinkAnnotation.Clickable(
-                            tag = "PHONE",
-                            styles = RichTextConfig.LinkStyles,
-                            linkInteractionListener = { onPhoneClick(match.text) }
-                        ),
-                        start = start,
-                        end = length
-                    )
+                    if (mode == RichTextMode.Full) {
+                        addLink(
+                            clickable = LinkAnnotation.Clickable(
+                                tag = "PHONE",
+                                styles = RichTextConfig.LinkStyles,
+                                linkInteractionListener = { onPhoneClick(match.text) }
+                            ),
+                            start = start,
+                            end = length
+                        )
+                    }
                 }
             }
 
             lastIndex = match.range.last + 1
         }
 
-        // 填充剩余文本
         if (lastIndex < this@parseRichText.length) {
             append(this@parseRichText.substring(lastIndex))
         }
     }
+}
+
+enum class RichTextMode {
+    /** 完整解析：表情 + URL + 电话 */
+    Full,
+
+    /** 仅解析表情，URL/电话保持原样文本 */
+    EmojiOnly,
 }
 
 /**
@@ -162,4 +159,19 @@ private fun findAllRichTextMatches(text: String): List<RichTextMatch> {
             }
             acc
         }
+}
+
+// 提取配置常量
+private object RichTextConfig {
+    val EMOJI_PATTERN = Regex("\\[(.*?)]")
+    val URL_PATTERN = Regex("(https?://[\\w-]+(\\.[\\w-]+)+(/\\S*)?)")
+    val PHONE_PATTERN = Regex("(\\d{3}-\\d{8}|\\d{11})")
+
+    val LinkStyles = TextLinkStyles(
+        style = SpanStyle(LinkColor),
+        pressedStyle = SpanStyle(
+            color = LinkColor,
+            background = LinkColor.copy(alpha = 0.1f)
+        )
+    )
 }
