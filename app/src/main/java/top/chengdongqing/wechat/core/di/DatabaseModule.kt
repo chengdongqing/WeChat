@@ -12,6 +12,7 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
+import top.chengdongqing.wechat.data.database.dao.MediaFileDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import javax.inject.Singleton
 
@@ -61,5 +62,11 @@ object DatabaseModule {
     @Singleton
     fun provideConnectionInfoDao(database: WeDatabase): ConnectionInfoDao {
         return database.connectionInfoDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMediaFileDao(database: WeDatabase): MediaFileDao {
+        return database.mediaFileDao()
     }
 }

@@ -17,7 +17,7 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepos
 import javax.inject.Inject
 
 class ContactRepositoryImpl @Inject constructor(
-    private val weDatabase: WeDatabase,
+    private val database: WeDatabase,
     private val contactDao: ContactDao,
     private val chatSessionDao: ChatSessionDao,
     private val messageDao: MessageDao,
@@ -68,7 +68,7 @@ class ContactRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteContact(userId: String) {
-        weDatabase.withTransaction {
+        database.withTransaction {
             // 删除联系人
             contactDao.deleteById(userId)
             // 删除会话

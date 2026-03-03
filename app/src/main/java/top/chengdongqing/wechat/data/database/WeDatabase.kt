@@ -7,11 +7,13 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
+import top.chengdongqing.wechat.data.database.dao.MediaFileDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
+import top.chengdongqing.wechat.data.database.entity.MediaFileEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 
 @Database(
@@ -20,9 +22,10 @@ import top.chengdongqing.wechat.data.database.entity.MessageEntity
         ContactEntity::class,
         ChatSessionEntity::class,
         MessageEntity::class,
-        ConnectionInfoEntity::class
+        ConnectionInfoEntity::class,
+        MediaFileEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DatabaseConverters::class)
@@ -32,4 +35,5 @@ abstract class WeDatabase : RoomDatabase() {
     abstract fun chatSessionDao(): ChatSessionDao
     abstract fun messageDao(): MessageDao
     abstract fun connectionInfoDao(): ConnectionInfoDao
+    abstract fun mediaFileDao(): MediaFileDao
 }

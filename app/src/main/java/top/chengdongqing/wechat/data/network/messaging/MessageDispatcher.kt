@@ -24,6 +24,7 @@ import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
+import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
@@ -40,12 +41,13 @@ import javax.inject.Singleton
  */
 @Singleton
 class MessageDispatcher @Inject constructor(
-    private val weDatabase: WeDatabase,
+    private val database: WeDatabase,
     private val messageDao: MessageDao,
     private val messageSender: MessageSender,
     private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
+    private val fileReferenceManager: FileReferenceManager,
     private val fileManager: FileManager,
     private val signalingManager: SignalingManager,
     private val transferManager: TransferManager,
@@ -133,7 +135,7 @@ class MessageDispatcher @Inject constructor(
             }
 
             val entity = entityBuilder()
-            weDatabase.withTransaction {
+            database.withTransaction {
                 // 保存消息
                 messageDao.insert(entity)
                 // 更新会话
@@ -202,7 +204,7 @@ class MessageDispatcher @Inject constructor(
                     notificationHelper.cancelNotification(message.sessionId.hashCode())
 
                     // 标记为已撤回
-                    weDatabase.withTransaction {
+                    database.withTransaction {
                         // 更新消息
                         messageDao.update(messageId) { message ->
                             message.copy(
@@ -219,10 +221,9 @@ class MessageDispatcher @Inject constructor(
                     }
 
                     // 删除可能存在的媒体文件
-                    try {
-                        deleteLocalFile(message.localPath)
-                    } catch (e: Exception) {
-                        Log.w("DeleteLocalFile", "删除文件失败", e)
+                    message.localPath?.let { path ->
+                        val toDelete = fileReferenceManager.release(path)
+                        toDelete?.let { deleteLocalFile(it) }
                     }
                 }
 

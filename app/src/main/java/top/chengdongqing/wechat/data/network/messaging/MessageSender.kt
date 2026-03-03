@@ -35,7 +35,7 @@ import kotlin.coroutines.cancellation.CancellationException
  */
 @Singleton
 class MessageSender @Inject constructor(
-    private val weDatabase: WeDatabase,
+    private val database: WeDatabase,
     private val socketClient: SocketClient,
     private val connectionManager: ConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
@@ -239,7 +239,7 @@ class MessageSender @Inject constructor(
      * 更新发送状态
      */
     private suspend fun updateStatus(messageId: String, sessionId: String, status: SendStatus) {
-        weDatabase.withTransaction {
+        database.withTransaction {
             messageDao.update(messageId) { message ->
                 message.copy(sendStatus = status)
             }
@@ -270,7 +270,7 @@ class MessageSender @Inject constructor(
             }
         }
 
-        weDatabase.withTransaction {
+        database.withTransaction {
             // 更新状态
             messageDao.update(messageId) { message ->
                 message.copy(

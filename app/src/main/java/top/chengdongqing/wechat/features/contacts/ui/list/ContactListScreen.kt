@@ -138,9 +138,7 @@ fun ContactListScreen(
                                     onNavigateToProfileEdit(contact.id)
                                 }
 
-                                if (index < contacts.size - 1) {
-                                    WeDivider(modifier = Modifier.padding(start = 68.dp))
-                                }
+                                WeDivider(modifier = Modifier.padding(start = 68.dp))
                             }
                         }
                     }

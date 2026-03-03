@@ -32,7 +32,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 class FriendRequestRepositoryImpl @Inject constructor(
-    private val weDatabase: WeDatabase,
+    private val database: WeDatabase,
     private val friendRequestDao: FriendRequestDao,
     private val contactRepository: ContactRepository,
     private val profileRepository: ProfileRepository,
@@ -298,7 +298,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
      * 处理对方接受了申请
      */
     private suspend fun handleAccepted(request: FriendRequestEntity) {
-        weDatabase.withTransaction {
+        database.withTransaction {
             // 添加到通讯录
             addContactFromRequest(request)
             // 更新请求状态

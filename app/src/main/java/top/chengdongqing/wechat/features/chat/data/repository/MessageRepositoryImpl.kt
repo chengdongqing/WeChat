@@ -26,6 +26,7 @@ import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
+import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
@@ -37,13 +38,14 @@ import java.io.File
 import javax.inject.Inject
 
 class MessageRepositoryImpl @Inject constructor(
-    private val weDatabase: WeDatabase,
+    private val database: WeDatabase,
     private val messageDao: MessageDao,
     private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
+    private val fileReferenceManager: FileReferenceManager,
     private val transferManager: TransferManager,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope
@@ -90,9 +92,11 @@ class MessageRepositoryImpl @Inject constructor(
             sendStatus = if (shouldSkipSend) SendStatus.Delivered else SendStatus.Sending
         )
 
-        weDatabase.withTransaction {
+        database.withTransaction {
             // 保存到数据库
             messageDao.insert(entity)
+            // 注册文件引用
+            fileReferenceManager.retain(entity.localPath)
             // 更新会话
             chatSessionUpdater.update(entity, !shouldSkipSend)
         }
@@ -152,7 +156,7 @@ class MessageRepositoryImpl @Inject constructor(
     }
 
     override suspend fun markAllAsRead(sessionId: String) {
-        weDatabase.withTransaction {
+        database.withTransaction {
             messageDao.markAsReadBySessionId(sessionId)
             chatSessionRepository.clearUnreadCount(sessionId)
         }
@@ -165,17 +169,19 @@ class MessageRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteMessage(messageId: String) = withContext(Dispatchers.IO) {
-        messageDao.getById(messageId).let {
-            // 删除可能存在的媒体文件
-            try {
-                deleteLocalFile(it?.localPath)
-            } catch (e: Exception) {
-                Log.w("DeleteLocalFile", "删除文件失败", e)
-            }
-        }
+        // 查询消息详情
+        val message = messageDao.getById(messageId)
 
         // 删除消息
         messageDao.deleteById(messageId)
+
+        // 删除关联的媒体文件
+        message?.localPath?.let { path ->
+            val toDelete = fileReferenceManager.release(path)
+            toDelete?.let { deleteLocalFile(it) }
+        }
+
+        Unit
     }
 
     override suspend fun recallMessage(messageId: String): Result<Unit> = runCatching {
@@ -192,7 +198,7 @@ class MessageRepositoryImpl @Inject constructor(
         }
 
         // 标记为已撤回
-        weDatabase.withTransaction {
+        database.withTransaction {
             // 更新消息
             messageDao.markAsRecalledById(messageId)
             // 更新会话
@@ -204,10 +210,9 @@ class MessageRepositoryImpl @Inject constructor(
         }
 
         // 删除可能存在的媒体文件
-        try {
-            deleteLocalFile(message.localPath)
-        } catch (e: Exception) {
-            Log.w("DeleteLocalFile", "删除文件失败", e)
+        message.localPath?.let { path ->
+            val toDelete = fileReferenceManager.release(path)
+            toDelete?.let { deleteLocalFile(it) }
         }
 
         // 给对方发送撤回申请
@@ -224,15 +229,14 @@ class MessageRepositoryImpl @Inject constructor(
         // 查询消息关联的媒体文件
         val localPaths = messageDao.getLocalPathsByIds(ids)
 
-        // 批量删除本地文件
-        try {
-            deleteLocalFiles(localPaths)
-        } catch (e: Exception) {
-            Log.w("DeleteLocalFile", "删除文件失败", e)
-        }
-
         // 批量删除消息记录
         messageDao.deleteByIds(ids)
+
+        // 批量删除可能存在的本地文件
+        val toDelete = fileReferenceManager.releaseAll(localPaths)
+        deleteLocalFiles(toDelete)
+
+        Unit
     }
 
     override suspend fun forwardMessages(
