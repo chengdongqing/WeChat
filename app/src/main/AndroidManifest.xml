@@ -64,6 +64,10 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
     </queries>
 
     <!-- 硬件特性（非必须） -->
@@ -138,6 +142,7 @@
         <activity android:name=".core.designsystem.components.location.preview.LocationPreviewActivity" />
         <activity android:name=".core.designsystem.components.location.picker.LocationPickerActivity" />
         <activity android:name=".features.contacts.ui.picker.ContactPickerActivity" />
+        <activity android:name=".core.designsystem.components.app.AppPickerActivity" />
 
         <!-- 通话界面 -->
         <activity

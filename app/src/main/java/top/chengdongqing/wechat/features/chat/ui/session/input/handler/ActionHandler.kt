@@ -29,6 +29,7 @@ class ActionHandler(
     private val onVideoCall: () -> Unit,
     private val onLocation: () -> Unit,
     private val onFile: () -> Unit,
+    private val onApk: () -> Unit,
     private val onCard: () -> Unit,
     private val onFavorite: () -> Unit,
     private val onVoiceInput: () -> Unit
@@ -44,6 +45,7 @@ class ActionHandler(
             MoreAction.Card -> onCard()
             MoreAction.Favorite -> onFavorite()
             MoreAction.Voice -> onVoiceInput()
+            MoreAction.Apk -> onApk()
             else -> Unit
         }
     }
@@ -143,6 +145,7 @@ fun rememberActionHandler(
                 }
             },
             onFile = fileLauncher.pickFile,
+            onApk = fileLauncher.pickApk,
             onCard = {
                 val content = MessageContent.ContactCard(
                     userId = randomUUID(),

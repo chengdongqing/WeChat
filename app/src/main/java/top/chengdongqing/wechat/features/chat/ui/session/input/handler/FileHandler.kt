@@ -10,6 +10,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.designsystem.components.app.model.AppResult
+import top.chengdongqing.wechat.core.designsystem.components.app.rememberPickAppLauncher
 import top.chengdongqing.wechat.core.util.FileNameUtils.getFileConfig
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
 import top.chengdongqing.wechat.core.util.getFileMetadata
@@ -49,6 +51,26 @@ class FileHandler(
             if (index < uris.size - 1) delay(50)
         }
     }
+
+    /**
+     * 处理 App 选择结果
+     */
+    suspend fun handleAppSelection(apps: Array<AppResult>) {
+        apps.forEachIndexed { index, app ->
+            // 构建消息内容
+            val content = MessageContent.File(
+                localPath = app.filePath,
+                mimeType = "application/vnd.android.package-archive",
+                filename = app.fileName,
+                size = app.fileSize
+            )
+
+            // 发送
+            onSendMessage(content)
+
+            if (index < apps.size - 1) delay(50)
+        }
+    }
 }
 
 @Composable
@@ -73,13 +95,21 @@ fun rememberFileLauncher(
         }
     }
 
+    val pickApk = rememberPickAppLauncher { apps ->
+        scope.launch {
+            fileHandler.handleAppSelection(apps)
+        }
+    }
+
     return remember(pickFileLauncher) {
         FileLauncher(
-            pickFile = { pickFileLauncher.launch("*/*") }
+            pickFile = { pickFileLauncher.launch("*/*") },
+            pickApk = { pickApk(9) }
         )
     }
 }
 
 data class FileLauncher(
-    val pickFile: () -> Unit
+    val pickFile: () -> Unit,
+    val pickApk: () -> Unit
 )

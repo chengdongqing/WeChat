@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
+import androidx.compose.runtime.Immutable
 import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
@@ -8,6 +9,7 @@ import top.chengdongqing.wechat.features.call.domain.model.CallType
 /**
  * 消息数据类
  */
+@Immutable
 data class ChatMessage(
     val id: String,
     val sessionId: String,

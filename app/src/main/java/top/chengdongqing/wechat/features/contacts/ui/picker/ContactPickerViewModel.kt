@@ -88,18 +88,18 @@ class ContactPickerViewModel @Inject constructor(
 
     // region 联系人选择
 
-    fun isContactSelected(contactId: String): Boolean {
-        return contactId in _uiState.value.selectedContactIds
+    fun isSelected(contactId: String): Boolean {
+        return contactId in _uiState.value.selectedIds
     }
 
-    fun toggleContactSelection(contactId: String) {
+    fun toggleSelection(contactId: String) {
         _uiState.update {
-            val newSet = if (contactId in it.selectedContactIds) {
-                it.selectedContactIds - contactId
+            val newSet = if (contactId in it.selectedIds) {
+                it.selectedIds - contactId
             } else {
-                it.selectedContactIds + contactId
+                it.selectedIds + contactId
             }
-            it.copy(selectedContactIds = newSet)
+            it.copy(selectedIds = newSet)
         }
     }
 
@@ -109,8 +109,8 @@ class ContactPickerViewModel @Inject constructor(
 // UI State
 data class ContactPickerUiState(
     val isLoading: Boolean = true,
-    val selectedContactIds: Set<String> = emptySet(),
+    val selectedIds: Set<String> = emptySet(),
 ) {
     val selectedCount: Int
-        get() = selectedContactIds.size
+        get() = selectedIds.size
 }

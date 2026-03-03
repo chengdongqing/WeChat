@@ -53,7 +53,7 @@ class LocationPickerActivity : ComponentActivity() {
 }
 
 @Composable
-fun rememberPickLocationLauncher(onChange: (LocationInfo) -> Unit): () -> Unit {
+fun rememberPickLocationLauncher(onResult: (LocationInfo) -> Unit): () -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -64,11 +64,11 @@ fun rememberPickLocationLauncher(onChange: (LocationInfo) -> Unit): () -> Unit {
                     getParcelableExtra(
                         LocationPickerActivity.EXTRA_LOCATION,
                         LocationInfo::class.java
-                    )?.let(onChange)
+                    )?.let(onResult)
                 } else {
                     @Suppress("DEPRECATION")
                     (getParcelableExtra(LocationPickerActivity.EXTRA_LOCATION) as? LocationInfo)
-                        ?.let(onChange)
+                        ?.let(onResult)
                 }
             }
         }

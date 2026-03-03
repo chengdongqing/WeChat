@@ -70,7 +70,7 @@ fun ContactListItem(
 }
 
 @Composable
-fun ContactGroupTitle(initial: Char, background: Color = WeTheme.colorScheme.background) {
+fun GroupTitle(initial: Char, background: Color = WeTheme.colorScheme.background) {
     Text(
         text = initial.toString(),
         modifier = Modifier

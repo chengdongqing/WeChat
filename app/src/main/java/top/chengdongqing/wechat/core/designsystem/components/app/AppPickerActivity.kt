@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.ui.picker
+package top.chengdongqing.wechat.core.designsystem.components.app
 
 import android.app.Activity
 import android.content.Context
@@ -15,22 +15,22 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.app.model.AppResult
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @AndroidEntryPoint
-class ContactPickerActivity : ComponentActivity() {
+class AppPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val count = intent.getIntExtra(EXTRA_PICK_COUNT, 99)
+        val count = intent.getIntExtra(EXTRA_PICK_COUNT, 9)
 
         setContent {
             WeTheme {
-                ContactPicker(count, onCancel = ::finish) { chatIds, isGroupChat ->
+                AppPicker(count, onCancel = ::finish) { apps ->
                     val intent = Intent().apply {
-                        putExtra(EXTRA_CHAT_IDS, ArrayList(chatIds))
-                        putExtra(EXTRA_IS_GROUP_CHAT, isGroupChat)
+                        putExtra(EXTRA_APP_LIST, apps)
                     }
                     setResult(RESULT_OK, intent)
                     finish()
@@ -55,36 +55,37 @@ class ContactPickerActivity : ComponentActivity() {
     }
 
     companion object {
-        const val EXTRA_CHAT_IDS = "extra_chat_ids"
-        const val EXTRA_IS_GROUP_CHAT = "extra_is_group_chat"
+        const val EXTRA_APP_LIST = "extra_app_list"
         const val EXTRA_PICK_COUNT = "extra_pick_count"
 
-        fun newIntent(context: Context) = Intent(context, ContactPickerActivity::class.java)
+        fun newIntent(context: Context) = Intent(context, AppPickerActivity::class.java)
     }
 }
 
 @Composable
-fun rememberPickContactLauncher(onResult: (chatIds: Set<String>, isGroupChat: Boolean) -> Unit): (count: Int) -> Unit {
+fun rememberPickAppLauncher(onResult: (Array<AppResult>) -> Unit): (count: Int) -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            val chatIds =
-                data?.getStringArrayListExtra(ContactPickerActivity.EXTRA_CHAT_IDS)
-            val isGroupChat =
-                data?.getBooleanExtra(ContactPickerActivity.EXTRA_IS_GROUP_CHAT, false) ?: false
-
-            if (chatIds != null) {
-                onResult(chatIds.toSet(), isGroupChat)
+            result.data?.apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    getParcelableArrayExtra(
+                        AppPickerActivity.EXTRA_APP_LIST,
+                        AppResult::class.java
+                    )
+                } else {
+                    @Suppress("DEPRECATION", "UNCHECKED_CAST")
+                    (getParcelableArrayExtra(AppPickerActivity.EXTRA_APP_LIST) as? Array<AppResult>)
+                }?.let(onResult)
             }
         }
     }
 
     return { count ->
-        val intent = ContactPickerActivity.newIntent(context).apply {
-            putExtra(ContactPickerActivity.EXTRA_PICK_COUNT, count)
+        val intent = AppPickerActivity.newIntent(context).apply {
+            putExtra(AppPickerActivity.EXTRA_PICK_COUNT, count)
         }
 
         val options = ActivityOptionsCompat.makeCustomAnimation(

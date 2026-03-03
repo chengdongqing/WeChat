@@ -1,7 +1,12 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
+import androidx.compose.runtime.Immutable
 import top.chengdongqing.wechat.data.database.entity.MessageType
 
+/**
+ * 聊天列表项
+ */
+@Immutable
 data class ChatSession(
     val id: String,
     val contactId: String,

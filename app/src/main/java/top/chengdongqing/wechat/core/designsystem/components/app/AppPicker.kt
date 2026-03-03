@@ -1,7 +1,6 @@
-package top.chengdongqing.wechat.features.contacts.ui.picker
+package top.chengdongqing.wechat.core.designsystem.components.app
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,11 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,17 +23,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.app.model.AppItem
+import top.chengdongqing.wechat.core.designsystem.components.app.model.AppResult
+import top.chengdongqing.wechat.core.designsystem.components.app.model.toResult
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.contact.AlphabetIndexer
-import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
@@ -44,11 +52,11 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.showToast
 
 @Composable
-fun ContactPicker(
+fun AppPicker(
     count: Int,
     onCancel: () -> Unit,
-    viewModel: ContactPickerViewModel = hiltViewModel(),
-    onSelect: (chatIds: Set<String>, isGroupChat: Boolean) -> Unit,
+    viewModel: AppPickerViewModel = hiltViewModel(),
+    onSelect: (chatIds: Array<AppResult>) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -56,13 +64,12 @@ fun ContactPicker(
     val overscrollEffect = rememberBounceOverscrollEffect()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val contactState by viewModel.contactState.collectAsStateWithLifecycle()
-    val (groups, indexMap) = contactState
 
     Scaffold(
         topBar = {
             TopBar(uiState, onBack = onCancel) {
-                onSelect(uiState.selectedIds, false)
+                val selectedApps = uiState.selectedApps.toResult().toTypedArray()
+                onSelect(selectedApps)
             }
         }
     ) { innerPadding ->
@@ -78,13 +85,7 @@ fun ContactPicker(
                 overscrollEffect = overscrollEffect
             ) {
                 item {
-                    Column(
-                        modifier = Modifier.background(White)
-                    ) {
-                        GroupChatEntry()
-                        WeDivider()
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 when {
@@ -102,7 +103,7 @@ fun ContactPicker(
                         }
                     }
 
-                    groups.isEmpty() -> {
+                    uiState.groups.isEmpty() -> {
                         // 空状态
                         item {
                             Box(
@@ -112,7 +113,7 @@ fun ContactPicker(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "暂无联系人",
+                                    text = "暂无应用程序",
                                     color = WeTheme.colorScheme.textSecondary,
                                     fontSize = 14.sp
                                 )
@@ -121,8 +122,8 @@ fun ContactPicker(
                     }
 
                     else -> {
-                        // 联系人分组列表
-                        groups.forEach { (initial, contacts) ->
+                        // apk分组列表
+                        uiState.groups.forEach { (initial, contacts) ->
                             item(
                                 key = initial,
                                 contentType = "Initial"
@@ -132,10 +133,10 @@ fun ContactPicker(
 
                             itemsIndexed(
                                 items = contacts,
-                                key = { _, contact -> contact.id },
-                                contentType = { _, _ -> "ContactItem" }
-                            ) { index, contact ->
-                                val isSelected = viewModel.isSelected(contact.id)
+                                key = { _, apk -> apk.packageName + apk.name },
+                                contentType = { _, _ -> "ApkItem" }
+                            ) { index, apk ->
+                                val isSelected = viewModel.isSelected(apk)
 
                                 Column(
                                     modifier = Modifier.background(WeTheme.colorScheme.surface)
@@ -146,13 +147,13 @@ fun ContactPicker(
                                                 context.showToast("你最多只能选择${count}个")
                                                 return@weClickable
                                             }
-                                            viewModel.toggleSelection(contact.id)
+                                            viewModel.toggleSelection(apk)
                                         },
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Spacer(modifier = Modifier.width(16.dp))
                                         WeCheckBox(isSelected)
-                                        ContactListItem(contact)
+                                        ApkListItem(apk)
                                     }
 
                                     if (index < contacts.size - 1) {
@@ -166,9 +167,9 @@ fun ContactPicker(
             }
 
             // 右侧字母索引栏
-            if (!uiState.isLoading && groups.isNotEmpty()) {
-                AlphabetIndexer(groups) { initial ->
-                    indexMap[initial]?.let { targetIndex ->
+            if (!uiState.isLoading && uiState.groups.isNotEmpty()) {
+                AlphabetIndexer(uiState.groups) { initial ->
+                    uiState.indexMap[initial]?.let { targetIndex ->
                         scope.launch {
                             listState.scrollToItem(targetIndex)
                         }
@@ -180,27 +181,45 @@ fun ContactPicker(
 }
 
 @Composable
-private fun GroupChatEntry() {
+fun ApkListItem(apk: AppItem) {
     Row(
         modifier = Modifier
-            .height(60.dp)
             .fillMaxWidth()
-            .background(White)
-            .clickable {}
-            .padding(horizontal = 16.dp),
+            .background(WeTheme.colorScheme.surface)
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "选择群聊",
-            fontSize = 15.sp,
-            color = WeTheme.colorScheme.textPrimary
+        AsyncImage(
+            model = apk.icon,
+            contentDescription = null,
+            error = painterResource(R.drawable.img_logo),
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(4.dp))
         )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(
+                text = apk.name,
+                color = WeTheme.colorScheme.textPrimary,
+                fontSize = 16.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = apk.packageName,
+                color = WeTheme.colorScheme.textSecondary,
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
 @Composable
 private fun TopBar(
-    uiState: ContactPickerUiState,
+    uiState: AppPickerUiState,
     onBack: () -> Unit,
     onOk: () -> Unit
 ) {
@@ -210,7 +229,7 @@ private fun TopBar(
         "完成$suffix"
     }
 
-    WeTopBar(title = "选择联系人", onBack = onBack) {
+    WeTopBar(title = "选择应用程序", onBack = onBack) {
         WeButton(
             text = buttonText,
             size = ButtonSize.Small,

@@ -24,9 +24,9 @@ class MediaPickerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val type = intent.getStringExtra(EXTRA_MEDIA_TYPE)?.run { VisualMediaType.valueOf(this) }
+        val type = intent.getStringExtra(EXTRA_PICK_TYPE)?.run { VisualMediaType.valueOf(this) }
             ?: VisualMediaType.ImageAndVideo
-        val count = intent.getIntExtra(EXTRA_MEDIA_COUNT, 99)
+        val count = intent.getIntExtra(EXTRA_PICK_COUNT, 99)
 
         setContent {
             StatusBarAppearanceEffect(isDark = false)
@@ -58,8 +58,8 @@ class MediaPickerActivity : ComponentActivity() {
     }
 
     companion object {
-        const val EXTRA_MEDIA_TYPE = "extra_media_type"
-        const val EXTRA_MEDIA_COUNT = "extra_media_count"
+        const val EXTRA_PICK_TYPE = "extra_pick_type"
+        const val EXTRA_PICK_COUNT = "extra_pick_count"
         const val EXTRA_MEDIA_LIST = "extra_media_list"
 
         fun newIntent(context: Context) = Intent(context, MediaPickerActivity::class.java)
@@ -67,7 +67,7 @@ class MediaPickerActivity : ComponentActivity() {
 }
 
 @Composable
-fun rememberPickMediasLauncher(onChange: (Array<MediaItem>) -> Unit): (type: VisualMediaType, count: Int) -> Unit {
+fun rememberPickMediasLauncher(onResult: (Array<MediaItem>) -> Unit): (type: VisualMediaType, count: Int) -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -82,15 +82,15 @@ fun rememberPickMediasLauncher(onChange: (Array<MediaItem>) -> Unit): (type: Vis
                 } else {
                     @Suppress("DEPRECATION", "UNCHECKED_CAST")
                     (getParcelableArrayExtra(MediaPickerActivity.EXTRA_MEDIA_LIST) as? Array<MediaItem>)
-                }?.let(onChange)
+                }?.let(onResult)
             }
         }
     }
 
     return { type, count ->
         val intent = MediaPickerActivity.newIntent(context).apply {
-            putExtra(MediaPickerActivity.EXTRA_MEDIA_TYPE, type.toString())
-            putExtra(MediaPickerActivity.EXTRA_MEDIA_COUNT, count)
+            putExtra(MediaPickerActivity.EXTRA_PICK_TYPE, type.toString())
+            putExtra(MediaPickerActivity.EXTRA_PICK_COUNT, count)
         }
 
         val options = ActivityOptionsCompat.makeCustomAnimation(

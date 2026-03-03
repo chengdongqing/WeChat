@@ -16,5 +16,6 @@ enum class MoreAction(
     Voice("语音输入", R.drawable.ic_mic2_filled),
     Card("个人名片", R.drawable.ic_person_filled),
     File("文件", R.drawable.ic_folder_filled),
-    Music("音乐", R.drawable.ic_music_filled);
+    Music("音乐", R.drawable.ic_music_filled),
+    Apk("App", R.drawable.ic_apk_filled);
 }

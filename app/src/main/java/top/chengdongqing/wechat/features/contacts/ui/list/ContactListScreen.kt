@@ -23,8 +23,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.contact.AlphabetIndexer
-import top.chengdongqing.wechat.core.designsystem.components.contact.ContactGroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
+import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeContextMenu
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.rememberContextMenuState
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weContextMenu
@@ -105,7 +105,7 @@ fun ContactListScreen(
                             key = initial,
                             contentType = "Initial"
                         ) {
-                            ContactGroupTitle(initial)
+                            GroupTitle(initial)
                         }
 
                         itemsIndexed(
