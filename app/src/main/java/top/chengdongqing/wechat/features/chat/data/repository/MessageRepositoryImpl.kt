@@ -244,7 +244,10 @@ class MessageRepositoryImpl @Inject constructor(
         targetChatIds: Set<String>
     ) = withContext(Dispatchers.IO) {
         // 查询原消息
-        val messages = messageDao.getByIds(ids)
+        val messages = messageDao.getByIds(ids).filter {
+            // 过滤不可转发的消息
+            it.contentType.isForwardable
+        }
 
         // 为每个目标会话并行转发
         targetChatIds.map { targetChatId ->

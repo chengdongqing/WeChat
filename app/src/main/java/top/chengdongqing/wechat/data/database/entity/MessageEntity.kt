@@ -56,13 +56,30 @@ enum class MessageType {
     VoiceCall,      // 语音通话记录
     VideoCall;      // 视频通话记录
 
-    // 是否需要解析json来获取文件名
-    val isFileNameInJson: Boolean
-        get() = this == Image || this == Video || this == File
-
-    // 是否为通话消息
+    /**
+     * 是否为通话消息
+     */
     val isCallMessage: Boolean
         get() = this == VideoCall || this == VoiceCall
+
+    /**
+     * 是否允许转发
+     * 逻辑：通话记录和语音消息通常涉及隐私或流媒体协议限制，不可转发
+     */
+    val isForwardable: Boolean
+        get() = when (this) {
+            Voice, VoiceCall, VideoCall -> false
+            else -> true
+        }
+
+    /**
+     * 是否需要解析json来获取文件名
+     */
+    val isFileNameInJson: Boolean
+        get() = when (this) {
+            Image, Video, File -> true
+            else -> false
+        }
 }
 
 enum class SendStatus {
