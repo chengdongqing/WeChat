@@ -29,7 +29,7 @@ object DatabaseModule {
             WeDatabase::class.java,
             "wechat"
         )
-            .fallbackToDestructiveMigration(true)  // 开发阶段可以用，生产环境需要配置 Migration
+            .fallbackToDestructiveMigration(true)  // 生产环境需要配置 Migration
             .build()
     }
 

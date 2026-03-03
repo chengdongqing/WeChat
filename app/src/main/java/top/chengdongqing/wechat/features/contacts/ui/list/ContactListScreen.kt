@@ -17,18 +17,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.designsystem.components.contact.AlphabetIndexer
+import top.chengdongqing.wechat.core.designsystem.components.contact.ContactGroupTitle
+import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
+import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeContextMenu
+import top.chengdongqing.wechat.core.designsystem.components.contextmenu.rememberContextMenuState
+import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.features.contacts.ui.list.components.AlphabetIndexer
-import top.chengdongqing.wechat.features.contacts.ui.list.components.ContactListItem
 import top.chengdongqing.wechat.features.contacts.ui.list.components.TopFunctionList
 
 @Composable
@@ -97,25 +100,42 @@ fun ContactListScreen(
                 else -> {
                     // 联系人分组列表
                     state.groups.forEach { (initial, contacts) ->
-                        item { ContactHeader(initial) }
+                        item(
+                            key = initial,
+                            contentType = "Initial"
+                        ) {
+                            ContactGroupTitle(initial)
+                        }
 
                         itemsIndexed(
                             items = contacts,
                             key = { _, contact -> contact.id },
                             contentType = { _, _ -> "ContactItem" } // 告诉 LazyColumn 哪些项是同一种布局，提高复用效率
                         ) { index, contact ->
+                            val contextMenuState = rememberContextMenuState()
+
                             Column(
                                 modifier = Modifier.background(WeTheme.colorScheme.surface)
                             ) {
                                 ContactListItem(
                                     contact = contact,
-                                    onNavigateToDetail = {
-                                        onNavigateToDetail(contact.id)
-                                    },
-                                    onNavigateToProfileEdit = {
-                                        onNavigateToProfileEdit(contact.id)
-                                    }
+                                    modifier = Modifier.weContextMenu(
+                                        onClick = { onNavigateToDetail(contact.id) },
+                                        onLongClick = { position ->
+                                            if (!contact.isSelf) {
+                                                contextMenuState.show(
+                                                    position,
+                                                    listOf("设置朋友资料"),
+                                                    0
+                                                )
+                                            }
+                                        }
+                                    )
                                 )
+
+                                WeContextMenu(contextMenuState) { _, _ ->
+                                    onNavigateToProfileEdit(contact.id)
+                                }
 
                                 if (index < contacts.size - 1) {
                                     WeDivider(modifier = Modifier.padding(start = 68.dp))
@@ -143,19 +163,6 @@ fun ContactListScreen(
             }
         }
     }
-}
-
-@Composable
-private fun ContactHeader(initial: Char) {
-    Text(
-        text = initial.toString(),
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(WeTheme.colorScheme.background)
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        color = Color.Gray,
-        fontSize = 14.sp
-    )
 }
 
 @Composable

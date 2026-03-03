@@ -1,35 +1,38 @@
-package top.chengdongqing.wechat.features.contacts.ui.list
+package top.chengdongqing.wechat.features.contacts.ui.picker
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import top.chengdongqing.wechat.features.contacts.data.mapper.toContact
 import top.chengdongqing.wechat.features.contacts.data.mapper.toListItem
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactListItem
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
-import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class ContactListViewModel @Inject constructor(
+class ContactPickerViewModel @Inject constructor(
     contactRepository: ContactRepository,
-    profileRepository: ProfileRepository,
-    friendRequestRepository: FriendRequestRepository
+    profileRepository: ProfileRepository
 ) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ContactPickerUiState())
+    val uiState = _uiState.asStateFlow()
+
     /**
      * 组合多个数据流
      */
-    val state: StateFlow<ContactListUiState> = combine(
+    val contactState = combine(
         contactRepository.observeAllContacts(),
-        profileRepository.getCurrentProfile(),
-        friendRequestRepository.observeUnreadCount()
-    ) { contacts, myProfile, unreadCount ->
+        profileRepository.getCurrentProfile()
+    ) { contacts, myProfile ->
         // 将自己插入到联系人列表
         val allContacts = if (myProfile != null) {
             contacts + myProfile.toContact()
@@ -42,17 +45,15 @@ class ContactListViewModel @Inject constructor(
         // 计算索引映射
         val indexMap = calculateIndexMap(groups)
 
-        ContactListUiState(
-            isLoading = false,
-            groups = groups,
-            totalCount = allContacts.size,
-            indexMap = indexMap,
-            unreadCount = unreadCount
-        )
+        _uiState.update {
+            it.copy(isLoading = false)
+        }
+
+        Pair(groups, indexMap)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ContactListUiState(isLoading = true)
+        initialValue = Pair(emptyMap(), emptyMap())
     )
 
     /**
@@ -84,13 +85,32 @@ class ContactListViewModel @Inject constructor(
         }
         return indexMap
     }
+
+    // region 联系人选择
+
+    fun isContactSelected(contactId: String): Boolean {
+        return contactId in _uiState.value.selectedContactIds
+    }
+
+    fun toggleContactSelection(contactId: String) {
+        _uiState.update {
+            val newSet = if (contactId in it.selectedContactIds) {
+                it.selectedContactIds - contactId
+            } else {
+                it.selectedContactIds + contactId
+            }
+            it.copy(selectedContactIds = newSet)
+        }
+    }
+
+    // endregion
 }
 
 // UI State
-data class ContactListUiState(
+data class ContactPickerUiState(
     val isLoading: Boolean = true,
-    val groups: Map<Char, List<ContactListItem>> = emptyMap(),
-    val totalCount: Int = 0,
-    val indexMap: Map<Char, Int> = emptyMap(),
-    val unreadCount: Int = 0
-)
+    val selectedContactIds: Set<String> = emptySet(),
+) {
+    val selectedCount: Int
+        get() = selectedContactIds.size
+}

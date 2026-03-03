@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -65,7 +64,7 @@ fun WeButton(
     loading: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
-    val colors = buttonColorSchemeOf(type)
+    val colors = buttonColorSchemeOf(type, enabled)
     val finalEnabled = enabled && !loading
 
     Box(
@@ -77,7 +76,6 @@ fun WeButton(
             }
             .background(colors.containerColor)
             .padding(size.padding)
-            .alpha(if (!enabled) 0.7f else 1f)
             .then(modifier),
         contentAlignment = Alignment.Center
     ) {
@@ -106,9 +104,13 @@ private data class ButtonColors(
 )
 
 @Composable
-private fun buttonColorSchemeOf(type: ButtonType): ButtonColors {
+private fun buttonColorSchemeOf(type: ButtonType, enabled: Boolean): ButtonColors {
     return when (type) {
-        ButtonType.Primary -> ButtonColors(GreenPrimary, Color.White)
+        ButtonType.Primary -> ButtonColors(
+            if (enabled) GreenPrimary else Color(0xFFDEDEDE),
+            if (enabled) Color.White else Color(0xFFBBBBBB)
+        )
+
         ButtonType.Danger -> ButtonColors(Color.Black.copy(0.05f), Danger)
         ButtonType.Plain -> ButtonColors(Color.Black.copy(0.05f), TextPrimaryLight)
     }

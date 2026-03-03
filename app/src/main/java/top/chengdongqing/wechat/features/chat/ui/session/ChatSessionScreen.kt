@@ -41,6 +41,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.Message
 import top.chengdongqing.wechat.features.chat.ui.session.util.KeyboardScrollEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.LoadMoreEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.MessageDataScrollEffect
+import top.chengdongqing.wechat.features.contacts.ui.picker.rememberPickContactLauncher
 
 @Composable
 fun ChatSessionScreen(
@@ -118,6 +119,13 @@ fun ChatSessionScreen(
         }
     }
 
+    val pickContact = rememberPickContactLauncher { contactIds, isGroupChat ->
+
+    }
+
+    /**
+     * UI事件处理
+     */
     val dialog = rememberDialogState()
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -137,7 +145,7 @@ fun ChatSessionScreen(
                 }
 
                 is MessageUiEvent.ForwardMessage -> {
-
+                    pickContact()
                 }
 
                 is MessageUiEvent.PreviewFile -> {
@@ -186,7 +194,7 @@ fun ChatSessionScreen(
                         )
                     } else {
                         MultiSelectBottomBar(
-                            enabled = viewModel.selectedCount > 0,
+                            enabled = uiState.selectedCount > 0,
                             onActionClick = viewModel::handleMultiSelectAction,
                             onExitSelectMode = viewModel::exitSelectMode
                         )
@@ -214,7 +222,8 @@ fun ChatSessionScreen(
                             peerAvatar = uiState.peerAvatar,
                             myAvatar = uiState.myAvatar,
                             isSelectMode = uiState.isSelectMode,
-                            isMessageSelected = viewModel.isMessageSelected(message.id),
+                            isMessageSelected = uiState.isSelectMode
+                                    && viewModel.isMessageSelected(message.id),
                             onMessageClick = {
                                 if (!uiState.isSelectMode) {
                                     viewModel.handleMessageClick(message)

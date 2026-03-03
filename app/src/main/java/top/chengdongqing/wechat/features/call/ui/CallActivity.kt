@@ -82,11 +82,11 @@ class CallActivity : ComponentActivity() {
 }
 
 fun Context.startCall(peerId: String, callType: CallType) {
-    startActivity(
-        Intent(this, CallActivity::class.java).apply {
-            putExtra(CallActivity.EXTRA_PEER_ID, peerId)
-            putExtra(CallActivity.EXTRA_CALL_TYPE, callType.name)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-    )
+    val intent = Intent(this, CallActivity::class.java).apply {
+        putExtra(CallActivity.EXTRA_PEER_ID, peerId)
+        putExtra(CallActivity.EXTRA_CALL_TYPE, callType.name)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    }
+
+    startActivity(intent)
 }

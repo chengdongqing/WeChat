@@ -137,6 +137,7 @@
         <activity android:name=".core.designsystem.components.camera.CameraActivity" />
         <activity android:name=".core.designsystem.components.location.preview.LocationPreviewActivity" />
         <activity android:name=".core.designsystem.components.location.picker.LocationPickerActivity" />
+        <activity android:name=".features.contacts.ui.picker.ContactPickerActivity" />
 
         <!-- 通话界面 -->
         <activity
@@ -145,7 +146,6 @@
             android:launchMode="singleTask"
             android:showOnLockScreen="true"
             android:taskAffinity=""
-            android:theme="@style/Theme.WeChat"
             android:turnScreenOn="true"
             tools:targetApi="27" />
 
@@ -182,7 +182,7 @@
             android:exported="false"
             android:grantUriPermissions="true">
 
-        <meta-data
+            <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>

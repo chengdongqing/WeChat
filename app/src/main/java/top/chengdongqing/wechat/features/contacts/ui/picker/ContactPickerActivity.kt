@@ -1,9 +1,8 @@
-package top.chengdongqing.wechat.core.designsystem.components.camera
+package top.chengdongqing.wechat.features.contacts.ui.picker
 
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,24 +13,22 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
+import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
-class CameraActivity : ComponentActivity() {
+@AndroidEntryPoint
+class ContactPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val type = intent.getStringExtra(EXTRA_MEDIA_TYPE)?.run { VisualMediaType.valueOf(this) }
-            ?: VisualMediaType.ImageAndVideo
-
         setContent {
             WeTheme {
-                WeCamera(type, onRevoked = { finish() }) { uri, type ->
+                ContactPicker(onCancel = ::finish) { chatIds, isGroupChat ->
                     val intent = Intent().apply {
-                        putExtra(EXTRA_MEDIA_URI, uri)
-                        putExtra(EXTRA_MEDIA_TYPE, type.name)
+                        putExtra(EXTRA_CHAT_IDS, ArrayList(chatIds))
+                        putExtra(EXTRA_IS_GROUP_CHAT, isGroupChat)
                     }
                     setResult(RESULT_OK, intent)
                     finish()
@@ -56,41 +53,34 @@ class CameraActivity : ComponentActivity() {
     }
 
     companion object {
-        const val EXTRA_MEDIA_TYPE = "extra_media_type"
-        const val EXTRA_MEDIA_URI = "extra_media_uri"
+        const val EXTRA_CHAT_IDS = "extra_chat_ids"
+        const val EXTRA_IS_GROUP_CHAT = "extra_is_group_chat"
 
-        fun newIntent(context: Context) = Intent(context, CameraActivity::class.java)
+        fun newIntent(context: Context) = Intent(context, ContactPickerActivity::class.java)
     }
 }
 
 @Composable
-fun rememberCameraLauncher(onChange: (Uri, VisualMediaType) -> Unit): (type: VisualMediaType) -> Unit {
+fun rememberPickContactLauncher(onResult: (chatIds: List<String>, isGroupChat: Boolean) -> Unit): () -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                result.data?.getParcelableExtra(CameraActivity.EXTRA_MEDIA_URI, Uri::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                (result.data?.getParcelableExtra(CameraActivity.EXTRA_MEDIA_URI))
-            }
-            val type =
-                result.data?.getStringExtra(CameraActivity.EXTRA_MEDIA_TYPE)?.let { typeName ->
-                    VisualMediaType.valueOf(typeName)
-                }
+            val data = result.data
+            val chatIds =
+                data?.getStringArrayListExtra(ContactPickerActivity.EXTRA_CHAT_IDS)
+            val isGroupChat =
+                data?.getBooleanExtra(ContactPickerActivity.EXTRA_IS_GROUP_CHAT, false) ?: false
 
-            uri?.let { type }?.let { type ->
-                onChange(uri, type)
+            if (chatIds != null) {
+                onResult(chatIds, isGroupChat)
             }
         }
     }
 
     return {
-        val intent = CameraActivity.newIntent(context).apply {
-            putExtra(CameraActivity.EXTRA_MEDIA_TYPE, it.toString())
-        }
+        val intent = ContactPickerActivity.newIntent(context)
 
         val options = ActivityOptionsCompat.makeCustomAnimation(
             context,

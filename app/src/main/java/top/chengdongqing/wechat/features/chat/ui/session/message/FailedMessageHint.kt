@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
+import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.data.database.entity.SendError
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -59,7 +60,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                         }
                     }
 
-                    message.isSent -> append("已发送，但未收到对方的回执。")
+                    message.isSent -> append("消息已发出，但未收到对方的回执。")
 
                     error != null -> append(error.message)
                 }
@@ -67,7 +68,8 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
 
             // 根据错误类型添加可点击链接
             val (actionLabel, actionAnnotation) = when {
-                !message.isRecalled && error?.canRetry.isTrue() -> {
+                !message.isRecalled && (error?.canRetry.isTrue()
+                        || message.isSent) -> {
                     val label = if (error == SendError.Cancelled) "再次发送" else "重试"
                     label to LinkAnnotation.Clickable(
                         tag = "retry",
@@ -84,7 +86,15 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                     )
                 }
 
-                message.isRecalled && message.isFromMe && message.content is MessageContent.Text -> {
+                /**
+                 * 已撤回的消息可以重新编辑，需满足：
+                 * 1. 是我发的
+                 * 2. 文本消息
+                 * 3. 5分钟内发的
+                 */
+                message.isRecalled && message.isFromMe
+                        && message.content is MessageContent.Text
+                        && message.timestamp.isWithinSeconds() -> {
                     "重新编辑" to LinkAnnotation.Clickable(
                         tag = "reedit",
                         styles = linkStyles,

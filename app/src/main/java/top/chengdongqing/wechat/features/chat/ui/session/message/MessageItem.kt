@@ -65,6 +65,9 @@ fun MessageItem(
                         .padding(vertical = 8.dp),
                     horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
                 ) {
+                    /**
+                     * 复选框
+                     */
                     if (isSelectMode) {
                         Box(
                             modifier = Modifier
@@ -80,6 +83,9 @@ fun MessageItem(
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        /**
+                         * 头像
+                         */
                         if (!isFromMe) {
                             Avatar(localPath = peerAvatar, isPeer = true)
                         }
@@ -88,11 +94,16 @@ fun MessageItem(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            /**
+                             * 发送状态指示器
+                             */
                             if (isFromMe) {
                                 StatusIndicator(message)
                             }
 
-                            // 气泡容器
+                            /**
+                             * 气泡容器
+                             */
                             ChatBubble(
                                 isFromMe = isFromMe,
                                 showArrow = content.showBubbleArrow,
@@ -112,6 +123,9 @@ fun MessageItem(
                                         }
                                     )
                             ) {
+                                /**
+                                 * 消息内容
+                                 */
                                 MessageContent(message)
                             }
 
@@ -126,7 +140,9 @@ fun MessageItem(
                     }
                 }
 
-                // 多选模式下方便点击的遮罩
+                /**
+                 * 多选模式下方便点击的遮罩
+                 */
                 if (isSelectMode) {
                     Box(
                         modifier = Modifier
@@ -138,7 +154,9 @@ fun MessageItem(
             }
         }
 
-        // 发送失败/撤回 等情况下的提示信息
+        /**
+         * 发送失败/撤回 等情况下的提示信息
+         */
         if (message.isFailed || message.isSent || message.isRecalled) {
             FailedMessageHint(message)
         }

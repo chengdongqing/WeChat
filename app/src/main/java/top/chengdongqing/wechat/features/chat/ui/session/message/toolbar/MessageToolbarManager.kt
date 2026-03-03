@@ -111,6 +111,12 @@ class MessageToolbarManager(
                 }
             }
 
+            MessageAction.Forward -> {
+                scope.launch {
+                    uiEvent.emit(MessageUiEvent.ForwardMessage(message.id))
+                }
+            }
+
             MessageAction.Recall -> onRecallMessage(message.id)
 
             MessageAction.SpeakerMode,
@@ -131,8 +137,10 @@ class MessageToolbarManager(
         message: ChatMessage,
         isSpeakerOn: Boolean
     ): List<MessageAction> {
-        val canRecall = message.isFromMe && message.timestamp.isWithinSeconds()
-        val deleteOrRecall = if (canRecall) MessageAction.Recall else MessageAction.Delete
+        val deleteOrRecall = run {
+            val canRecall = message.isFromMe && message.timestamp.isWithinSeconds()
+            if (canRecall) MessageAction.Recall else MessageAction.Delete
+        }
 
         return buildList {
             when (message.content) {

@@ -12,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
@@ -30,6 +31,17 @@ class LocationPickerActivity : ComponentActivity() {
                     finish()
                 }
             }
+        }
+    }
+
+    override fun finish() {
+        super.finish()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, R.anim.fade_out)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, R.anim.fade_out)
         }
     }
 
@@ -63,6 +75,10 @@ fun rememberPickLocationLauncher(onChange: (LocationInfo) -> Unit): () -> Unit {
     }
 
     return {
-        launcher.launch(LocationPickerActivity.newIntent(context))
+        val intent = LocationPickerActivity.newIntent(context).apply {
+            flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
+        }
+
+        launcher.launch(intent)
     }
 }

@@ -438,9 +438,6 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     // region 消息多选
 
-    val selectedCount: Int
-        get() = _uiState.value.selectedMessageIds.size
-
     fun isMessageSelected(messageId: String): Boolean {
         return messageId in _uiState.value.selectedMessageIds
     }

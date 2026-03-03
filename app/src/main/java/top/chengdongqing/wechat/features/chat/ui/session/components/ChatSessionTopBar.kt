@@ -77,7 +77,7 @@ private fun ChatSessionTitle(
     val statusDesc = if (uiState.isOnline) "在线" else "离线"
     val title = when {
         !uiState.isSelectMode -> uiState.title
-        viewModel.selectedCount > 0 -> "已选择${viewModel.selectedCount}条消息"
+        uiState.selectedCount > 0 -> "已选择${uiState.selectedCount}条消息"
         else -> "选择消息"
     }
 

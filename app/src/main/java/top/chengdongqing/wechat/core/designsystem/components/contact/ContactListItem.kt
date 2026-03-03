@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.contacts.ui.list.components
+package top.chengdongqing.wechat.core.designsystem.components.contact
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -15,39 +15,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeContextMenu
-import top.chengdongqing.wechat.core.designsystem.components.contextmenu.rememberContextMenuState
-import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.contacts.ui.list.ContactItem
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactListItem
 
 @Composable
 fun ContactListItem(
-    contact: ContactItem,
-    onNavigateToDetail: () -> Unit,
-    onNavigateToProfileEdit: () -> Unit
+    contact: ContactListItem,
+    modifier: Modifier = Modifier
 ) {
-    val contextMenuState = rememberContextMenuState()
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
+            .then(modifier)
             .background(WeTheme.colorScheme.surface)
-            .weContextMenu(
-                onClick = onNavigateToDetail,
-                onLongClick = { position ->
-                    if (!contact.isSelf) {
-                        contextMenuState.show(position, listOf("设置朋友资料"), 0)
-                    }
-                }
-            )
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -79,8 +67,17 @@ fun ContactListItem(
             }
         }
     }
+}
 
-    WeContextMenu(contextMenuState) { _, _ ->
-        onNavigateToProfileEdit()
-    }
+@Composable
+fun ContactGroupTitle(initial: Char, background: Color = WeTheme.colorScheme.background) {
+    Text(
+        text = initial.toString(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(background)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        color = Color.Gray,
+        fontSize = 14.sp
+    )
 }

@@ -26,7 +26,10 @@ data class ChatSessionUiState(
     val draftMessage: String? = null,
     val isSelectMode: Boolean = false,
     val selectedMessageIds: Set<String> = emptySet()
-)
+) {
+    val selectedCount: Int
+        get() = selectedMessageIds.size
+}
 
 /**
  * 消息操作类型枚举

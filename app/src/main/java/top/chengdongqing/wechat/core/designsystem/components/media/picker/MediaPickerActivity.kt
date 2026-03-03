@@ -12,6 +12,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityOptionsCompat
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -37,6 +39,21 @@ class MediaPickerActivity : ComponentActivity() {
                     finish()
                 }
             }
+        }
+    }
+
+    override fun finish() {
+        super.finish()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(
+                OVERRIDE_TRANSITION_CLOSE,
+                android.R.anim.fade_in,
+                R.anim.slide_out_down
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(android.R.anim.fade_in, R.anim.slide_out_down)
         }
     }
 
@@ -75,6 +92,12 @@ fun rememberPickMediasLauncher(onChange: (Array<MediaItem>) -> Unit): (type: Vis
             putExtra(MediaPickerActivity.EXTRA_MEDIA_TYPE, type.toString())
             putExtra(MediaPickerActivity.EXTRA_MEDIA_COUNT, count)
         }
-        launcher.launch(intent)
+
+        val options = ActivityOptionsCompat.makeCustomAnimation(
+            context,
+            R.anim.slide_in_up,
+            android.R.anim.fade_out
+        )
+        launcher.launch(intent, options)
     }
 }
