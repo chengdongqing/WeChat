@@ -138,7 +138,10 @@ class MessageToolbarManager(
         isSpeakerOn: Boolean
     ): List<MessageAction> {
         val deleteOrRecall = run {
-            val canRecall = message.isFromMe && message.timestamp.isWithinSeconds()
+            val canRecall = run {
+                val isSelfSession = message.sessionId == message.senderId
+                message.isFromMe && message.timestamp.isWithinSeconds() && !isSelfSession
+            }
             if (canRecall) MessageAction.Recall else MessageAction.Delete
         }
 
