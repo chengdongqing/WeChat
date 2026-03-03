@@ -135,8 +135,8 @@ private fun InputMainSection(
     ) {
         VoiceModeToggle(state, actions)
         InputFieldArea(state, actions, focusRequester, modifier = Modifier.weight(1f))
-        EmojiToggle(state.inputMode, actions)
-        SendOrMoreToggle(state, actions)
+        EmojiToggle(state.inputMode, actions, focusRequester)
+        SendOrMoreToggle(state, actions, focusRequester)
     }
 }
 
@@ -204,7 +204,11 @@ private fun InputFieldArea(
 }
 
 @Composable
-private fun EmojiToggle(inputMode: InputMode, actions: InputBarActions) {
+private fun EmojiToggle(
+    inputMode: InputMode,
+    actions: InputBarActions,
+    focusRequester: NativeFocusRequester
+) {
     ActionIcon(
         iconResId = if (inputMode.isEmoji) {
             R.drawable.ic_keyboard_outlined
@@ -212,12 +216,20 @@ private fun EmojiToggle(inputMode: InputMode, actions: InputBarActions) {
             R.drawable.ic_emoji_outlined
         }
     ) {
-        actions.onSwitchMode(if (inputMode.isEmoji) InputMode.Text else InputMode.Emoji)
+        if (inputMode.isText) {
+            actions.onSwitchMode(InputMode.Emoji)
+        } else {
+            focusRequester.requestFocus()
+        }
     }
 }
 
 @Composable
-private fun SendOrMoreToggle(state: InputBarState, actions: InputBarActions) {
+private fun SendOrMoreToggle(
+    state: InputBarState,
+    actions: InputBarActions,
+    focusRequester: NativeFocusRequester
+) {
     AnimatedContent(
         targetState = state.shouldShowSendButton,
         label = "SendButtonAnimation"
@@ -228,7 +240,11 @@ private fun SendOrMoreToggle(state: InputBarState, actions: InputBarActions) {
             }
         } else {
             ActionIcon(iconResId = R.drawable.ic_plus_circle_outlined) {
-                actions.onSwitchMode(if (state.inputMode.isMore) InputMode.Text else InputMode.More)
+                if (state.inputMode.isText) {
+                    actions.onSwitchMode(InputMode.More)
+                } else {
+                    focusRequester.requestFocus()
+                }
             }
         }
     }
