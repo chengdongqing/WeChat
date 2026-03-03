@@ -139,7 +139,7 @@ private fun InputActionBar(
                 .background(if (speechState.isListening) WeTheme.colorScheme.primary else Color.Unspecified)
         ) {
             ActionIcon(
-                iconResId = R.drawable.ic_mic_circle_outlined,
+                icon = R.drawable.ic_mic_circle_outlined,
                 tint = if (speechState.isListening) Color.White else WeTheme.colorScheme.textPrimary,
                 description = "语音输入"
             ) {
@@ -151,7 +151,7 @@ private fun InputActionBar(
 
         // 切换表情按键
         ActionIcon(
-            iconResId = if (isEmojiMode) {
+            icon = if (isEmojiMode) {
                 R.drawable.ic_keyboard_outlined
             } else {
                 R.drawable.ic_emoji_outlined
@@ -168,7 +168,7 @@ private fun InputTopBar(onClose: () -> Unit) {
             .padding(16.dp), horizontalArrangement = Arrangement.Start
     ) {
         CircleActionIcon(
-            iconResId = R.drawable.ic_arrow_down_outlined, onClick = onClose
+            icon = R.drawable.ic_arrow_down_outlined, onClick = onClose
         )
     }
 }

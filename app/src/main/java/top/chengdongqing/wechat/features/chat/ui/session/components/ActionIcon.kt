@@ -21,7 +21,7 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 @Composable
 fun ActionIcon(
     modifier: Modifier = Modifier,
-    @DrawableRes iconResId: Int,
+    @DrawableRes icon: Int,
     description: String? = null,
     tint: Color = WeTheme.colorScheme.textPrimary,
     onClick: (() -> Unit)? = null
@@ -33,7 +33,7 @@ fun ActionIcon(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(iconResId),
+            painter = painterResource(icon),
             contentDescription = description,
             modifier = Modifier.size(30.dp),
             tint = tint
@@ -44,7 +44,7 @@ fun ActionIcon(
 @Composable
 fun CircleActionIcon(
     modifier: Modifier = Modifier,
-    @DrawableRes iconResId: Int,
+    @DrawableRes icon: Int,
     description: String? = null,
     tint: Color = WeTheme.colorScheme.textPrimary,
     onClick: (() -> Unit)? = null
@@ -59,7 +59,7 @@ fun CircleActionIcon(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(iconResId),
+            painter = painterResource(icon),
             contentDescription = description,
             tint = tint
         )

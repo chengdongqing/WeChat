@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.data.manager.FileManager
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.file.FileManager
 import top.chengdongqing.wechat.core.util.FileNameUtils.extractExtension
 import top.chengdongqing.wechat.core.util.deleteLocalFile
 import top.chengdongqing.wechat.core.util.isWithinSeconds

@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.data.manager.MediaStoreManager
+import top.chengdongqing.wechat.core.file.MediaStoreManager
 import top.chengdongqing.wechat.core.util.openFile
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.database.dao.MessageDao

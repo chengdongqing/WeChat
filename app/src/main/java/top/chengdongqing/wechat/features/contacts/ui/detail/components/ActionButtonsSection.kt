@@ -44,14 +44,14 @@ fun ActionButtonsSection(
         when {
             contact.isSelf || contact.isFriend -> {
                 ContactActionButton(
-                    iconResId = R.drawable.ic_message_outlined,
+                    icon = R.drawable.ic_message_outlined,
                     text = "发消息",
                     onClick = { onAction(ContactAction.SendMessage) }
                 )
                 if (contact.isFriend) {
                     WeDivider()
                     ContactActionButton(
-                        iconResId = R.drawable.ic_voice_video_outlined,
+                        icon = R.drawable.ic_voice_video_outlined,
                         text = "音视频通话",
                         onClick = {
                             actionSheet.show(CallOptions) { index ->
@@ -81,7 +81,7 @@ fun ActionButtonsSection(
  */
 @Composable
 private fun ContactActionButton(
-    @DrawableRes iconResId: Int? = null,
+    @DrawableRes icon: Int? = null,
     text: String,
     onClick: () -> Unit
 ) {
@@ -93,7 +93,7 @@ private fun ContactActionButton(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        iconResId?.let {
+        icon?.let {
             Icon(
                 painter = painterResource(it),
                 contentDescription = null,

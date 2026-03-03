@@ -66,7 +66,7 @@ fun WeTopBar(
                         modifier = Modifier.align(Alignment.CenterStart)
                     ) {
                         WeTopBarIcon(
-                            iconResId = backIconResId,
+                            icon = backIconResId,
                             description = "返回",
                             tint = contentColor,
                             onClick = onBack

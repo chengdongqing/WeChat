@@ -149,12 +149,12 @@ private fun VoiceModeToggle(state: InputBarState, actions: InputBarActions) {
     ) {
         if (state.shouldShowExpandButton) {
             CircleActionIcon(
-                iconResId = R.drawable.ic_expend_outlined,
+                icon = R.drawable.ic_expend_outlined,
                 onClick = actions.onToggleExpand
             )
         }
         ActionIcon(
-            iconResId = if (state.inputMode.isVoice) {
+            icon = if (state.inputMode.isVoice) {
                 R.drawable.ic_keyboard_outlined
             } else {
                 R.drawable.ic_voice_circle_outlined
@@ -210,7 +210,7 @@ private fun EmojiToggle(
     focusRequester: NativeFocusRequester
 ) {
     ActionIcon(
-        iconResId = if (inputMode.isEmoji) {
+        icon = if (inputMode.isEmoji) {
             R.drawable.ic_keyboard_outlined
         } else {
             R.drawable.ic_emoji_outlined
@@ -239,7 +239,7 @@ private fun SendOrMoreToggle(
                 WeButton(text = "发送", size = ButtonSize.Small, onClick = actions.onSendText)
             }
         } else {
-            ActionIcon(iconResId = R.drawable.ic_plus_circle_outlined) {
+            ActionIcon(icon = R.drawable.ic_plus_circle_outlined) {
                 if (state.inputMode.isText) {
                     actions.onSwitchMode(InputMode.More)
                 } else {

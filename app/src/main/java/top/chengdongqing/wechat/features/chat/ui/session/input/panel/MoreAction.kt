@@ -3,9 +3,12 @@ package top.chengdongqing.wechat.features.chat.ui.session.input.panel
 import androidx.annotation.DrawableRes
 import top.chengdongqing.wechat.R
 
+/**
+ * 更多操作枚举
+ */
 enum class MoreAction(
     val label: String,
-    @get:DrawableRes val iconResId: Int
+    @get:DrawableRes val icon: Int
 ) {
     Album("照片", R.drawable.ic_album_filled),
     Camera("拍摄", R.drawable.ic_camera_filled),
@@ -16,6 +19,6 @@ enum class MoreAction(
     Voice("语音输入", R.drawable.ic_mic2_filled),
     Card("个人名片", R.drawable.ic_person_filled),
     File("文件", R.drawable.ic_folder_filled),
-    Music("音乐", R.drawable.ic_music_filled),
-    Apk("App", R.drawable.ic_apk_filled);
+    App("应用程序", R.drawable.ic_apk_filled),
+    Music("音乐", R.drawable.ic_music_filled);
 }

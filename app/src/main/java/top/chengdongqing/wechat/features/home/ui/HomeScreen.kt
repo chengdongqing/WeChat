@@ -58,8 +58,8 @@ import top.chengdongqing.wechat.features.chat.ui.list.ChatListScreen
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.contacts.ui.list.ContactListScreen
 import top.chengdongqing.wechat.features.discovery.DiscoveryScreen
+import top.chengdongqing.wechat.features.home.model.QuickAction
 import top.chengdongqing.wechat.features.home.navigation.HomeTab
-import top.chengdongqing.wechat.features.home.ui.components.MenuItem
 import top.chengdongqing.wechat.features.home.ui.components.QuickActions
 import top.chengdongqing.wechat.features.me.ui.MeScreen
 import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
@@ -223,15 +223,10 @@ private fun HomeTopBar(
         viewModel.handleScannedQRCode(qrCodes.first())
     }
 
-    val menuItems = rememberHomeMenuItems(
-        onNavigateToAddFriend = onNavigateToAddFriend,
-        launchScanner = launchScanner
-    )
-
     Column {
         WeTopBar(title = title) {
             ActionIcon(
-                iconResId = R.drawable.ic_search_outlined,
+                icon = R.drawable.ic_search_outlined,
                 description = "搜索"
             )
 
@@ -240,7 +235,7 @@ private fun HomeTopBar(
                     anchorPosition = layoutCoordinates.positionInWindow()
                     anchorSize = layoutCoordinates.size
                 },
-                iconResId = R.drawable.ic_plus_circle_outlined,
+                icon = R.drawable.ic_plus_circle_outlined,
                 description = "更多"
             ) {
                 menuExpanded = true
@@ -252,11 +247,16 @@ private fun HomeTopBar(
 
     QuickActions(
         expanded = menuExpanded,
-        menus = menuItems,
         anchorPosition = anchorPosition,
         anchorSize = anchorSize,
         onDismiss = { menuExpanded = false }
-    )
+    ) { action ->
+        when (action) {
+            QuickAction.AddFriend -> onNavigateToAddFriend()
+            QuickAction.Scan -> launchScanner()
+            else -> {}
+        }
+    }
 }
 
 @Composable
@@ -317,24 +317,6 @@ private fun HomeBottomBar(
                 }
             }
         }
-    }
-}
-
-/**
- * 记忆化首页菜单项
- */
-@Composable
-private fun rememberHomeMenuItems(
-    onNavigateToAddFriend: () -> Unit,
-    launchScanner: () -> Unit
-): List<MenuItem> {
-    return remember(onNavigateToAddFriend, launchScanner) {
-        listOf(
-            MenuItem(R.drawable.ic_chats_filled, "发起群聊") { },
-            MenuItem(R.drawable.ic_add_friends_filled, "添加朋友", onNavigateToAddFriend),
-            MenuItem(R.drawable.ic_scan_filled, "扫一扫", launchScanner),
-            MenuItem(R.drawable.ic_pay_vendor_filled, "收付款") { }
-        )
     }
 }
 

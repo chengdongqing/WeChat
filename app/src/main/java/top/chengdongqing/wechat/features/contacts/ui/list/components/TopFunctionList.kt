@@ -40,26 +40,26 @@ fun TopFunctionList(
         listOf(
             TopFunction(
                 title = "新的朋友",
-                iconResId = R.drawable.ic_add_friends_filled,
+                icon = R.drawable.ic_add_friends_filled,
                 badge = pendingCount,
                 containerColor = Color(0xFFFA9D3B),
                 onClick = onNavigateToNewFriends
             ),
             TopFunction(
                 title = "群聊",
-                iconResId = R.drawable.ic_group_chat_filled,
+                icon = R.drawable.ic_group_chat_filled,
                 containerColor = Color(0xFF07C160),
                 onClick = {}
             ),
             TopFunction(
                 title = "标签",
-                iconResId = R.drawable.ic_tag_filled,
+                icon = R.drawable.ic_tag_filled,
                 containerColor = Color(0xFF2782D7),
                 onClick = {}
             ),
             TopFunction(
                 title = "公众号",
-                iconResId = R.drawable.ic_officical_account_filled,
+                icon = R.drawable.ic_officical_account_filled,
                 containerColor = Color(0xFF2782D7),
                 onClick = {}
             )
@@ -98,7 +98,7 @@ private fun TopFunctionItem(function: TopFunction) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(id = function.iconResId),
+                painter = painterResource(id = function.icon),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(24.dp)
@@ -124,7 +124,7 @@ private fun TopFunctionItem(function: TopFunction) {
 
 private data class TopFunction(
     val title: String,
-    @get:DrawableRes val iconResId: Int,
+    @get:DrawableRes val icon: Int,
     val badge: Int = 0,
     val containerColor: Color,
     val onClick: () -> Unit

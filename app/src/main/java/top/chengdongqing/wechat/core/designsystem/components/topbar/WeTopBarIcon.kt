@@ -29,7 +29,7 @@ interface WeTopBarScope {
      */
     @Composable
     fun ActionIcon(
-        @DrawableRes iconResId: Int,
+        @DrawableRes icon: Int,
         modifier: Modifier = Modifier,
         description: String? = null,
         onClick: (() -> Unit)? = null
@@ -55,13 +55,13 @@ internal class WeTopBarScopeImpl(
 
     @Composable
     override fun ActionIcon(
-        iconResId: Int,
+        icon: Int,
         modifier: Modifier,
         description: String?,
         onClick: (() -> Unit)?
     ) {
         WeTopBarIcon(
-            iconResId = iconResId,
+            icon = icon,
             description = description,
             tint = contentColor,
             modifier = modifier,
@@ -91,7 +91,7 @@ internal class WeTopBarScopeImpl(
  */
 @Composable
 fun WeTopBarIcon(
-    @DrawableRes iconResId: Int,
+    @DrawableRes icon: Int,
     modifier: Modifier = Modifier,
     description: String? = null,
     tint: Color = WeTheme.colorScheme.textPrimary,
@@ -107,7 +107,7 @@ fun WeTopBarIcon(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(iconResId),
+            painter = painterResource(icon),
             contentDescription = description,
             modifier = Modifier.size(24.dp),
             tint = tint

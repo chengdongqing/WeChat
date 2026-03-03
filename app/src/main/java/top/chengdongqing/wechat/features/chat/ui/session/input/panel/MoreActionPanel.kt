@@ -133,7 +133,7 @@ private fun MorePanelItem(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(item.iconResId),
+                    painter = painterResource(item.icon),
                     contentDescription = null,
                     modifier = Modifier.size(30.dp),
                     tint = Color.Unspecified

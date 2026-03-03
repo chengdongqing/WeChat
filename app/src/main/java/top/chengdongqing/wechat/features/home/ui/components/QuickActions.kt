@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.home.ui.components
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -48,20 +47,15 @@ import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.Grey_4C
 import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
-
-data class MenuItem(
-    @get:DrawableRes val iconResId: Int,
-    val text: String,
-    val onClick: () -> Unit
-)
+import top.chengdongqing.wechat.features.home.model.QuickAction
 
 @Composable
 fun QuickActions(
     expanded: Boolean,
-    menus: List<MenuItem>,
     anchorPosition: Offset,
     anchorSize: IntSize,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onAction: (QuickAction) -> Unit
 ) {
     var shouldShow by remember { mutableStateOf(expanded) }
     var isVisible by remember { mutableStateOf(false) }
@@ -128,13 +122,14 @@ fun QuickActions(
                     .drawMenuArrow()
                     .background(Grey_4C, RoundedCornerShape(4.dp))
             ) {
-                menus.forEachIndexed { index, menu ->
-                    ActionItem(menu) {
+                val actions = QuickAction.entries
+                actions.forEachIndexed { index, action ->
+                    ActionItem(action) {
                         onDismiss()
-                        menu.onClick()
+                        onAction(action)
                     }
 
-                    if (index < menus.lastIndex) {
+                    if (index < actions.lastIndex) {
                         WeDivider(
                             modifier = Modifier.padding(start = 56.dp),
                             color = Color(0xFF666666)
@@ -147,7 +142,7 @@ fun QuickActions(
 }
 
 @Composable
-private fun ActionItem(menu: MenuItem, onClick: () -> Unit) {
+private fun ActionItem(action: QuickAction, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -157,14 +152,14 @@ private fun ActionItem(menu: MenuItem, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(menu.iconResId),
+            painter = painterResource(action.icon),
             contentDescription = null,
             tint = Color.White,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
-            text = menu.text,
+            text = action.label,
             color = Color.White,
             fontSize = 16.sp
         )
@@ -185,3 +180,4 @@ private fun Modifier.drawMenuArrow(): Modifier = this.drawBehind {
         )
     }
 }
+

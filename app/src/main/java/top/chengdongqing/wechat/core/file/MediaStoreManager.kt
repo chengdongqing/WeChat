@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.data.manager
+package top.chengdongqing.wechat.core.file
 
 import android.content.ContentResolver
 import android.content.ContentValues

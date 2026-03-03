@@ -17,9 +17,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.data.manager.FileManager
-import top.chengdongqing.wechat.core.data.manager.MediaStoreManager
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
+import top.chengdongqing.wechat.core.file.FileManager
+import top.chengdongqing.wechat.core.file.MediaStoreManager
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase

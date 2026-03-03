@@ -109,7 +109,7 @@ private fun ContactDetailTopBar(
     ) {
         if (showMoreAction) {
             ActionIcon(
-                iconResId = R.drawable.ic_more_outlined,
+                icon = R.drawable.ic_more_outlined,
                 description = "更多",
                 onClick = onMoreClick
             )

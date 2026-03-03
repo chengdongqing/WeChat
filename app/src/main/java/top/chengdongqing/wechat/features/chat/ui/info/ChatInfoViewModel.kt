@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.data.manager.FileManager
+import top.chengdongqing.wechat.core.file.FileManager
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession

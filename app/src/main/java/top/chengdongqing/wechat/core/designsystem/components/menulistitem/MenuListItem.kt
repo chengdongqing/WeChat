@@ -29,7 +29,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 @Composable
 fun MenuListItem(
     label: String,
-    @DrawableRes iconResId: Int? = null,
+    @DrawableRes icon: Int? = null,
     iconColor: Color = Color.Unspecified,
     description: String? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
@@ -51,7 +51,7 @@ fun MenuListItem(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            iconResId?.let { MenuIcon(it, iconColor) }
+            icon?.let { MenuIcon(it, iconColor) }
             MenuLabel(label, description)
         }
         Row(
@@ -69,11 +69,11 @@ fun MenuListItem(
 
 @Composable
 private fun MenuIcon(
-    @DrawableRes iconResId: Int,
+    @DrawableRes icon: Int,
     iconColor: Color
 ) {
     Icon(
-        painter = painterResource(iconResId),
+        painter = painterResource(icon),
         contentDescription = null,
         modifier = Modifier.size(24.dp),
         tint = iconColor

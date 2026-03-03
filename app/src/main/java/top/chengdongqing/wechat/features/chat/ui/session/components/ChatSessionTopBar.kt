@@ -56,7 +56,7 @@ fun ChatSessionTopBar(
         unreadCount = unreadCount
     ) {
         if (!isSelectMode) {
-            ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
+            ActionIcon(icon = R.drawable.ic_more_outlined, description = "更多") {
                 onNavigateToInfo()
             }
         }

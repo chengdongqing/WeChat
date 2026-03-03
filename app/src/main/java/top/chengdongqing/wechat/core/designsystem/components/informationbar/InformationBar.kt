@@ -64,7 +64,7 @@ fun WeInformationBar(
     onLink: (() -> Unit)? = null,
     onClose: (() -> Unit)? = null
 ) {
-    val iconResId = if (type == InformationBarType.Success) {
+    val icon = if (type == InformationBarType.Success) {
         R.drawable.ic_check
     } else {
         R.drawable.ic_error_circle_filled
@@ -93,7 +93,7 @@ fun WeInformationBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(iconResId),
+                painter = painterResource(icon),
                 contentDescription = null,
                 tint = type.iconColor
             )

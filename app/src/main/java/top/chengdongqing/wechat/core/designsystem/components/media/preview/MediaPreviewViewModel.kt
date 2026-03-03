@@ -6,8 +6,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.data.manager.MediaStoreManager
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
+import top.chengdongqing.wechat.core.file.MediaStoreManager
 import top.chengdongqing.wechat.core.util.shareUri
 import top.chengdongqing.wechat.core.util.showToast
 import javax.inject.Inject

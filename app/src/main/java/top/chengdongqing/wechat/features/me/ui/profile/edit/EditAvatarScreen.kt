@@ -82,7 +82,7 @@ fun EditAvatarScreen(
             contentColor = White,
             onBack = onBack
         ) {
-            ActionIcon(iconResId = R.drawable.ic_more_outlined, description = "更多") {
+            ActionIcon(icon = R.drawable.ic_more_outlined, description = "更多") {
                 actionSheet.show(MenuOptions) { index ->
                     when (index) {
                         0 -> launchAlbum(VisualMediaType.Image, 1)

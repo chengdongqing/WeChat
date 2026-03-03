@@ -137,7 +137,7 @@ private fun AddFriendOptionsList(options: List<AddFriendItem>) {
             MenuListItem(
                 label = item.title,
                 description = item.description,
-                iconResId = item.iconResId,
+                icon = item.icon,
                 iconColor = item.iconColor,
                 height = 68.dp,
                 onClick = item.onClick
@@ -196,28 +196,28 @@ private fun rememberAddFriendOptions(
         listOf(
             AddFriendItem(
                 title = "扫一扫",
-                iconResId = R.drawable.ic_scan_outlined,
+                icon = R.drawable.ic_scan_outlined,
                 iconColor = Color(0xFF2B7CF1),
                 description = "扫描二维码名片",
                 onClick = launchScanner
             ),
             AddFriendItem(
                 title = "碰一碰",
-                iconResId = R.drawable.ic_nfc_outlined,
+                icon = R.drawable.ic_nfc_outlined,
                 iconColor = Color(0xFF10AEFF),
                 description = "通过NFC添加朋友",
                 onClick = onNavigateToNFC
             ),
             AddFriendItem(
                 title = "雷达",
-                iconResId = R.drawable.ic_radar_outlined,
+                icon = R.drawable.ic_radar_outlined,
                 iconColor = Color(0xFF7468BE),
                 description = "添加身边的朋友",
                 onClick = onNavigateToRadar
             ),
             AddFriendItem(
                 title = "面对面建群",
-                iconResId = R.drawable.ic_group_chat_outlined,
+                icon = R.drawable.ic_group_chat_outlined,
                 iconColor = Color(0xFF07C160),
                 description = "与身边的朋友进入同一个群聊",
                 onClick = onNavigateToGroup
@@ -231,7 +231,7 @@ private fun rememberAddFriendOptions(
  */
 data class AddFriendItem(
     val title: String,
-    val iconResId: Int,
+    val icon: Int,
     val iconColor: Color,
     val description: String,
     val onClick: () -> Unit

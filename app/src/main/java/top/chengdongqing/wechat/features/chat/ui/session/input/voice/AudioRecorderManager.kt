@@ -13,7 +13,7 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.data.manager.FileManager
+import top.chengdongqing.wechat.core.file.FileManager
 import top.chengdongqing.wechat.data.database.entity.MessageType
 import java.io.File
 import javax.inject.Inject

@@ -45,7 +45,7 @@ class ActionHandler(
             MoreAction.Card -> onCard()
             MoreAction.Favorite -> onFavorite()
             MoreAction.Voice -> onVoiceInput()
-            MoreAction.Apk -> onApk()
+            MoreAction.App -> onApk()
             else -> Unit
         }
     }
