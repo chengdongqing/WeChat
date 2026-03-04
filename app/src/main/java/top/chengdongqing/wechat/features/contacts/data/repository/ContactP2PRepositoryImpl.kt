@@ -129,7 +129,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
 
     override suspend fun generateMyQRCode(): String {
         return withContext(Dispatchers.IO) {
-            val profile = profileRepository.getCurrentProfileSnapshot()
+            val profile = profileRepository.getProfile()
                 ?: throw Exception("未找到个人资料")
 
             val beacon = DiscoveryBeacon.create(
@@ -200,7 +200,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
     override suspend fun sendNfcAddRequest(peerUserId: String, sessionId: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                val my = profileRepository.getCurrentProfileSnapshot()
+                val my = profileRepository.getProfile()
                     ?: return@withContext false.also {
                         Log.e(
                             TAG,
@@ -241,7 +241,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
     override suspend fun sendNfcAddResponse(peerUserId: String, requestId: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                val my = profileRepository.getCurrentProfileSnapshot()
+                val my = profileRepository.getProfile()
                     ?: return@withContext false.also {
                         Log.e(
                             TAG,
@@ -376,7 +376,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
     }
 
     private fun getCurrentUserId(): String {
-        return profileRepository.getCurrentProfileSnapshot()?.id
+        return profileRepository.getProfile()?.id
             ?: throw Exception("未找到个人资料")
     }
 

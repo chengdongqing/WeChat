@@ -13,6 +13,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,12 +33,17 @@ import top.chengdongqing.wechat.core.designsystem.components.location.model.Loca
 import top.chengdongqing.wechat.core.designsystem.components.location.preview.previewLocation
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.preview.previewMedias
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastState
+import top.chengdongqing.wechat.core.file.MediaStoreManager
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
+import top.chengdongqing.wechat.features.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.features.chat.data.mapper.toMediaItem
+import top.chengdongqing.wechat.features.chat.data.mapper.toMessageType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
@@ -51,6 +58,9 @@ import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.me.domain.repository.SettingsRepository
+import java.io.File
+import kotlin.time.Duration
 
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
@@ -58,8 +68,10 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val chatSessionRepository: ChatSessionRepository,
     private val messageRepository: MessageRepository,
     private val profileRepository: ProfileRepository,
+    private val settingsRepository: SettingsRepository,
     private val contactRepository: ContactRepository,
     private val contactP2PRepository: ContactP2PRepository,
+    private val mediaStoreManager: MediaStoreManager,
     private val soundTipPlayer: SoundTipPlayer,
     private val notificationHelper: NotificationHelper,
     val activeSessionManager: ActiveSessionManager,
@@ -92,6 +104,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         uiEvent = _uiEvent,
         onRecallMessage = ::recallMessage,
         onToggleSpeaker = ::toggleSpeaker,
+        onSaveFile = ::saveFile,
         onMultiSelect = ::enterSelectMode
     )
 
@@ -237,12 +250,13 @@ class ChatSessionViewModel @AssistedInject constructor(
     init {
         loadInitialData()
         observeSessionChanges()
+        observeSettings()
     }
 
     private fun loadInitialData() {
         viewModelScope.launch {
             val contact = contactRepository.getContactById(chatId)
-            val profile = profileRepository.getCurrentProfileSnapshot()
+            val profile = profileRepository.getProfile()
 
             _uiState.update {
                 it.copy(
@@ -265,11 +279,22 @@ class ChatSessionViewModel @AssistedInject constructor(
                         it.copy(
                             backgroundPath = s.backgroundPath,
                             isMuted = s.isMuted,
-                            isSpeakerOn = s.isSpeakerOn,
                             isOnline = s.isOnline,
                             draftMessage = s.draftMessage
                         )
                     }
+                }
+            }
+        }
+    }
+
+    private fun observeSettings() {
+        viewModelScope.launch {
+            settingsRepository.speakerEnabled.collect { isOn ->
+                _uiState.update {
+                    it.copy(
+                        isSpeakerOn = isOn
+                    )
                 }
             }
         }
@@ -356,7 +381,26 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun toggleSpeaker() {
         val isSpeakerOn = !_uiState.value.isSpeakerOn
         viewModelScope.launch {
-            chatSessionRepository.toggleSpeaker(chatId, isSpeakerOn)
+            settingsRepository.toggleSpeaker(isSpeakerOn)
+        }
+    }
+
+    fun saveFile(message: ChatMessage) {
+        val localPath = message.content.getLocalPath() ?: return
+        val file = File(localPath)
+
+        viewModelScope.launch {
+            val res = mediaStoreManager.saveMedia(
+                messageType = message.content.toMessageType(),
+                sourceFile = file,
+                filename = file.name
+            )
+
+            res?.let {
+                context.showToast("已保存到本地")
+            } ?: run {
+                context.showToast("保存失败")
+            }
         }
     }
 
@@ -481,6 +525,58 @@ class ChatSessionViewModel @AssistedInject constructor(
         exitSelectMode()
     }
 
+    fun saveSelectedMessageFiles(toast: ToastState) {
+        val ids = _uiState.value.selectedMessageIds
+        exitSelectMode()
+
+        viewModelScope.launch {
+            // 过滤出所有有本地文件路径的消息内容
+            val contents = ids.mapNotNull { id ->
+                messages.value.find {
+                    it.id == id
+                }?.content.takeIf {
+                    it?.getLocalPath() != null
+                }
+            }
+            if (contents.isEmpty()) {
+                context.showToast("没有找到可以保存的内容")
+                return@launch
+            }
+
+            toast.show(
+                "处理中...",
+                ToastIcon.Loading,
+                duration = Duration.INFINITE,
+                mask = true
+            )
+
+            // 并发保存所有文件，等待全部完成
+            val results = contents.map { content ->
+                async {
+                    val file = File(content.getLocalPath()!!)
+                    mediaStoreManager.saveMedia(
+                        messageType = content.toMessageType(),
+                        sourceFile = file,
+                        filename = file.name
+                    )
+                }
+            }.awaitAll()
+
+            // 汇总结果，统一提示
+            val successCount = results.count { it != null }
+            val failCount = results.size - successCount
+
+            toast.hide()
+            context.showToast(
+                when {
+                    failCount == 0 -> "已保存 $successCount 个文件"
+                    successCount == 0 -> "保存失败"
+                    else -> "已保存 $successCount 个文件，$failCount 个失败"
+                }
+            )
+        }
+    }
+
     fun forwardSelectedMessages(targetChatIds: Set<String>) {
         val ids = _uiState.value.selectedMessageIds
         if (ids.isEmpty()) return
@@ -504,6 +600,12 @@ class ChatSessionViewModel @AssistedInject constructor(
             MultiMessageAction.Delete -> {
                 viewModelScope.launch {
                     _uiEvent.emit(MessageUiEvent.ShowDeleteConfirm())
+                }
+            }
+
+            MultiMessageAction.Download -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(MessageUiEvent.ShowDownloadConfirm)
                 }
             }
 

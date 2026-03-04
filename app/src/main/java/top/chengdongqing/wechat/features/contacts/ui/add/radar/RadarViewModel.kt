@@ -33,7 +33,7 @@ class RadarScanViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    val myProfile = profileRepository.getCurrentProfile()
+    val myProfile = profileRepository.observeProfile()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,

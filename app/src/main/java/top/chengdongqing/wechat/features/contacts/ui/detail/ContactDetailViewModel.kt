@@ -38,7 +38,7 @@ class ContactDetailViewModel @AssistedInject constructor(
     }
 
     val contact: StateFlow<Contact?> = combine(
-        profileRepository.getCurrentProfile(),
+        profileRepository.observeProfile(),
         contactRepository.observeContactById(contactId)
     ) { myProfile, contact ->
         if (myProfile == null) {

@@ -13,10 +13,10 @@ import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
-import top.chengdongqing.wechat.data.database.entity.AddSource
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
+import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
 import top.chengdongqing.wechat.data.network.protocol.P2PMessageTransmitter
 import top.chengdongqing.wechat.data.network.protocol.RequestAction
@@ -68,7 +68,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         note: String?
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val myProfile = profileRepository.getCurrentProfileSnapshot()
+            val myProfile = profileRepository.getProfile()
                 ?: throw Exception("未找到个人资料")
 
             val avatarBytes = myProfile.avatarPath?.let {
@@ -249,7 +249,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private suspend fun sendAutoAddResponse(targetUserId: String, requestId: String) {
         try {
             // 获取我的信息
-            val myProfile = profileRepository.getCurrentProfileSnapshot() ?: return
+            val myProfile = profileRepository.getProfile() ?: return
 
             // 生成头像数据
             val avatarBytes = myProfile.avatarPath?.let {
@@ -340,7 +340,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private suspend fun sendFullProfile(targetUserId: String) {
         try {
             // 获取我的个人资料
-            val myProfile = profileRepository.getCurrentProfileSnapshot() ?: return
+            val myProfile = profileRepository.getProfile() ?: return
 
             // 获取头像数据
             val avatarBytes = myProfile.avatarPath?.let {
@@ -431,7 +431,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
             avatarPath = request.peerAvatarPath,
             remarkName = remark ?: request.remark,
             note = note ?: request.note,
-            source = AddSource.QRCode
+            source = ContactAddSource.QRCode
         )
         contactRepository.addContact(contact)
     }

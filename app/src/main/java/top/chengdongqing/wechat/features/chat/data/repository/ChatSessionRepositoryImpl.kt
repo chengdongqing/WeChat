@@ -110,13 +110,6 @@ class ChatSessionRepositoryImpl @Inject constructor(
         sessionCache.remove(sessionId)
     }
 
-    override suspend fun toggleSpeaker(sessionId: String, isSpeakerOn: Boolean) {
-        chatSessionDao.update(sessionId) { session ->
-            session.copy(isSpeakerOn = isSpeakerOn)
-        }
-        sessionCache.remove(sessionId)
-    }
-
     override suspend fun updateBackground(sessionId: String, backgroundPath: String?) {
         chatSessionDao.update(sessionId) { session ->
             session.copy(backgroundPath = backgroundPath)

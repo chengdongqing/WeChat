@@ -4,7 +4,6 @@ import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -67,7 +66,7 @@ class NfcHceService : HostApduService() {
 
     private fun getUserIdBlocking(): String? = try {
         runBlocking {
-            profileRepository.getCurrentProfile().firstOrNull()?.id
+            profileRepository.getProfile()?.id
         }
     } catch (e: Exception) {
         Log.e("NfcHce", "获取 userId 异常: ${e.message}", e)

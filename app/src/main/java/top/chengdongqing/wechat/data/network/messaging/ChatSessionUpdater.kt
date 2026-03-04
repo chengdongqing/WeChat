@@ -9,7 +9,7 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.database.entity.toPreviewText
+import top.chengdongqing.wechat.data.model.toPreviewText
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
@@ -36,7 +36,7 @@ class ChatSessionUpdater @Inject constructor(
 
     init {
         scope.launch {
-            profileRepository.getCurrentProfile().collect {
+            profileRepository.observeProfile().collect {
                 currentProfile = it
             }
         }

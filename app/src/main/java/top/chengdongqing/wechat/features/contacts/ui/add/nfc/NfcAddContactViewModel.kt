@@ -274,7 +274,7 @@ class NfcAddContactViewModel @Inject constructor(
     // ==================== 工具 ====================
 
     private suspend fun getMyUserId(): String? {
-        return profileRepository.getCurrentProfile().firstOrNull()?.id
+        return profileRepository.observeProfile().firstOrNull()?.id
             .also { if (it == null) Log.e(TAG, "❌ 获取 myProfile 失败") }
     }
 

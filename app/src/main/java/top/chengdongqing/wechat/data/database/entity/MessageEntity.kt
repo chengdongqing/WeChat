@@ -4,7 +4,9 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import kotlinx.serialization.Serializable
+import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.data.model.SendError
+import top.chengdongqing.wechat.data.model.SendStatus
 
 @Entity(
     tableName = "messages",
@@ -41,77 +43,3 @@ data class MessageEntity(
     @Embedded
     val audit: EntityAudit = EntityAudit()
 )
-
-@Serializable
-enum class MessageType {
-    Text,           // 文本
-    Voice,          // 语音
-    Image,          // 图片
-    Video,          // 视频
-    File,           // 文件
-    Sticker,        // 表情
-    Location,       // 位置
-    ContactCard,    // 名片
-    Favorite,       // 收藏
-    VoiceCall,      // 语音通话记录
-    VideoCall;      // 视频通话记录
-
-    /**
-     * 是否为通话消息
-     */
-    val isCallMessage: Boolean
-        get() = this == VideoCall || this == VoiceCall
-
-    /**
-     * 是否允许转发
-     * 逻辑：通话记录和语音消息通常涉及隐私或流媒体协议限制，不可转发
-     */
-    val isForwardable: Boolean
-        get() = when (this) {
-            Voice, VoiceCall, VideoCall -> false
-            else -> true
-        }
-
-    /**
-     * 是否需要解析json来获取文件名
-     */
-    val isFileNameInJson: Boolean
-        get() = when (this) {
-            Image, Video, File -> true
-            else -> false
-        }
-}
-
-enum class SendStatus {
-    Sending,        // 发送中
-    Sent,           // 已发送
-    Delivered,      // 已送达
-    Read,           // 已读
-    Failed          // 发送失败
-}
-
-enum class SendError(val message: String, val canRetry: Boolean) {
-    ConnectionFailed("连接失败。", true),
-    Cancelled("已取消发送。", true),
-    NotFriend(
-        "对方开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证，对方验证通过后，才能聊天。",
-        false
-    ),
-    Blocked("消息已发出，但被对方拒收了。", false),
-    MessageTooLarge("消息内容过大。", false),
-    Unknown("未知错误。", true)
-}
-
-fun MessageType.toPreviewText(content: String): String = when (this) {
-    MessageType.Text -> content
-    MessageType.Image -> "[图片]"
-    MessageType.Voice -> "[语音]"
-    MessageType.Video -> "[视频]"
-    MessageType.File -> "[文件]"
-    MessageType.Location -> "[位置]"
-    MessageType.Favorite -> "[收藏]"
-    MessageType.ContactCard -> "[名片]"
-    MessageType.Sticker -> "[表情]"
-    MessageType.VoiceCall -> "[语音通话]"
-    MessageType.VideoCall -> "[视频通话]"
-}

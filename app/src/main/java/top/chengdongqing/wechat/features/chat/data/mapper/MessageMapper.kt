@@ -3,13 +3,17 @@ package top.chengdongqing.wechat.features.chat.data.mapper
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.database.entity.MessageType
-import top.chengdongqing.wechat.data.database.entity.SendError
-import top.chengdongqing.wechat.data.database.entity.SendStatus
+import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.data.model.SendError
+import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent.File
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent.Media
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent.Sticker
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent.Voice
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 
 fun MessageEntity.toDomain(json: Json): ChatMessage {
@@ -146,7 +150,6 @@ fun MessageContent.toEntity(
 
     // 公共字段
     fun base(
-        contentType: MessageType,
         contentValue: String,
         localPath: String? = null,
         fileSize: Long? = null,
@@ -156,7 +159,7 @@ fun MessageContent.toEntity(
         sessionId = sessionId,
         senderId = senderId,
         receiverId = receiverId,
-        contentType = contentType,
+        contentType = toMessageType(),
         content = contentValue,
         localPath = localPath,
         fileSize = fileSize,
@@ -169,13 +172,11 @@ fun MessageContent.toEntity(
     return when (content) {
         is MessageContent.Text ->
             base(
-                contentType = MessageType.Text,
                 contentValue = content.text
             )
 
         is MessageContent.Voice ->
             base(
-                contentType = MessageType.Voice,
                 contentValue = "",
                 localPath = content.localPath,
                 mediaDuration = content.duration
@@ -183,7 +184,6 @@ fun MessageContent.toEntity(
 
         is MessageContent.Image ->
             base(
-                contentType = MessageType.Image,
                 contentValue = json.encodeToString(
                     MediaContent(
                         width = content.width,
@@ -198,7 +198,6 @@ fun MessageContent.toEntity(
 
         is MessageContent.Video ->
             base(
-                contentType = MessageType.Video,
                 contentValue = json.encodeToString(
                     MediaContent(
                         width = content.width,
@@ -214,7 +213,6 @@ fun MessageContent.toEntity(
 
         is MessageContent.File ->
             base(
-                contentType = MessageType.File,
                 contentValue = json.encodeToString(
                     FileContent(
                         mimeType = content.mimeType,
@@ -227,14 +225,12 @@ fun MessageContent.toEntity(
 
         is MessageContent.Sticker ->
             base(
-                contentType = MessageType.Sticker,
                 contentValue = content.localPath,
                 localPath = content.localPath
             )
 
         is MessageContent.Location ->
             base(
-                contentType = MessageType.Location,
                 contentValue = json.encodeToString(
                     LocationContent(
                         latitude = content.latitude,
@@ -248,7 +244,6 @@ fun MessageContent.toEntity(
 
         is MessageContent.ContactCard ->
             base(
-                contentType = MessageType.ContactCard,
                 contentValue = json.encodeToString(
                     ContactCardContent(
                         userId = content.userId,
@@ -260,7 +255,6 @@ fun MessageContent.toEntity(
 
         is MessageContent.Favorite ->
             base(
-                contentType = MessageType.Favorite,
                 contentValue = json.encodeToString(
                     FavoriteContent(
                         title = content.title,
@@ -272,16 +266,36 @@ fun MessageContent.toEntity(
 
         is MessageContent.Call ->
             base(
-                contentType = if (content.type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall,
                 contentValue = content.status.name,
                 mediaDuration = content.duration
             )
 
         else -> base(
-            contentType = MessageType.Text,
             contentValue = ""
         )
     }
+}
+
+fun MessageContent.toMessageType(): MessageType = when (this) {
+    is MessageContent.Text -> MessageType.Text
+    is MessageContent.Image -> MessageType.Image
+    is MessageContent.Video -> MessageType.Video
+    is MessageContent.Voice -> MessageType.Voice
+    is MessageContent.Sticker -> MessageType.Sticker
+    is MessageContent.File -> MessageType.File
+    is MessageContent.Location -> MessageType.Location
+    is MessageContent.Call -> if (this.type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
+    is MessageContent.Favorite -> MessageType.Favorite
+    is MessageContent.ContactCard -> MessageType.ContactCard
+    else -> MessageType.Text
+}
+
+fun MessageContent.getLocalPath(): String? = when (this) {
+    is Voice -> localPath
+    is Media -> localPath
+    is File -> localPath
+    is Sticker -> localPath
+    else -> null
 }
 
 fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
@@ -299,6 +313,7 @@ fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
         SendStatus.Sent -> MessageSendStatus.Sent
         SendStatus.Delivered,
         SendStatus.Read -> MessageSendStatus.Success
+
         SendStatus.Failed -> MessageSendStatus.Failed(entity.failReason ?: SendError.Unknown)
     }
 }

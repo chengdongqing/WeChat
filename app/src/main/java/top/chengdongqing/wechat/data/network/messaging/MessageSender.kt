@@ -11,8 +11,8 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.database.entity.SendError
-import top.chengdongqing.wechat.data.database.entity.SendStatus
+import top.chengdongqing.wechat.data.model.SendError
+import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
 import top.chengdongqing.wechat.data.network.connection.ConnectionManager
@@ -50,7 +50,7 @@ class MessageSender @Inject constructor(
         const val TAG = "MessageSender"
     }
 
-    private val myUserId: String? by lazy { profileRepository.getCurrentProfileSnapshot()?.id }
+    private val myUserId: String? by lazy { profileRepository.getProfile()?.id }
 
     /**
      * 发送文本消息

@@ -6,7 +6,7 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 
 /**

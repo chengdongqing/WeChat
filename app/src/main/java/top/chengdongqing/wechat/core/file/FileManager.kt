@@ -6,7 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.util.FileNameUtils
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -119,7 +119,7 @@ class FileManager @Inject constructor(
      * @param extension 文件扩展名（可选，会自动检测）
      * @return 保存后的文件绝对路径
      */
-    suspend fun saveMediaFile(
+    suspend fun saveMedia(
         messageType: MessageType,
         sourceFile: File,
         extension: String? = null
@@ -169,7 +169,7 @@ class FileManager @Inject constructor(
      * @param extension 文件扩展名（可选）
      * @return 保存后的文件绝对路径
      */
-    suspend fun saveMediaFileFromUri(
+    suspend fun saveMedia(
         messageType: MessageType,
         sourceUri: Uri,
         extension: String? = null

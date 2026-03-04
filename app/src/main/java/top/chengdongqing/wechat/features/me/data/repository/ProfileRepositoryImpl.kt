@@ -46,19 +46,14 @@ class ProfileRepositoryImpl @Inject constructor(
         )
 
     // 实时流
-    override fun getCurrentProfile(): Flow<UserProfile?> = profileState
+    override fun observeProfile(): Flow<UserProfile?> = profileState
 
     // 内存快照
-    override fun getCurrentProfileSnapshot(): UserProfile? = profileState.value
+    override fun getProfile(): UserProfile? = profileState.value
 
-    override suspend fun saveProfile(profile: UserProfile): Result<Unit> {
-        return try {
-            dataStore.edit { preferences ->
-                preferences[PROFILE_KEY] = profile.toJson()
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    override suspend fun saveProfile(profile: UserProfile): Result<Unit> = runCatching {
+        dataStore.edit { preferences ->
+            preferences[PROFILE_KEY] = profile.toJson()
         }
     }
 
@@ -67,26 +62,22 @@ class ProfileRepositoryImpl @Inject constructor(
         gender: Gender?,
         signature: String?,
         avatarPath: String?
-    ): Result<Unit> {
-        return try {
-            val currentProfile = getCurrentProfileSnapshot()
-                ?: return Result.failure(IllegalStateException("Profile not found"))
+    ): Result<Unit> = runCatching {
+        val currentProfile = getProfile()
+            ?: throw IllegalStateException("Profile not found")
 
-            val updatedProfile = currentProfile.copyWithUpdate(
-                userName = nickname,
-                gender = gender,
-                signature = signature,
-                avatarPath = avatarPath
-            )
+        val updatedProfile = currentProfile.copyWithUpdate(
+            userName = nickname,
+            gender = gender,
+            signature = signature,
+            avatarPath = avatarPath
+        )
 
-            saveProfile(updatedProfile)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        saveProfile(updatedProfile)
     }
 
     override suspend fun hasProfile(): Boolean {
-        return getCurrentProfileSnapshot() != null
+        return getProfile() != null
     }
 
     override suspend fun clearProfile(): Result<Unit> {

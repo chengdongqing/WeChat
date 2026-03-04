@@ -138,7 +138,7 @@ class BLEModule @Inject constructor(
                     return@launch
                 }
 
-                val myProfile = profileRepository.getCurrentProfileSnapshot() ?: run {
+                val myProfile = profileRepository.getProfile() ?: run {
                     Log.w(TAG, "无法获取个人资料")
                     return@launch
                 }
@@ -457,7 +457,7 @@ class BLEModule @Inject constructor(
         @SuppressLint("MissingPermission")
         private suspend fun sendProfileData(device: BluetoothDevice) {
             try {
-                val myProfile = profileRepository.getCurrentProfile().first() ?: run {
+                val myProfile = profileRepository.observeProfile().first() ?: run {
                     Log.w(TAG, "无法获取个人资料")
                     return
                 }

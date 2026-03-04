@@ -26,6 +26,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
+import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
@@ -64,6 +65,7 @@ fun ChatSessionScreen(
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
     val dialog = rememberDialogState()
+    val toast = rememberToastState()
 
     /**
      * 键盘和数据更新时的自动滚动
@@ -143,6 +145,15 @@ fun ChatSessionScreen(
                         } else {
                             viewModel.deleteSelectedMessages()
                         }
+                    }
+                }
+
+                is MessageUiEvent.ShowDownloadConfirm -> {
+                    dialog.show(
+                        title = "确认保存？",
+                        okText = "保存"
+                    ) {
+                        viewModel.saveSelectedMessageFiles(toast)
                     }
                 }
 

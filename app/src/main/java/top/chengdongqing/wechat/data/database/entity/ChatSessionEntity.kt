@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import top.chengdongqing.wechat.data.model.MessageType
 
 @Entity(tableName = "chat_sessions")
 data class ChatSessionEntity(
@@ -24,7 +25,6 @@ data class ChatSessionEntity(
     val isPinned: Boolean = false,      // 是否置顶
     val isMuted: Boolean = false,       // 是否免打扰
     val isHidden: Boolean = false,      // 是否隐藏
-    val isSpeakerOn: Boolean = true,    // 是否通过听筒播放
 
     val draftMessage: String? = null,   // 草稿消息
     val backgroundPath: String? = null, // 聊天背景

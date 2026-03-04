@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.core.util
 
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import android.graphics.BitmapFactory
+import android.os.Build
+import top.chengdongqing.wechat.data.model.MessageType
 
 /**
  * 文件命名工具
@@ -21,10 +23,11 @@ object FileNameUtils {
      */
     fun getFileConfig(messageType: MessageType): FileConfig {
         return when (messageType) {
-            MessageType.Image -> FileConfig("images", "IMG", getImageExtension())
+            MessageType.Image,
+            MessageType.Sticker -> FileConfig("images", "IMG", getImageExtension())
+
             MessageType.Video -> FileConfig("videos", "VID", "mp4")
             MessageType.Voice -> FileConfig("audios", "RCD", "m4a")
-            MessageType.File -> FileConfig("files", "FILE", "bin")
             else -> FileConfig("files", "FILE", "bin")
         }
     }
@@ -54,54 +57,71 @@ object FileNameUtils {
 
     /**
      * 检测图片实际格式
-     *
-     * 从文件头魔数判断真实格式，比 MIME 类型更可靠
      */
     fun detectImageFormat(file: java.io.File): String {
-        return try {
-            val bytes = file.inputStream().use {
-                it.readNBytes(12)
-            }
-
-            when {
-                // JPEG: FF D8 FF
-                bytes.size >= 3 &&
-                        bytes[0] == 0xFF.toByte() &&
-                        bytes[1] == 0xD8.toByte() &&
-                        bytes[2] == 0xFF.toByte() -> "jpg"
-
-                // PNG: 89 50 4E 47
-                bytes.size >= 4 &&
-                        bytes[0] == 0x89.toByte() &&
-                        bytes[1] == 0x50.toByte() &&
-                        bytes[2] == 0x4E.toByte() &&
-                        bytes[3] == 0x47.toByte() -> "png"
-
-                // HEIC/HEIF: ftyp heic/heix/hevc/heim/heis/hevm/hevs
-                bytes.size >= 12 &&
-                        bytes[4] == 0x66.toByte() && // 'f'
-                        bytes[5] == 0x74.toByte() && // 't'
-                        bytes[6] == 0x79.toByte() && // 'y'
-                        bytes[7] == 0x70.toByte() -> { // 'p'
-                    val subtype = String(bytes, 8, 4, Charsets.UTF_8)
-                    if (subtype.startsWith("hei") || subtype.startsWith("hev")) {
-                        "heic"
-                    } else {
-                        "jpg"
-                    }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return try {
+                val bytes = file.inputStream().use {
+                    it.readNBytes(12)
                 }
 
-                // WebP: RIFF....WEBP
-                bytes.size >= 12 &&
-                        bytes[0] == 0x52.toByte() && // 'R'
-                        bytes[1] == 0x49.toByte() && // 'I'
-                        bytes[2] == 0x46.toByte() && // 'F'
-                        bytes[3] == 0x46.toByte() -> "webp" // 'F'
+                when {
+                    // JPEG: FF D8 FF
+                    bytes.size >= 3 &&
+                            bytes[0] == 0xFF.toByte() &&
+                            bytes[1] == 0xD8.toByte() &&
+                            bytes[2] == 0xFF.toByte() -> "jpg"
+
+                    // PNG: 89 50 4E 47
+                    bytes.size >= 4 &&
+                            bytes[0] == 0x89.toByte() &&
+                            bytes[1] == 0x50.toByte() &&
+                            bytes[2] == 0x4E.toByte() &&
+                            bytes[3] == 0x47.toByte() -> "png"
+
+                    // HEIC/HEIF: ftyp heic/heix/hevc/heim/heis/hevm/hevs
+                    bytes.size >= 12 &&
+                            bytes[4] == 0x66.toByte() && // 'f'
+                            bytes[5] == 0x74.toByte() && // 't'
+                            bytes[6] == 0x79.toByte() && // 'y'
+                            bytes[7] == 0x70.toByte() -> { // 'p'
+                        val subtype = String(bytes, 8, 4, Charsets.UTF_8)
+                        if (subtype.startsWith("hei") || subtype.startsWith("hev")) {
+                            "heic"
+                        } else {
+                            "jpg"
+                        }
+                    }
+
+                    // WebP: RIFF....WEBP
+                    bytes.size >= 12 &&
+                            bytes[0] == 0x52.toByte() && // 'R'
+                            bytes[1] == 0x49.toByte() && // 'I'
+                            bytes[2] == 0x46.toByte() && // 'F'
+                            bytes[3] == 0x46.toByte() -> "webp" // 'F'
+
+                    else -> "jpg"
+                }
+            } catch (_: Exception) {
+                "jpg"
+            }
+        } else {
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = true // 只解析属性，不解析像素
+            }
+            BitmapFactory.decodeFile(file.absolutePath, options)
+
+            val mimeType = options.outMimeType ?: return "jpg"
+            return when {
+                mimeType.contains("png", ignoreCase = true) -> "png"
+                mimeType.contains("webp", ignoreCase = true) -> "webp"
+                mimeType.contains("heif", ignoreCase = true) || mimeType.contains(
+                    "heic",
+                    ignoreCase = true
+                ) -> "heic"
 
                 else -> "jpg"
             }
-        } catch (e: Exception) {
-            "jpg"
         }
     }
 

@@ -16,9 +16,9 @@ import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.database.entity.MessageType
-import top.chengdongqing.wechat.data.database.entity.SendError
-import top.chengdongqing.wechat.data.database.entity.SendStatus
+import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.data.model.SendError
+import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
@@ -312,7 +312,7 @@ class MessageDispatcher @Inject constructor(
             protocol.content
         }
 
-        val localPath = fileManager.saveMediaFile(
+        val localPath = fileManager.saveMedia(
             messageType = protocol.messageType,
             sourceFile = tempFile,
             extension = extractExtension(filename)

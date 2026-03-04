@@ -18,7 +18,9 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepos
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscoveryRepository
 import top.chengdongqing.wechat.features.me.data.repository.ProfileRepositoryImpl
+import top.chengdongqing.wechat.features.me.data.repository.SettingsRepositoryImpl
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.me.domain.repository.SettingsRepository
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -29,6 +31,12 @@ interface RepositoryModule {
     fun bindProfileRepository(
         impl: ProfileRepositoryImpl
     ): ProfileRepository
+
+    @Binds
+    @Singleton
+    fun bindSettingsRepository(
+        impl: SettingsRepositoryImpl
+    ): SettingsRepository
 
     @Binds
     @Singleton

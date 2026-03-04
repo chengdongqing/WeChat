@@ -20,8 +20,8 @@ import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.database.entity.MessageType
-import top.chengdongqing.wechat.data.database.entity.SendStatus
+import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
@@ -72,7 +72,7 @@ class MessageRepositoryImpl @Inject constructor(
         messageId: String?,
         content: MessageContent
     ): Result<Unit> = runCatching {
-        val myProfile = profileRepository.getCurrentProfileSnapshot()
+        val myProfile = profileRepository.getProfile()
             ?: throw Exception("未找到个人资料")
         val finalMessageId = messageId ?: randomUUID()
         val isSelf = receiverId == myProfile.id

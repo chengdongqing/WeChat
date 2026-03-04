@@ -13,7 +13,6 @@ data class UserProfile(
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
-
     companion object {
         /**
          * 生成微信号

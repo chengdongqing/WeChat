@@ -7,14 +7,14 @@ import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 interface ProfileRepository {
 
     /**
-     * 获取当前用户资料（Flow）
+     * 监听用户资料
      */
-    fun getCurrentProfile(): Flow<UserProfile?>
+    fun observeProfile(): Flow<UserProfile?>
 
     /**
-     * 获取当前用户资料（挂起）
+     * 获取用户资料
      */
-    fun getCurrentProfileSnapshot(): UserProfile?
+    fun getProfile(): UserProfile?
 
     /**
      * 保存用户资料
@@ -37,7 +37,7 @@ interface ProfileRepository {
     suspend fun hasProfile(): Boolean
 
     /**
-     * 清除用户资料（用于测试或重置）
+     * 清除用户资料
      */
     suspend fun clearProfile(): Result<Unit>
 }

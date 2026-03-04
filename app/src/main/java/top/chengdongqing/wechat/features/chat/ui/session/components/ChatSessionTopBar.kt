@@ -104,25 +104,25 @@ private fun ChatSessionTitle(
                 modifier = Modifier.weight(1f, fill = false)
             )
 
+            // 免打扰
+            if (uiState.isMuted) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_mute_outlined),
+                    contentDescription = "免打扰",
+                    modifier = Modifier.size(16.dp),
+                    tint = WeTheme.colorScheme.textSecondary
+                )
+            }
+            // 通过听筒播放
+            if (!uiState.isSpeakerOn) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_ear_outlined),
+                    contentDescription = "通过听筒播放语音",
+                    modifier = Modifier.size(16.dp),
+                    tint = WeTheme.colorScheme.textSecondary
+                )
+            }
             if (!uiState.isSelf) {
-                // 免打扰
-                if (uiState.isMuted) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_mute_outlined),
-                        contentDescription = "免打扰",
-                        modifier = Modifier.size(16.dp),
-                        tint = WeTheme.colorScheme.textSecondary
-                    )
-                }
-                // 通过听筒播放
-                if (!uiState.isSpeakerOn) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_ear_outlined),
-                        contentDescription = "通过听筒播放语音",
-                        modifier = Modifier.size(16.dp),
-                        tint = WeTheme.colorScheme.textSecondary
-                    )
-                }
                 // 加密锁图标
                 if (isE2EActive) {
                     Icon(

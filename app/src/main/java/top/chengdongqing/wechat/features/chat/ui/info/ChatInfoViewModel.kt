@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.file.FileManager
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
@@ -58,7 +58,7 @@ class ChatInfoViewModel @AssistedInject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val existSession = chatSessionRepository.exists(chatId)
             if (!existSession) {
-                val myProfile = profileRepository.getCurrentProfileSnapshot()
+                val myProfile = profileRepository.getProfile()
                 val contact = contactRepository.getContactById(chatId)
                 val isSelf = chatId == myProfile?.id
 
@@ -77,7 +77,7 @@ class ChatInfoViewModel @AssistedInject constructor(
     }
 
     val uiState = combine(
-        profileRepository.getCurrentProfile(),
+        profileRepository.observeProfile(),
         chatSessionRepository.observeSession(chatId),
         contactRepository.observeContactById(chatId)
     ) { myProfile, session, contact ->
@@ -122,7 +122,7 @@ class ChatInfoViewModel @AssistedInject constructor(
             try {
                 // 保存新背景
                 val backgroundPath = uri?.let { uri ->
-                    fileManager.saveMediaFileFromUri(
+                    fileManager.saveMedia(
                         messageType = MessageType.Image,
                         sourceUri = uri
                     ).getOrThrow()

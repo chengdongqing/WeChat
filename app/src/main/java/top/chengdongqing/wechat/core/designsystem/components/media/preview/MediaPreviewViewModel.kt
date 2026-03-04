@@ -10,6 +10,7 @@ import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaIt
 import top.chengdongqing.wechat.core.file.MediaStoreManager
 import top.chengdongqing.wechat.core.util.shareUri
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.data.model.MessageType
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,13 +24,11 @@ class MediaPreviewViewModel @Inject constructor(
      */
     fun saveMedia(media: MediaItem) {
         viewModelScope.launch {
-            val success = mediaStoreManager.saveToAlbum(
-                sourceUri = media.uri,
-                filename = media.filename,
-                mimeType = media.mimeType,
-                mediaType = media.mediaType
+            val res = mediaStoreManager.saveMedia(
+                messageType = if (media.isImage) MessageType.Image else MessageType.Video,
+                sourceUri = media.uri
             )
-            if (success) {
+            if (res != null) {
                 context.showToast("已保存到相册")
             } else {
                 context.showToast("保存失败")

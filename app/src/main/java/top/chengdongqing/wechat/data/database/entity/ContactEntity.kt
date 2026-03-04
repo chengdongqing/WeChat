@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 @Entity(tableName = "contacts")
@@ -20,7 +21,7 @@ data class ContactEntity(
 
     val isBlocked: Boolean = false,       // 是否拉黑
 
-    val source: AddSource? = null,        // 添加方式
+    val source: ContactAddSource? = null,        // 添加方式
     val isFromMe: Boolean = true,         // 是否我主动添加
 
     @Embedded
@@ -30,15 +31,3 @@ data class ContactEntity(
         get() = remarkName ?: nickname
 }
 
-enum class AddSource(val label: String) {
-    Search("搜索账号"),
-    QRCode("扫一扫"),
-    Radar("雷达扫描"),
-    Group("群聊"),
-    Card("名片分享");
-
-    fun getDescription(isFromMe: Boolean): String = when (isFromMe) {
-        true -> "通过${label}添加"
-        false -> "对方通过${label}添加"
-    }
-}

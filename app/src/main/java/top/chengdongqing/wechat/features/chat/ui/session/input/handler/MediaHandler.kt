@@ -18,7 +18,7 @@ import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememb
 import top.chengdongqing.wechat.core.util.FileNameUtils.getFileConfig
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
 import top.chengdongqing.wechat.core.util.getFileMetadata
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import java.io.File
 

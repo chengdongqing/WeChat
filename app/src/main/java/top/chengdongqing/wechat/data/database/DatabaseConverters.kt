@@ -1,13 +1,13 @@
 package top.chengdongqing.wechat.data.database
 
 import androidx.room.TypeConverter
-import top.chengdongqing.wechat.data.database.entity.AddSource
 import top.chengdongqing.wechat.data.database.entity.ConnectionType
-import top.chengdongqing.wechat.data.database.entity.MessageType
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
-import top.chengdongqing.wechat.data.database.entity.SendError
-import top.chengdongqing.wechat.data.database.entity.SendStatus
+import top.chengdongqing.wechat.data.model.ContactAddSource
+import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.data.model.SendError
+import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.getIndex
 
@@ -32,10 +32,10 @@ class DatabaseConverters {
     fun toGender(value: Int): Gender? = Gender.fromIndex(value)
 
     @TypeConverter
-    fun fromAddSource(value: AddSource) = value.name
+    fun fromAddSource(value: ContactAddSource) = value.name
 
     @TypeConverter
-    fun toAddSource(value: String): AddSource = AddSource.valueOf(value)
+    fun toAddSource(value: String): ContactAddSource = ContactAddSource.valueOf(value)
 
     @TypeConverter
     fun fromConnectionType(value: ConnectionType) = value.name

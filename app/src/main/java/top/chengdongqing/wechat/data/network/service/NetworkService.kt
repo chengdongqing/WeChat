@@ -111,7 +111,7 @@ class NetworkService : Service() {
      */
     private suspend fun initializeModules() {
         try {
-            val myProfile = profileRepository.getCurrentProfileSnapshot() ?: run {
+            val myProfile = profileRepository.getProfile() ?: run {
                 Log.w(TAG, "未找到个人资料，服务启动失败")
                 return
             }

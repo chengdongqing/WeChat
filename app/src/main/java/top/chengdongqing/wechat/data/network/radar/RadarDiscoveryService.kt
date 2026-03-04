@@ -48,15 +48,13 @@ class RadarDiscoveryService @Inject constructor(
     private val _discoveredBeacons = MutableStateFlow<Map<String, RadarBeacon>>(emptyMap())
     val discoveredBeacons = _discoveredBeacons.asStateFlow()
 
-    private var myProfile: UserProfile? = null
+    private val myProfile: UserProfile? by lazy { profileRepository.getProfile() }
 
     /**
      * 启动雷达发现服务。
      * 依次初始化头像服务、多播 Socket，并并发启动接收、广播、超时清理三个协程。
      */
     fun start(wifiManager: WifiManager) {
-        myProfile = profileRepository.getCurrentProfileSnapshot()
-
         scope.launch {
             val profile = myProfile ?: return@launch
             val localPort = avatarServer.start(scope, profile.avatarPath!!)

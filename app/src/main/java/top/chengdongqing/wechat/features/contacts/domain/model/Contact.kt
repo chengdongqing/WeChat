@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
-import top.chengdongqing.wechat.data.database.entity.AddSource
+import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 /**
@@ -15,7 +15,7 @@ data class Contact(
     val signature: String? = null,
     val note: String? = null,
     val relation: ContactRelation = ContactRelation.NotFriend,
-    val source: AddSource? = null,
+    val source: ContactAddSource? = null,
     val isFromMe: Boolean = true,
     val isBlocked: Boolean = false,
     val addedAt: Long? = null

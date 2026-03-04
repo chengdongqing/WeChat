@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.data.network.connection
 
-import top.chengdongqing.wechat.data.database.entity.SendError
+import top.chengdongqing.wechat.data.model.SendError
 
 /**
  * 连接异常类

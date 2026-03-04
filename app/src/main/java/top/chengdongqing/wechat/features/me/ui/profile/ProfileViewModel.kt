@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.me.ui.profile
 
-import android.content.Context
 import android.net.Uri
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -8,7 +7,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,10 +15,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
 import top.chengdongqing.wechat.core.file.FileManager
 import top.chengdongqing.wechat.core.file.MediaStoreManager
-import top.chengdongqing.wechat.core.util.getFileMetadata
+import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
@@ -40,8 +37,7 @@ class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val fileManager: FileManager,
     private val mediaStoreManager: MediaStoreManager,
-    private val qrCodeUseCase: QRCodeUseCase,
-    @param:ApplicationContext private val context: Context
+    private val qrCodeUseCase: QRCodeUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -59,7 +55,7 @@ class ProfileViewModel @Inject constructor(
      */
     private fun loadProfile() {
         viewModelScope.launch {
-            profileRepository.getCurrentProfile()
+            profileRepository.observeProfile()
                 .catch { error ->
                     handleError("加载资料失败: ${error.message}")
                 }
@@ -198,15 +194,11 @@ class ProfileViewModel @Inject constructor(
     /**
      * 保存图片
      */
-    suspend fun saveImage(uri: Uri, mimeType: String? = null): Boolean {
-        val res = context.getFileMetadata(uri) ?: return false
-
-        return mediaStoreManager.saveToAlbum(
-            sourceUri = uri,
-            filename = res.filename,
-            mimeType = mimeType ?: res.mimeType,
-            mediaType = MediaType.Image
-        )
+    suspend fun saveImage(uri: Uri): Boolean {
+        return mediaStoreManager.saveMedia(
+            messageType = MessageType.Image,
+            sourceUri = uri
+        ) != null
     }
 
     /**

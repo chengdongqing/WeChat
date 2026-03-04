@@ -46,8 +46,9 @@ enum class MessageAction(
     Recall(R.drawable.ic_recall_outlined, "撤回"),
     MultiSelect(R.drawable.ic_multi_select_outlined, "多选"),
     SpeakerMode(R.drawable.ic_speaker_filled, "扬声器"),
-    EarpieceMode(R.drawable.ic_ear_outlined, "听筒"),
-    Quote(R.drawable.ic_quote_filled, "引用")
+    EarpieceMode(R.drawable.ic_ear_filled, "听筒"),
+    Quote(R.drawable.ic_quote_filled, "引用"),
+    Download(R.drawable.ic_download_filled, "保存")
 }
 
 /**
@@ -60,7 +61,7 @@ enum class MultiMessageAction(
     Forward(R.drawable.ic_forward_outlined, "转发"),
     Favorite(R.drawable.ic_favorites_outlined, "收藏"),
     Delete(R.drawable.ic_delete_outlined, "删除"),
-    Email(R.drawable.ic_email_outlined, "发邮件"),
+    Download(R.drawable.ic_download_outlined, "保存"),
 }
 
 /**
@@ -84,6 +85,11 @@ sealed class MessageUiEvent {
      * 显示删除确认对话框
      */
     data class ShowDeleteConfirm(val messageId: String? = null) : MessageUiEvent()
+
+    /**
+     * 显示保存确认对话框
+     */
+    object ShowDownloadConfirm : MessageUiEvent()
 
     /**
      * 转发消息

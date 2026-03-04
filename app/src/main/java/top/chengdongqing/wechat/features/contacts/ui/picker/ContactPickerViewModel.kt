@@ -31,7 +31,7 @@ class ContactPickerViewModel @Inject constructor(
      */
     val contactState = combine(
         contactRepository.observeAllContacts(),
-        profileRepository.getCurrentProfile()
+        profileRepository.observeProfile()
     ) { contacts, myProfile ->
         // 将自己插入到联系人列表
         val allContacts = if (myProfile != null) {

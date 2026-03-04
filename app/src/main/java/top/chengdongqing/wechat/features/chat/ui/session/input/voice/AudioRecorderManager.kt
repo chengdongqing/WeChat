@@ -14,7 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.FileManager
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 import javax.inject.Inject
 import kotlin.math.log10
@@ -205,7 +205,7 @@ class AudioRecorderManager @Inject constructor(
 
                 val file = currentFile
                 if (file != null && file.exists() && file.length() > 500) {
-                    val result = fileManager.saveMediaFile(
+                    val result = fileManager.saveMedia(
                         messageType = MessageType.Voice,
                         sourceFile = file
                     ).getOrNull()

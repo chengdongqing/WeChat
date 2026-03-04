@@ -335,7 +335,7 @@ private fun handleSaveToAlbum(
     viewModel: ProfileViewModel
 ) {
     toast.show(
-        title = "正在处理...",
+        title = "处理中...",
         icon = ToastIcon.Loading,
         duration = Duration.INFINITE,
         mask = true

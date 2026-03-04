@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.data.network.protocol
 
 import kotlinx.serialization.Serializable
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.domain.model.HangupReason
 

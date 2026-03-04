@@ -63,7 +63,7 @@ fun EditAvatarScreen(
         scope.launch {
             val localPath = profile?.avatarPath ?: return@launch
             val uri = File(localPath).toUri()
-            val success = viewModel.saveImage(uri, "image/jpeg")
+            val success = viewModel.saveImage(uri)
 
             toast.show(
                 title = if (success) "已保存到相册" else "保存失败",

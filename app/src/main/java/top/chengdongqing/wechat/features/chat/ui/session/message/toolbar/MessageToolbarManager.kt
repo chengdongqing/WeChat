@@ -32,7 +32,8 @@ class MessageToolbarManager(
     private val uiEvent: MutableSharedFlow<MessageUiEvent>,
     private val onRecallMessage: (String) -> Unit,
     private val onToggleSpeaker: () -> Unit,
-    private val onMultiSelect: (messageId: String) -> Unit
+    private val onSaveFile: (ChatMessage) -> Unit,
+    private val onMultiSelect: (String) -> Unit
 ) {
     private val _state = MutableStateFlow(MessageToolbarState())
     val state = _state.asStateFlow()
@@ -122,6 +123,8 @@ class MessageToolbarManager(
             MessageAction.SpeakerMode,
             MessageAction.EarpieceMode -> onToggleSpeaker()
 
+            MessageAction.Download -> onSaveFile(message)
+
             MessageAction.MultiSelect -> onMultiSelect(message.id)
 
             else -> {}
@@ -159,11 +162,13 @@ class MessageToolbarManager(
 
                 is MessageContent.Voice -> {
                     add(if (isSpeakerOn) MessageAction.EarpieceMode else MessageAction.SpeakerMode)
+                    add(MessageAction.Forward)
                     add(MessageAction.Favorite)
-                    add(MessageAction.Quote)
                     add(deleteOrRecall)
                     add(MessageAction.MultiSelect)
+                    add(MessageAction.Quote)
                     add(MessageAction.Remind)
+                    add(MessageAction.Download)
                 }
 
                 is MessageContent.Sticker -> {
@@ -172,6 +177,7 @@ class MessageToolbarManager(
                     add(MessageAction.Quote)
                     add(MessageAction.Remind)
                     add(MessageAction.MultiSelect)
+                    add(MessageAction.Download)
                 }
 
                 is MessageContent.Call -> {
@@ -199,6 +205,7 @@ class MessageToolbarManager(
                     add(deleteOrRecall)
                     add(MessageAction.MultiSelect)
                     add(MessageAction.Remind)
+                    add(MessageAction.Download)
                 }
 
                 else -> {}

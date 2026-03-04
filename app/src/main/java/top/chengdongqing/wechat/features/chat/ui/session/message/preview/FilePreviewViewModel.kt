@@ -20,6 +20,7 @@ import top.chengdongqing.wechat.core.file.MediaStoreManager
 import top.chengdongqing.wechat.core.util.openFile
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.database.dao.MessageDao
+import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.data.mapper.FileContent
 import java.io.File
 
@@ -110,12 +111,13 @@ class FilePreviewViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
 
-            val success = mediaStoreManager.saveToDownloads(
+            val res = mediaStoreManager.saveMedia(
+                messageType = MessageType.File,
                 sourceFile = File(_uiState.value.localPath!!),
                 filename = _uiState.value.filename
             )
 
-            context.showToast("文件保存${if (success) "成功" else "失败"}")
+            context.showToast("文件保存${if (res != null) "成功" else "失败"}")
             _uiState.update {
                 it.copy(isSaving = false)
             }

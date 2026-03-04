@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
 import androidx.compose.runtime.Immutable
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.model.MessageType
 
 /**
  * 聊天列表项
@@ -23,6 +23,5 @@ data class ChatSession(
     val isPinned: Boolean = false,
     val isMuted: Boolean = false,
     val isHidden: Boolean = false,
-    val isSpeakerOn: Boolean = true,
     val isOnline: Boolean = false
 )

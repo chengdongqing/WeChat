@@ -10,7 +10,7 @@ import top.chengdongqing.wechat.core.designsystem.components.location.model.Loca
 import top.chengdongqing.wechat.core.designsystem.components.location.picker.rememberPickLocationLauncher
 import top.chengdongqing.wechat.core.util.FileNameUtils
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
-import top.chengdongqing.wechat.data.database.entity.MessageType
+import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 /**

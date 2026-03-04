@@ -16,7 +16,6 @@ fun ChatSessionEntity.toDomain() = ChatSession(
     isSending = isSending,
     isPinned = isPinned,
     isMuted = isMuted,
-    isSpeakerOn = isSpeakerOn,
     draftMessage = draftMessage,
     backgroundPath = backgroundPath
 )
@@ -34,7 +33,6 @@ fun ChatSession.toEntity() = ChatSessionEntity(
     isSending = isSending,
     isPinned = isPinned,
     isMuted = isMuted,
-    isSpeakerOn = isSpeakerOn,
     draftMessage = draftMessage,
     backgroundPath = backgroundPath
 )

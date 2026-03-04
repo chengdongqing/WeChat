@@ -27,7 +27,7 @@ class ContactListViewModel @Inject constructor(
      */
     val state: StateFlow<ContactListUiState> = combine(
         contactRepository.observeAllContacts(),
-        profileRepository.getCurrentProfile(),
+        profileRepository.observeProfile(),
         friendRequestRepository.observeUnreadCount()
     ) { contacts, myProfile, unreadCount ->
         // 将自己插入到联系人列表

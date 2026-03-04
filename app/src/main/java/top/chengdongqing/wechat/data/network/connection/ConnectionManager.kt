@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.database.entity.SendError
+import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.config.TransferConfig.PING_INTERVAL
 import top.chengdongqing.wechat.data.network.config.TransferConfig.PONG_TIMEOUT
