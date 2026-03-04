@@ -216,11 +216,10 @@ private fun EmojiToggle(
             R.drawable.ic_emoji_outlined
         }
     ) {
-        when (inputMode) {
-            InputMode.Voice,
-            InputMode.Text -> actions.onSwitchMode(InputMode.Emoji)
-
-            else -> focusRequester.requestFocus()
+        if (!inputMode.isEmoji) {
+            actions.onSwitchMode(InputMode.Emoji)
+        } else {
+            focusRequester.requestFocus()
         }
     }
 }
@@ -241,11 +240,10 @@ private fun SendOrMoreToggle(
             }
         } else {
             ActionIcon(icon = R.drawable.ic_plus_circle_outlined) {
-                when (state.inputMode) {
-                    InputMode.Voice,
-                    InputMode.Text -> actions.onSwitchMode(InputMode.More)
-
-                    else -> focusRequester.requestFocus()
+                if (!state.inputMode.isMore) {
+                    actions.onSwitchMode(InputMode.More)
+                } else {
+                    focusRequester.requestFocus()
                 }
             }
         }
