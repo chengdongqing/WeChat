@@ -30,7 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
-import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.QrDotStyle
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.rememberQRCodeState

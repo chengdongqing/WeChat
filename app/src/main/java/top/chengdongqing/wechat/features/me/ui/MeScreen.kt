@@ -39,12 +39,13 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.navigation.MeRoute
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
+import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 
 @Composable
 fun MeScreen(
@@ -80,7 +81,9 @@ fun MeScreen(
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             MenuListItem("表情", R.drawable.ic_emoji_outlined, Color(0xFFF9C018))
         }
-        MenuListItem("设置", R.drawable.ic_settings_outlined, Color(0xFF2782D7))
+        MenuListItem("设置", R.drawable.ic_settings_outlined, Color(0xFF2782D7)) {
+            navController.navigate(SettingsRoute.Settings.route)
+        }
     }
 }
 

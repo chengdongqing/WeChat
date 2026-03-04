@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.designsystem.components.menulistitem
+package top.chengdongqing.wechat.core.designsystem.components.menu
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -34,7 +34,7 @@ fun MenuListItem(
     description: String? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
     showArrow: Boolean = true,
-    height: Dp = 56.dp,
+    height: Dp = 52.dp,
     onClick: (() -> Unit)? = null
 ) {
     Row(

@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 

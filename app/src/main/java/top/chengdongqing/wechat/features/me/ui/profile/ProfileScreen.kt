@@ -32,7 +32,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
-import top.chengdongqing.wechat.core.designsystem.components.menulistitem.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White

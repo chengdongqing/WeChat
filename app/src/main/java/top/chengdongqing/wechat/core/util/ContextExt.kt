@@ -3,6 +3,8 @@ package top.chengdongqing.wechat.core.util
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,4 +55,21 @@ fun Context.copyToClipboard(text: String, label: String) {
     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val clip = ClipData.newPlainText(label, text)
     clipboard.setPrimaryClip(clip)
+}
+
+/**
+ * 获取App版本号
+ */
+fun Context.getVersionName(): String {
+    val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        packageManager.getPackageInfo(
+            packageName,
+            PackageManager.PackageInfoFlags.of(0)
+        )
+    } else {
+        @Suppress("DEPRECATION")
+        packageManager.getPackageInfo(packageName, 0)
+    }
+
+    return packageInfo.versionName ?: "1.0"
 }
