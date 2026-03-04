@@ -155,7 +155,7 @@ private fun Context.getCorrectedDimensions(
                 width to height
             }
         } ?: (width to height)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         width to height
     }
 }

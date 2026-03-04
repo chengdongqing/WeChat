@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
 import top.chengdongqing.wechat.core.designsystem.components.location.picker.rememberPickLocationLauncher
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
+import top.chengdongqing.wechat.core.util.deleteFileByUri
 import top.chengdongqing.wechat.core.util.getFileConfig
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -25,10 +26,16 @@ class LocationHandler(
      * 处理位置选择结果
      */
     suspend fun handleLocationSelection(location: LocationInfo, context: Context) {
+        val uri = location.staticMapUri ?: return
+
+        // 拷贝到私有目录
         val localPath = context.copyUriToPrivateDir(
-            uri = location.staticMapUri ?: return,
-            subDir = MessageType.Image.getFileConfig().dirName
+            uri = uri,
+            subDir = MessageType.Location.getFileConfig().dirName
         ) ?: return
+
+        // 清除临时文件
+        context.deleteFileByUri(uri)
 
         val content = MessageContent.Location(
             latitude = location.coordinate.latitude,

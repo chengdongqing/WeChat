@@ -58,7 +58,7 @@ fun ImagePreview(
 
     val motionVideoUri by produceState<Uri?>(null, uri) {
         value = withContext(Dispatchers.IO) {
-            extractMotionPhotoVideo(context, uri)
+            context.extractMotionPhotoVideo(uri)
         }
     }
 
@@ -156,8 +156,8 @@ private fun MotionPhotoToggle(
 }
 
 /** 从 JPEG 文件尾部提取内嵌 MP4，写到 cache 后返回其 Uri；非动态图片返回 null */
-private fun extractMotionPhotoVideo(context: Context, uri: Uri): Uri? {
-    val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+private fun Context.extractMotionPhotoVideo(uri: Uri): Uri? {
+    val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
 
     // 内嵌 MP4 的起始标记
     val marker = byteArrayOf(0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70) // ftyp box
@@ -165,7 +165,7 @@ private fun extractMotionPhotoVideo(context: Context, uri: Uri): Uri? {
     val index = bytes.indexOfSequence(marker).takeIf { it > 0 } ?: return null
 
     val videoBytes = bytes.copyOfRange(index, bytes.size)
-    val cacheFile = File(context.cacheDir, "motion_${uri.lastPathSegment}.mp4")
+    val cacheFile = File(cacheDir, "motion_${uri.lastPathSegment}.mp4")
     cacheFile.writeBytes(videoBytes)
 
     return cacheFile.toUri()

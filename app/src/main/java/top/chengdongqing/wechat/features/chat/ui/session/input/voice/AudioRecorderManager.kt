@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.features.chat.ui.session.input.voice
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaCodec
@@ -10,7 +9,6 @@ import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.media.MediaRecorder
 import android.util.Log
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
@@ -25,7 +23,6 @@ import kotlin.math.sqrt
  * 采用 AudioRecord 采集 + MediaCodec AAC 编码 + MediaMuxer 封装 M4A
  */
 class AudioRecorderManager @Inject constructor(
-    @param:ApplicationContext private val context: Context,
     private val privateFileManager: PrivateFileManager
 ) {
 
@@ -66,8 +63,7 @@ class AudioRecorderManager @Inject constructor(
             cleanup()
 
             // 文件准备
-            val audioDir = File(context.cacheDir, "audios").apply { if (!exists()) mkdirs() }
-            currentFile = File(audioDir, "REC_${System.currentTimeMillis()}.m4a")
+            currentFile = File.createTempFile("REC_", ".m4a")
 
             // 初始化 AudioRecord (硬件降噪模式)
             audioRecord = AudioRecord(

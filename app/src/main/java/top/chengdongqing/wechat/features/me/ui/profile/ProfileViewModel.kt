@@ -162,7 +162,7 @@ class ProfileViewModel @Inject constructor(
 
         return try {
             // 删除旧头像
-            profile.avatarPath?.let { privateFileManager.deleteAvatar(it) }
+            profile.avatarPath?.let { privateFileManager.deleteFile(it) }
 
             // 保存新头像
             val newPath = privateFileManager.saveAvatar(uri, profile.id).getOrThrow()

@@ -129,7 +129,7 @@ class ChatInfoViewModel @AssistedInject constructor(
                 }
                 // 删除旧背景
                 uiState.value.backgroundPath?.let {
-                    privateFileManager.deleteMediaFile(it)
+                    privateFileManager.deleteFile(it)
                 }
                 chatSessionRepository.updateBackground(chatId, backgroundPath)
 

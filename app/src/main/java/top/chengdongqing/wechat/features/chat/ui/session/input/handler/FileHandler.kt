@@ -29,13 +29,14 @@ class FileHandler(
      */
     suspend fun handleFileSelection(uris: List<Uri>, context: Context) {
         uris.forEachIndexed { index, uri ->
+            // 解析元数据
+            val metadata = context.getFileMetadata(uri) ?: return
+
             // 拷贝到私有目录
             val localPath = context.copyUriToPrivateDir(
                 uri = uri,
                 subDir = MessageType.File.getFileConfig().dirName
             ) ?: return
-            // 解析元数据
-            val metadata = context.getFileMetadata(uri) ?: return
 
             // 构建消息内容
             val content = MessageContent.File(

@@ -99,7 +99,7 @@ fun rememberInputBarActions(
                     if (current.isNotEmpty()) "$current，$text" else text
                 )
             },
-            onSendSticker = { sticker -> onSendMessage(sticker) },
+            onSendSticker = onSendMessage,
 
             // 透传
             onLaunchCall = onLaunchCall

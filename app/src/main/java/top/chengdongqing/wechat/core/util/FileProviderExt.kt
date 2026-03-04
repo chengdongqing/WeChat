@@ -6,7 +6,6 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 
 /**
@@ -19,22 +18,23 @@ fun Context.getFileProviderUri(file: File): Uri {
 }
 
 /**
- * 创建媒体文件 Uri（用于相机/录像）
- *
- * 创建一个空文件并返回其 FileProvider Uri
+ * 删除临时文件
+ */
+suspend fun Context.deleteFileByUri(uri: Uri) = withContext(Dispatchers.IO) {
+    contentResolver.delete(uri, null, null)
+}
+
+/**
+ * 创建一个临时的空媒体文件 Uri（用于相机/录像）
  *
  * @param isVideo 是否为视频（false 为图片）
  * @return FileProvider Uri
  */
 private suspend fun Context.createMediaUri(isVideo: Boolean = false): Uri =
     withContext(Dispatchers.IO) {
-        val messageType = if (isVideo) MessageType.Video else MessageType.Image
-        val config = messageType.getFileConfig()
-
-        val fileName = generateFileName(config.prefix, config.extension)
-        val file = File(filesDir, "${config.dirName}/$fileName").apply {
-            parentFile?.mkdirs()
-        }
+        val prefix = if (isVideo) "VID_" else "IMG_"
+        val suffix = if (isVideo) ".mp4" else ".jpg"
+        val file = File.createTempFile(prefix, suffix)
 
         getFileProviderUri(file)
     }

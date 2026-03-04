@@ -49,8 +49,8 @@ class PrivateFileManager @Inject constructor(
     /**
      * 音频目录
      */
-    private val audiosDir: File
-        get() = ensureDir("audios")
+    private val recordingsDir: File
+        get() = ensureDir("recordings")
 
     /**
      * 文件目录
@@ -75,7 +75,7 @@ class PrivateFileManager @Inject constructor(
             "avatars" -> avatarDir
             "images" -> imagesDir
             "videos" -> videosDir
-            "audios" -> audiosDir
+            "recordings" -> recordingsDir
             "files" -> filesDir
             else -> filesDir
         }
@@ -107,19 +107,13 @@ class PrivateFileManager @Inject constructor(
         }
 
     /**
-     * 删除头像文件
-     */
-    suspend fun deleteAvatar(avatarPath: String): Result<Unit> =
-        deleteFile(avatarPath)
-
-    /**
      * 保存媒体文件
      *
      * 自动检测图片格式，使用正确的扩展名
      *
      * @param messageType 消息类型
      * @param sourceFile 源文件
-     * @param extension 文件扩展名（可选，会自动检测）
+     * @param extension 文件扩展名
      * @return 保存后的文件绝对路径
      */
     suspend fun saveMedia(
@@ -141,9 +135,7 @@ class PrivateFileManager @Inject constructor(
             val fileName = generateFileName(config.prefix, finalExtension)
             val targetFile = File(targetDir, fileName)
 
-            /**
-             * 使用 NIO Channel 高效复制
-             */
+            // 使用 NIO Channel 高效拷贝
             FileInputStream(sourceFile).channel.use { sourceChannel ->
                 FileOutputStream(targetFile).channel.use { targetChannel ->
                     sourceChannel.transferTo(0, sourceChannel.size(), targetChannel)
@@ -161,7 +153,7 @@ class PrivateFileManager @Inject constructor(
      *
      * @param messageType 消息类型
      * @param sourceUri 源 Uri
-     * @param extension 文件扩展名（可选）
+     * @param extension 文件扩展名
      * @return 保存后的文件绝对路径
      */
     suspend fun saveMedia(
@@ -193,15 +185,9 @@ class PrivateFileManager @Inject constructor(
     }
 
     /**
-     * 删除媒体文件
+     * 删除文件
      */
-    suspend fun deleteMediaFile(filePath: String): Result<Unit> =
-        deleteFile(filePath)
-
-    /**
-     * 删除文件（通用）
-     */
-    private suspend fun deleteFile(filePath: String): Result<Unit> =
+    suspend fun deleteFile(filePath: String): Result<Unit> =
         withContext(Dispatchers.IO) {
             try {
                 val file = File(filePath)
@@ -234,7 +220,7 @@ class PrivateFileManager @Inject constructor(
      */
     suspend fun clearAllMediaFiles(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            listOf(avatarDir, imagesDir, videosDir, audiosDir, filesDir).forEach { dir ->
+            listOf(avatarDir, imagesDir, videosDir, recordingsDir, filesDir).forEach { dir ->
                 dir.listFiles()?.forEach { it.delete() }
             }
             Result.success(Unit)

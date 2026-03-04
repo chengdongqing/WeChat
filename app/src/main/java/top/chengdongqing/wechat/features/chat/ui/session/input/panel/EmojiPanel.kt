@@ -54,7 +54,7 @@ import top.chengdongqing.wechat.core.designsystem.model.Stickers
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.repeatingClickable
 import top.chengdongqing.wechat.core.util.asAssetPath
-import top.chengdongqing.wechat.core.util.copyAssetToFile
+import top.chengdongqing.wechat.core.util.copyAssetToPrivateDir
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 /**
@@ -361,6 +361,7 @@ private fun StickerItem(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    // 在选择器里面表情图片要保持静态
     val imageRequest = remember(sticker.localPath) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ImageRequest.Builder(context)
@@ -378,8 +379,12 @@ private fun StickerItem(
             .clip(RoundedCornerShape(4.dp))
             .clickable {
                 scope.launch {
-                    val file = context.copyAssetToFile(sticker.localPath)
-                    onSelect(MessageContent.Sticker(file.absolutePath))
+                    // 拷贝到私有目录，已存在则不再次拷贝
+                    val localPath = context.copyAssetToPrivateDir(
+                        assetName = sticker.localPath
+                    ) ?: return@launch
+
+                    onSelect(MessageContent.Sticker(localPath))
                 }
             },
         contentAlignment = Alignment.Center

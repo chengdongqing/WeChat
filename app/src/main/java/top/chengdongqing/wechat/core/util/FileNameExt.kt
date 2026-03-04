@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.core.util
 
 import top.chengdongqing.wechat.data.model.MessageType
+import java.io.File
 
 /**
  * 文件配置
@@ -16,11 +17,11 @@ data class FileConfig(
  */
 fun MessageType.getFileConfig(): FileConfig {
     return when (this) {
-        MessageType.Image,
-        MessageType.Sticker -> FileConfig("images", "IMG", "jpg")
-
+        MessageType.Image -> FileConfig("images", "IMG", "jpg")
         MessageType.Video -> FileConfig("videos", "VID", "mp4")
-        MessageType.Voice -> FileConfig("audios", "RCD", "m4a")
+        MessageType.Voice -> FileConfig("recordings", "RCD", "m4a")
+        MessageType.Sticker -> FileConfig("stickers", "IMG", "jpg")
+        MessageType.Location -> FileConfig("snapshots", "IMG", "jpg")
         else -> FileConfig("files", "FILE", "bin")
     }
 }
@@ -50,4 +51,12 @@ fun String?.extractExtension(): String? {
         return null
     }
     return substring(lastDotIndex + 1)
+}
+
+/**
+ * 根据文件绝对路径获取文件名
+ */
+fun String?.getFileName(): String? {
+    if (this.isNullOrBlank()) return null
+    return File(this).name
 }

@@ -56,7 +56,7 @@ class PublicFileManager @Inject constructor(
      *
      * @param messageType 消息类型，决定写入哪个 MediaStore 集合
      * @param sourceUri   源文件 Uri（content:// 或 file://）
-     * @param filename    目标文件名（含扩展名），为 null 时自动生成
+     * @param filename    目标文件名
      * @return 成功返回写入后的 Uri，失败返回 null
      */
     suspend fun saveMedia(
@@ -76,7 +76,7 @@ class PublicFileManager @Inject constructor(
      *
      * @param messageType 消息类型
      * @param sourceFile  源文件
-     * @param filename    目标文件名（含扩展名），为 null 时自动生成
+     * @param filename    目标文件名
      * @return 成功返回写入后的 Uri，失败返回 null
      */
     suspend fun saveMedia(

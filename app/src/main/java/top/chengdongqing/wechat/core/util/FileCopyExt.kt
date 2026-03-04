@@ -94,7 +94,7 @@ suspend fun Context.copyUriToPrivateDir(
 
         contentResolver.openInputStream(uri)?.use { input ->
             FileOutputStream(destFile).use { output ->
-                input.copyTo(output)
+                input.copyTo(output, 64 * 1024)
             }
         } ?: return@withContext null
 
@@ -107,25 +107,30 @@ suspend fun Context.copyUriToPrivateDir(
 
 /**
  * 复制 Asset 文件到私有目录
+ * 若已存在则不重新创建
  *
  * @param assetName Asset 文件名
- * @return 文件对象
+ * @return 文件绝对路径，失败返回 null
  */
-suspend fun Context.copyAssetToFile(assetName: String): File =
-    withContext(Dispatchers.IO) {
-        val file = File(filesDir, assetName)
-        if (file.exists()) return@withContext file
+suspend fun Context.copyAssetToPrivateDir(
+    assetName: String
+): String? = withContext(Dispatchers.IO) {
+    try {
+        val destFile = File(filesDir, assetName).also { it.mkdirs() }
+        if (destFile.exists()) return@withContext destFile.absolutePath
 
-        file.parentFile?.mkdirs()
-
-        assets.open(assetName).use { inputStream ->
-            FileOutputStream(file).use { outputStream ->
-                inputStream.copyTo(outputStream)
+        assets.open(assetName).use { input ->
+            FileOutputStream(destFile).use { output ->
+                input.copyTo(output)
             }
         }
 
-        file
+        destFile.absolutePath
+    } catch (e: Exception) {
+        Log.e("FileCopy", "复制文件失败", e)
+        null
     }
+}
 
 /**
  * 从 Bitmap 创建临时 Uri
@@ -138,7 +143,7 @@ suspend fun Context.createImageUri(
     bitmap: Bitmap,
     quality: Int = 90
 ): Uri = withContext(Dispatchers.IO) {
-    val tempFile = File.createTempFile("IMG_", ".jpg", cacheDir)
+    val tempFile = File.createTempFile("IMG_", ".jpg")
 
     FileOutputStream(tempFile).use { outputStream ->
         bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
