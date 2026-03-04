@@ -59,7 +59,7 @@ class ContactPickerViewModel @Inject constructor(
     /**
      * 按字母分组
      */
-    private fun List<Contact>.groupByInitial(): Map<Char, List<ContactListItem>> =
+    private suspend fun List<Contact>.groupByInitial(): Map<Char, List<ContactListItem>> =
         this
             .toListItem()
             .groupBy { it.initial }

@@ -3,12 +3,15 @@ package top.chengdongqing.wechat.core.designsystem.components.app
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.designsystem.components.app.model.AppItem
 import top.chengdongqing.wechat.core.designsystem.components.app.repository.AppRepository
+import top.chengdongqing.wechat.core.util.getInitial
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,21 +60,23 @@ class AppPickerViewModel @Inject constructor(
     /**
      * 按应用名首字母分组并排序，非字母开头归入 '#' 组排最后
      */
-    private fun List<AppItem>.groupByInitial(): Map<Char, List<AppItem>> =
-        groupBy { it.initial }
-            .toSortedMap { a, b ->
-                when {
-                    a == '#' -> 1
-                    b == '#' -> -1
-                    else -> a.compareTo(b)
+    private suspend fun List<AppItem>.groupByInitial(): Map<Char, List<AppItem>> =
+        withContext(Dispatchers.Default) {
+            groupBy { it.name.getInitial() }
+                .toSortedMap { a, b ->
+                    when {
+                        a == '#' -> 1
+                        b == '#' -> -1
+                        else -> a.compareTo(b)
+                    }
                 }
-            }
+        }
 
     /**
      * 计算每个首字母在列表中对应的起始索引，用于快速定位侧边栏
      */
     private fun calculateIndexMap(groups: Map<Char, List<AppItem>>): Map<Char, Int> {
-        var currentIndex = 0
+        var currentIndex = 1 // 顶部有一个空白间距
         return buildMap {
             groups.forEach { (initial, apks) ->
                 put(initial, currentIndex)
@@ -99,12 +104,6 @@ class AppPickerViewModel @Inject constructor(
         }
     }
 }
-
-val AppItem.initial: Char
-    get() {
-        val first = name.firstOrNull()?.uppercaseChar() ?: '#'
-        return if (first in 'A'..'Z') first else '#'
-    }
 
 data class AppPickerUiState(
     val isLoading: Boolean = true,

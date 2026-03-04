@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.features.contacts.data.mapper
 
-import top.chengdongqing.wechat.core.util.PinyinHelper.getInitial
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.core.util.getInitial
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactListItem
@@ -45,7 +47,10 @@ fun Contact.toListItem(): ContactListItem = ContactListItem(
 )
 
 @JvmName("toContactList")
-fun List<Contact>.toListItem(): List<ContactListItem> = map { it.toListItem() }
+suspend fun List<Contact>.toListItem(): List<ContactListItem> =
+    withContext(Dispatchers.Default) {
+        map { it.toListItem() }
+    }
 
 fun UserProfile.toContact(): Contact = Contact(
     id = id,

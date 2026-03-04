@@ -164,6 +164,10 @@ fun AppPicker(
                         }
                     }
                 }
+
+                item {
+                    Spacer(modifier = Modifier.height(100.dp))
+                }
             }
 
             // 右侧字母索引栏
