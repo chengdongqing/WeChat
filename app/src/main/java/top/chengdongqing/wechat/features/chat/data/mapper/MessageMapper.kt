@@ -10,10 +10,6 @@ import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent.File
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent.Media
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent.Sticker
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent.Voice
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 
 fun MessageEntity.toDomain(json: Json): ChatMessage {
@@ -177,7 +173,7 @@ fun MessageContent.toEntity(
 
         is MessageContent.Voice ->
             base(
-                contentValue = "",
+                contentValue = content.localPath,
                 localPath = content.localPath,
                 mediaDuration = content.duration
             )
@@ -291,10 +287,10 @@ fun MessageContent.toMessageType(): MessageType = when (this) {
 }
 
 fun MessageContent.getLocalPath(): String? = when (this) {
-    is Voice -> localPath
-    is Media -> localPath
-    is File -> localPath
-    is Sticker -> localPath
+    is MessageContent.Voice -> localPath
+    is MessageContent.Media -> localPath
+    is MessageContent.File -> localPath
+    is MessageContent.Sticker -> localPath
     else -> null
 }
 
