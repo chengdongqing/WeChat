@@ -172,8 +172,15 @@ class MessageRepositoryImpl @Inject constructor(
         // 查询消息详情
         val message = messageDao.getById(messageId)
 
-        // 删除消息
-        messageDao.deleteById(messageId)
+        database.withTransaction {
+            // 删除消息
+            messageDao.deleteById(messageId)
+
+            message?.let {
+                // 重新设置会话
+                updateLastMessage(it.sessionId)
+            }
+        }
 
         // 删除关联的媒体文件
         message?.localPath?.let { path ->
@@ -225,19 +232,25 @@ class MessageRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteMessages(ids: Set<String>) = withContext(Dispatchers.IO) {
-        // 查询消息关联的媒体文件
-        val localPaths = messageDao.getLocalPathsByIds(ids)
+    override suspend fun deleteMessages(ids: Set<String>, sessionId: String) =
+        withContext(Dispatchers.IO) {
+            // 查询消息关联的媒体文件
+            val localPaths = messageDao.getLocalPathsByIds(ids)
 
-        // 批量删除消息记录
-        messageDao.deleteByIds(ids)
+            database.withTransaction {
+                // 批量删除消息记录
+                messageDao.deleteByIds(ids)
 
-        // 批量删除可能存在的本地文件
-        val toDelete = fileReferenceManager.releaseAll(localPaths)
-        deleteLocalFiles(toDelete)
+                // 重新设置会话
+                updateLastMessage(sessionId)
+            }
 
-        Unit
-    }
+            // 批量删除可能存在的本地文件
+            val toDelete = fileReferenceManager.releaseAll(localPaths)
+            deleteLocalFiles(toDelete)
+
+            Unit
+        }
 
     override suspend fun forwardMessages(
         ids: Set<String>,
@@ -264,5 +277,21 @@ class MessageRepositoryImpl @Inject constructor(
         }.awaitAll()
 
         Unit
+    }
+
+    private suspend fun updateLastMessage(sessionId: String) {
+        // 查询最新的消息
+        val latestMessage = messageDao.getLatestMessage(sessionId)
+
+        if (latestMessage != null) {
+            // 更新到session
+            chatSessionUpdater.update(
+                message = latestMessage,
+                isSending = latestMessage.sendStatus == SendStatus.Sending
+            )
+        } else {
+            // 直接清除
+            chatSessionDao.clearLastMessage(sessionId)
+        }
     }
 }

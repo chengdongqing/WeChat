@@ -519,7 +519,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         val ids = _uiState.value.selectedMessageIds
 
         viewModelScope.launch {
-            messageRepository.deleteMessages(ids)
+            messageRepository.deleteMessages(ids, chatId)
         }
 
         exitSelectMode()

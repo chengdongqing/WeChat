@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.features.chat.data.mapper
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.util.getFileName
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.model.SendError
@@ -174,7 +173,7 @@ fun MessageContent.toEntity(
 
         is MessageContent.Voice ->
             base(
-                contentValue = content.localPath.run { getFileName() ?: this },
+                contentValue = content.localPath,
                 localPath = content.localPath,
                 mediaDuration = content.duration
             )
@@ -222,7 +221,7 @@ fun MessageContent.toEntity(
 
         is MessageContent.Sticker ->
             base(
-                contentValue = content.localPath.run { getFileName() ?: this },
+                contentValue = content.localPath,
                 localPath = content.localPath
             )
 

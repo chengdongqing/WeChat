@@ -44,8 +44,6 @@ class ChatSessionUpdater @Inject constructor(
 
     /**
      * 根据新消息更新对应会话
-     *
-     * 未读计数规则：自己发的、给自己发的（自我会话）、当前正在查看的，均不计未读。
      */
     suspend fun update(message: MessageEntity, isSending: Boolean = false) {
         // 是否是和自己的会话
