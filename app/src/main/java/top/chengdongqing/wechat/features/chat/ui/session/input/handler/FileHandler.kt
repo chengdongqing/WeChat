@@ -12,8 +12,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.app.model.AppResult
 import top.chengdongqing.wechat.core.designsystem.components.app.rememberPickAppLauncher
-import top.chengdongqing.wechat.core.util.FileNameUtils.getFileConfig
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
+import top.chengdongqing.wechat.core.util.getFileConfig
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -32,7 +32,7 @@ class FileHandler(
             // 拷贝到私有目录
             val localPath = context.copyUriToPrivateDir(
                 uri = uri,
-                subDir = getFileConfig(MessageType.File).dirName
+                subDir = MessageType.File.getFileConfig().dirName
             ) ?: return
             // 解析元数据
             val metadata = context.getFileMetadata(uri) ?: return

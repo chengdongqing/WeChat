@@ -26,7 +26,8 @@ class MediaPreviewViewModel @Inject constructor(
         viewModelScope.launch {
             val res = mediaStoreManager.saveMedia(
                 messageType = if (media.isImage) MessageType.Image else MessageType.Video,
-                sourceUri = media.uri
+                sourceUri = media.uri,
+                filename = media.filename
             )
             if (res != null) {
                 context.showToast("已保存到相册")

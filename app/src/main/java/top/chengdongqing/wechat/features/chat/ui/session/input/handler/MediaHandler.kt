@@ -15,8 +15,8 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememberPickMediasLauncher
-import top.chengdongqing.wechat.core.util.FileNameUtils.getFileConfig
 import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
+import top.chengdongqing.wechat.core.util.getFileConfig
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -44,7 +44,7 @@ class MediaHandler(
         // 拷贝文件
         val localPath = context.copyUriToPrivateDir(
             uri = uri,
-            subDir = getFileConfig(messageType).dirName
+            subDir = messageType.getFileConfig().dirName
         ) ?: return
         val fileSize = File(localPath).length()
 

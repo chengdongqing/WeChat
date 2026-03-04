@@ -5,7 +5,10 @@ import android.net.Uri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.util.FileNameUtils
+import top.chengdongqing.wechat.core.util.extractExtension
+import top.chengdongqing.wechat.core.util.generateFileName
+import top.chengdongqing.wechat.core.util.getFileConfig
+import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 import java.io.FileInputStream
@@ -129,21 +132,13 @@ class FileManager @Inject constructor(
                 return@withContext Result.failure(IllegalStateException("源文件不存在"))
             }
 
-            val config = FileNameUtils.getFileConfig(messageType)
+            val config = messageType.getFileConfig()
             val targetDir = getDirectory(config.dirName)
 
-            /**
-             * 确定最终扩展名
-             * 优先级：手动指定 > 检测格式 > 源文件扩展名 > 默认扩展名
-             */
-            val finalExtension = when {
-                !extension.isNullOrBlank() -> extension.trimStart('.')
-                messageType == MessageType.Image -> FileNameUtils.detectImageFormat(sourceFile)
-                sourceFile.extension.isNotBlank() -> sourceFile.extension
-                else -> config.extension
-            }
+            val finalExtension = extension?.trimStart('.') // 优先使用传入的后缀名
+                ?: sourceFile.extension // 通过文件名获取
 
-            val fileName = FileNameUtils.generateFileName(config.prefix, finalExtension)
+            val fileName = generateFileName(config.prefix, finalExtension)
             val targetFile = File(targetDir, fileName)
 
             /**
@@ -175,11 +170,14 @@ class FileManager @Inject constructor(
         extension: String? = null
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            val config = FileNameUtils.getFileConfig(messageType)
+            val config = messageType.getFileConfig()
             val targetDir = getDirectory(config.dirName)
 
-            val finalExtension = extension?.trimStart('.') ?: config.extension
-            val fileName = FileNameUtils.generateFileName(config.prefix, finalExtension)
+            val finalExtension = extension?.trimStart('.') // 优先使用传入的后缀名
+                ?: context.getFileMetadata(sourceUri)?.filename.extractExtension() // 通过contentResolver查询后缀名
+                ?: config.extension // 最后使用默认的
+
+            val fileName = generateFileName(config.prefix, finalExtension)
             val targetFile = File(targetDir, fileName)
 
             context.contentResolver.openInputStream(sourceUri)?.use { input ->
@@ -187,24 +185,6 @@ class FileManager @Inject constructor(
                     input.copyTo(output)
                 }
             } ?: return@withContext Result.failure(Exception("无法打开源文件"))
-
-            /**
-             * 图片格式检测和重命名
-             */
-            if (messageType == MessageType.Image && extension == null) {
-                val detectedExt = FileNameUtils.detectImageFormat(targetFile)
-                if (detectedExt != finalExtension) {
-                    val newFileName = FileNameUtils.generateFileName(
-                        config.prefix,
-                        detectedExt,
-                        targetFile.nameWithoutExtension.substringAfter('_').toLongOrNull()
-                            ?: System.currentTimeMillis()
-                    )
-                    val newFile = File(targetDir, newFileName)
-                    targetFile.renameTo(newFile)
-                    return@withContext Result.success(newFile.absolutePath)
-                }
-            }
 
             Result.success(targetFile.absolutePath)
         } catch (e: Exception) {
@@ -268,7 +248,7 @@ class FileManager @Inject constructor(
      */
     suspend fun getDirectorySize(messageType: MessageType): Long =
         withContext(Dispatchers.IO) {
-            val config = FileNameUtils.getFileConfig(messageType)
+            val config = messageType.getFileConfig()
             val dir = getDirectory(config.dirName)
             dir.walk().filter { it.isFile }.sumOf { it.length() }
         }

@@ -12,7 +12,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.util.FileNameUtils
+import top.chengdongqing.wechat.core.util.extractExtension
+import top.chengdongqing.wechat.core.util.generateFileName
+import top.chengdongqing.wechat.core.util.getFileConfig
+import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 import javax.inject.Inject
@@ -62,7 +65,7 @@ class MediaStoreManager @Inject constructor(
         filename: String? = null
     ): Uri? = withContext(Dispatchers.IO) {
         runCatching {
-            val config = resolveConfig(messageType, filename, sourceUri)
+            val config = resolveConfig(messageType, filename, sourceUri = sourceUri)
             writeToMediaStore(config, sourceUri = sourceUri)
         }.onFailure { Log.e(TAG, "saveMedia(Uri) 失败", it) }
             .getOrNull()
@@ -133,22 +136,28 @@ class MediaStoreManager @Inject constructor(
     /**
      * 根据 MessageType 解析 MediaStore 写入配置
      */
-    private fun resolveConfig(
+    private suspend fun resolveConfig(
         messageType: MessageType,
         filename: String?,
         sourceUri: Uri? = null,
         sourceFile: File? = null
     ): MediaConfig {
-        val fileConfig = FileNameUtils.getFileConfig(messageType)
+        val fileConfig = messageType.getFileConfig()
+
+        val finalExtension = filename.extractExtension() ?: run {
+            if (sourceUri != null) {
+                context.getFileMetadata(sourceUri)?.filename.extractExtension()
+            } else {
+                sourceFile?.extension
+            }
+        } ?: fileConfig.extension
 
         // 确定文件名
         val finalFilename = when {
-            !filename.isNullOrBlank() -> filename
-            sourceFile != null -> sourceFile.name.ifBlank {
-                FileNameUtils.generateFileName(fileConfig.prefix, fileConfig.extension)
-            }
-
-            else -> FileNameUtils.generateFileName(fileConfig.prefix, fileConfig.extension)
+            // 是文件类型时，以传入的文件名为主
+            messageType == MessageType.File && !filename.isNullOrBlank() -> filename
+            // 其余情况都重新生成文件名
+            else -> generateFileName(fileConfig.prefix, finalExtension)
         }
 
         // 确定 MIME 类型
@@ -180,14 +189,22 @@ class MediaStoreManager @Inject constructor(
                 )
             )
 
-            MessageType.Voice -> MediaConfig(
-                collectionUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                contentValues = buildContentValues(
-                    displayName = finalFilename,
-                    mimeType = mimeType,
-                    relativePath = "${if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Environment.DIRECTORY_RECORDINGS else Environment.DIRECTORY_MUSIC}/$appName"
+            MessageType.Voice -> {
+                val parentDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    Environment.DIRECTORY_RECORDINGS
+                } else {
+                    Environment.DIRECTORY_MUSIC
+                }
+
+                MediaConfig(
+                    collectionUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    contentValues = buildContentValues(
+                        displayName = finalFilename,
+                        mimeType = mimeType,
+                        relativePath = "${parentDir}/$appName"
+                    )
                 )
-            )
+            }
 
             // File 及其他类型 → Downloads
             else -> MediaConfig(

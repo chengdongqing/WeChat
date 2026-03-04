@@ -29,9 +29,9 @@ fun Context.getFileProviderUri(file: File): Uri {
 private suspend fun Context.createMediaUri(isVideo: Boolean = false): Uri =
     withContext(Dispatchers.IO) {
         val messageType = if (isVideo) MessageType.Video else MessageType.Image
-        val config = FileNameUtils.getFileConfig(messageType)
+        val config = messageType.getFileConfig()
 
-        val fileName = FileNameUtils.generateFileName(config.prefix, config.extension)
+        val fileName = generateFileName(config.prefix, config.extension)
         val file = File(filesDir, "${config.dirName}/$fileName").apply {
             parentFile?.mkdirs()
         }
@@ -64,14 +64,7 @@ fun Context.shareFile(
     title: String = "分享文件"
 ) {
     val uri = getFileProviderUri(file)
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = mimeType
-        putExtra(Intent.EXTRA_STREAM, uri)
-        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-    }
-    startActivity(Intent.createChooser(intent, title).apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-    })
+    shareUri(uri, mimeType, title)
 }
 
 /**
@@ -82,15 +75,9 @@ fun Context.shareUri(
     mimeType: String,
     title: String = "分享文件"
 ) {
-    val shareUri = if (uri.scheme == "file") {
-        getFileProviderUri(File(uri.path!!))
-    } else {
-        uri
-    }
-
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = mimeType
-        putExtra(Intent.EXTRA_STREAM, shareUri)
+        putExtra(Intent.EXTRA_STREAM, uri)
         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
     }
     startActivity(Intent.createChooser(intent, title).apply {
