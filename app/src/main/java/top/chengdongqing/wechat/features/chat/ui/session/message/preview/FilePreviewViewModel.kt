@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.file.MediaStoreManager
+import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.util.openFile
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.database.dao.MessageDao
@@ -41,7 +41,7 @@ class FilePreviewViewModel @AssistedInject constructor(
     @Assisted private val messageId: String,
     private val messageDao: MessageDao,
     private val json: Json,
-    private val mediaStoreManager: MediaStoreManager,
+    private val publicFileManager: PublicFileManager,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -111,7 +111,7 @@ class FilePreviewViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
 
-            val res = mediaStoreManager.saveMedia(
+            val res = publicFileManager.saveMedia(
                 messageType = MessageType.File,
                 sourceFile = File(_uiState.value.localPath!!),
                 filename = _uiState.value.filename

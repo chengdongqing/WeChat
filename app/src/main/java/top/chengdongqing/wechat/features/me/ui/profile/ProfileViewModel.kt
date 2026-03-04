@@ -15,8 +15,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.file.FileManager
-import top.chengdongqing.wechat.core.file.MediaStoreManager
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
@@ -35,8 +35,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val fileManager: FileManager,
-    private val mediaStoreManager: MediaStoreManager,
+    private val privateFileManager: PrivateFileManager,
+    private val publicFileManager: PublicFileManager,
     private val qrCodeUseCase: QRCodeUseCase
 ) : ViewModel() {
 
@@ -162,10 +162,10 @@ class ProfileViewModel @Inject constructor(
 
         return try {
             // 删除旧头像
-            profile.avatarPath?.let { fileManager.deleteAvatar(it) }
+            profile.avatarPath?.let { privateFileManager.deleteAvatar(it) }
 
             // 保存新头像
-            val newPath = fileManager.saveAvatar(uri, profile.id).getOrThrow()
+            val newPath = privateFileManager.saveAvatar(uri, profile.id).getOrThrow()
 
             // 更新资料
             profileRepository.updateProfile(avatarPath = newPath)
@@ -195,7 +195,7 @@ class ProfileViewModel @Inject constructor(
      * 保存图片
      */
     suspend fun saveImage(uri: Uri): Boolean {
-        return mediaStoreManager.saveMedia(
+        return publicFileManager.saveMedia(
             messageType = MessageType.Image,
             sourceUri = uri
         ) != null

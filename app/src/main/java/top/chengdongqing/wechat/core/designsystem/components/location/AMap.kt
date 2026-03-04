@@ -256,17 +256,15 @@ interface AMapState {
 @Composable
 fun rememberAMapState(): AMapState {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val isDarkTheme = isSystemInDarkTheme()
 
     return remember {
-        AMapStateImpl(context, scope, isDarkTheme)
+        AMapStateImpl(context, isDarkTheme)
     }
 }
 
 private class AMapStateImpl(
     private val context: Context,
-    private val scope: CoroutineScope,
     isDarkTheme: Boolean
 ) : AMapState {
     override val mapView: MapView
@@ -298,7 +296,7 @@ private class AMapStateImpl(
         return suspendCancellableCoroutine { continuation ->
             map.isMyLocationEnabled = false
 
-            val locationMarker = markerIcon?.let {
+            markerIcon?.let {
                 map.addMarker(MarkerOptions().apply {
                     position(map.cameraPosition.target)
                     icon(it)
@@ -307,8 +305,6 @@ private class AMapStateImpl(
 
             map.getMapScreenShot(object : AMap.OnMapScreenShotListener {
                 private fun cleanup(bitmap: Bitmap?) {
-                    locationMarker?.remove()
-                    map.isMyLocationEnabled = true
                     if (continuation.isActive) {
                         continuation.resume(bitmap) { _, _, _ ->
                             bitmap?.recycle()

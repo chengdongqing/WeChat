@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.core.file.FileManager
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.deleteLocalFile
 import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.core.util.isWithinSeconds
@@ -48,7 +48,7 @@ class MessageDispatcher @Inject constructor(
     private val chatSessionRepository: ChatSessionRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val fileReferenceManager: FileReferenceManager,
-    private val fileManager: FileManager,
+    private val privateFileManager: PrivateFileManager,
     private val signalingManager: SignalingManager,
     private val transferManager: TransferManager,
     private val activeSessionManager: ActiveSessionManager,
@@ -91,7 +91,7 @@ class MessageDispatcher @Inject constructor(
     /**
      * 分发媒体消息
      *
-     * tempFile 由 [MessageReceiver] 传入，处理完成后由 [FileManager] 或异常处理负责删除。
+     * tempFile 由 [MessageReceiver] 传入，处理完成后由 [PrivateFileManager] 或异常处理负责删除。
      */
     suspend fun dispatch(protocol: ChatProtocol.MediaMessage, tempFile: File) {
         runCatching {
@@ -312,7 +312,7 @@ class MessageDispatcher @Inject constructor(
             protocol.content
         }
 
-        val localPath = fileManager.saveMedia(
+        val localPath = privateFileManager.saveMedia(
             messageType = protocol.messageType,
             sourceFile = tempFile,
             extension = filename.extractExtension()

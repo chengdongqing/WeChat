@@ -35,7 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaIt
 import top.chengdongqing.wechat.core.designsystem.components.media.preview.previewMedias
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastState
-import top.chengdongqing.wechat.core.file.MediaStoreManager
+import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
@@ -71,7 +71,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val settingsRepository: SettingsRepository,
     private val contactRepository: ContactRepository,
     private val contactP2PRepository: ContactP2PRepository,
-    private val mediaStoreManager: MediaStoreManager,
+    private val publicFileManager: PublicFileManager,
     private val soundTipPlayer: SoundTipPlayer,
     private val notificationHelper: NotificationHelper,
     val activeSessionManager: ActiveSessionManager,
@@ -390,7 +390,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         val file = File(localPath)
 
         viewModelScope.launch {
-            val res = mediaStoreManager.saveMedia(
+            val res = publicFileManager.saveMedia(
                 messageType = message.content.toMessageType(),
                 sourceFile = file,
                 filename = file.name
@@ -554,7 +554,7 @@ class ChatSessionViewModel @AssistedInject constructor(
             val results = contents.map { content ->
                 async {
                     val file = File(content.getLocalPath()!!)
-                    mediaStoreManager.saveMedia(
+                    publicFileManager.saveMedia(
                         messageType = content.toMessageType(),
                         sourceFile = file,
                         filename = file.name

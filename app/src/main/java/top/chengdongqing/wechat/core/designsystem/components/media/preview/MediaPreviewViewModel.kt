@@ -7,7 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
-import top.chengdongqing.wechat.core.file.MediaStoreManager
+import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.util.shareUri
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.model.MessageType
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MediaPreviewViewModel @Inject constructor(
-    private val mediaStoreManager: MediaStoreManager,
+    private val publicFileManager: PublicFileManager,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -24,7 +24,7 @@ class MediaPreviewViewModel @Inject constructor(
      */
     fun saveMedia(media: MediaItem) {
         viewModelScope.launch {
-            val res = mediaStoreManager.saveMedia(
+            val res = publicFileManager.saveMedia(
                 messageType = if (media.isImage) MessageType.Image else MessageType.Video,
                 sourceUri = media.uri,
                 filename = media.filename

@@ -52,22 +52,6 @@ suspend fun Context.createVideoUri(): Uri =
     createMediaUri(isVideo = true)
 
 /**
- * 分享文件
- *
- * @param file 要分享的文件
- * @param mimeType MIME 类型
- * @param title 分享标题
- */
-fun Context.shareFile(
-    file: File,
-    mimeType: String,
-    title: String = "分享文件"
-) {
-    val uri = getFileProviderUri(file)
-    shareUri(uri, mimeType, title)
-}
-
-/**
  * 分享 Uri
  */
 fun Context.shareUri(
@@ -75,9 +59,15 @@ fun Context.shareUri(
     mimeType: String,
     title: String = "分享文件"
 ) {
+    val shareUri = if (uri.scheme == "file") {
+        getFileProviderUri(File(uri.path!!))
+    } else {
+        uri
+    }
+
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = mimeType
-        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_STREAM, shareUri)
         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
     }
     startActivity(Intent.createChooser(intent, title).apply {

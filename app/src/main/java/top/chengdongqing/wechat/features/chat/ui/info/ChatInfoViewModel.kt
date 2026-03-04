@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.file.FileManager
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
@@ -41,7 +41,7 @@ class ChatInfoViewModel @AssistedInject constructor(
     private val chatSessionRepository: ChatSessionRepository,
     private val contactRepository: ContactRepository,
     private val profileRepository: ProfileRepository,
-    private val fileManager: FileManager,
+    private val privateFileManager: PrivateFileManager,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -122,14 +122,14 @@ class ChatInfoViewModel @AssistedInject constructor(
             try {
                 // 保存新背景
                 val backgroundPath = uri?.let { uri ->
-                    fileManager.saveMedia(
+                    privateFileManager.saveMedia(
                         messageType = MessageType.Image,
                         sourceUri = uri
                     ).getOrThrow()
                 }
                 // 删除旧背景
                 uiState.value.backgroundPath?.let {
-                    fileManager.deleteMediaFile(it)
+                    privateFileManager.deleteMediaFile(it)
                 }
                 chatSessionRepository.updateBackground(chatId, backgroundPath)
 

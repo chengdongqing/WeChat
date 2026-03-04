@@ -32,11 +32,11 @@ import javax.inject.Singleton
  * - 管理 IS_PENDING 状态，确保写入原子性
  */
 @Singleton
-class MediaStoreManager @Inject constructor(
+class PublicFileManager @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
     companion object {
-        private const val TAG = "MediaStoreManager"
+        private const val TAG = "PublicFileManager"
     }
 
     private val contentResolver: ContentResolver

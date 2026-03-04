@@ -25,7 +25,7 @@ import javax.inject.Singleton
  * - 自动处理文件格式检测和命名
  */
 @Singleton
-class FileManager @Inject constructor(
+class PrivateFileManager @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
     /**

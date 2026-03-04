@@ -13,7 +13,7 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.file.FileManager
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 import javax.inject.Inject
@@ -26,7 +26,7 @@ import kotlin.math.sqrt
  */
 class AudioRecorderManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val fileManager: FileManager
+    private val privateFileManager: PrivateFileManager
 ) {
 
     private var audioRecord: AudioRecord? = null
@@ -205,7 +205,7 @@ class AudioRecorderManager @Inject constructor(
 
                 val file = currentFile
                 if (file != null && file.exists() && file.length() > 500) {
-                    val result = fileManager.saveMedia(
+                    val result = privateFileManager.saveMedia(
                         messageType = MessageType.Voice,
                         sourceFile = file
                     ).getOrNull()

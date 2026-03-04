@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.file.FileManager
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -25,7 +25,7 @@ data class ProfileSetupUiState(
 @HiltViewModel
 class ProfileSetupViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val fileManager: FileManager
+    private val privateFileManager: PrivateFileManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileSetupUiState())
@@ -67,7 +67,7 @@ class ProfileSetupViewModel @Inject constructor(
 
                 // 保存头像文件
                 val avatarPath = currentState.avatarUri?.let { uri ->
-                    fileManager.saveAvatar(uri, userId).getOrThrow()
+                    privateFileManager.saveAvatar(uri, userId).getOrThrow()
                 }
 
                 // 创建用户资料
