@@ -116,7 +116,9 @@ suspend fun Context.copyAssetToPrivateDir(
     assetName: String
 ): String? = withContext(Dispatchers.IO) {
     try {
-        val destFile = File(filesDir, assetName).also { it.mkdirs() }
+        val destFile = File(filesDir, assetName).also {
+            it.parentFile?.mkdirs()
+        }
         if (destFile.exists()) return@withContext destFile.absolutePath
 
         assets.open(assetName).use { input ->

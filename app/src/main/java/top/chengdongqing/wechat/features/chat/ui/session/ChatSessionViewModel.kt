@@ -386,14 +386,15 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun saveFile(message: ChatMessage) {
-        val localPath = message.content.getLocalPath() ?: return
-        val file = File(localPath)
+        val content = message.content
+        val file = File(content.getLocalPath() ?: return)
+        val filename = if (content is MessageContent.File) content.filename else null
 
         viewModelScope.launch {
             val res = publicFileManager.saveMedia(
                 messageType = message.content.toMessageType(),
                 sourceFile = file,
-                filename = file.name
+                filename = filename
             )
 
             res?.let {
@@ -552,12 +553,14 @@ class ChatSessionViewModel @AssistedInject constructor(
 
             // 并发保存所有文件，等待全部完成
             val results = contents.map { content ->
+                val file = File(content.getLocalPath() ?: return@launch)
+                val filename = if (content is MessageContent.File) content.filename else null
+
                 async {
-                    val file = File(content.getLocalPath()!!)
                     publicFileManager.saveMedia(
                         messageType = content.toMessageType(),
                         sourceFile = file,
-                        filename = file.name
+                        filename = filename
                     )
                 }
             }.awaitAll()
