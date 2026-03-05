@@ -9,7 +9,8 @@ import androidx.navigation.navDeepLink
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.ui.info.ChatInfoScreen
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionScreen
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.FilePreviewScreen
+import top.chengdongqing.wechat.features.chat.ui.session.message.preview.file.FilePreviewScreen
+import top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.MusicPreviewScreen
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 
 sealed class ChatRoute(val route: String) {
@@ -25,10 +26,16 @@ sealed class ChatRoute(val route: String) {
         fun createRoute(chatId: String) = "chats/${chatId}/info"
     }
 
-    object FilePreview : ChatRoute("chats/{chatId}/{messageId}/file") {
+    object FilePreview : ChatRoute("chats/{messageId}/preview/file") {
         const val ARG_MESSAGE_ID = "messageId"
 
-        fun createRoute(messageId: String) = "chats/{chatId}/${messageId}/file"
+        fun createRoute(messageId: String) = "chats/${messageId}/preview/file"
+    }
+
+    object MusicPreview : ChatRoute("chats/{messageId}/preview/music") {
+        const val ARG_MESSAGE_ID = "messageId"
+
+        fun createRoute(messageId: String) = "chats/${messageId}/preview/music"
     }
 }
 
@@ -91,6 +98,18 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
             ?.getString(ChatRoute.FilePreview.ARG_MESSAGE_ID) ?: ""
         FilePreviewScreen(
             messageId = messageId,
+            onBack = onBack
+        )
+    }
+    composable(
+        route = ChatRoute.MusicPreview.route,
+        arguments = listOf(
+            navArgument(ChatRoute.MusicPreview.ARG_MESSAGE_ID) { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val messageId = backStackEntry.arguments
+            ?.getString(ChatRoute.MusicPreview.ARG_MESSAGE_ID) ?: ""
+        MusicPreviewScreen(
             onBack = onBack
         )
     }

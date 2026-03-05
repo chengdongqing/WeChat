@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.session.message.preview
+package top.chengdongqing.wechat.features.chat.ui.session.message.preview.file
 
 import android.text.format.Formatter.formatFileSize
 import androidx.compose.foundation.Image

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.session.message.preview
+package top.chengdongqing.wechat.features.chat.ui.session.message.preview.file
 
 import android.content.Context
 import android.util.Log
