@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
+import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 @Composable
 fun <T> WeRadioGroup(
@@ -37,7 +37,7 @@ fun <T> WeRadioGroup(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .weClickableWithBg { onChange(option.second) }
+                    .weClickable { onChange(option.second) }
                     .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

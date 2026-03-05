@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,8 +32,8 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
-import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
+import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
@@ -75,7 +74,7 @@ fun ChatInfoScreen(
             )
 
             SettingItem("查找聊天记录", showDivider = false)
-            Column {
+            SettingGroup {
                 SettingItem(label = "消息免打扰", showArrow = false) {
                     WeSwitch(checked = uiState.isMuted) {
                         viewModel.toggleMuted()
@@ -152,28 +151,5 @@ private fun ContactListBar(
             cornerRadius = 6.dp,
             color = Color.Gray
         ) {}
-    }
-}
-
-@Composable
-internal fun SettingItem(
-    label: String,
-    showDivider: Boolean = true,
-    showArrow: Boolean = true,
-    onClick: (() -> Unit)? = null,
-    trailing: (@Composable RowScope.() -> Unit)? = null
-) {
-    Column(modifier = Modifier.background(White)) {
-        MenuListItem(
-            label = label,
-            trailing = trailing,
-            showArrow = showArrow,
-            height = 52.dp,
-            onClick = onClick
-        )
-
-        if (showDivider) {
-            WeDivider(modifier = Modifier.padding(start = 16.dp))
-        }
     }
 }

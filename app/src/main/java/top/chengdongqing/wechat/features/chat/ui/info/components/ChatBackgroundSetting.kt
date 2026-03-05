@@ -21,9 +21,9 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.util.createImageUri
-import top.chengdongqing.wechat.features.chat.ui.info.SettingItem
 
 @Composable
 fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Unit) {

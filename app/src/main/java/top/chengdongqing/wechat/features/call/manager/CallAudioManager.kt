@@ -19,8 +19,8 @@ import javax.inject.Singleton
  *
  * 职责：
  * - 音频路由切换（听筒 ↔ 免提），适配 Android 12+ 新 API
- * - 来电铃声播放与震动
- * - 通话接通震动反馈
+ * - 来电铃声播放与振动
+ * - 通话接通振动反馈
  * - 通话结束提示音
  *
  * 状态管理：
@@ -134,12 +134,12 @@ class CallAudioManager @Inject constructor(
     }
 
     /**
-     * 播放铃声并震动
+     * 播放铃声并振动
      *
      * 铃声循环播放直到调用 stopRingtone
-     * 来电时额外触发震动（静音模式下跳过）
+     * 来电时额外触发振动（静音模式下跳过）
      *
-     * @param isIncoming 是否为来电（来电时会震动）
+     * @param isIncoming 是否为来电（来电时会振动）
      */
     fun startRingtone(isIncoming: Boolean) {
         if (ringtonePlayer?.isPlaying == true) return
@@ -161,7 +161,7 @@ class CallAudioManager @Inject constructor(
     }
 
     /**
-     * 停止铃声和震动
+     * 停止铃声和振动
      */
     fun stopRingtone() {
         ringtonePlayer?.run {
@@ -195,24 +195,24 @@ class CallAudioManager @Inject constructor(
     }
 
     /**
-     * 接通时的双击震动反馈
+     * 接通时的双击振动反馈
      */
     fun vibrateOnConnected() {
         vibrate(pattern = longArrayOf(0, 200, 300, 200), repeat = -1)
     }
 
     /**
-     * 判断是否应该震动
+     * 判断是否应该振动
      *
-     * 非静音模式下才震动
+     * 非静音模式下才振动
      */
     private fun shouldVibrate() =
         audioManager.ringerMode != AudioManager.RINGER_MODE_SILENT
 
     /**
-     * 执行震动
+     * 执行振动
      *
-     * @param pattern 震动模式数组（毫秒）
+     * @param pattern 振动模式数组（毫秒）
      * @param repeat 重复索引（-1 表示不重复）
      */
     private fun vibrate(pattern: LongArray, repeat: Int) {

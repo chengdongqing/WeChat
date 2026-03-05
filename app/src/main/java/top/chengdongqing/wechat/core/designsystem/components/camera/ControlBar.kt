@@ -155,7 +155,7 @@ fun ZoomControlBar(state: CameraState) {
                         ) {
                             // 执行变焦
                             state.setZoom(step)
-                            // 震动反馈
+                            // 振动反馈
                             haptic.performHapticFeedback(HapticFeedbackType.KeyboardTap)
                         },
                     contentAlignment = Alignment.Center

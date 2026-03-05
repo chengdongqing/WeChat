@@ -205,7 +205,7 @@ fun Modifier.weContextMenu(
                 onLongPress = { touchOffset ->
                     val finalOffset = (parentPosition + touchOffset).toIntOffset()
                     onLongClick(finalOffset)
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 轻微震动
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 轻微振动
                 },
                 onPress = { offset ->
                     // 触发波纹

@@ -55,7 +55,7 @@ fun WeSwitch(
                 val newValue = !checked
                 onChange?.invoke(newValue)
 
-                // 触发震动反馈
+                // 触发振动反馈
                 haptic.performHapticFeedback(
                     if (newValue)
                         HapticFeedbackType.ToggleOn

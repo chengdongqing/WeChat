@@ -23,7 +23,7 @@ import javax.inject.Singleton
  * - Incoming   → 启动 CallActivity + 播放铃声 + 显示来电通知
  * - Outgoing   → 播放拨号音 + 显示呼出通知
  * - Connecting → 停止铃声 + 显示连接中通知
- * - Connected  → 震动提示 + 切换通话音频模式 + 显示通话中通知
+ * - Connected  → 振动提示 + 切换通话音频模式 + 显示通话中通知
  * - Ended      → 播放挂断音 + 退出音频模式 + 关闭通知
  * - Idle       → 关闭通知
  */

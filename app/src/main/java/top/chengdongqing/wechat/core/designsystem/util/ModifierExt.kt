@@ -104,13 +104,13 @@ fun Modifier.repeatingClickable(
 
                     val job = scope.launch {
                         currentOnClick() // 按下立即触发一次
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 轻微震动
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 轻微振动
                         delay(initialDelayMillis)
 
                         var currentDelay = initialDelayMillis
                         while (isActive) {
                             currentOnClick()
-                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 连续震动
+                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // 连续振动
 
                             delay(currentDelay)
                             // 逐渐加速
