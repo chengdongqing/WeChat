@@ -27,7 +27,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun MenuListItem(
+fun WeMenuListItem(
     label: String,
     @DrawableRes icon: Int? = null,
     iconColor: Color = Color.Unspecified,

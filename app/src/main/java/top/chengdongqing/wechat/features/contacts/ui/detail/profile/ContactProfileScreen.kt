@@ -12,9 +12,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingValue
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.toYearMonthDisplay
@@ -45,60 +45,60 @@ fun ContactProfileScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SettingGroup("备注") {
-                SettingItem(
+            WeSettingGroup("备注") {
+                WeSettingItem(
                     label = "备注名",
-                    trailing = { SettingValue(contact.remarkName) },
+                    trailing = { WeSettingValue(contact.remarkName) },
                     onClick = onNavigateToEdit
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "电话",
                     onClick = onNavigateToEdit
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "标签",
                     onClick = onNavigateToEdit
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "备忘",
-                    trailing = { SettingValue(contact.note) },
+                    trailing = { WeSettingValue(contact.note) },
                     onClick = onNavigateToEdit
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "照片",
                     showDivider = false,
                     onClick = onNavigateToEdit
                 )
             }
-            SettingGroup("朋友权限") {
-                SettingItem(
+            WeSettingGroup("朋友权限") {
+                WeSettingItem(
                     label = "权限",
-                    trailing = { SettingValue("聊天、朋友圈、微信运动等") },
+                    trailing = { WeSettingValue("聊天、朋友圈、微信运动等") },
                     showDivider = false
                 )
             }
-            SettingGroup("更多信息") {
-                SettingItem(
+            WeSettingGroup("更多信息") {
+                WeSettingItem(
                     label = "我和${contact.gender.safePronoun}的共同群聊",
-                    trailing = { SettingValue("0个") }
+                    trailing = { WeSettingValue("0个") }
                 )
                 contact.signature?.let {
-                    SettingItem(
+                    WeSettingItem(
                         label = "签名",
-                        trailing = { SettingValue(it) },
+                        trailing = { WeSettingValue(it) },
                         showArrow = false
                     )
                 }
                 contact.source?.let {
-                    SettingItem(
+                    WeSettingItem(
                         label = "来源",
-                        trailing = { SettingValue(it.getDescription(contact.isFromMe)) },
+                        trailing = { WeSettingValue(it.getDescription(contact.isFromMe)) },
                         showArrow = false
                     )
                 }
-                SettingItem(
+                WeSettingItem(
                     label = "添加时间",
-                    trailing = { SettingValue(contact.addedAt?.toYearMonthDisplay()) },
+                    trailing = { WeSettingValue(contact.addedAt?.toYearMonthDisplay()) },
                     showArrow = false,
                     showDivider = false
                 )

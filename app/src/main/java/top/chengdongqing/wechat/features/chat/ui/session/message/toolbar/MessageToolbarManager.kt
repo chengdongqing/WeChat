@@ -142,8 +142,15 @@ class MessageToolbarManager(
     ): List<MessageAction> {
         val deleteOrRecall = run {
             val canRecall = run {
+                /**
+                 * 可以撤回的条件：
+                 * 1. 是我发的
+                 * 2. 不是发给自己的
+                 * 3. 5分钟以内的
+                 * 4. 发送成功的
+                 */
                 val isSelfSession = message.sessionId == message.senderId
-                message.isFromMe && message.timestamp.isWithinSeconds() && !isSelfSession
+                message.isFromMe && message.timestamp.isWithinSeconds() && !isSelfSession && !message.isFailed
             }
             if (canRecall) MessageAction.Recall else MessageAction.Delete
         }

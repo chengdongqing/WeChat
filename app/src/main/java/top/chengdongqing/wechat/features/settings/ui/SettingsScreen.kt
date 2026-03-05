@@ -16,10 +16,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
-import top.chengdongqing.wechat.core.designsystem.components.menu.DangerButton
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingValue
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -48,57 +48,59 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SettingGroup("通用") {
-                SettingItem(
+            WeSettingGroup("通用") {
+                WeSettingItem(
                     label = "通知",
                     onClick = {
                         navController.navigate(SettingsRoute.NotificationSettings.route)
                     }
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "界面与显示",
                     onClick = {
                         navController.navigate(SettingsRoute.DisplaySettings.route)
                     }
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "朋友权限",
                     onClick = {
                         navController.navigate(SettingsRoute.PrivacySettings.route)
                     }
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "存储空间",
                     onClick = {}
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "更多",
                     showDivider = false,
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(SettingsRoute.MoreSettings.route)
+                    }
                 )
             }
-            SettingGroup("功能") {
-                SettingItem(
+            WeSettingGroup("功能") {
+                WeSettingItem(
                     label = "聊天",
                     onClick = {}
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "聊天记录管理",
                     showDivider = false,
                     onClick = {}
                 )
             }
-            SettingGroup("帮助与关于") {
-                SettingItem(
+            WeSettingGroup("帮助与关于") {
+                WeSettingItem(
                     label = "帮助与反馈",
                     onClick = {}
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "关于微信",
                     showDivider = false,
                     onClick = {}
                 ) {
-                    SettingValue("版本 $versionName")
+                    WeSettingValue("版本 $versionName")
                 }
             }
             LogoutButton()
@@ -120,5 +122,5 @@ private fun LogoutButton() {
         )
     }
 
-    DangerButton(label = "退出登录", onClick = showDialog)
+    WeDangerButton(label = "退出登录", onClick = showDialog)
 }

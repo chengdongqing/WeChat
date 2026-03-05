@@ -175,7 +175,7 @@ class ChatSessionViewModel @AssistedInject constructor(
             val message = allMessages[i]
             (message.content as? MessageContent.Media)?.toMediaItem()?.let {
                 mediaItems.add(it)
-                idToIndexMap[message.id] = mediaItems.size - 1
+                idToIndexMap[message.id] = mediaItems.lastIndex
             }
         }
 

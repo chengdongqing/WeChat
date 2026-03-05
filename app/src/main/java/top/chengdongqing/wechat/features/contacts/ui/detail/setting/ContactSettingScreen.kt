@@ -14,10 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
-import top.chengdongqing.wechat.core.designsystem.components.menu.DangerButton
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingValue
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
@@ -60,30 +60,30 @@ fun ContactSettingScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SettingGroup {
-                SettingItem("设置朋友资料") {
-                    SettingValue(contact.displayName)
+            WeSettingGroup {
+                WeSettingItem("设置朋友资料") {
+                    WeSettingValue(contact.displayName)
                 }
-                SettingItem("朋友权限", showDivider = false)
+                WeSettingItem("朋友权限", showDivider = false)
             }
-            SettingGroup {
-                SettingItem("把他（她）推荐给朋友")
-                SettingItem("添加到桌面", showDivider = false)
+            WeSettingGroup {
+                WeSettingItem("把他（她）推荐给朋友")
+                WeSettingItem("添加到桌面", showDivider = false)
             }
-            SettingItem(
+            WeSettingItem(
                 label = "设为星标朋友",
                 showArrow = false,
                 showDivider = false
             ) {
                 WeSwitch()
             }
-            SettingGroup {
-                SettingItem(label = "加入黑名单", showArrow = false) {
+            WeSettingGroup {
+                WeSettingItem(label = "加入黑名单", showArrow = false) {
                     WeSwitch(checked = contact.isBlocked) {
                         viewModel.toggleBlock()
                     }
                 }
-                SettingItem("投诉", showDivider = false)
+                WeSettingItem("投诉", showDivider = false)
             }
 
             DeleteButton(contact) {
@@ -107,5 +107,5 @@ private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
         )
     }
 
-    DangerButton(label = "删除", onClick = showDialog)
+    WeDangerButton(label = "删除", onClick = showDialog)
 }

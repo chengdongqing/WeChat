@@ -49,7 +49,7 @@ class FileHandler(
             // 发送
             onSendMessage(content)
 
-            if (index < uris.size - 1) delay(50)
+            if (index < uris.lastIndex) delay(50)
         }
     }
 
@@ -69,7 +69,7 @@ class FileHandler(
             // 发送
             onSendMessage(content)
 
-            if (index < apps.size - 1) delay(50)
+            if (index < apps.lastIndex) delay(50)
         }
     }
 }

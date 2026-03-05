@@ -9,6 +9,8 @@ import top.chengdongqing.wechat.features.settings.ui.display.DarkModeSettingScre
 import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.display.FontSizeSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.LanguageSettingScreen
+import top.chengdongqing.wechat.features.settings.ui.more.MoreSettingsScreen
+import top.chengdongqing.wechat.features.settings.ui.more.SystemPermissionSettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.notification.InChatNotificationSettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.notification.NotificationDisplaySettingScreen
 import top.chengdongqing.wechat.features.settings.ui.notification.NotificationSettingsScreen
@@ -33,6 +35,9 @@ sealed class SettingsRoute(val route: String) {
     object PrivacySettings : SettingsRoute("settings/privacy")
     object AddMeMethodSetting : SettingsRoute("settings/privacy/add_me_method")
     object ContactBlacklist : SettingsRoute("settings/privacy/contact_blacklist")
+
+    object MoreSettings : SettingsRoute("settings/more")
+    object SystemPermissionSettings : SettingsRoute("settings/more/system_permission")
 }
 
 fun NavGraphBuilder.settingsNavGraph(
@@ -46,6 +51,19 @@ fun NavGraphBuilder.settingsNavGraph(
     notificationNavGraph(navController, onBack)
     displayNavGraph(navController, onBack)
     privacyNavGraph(navController, onBack)
+    moreNavGraph(navController, onBack)
+}
+
+private fun NavGraphBuilder.moreNavGraph(
+    navController: NavHostController,
+    onBack: () -> Unit
+) {
+    composable(SettingsRoute.MoreSettings.route) {
+        MoreSettingsScreen(navController, onBack)
+    }
+    composable(SettingsRoute.SystemPermissionSettings.route) {
+        SystemPermissionSettingsScreen(onBack)
+    }
 }
 
 private fun NavGraphBuilder.privacyNavGraph(

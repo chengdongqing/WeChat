@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -31,14 +31,14 @@ fun InChatNotificationSettingsScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            SettingGroup {
-                SettingItem(
+            WeSettingGroup {
+                WeSettingItem(
                     label = "声音",
                     showArrow = false
                 ) {
                     WeSwitch(checked = true)
                 }
-                SettingItem(
+                WeSettingItem(
                     label = "振动",
                     showArrow = false,
                     showDivider = false

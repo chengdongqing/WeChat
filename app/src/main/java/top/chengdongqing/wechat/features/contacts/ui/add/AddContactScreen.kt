@@ -30,7 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
-import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.QrDotStyle
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.rememberQRCodeState
@@ -134,7 +134,7 @@ private fun AddFriendContent(
 private fun AddFriendOptionsList(options: List<AddFriendItem>) {
     Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
         options.forEachIndexed { index, item ->
-            MenuListItem(
+            WeMenuListItem(
                 label = item.title,
                 description = item.description,
                 icon = item.icon,

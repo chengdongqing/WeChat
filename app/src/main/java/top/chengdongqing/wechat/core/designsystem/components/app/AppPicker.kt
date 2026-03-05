@@ -156,7 +156,7 @@ fun AppPicker(
                                         ApkListItem(apk)
                                     }
 
-                                    if (index < contacts.size - 1) {
+                                    if (index < contacts.lastIndex) {
                                         WeDivider(modifier = Modifier.padding(start = 108.dp))
                                     }
                                 }

@@ -130,7 +130,7 @@ private fun parseUserIdFromResponse(response: ByteArray): String? {
     }
 
     val sw1 = response[response.size - 2]
-    val sw2 = response[response.size - 1]
+    val sw2 = response[response.lastIndex]
     if (sw1 != 0x90.toByte() || sw2 != 0x00.toByte()) {
         Log.e(TAG, "响应状态码异常: ${sw1.toHexByte()} ${sw2.toHexByte()}")
         return null

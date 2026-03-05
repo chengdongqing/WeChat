@@ -39,7 +39,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
@@ -73,15 +73,15 @@ fun MeScreen(
             )
             StatusSection()
         }
-        MenuListItem("服务", R.drawable.ic_pay_logo_outlined, Color(0xFF07C160))
+        WeMenuListItem("服务", R.drawable.ic_pay_logo_outlined, Color(0xFF07C160))
         Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
-            MenuListItem("收藏", R.drawable.ic_favorites_outlined_colorful, Color.Unspecified)
+            WeMenuListItem("收藏", R.drawable.ic_favorites_outlined_colorful, Color.Unspecified)
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            MenuListItem("朋友圈", R.drawable.ic_album_outlined, Color(0xFF2782D7))
+            WeMenuListItem("朋友圈", R.drawable.ic_album_outlined, Color(0xFF2782D7))
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            MenuListItem("表情", R.drawable.ic_emoji_outlined, Color(0xFFF9C018))
+            WeMenuListItem("表情", R.drawable.ic_emoji_outlined, Color(0xFFF9C018))
         }
-        MenuListItem("设置", R.drawable.ic_settings_outlined, Color(0xFF2782D7)) {
+        WeMenuListItem("设置", R.drawable.ic_settings_outlined, Color(0xFF2782D7)) {
             navController.navigate(SettingsRoute.Settings.route)
         }
     }

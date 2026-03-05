@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
@@ -47,7 +47,7 @@ fun DarkModeSettingScreen(onBack: () -> Unit) {
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SettingItem(
+            WeSettingItem(
                 label = "跟随系统",
                 description = "开启后，将跟随系统打开或关闭深色模式",
                 showArrow = false,
@@ -60,7 +60,7 @@ fun DarkModeSettingScreen(onBack: () -> Unit) {
             }
 
             if (!theme.isFollowSystem) {
-                SettingGroup("手动选择") {
+                WeSettingGroup("手动选择") {
                     WeRadioGroup(
                         options = themeOptions,
                         value = theme

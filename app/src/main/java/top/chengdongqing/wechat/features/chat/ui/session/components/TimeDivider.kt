@@ -27,7 +27,7 @@ fun TimeDivider(
         derivedStateOf {
             val message = messages[index]
             // 在 reverseLayout 中，index 最大的那条是时间轴上的第一条（最旧的消息）
-            if (index == messages.size - 1) {
+            if (index == messages.lastIndex) {
                 true
             } else {
                 // index + 1 是逻辑上的上一条消息（更旧的那条）

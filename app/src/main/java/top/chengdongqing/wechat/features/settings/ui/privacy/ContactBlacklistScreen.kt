@@ -1,7 +1,9 @@
 package top.chengdongqing.wechat.features.settings.ui.privacy
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -49,6 +51,9 @@ fun ContactBlacklistScreen(
                     }
                 )
                 WeDivider(modifier = Modifier.padding(start = 68.dp))
+            }
+            item {
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }

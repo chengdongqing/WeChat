@@ -73,7 +73,7 @@ fun TopFunctionList(
     ) {
         functions.forEachIndexed { index, function ->
             TopFunctionItem(function)
-            if (index < functions.size - 1) {
+            if (index < functions.lastIndex) {
                 WeDivider(modifier = Modifier.padding(start = 68.dp))
             }
         }

@@ -9,9 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingValue
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
@@ -33,30 +33,30 @@ fun DisplaySettingsScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SettingItem(
+            WeSettingItem(
                 label = "深色模式",
                 showDivider = false,
                 onClick = {
                     navController.navigate(SettingsRoute.ThemeSetting.route)
                 }
             ) {
-                SettingValue("跟随系统")
+                WeSettingValue("跟随系统")
             }
-            SettingGroup {
-                SettingItem(
+            WeSettingGroup {
+                WeSettingItem(
                     label = "字体大小",
                     onClick = {
                         navController.navigate(SettingsRoute.FontSizeSetting.route)
                     }
                 )
-                SettingItem(
+                WeSettingItem(
                     label = "多语言",
                     showDivider = false,
                     onClick = {
                         navController.navigate(SettingsRoute.LanguageSetting.route)
                     }
                 ) {
-                    SettingValue("跟随系统")
+                    WeSettingValue("跟随系统")
                 }
             }
         }

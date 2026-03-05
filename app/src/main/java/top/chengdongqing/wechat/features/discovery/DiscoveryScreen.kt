@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
@@ -20,7 +20,7 @@ fun DiscoveryScreen() {
             .background(WeTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        MenuListItem("朋友圈", R.drawable.ic_moments_outlined_colorful)
-        MenuListItem("搜一搜", R.drawable.ic_search_logo_outlined, Danger)
+        WeMenuListItem("朋友圈", R.drawable.ic_moments_outlined_colorful)
+        WeMenuListItem("搜一搜", R.drawable.ic_search_logo_outlined, Danger)
     }
 }

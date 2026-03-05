@@ -51,14 +51,14 @@ fun <T> WeRadioGroup(
                 if (option.second == value) {
                     Icon(
                         painter = painterResource(R.drawable.ic_check),
-                        contentDescription = null,
+                        contentDescription = "已选中",
                         tint = WeTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
-            if (index < options.size - 1) {
+            if (index < options.lastIndex) {
                 WeDivider(modifier = Modifier.padding(start = 16.dp))
             }
         }

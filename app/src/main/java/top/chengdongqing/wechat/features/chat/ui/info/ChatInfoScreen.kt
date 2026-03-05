@@ -32,8 +32,8 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
-import top.chengdongqing.wechat.core.designsystem.components.menu.SettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
@@ -73,26 +73,26 @@ fun ChatInfoScreen(
                 onNavigateToContact = { onNavigateToContact(chatId) }
             )
 
-            SettingItem("查找聊天记录", showDivider = false)
-            SettingGroup {
-                SettingItem(label = "消息免打扰", showArrow = false) {
+            WeSettingItem("查找聊天记录", showDivider = false)
+            WeSettingGroup {
+                WeSettingItem(label = "消息免打扰", showArrow = false) {
                     WeSwitch(checked = uiState.isMuted) {
                         viewModel.toggleMuted()
                     }
                 }
-                SettingItem(label = "置顶聊天", showArrow = false) {
+                WeSettingItem(label = "置顶聊天", showArrow = false) {
                     WeSwitch(checked = uiState.isPinned) {
                         viewModel.togglePinned()
                     }
                 }
-                SettingItem(label = "提醒", showArrow = false, showDivider = false) {
+                WeSettingItem(label = "提醒", showArrow = false, showDivider = false) {
                     WeSwitch()
                 }
             }
             ChatBackgroundSetting(background = uiState.backgroundPath) {
                 viewModel.updateBackground(it)
             }
-            SettingItem(
+            WeSettingItem(
                 label = "清空聊天记录",
                 showDivider = false,
                 onClick = {
@@ -104,7 +104,7 @@ fun ChatInfoScreen(
                     )
                 }
             )
-            SettingItem("投诉", showDivider = false)
+            WeSettingItem("投诉", showDivider = false)
         }
     }
 }

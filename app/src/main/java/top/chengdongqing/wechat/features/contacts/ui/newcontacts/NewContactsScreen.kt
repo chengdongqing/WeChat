@@ -39,7 +39,7 @@ import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeConte
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.rememberContextMenuState
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.components.menu.MenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -103,7 +103,7 @@ fun NewContactsScreen(
             // 功能菜单
             if (uiState.searchQuery.isEmpty()) {
                 item {
-                    MenuListItem(
+                    WeMenuListItem(
                         label = "添加手机联系人",
                         icon = R.drawable.ic_call_filled,
                         iconColor = WeTheme.colorScheme.primary
@@ -163,7 +163,7 @@ private fun LazyListScope.renderRequestSection(
             FriendRequestItem(
                 request = request,
                 viewModel = viewModel,
-                showDivider = index < list.size - 1,
+                showDivider = index < list.lastIndex,
                 onClick = { onItemClick(request.id) }
             )
         }

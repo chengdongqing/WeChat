@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 
 @Composable
-fun SettingGroup(title: String? = null, content: @Composable () -> Unit) {
+fun WeSettingGroup(title: String? = null, content: @Composable () -> Unit) {
     Column {
         title?.let {
             Text(
@@ -40,7 +40,7 @@ fun SettingGroup(title: String? = null, content: @Composable () -> Unit) {
 }
 
 @Composable
-fun SettingItem(
+fun WeSettingItem(
     label: String,
     description: String? = null,
     showDivider: Boolean = true,
@@ -49,7 +49,7 @@ fun SettingItem(
     onClick: (() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null
 ) {
-    MenuListItem(
+    WeMenuListItem(
         label = label,
         description = description,
         trailing = trailing,
@@ -64,7 +64,7 @@ fun SettingItem(
 }
 
 @Composable
-fun RowScope.SettingValue(text: String?) {
+fun RowScope.WeSettingValue(text: String?) {
     text?.let {
         Text(
             text = text,
@@ -79,7 +79,7 @@ fun RowScope.SettingValue(text: String?) {
 }
 
 @Composable
-fun DangerButton(label: String, onClick: () -> Unit) {
+fun WeDangerButton(label: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
