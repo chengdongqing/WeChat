@@ -97,7 +97,9 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                 WeSettingItem(
                     label = "聊天记录管理",
                     showDivider = false,
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(SettingsRoute.ChatManagement.route)
+                    }
                 )
             }
             WeSettingGroup("帮助与关于") {

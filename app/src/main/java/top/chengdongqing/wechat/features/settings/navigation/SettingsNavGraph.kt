@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.settings.ui.SettingsScreen
+import top.chengdongqing.wechat.features.settings.ui.chat.ChatManagementScreen
 import top.chengdongqing.wechat.features.settings.ui.chat.ChatSettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.connection.ConnectionModeSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.DarkModeSettingScreen
@@ -43,6 +44,7 @@ sealed class SettingsRoute(val route: String) {
 
     object ConnectionModeSettings : SettingsRoute("settings/chat/connection_mode")
     object ChatSettings : SettingsRoute("settings/chat")
+    object ChatManagement : SettingsRoute("settings/chat/management")
 }
 
 fun NavGraphBuilder.settingsNavGraph(
@@ -66,6 +68,9 @@ private fun NavGraphBuilder.chatNavGraph(
 ) {
     composable(SettingsRoute.ChatSettings.route) {
         ChatSettingsScreen(onBack)
+    }
+    composable(SettingsRoute.ChatManagement.route) {
+        ChatManagementScreen(onBack)
     }
 }
 
