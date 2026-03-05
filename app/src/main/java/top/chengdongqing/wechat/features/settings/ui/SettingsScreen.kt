@@ -57,7 +57,9 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                 )
                 SettingItem(
                     label = "界面与显示",
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(SettingsRoute.DisplaySettings.route)
+                    }
                 )
                 SettingItem(
                     label = "朋友权限",

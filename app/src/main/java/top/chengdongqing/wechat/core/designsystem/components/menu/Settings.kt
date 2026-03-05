@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
@@ -41,15 +42,18 @@ fun SettingGroup(title: String? = null, content: @Composable () -> Unit) {
 @Composable
 fun SettingItem(
     label: String,
+    description: String? = null,
     showDivider: Boolean = true,
     showArrow: Boolean = true,
+    height: Dp = 52.dp,
     onClick: (() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null
 ) {
     MenuListItem(
         label = label,
+        description = description,
         trailing = trailing,
-        height = 52.dp,
+        height = height,
         showArrow = showArrow,
         onClick = onClick
     )

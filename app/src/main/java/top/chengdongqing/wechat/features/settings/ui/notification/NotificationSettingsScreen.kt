@@ -1,5 +1,10 @@
 package top.chengdongqing.wechat.features.settings.ui.notification
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import top.chengdongqing.wechat.core.designsystem.components.menu.SettingGroup
@@ -23,7 +29,12 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollE
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 
 @Composable
-fun NotificationSettingsScreen(navController: NavHostController, onBack: () -> Unit) {
+fun NotificationSettingsScreen(
+    navController: NavHostController,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+
     Scaffold(
         topBar = {
             WeTopBar(title = "通知", onBack = onBack)
@@ -57,21 +68,27 @@ fun NotificationSettingsScreen(navController: NavHostController, onBack: () -> U
             }
             SettingItem(
                 label = "通知显示内容",
+                description = "显示朋友和群聊的名称、头像、消息内容",
                 showDivider = false,
+                height = 68.dp,
                 onClick = {
-                    navController.navigate(SettingsRoute.NotificationDisplaySettings.route)
+                    navController.navigate(SettingsRoute.NotificationDisplaySetting.route)
                 }
             )
             SettingGroup("声音与振动") {
                 SettingItem(
                     label = "消息通知",
-                    onClick = {}
+                    onClick = {
+                        context.toAppNotificationSettings()
+                    }
                 ) {
                     SettingValue("前往系统设置")
                 }
                 SettingItem(
                     label = "语音和视频通话通知",
-                    onClick = {}
+                    onClick = {
+                        context.toAppNotificationSettings()
+                    }
                 ) {
                     SettingValue("前往系统设置")
                 }
@@ -79,7 +96,7 @@ fun NotificationSettingsScreen(navController: NavHostController, onBack: () -> U
                     label = "聊天界面中的新消息通知",
                     showDivider = false,
                     onClick = {
-                        navController.navigate(SettingsRoute.InChatNotificationSettings.route)
+                        navController.navigate(SettingsRoute.InChatNotificationSetting.route)
                     }
                 )
             }
@@ -109,4 +126,17 @@ fun NotificationSettingsScreen(navController: NavHostController, onBack: () -> U
             Spacer(modifier = Modifier.height(100.dp))
         }
     }
+}
+
+private fun Context.toAppNotificationSettings() {
+    val intent = Intent().apply {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+        } else {
+            action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+            data = Uri.fromParts("package", packageName, null)
+        }
+    }
+    startActivity(intent)
 }
