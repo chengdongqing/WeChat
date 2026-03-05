@@ -42,12 +42,12 @@ import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 @Composable
 fun MessageItem(
     message: ChatMessage,
-    peerAvatar: String?,
-    myAvatar: String?,
-    isSelectMode: Boolean,
-    isMessageSelected: Boolean,
-    onMessageClick: () -> Unit,
-    onMessageLongPress: (bubblePosition: Offset, bubbleHeight: Float) -> Unit,
+    peerAvatar: Any? = null,
+    myAvatar: Any? = null,
+    isSelectMode: Boolean = false,
+    isMessageSelected: Boolean = false,
+    onMessageClick: () -> Unit = {},
+    onMessageLongPress: (bubblePosition: Offset, bubbleHeight: Float) -> Unit = { _, _ -> }
 ) {
     val isFromMe = message.isFromMe
     val content = message.content
@@ -87,7 +87,7 @@ fun MessageItem(
                          * 头像
                          */
                         if (!isFromMe) {
-                            Avatar(localPath = peerAvatar, isPeer = true)
+                            Avatar(model = peerAvatar, isPeer = true)
                         }
 
                         Row(
@@ -135,7 +135,7 @@ fun MessageItem(
                         }
 
                         if (isFromMe) {
-                            Avatar(localPath = myAvatar, isPeer = false)
+                            Avatar(model = myAvatar, isPeer = false)
                         }
                     }
                 }
@@ -167,11 +167,11 @@ fun MessageItem(
  * 头像组件
  */
 @Composable
-private fun Avatar(localPath: String?, isPeer: Boolean) {
+private fun Avatar(model: Any?, isPeer: Boolean) {
     val chatContext = LocalChatSessionContext.current
 
     AsyncImage(
-        model = localPath,
+        model = model,
         contentDescription = null,
         error = painterResource(R.drawable.img_avatar_placeholder),
         modifier = Modifier

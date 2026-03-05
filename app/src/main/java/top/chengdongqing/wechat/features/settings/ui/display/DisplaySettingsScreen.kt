@@ -45,7 +45,9 @@ fun DisplaySettingsScreen(
             SettingGroup {
                 SettingItem(
                     label = "字体大小",
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(SettingsRoute.FontSizeSetting.route)
+                    }
                 )
                 SettingItem(
                     label = "多语言",

@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import top.chengdongqing.wechat.features.settings.ui.SettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.display.DarkModeSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsScreen
+import top.chengdongqing.wechat.features.settings.ui.display.FontSizeSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.LanguageSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.notification.InChatNotificationSettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.notification.NotificationDisplaySettingScreen
@@ -23,6 +24,7 @@ sealed class SettingsRoute(val route: String) {
     object DisplaySettings : SettingsRoute("settings/display")
     object ThemeSetting : SettingsRoute("settings/display/theme")
     object LanguageSetting : SettingsRoute("settings/display/language")
+    object FontSizeSetting : SettingsRoute("settings/display/fontSize")
 }
 
 fun NavGraphBuilder.settingsNavGraph(
@@ -49,6 +51,9 @@ private fun NavGraphBuilder.displayNavGraph(
     }
     composable(SettingsRoute.LanguageSetting.route) {
         LanguageSettingScreen(onBack)
+    }
+    composable(SettingsRoute.FontSizeSetting.route) {
+        FontSizeSettingScreen(onBack)
     }
 }
 

@@ -32,6 +32,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -55,12 +56,17 @@ fun WeSlider(
     @IntRange(from = 0)
     step: Int = 1,
     disabled: Boolean = false,
+    height: Dp = 48.dp,
+    showTrack: Boolean = true,
+    handleSize: Dp = 28.dp,
     formatter: ((Float) -> String)? = null,
     onChangeFinished: (() -> Unit)? = null,
     onChange: (Float) -> Unit
 ) {
     val min = range.start
     val max = range.endInclusive
+    val halfHandleSize = handleSize / 2
+
     val density = LocalDensity.current
     var sliderWidth by remember { mutableIntStateOf(0) }
     var percent by remember { mutableFloatStateOf(0f) }
@@ -85,7 +91,7 @@ fun WeSlider(
 
     Row(
         modifier = Modifier
-            .height(48.dp)
+            .height(height)
             .then(modifier),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -114,27 +120,29 @@ fun WeSlider(
             contentAlignment = Alignment.CenterStart
         ) {
             // 滑轨
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(2.dp)
-                    .background(WeTheme.colorScheme.divider),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                // 高亮线段
+            if (showTrack) {
                 Box(
                     Modifier
-                        .fillMaxWidth(percent)
+                        .fillMaxWidth()
                         .height(2.dp)
-                        .background(WeTheme.colorScheme.primary)
-                )
+                        .background(WeTheme.colorScheme.divider),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    // 高亮线段
+                    Box(
+                        Modifier
+                            .fillMaxWidth(percent)
+                            .height(2.dp)
+                            .background(WeTheme.colorScheme.primary)
+                    )
+                }
             }
             // 手柄
             Box(
                 Modifier
-                    .size(28.dp)
-                    .offset(offsetX - 14.dp)
-                    .shadow(14.dp, CircleShape, spotColor = WeTheme.colorScheme.divider)
+                    .size(handleSize)
+                    .offset(offsetX - halfHandleSize)
+                    .shadow(halfHandleSize, CircleShape, spotColor = WeTheme.colorScheme.divider)
                     .background(Color.White, CircleShape)
             )
         }

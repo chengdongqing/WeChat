@@ -15,9 +15,9 @@ data class ChatMessage(
     val sessionId: String,
     val senderId: String,
     val content: MessageContent,
-    val isRecalled: Boolean,
-    val isFromMe: Boolean,
-    val timestamp: Long,
+    val isRecalled: Boolean = false,
+    val isFromMe: Boolean = true,
+    val timestamp: Long = System.currentTimeMillis(),
     val sendStatus: MessageSendStatus = MessageSendStatus.Success
 ) {
     val isSending: Boolean
