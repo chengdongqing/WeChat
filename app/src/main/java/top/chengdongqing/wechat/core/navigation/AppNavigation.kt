@@ -21,7 +21,6 @@ import top.chengdongqing.wechat.features.contacts.navigation.contactsNavGraph
 import top.chengdongqing.wechat.features.home.ui.HomeScreen
 import top.chengdongqing.wechat.features.me.navigation.meNavGraph
 import top.chengdongqing.wechat.features.me.ui.setup.ProfileSetupScreen
-import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 import top.chengdongqing.wechat.features.settings.navigation.settingsNavGraph
 import top.chengdongqing.wechat.features.startup.SplashScreen
 import top.chengdongqing.wechat.features.startup.WelcomeScreen
@@ -52,8 +51,7 @@ sealed class Screen(val route: String) {
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-//  startDestination: String = Screen.Splash.route
-    startDestination: String = SettingsRoute.Settings.route
+    startDestination: String = Screen.Splash.route
 ) {
     // 页面返回
     val goBack: () -> Unit = {

@@ -110,7 +110,9 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                 WeSettingItem(
                     label = "关于微信",
                     showDivider = false,
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(SettingsRoute.About.route)
+                    }
                 ) {
                     WeSettingValue("版本 $versionName")
                 }
