@@ -11,7 +11,7 @@ import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.toPreviewText
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
-import top.chengdongqing.wechat.features.call.domain.model.CallStatus
+import top.chengdongqing.wechat.features.call.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile

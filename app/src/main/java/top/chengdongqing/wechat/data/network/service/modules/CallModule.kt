@@ -9,9 +9,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.notification.NotificationHelper
-import top.chengdongqing.wechat.features.call.domain.model.CallState
 import top.chengdongqing.wechat.features.call.manager.CallAudioManager
 import top.chengdongqing.wechat.features.call.manager.CallManager
+import top.chengdongqing.wechat.features.call.model.CallState
 import top.chengdongqing.wechat.features.call.ui.CallActivity
 import javax.inject.Inject
 import javax.inject.Singleton

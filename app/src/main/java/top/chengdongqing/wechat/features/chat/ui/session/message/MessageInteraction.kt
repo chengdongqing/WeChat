@@ -4,7 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextRange
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.features.call.domain.model.CallType
+import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 
 /**

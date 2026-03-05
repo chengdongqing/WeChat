@@ -18,7 +18,7 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.call.domain.model.CallType
+import top.chengdongqing.wechat.features.call.model.CallType
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable

@@ -35,7 +35,7 @@ import org.webrtc.SurfaceViewRenderer
 import org.webrtc.VideoSource
 import org.webrtc.VideoTrack
 import org.webrtc.audio.JavaAudioDeviceModule
-import top.chengdongqing.wechat.features.call.domain.model.CallType
+import top.chengdongqing.wechat.features.call.model.CallType
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume

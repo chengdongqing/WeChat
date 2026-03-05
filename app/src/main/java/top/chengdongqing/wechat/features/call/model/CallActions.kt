@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.call.domain.model
+package top.chengdongqing.wechat.features.call.model
 
 /**
  * 通话操作回调（传给 UI 组件）

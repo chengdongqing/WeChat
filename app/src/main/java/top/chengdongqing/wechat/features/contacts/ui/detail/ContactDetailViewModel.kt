@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.features.call.domain.model.CallType
+import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository

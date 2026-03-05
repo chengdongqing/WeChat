@@ -5,6 +5,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.settings.ui.SettingsScreen
+import top.chengdongqing.wechat.features.settings.ui.chat.ChatSettingsScreen
+import top.chengdongqing.wechat.features.settings.ui.connection.ConnectionModeSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.DarkModeSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.display.FontSizeSettingScreen
@@ -38,6 +40,9 @@ sealed class SettingsRoute(val route: String) {
 
     object MoreSettings : SettingsRoute("settings/more")
     object SystemPermissionSettings : SettingsRoute("settings/more/system_permission")
+
+    object ConnectionModeSettings : SettingsRoute("settings/chat/connection_mode")
+    object ChatSettings : SettingsRoute("settings/chat")
 }
 
 fun NavGraphBuilder.settingsNavGraph(
@@ -52,6 +57,24 @@ fun NavGraphBuilder.settingsNavGraph(
     displayNavGraph(navController, onBack)
     privacyNavGraph(navController, onBack)
     moreNavGraph(navController, onBack)
+    connectionModeNavGraph(onBack)
+    chatNavGraph(onBack)
+}
+
+private fun NavGraphBuilder.chatNavGraph(
+    onBack: () -> Unit
+) {
+    composable(SettingsRoute.ChatSettings.route) {
+        ChatSettingsScreen(onBack)
+    }
+}
+
+private fun NavGraphBuilder.connectionModeNavGraph(
+    onBack: () -> Unit
+) {
+    composable(SettingsRoute.ConnectionModeSettings.route) {
+        ConnectionModeSettingScreen(onBack)
+    }
 }
 
 private fun NavGraphBuilder.moreNavGraph(

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.call.domain.model
+package top.chengdongqing.wechat.features.call.model
 
 /**
  * 挂断原因

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.call.domain.model
+package top.chengdongqing.wechat.features.call.model
 
 import top.chengdongqing.wechat.core.util.format
 import kotlin.time.Duration.Companion.seconds

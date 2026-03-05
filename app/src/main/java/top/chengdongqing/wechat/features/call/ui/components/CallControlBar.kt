@@ -27,10 +27,10 @@ import com.google.accompanist.permissions.rememberPermissionState
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.call.domain.model.CallActions
-import top.chengdongqing.wechat.features.call.domain.model.CallState
-import top.chengdongqing.wechat.features.call.domain.model.CallType
-import top.chengdongqing.wechat.features.call.domain.model.CallUiState
+import top.chengdongqing.wechat.features.call.model.CallActions
+import top.chengdongqing.wechat.features.call.model.CallState
+import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.call.model.CallUiState
 
 /**
  * 通话底部控制栏

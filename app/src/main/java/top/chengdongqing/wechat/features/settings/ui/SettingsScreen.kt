@@ -81,8 +81,18 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
             }
             WeSettingGroup("功能") {
                 WeSettingItem(
+                    label = "连接模式",
+                    onClick = {
+                        navController.navigate(SettingsRoute.ConnectionModeSettings.route)
+                    }
+                ) {
+                    WeSettingValue("Wi-Fi")
+                }
+                WeSettingItem(
                     label = "聊天",
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(SettingsRoute.ChatSettings.route)
+                    }
                 )
                 WeSettingItem(
                     label = "聊天记录管理",
