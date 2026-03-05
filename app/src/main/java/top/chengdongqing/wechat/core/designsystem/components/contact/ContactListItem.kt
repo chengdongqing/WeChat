@@ -23,11 +23,11 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.contacts.domain.model.ContactListItem
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactItem
 
 @Composable
 fun ContactListItem(
-    contact: ContactListItem,
+    contact: ContactItem,
     modifier: Modifier = Modifier
 ) {
     Row(

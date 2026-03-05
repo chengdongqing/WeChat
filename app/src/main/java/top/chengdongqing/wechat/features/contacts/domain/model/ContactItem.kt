@@ -6,11 +6,11 @@ import androidx.compose.runtime.Immutable
  * 联系人列表项
  */
 @Immutable
-data class ContactListItem(
+data class ContactItem(
     val id: String,
     val name: String,
-    val note: String?,
-    val avatarPath: String?,
-    val isSelf: Boolean,
-    val initial: Char
+    val note: String? = null,
+    val avatarPath: String? = null,
+    val isSelf: Boolean = false,
+    val initial: Char = '#'
 )

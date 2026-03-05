@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.update
 import top.chengdongqing.wechat.features.contacts.data.mapper.toContact
 import top.chengdongqing.wechat.features.contacts.data.mapper.toListItem
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.model.ContactListItem
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactItem
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -59,7 +59,7 @@ class ContactPickerViewModel @Inject constructor(
     /**
      * 按字母分组
      */
-    private suspend fun List<Contact>.groupByInitial(): Map<Char, List<ContactListItem>> =
+    private suspend fun List<Contact>.groupByInitial(): Map<Char, List<ContactItem>> =
         this
             .toListItem()
             .groupBy { it.initial }
@@ -74,7 +74,7 @@ class ContactPickerViewModel @Inject constructor(
     /**
      * 计算每个首字母对应的列表索引
      */
-    private fun calculateIndexMap(groups: Map<Char, List<ContactListItem>>): Map<Char, Int> {
+    private fun calculateIndexMap(groups: Map<Char, List<ContactItem>>): Map<Char, Int> {
         val indexMap = mutableMapOf<Char, Int>()
         var currentIndex = 1 // 顶部功能项占 1 个位置
 

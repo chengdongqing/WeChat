@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Text
@@ -108,11 +108,11 @@ fun ContactListScreen(
                             GroupTitle(initial)
                         }
 
-                        itemsIndexed(
+                        items(
                             items = contacts,
-                            key = { _, contact -> contact.id },
-                            contentType = { _, _ -> "ContactItem" } // 告诉 LazyColumn 哪些项是同一种布局，提高复用效率
-                        ) { index, contact ->
+                            key = { it.id },
+                            contentType = { "ContactItem" } // 告诉 LazyColumn 哪些项是同一种布局，提高复用效率
+                        ) { contact ->
                             val contextMenuState = rememberContextMenuState()
 
                             Column(

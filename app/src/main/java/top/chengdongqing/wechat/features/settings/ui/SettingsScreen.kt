@@ -63,7 +63,9 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                 )
                 SettingItem(
                     label = "朋友权限",
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(SettingsRoute.PrivacySettings.route)
+                    }
                 )
                 SettingItem(
                     label = "存储空间",

@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.util.getInitial
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.model.ContactListItem
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactItem
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 
@@ -37,7 +37,7 @@ fun Contact.toEntity(): ContactEntity = ContactEntity(
 @JvmName("toContactDomainList")
 fun List<ContactEntity>.toDomain(): List<Contact> = map { it.toDomain() }
 
-fun Contact.toListItem(): ContactListItem = ContactListItem(
+fun Contact.toListItem(): ContactItem = ContactItem(
     id = id,
     name = displayName,
     note = note,
@@ -47,7 +47,7 @@ fun Contact.toListItem(): ContactListItem = ContactListItem(
 )
 
 @JvmName("toContactList")
-suspend fun List<Contact>.toListItem(): List<ContactListItem> =
+suspend fun List<Contact>.toListItem(): List<ContactItem> =
     withContext(Dispatchers.Default) {
         map { it.toListItem() }
     }
