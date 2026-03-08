@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.features.me.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 
+// TODO 删除此文件
 interface SettingsRepository {
 
     /**

@@ -51,7 +51,8 @@ sealed class Screen(val route: String) {
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    startDestination: String = Screen.Splash.route
+    startDestination: String = Screen.Splash.route,
+//    startDestination: String = SettingsRoute.DisplaySettings.route
 ) {
     // 页面返回
     val goBack: () -> Unit = {

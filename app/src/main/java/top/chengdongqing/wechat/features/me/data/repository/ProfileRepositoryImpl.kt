@@ -1,12 +1,9 @@
 package top.chengdongqing.wechat.features.me.data.repository
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,22 +11,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.di.ProfileDataStore
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
-private val Context.profileDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = "user_profile"
-)
-
 class ProfileRepositoryImpl @Inject constructor(
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope,
-    @param:ApplicationContext private val context: Context
+    @param:ProfileDataStore private val dataStore: DataStore<Preferences>
 ) : ProfileRepository {
-
-    private val dataStore = context.profileDataStore
 
     private companion object {
         val PROFILE_KEY = stringPreferencesKey("current_profile")

@@ -17,6 +17,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,51 +29,60 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.theme.LocalFontScale
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageItem
-import top.chengdongqing.wechat.features.settings.domain.model.AppFontSize
+import top.chengdongqing.wechat.features.settings.domain.model.AppFontScale
 
 @Composable
-fun FontSizeSettingScreen(onBack: () -> Unit) {
-    val initialFontSize = remember { AppFontSize.Normal }
-    var fontSize by remember { mutableStateOf(initialFontSize) }
-    val hasChanged = fontSize != initialFontSize
+fun FontScaleSettingScreen(
+    onBack: () -> Unit,
+    viewModel: DisplaySettingsViewModel = hiltViewModel()
+) {
+    val initialFontScale by viewModel.fontScale.collectAsStateWithLifecycle()
+    var fontScale by remember(initialFontScale) { mutableStateOf(initialFontScale) }
+    val hasChanged = fontScale != initialFontScale
 
     Scaffold(
         topBar = {
             WeTopBar(title = "字体大小", onBack = onBack) {
                 WeButton(
                     text = "完成", size = ButtonSize.Small, enabled = hasChanged
-                ) {}
+                ) {
+                    viewModel.saveFontScale(fontScale)
+                    onBack()
+                }
             }
-        }, bottomBar = {
+        },
+        bottomBar = {
             FontSizeSelector(
-                value = fontSize, onChange = { fontSize = it })
-        }, containerColor = WeTheme.colorScheme.background
+                value = fontScale,
+                onChange = { fontScale = it }
+            )
+        },
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState(), rememberBounceOverscrollEffect())
-                .padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)
+        CompositionLocalProvider(
+            LocalFontScale provides fontScale.scale
         ) {
-            ChatPreview(scale = fontSize.scale)
+            ChatPreview(modifier = Modifier.padding(innerPadding))
         }
     }
 }
 
 @Composable
-private fun ChatPreview(scale: Float) {
+private fun ChatPreview(modifier: Modifier) {
     val messages = remember {
         val texts = listOf(
             "预览字体大小",
@@ -91,18 +101,32 @@ private fun ChatPreview(scale: Float) {
         }
     }
 
-    for (message in messages) {
-        MessageItem(
-            message = message, myAvatar = R.drawable.img_avatar, peerAvatar = R.drawable.img_logo
-        )
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(
+                rememberScrollState(),
+                rememberBounceOverscrollEffect()
+            )
+            .padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        for (message in messages) {
+            MessageItem(
+                message = message,
+                myAvatar = R.drawable.img_avatar,
+                peerAvatar = R.drawable.img_logo
+            )
+        }
     }
 }
 
 @Composable
 private fun FontSizeSelector(
-    value: AppFontSize, onChange: (AppFontSize) -> Unit
+    value: AppFontScale,
+    onChange: (AppFontScale) -> Unit
 ) {
-    val steps = AppFontSize.entries.lastIndex
+    val steps = AppFontScale.entries.lastIndex
 
     Column(
         modifier = Modifier
@@ -123,7 +147,7 @@ private fun FontSizeSelector(
                 showTrack = false,
                 handleSize = 22.dp
             ) {
-                onChange(AppFontSize.entries[it.toInt()])
+                onChange(AppFontScale.entries[it.toInt()])
             }
         }
     }

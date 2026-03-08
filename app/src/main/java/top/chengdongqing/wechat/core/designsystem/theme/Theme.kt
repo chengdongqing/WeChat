@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -15,6 +17,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.core.view.WindowCompat
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsViewModel
 
 @Immutable
 class WeColorScheme(
@@ -61,6 +65,7 @@ val LocalWeColorScheme = staticCompositionLocalOf { LightColorScheme }
 
 @Composable
 fun WeTheme(
+    viewModel: DisplaySettingsViewModel = hiltViewModel(),
     darkTheme: Boolean = false, // isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
@@ -83,12 +88,15 @@ fun WeTheme(
         }
     }
 
+    // 读取显示配置
+    val settings by viewModel.settings.collectAsState()
+
     MaterialTheme {
         CompositionLocalProvider(
             LocalTextStyle provides TextStyle(
-                // 避免文本自带边距
-                platformStyle = PlatformTextStyle(false)
-            )
+                platformStyle = PlatformTextStyle(false) // 避免文本自带边距
+            ),
+            LocalFontScale provides settings.fontScale.scale // 全局字体缩放
         ) {
             CompositionLocalProvider(LocalWeColorScheme provides colorScheme) {
                 content()

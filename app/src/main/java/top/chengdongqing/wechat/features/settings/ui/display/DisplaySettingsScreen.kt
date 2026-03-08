@@ -6,8 +6,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -19,8 +22,11 @@ import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 @Composable
 fun DisplaySettingsScreen(
     navController: NavHostController,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: DisplaySettingsViewModel = hiltViewModel()
 ) {
+    val settings by viewModel.settings.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             WeTopBar(title = "界面与显示", onBack = onBack)
@@ -40,13 +46,13 @@ fun DisplaySettingsScreen(
                     navController.navigate(SettingsRoute.ThemeSetting.route)
                 }
             ) {
-                WeSettingValue("跟随系统")
+                WeSettingValue(settings.theme.label)
             }
             WeSettingGroup {
                 WeSettingItem(
                     label = "字体大小",
                     onClick = {
-                        navController.navigate(SettingsRoute.FontSizeSetting.route)
+                        navController.navigate(SettingsRoute.FontScaleSetting.route)
                     }
                 )
                 WeSettingItem(
@@ -56,7 +62,7 @@ fun DisplaySettingsScreen(
                         navController.navigate(SettingsRoute.LanguageSetting.route)
                     }
                 ) {
-                    WeSettingValue("跟随系统")
+                    WeSettingValue(settings.language.label)
                 }
             }
         }

@@ -12,6 +12,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import top.chengdongqing.wechat.core.designsystem.theme.scaled
 import top.chengdongqing.wechat.core.designsystem.util.parseRichText
 import top.chengdongqing.wechat.core.designsystem.util.rememberEmojiInlineContent
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
@@ -47,9 +48,9 @@ fun TextContent(message: ChatMessage) {
         inlineContent = inlineContent,
         modifier = Modifier.padding(10.dp),
         style = TextStyle(
-            fontSize = 16.sp,
+            fontSize = 16.sp.scaled,
             color = Color.Black,
-            lineHeight = 22.sp
+            lineHeight = 22.sp.scaled
         )
     )
 }

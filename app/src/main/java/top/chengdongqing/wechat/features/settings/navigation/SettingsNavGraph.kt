@@ -11,7 +11,7 @@ import top.chengdongqing.wechat.features.settings.ui.chat.ChatSettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.connection.ConnectionModeSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.DarkModeSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsScreen
-import top.chengdongqing.wechat.features.settings.ui.display.FontSizeSettingScreen
+import top.chengdongqing.wechat.features.settings.ui.display.FontScaleSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.display.LanguageSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.more.MoreSettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.more.SystemPermissionSettingsScreen
@@ -34,7 +34,7 @@ sealed class SettingsRoute(val route: String) {
     object DisplaySettings : SettingsRoute("settings/display")
     object ThemeSetting : SettingsRoute("settings/display/theme")
     object LanguageSetting : SettingsRoute("settings/display/language")
-    object FontSizeSetting : SettingsRoute("settings/display/fontSize")
+    object FontScaleSetting : SettingsRoute("settings/display/font_scale")
 
     object PrivacySettings : SettingsRoute("settings/privacy")
     object AddMeMethodSetting : SettingsRoute("settings/privacy/add_me_method")
@@ -136,8 +136,8 @@ private fun NavGraphBuilder.displayNavGraph(
     composable(SettingsRoute.LanguageSetting.route) {
         LanguageSettingScreen(onBack)
     }
-    composable(SettingsRoute.FontSizeSetting.route) {
-        FontSizeSettingScreen(onBack)
+    composable(SettingsRoute.FontScaleSetting.route) {
+        FontScaleSettingScreen(onBack)
     }
 }
 

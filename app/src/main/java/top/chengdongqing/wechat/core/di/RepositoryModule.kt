@@ -21,6 +21,8 @@ import top.chengdongqing.wechat.features.me.data.repository.ProfileRepositoryImp
 import top.chengdongqing.wechat.features.me.data.repository.SettingsRepositoryImpl
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.me.domain.repository.SettingsRepository
+import top.chengdongqing.wechat.features.settings.data.repository.DisplaySettingsRepositoryImpl
+import top.chengdongqing.wechat.features.settings.domain.repository.DisplaySettingsRepository
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -73,4 +75,10 @@ interface RepositoryModule {
     fun bindRadarRepository(
         impl: RadarDiscoveryRepositoryImpl
     ): RadarDiscoveryRepository
+
+    @Binds
+    @Singleton
+    fun bindDisplaySettingsRepository(
+        impl: DisplaySettingsRepositoryImpl
+    ): DisplaySettingsRepository
 }

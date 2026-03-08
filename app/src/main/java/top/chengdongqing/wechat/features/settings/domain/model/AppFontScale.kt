@@ -1,9 +1,9 @@
 package top.chengdongqing.wechat.features.settings.domain.model
 
 /**
- * 字体大小
+ * 字体缩放
  */
-enum class AppFontSize(
+enum class AppFontScale(
     val label: String,
     val scale: Float
 ) {
@@ -14,5 +14,11 @@ enum class AppFontSize(
     XLarge("超大", 1.45f),
     XXLarge("特大", 1.6f),
     Huge("巨大", 1.75f),
-    Max("极大", 1.9f)
+    Max("极大", 1.9f);
+
+    companion object {
+        fun fromName(name: String?): AppFontScale {
+            return entries.find { it.name == name } ?: Normal
+        }
+    }
 }
