@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.R
@@ -58,15 +59,15 @@ fun MusicAlbumArt(music: MusicTrack, isPlaying: Boolean) {
                 )
             }
         } else {
-            val transition = rememberInfiniteTransition(label = "")
-            val animatedSize by transition.animateFloat(
-                initialValue = 16f,
-                targetValue = 26f,
+            val transition = rememberInfiniteTransition(label = "MusicIcon")
+            val scale by transition.animateFloat(
+                initialValue = 1f,
+                targetValue = 1.375f,
                 animationSpec = infiniteRepeatable(
-                    tween(durationMillis = 1500, easing = LinearEasing),
-                    RepeatMode.Reverse
+                    animation = tween(1200, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
                 ),
-                label = "MusicPlayingIconAnimation"
+                label = "ScaleAnimation"
             )
 
             Box(
@@ -78,7 +79,9 @@ fun MusicAlbumArt(music: MusicTrack, isPlaying: Boolean) {
                 Icon(
                     painter = painterResource(R.drawable.ic_music_filled),
                     contentDescription = "播放",
-                    modifier = Modifier.size(animatedSize.dp),
+                    modifier = Modifier
+                        .size(16.dp)
+                        .scale(scale),
                     tint = White
                 )
             }

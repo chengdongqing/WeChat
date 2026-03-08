@@ -44,6 +44,7 @@ fun MusicOverlay(
     WePopup(
         visible = state.isMusicOpen,
         padding = PaddingValues(vertical = 16.dp),
+        title = "选择音乐",
         onClose = onClose
     ) {
         val context = LocalContext.current
@@ -78,7 +79,7 @@ fun MusicOverlay(
             }
 
             item {
-                Spacer(modifier = Modifier.height(100.dp))
+                Spacer(modifier = Modifier.height(150.dp))
             }
         }
     }
