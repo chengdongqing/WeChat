@@ -83,7 +83,7 @@ private fun SessionAvatar(chat: ChatSession) {
 @Composable
 private fun RowScope.SessionContent(chat: ChatSession) {
     val isDraft = chat.draftMessage?.isNotBlank().isTrue()
-    val draftColor = WeTheme.colorScheme.error
+    val draftColor = WeTheme.colorScheme.danger
     val normalColor = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
 
     // 拼接草稿前缀 + 正文；仅正文部分走表情解析

@@ -34,14 +34,14 @@ fun NfcFailed(reason: String, onRetry: () -> Unit) {
             modifier = Modifier
                 .size(84.dp)
                 .clip(CircleShape)
-                .background(WeTheme.colorScheme.error.copy(alpha = 0.10f))
-                .border(2.dp, WeTheme.colorScheme.error.copy(alpha = 0.4f), CircleShape),
+                .background(WeTheme.colorScheme.danger.copy(alpha = 0.10f))
+                .border(2.dp, WeTheme.colorScheme.danger.copy(alpha = 0.4f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_close_outlined),
                 contentDescription = "失败",
-                tint = WeTheme.colorScheme.error,
+                tint = WeTheme.colorScheme.danger,
                 modifier = Modifier.size(34.dp)
             )
         }

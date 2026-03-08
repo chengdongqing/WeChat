@@ -22,7 +22,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
@@ -36,6 +35,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
 import top.chengdongqing.wechat.features.chat.domain.model.InputBarState
 import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionViewModel
 import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon
@@ -111,7 +111,7 @@ fun InputBar(
 
     Column(
         modifier = Modifier
-            .background(Color(0xFFF7F7F7))
+            .background(ChatTheme.colorScheme.bottomBarBackground)
             .navigationBarsPadding()
     ) {
         InputMainSection(
@@ -187,7 +187,7 @@ private fun InputFieldArea(
         modifier = modifier
             .padding(horizontal = 4.dp)
             .defaultMinSize(minHeight = 40.dp)
-            .background(Color.White, RoundedCornerShape(4.dp)),
+            .background(ChatTheme.colorScheme.textField, RoundedCornerShape(4.dp)),
         contentAlignment = Alignment.CenterStart
     ) {
         if (state.inputMode.isVoice) {

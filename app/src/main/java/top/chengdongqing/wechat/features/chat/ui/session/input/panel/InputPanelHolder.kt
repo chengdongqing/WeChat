@@ -14,10 +14,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.DpSaver
 import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
 import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
@@ -59,7 +59,7 @@ fun InputPanelHolder(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(animatedPanelHeight)
-                .background(Color(0xFFF1F1F1))
+                .background(WeTheme.colorScheme.background)
                 .clipToBounds() // 防止内容溢出
         ) {
             when (inputMode) {

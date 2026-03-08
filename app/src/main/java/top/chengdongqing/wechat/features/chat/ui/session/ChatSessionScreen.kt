@@ -28,6 +28,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreTyp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.features.call.ui.startCall
@@ -221,7 +222,7 @@ fun ChatSessionScreen(
                         )
                     }
                 },
-                containerColor = if (uiState.backgroundPath == null) Color(0xFFF3F3F3) else Color.Unspecified
+                containerColor = if (uiState.backgroundPath == null) WeTheme.colorScheme.background else Color.Unspecified
             ) { innerPadding ->
                 LazyColumn(
                     state = listState,

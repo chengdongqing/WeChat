@@ -45,7 +45,6 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.theme.Grey_4C
 import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
 import top.chengdongqing.wechat.features.home.model.QuickAction
 
@@ -181,3 +180,4 @@ private fun Modifier.drawMenuArrow(): Modifier = this.drawBehind {
     }
 }
 
+val Grey_4C = Color(0xFF4C4C4C)

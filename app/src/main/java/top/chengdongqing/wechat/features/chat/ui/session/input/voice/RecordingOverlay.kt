@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import kotlin.math.abs
 
 /**
@@ -79,10 +81,12 @@ fun RecordingOverlay(
  */
 @Composable
 private fun BottomArcBackground() {
+    val color = ChatTheme.colorScheme.recordBackground
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         val radius = size.width * 1.2f
         drawCircle(
-            color = Color(0xFFF7F7F7),
+            color = color,
             radius = radius,
             center = Offset(size.width / 2, size.height + radius * 0.7f)
         )
@@ -104,14 +108,14 @@ private fun ActionButtons(recordState: RecordState) {
         ActionButton(
             label = "取 消",
             isActive = recordState == RecordState.Cancel,
-            activeColor = Color(0xFFFF3B30),
+            activeColor = ChatTheme.colorScheme.recordActionCancel,
             activeTextColor = Color.White
         )
         ActionButton(
             label = "文 字",
             isActive = recordState == RecordState.Convert,
-            activeColor = Color(0xFFD8D8D8),
-            activeTextColor = Color.Black
+            activeColor = ChatTheme.colorScheme.recordActionConvert,
+            activeTextColor = WeTheme.colorScheme.textPrimary
         )
     }
 }
@@ -135,8 +139,8 @@ private fun ActionButton(
         label = "ButtonSize"
     )
 
-    val bgColor = if (isActive) activeColor else Color(0xFFE9E9E9)
-    val textColor = if (isActive) activeTextColor else Color.Black
+    val bgColor = if (isActive) activeColor else ChatTheme.colorScheme.recordActionDefault
+    val textColor = if (isActive) activeTextColor else WeTheme.colorScheme.textPrimary
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
@@ -157,7 +161,7 @@ private fun ActionButton(
         Text(
             text = label,
             fontSize = 12.sp,
-            color = Color.Gray
+            color = ChatTheme.colorScheme.recordActionDefault
         )
     }
 }
@@ -173,7 +177,7 @@ private fun BottomHintText(recordState: RecordState) {
             RecordState.Convert -> "松开手指，转文字"
             else -> "松开 发送"
         },
-        color = Color.Gray,
+        color = WeTheme.colorScheme.textSecondary,
         fontSize = 14.sp
     )
 }
@@ -198,7 +202,7 @@ private fun VoiceWaveformBubble(amplitude: Float) {
                 shape = VoiceBubbleShape()
                 clip = true
             }
-            .background(Color(0xFF95EC69)),
+            .background(ChatTheme.colorScheme.bubbleOutgoing),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -257,7 +261,7 @@ private fun VoiceBar(
             .width(3.dp)
             .height(animatedHeight.dp)
             .clip(CircleShape)
-            .background(Color(0xFF191919))
+            .background(ChatTheme.colorScheme.recordWaveBar)
     )
 }
 

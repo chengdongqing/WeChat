@@ -8,6 +8,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.domain.model.MusicTrack
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import top.chengdongqing.wechat.features.chat.ui.info.ChatInfoScreen
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionScreen
 import top.chengdongqing.wechat.features.chat.ui.session.message.preview.file.FilePreviewScreen
@@ -55,28 +56,31 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
         )
     ) { backStackEntry ->
         val chatId = backStackEntry.arguments?.getString(ChatRoute.ChatSession.ARG_CHAT_ID) ?: ""
-        ChatSessionScreen(
-            chatId = chatId,
-            onBack = onBack,
-            onNavigateToInfo = {
-                navController.navigate(ChatRoute.ChatInfo.createRoute(chatId))
-            },
-            onNavigateToContact = { id ->
-                navController.navigate(ContactsRoute.Detail.createRoute(id))
-            },
-            onNavigateToFilePreview = { id ->
-                navController.navigate(ChatRoute.FilePreview.createRoute(id))
-            },
-            onNavigateToMusicPreview = { id, trackName ->
-                navController.navigate(ChatRoute.MusicPreview.createRoute(id, trackName))
-            },
-            onNavigateToRequestAddFriend = {
-                navController.navigate(ContactsRoute.RequestAdd.createRoute(chatId))
-            },
-            onNavigateToWebView = { url ->
-                navController.navigate(Screen.WebView.createRoute(url))
-            }
-        )
+
+        ChatTheme {
+            ChatSessionScreen(
+                chatId = chatId,
+                onBack = onBack,
+                onNavigateToInfo = {
+                    navController.navigate(ChatRoute.ChatInfo.createRoute(chatId))
+                },
+                onNavigateToContact = { id ->
+                    navController.navigate(ContactsRoute.Detail.createRoute(id))
+                },
+                onNavigateToFilePreview = { id ->
+                    navController.navigate(ChatRoute.FilePreview.createRoute(id))
+                },
+                onNavigateToMusicPreview = { id, trackName ->
+                    navController.navigate(ChatRoute.MusicPreview.createRoute(id, trackName))
+                },
+                onNavigateToRequestAddFriend = {
+                    navController.navigate(ContactsRoute.RequestAdd.createRoute(chatId))
+                },
+                onNavigateToWebView = { url ->
+                    navController.navigate(Screen.WebView.createRoute(url))
+                }
+            )
+        }
     }
     composable(
         route = ChatRoute.ChatInfo.route,

@@ -23,46 +23,56 @@ import top.chengdongqing.wechat.features.settings.domain.model.AppTheme
 import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsViewModel
 
 @Immutable
-class WeColorScheme(
+data class WeColorScheme(
     val primary: Color = GreenPrimary,
-    // 基础表面
-    val background: Color,       // 页面底色
-    val surface: Color,          // 容器/卡片色
-    val surfaceVariant: Color,   // 次要容器色
-    // 内容色
-    val textPrimary: Color,
-    val textSecondary: Color,    // 副文本色
+    val danger: Color = Danger,
     val link: Color = LinkColor,
+    // 背景层级（从低到高）
+    val background: Color,       // 页面底色
+    val surface: Color,          // 卡片/列表容器
+    val surfaceVariant: Color,   // 输入框/次级容器
+    val elevated: Color,         // 浮层/弹窗
+    // 文本层级
+    val textPrimary: Color,
+    val textSecondary: Color,
+    val textTertiary: Color,     // 时间戳、占位符等
+    // 其他
     val divider: Color,
-    // 特定组件色
     val tabBarBackground: Color,
     val tabBarIconInactive: Color,
-    val error: Color = Danger
 )
 
-private val LightColorScheme = WeColorScheme(
+val LightColorScheme = WeColorScheme(
     background = Grey_ED,
     surface = White,
     surfaceVariant = Grey_F7,
+    elevated = White,
     textPrimary = TextPrimaryLight,
     textSecondary = TextSecondaryLight,
+    textTertiary = TextTertiaryLight,
     divider = DividerLight,
     tabBarBackground = Grey_F7,
-    tabBarIconInactive = Black
+    tabBarIconInactive = Black,
 )
 
-private val DarkColorScheme = WeColorScheme(
-    background = Black,
-    surface = Grey_4C,
-    surfaceVariant = Grey_2B,
+val DarkColorScheme = WeColorScheme(
+    background = Dark_BG,
+    surface = Dark_Surface,
+    surfaceVariant = Dark_Surface2,
+    elevated = Dark_Elevated,
     textPrimary = TextPrimaryDark,
     textSecondary = TextSecondaryDark,
+    textTertiary = TextTertiaryDark,
     divider = DividerDark,
-    tabBarBackground = Grey_19,
-    tabBarIconInactive = TabBarIconInactiveDark
+    tabBarBackground = Dark_TabBar,
+    tabBarIconInactive = TabBarIconInactiveDark,
 )
 
+/**
+ * 主题的 CompositionLocal
+ */
 val LocalWeColorScheme = staticCompositionLocalOf { LightColorScheme }
+val LocalIsDarkTheme = staticCompositionLocalOf { false }
 
 @Composable
 fun WeTheme(
@@ -103,11 +113,11 @@ fun WeTheme(
             LocalTextStyle provides TextStyle(
                 platformStyle = PlatformTextStyle(false) // 避免文本自带边距
             ),
-            LocalFontScale provides settings.fontScale.scale // 全局字体缩放
+            LocalFontScale provides settings.fontScale.scale,
+            LocalIsDarkTheme provides isDarkTheme,
+            LocalWeColorScheme provides colorScheme
         ) {
-            CompositionLocalProvider(LocalWeColorScheme provides colorScheme) {
-                content()
-            }
+            content()
         }
     }
 }

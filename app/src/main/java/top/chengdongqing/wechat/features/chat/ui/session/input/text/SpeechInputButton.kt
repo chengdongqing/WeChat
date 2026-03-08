@@ -44,9 +44,7 @@ fun SpeechInputButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .weClickable {
-                speechState.toggle()
-            },
+            .weClickable(onClick = speechState::toggle),
         contentAlignment = Alignment.Center
     ) {
         if (speechState.isListening) {
@@ -63,6 +61,7 @@ fun SpeechInputButton(
             Icon(
                 painter = painterResource(R.drawable.ic_mic_outlined),
                 contentDescription = "语音输入",
+                tint = WeTheme.colorScheme.textSecondary,
                 modifier = Modifier.size(22.dp)
             )
         }

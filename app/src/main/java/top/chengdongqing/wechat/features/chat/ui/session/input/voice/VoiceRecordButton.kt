@@ -33,6 +33,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 /**
@@ -290,10 +291,9 @@ private fun RecordButtonText(recordState: RecordState) {
             RecordState.TooShort -> "说话时间太短"
             else -> "按住 说话"
         },
-        color = if (recordState == RecordState.TooShort) {
-            Color(0xFFFF3B30)
-        } else {
-            Color.Black
+        color = when (recordState) {
+            RecordState.TooShort -> WeTheme.colorScheme.danger
+            else -> WeTheme.colorScheme.textPrimary
         },
         fontSize = 16.sp
     )

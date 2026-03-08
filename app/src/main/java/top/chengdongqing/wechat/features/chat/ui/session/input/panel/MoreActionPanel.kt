@@ -20,7 +20,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -32,8 +31,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 @Composable
@@ -56,7 +57,7 @@ fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF7F7F7))
+            .background(ChatTheme.colorScheme.bottomBarBackground)
     ) {
         WeDivider()
         HorizontalPager(
@@ -119,33 +120,30 @@ private fun MorePanelItem(
     onLongClick: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Surface(
+        Box(
             modifier = Modifier
+                .size(52.dp)
                 .clip(RoundedCornerShape(14.dp))
+                .background(ChatTheme.colorScheme.textField)
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = onLongClick
                 ),
-            color = Color.White
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier.size(52.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(item.icon),
-                    contentDescription = null,
-                    modifier = Modifier.size(30.dp),
-                    tint = Color.Unspecified
-                )
-            }
+            Icon(
+                painter = painterResource(item.icon),
+                contentDescription = null,
+                modifier = Modifier.size(30.dp),
+                tint = WeTheme.colorScheme.textPrimary
+            )
         }
 
         Text(
             text = item.label,
             modifier = Modifier.padding(top = 4.dp),
             fontSize = 12.sp,
-            color = Color(0xFF666666)
+            color = WeTheme.colorScheme.textSecondary
         )
     }
 }

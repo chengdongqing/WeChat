@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -55,7 +56,8 @@ fun LocationContent(content: MessageContent.Location) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(95.dp),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            alpha = if (LocalIsDarkTheme.current) 0.4f else 1f
         )
     }
 }

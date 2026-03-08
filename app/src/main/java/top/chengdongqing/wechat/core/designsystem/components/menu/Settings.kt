@@ -92,7 +92,7 @@ fun WeDangerButton(label: String, onClick: () -> Unit) {
             text = label,
             fontSize = 17.sp,
             fontWeight = FontWeight.Medium,
-            color = WeTheme.colorScheme.error
+            color = WeTheme.colorScheme.danger
         )
     }
 }

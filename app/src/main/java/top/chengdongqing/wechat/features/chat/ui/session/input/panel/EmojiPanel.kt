@@ -51,11 +51,13 @@ import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.core.designsystem.model.Sticker
 import top.chengdongqing.wechat.core.designsystem.model.Stickers
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.repeatingClickable
 import top.chengdongqing.wechat.core.util.asAssetPath
 import top.chengdongqing.wechat.core.util.copyAssetToPrivateDir
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 
 /**
  * 表情面板
@@ -146,7 +148,7 @@ private fun CategoriesTab(
         modifier = Modifier
             .zIndex(1f)
             .fillMaxWidth()
-            .background(Color(0xFFF1F1F1))
+            .background(ChatTheme.colorScheme.bottomBarBackground)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -162,15 +164,6 @@ private fun CategoriesTab(
 }
 
 /**
- * 选项卡数据类
- */
-private data class TabItem(
-    val index: Int,
-    @get:DrawableRes val icon: Int,
-    val label: String
-)
-
-/**
  * 选项卡按钮
  */
 @Composable
@@ -184,7 +177,7 @@ private fun TabButton(
         modifier = Modifier
             .size(46.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) Color.White else Color.Transparent)
+            .background(if (isSelected) ChatTheme.colorScheme.textField else Color.Transparent)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -192,7 +185,7 @@ private fun TabButton(
             painter = painterResource(icon),
             contentDescription = contentDescription,
             modifier = Modifier.size(30.dp),
-            tint = Color.Black
+            tint = WeTheme.colorScheme.textPrimary
         )
     }
 }
@@ -306,14 +299,14 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
             .offset(x = (-12).dp, y = (-22).dp)
             .clip(RoundedCornerShape(8.dp))
             .repeatingClickable { onBackspace() }
-            .background(Color.White)
+            .background(ChatTheme.colorScheme.bottomBarBackground)
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Backspace,
             contentDescription = "退格",
             modifier = Modifier.size(22.dp),
-            tint = Color.Black
+            tint = WeTheme.colorScheme.textPrimary
         )
     }
 }
@@ -336,7 +329,7 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
         overscrollEffect = overscrollEffect
     ) {
         item(key = "add_sticker_button") {
-            DashedAddButton {}
+            DashedAddButton(color = WeTheme.colorScheme.textPrimary) {}
         }
         items(
             items = Stickers.all,
@@ -397,3 +390,12 @@ private fun StickerItem(
         )
     }
 }
+
+/**
+ * 选项卡数据类
+ */
+private data class TabItem(
+    val index: Int,
+    @get:DrawableRes val icon: Int,
+    val label: String
+)

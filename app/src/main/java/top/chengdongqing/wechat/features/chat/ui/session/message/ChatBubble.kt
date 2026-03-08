@@ -17,6 +17,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import kotlin.math.sqrt
 
 /**
@@ -33,7 +34,9 @@ fun ChatBubble(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val bubbleColor = if (isFromMe && !isSameBackground) Color(0xFF95EC69) else Color.White
+    val colors = ChatTheme.colorScheme
+    val bubbleColor =
+        if (isFromMe && !isSameBackground) colors.bubbleOutgoing else colors.bubbleIncoming
     val maxBubbleWidth = rememberMaxBubbleWidth(isSelectMode, isFailed)
 
     WeBadge(
