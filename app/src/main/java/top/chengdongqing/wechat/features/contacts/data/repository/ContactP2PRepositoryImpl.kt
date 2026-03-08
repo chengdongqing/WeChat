@@ -291,7 +291,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
     private suspend fun doSaveContact(contact: Contact): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                contactRepository.addContact(contact)
+                contactRepository.createContact(contact)
                 Log.d(TAG, "✅ 联系人已保存: ${contact.nickname}")
                 true
             } catch (e: Exception) {

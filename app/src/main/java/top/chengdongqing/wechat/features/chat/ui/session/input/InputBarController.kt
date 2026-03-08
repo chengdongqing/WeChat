@@ -22,6 +22,8 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.features.chat.data.store.RecentEmojisStore
+import top.chengdongqing.wechat.features.chat.domain.model.InputBarState
+import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.RecentEmojisViewModel
 
 /**
@@ -221,6 +223,13 @@ class InputBarController(
      */
     fun toggleExpand() {
         _state.update { it.copy(isExpanded = !it.isExpanded) }
+    }
+
+    /**
+     * 切换音乐选择弹窗显示
+     */
+    fun toggleMusic() {
+        _state.update { it.copy(isMusicOpen = !it.isMusicOpen) }
     }
 }
 

@@ -1,7 +1,8 @@
-package top.chengdongqing.wechat.features.chat.ui.session.message.preview.music
+package top.chengdongqing.wechat.core.media
 
 import android.content.Context
 import android.media.MediaPlayer
+import androidx.annotation.RawRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -29,9 +30,8 @@ class MusicPlayer(private val context: Context) {
 
     /**
      * 加载并准备音频资源
-     * @param resId res/raw 目录下的音频资源 ID
      */
-    fun prepare(resId: Int) {
+    fun prepare(@RawRes resId: Int) {
         release()
         mediaPlayer = MediaPlayer.create(context, resId).apply {
             this@MusicPlayer.duration = duration
@@ -70,7 +70,6 @@ class MusicPlayer(private val context: Context) {
 
     /**
      * 刷新当前播放进度
-     * 建议在 LaunchedEffect 中每 200ms 调用一次
      */
     fun updateProgress() {
         mediaPlayer?.let { mp ->
@@ -82,7 +81,6 @@ class MusicPlayer(private val context: Context) {
 
     /**
      * 释放 MediaPlayer 资源
-     * 务必在页面销毁时（DisposableEffect.onDispose）调用
      */
     fun release() {
         mediaPlayer?.release()

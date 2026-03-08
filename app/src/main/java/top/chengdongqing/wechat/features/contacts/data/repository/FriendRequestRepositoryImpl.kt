@@ -201,7 +201,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     remarkName = originalRequest?.remark,
                     note = originalRequest?.note
                 )
-                contactRepository.addContact(contact)
+                contactRepository.createContact(contact)
 
                 // 清理申请记录
                 originalRequest?.let { friendRequestDao.deleteById(it.id) }
@@ -433,7 +433,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
             note = note ?: request.note,
             source = ContactAddSource.QRCode
         )
-        contactRepository.addContact(contact)
+        contactRepository.createContact(contact)
     }
 
     /**

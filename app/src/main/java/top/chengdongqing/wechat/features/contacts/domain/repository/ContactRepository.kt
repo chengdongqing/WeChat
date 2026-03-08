@@ -12,14 +12,14 @@ interface ContactRepository {
     fun observeAllContacts(): Flow<List<Contact>>
 
     /**
-     * 根据ID获取联系人
+     * 获取联系人详情
      */
-    suspend fun getContactById(userId: String): Contact?
+    suspend fun getContact(userId: String): Contact?
 
     /**
      * 监听指定联系人的变化
      */
-    fun observeContactById(userId: String): Flow<Contact?>
+    fun observeContact(userId: String): Flow<Contact?>
 
     /**
      * 检查联系人是否存在
@@ -29,7 +29,7 @@ interface ContactRepository {
     /**
      * 添加联系人
      */
-    suspend fun addContact(contact: Contact)
+    suspend fun createContact(contact: Contact)
 
     /**
      * 更新联系人

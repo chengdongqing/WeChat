@@ -53,7 +53,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.message.MessageAction
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.features.chat.ui.session.message.MultiMessageAction
 import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.MessageToolbarManager
-import top.chengdongqing.wechat.features.chat.util.AudioPlaybackManager
+import top.chengdongqing.wechat.features.chat.ui.session.util.AudioPlaybackManager
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
@@ -255,7 +255,7 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            val contact = contactRepository.getContactById(chatId)
+            val contact = contactRepository.getContact(chatId)
             val profile = profileRepository.getProfile()
 
             _uiState.update {
@@ -429,6 +429,11 @@ class ChatSessionViewModel @AssistedInject constructor(
 
             is MessageContent.File -> viewModelScope.launch {
                 _uiEvent.emit(MessageUiEvent.PreviewFile(message.id))
+            }
+
+            is MessageContent.Music -> viewModelScope.launch {
+                val trackName = message.content.music.name
+                _uiEvent.emit(MessageUiEvent.PreviewMusic(message.id, trackName))
             }
 
             is MessageContent.Call -> viewModelScope.launch {

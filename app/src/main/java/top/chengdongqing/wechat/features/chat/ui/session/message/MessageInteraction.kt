@@ -107,6 +107,11 @@ sealed class MessageUiEvent {
     data class PreviewFile(val messageId: String) : MessageUiEvent()
 
     /**
+     * 预览音乐
+     */
+    data class PreviewMusic(val messageId: String, val trackName: String) : MessageUiEvent()
+
+    /**
      * 调起通话
      */
     data class LaunchCall(val callType: CallType) : MessageUiEvent()

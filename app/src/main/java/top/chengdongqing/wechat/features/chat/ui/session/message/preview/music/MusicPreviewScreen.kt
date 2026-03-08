@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message.preview.music
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,26 +19,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.components.MusicBackground
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.components.MusicControls
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.components.MusicInfo
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.components.PlayButton
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.components.VinylRecord
+import top.chengdongqing.wechat.core.media.MusicPlayer
+import top.chengdongqing.wechat.core.util.format
+import top.chengdongqing.wechat.features.chat.domain.model.MusicTrack
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun MusicPreviewScreen(onBack: () -> Unit) {
+fun MusicPreviewScreen(music: MusicTrack, onBack: () -> Unit) {
     val context = LocalContext.current
-    val albumArt = R.drawable.img_album_art_2
-
     val player = remember { MusicPlayer(context) }
 
     // 准备音频
-    LaunchedEffect(Unit) {
-        player.prepare(R.raw.music_2)
+    LaunchedEffect(music) {
+        delay(300)
+        player.prepare(music.audioRes)
         player.play()
     }
 
@@ -59,7 +55,7 @@ fun MusicPreviewScreen(onBack: () -> Unit) {
     StatusBarAppearanceEffect(isDark = false)
 
     Box {
-        MusicBackground(albumArt)
+        MusicBackground(music.albumArtRes)
 
         Scaffold(
             topBar = {
@@ -81,8 +77,8 @@ fun MusicPreviewScreen(onBack: () -> Unit) {
 
                 // 唱片
                 VinylRecord(
-                    isPlaying = player.isPlaying,
-                    albumArt = albumArt
+                    albumArtRes = music.albumArtRes,
+                    isPlaying = player.isPlaying
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -91,13 +87,12 @@ fun MusicPreviewScreen(onBack: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 左侧：歌曲信息
                     MusicInfo(
-                        title = "这是我一生中最勇敢的瞬间",
-                        artist = "棱镜乐队",
+                        title = music.title,
+                        artist = music.artist,
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 16.dp)
@@ -109,22 +104,16 @@ fun MusicPreviewScreen(onBack: () -> Unit) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // 播放控制区
                 MusicControls(
                     progress = player.progress,
-                    currentTimeText = (player.duration * player.progress).toInt().toTimeString(),
-                    totalTimeText = player.duration.toTimeString(),
+                    currentTimeText = (player.duration * player.progress).toInt().milliseconds.format(),
+                    totalTimeText = player.duration.milliseconds.format(),
                     onProgressChange = { player.seekTo(it) }
                 )
             }
         }
     }
-}
-
-/** 将毫秒格式化为 mm:ss */
-private fun Int.toTimeString(): String {
-    val totalSeconds = this / 1000
-    return "%02d:%02d".format(totalSeconds / 60, totalSeconds % 60)
 }

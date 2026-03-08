@@ -13,6 +13,7 @@ enum class MessageType {
     Location,       // 位置
     ContactCard,    // 名片
     Favorite,       // 收藏
+    Music,          // 音乐
     VoiceCall,      // 语音通话记录
     VideoCall;      // 视频通话记录
 
@@ -51,6 +52,7 @@ fun MessageType.toPreviewText(content: String): String = when (this) {
     MessageType.Favorite -> "[收藏]"
     MessageType.ContactCard -> "[名片]"
     MessageType.Sticker -> "[表情]"
+    MessageType.Music -> "[音乐]"
     MessageType.VoiceCall -> "[语音通话]"
     MessageType.VideoCall -> "[视频通话]"
 }

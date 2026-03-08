@@ -11,6 +11,7 @@ import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
+import top.chengdongqing.wechat.features.chat.domain.model.MusicTrack
 
 fun MessageEntity.toDomain(json: Json): ChatMessage {
     return ChatMessage(
@@ -120,6 +121,13 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
                 source = favoriteInfo?.source ?: "",
                 previewPath = localPath
             )
+        }
+
+        MessageType.Music -> {
+            val music = runCatching {
+                MusicTrack.valueOf(content)
+            }.getOrDefault(MusicTrack.Perfect)
+            MessageContent.Music(music)
         }
 
         MessageType.VoiceCall,
@@ -260,6 +268,11 @@ fun MessageContent.toEntity(
                 localPath = content.previewPath
             )
 
+        is MessageContent.Music ->
+            base(
+                contentValue = content.music.name
+            )
+
         is MessageContent.Call ->
             base(
                 contentValue = content.status.name,
@@ -280,10 +293,11 @@ fun MessageContent.toMessageType(): MessageType = when (this) {
     is MessageContent.Sticker -> MessageType.Sticker
     is MessageContent.File -> MessageType.File
     is MessageContent.Location -> MessageType.Location
-    is MessageContent.Call -> if (this.type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
+    is MessageContent.Call -> if (type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
     is MessageContent.Favorite -> MessageType.Favorite
     is MessageContent.ContactCard -> MessageType.ContactCard
-    else -> MessageType.Text
+    is MessageContent.Music -> MessageType.Music
+    is MessageContent.Media -> MessageType.Image
 }
 
 fun MessageContent.getLocalPath(): String? = when (this) {
@@ -312,6 +326,20 @@ fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
 
         SendStatus.Failed -> MessageSendStatus.Failed(entity.failReason ?: SendError.Unknown)
     }
+}
+
+fun MessageContent.toPreviewText(): String = when (this) {
+    is MessageContent.Text -> text
+    is MessageContent.Image -> "[图片]"
+    is MessageContent.Voice -> "[语音]"
+    is MessageContent.Video -> "[视频]"
+    is MessageContent.File -> "[文件]"
+    is MessageContent.Location -> "[位置]"
+    is MessageContent.Favorite -> "[收藏]"
+    is MessageContent.ContactCard -> "[名片]"
+    is MessageContent.Sticker -> "[表情]"
+    is MessageContent.Call -> "[${type.label}]"
+    else -> "消息"
 }
 
 @Serializable

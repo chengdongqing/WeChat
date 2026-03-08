@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import top.chengdongqing.wechat.core.navigation.Screen
+import top.chengdongqing.wechat.features.chat.domain.model.MusicTrack
 import top.chengdongqing.wechat.features.chat.ui.info.ChatInfoScreen
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionScreen
 import top.chengdongqing.wechat.features.chat.ui.session.message.preview.file.FilePreviewScreen
@@ -32,10 +33,12 @@ sealed class ChatRoute(val route: String) {
         fun createRoute(messageId: String) = "chats/${messageId}/preview/file"
     }
 
-    object MusicPreview : ChatRoute("chats/{messageId}/preview/music") {
+    object MusicPreview : ChatRoute("chats/{messageId}/preview/music/{trackName}") {
         const val ARG_MESSAGE_ID = "messageId"
+        const val ARG_TRACK_NAME = "trackName"
 
-        fun createRoute(messageId: String) = "chats/${messageId}/preview/music"
+        fun createRoute(messageId: String, trackName: String) =
+            "chats/${messageId}/preview/music/${trackName}"
     }
 }
 
@@ -63,6 +66,9 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
             },
             onNavigateToFilePreview = { id ->
                 navController.navigate(ChatRoute.FilePreview.createRoute(id))
+            },
+            onNavigateToMusicPreview = { id, trackName ->
+                navController.navigate(ChatRoute.MusicPreview.createRoute(id, trackName))
             },
             onNavigateToRequestAddFriend = {
                 navController.navigate(ContactsRoute.RequestAdd.createRoute(chatId))
@@ -104,13 +110,14 @@ fun NavGraphBuilder.chatNavGraph(navController: NavHostController, onBack: () ->
     composable(
         route = ChatRoute.MusicPreview.route,
         arguments = listOf(
-            navArgument(ChatRoute.MusicPreview.ARG_MESSAGE_ID) { type = NavType.StringType }
+            navArgument(ChatRoute.MusicPreview.ARG_MESSAGE_ID) { type = NavType.StringType },
+            navArgument(ChatRoute.MusicPreview.ARG_TRACK_NAME) { type = NavType.StringType }
         )
     ) { backStackEntry ->
-        val messageId = backStackEntry.arguments
-            ?.getString(ChatRoute.MusicPreview.ARG_MESSAGE_ID) ?: ""
-        MusicPreviewScreen(
-            onBack = onBack
-        )
+        val trackName =
+            backStackEntry.arguments?.getString(ChatRoute.MusicPreview.ARG_TRACK_NAME) ?: ""
+        val music = runCatching { MusicTrack.valueOf(trackName) }.getOrDefault(MusicTrack.Perfect)
+
+        MusicPreviewScreen(music, onBack)
     }
 }

@@ -56,7 +56,12 @@ fun WeActionSheet(
     onCancel: () -> Unit,
     onTap: (index: Int) -> Unit
 ) {
-    WePopup(visible, padding = PaddingValues(0.dp), draggable = false, onClose = onCancel) {
+    WePopup(
+        visible = visible,
+        padding = PaddingValues(0.dp),
+        draggable = false,
+        onClose = onCancel
+    ) {
         Column {
             title?.let {
                 Box(

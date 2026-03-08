@@ -14,7 +14,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import top.chengdongqing.wechat.core.util.decode
 import top.chengdongqing.wechat.core.util.encode
-import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.chat.navigation.chatNavGraph
 import top.chengdongqing.wechat.features.common.PlainTextScreen
 import top.chengdongqing.wechat.features.common.WebViewScreen
@@ -52,8 +51,7 @@ sealed class Screen(val route: String) {
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-//    startDestination: String = Screen.Splash.route
-    startDestination: String = ChatRoute.MusicPreview.createRoute("11")
+    startDestination: String = Screen.Splash.route
 ) {
     // 页面返回
     val goBack: () -> Unit = {

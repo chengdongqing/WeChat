@@ -1,7 +1,6 @@
-package top.chengdongqing.wechat.features.chat.ui.session.input
+package top.chengdongqing.wechat.features.chat.domain.model
 
 import top.chengdongqing.wechat.features.call.model.CallType
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
 
 /**
@@ -33,12 +32,12 @@ data class InputBarActions(
     // -------- 媒体 / 更多 --------
     /** 更多面板操作分发 */
     val onMoreAction: (action: MoreAction, isLongClick: Boolean) -> Unit = { _, _ -> },
-    /** 语音消息发送 */
-    val onVoiceSend: (path: String, duration: Long) -> Unit = { _, _ -> },
     /** 语音转文字结果回填 */
     val onSpeechResult: (text: String) -> Unit = {},
-    /** 表情消息发送 */
-    val onSendSticker: (MessageContent.Sticker) -> Unit = {},
+    /** 切换音乐选择弹窗的显示 */
+    val onToggleMusic: () -> Unit = {},
+    /** 消息发送 */
+    val onSendMessage: (MessageContent) -> Unit = {},
 
     // -------- 透传 --------
     /** 发起通话 */

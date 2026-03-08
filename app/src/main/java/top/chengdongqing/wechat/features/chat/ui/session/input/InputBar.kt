@@ -32,9 +32,14 @@ import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.EmojiTextField
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
+import top.chengdongqing.wechat.features.chat.domain.model.InputBarState
+import top.chengdongqing.wechat.features.chat.domain.model.InputMode
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionViewModel
 import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon
+import top.chengdongqing.wechat.features.chat.ui.session.input.music.MusicOverlay
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.InputPanelHolder
 import top.chengdongqing.wechat.features.chat.ui.session.input.text.InputOverlay
 import top.chengdongqing.wechat.features.chat.ui.session.input.text.SpeechInputButton
@@ -56,7 +61,11 @@ fun InputBar(
     val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputBarController(focusRequester)
     val state by controller.state.collectAsStateWithLifecycle()
-    val actions = rememberInputBarActions(controller, viewModel::sendMessage, onLaunchCall)
+    val actions = rememberInputBarActions(
+        controller = controller,
+        onSendMessage = viewModel::sendMessage,
+        onLaunchCall = onLaunchCall
+    )
 
     ScrollToDismissEffect(
         listState = listState,
@@ -118,6 +127,7 @@ fun InputBar(
     }
 
     InputOverlay(state, actions)
+    MusicOverlay(state, actions)
 }
 
 @Composable
@@ -183,7 +193,8 @@ private fun InputFieldArea(
         if (state.inputMode.isVoice) {
             VoiceRecordButton(
                 onVoiceSend = { localPath, duration ->
-                    actions.onVoiceSend(localPath, duration)
+                    val content = MessageContent.Voice(localPath, duration)
+                    actions.onSendMessage(content)
                 },
                 onConvertToText = { _, _ -> }
             )

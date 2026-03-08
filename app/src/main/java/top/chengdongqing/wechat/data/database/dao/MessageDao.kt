@@ -64,9 +64,6 @@ interface MessageDao : BaseDao<MessageEntity> {
         update(new)
     }
 
-    @Query("UPDATE messages SET isRecalled = 1, updatedAt = :now WHERE id = :messageId")
-    suspend fun markAsRecalledById(messageId: String, now: Long = System.currentTimeMillis())
-
     @Query("UPDATE messages SET isRead = 1, updatedAt = :now WHERE sessionId = :sessionId AND isRead = 0 AND isFromMe = 0")
     suspend fun markAsReadBySessionId(sessionId: String, now: Long = System.currentTimeMillis())
 

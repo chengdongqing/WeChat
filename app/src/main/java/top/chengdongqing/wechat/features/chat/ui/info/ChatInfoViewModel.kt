@@ -59,10 +59,10 @@ class ChatInfoViewModel @AssistedInject constructor(
             val existSession = chatSessionRepository.exists(chatId)
             if (!existSession) {
                 val myProfile = profileRepository.getProfile()
-                val contact = contactRepository.getContactById(chatId)
+                val contact = contactRepository.getContact(chatId)
                 val isSelf = chatId == myProfile?.id
 
-                chatSessionRepository.insertSession(
+                chatSessionRepository.createSession(
                     ChatSession(
                         id = chatId,
                         contactId = chatId,
@@ -79,7 +79,7 @@ class ChatInfoViewModel @AssistedInject constructor(
     val uiState = combine(
         profileRepository.observeProfile(),
         chatSessionRepository.observeSession(chatId),
-        contactRepository.observeContactById(chatId)
+        contactRepository.observeContact(chatId)
     ) { myProfile, session, contact ->
         if (myProfile == null || session == null) {
             return@combine ChatInfoUiState()
@@ -143,7 +143,7 @@ class ChatInfoViewModel @AssistedInject constructor(
 
     fun clearMessages() {
         viewModelScope.launch(Dispatchers.IO) {
-            chatSessionRepository.deleteSessionById(chatId, false)
+            chatSessionRepository.deleteSession(chatId, false)
         }
     }
 }

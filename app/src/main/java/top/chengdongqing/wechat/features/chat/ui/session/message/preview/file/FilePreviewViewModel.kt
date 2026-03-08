@@ -15,13 +15,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.util.openFile
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.features.chat.data.mapper.FileContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import java.io.File
 
 data class FilePreviewUiState(
@@ -39,8 +38,7 @@ data class FilePreviewUiState(
 @HiltViewModel(assistedFactory = FilePreviewViewModel.Factory::class)
 class FilePreviewViewModel @AssistedInject constructor(
     @Assisted private val messageId: String,
-    private val messageDao: MessageDao,
-    private val json: Json,
+    private val messageRepository: MessageRepository,
     private val publicFileManager: PublicFileManager,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -64,18 +62,16 @@ class FilePreviewViewModel @AssistedInject constructor(
     private fun loadFileInfo() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val entity =
-                    messageDao.getById(messageId) ?: throw IllegalStateException("消息不存在")
-
-                // 解析文件元数据
-                val file = json.decodeFromString<FileContent>(entity.content)
+                val message = messageRepository.getMessage(messageId)
+                    ?: throw IllegalStateException("消息不存在")
+                val file = message.content as MessageContent.File
 
                 _uiState.update {
                     it.copy(
                         filename = file.filename,
-                        fileSize = entity.fileSize ?: 0,
+                        fileSize = file.size,
                         mimeType = file.mimeType,
-                        localPath = entity.localPath,
+                        localPath = file.localPath,
                         isLoading = false
                     )
                 }

@@ -324,7 +324,7 @@ class CallManager @Inject constructor(
 
         isOutgoing = false
 
-        val contact = contactRepository.getContactById(offer.senderId)
+        val contact = contactRepository.getContact(offer.senderId)
 
         webRTCManager.initialize()
         webRTCManager.createPeerConnection()

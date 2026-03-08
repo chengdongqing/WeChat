@@ -1,5 +1,6 @@
-package top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.components
+package top.chengdongqing.wechat.features.chat.ui.session.message.preview.music
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -28,25 +28,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 @Composable
 fun PlayButton(isPlaying: Boolean, onClick: () -> Unit) {
-    IconButton(
-        onClick = onClick,
+    Box(
         modifier = Modifier
             .size(54.dp)
             .clip(CircleShape)
             .background(Color.Black.copy(0.1f))
-            .padding(4.dp)
+            .weClickable(onClick = onClick)
+            .padding(8.dp)
     ) {
-        Icon(
-            painter = painterResource(
-                if (isPlaying) R.drawable.ic_pause_filled else R.drawable.ic_play_filled
-            ),
-            contentDescription = if (isPlaying) "暂停" else "播放",
-            modifier = Modifier.fillMaxSize(),
-            tint = Color.White.copy(alpha = 0.8f)
-        )
+        AnimatedContent(targetState = isPlaying) { isPlaying ->
+            Icon(
+                painter = painterResource(
+                    if (isPlaying) R.drawable.ic_pause_filled else R.drawable.ic_play_filled
+                ),
+                contentDescription = if (isPlaying) "暂停" else "播放",
+                modifier = Modifier.fillMaxSize(),
+                tint = Color.White.copy(alpha = 0.8f)
+            )
+        }
     }
 }
 

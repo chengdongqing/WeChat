@@ -47,7 +47,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSessionById(sessionId: String): ChatSession? {
+    override suspend fun getSession(sessionId: String): ChatSession? {
         // 先从缓存拿
         synchronized(sessionCache) {
             sessionCache.get(sessionId)?.let { return it }
@@ -64,14 +64,14 @@ class ChatSessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun isSessionMuted(sessionId: String): Boolean {
-        return getSessionById(sessionId)?.isMuted.isTrue()
+        return getSession(sessionId)?.isMuted.isTrue()
     }
 
     override suspend fun exists(sessionId: String): Boolean {
-        return getSessionById(sessionId) != null
+        return getSession(sessionId) != null
     }
 
-    override suspend fun insertSession(session: ChatSession) {
+    override suspend fun createSession(session: ChatSession) {
         chatSessionDao.insert(session.toEntity())
     }
 
@@ -124,7 +124,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
         sessionCache.remove(sessionId)
     }
 
-    override suspend fun deleteSessionById(sessionId: String, shouldHide: Boolean) {
+    override suspend fun deleteSession(sessionId: String, shouldHide: Boolean) {
         // 查询当前会话所有的媒体文件，方便统一删除
         val localPaths = messageDao.getLocalPathsBySessionId(sessionId)
 

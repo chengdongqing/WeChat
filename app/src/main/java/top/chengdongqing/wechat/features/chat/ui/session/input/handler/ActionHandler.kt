@@ -32,7 +32,8 @@ class ActionHandler(
     private val onApk: () -> Unit,
     private val onCard: () -> Unit,
     private val onFavorite: () -> Unit,
-    private val onVoiceInput: () -> Unit
+    private val onVoiceInput: () -> Unit,
+    private val onMusic: () -> Unit
 ) {
     /** 统一入口，按 action 路由 */
     fun handleAction(action: MoreAction, isLongClick: Boolean) {
@@ -46,6 +47,7 @@ class ActionHandler(
             MoreAction.Favorite -> onFavorite()
             MoreAction.Voice -> onVoiceInput()
             MoreAction.App -> onApk()
+            MoreAction.Music -> onMusic()
             else -> Unit
         }
     }
@@ -60,7 +62,8 @@ fun rememberActionHandler(
     locationLauncher: LocationLauncher,
     fileLauncher: FileLauncher,
     onSendMessage: (MessageContent) -> Unit,
-    onLaunchCall: (CallType) -> Unit
+    onLaunchCall: (CallType) -> Unit,
+    onSelectMusic: () -> Unit
 ): ActionHandler {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -146,6 +149,7 @@ fun rememberActionHandler(
             },
             onFile = fileLauncher.pickFile,
             onApk = fileLauncher.pickApk,
+            onMusic = onSelectMusic,
             onCard = {
                 val content = MessageContent.ContactCard(
                     userId = randomUUID(),

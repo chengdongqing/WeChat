@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.session.input
+package top.chengdongqing.wechat.features.chat.domain.model
 
 import androidx.compose.runtime.Stable
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
@@ -12,7 +12,8 @@ data class InputBarState(
     val inputMode: InputMode = InputMode.Text,
     val isExpanded: Boolean = false,
     val lineCount: Int = 1,
-    val recentEmojis: List<Emoji> = emptyList()
+    val recentEmojis: List<Emoji> = emptyList(),
+    val isMusicOpen: Boolean = false
 ) {
     /**
      * 是否显示发送按钮

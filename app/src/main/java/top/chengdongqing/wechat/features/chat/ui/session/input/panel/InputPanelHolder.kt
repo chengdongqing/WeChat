@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.core.designsystem.util.DpSaver
 import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
-import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarActions
-import top.chengdongqing.wechat.features.chat.ui.session.input.InputMode
+import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
+import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 
 @Composable
 fun InputPanelHolder(
@@ -66,7 +66,7 @@ fun InputPanelHolder(
                 InputMode.Emoji -> EmojiPanel(
                     recentEmojis = recentEmojis,
                     onEmojiSelect = { emoji -> actions.onInsertEmoji(emoji.description) },
-                    onStickerSelect = actions.onSendSticker,
+                    onStickerSelect = actions.onSendMessage,
                     onBackspace = actions.onEmojiBackspace
                 )
 

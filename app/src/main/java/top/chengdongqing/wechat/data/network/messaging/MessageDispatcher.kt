@@ -1,35 +1,21 @@
 package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
-import androidx.room.withTransaction
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.file.PrivateFileManager
-import top.chengdongqing.wechat.core.util.deleteLocalFile
 import top.chengdongqing.wechat.core.util.extractExtension
-import top.chengdongqing.wechat.core.util.isWithinSeconds
-import top.chengdongqing.wechat.data.database.WeDatabase
-import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
-import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
-import top.chengdongqing.wechat.data.network.transfer.TransferManager
-import top.chengdongqing.wechat.data.notification.NotificationHelper
-import top.chengdongqing.wechat.data.session.ActiveSessionManager
-import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
-import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
-import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
+import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -41,20 +27,10 @@ import javax.inject.Singleton
  */
 @Singleton
 class MessageDispatcher @Inject constructor(
-    private val database: WeDatabase,
-    private val messageDao: MessageDao,
-    private val messageSender: MessageSender,
-    private val chatSessionDao: ChatSessionDao,
-    private val chatSessionRepository: ChatSessionRepository,
-    private val chatSessionUpdater: ChatSessionUpdater,
-    private val fileReferenceManager: FileReferenceManager,
+    private val messageRepository: MessageRepository,
     private val privateFileManager: PrivateFileManager,
     private val signalingManager: SignalingManager,
-    private val transferManager: TransferManager,
-    private val activeSessionManager: ActiveSessionManager,
-    private val notificationHelper: NotificationHelper,
-    private val json: Json,
-    @param:IoScope private val scope: CoroutineScope
+    private val json: Json
 ) {
     private companion object {
         const val TAG = "MessageDispatcher"
@@ -90,8 +66,6 @@ class MessageDispatcher @Inject constructor(
 
     /**
      * 分发媒体消息
-     *
-     * tempFile 由 [MessageReceiver] 传入，处理完成后由 [PrivateFileManager] 或异常处理负责删除。
      */
     suspend fun dispatch(protocol: ChatProtocol.MediaMessage, tempFile: File) {
         runCatching {
@@ -127,49 +101,12 @@ class MessageDispatcher @Inject constructor(
         protocol: ChatProtocol,
         entityBuilder: suspend () -> MessageEntity
     ) {
-        try {
-            // 已存在该消息直接发送送达回执
-            if (messageDao.exists(protocol.messageId)) {
-                sendAck(protocol)
-                return
-            }
-
-            val entity = entityBuilder()
-            database.withTransaction {
-                // 保存消息
-                messageDao.insert(entity)
-                // 更新会话
-                chatSessionUpdater.update(entity)
-            }
-            // 发送送达回执
-            sendAck(protocol)
-
-            // 查询是否开启免打扰
-            val isMuted = chatSessionRepository.isSessionMuted(protocol.senderId)
-
-            // 满足指定条件就推送到消息流以触发消息通知
-            val isNotifyRequired = !isMuted && // 未开启免打扰
-                    !entity.isFromMe && // 不是给自己发的
-                    !entity.contentType.isCallMessage && // 不是通话消息
-                    !activeSessionManager.isActive(entity.sessionId) // 当前未在消息所在的会话页
-            if (isNotifyRequired) {
-                _incomingMessageFlow.emit(entity.toDomain(json))
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)
-        }
-    }
-
-    /**
-     * 发送送达回执
-     */
-    private fun sendAck(protocol: ChatProtocol) {
-        scope.launch {
-            messageSender.sendReceipt(
-                messageId = protocol.messageId,
-                receiverId = protocol.senderId,
-                type = ReceiptType.Delivered
-            )
+        // 已存在该消息直接发送送达回执
+        messageRepository.handleIncomingMessage(
+            protocol,
+            entityBuilder,
+        ) { message ->
+            _incomingMessageFlow.emit(message)
         }
     }
 
@@ -189,63 +126,35 @@ class MessageDispatcher @Inject constructor(
                     } else {
                         SendStatus.Read
                     }
-                    messageDao.update(messageId) { message ->
-                        message.copy(sendStatus = status)
-                    }
+                    messageRepository.updateMessageStatus(
+                        messageId = messageId,
+                        status = status
+                    )
                 }
 
                 // 撤回消息
                 ReceiptType.Recalled -> {
-                    val message = messageDao.getById(messageId) ?: return
-                    // 安全校验
-                    if (message.senderId != protocol.senderId || message.isFromMe || !message.timestamp.isWithinSeconds()) return
-
-                    // 清除通知
-                    notificationHelper.cancelNotification(message.sessionId.hashCode())
-
-                    // 标记为已撤回
-                    database.withTransaction {
-                        // 更新消息
-                        messageDao.update(messageId) { message ->
-                            message.copy(
-                                isRecalled = true,
-                                content = "" // 置空消息内容
-                            )
-                        }
-                        // 更新会话
-                        chatSessionDao.markAsRecalledByMessageId(
-                            message.sessionId,
-                            messageId,
-                            "对方撤回了一条消息"
-                        )
-                    }
-
-                    // 删除可能存在的媒体文件
-                    message.localPath?.let { path ->
-                        val toDelete = fileReferenceManager.release(path)
-                        toDelete?.let { deleteLocalFile(it) }
-                    }
+                    messageRepository.recallMessage(protocol.messageId)
                 }
 
                 // 拉黑/非好友
                 ReceiptType.Blocked,
                 ReceiptType.NotFriend -> {
-                    val reason = if (type == ReceiptType.Blocked) {
+                    val failedReason = if (type == ReceiptType.Blocked) {
                         SendError.Blocked
                     } else {
                         SendError.NotFriend
                     }
-                    messageDao.update(messageId) { message ->
-                        message.copy(
-                            sendStatus = SendStatus.Failed,
-                            failReason = reason
-                        )
-                    }
-                    // 停止发送文件（如果有）
-                    transferManager.setCancelled(messageId)
+                    messageRepository.updateMessageStatus(
+                        messageId = messageId,
+                        status = SendStatus.Failed,
+                        failedReason = failedReason
+                    )
                 }
             }
-        }.onFailure { Log.e(TAG, "回执处理失败: $messageId", it) }
+        }.onFailure {
+            Log.e(TAG, "回执处理失败: $messageId", it)
+        }
     }
 
     /**

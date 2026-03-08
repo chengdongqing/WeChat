@@ -193,7 +193,8 @@ class MessageToolbarManager(
                     add(MessageAction.Delete)
                 }
 
-                is MessageContent.ContactCard -> {
+                is MessageContent.ContactCard,
+                is MessageContent.Music -> {
                     add(MessageAction.Forward)
                     add(MessageAction.Quote)
                     add(MessageAction.Remind)

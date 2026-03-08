@@ -31,7 +31,7 @@ class ContactRepositoryImpl @Inject constructor(
         return contactDao.observeAll().map { it.toDomain() }
     }
 
-    override suspend fun getContactById(userId: String): Contact? {
+    override suspend fun getContact(userId: String): Contact? {
         // 先从缓存拿
         synchronized(contactCache) {
             contactCache.get(userId)?.let { return it }
@@ -47,15 +47,15 @@ class ContactRepositoryImpl @Inject constructor(
         return contact
     }
 
-    override fun observeContactById(userId: String): Flow<Contact?> {
+    override fun observeContact(userId: String): Flow<Contact?> {
         return contactDao.observeById(userId).map { it?.toDomain() }
     }
 
     override suspend fun exists(userId: String): Boolean {
-        return getContactById(userId) != null
+        return getContact(userId) != null
     }
 
-    override suspend fun addContact(contact: Contact) {
+    override suspend fun createContact(contact: Contact) {
         contactDao.insert(contact.toEntity())
     }
 

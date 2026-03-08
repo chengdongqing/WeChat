@@ -58,7 +58,7 @@ class ChatListViewModel @Inject constructor(
      */
     fun deleteChat(sessionId: String) {
         viewModelScope.launch {
-            chatSessionRepository.deleteSessionById(sessionId)
+            chatSessionRepository.deleteSession(sessionId)
         }
     }
 }

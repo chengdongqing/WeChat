@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.util
+package top.chengdongqing.wechat.features.chat.ui.session.util
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope

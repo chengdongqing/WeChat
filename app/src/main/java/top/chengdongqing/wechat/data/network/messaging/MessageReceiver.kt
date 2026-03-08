@@ -157,7 +157,7 @@ class MessageReceiver @Inject constructor(
     }
 
     private suspend fun checkMessagePermission(userId: String): PermissionResult {
-        val contact = contactRepository.getContactById(userId)
+        val contact = contactRepository.getContact(userId)
         return when {
             contact?.isBlocked.isTrue() -> PermissionResult.Blocked
             contact == null -> PermissionResult.NotFriend

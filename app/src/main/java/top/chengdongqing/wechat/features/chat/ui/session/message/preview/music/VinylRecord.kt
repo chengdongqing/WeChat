@@ -1,5 +1,6 @@
-package top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.components
+package top.chengdongqing.wechat.features.chat.ui.session.message.preview.music
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -41,7 +42,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.White
 
 @Composable
-fun VinylRecord(isPlaying: Boolean, albumArt: Int) {
+fun VinylRecord(@DrawableRes albumArtRes: Int, isPlaying: Boolean) {
     // 保存暂停时的角度，下次播放从此处继续，避免复位
     var currentRotation by remember { mutableFloatStateOf(0f) }
     val rotationAnimatable = remember { Animatable(0f) }
@@ -154,7 +155,7 @@ fun VinylRecord(isPlaying: Boolean, albumArt: Int) {
 
             // 专辑封面
             Image(
-                painter = painterResource(albumArt),
+                painter = painterResource(albumArtRes),
                 contentDescription = "专辑封面",
                 modifier = Modifier
                     .fillMaxSize(0.70f)

@@ -10,6 +10,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
+import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberActionHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberFileHandler
@@ -57,7 +59,8 @@ fun rememberInputBarActions(
         locationLauncher = locationLauncher,
         fileLauncher = fileLauncher,
         onSendMessage = onSendMessage,
-        onLaunchCall = onLaunchCall
+        onLaunchCall = onLaunchCall,
+        onSelectMusic = controller::toggleMusic
     )
 
     return remember(controller, actionHandler) {
@@ -76,6 +79,7 @@ fun rememberInputBarActions(
             onInsertEmoji = controller::insertEmoji,
             onEmojiBackspace = controller::handleEmojiBackspace,
             onToggleExpand = controller::toggleExpand,
+            onToggleMusic = controller::toggleMusic,
 
             // 模式切换
             onSwitchMode = controller::switchMode,
@@ -90,16 +94,13 @@ fun rememberInputBarActions(
 
             // 媒体 / 更多
             onMoreAction = actionHandler::handleAction,
-            onVoiceSend = { path, duration ->
-                onSendMessage(MessageContent.Voice(path, duration))
-            },
             onSpeechResult = { text ->
                 val current = state.inputText
                 controller.updateText(
                     if (current.isNotEmpty()) "$current，$text" else text
                 )
             },
-            onSendSticker = onSendMessage,
+            onSendMessage = onSendMessage,
 
             // 透传
             onLaunchCall = onLaunchCall

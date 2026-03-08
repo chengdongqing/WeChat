@@ -1,0 +1,28 @@
+package top.chengdongqing.wechat.features.chat.domain.model
+
+import androidx.annotation.DrawableRes
+import androidx.annotation.RawRes
+import top.chengdongqing.wechat.R
+
+/**
+ * 音乐枚举
+ */
+enum class MusicTrack(
+    val title: String,
+    val artist: String,
+    @param:DrawableRes val albumArtRes: Int,
+    @param:RawRes val audioRes: Int
+) {
+    Perfect(
+        title = "Perfect",
+        artist = "Ed Sheeran",
+        albumArtRes = R.drawable.img_album_art_perfect,
+        audioRes = R.raw.music_perfect
+    ),
+    BravestMoment(
+        title = "这是我一生中最勇敢的瞬间",
+        artist = "棱镜乐队",
+        albumArtRes = R.drawable.img_album_art_bravest_moment,
+        audioRes = R.raw.music_bravest_moment
+    )
+}

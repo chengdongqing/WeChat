@@ -119,7 +119,7 @@ class ChatSessionUpdater @Inject constructor(
                 } else {
                     entity.senderId
                 }
-                val contact = contactRepository.getContactById(contactId)
+                val contact = contactRepository.getContact(contactId)
 
                 Pair(contact?.displayName ?: "", contact?.avatarPath)
             }

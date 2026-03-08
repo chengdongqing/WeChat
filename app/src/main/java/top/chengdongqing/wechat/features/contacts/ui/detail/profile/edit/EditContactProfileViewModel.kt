@@ -59,7 +59,7 @@ class EditContactProfileViewModel @AssistedInject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             try {
-                val contact = contactRepository.getContactById(contactId)
+                val contact = contactRepository.getContact(contactId)
 
                 if (contact != null) {
                     _uiState.update {

@@ -19,8 +19,8 @@ import top.chengdongqing.wechat.data.network.service.modules.CallModule
 import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
 import top.chengdongqing.wechat.data.notification.NotificationHelper
+import top.chengdongqing.wechat.features.chat.data.mapper.toPreviewText
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
-import top.chengdongqing.wechat.features.chat.domain.model.toPreviewText
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -194,7 +194,7 @@ class NetworkService : Service() {
      */
     private suspend fun handleNewMessage(message: ChatMessage) {
         // 查询联系人昵称
-        val contact = contactRepository.getContactById(message.senderId)
+        val contact = contactRepository.getContact(message.senderId)
         val senderName = contact?.displayName ?: "新消息"
         // 获取内容预览信息
         val previewText = message.content.toPreviewText()

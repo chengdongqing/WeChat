@@ -21,11 +21,15 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
+import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
+import top.chengdongqing.wechat.data.notification.NotificationHelper
+import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
@@ -42,11 +46,13 @@ class MessageRepositoryImpl @Inject constructor(
     private val messageDao: MessageDao,
     private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
+    private val activeSessionManager: ActiveSessionManager,
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val fileReferenceManager: FileReferenceManager,
     private val transferManager: TransferManager,
+    private val notificationHelper: NotificationHelper,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope
 ) : MessageRepository {
@@ -65,6 +71,10 @@ class MessageRepositoryImpl @Inject constructor(
         sessionId: String,
         lastTimestamp: Long
     ): Boolean = messageDao.hasOlderMessages(sessionId, lastTimestamp)
+
+    override suspend fun getMessage(messageId: String): ChatMessage? {
+        return messageDao.getById(messageId)?.toDomain(json)
+    }
 
     override suspend fun sendMessage(
         sessionId: String,
@@ -116,7 +126,8 @@ class MessageRepositoryImpl @Inject constructor(
         try {
             when (entity.contentType) {
                 MessageType.Text,
-                MessageType.ContactCard -> messageSender.sendTextMessage(entity)
+                MessageType.ContactCard,
+                MessageType.Music -> messageSender.sendTextMessage(entity)
 
                 else -> {
                     val file = File(entity.localPath ?: throw Exception("文件路径为空"))
@@ -141,7 +152,8 @@ class MessageRepositoryImpl @Inject constructor(
             // 重新发送
             when (entity.contentType) {
                 MessageType.Text,
-                MessageType.ContactCard -> messageSender.sendTextMessage(entity)
+                MessageType.ContactCard,
+                MessageType.Music -> messageSender.sendTextMessage(entity)
 
                 else -> {
                     val file = File(entity.localPath ?: throw Exception("文件路径为空"))
@@ -193,11 +205,7 @@ class MessageRepositoryImpl @Inject constructor(
 
     override suspend fun recallMessage(messageId: String): Result<Unit> = runCatching {
         val message = messageDao.getById(messageId) ?: throw IllegalStateException("消息不存在")
-
-        // 判断是否是我发送的
-        if (!message.isFromMe) {
-            throw IllegalStateException("只能撤回自己发送的消息")
-        }
+        val isFromMe = message.isFromMe
 
         // 判断是否是5分钟内发送的消息
         if (!message.timestamp.isWithinSeconds()) {
@@ -207,13 +215,23 @@ class MessageRepositoryImpl @Inject constructor(
         // 标记为已撤回
         database.withTransaction {
             // 更新消息
-            messageDao.markAsRecalledById(messageId)
+            messageDao.update(messageId) { message ->
+                message.copy(
+                    isRecalled = true,
+                    content = if (isFromMe) message.content else "" // 对方撤回的置空消息内容
+                )
+            }
             // 更新会话
             chatSessionDao.markAsRecalledByMessageId(
                 message.sessionId,
                 messageId,
-                "你撤回了一条消息"
+                if (isFromMe) "你撤回了一条消息" else "对方撤回了一条消息"
             )
+        }
+
+        // 清除通知
+        if (!isFromMe) {
+            notificationHelper.cancelNotification(message.sessionId.hashCode())
         }
 
         // 删除可能存在的媒体文件
@@ -223,12 +241,14 @@ class MessageRepositoryImpl @Inject constructor(
         }
 
         // 给对方发送撤回申请
-        scope.launch {
-            messageSender.sendReceipt(
-                messageId = messageId,
-                receiverId = message.receiverId,
-                type = ReceiptType.Recalled
-            )
+        if (isFromMe) {
+            scope.launch {
+                messageSender.sendReceipt(
+                    messageId = messageId,
+                    receiverId = message.receiverId,
+                    type = ReceiptType.Recalled
+                )
+            }
         }
     }
 
@@ -292,6 +312,75 @@ class MessageRepositoryImpl @Inject constructor(
         } else {
             // 直接清除
             chatSessionDao.clearLastMessage(sessionId)
+        }
+    }
+
+    override suspend fun handleIncomingMessage(
+        protocol: ChatProtocol,
+        entityBuilder: suspend () -> MessageEntity,
+        onNotifyRequired: suspend (ChatMessage) -> Unit
+    ) {
+        try {
+            // 已存在该消息直接发送送达回执
+            if (messageDao.exists(protocol.messageId)) {
+                sendAck(protocol)
+                return
+            }
+
+            val entity = entityBuilder()
+            database.withTransaction {
+                // 保存消息
+                messageDao.insert(entity)
+                // 更新会话
+                chatSessionUpdater.update(entity)
+            }
+            // 发送送达回执
+            sendAck(protocol)
+
+            // 查询是否开启免打扰
+            val isMuted = chatSessionRepository.isSessionMuted(protocol.senderId)
+
+            // 满足指定条件就推送到消息流以触发消息通知
+            val isNotifyRequired = !isMuted && // 未开启免打扰
+                    !entity.isFromMe && // 不是给自己发的
+                    !entity.contentType.isCallMessage && // 不是通话消息
+                    !activeSessionManager.isActive(entity.sessionId) // 当前未在消息所在的会话页
+            if (isNotifyRequired) {
+                onNotifyRequired(entity.toDomain(json))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)
+        }
+    }
+
+    /**
+     * 发送送达回执
+     */
+    private fun sendAck(protocol: ChatProtocol) {
+        scope.launch {
+            messageSender.sendReceipt(
+                messageId = protocol.messageId,
+                receiverId = protocol.senderId,
+                type = ReceiptType.Delivered
+            )
+        }
+    }
+
+    override suspend fun updateMessageStatus(
+        messageId: String,
+        status: SendStatus,
+        failedReason: SendError?
+    ) {
+        messageDao.update(messageId) { message ->
+            message.copy(
+                sendStatus = SendStatus.Failed,
+                failReason = failedReason
+            )
+        }
+
+        if (failedReason != null) {
+            // 停止发送文件（如果有）
+            transferManager.setCancelled(messageId)
         }
     }
 }

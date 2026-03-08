@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.session.input
+package top.chengdongqing.wechat.features.chat.domain.model
 
 /**
  * 输入模式

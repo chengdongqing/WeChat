@@ -51,6 +51,7 @@ fun ChatSessionScreen(
     onNavigateToInfo: () -> Unit,
     onNavigateToContact: (id: String) -> Unit,
     onNavigateToFilePreview: (messageId: String) -> Unit,
+    onNavigateToMusicPreview: (messageId: String, trackName: String) -> Unit,
     onNavigateToRequestAddFriend: () -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
     viewModel: ChatSessionViewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
@@ -166,6 +167,10 @@ fun ChatSessionScreen(
 
                 is MessageUiEvent.PreviewFile -> {
                     onNavigateToFilePreview(event.messageId)
+                }
+
+                is MessageUiEvent.PreviewMusic -> {
+                    onNavigateToMusicPreview(event.messageId, event.trackName)
                 }
 
                 is MessageUiEvent.LaunchCall -> {
