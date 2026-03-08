@@ -4,7 +4,6 @@ import androidx.compose.ui.graphics.Color
 
 // --- 品牌核心色 ---
 val GreenPrimary = Color(0xFF07C160)
-val GreenPressed = Color(0xFF06AD56)
 val Danger = Color(0xFFFA5151)
 
 // --- 基础中性色 ---

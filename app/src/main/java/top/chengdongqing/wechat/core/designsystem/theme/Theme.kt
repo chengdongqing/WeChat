@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.core.designsystem.theme
 
 import android.app.Activity
 import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -18,12 +19,12 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import top.chengdongqing.wechat.features.settings.domain.model.AppTheme
 import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsViewModel
 
 @Immutable
 class WeColorScheme(
     val primary: Color = GreenPrimary,
-    val primaryPressed: Color = GreenPressed,
     // 基础表面
     val background: Color,       // 页面底色
     val surface: Color,          // 容器/卡片色
@@ -66,11 +67,20 @@ val LocalWeColorScheme = staticCompositionLocalOf { LightColorScheme }
 @Composable
 fun WeTheme(
     viewModel: DisplaySettingsViewModel = hiltViewModel(),
-    darkTheme: Boolean = false, // isSystemInDarkTheme(),
+    darkTheme: Boolean? = null,
     content: @Composable () -> Unit
 ) {
+    // 读取显示配置
+    val settings by viewModel.settings.collectAsState()
+
+    // 是否启用深色主题
+    val isDarkTheme = darkTheme ?: when (settings.theme) {
+        AppTheme.FollowSystem -> isSystemInDarkTheme()
+        AppTheme.Dark -> true
+        AppTheme.Light -> false
+    }
     val colorScheme = when {
-        darkTheme -> DarkColorScheme
+        isDarkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
@@ -87,9 +97,6 @@ fun WeTheme(
             }
         }
     }
-
-    // 读取显示配置
-    val settings by viewModel.settings.collectAsState()
 
     MaterialTheme {
         CompositionLocalProvider(

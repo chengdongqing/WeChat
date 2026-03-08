@@ -13,12 +13,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
+import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 
+@AndroidEntryPoint
 class MediaPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

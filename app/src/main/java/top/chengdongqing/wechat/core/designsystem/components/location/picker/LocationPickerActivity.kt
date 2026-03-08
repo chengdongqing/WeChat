@@ -12,10 +12,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
+@AndroidEntryPoint
 class LocationPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

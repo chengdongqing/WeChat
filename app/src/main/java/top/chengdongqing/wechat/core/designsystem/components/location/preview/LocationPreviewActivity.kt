@@ -7,10 +7,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
+@AndroidEntryPoint
 class LocationPreviewActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

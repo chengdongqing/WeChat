@@ -12,6 +12,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -23,7 +25,12 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.settings.domain.model.AppTheme
 
 @Composable
-fun DarkModeSettingScreen(onBack: () -> Unit) {
+fun DarkModeSettingScreen(
+    onBack: () -> Unit,
+    viewModel: DisplaySettingsViewModel = hiltViewModel()
+) {
+    val initialTheme by viewModel.theme.collectAsStateWithLifecycle()
+    var theme by remember(initialTheme) { mutableStateOf(initialTheme) }
     val themeOptions = remember {
         AppTheme.entries.filter {
             !it.isFollowSystem
@@ -31,12 +38,15 @@ fun DarkModeSettingScreen(onBack: () -> Unit) {
             it.label to it
         }
     }
-    var theme by remember { mutableStateOf(AppTheme.FollowSystem) }
+    val hasChanged = theme != initialTheme
 
     Scaffold(
         topBar = {
             WeTopBar(title = "深色模式", onBack = onBack) {
-                WeButton(text = "完成", size = ButtonSize.Small, enabled = false)
+                WeButton(text = "完成", size = ButtonSize.Small, enabled = hasChanged) {
+                    viewModel.saveTheme(theme)
+                    onBack()
+                }
             }
         },
         containerColor = WeTheme.colorScheme.background
