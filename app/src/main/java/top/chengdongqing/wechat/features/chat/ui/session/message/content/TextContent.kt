@@ -6,7 +6,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -17,6 +16,7 @@ import top.chengdongqing.wechat.core.designsystem.util.parseRichText
 import top.chengdongqing.wechat.core.designsystem.util.rememberEmojiInlineContent
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 /**
@@ -42,6 +42,7 @@ fun TextContent(message: ChatMessage) {
     }
 
     val inlineContent = rememberEmojiInlineContent(annotatedString, emojiSize = 22.sp)
+    val colors = ChatTheme.colorScheme
 
     Text(
         text = annotatedString,
@@ -49,7 +50,7 @@ fun TextContent(message: ChatMessage) {
         modifier = Modifier.padding(10.dp),
         style = TextStyle(
             fontSize = 16.sp.scaled,
-            color = Color.Black,
+            color = if (message.isFromMe) colors.bubbleTextOutgoing else colors.bubbleTextIncoming,
             lineHeight = 22.sp.scaled
         )
     )

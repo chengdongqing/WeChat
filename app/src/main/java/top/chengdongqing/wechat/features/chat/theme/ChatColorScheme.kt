@@ -43,7 +43,7 @@ data class ChatColorScheme(
 private val ChatLightColors = ChatColorScheme(
     bubbleOutgoing = Color(0xFF95EC69),
     bubbleIncoming = White,
-    bubbleTextOutgoing = White,
+    bubbleTextOutgoing = TextPrimaryLight,
     bubbleTextIncoming = TextPrimaryLight,
     timestamp = TextSecondaryLight,
     bottomBarBackground = Grey_F7,
@@ -59,7 +59,7 @@ private val ChatLightColors = ChatColorScheme(
 private val ChatDarkColors = ChatColorScheme(
     bubbleOutgoing = Color(0xFF3DAF72),
     bubbleIncoming = Dark_Surface2,
-    bubbleTextOutgoing = TextPrimaryDark,
+    bubbleTextOutgoing = TextPrimaryLight,
     bubbleTextIncoming = TextPrimaryDark,
     timestamp = TextSecondaryDark,
     bottomBarBackground = Dark_Surface,

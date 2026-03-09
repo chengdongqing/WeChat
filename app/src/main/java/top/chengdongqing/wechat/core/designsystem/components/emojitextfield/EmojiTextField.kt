@@ -32,6 +32,7 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.withTranslation
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.EmojiRenderer
 
 /**
@@ -57,6 +58,7 @@ fun EmojiTextField(
     modifier: Modifier = Modifier,
     focusRequester: NativeFocusRequester,
     fontSizeSp: Int = EmojiTextFieldConfig.DEFAULT_FONT_SIZE_SP,
+    textColor: androidx.compose.ui.graphics.Color = WeTheme.colorScheme.textPrimary,
     maxHeightDp: Dp? = EmojiTextFieldConfig.DEFAULT_MAX_HEIGHT_DP,
     onValueChange: (String) -> Unit,
     onLineCountChange: ((Int) -> Unit)? = null
@@ -124,6 +126,8 @@ fun EmojiTextField(
             }
         },
         update = { editText ->
+            editText.setTextColor(textColor.toArgb())
+
             // 只有当参数变化时才触发布局更新
             if (editText.maxHeight != (maxHeightPx ?: Int.MAX_VALUE)) {
                 editText.maxHeight = maxHeightPx ?: Int.MAX_VALUE

@@ -27,6 +27,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 fun InputPanelHolder(
     inputMode: InputMode,
     actions: InputBarActions,
+    isInPopup: Boolean = false,
     recentEmojis: List<Emoji> = emptyList()
 ) {
     val keyboardHeight = rememberKeyboardHeight()
@@ -66,7 +67,7 @@ fun InputPanelHolder(
                 InputMode.Emoji -> EmojiPanel(
                     recentEmojis = recentEmojis,
                     onEmojiSelect = { emoji -> actions.onInsertEmoji(emoji.description) },
-                    onStickerSelect = actions.onSendMessage,
+                    onStickerSelect = if (!isInPopup) actions.onSendMessage else null,
                     onBackspace = actions.onEmojiBackspace
                 )
 

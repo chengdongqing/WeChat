@@ -71,11 +71,7 @@ fun InputOverlay(
             }
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             // 顶部关闭按钮
             InputTopBar(onClose)
 
@@ -84,7 +80,6 @@ fun InputOverlay(
                 modifier = Modifier
                     .zIndex(1f)
                     .weight(1f)
-                    .background(Color.White)
             ) {
                 EmojiTextField(
                     value = innerState.inputText,
@@ -115,7 +110,8 @@ fun InputOverlay(
             InputPanelHolder(
                 inputMode = inputMode,
                 actions = innerActions,
-                recentEmojis = innerState.recentEmojis
+                recentEmojis = innerState.recentEmojis,
+                isInPopup = true
             )
         }
     }
