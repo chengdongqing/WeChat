@@ -30,26 +30,15 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
+import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
-enum class InformationBarType(
-    val backgroundColor: Color,
-    val iconColor: Color = Color.White,
-    val textColor: Color = Color.White,
-    val linkColor: Color = Color.White,
-    val closeIconColor: Color = Color.White
-) {
-    WarnStrong(backgroundColor = Color(0xFFFA5151)),
-    Info(backgroundColor = Color(0f, 0f, 0f, 0.3f)),
-    TipsStrong(backgroundColor = Color(0xFFFA9D3B)),
-    TipsWeak(
-        backgroundColor = Color(1f, 0.945f, 0.957f),
-        iconColor = Danger,
-        textColor = Color(0f, 0f, 0f, 0.55f),
-        linkColor = LinkColor,
-        closeIconColor = Color(0f, 0f, 0f, 0.55f)
-    ),
-    Success(backgroundColor = GreenPrimary)
+enum class InformationBarType {
+    WarnStrong,
+    Info,
+    TipsStrong,
+    TipsWeak,
+    Success
 }
 
 @Composable
@@ -64,6 +53,8 @@ fun WeInformationBar(
     onLink: (() -> Unit)? = null,
     onClose: (() -> Unit)? = null
 ) {
+    val colors = colorSchemeOf(type)
+
     val icon = if (type == InformationBarType.Success) {
         R.drawable.ic_check
     } else {
@@ -88,23 +79,23 @@ fun WeInformationBar(
                 .fillMaxWidth()
                 .height(48.dp)
                 .clip(shape)
-                .background(type.backgroundColor)
+                .background(colors.backgroundColor)
                 .padding(16.dp, 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = null,
-                tint = type.iconColor
+                tint = colors.iconColor
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = message, fontSize = 14.sp, color = type.textColor)
+            Text(text = message, fontSize = 14.sp, color = colors.textColor)
             Spacer(modifier = Modifier.weight(1f))
             linkText?.let {
                 Text(
                     text = it,
                     fontSize = 14.sp,
-                    color = type.linkColor,
+                    color = colors.linkColor,
                     modifier = Modifier.weClickable {
                         onLink?.invoke()
                     }
@@ -115,12 +106,59 @@ fun WeInformationBar(
                 Icon(
                     Icons.Outlined.Close,
                     contentDescription = null,
-                    tint = type.closeIconColor,
+                    tint = colors.closeIconColor,
                     modifier = Modifier.weClickable {
                         it()
                     }
                 )
             }
         }
+    }
+}
+
+private data class InformationBarColors(
+    val backgroundColor: Color,
+    val iconColor: Color = Color.White,
+    val textColor: Color = Color.White,
+    val linkColor: Color = Color.White,
+    val closeIconColor: Color = Color.White
+)
+
+@Composable
+private fun colorSchemeOf(type: InformationBarType): InformationBarColors {
+    val isDarkTheme = LocalIsDarkTheme.current
+
+    return when (type) {
+        InformationBarType.WarnStrong -> InformationBarColors(
+            backgroundColor = Color(0xFFFA5151)
+        )
+
+        InformationBarType.Info -> InformationBarColors(
+            backgroundColor = Color(0f, 0f, 0f, 0.3f)
+        )
+
+        InformationBarType.TipsStrong -> InformationBarColors(
+            backgroundColor = Color(0xFFFA9D3B)
+        )
+
+        InformationBarType.TipsWeak -> InformationBarColors(
+            backgroundColor = if (isDarkTheme) {
+                Color(0.522f, 0.212f, 0.212f, 1.0f)
+            } else {
+                Color(1f, 0.945f, 0.957f)
+            },
+            iconColor = Danger,
+            textColor = if (isDarkTheme) {
+                Color(0.922f, 0.627f, 0.651f, 1.0f)
+            } else {
+                Color(0f, 0f, 0f, 0.55f)
+            },
+            linkColor = LinkColor,
+            closeIconColor = Color(0f, 0f, 0f, 0.55f)
+        )
+
+        InformationBarType.Success -> InformationBarColors(
+            backgroundColor = GreenPrimary
+        )
     }
 }

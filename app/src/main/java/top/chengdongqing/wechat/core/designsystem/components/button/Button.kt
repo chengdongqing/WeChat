@@ -66,7 +66,7 @@ fun WeButton(
     loading: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
-    val colors = buttonColorSchemeOf(type, enabled)
+    val colors = colorSchemeOf(type, enabled)
     val finalEnabled = enabled && !loading
 
     Box(
@@ -106,7 +106,7 @@ private data class ButtonColors(
 )
 
 @Composable
-private fun buttonColorSchemeOf(type: ButtonType, enabled: Boolean): ButtonColors {
+private fun colorSchemeOf(type: ButtonType, enabled: Boolean): ButtonColors {
     val isDarkTheme = LocalIsDarkTheme.current
 
     return when (type) {

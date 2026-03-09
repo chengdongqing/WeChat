@@ -41,7 +41,9 @@ fun CallContent(message: ChatMessage) {
         if (isFromMe) status.descriptionForMe else status.description
     }
 
-    CompositionLocalProvider(LocalLayoutDirection provides if (isFromMe) LayoutDirection.Rtl else LayoutDirection.Ltr) {
+    CompositionLocalProvider(
+        LocalLayoutDirection provides if (isFromMe) LayoutDirection.Rtl else LayoutDirection.Ltr
+    ) {
         Row(
             modifier = Modifier.padding(10.dp),
             verticalAlignment = Alignment.CenterVertically

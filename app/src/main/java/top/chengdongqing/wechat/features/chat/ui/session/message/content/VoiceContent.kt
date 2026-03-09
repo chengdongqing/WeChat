@@ -10,13 +10,13 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -30,15 +30,16 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 @Composable
@@ -62,26 +63,35 @@ fun VoiceContent(message: ChatMessage) {
         }
     }
 
-    // 时长文本
+    // 时长
     val durationText = remember(content.duration) {
         "${maxOf(1, (content.duration / 1000).toInt())}''"
     }
 
-    Row(
-        modifier = Modifier
-            .width(targetWidth)
-            .padding(10.dp),
-        horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
+    val colors = ChatTheme.colorScheme
+    val color = if (isFromMe) colors.bubbleTextOutgoing else colors.bubbleTextIncoming
+
+    CompositionLocalProvider(
+        LocalLayoutDirection provides if (isFromMe) LayoutDirection.Rtl else LayoutDirection.Ltr
     ) {
-        if (isFromMe) {
-            VoiceDurationText(durationText)
-            Spacer(modifier = Modifier.width(8.dp))
-            VoiceIcon(true, isPlaying)
-        } else {
-            VoiceIcon(false, isPlaying)
-            Spacer(modifier = Modifier.width(8.dp))
-            VoiceDurationText(durationText)
+        Row(
+            modifier = Modifier
+                .width(targetWidth)
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            VoiceIcon(isFromMe, isPlaying, color = color)
+
+            CompositionLocalProvider(
+                LocalLayoutDirection provides LayoutDirection.Ltr
+            ) {
+                Text(
+                    text = durationText,
+                    fontSize = 16.sp,
+                    color = color
+                )
+            }
         }
     }
 }
@@ -90,8 +100,7 @@ fun VoiceContent(message: ChatMessage) {
 private fun VoiceIcon(
     isFromMe: Boolean,
     isPlaying: Boolean,
-    modifier: Modifier = Modifier,
-    color: Color = WeTheme.colorScheme.textPrimary
+    color: Color
 ) {
     val transition = rememberInfiniteTransition(label = "VoiceIconTransition")
     val progress by if (isPlaying) {
@@ -112,7 +121,7 @@ private fun VoiceIcon(
     val painter = painterResource(id = R.drawable.ic_voice_outlined)
 
     Box(
-        modifier = modifier
+        modifier = Modifier
             .size(20.dp)
             .graphicsLayer(scaleX = if (isFromMe) -1f else 1f),
         contentAlignment = Alignment.Center
@@ -143,15 +152,4 @@ private fun VoiceIcon(
             }
         }
     }
-}
-
-@Composable
-private fun VoiceDurationText(text: String) {
-    Text(
-        text = text,
-        style = TextStyle(
-            fontSize = 16.sp,
-            color = WeTheme.colorScheme.textPrimary
-        )
-    )
 }
