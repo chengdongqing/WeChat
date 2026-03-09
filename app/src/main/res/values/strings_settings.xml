@@ -70,4 +70,22 @@
     <string name="display_language">多语言</string>
     <string name="display_language_chinese">简体中文</string>
     <string name="display_language_english">English</string>
+
+    <string name="privacy_add_verify">加我为朋友时需要验证</string>
+    <string name="privacy_add_method">添加我的方式</string>
+    <string name="privacy_chat_only">仅聊天</string>
+    <string name="privacy_moments">朋友圈</string>
+    <string name="privacy_channels">视频号</string>
+    <string name="privacy_top_stories">看一看</string>
+    <string name="privacy_sports">微信运动</string>
+    <string name="privacy_blacklist">通讯录黑名单</string>
+    <string name="privacy_blacklist_title">通讯录黑名单</string>
+
+    <string name="privacy_add_method_group">可通过以下方式添加我为好友</string>
+    <string name="privacy_add_method_qrcode">二维码</string>
+    <string name="privacy_add_method_tap">碰一碰</string>
+    <string name="privacy_add_method_radar">雷达</string>
+    <string name="privacy_add_method_card">名片</string>
+    <string name="privacy_add_method_other">其他</string>
+    <string name="privacy_add_method_other_desc">删除的联系人保留的聊天等</string>
 </resources>

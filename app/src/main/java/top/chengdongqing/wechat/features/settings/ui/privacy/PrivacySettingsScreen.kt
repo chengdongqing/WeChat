@@ -11,8 +11,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
@@ -28,7 +30,10 @@ fun PrivacySettingsScreen(
 ) {
     Scaffold(
         topBar = {
-            WeTopBar(title = "朋友权限", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.settings_privacy),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -43,44 +48,44 @@ fun PrivacySettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             WeSettingItem(
-                label = "加我为朋友时需要验证",
+                label = stringResource(R.string.privacy_add_verify),
                 showArrow = false,
                 showDivider = false
             ) {
                 WeSwitch(checked = true)
             }
             WeSettingItem(
-                label = "添加我的方式",
+                label = stringResource(R.string.privacy_add_method),
                 showDivider = false,
                 onClick = {
                     navController.navigate(SettingsRoute.AddMeMethodSetting.route)
                 }
             )
-            WeSettingGroup("朋友权限") {
+            WeSettingGroup(stringResource(R.string.settings_privacy)) {
                 WeSettingItem(
-                    label = "仅聊天",
+                    label = stringResource(R.string.privacy_chat_only),
                     onClick = {}
                 )
                 WeSettingItem(
-                    label = "朋友圈",
+                    label = stringResource(R.string.privacy_moments),
                     onClick = {}
                 )
                 WeSettingItem(
-                    label = "视频号",
+                    label = stringResource(R.string.privacy_channels),
                     onClick = {}
                 )
                 WeSettingItem(
-                    label = "看一看",
+                    label = stringResource(R.string.privacy_top_stories),
                     onClick = {}
                 )
                 WeSettingItem(
-                    label = "微信运动",
+                    label = stringResource(R.string.privacy_sports),
                     showDivider = false,
                     onClick = {}
                 )
             }
             WeSettingItem(
-                label = "通讯录黑名单",
+                label = stringResource(R.string.privacy_blacklist),
                 showDivider = false,
                 onClick = {
                     navController.navigate(SettingsRoute.ContactBlacklist.route)

@@ -47,7 +47,10 @@ fun EditGenderScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = stringResource(R.string.me_edit_gender), onBack = onBack) {
+            WeTopBar(
+                title = stringResource(R.string.me_edit_gender),
+                onBack = onBack
+            ) {
                 WeButton(
                     text = stringResource(R.string.action_done),
                     size = ButtonSize.Small,

@@ -40,7 +40,10 @@ fun EditSignatureScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = stringResource(R.string.me_profile_bio), onBack = onBack) {
+            WeTopBar(
+                title = stringResource(R.string.me_profile_bio),
+                onBack = onBack
+            ) {
                 WeButton(
                     text = stringResource(R.string.action_save),
                     size = ButtonSize.Small,

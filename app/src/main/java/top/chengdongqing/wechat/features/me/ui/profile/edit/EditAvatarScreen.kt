@@ -11,6 +11,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
@@ -45,6 +46,7 @@ fun EditAvatarScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val profile = uiState.profile
 
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val toast = rememberToastState()
     val actionSheet = rememberActionSheetState()
@@ -69,7 +71,7 @@ fun EditAvatarScreen(
             val success = viewModel.saveImage(uri)
 
             toast.show(
-                title = if (success) "已保存到相册" else "保存失败",
+                title = resources.getString(if (success) R.string.msg_save_success else R.string.msg_save_failed),
                 icon = if (success) ToastIcon.Success else ToastIcon.Fail
             )
         }

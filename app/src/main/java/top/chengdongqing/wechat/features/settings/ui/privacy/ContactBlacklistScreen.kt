@@ -13,7 +13,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
@@ -30,7 +32,10 @@ fun ContactBlacklistScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "通讯录黑名单", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.privacy_blacklist_title),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.surface
     ) { innerPadding ->

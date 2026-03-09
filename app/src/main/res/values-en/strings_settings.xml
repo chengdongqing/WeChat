@@ -70,4 +70,22 @@
     <string name="display_language">Language</string>
     <string name="display_language_chinese">简体中文</string>
     <string name="display_language_english">English</string>
+
+    <string name="privacy_add_verify">Require Friend Request</string>
+    <string name="privacy_add_method">Methods for Friending Me</string>
+    <string name="privacy_chat_only">Chats Only</string>
+    <string name="privacy_moments">Moments</string>
+    <string name="privacy_channels">Channels</string>
+    <string name="privacy_top_stories">Top Stories</string>
+    <string name="privacy_sports">WeRun</string>
+    <string name="privacy_blacklist">Blocked List of Contacts</string>
+    <string name="privacy_blacklist_title">Blocked List</string>
+
+    <string name="privacy_add_method_group">Find Me by Searching</string>
+    <string name="privacy_add_method_qrcode">QR Code</string>
+    <string name="privacy_add_method_tap">Tap</string>
+    <string name="privacy_add_method_radar">Radar</string>
+    <string name="privacy_add_method_card">Contact Card</string>
+    <string name="privacy_add_method_other">Others</string>
+    <string name="privacy_add_method_other_desc">Chats with deleted contacts, etc.</string>
 </resources>

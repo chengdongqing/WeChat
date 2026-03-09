@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
@@ -19,7 +21,10 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 fun AddMeMethodSettingScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
-            WeTopBar(title = "添加我的方式", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.privacy_add_method),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -28,34 +33,34 @@ fun AddMeMethodSettingScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            WeSettingGroup("可通过以下方式添加我为好友") {
+            WeSettingGroup(stringResource(R.string.privacy_add_method_group)) {
                 WeSettingItem(
-                    label = "二维码",
+                    label = stringResource(R.string.privacy_add_method_qrcode),
                     showArrow = false
                 ) {
                     WeSwitch(checked = true)
                 }
                 WeSettingItem(
-                    label = "碰一碰",
+                    label = stringResource(R.string.privacy_add_method_tap),
                     showArrow = false
                 ) {
                     WeSwitch(checked = true)
                 }
                 WeSettingItem(
-                    label = "雷达",
+                    label = stringResource(R.string.privacy_add_method_radar),
                     showArrow = false
                 ) {
                     WeSwitch(checked = true)
                 }
                 WeSettingItem(
-                    label = "名片",
+                    label = stringResource(R.string.privacy_add_method_card),
                     showArrow = false
                 ) {
                     WeSwitch(checked = true)
                 }
                 WeSettingItem(
-                    label = "其他",
-                    description = "删除的联系人保留的聊天等",
+                    label = stringResource(R.string.privacy_add_method_other),
+                    description = stringResource(R.string.privacy_add_method_other_desc),
                     showArrow = false,
                     showDivider = false,
                     height = 68.dp
