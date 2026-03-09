@@ -71,14 +71,14 @@ val LocalIsDarkTheme = staticCompositionLocalOf { false }
 @Composable
 fun WeTheme(
     viewModel: DisplaySettingsViewModel = hiltViewModel(),
-    darkTheme: Boolean? = null,
+    isDark: Boolean? = null,
     content: @Composable () -> Unit
 ) {
     // 读取显示配置
     val settings by viewModel.settings.collectAsState()
 
     // 是否启用深色主题
-    val isDarkTheme = darkTheme ?: when (settings.theme) {
+    val isDarkTheme = isDark ?: when (settings.theme) {
         AppTheme.FollowSystem -> isSystemInDarkTheme()
         AppTheme.Dark -> true
         AppTheme.Light -> false

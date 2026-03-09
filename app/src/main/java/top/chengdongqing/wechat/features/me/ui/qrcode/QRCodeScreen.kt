@@ -387,8 +387,8 @@ private fun FooterDivider() {
  * 二维码预设样式
  */
 private val QR_CODE_STYLES = listOf(
-    SolidColor(Color(0xFF222222)),                          // 黑色
-    SolidColor(Color(0xFF00C35A)),                          // 微信绿
+    SolidColor(Color(0xFF222222)),                   // 黑色
+    SolidColor(Color(0xFF00C35A)),                   // 微信绿
     Brush.linearGradient(                                   // 红→紫
         colors = listOf(Color(0xFFE94E3E), Color(0xFF8D46FB)),
         start = Offset.Zero,

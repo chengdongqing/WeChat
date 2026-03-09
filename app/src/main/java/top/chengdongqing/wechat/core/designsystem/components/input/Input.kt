@@ -39,7 +39,7 @@ fun WeInput(
     maxLines: Int = Int.MAX_VALUE,
     showDivider: Boolean = true,
     activeColor: Color = Color(0xFF07C160),
-    inactiveColor: Color = Color(0xFFE5E5E5),
+    inactiveColor: Color = WeTheme.colorScheme.divider,
     onValueChange: (String) -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }

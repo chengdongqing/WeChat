@@ -30,6 +30,7 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToast
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileField
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 import java.io.File
@@ -72,6 +73,7 @@ fun EditAvatarScreen(
         }
     }
 
+    StatusBarAppearanceEffect(isDark = false)
     Box(modifier = Modifier.background(Black)) {
         WeTopBar(
             title = "头像",

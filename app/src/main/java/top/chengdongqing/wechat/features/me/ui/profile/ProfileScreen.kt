@@ -35,7 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeIn
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.navigation.MeRoute
 
@@ -113,7 +113,10 @@ private fun ProfileContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(
+                state = rememberScrollState(),
+                overscrollEffect = rememberBounceOverscrollEffect()
+            ),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // 基本信息组
@@ -187,7 +190,7 @@ private fun ProfileItem(
     onClick: (() -> Unit)?,
     trailing: @Composable RowScope.() -> Unit
 ) {
-    Column(modifier = Modifier.background(White)) {
+    Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
         WeMenuListItem(
             label = label,
             trailing = trailing,

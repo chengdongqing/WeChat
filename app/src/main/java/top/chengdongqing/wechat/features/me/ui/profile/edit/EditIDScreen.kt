@@ -24,7 +24,8 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 
 @Composable
@@ -37,11 +38,11 @@ fun EditIDScreen(
     Scaffold(
         topBar = {
             WeTopBar(
-                containerColor = White,
+                containerColor = WeTheme.colorScheme.surface,
                 onBack = onBack
             )
         },
-        containerColor = White
+        containerColor = WeTheme.colorScheme.surface
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -55,19 +56,21 @@ fun EditIDScreen(
                 painter = painterResource(R.drawable.img_logo_gray),
                 contentDescription = null,
                 modifier = Modifier.size(100.dp),
-                alpha = 0.15f
+                alpha = if (LocalIsDarkTheme.current) 0.4f else 0.15f
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = "微信号：${uiState.profile?.id}",
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                color = WeTheme.colorScheme.textPrimary
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "由于无中心服务器，为确保当前的设备的唯一性，微信号暂不支持修改。",
                 fontSize = 16.sp,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = WeTheme.colorScheme.textSecondary
             )
             Spacer(modifier = Modifier.weight(1f))
             WeButton(text = "返回", type = ButtonType.Plain, onClick = onBack)

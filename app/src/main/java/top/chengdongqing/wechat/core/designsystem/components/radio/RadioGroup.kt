@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +29,7 @@ fun <T> WeRadioGroup(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(WeTheme.colorScheme.surface)
     ) {
         options.forEachIndexed { index, option ->
             Row(
@@ -45,7 +44,7 @@ fun <T> WeRadioGroup(
                     text = option.first,
                     modifier = Modifier.weight(1f),
                     fontSize = 16.sp,
-                    color = Color.Black
+                    color = WeTheme.colorScheme.textPrimary
                 )
 
                 if (option.second == value) {

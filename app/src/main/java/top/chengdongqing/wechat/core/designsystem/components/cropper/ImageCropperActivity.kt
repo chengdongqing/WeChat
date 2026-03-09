@@ -30,7 +30,7 @@ class ImageCropperActivity : ComponentActivity() {
             }!!
 
             ImmersiveSystemBars()
-            WeTheme(darkTheme = true) {
+            WeTheme(isDark = true) {
                 WeImageCropper(uri, onCancel = { finish() }) {
                     val intent = Intent().apply {
                         putExtra(EXTRA_URI, it)

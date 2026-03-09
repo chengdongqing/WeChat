@@ -32,7 +32,7 @@ class MediaPickerActivity : ComponentActivity() {
 
         setContent {
             StatusBarAppearanceEffect(isDark = false)
-            WeTheme(darkTheme = true) {
+            WeTheme(isDark = true) {
                 WeMediaPicker(type, count, onCancel = { finish() }) { medias ->
                     val intent = Intent().apply {
                         putExtra(EXTRA_MEDIA_LIST, medias)
