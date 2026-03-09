@@ -1,38 +1,39 @@
-package top.chengdongqing.wechat.features.home.navigation
+package top.chengdongqing.wechat.features.home.model
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import top.chengdongqing.wechat.R
 
 sealed class HomeTab(
     val route: String,
-    val label: String,
+    @get:StringRes val label: Int,
     @get:DrawableRes val icon: Int,
     @get:DrawableRes val selectedIcon: Int
 ) {
     object Chats : HomeTab(
         route = "tab_chats",
-        label = "微信",
+        label = R.string.home_tab_wechat,
         icon = R.drawable.ic_tab_chats_outlined,
         selectedIcon = R.drawable.ic_tab_chats_filled
     )
 
     object Contacts : HomeTab(
         route = "tab_contacts",
-        label = "通讯录",
+        label = R.string.home_tab_contacts,
         icon = R.drawable.ic_tab_contacts_outlined,
         selectedIcon = R.drawable.ic_tab_contacts_filled
     )
 
     object Discovery : HomeTab(
         route = "tab_discovery",
-        label = "发现",
+        label = R.string.home_tab_discovery,
         icon = R.drawable.ic_tab_discover_outlined,
         selectedIcon = R.drawable.ic_tab_discover_filled
     )
 
     object Me : HomeTab(
         route = "tab_me",
-        label = "我",
+        label = R.string.home_tab_me,
         icon = R.drawable.ic_tab_me_outlined,
         selectedIcon = R.drawable.ic_tab_me_filled
     )

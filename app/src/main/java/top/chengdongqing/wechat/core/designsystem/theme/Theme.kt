@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.core.designsystem.theme
 
 import android.app.Activity
 import android.os.Build
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -19,8 +21,10 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import top.chengdongqing.wechat.features.settings.domain.model.AppLanguage
 import top.chengdongqing.wechat.features.settings.domain.model.AppTheme
 import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsViewModel
+import java.util.Locale
 
 @Immutable
 data class WeColorScheme(
@@ -62,11 +66,9 @@ val DarkColorScheme = WeColorScheme(
     divider = DividerDark,
 )
 
-/**
- * 主题的 CompositionLocal
- */
 val LocalWeColorScheme = staticCompositionLocalOf { LightColorScheme }
 val LocalIsDarkTheme = staticCompositionLocalOf { false }
+val LocalAppLanguage = staticCompositionLocalOf { AppLanguage.FollowSystem }
 
 @Composable
 fun WeTheme(
@@ -86,6 +88,20 @@ fun WeTheme(
     val colorScheme = when {
         isDarkTheme -> DarkColorScheme
         else -> LightColorScheme
+    }
+
+    // 当前的语言
+    val currentLanguage = remember(settings.language) {
+        when (settings.language) {
+            AppLanguage.FollowSystem -> {
+                val locale = AppCompatDelegate.getApplicationLocales()[0]
+                    ?: Locale.getDefault()
+                AppLanguage.entries.find { it.locale == locale.language }
+                    ?: AppLanguage.FollowSystem
+            }
+
+            else -> settings.language
+        }
     }
 
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
@@ -109,7 +125,8 @@ fun WeTheme(
             ),
             LocalFontScale provides settings.fontScale.scale,
             LocalIsDarkTheme provides isDarkTheme,
-            LocalWeColorScheme provides colorScheme
+            LocalWeColorScheme provides colorScheme,
+            LocalAppLanguage provides currentLanguage
         ) {
             content()
         }

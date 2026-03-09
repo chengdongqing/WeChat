@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.features.contacts.ui.list.components
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,26 +41,26 @@ fun TopFunctionList(
     val functions = remember(pendingCount) {
         listOf(
             TopFunction(
-                title = "新的朋友",
+                title = R.string.contacts_menu_new_friends,
                 icon = R.drawable.ic_add_friends_filled,
                 badge = pendingCount,
                 containerColor = Color(0xFFFA9D3B),
                 onClick = onNavigateToNewFriends
             ),
             TopFunction(
-                title = "群聊",
+                title = R.string.contacts_menu_group_chat,
                 icon = R.drawable.ic_group_chat_filled,
                 containerColor = Color(0xFF07C160),
                 onClick = {}
             ),
             TopFunction(
-                title = "标签",
+                title = R.string.contacts_menu_tags,
                 icon = R.drawable.ic_tag_filled,
                 containerColor = Color(0xFF2782D7),
                 onClick = {}
             ),
             TopFunction(
-                title = "公众号",
+                title = R.string.contacts_menu_official_accounts,
                 icon = R.drawable.ic_officical_account_filled,
                 containerColor = Color(0xFF2782D7),
                 onClick = {}
@@ -113,9 +115,9 @@ private fun TopFunctionItem(function: TopFunction) {
             offset = DpOffset(0)
         ) {
             Text(
-                text = function.title,
-                fontSize = 16.sp,
+                text = stringResource(function.title),
                 color = WeTheme.colorScheme.textPrimary,
+                fontSize = 16.sp,
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -123,7 +125,7 @@ private fun TopFunctionItem(function: TopFunction) {
 }
 
 private data class TopFunction(
-    val title: String,
+    @get:StringRes val title: Int,
     @get:DrawableRes val icon: Int,
     val badge: Int = 0,
     val containerColor: Color,

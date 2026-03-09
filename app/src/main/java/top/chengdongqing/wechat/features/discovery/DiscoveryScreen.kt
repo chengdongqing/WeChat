@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
@@ -20,7 +21,14 @@ fun DiscoveryScreen() {
             .background(WeTheme.colorScheme.background),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        WeMenuListItem("朋友圈", R.drawable.ic_moments_outlined_colorful)
-        WeMenuListItem("搜一搜", R.drawable.ic_search_logo_outlined, Danger)
+        WeMenuListItem(
+            label = stringResource(R.string.discover_menu_moments),
+            icon = R.drawable.ic_moments_outlined_colorful
+        )
+        WeMenuListItem(
+            label = stringResource(R.string.discover_menu_search),
+            icon = R.drawable.ic_search_logo_outlined,
+            iconColor = Danger
+        )
     }
 }

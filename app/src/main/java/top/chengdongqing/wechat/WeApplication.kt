@@ -5,6 +5,7 @@ import dagger.hilt.android.HiltAndroidApp
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import top.chengdongqing.wechat.core.di.DefaultScope
 import top.chengdongqing.wechat.core.util.clearAllCache
 import top.chengdongqing.wechat.features.settings.domain.repository.DisplaySettingsRepository
@@ -23,15 +24,17 @@ class WeApplication : Application() {
         super.onCreate()
 
         /**
-         * 自动清理之前产生的缓存
-         */
-        clearAllCache()
-
-        /**
          * 恢复主题、语言等设置
          */
-        scope.launch {
+        runBlocking {
             displaySettingsRepository.restoreOnStartup()
+        }
+
+        /**
+         * 自动清理之前产生的缓存
+         */
+        scope.launch {
+            clearAllCache()
         }
     }
 }

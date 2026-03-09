@@ -9,9 +9,6 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.io.File
 
 /**
@@ -25,15 +22,13 @@ fun Context.showToast(text: String) {
  * 清除所有缓存
  */
 fun Context.clearAllCache() {
-    CoroutineScope(Dispatchers.IO).launch {
-        try {
-            // 清理内部缓存 (/data/user/0/包名/cache)
-            deleteDirContent(cacheDir)
-            // 清理外部缓存 (/sdcard/Android/data/包名/cache)
-            deleteDirContent(externalCacheDir)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+    try {
+        // 清理内部缓存 (/data/user/0/包名/cache)
+        deleteDirContent(cacheDir)
+        // 清理外部缓存 (/sdcard/Android/data/包名/cache)
+        deleteDirContent(externalCacheDir)
+    } catch (e: Exception) {
+        e.printStackTrace()
     }
 }
 

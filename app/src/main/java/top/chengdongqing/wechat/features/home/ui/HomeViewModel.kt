@@ -15,7 +15,7 @@ import top.chengdongqing.wechat.data.network.service.NetworkService
 import top.chengdongqing.wechat.data.network.service.createNetworkServiceIntent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
-import top.chengdongqing.wechat.features.home.navigation.HomeTab
+import top.chengdongqing.wechat.features.home.model.HomeTab
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(

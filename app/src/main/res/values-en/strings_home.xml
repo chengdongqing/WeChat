@@ -1,0 +1,11 @@
+<resources>
+    <string name="home_action_new_group">New Group</string>
+    <string name="home_action_add_friend">Add Contacts</string>
+    <string name="home_action_scan">Scan</string>
+    <string name="home_action_payment">Pay</string>
+
+    <string name="home_tab_wechat">Chats</string>
+    <string name="home_tab_contacts">Contacts</string>
+    <string name="home_tab_discovery">Discover</string>
+    <string name="home_tab_me">Me</string>
+</resources>

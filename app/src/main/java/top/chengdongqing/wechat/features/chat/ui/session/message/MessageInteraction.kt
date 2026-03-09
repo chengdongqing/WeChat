@@ -35,7 +35,7 @@ data class ChatSessionUiState(
  * 消息操作类型枚举
  */
 enum class MessageAction(
-    @param:DrawableRes val icon: Int,
+    @get:DrawableRes val icon: Int,
     val label: String
 ) {
     Copy(R.drawable.ic_copy_filled, "复制"),
@@ -55,7 +55,7 @@ enum class MessageAction(
  * 多选时消息操作类型枚举
  */
 enum class MultiMessageAction(
-    @param:DrawableRes val icon: Int,
+    @get:DrawableRes val icon: Int,
     val label: String
 ) {
     Forward(R.drawable.ic_forward_outlined, "转发"),

@@ -10,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
@@ -18,14 +20,22 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.settings.domain.model.AppLanguage
 
 @Composable
-fun LanguageSettingScreen(onBack: () -> Unit) {
+fun LanguageSettingScreen(
+    onBack: () -> Unit,
+    viewModel: DisplaySettingsViewModel = hiltViewModel()
+) {
+    val initialLanguage by viewModel.language.collectAsStateWithLifecycle()
+    var language by remember(initialLanguage) { mutableStateOf(initialLanguage) }
     val languageOptions = remember { AppLanguage.entries.map { it.label to it } }
-    var language by remember { mutableStateOf(AppLanguage.FollowSystem) }
+    val hasChanged = language != initialLanguage
 
     Scaffold(
         topBar = {
             WeTopBar(title = "多语言", onBack = onBack) {
-                WeButton(text = "完成", size = ButtonSize.Small, enabled = false)
+                WeButton(text = "完成", size = ButtonSize.Small, enabled = hasChanged) {
+                    viewModel.saveLanguage(language)
+                    onBack()
+                }
             }
         },
         containerColor = WeTheme.colorScheme.background

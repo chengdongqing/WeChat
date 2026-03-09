@@ -1,0 +1,12 @@
+<resources>
+    <string name="chat_action_mark_unread">Mark as Unread</string>
+    <string name="chat_action_mark_read">Mark as Read</string>
+    <string name="chat_action_sticky_top">Sticky on Top</string>
+    <string name="chat_action_remove_top">Remove from Top</string>
+    <string name="chat_action_hide">Hide Chat</string>
+    <string name="chat_action_delete">Delete Chat</string>
+
+    <string name="chat_hide_hint_title">Chat history will not be deleted after hiding.</string>
+    <string name="chat_hide_hint_content">You can find it again in chat details.</string>
+    <string name="chat_delete_hint">This will delete all messages and hide the chat.</string>
+</resources>

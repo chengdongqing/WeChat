@@ -10,12 +10,14 @@ import top.chengdongqing.wechat.core.designsystem.theme.Dark_TabBar
 import top.chengdongqing.wechat.core.designsystem.theme.Grey_F7
 import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
 import top.chengdongqing.wechat.core.designsystem.theme.TabBarIconInactiveDark
+import top.chengdongqing.wechat.core.designsystem.theme.White
 
 @Immutable
 data class HomeColorScheme(
     val tabBarBackground: Color,
     val tabBarIconInactive: Color,
-    val quickActionBackground: Color = Color(0xFF4C4C4C)
+    val quickActionBackground: Color = Color(0xFF4C4C4C),
+    val quickActionText: Color = White
 )
 
 private val HomeLightColorScheme = HomeColorScheme(

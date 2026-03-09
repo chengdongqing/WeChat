@@ -1,67 +1,34 @@
 package top.chengdongqing.wechat.features.home.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
-import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
-import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
-import top.chengdongqing.wechat.core.designsystem.components.qrcode.scanner.rememberScanCodeLauncher
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBarIcon
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.chat.ui.list.ChatListScreen
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.contacts.ui.list.ContactListScreen
 import top.chengdongqing.wechat.features.discovery.DiscoveryScreen
-import top.chengdongqing.wechat.features.home.model.QuickAction
-import top.chengdongqing.wechat.features.home.navigation.HomeTab
-import top.chengdongqing.wechat.features.home.theme.HomeTheme
-import top.chengdongqing.wechat.features.home.ui.components.QuickActions
+import top.chengdongqing.wechat.features.home.model.HomeTab
+import top.chengdongqing.wechat.features.home.ui.components.HomeBottomBar
+import top.chengdongqing.wechat.features.home.ui.components.HomeTopBarWrapper
 import top.chengdongqing.wechat.features.me.ui.MeScreen
 import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
@@ -131,44 +98,6 @@ fun HomeScreen(
     LoadingDialog(uiState.isLoading)
 }
 
-/**
- * TopBar 包装器，根据当前 Tab 显示不同内容
- */
-@Composable
-private fun HomeTopBarWrapper(
-    currentTab: HomeTab,
-    viewModel: ProfileViewModel,
-    navController: NavHostController,
-    unreadCounts: Map<HomeTab, Int>
-) {
-    if (currentTab.route != HomeTab.Me.route) {
-        val title = currentTab.getDisplayTitle(unreadCounts)
-
-        HomeTopBar(
-            title = title,
-            viewModel = viewModel,
-            onNavigateToAddFriend = {
-                navController.navigate(ContactsRoute.AddContact.route)
-            }
-        )
-    } else {
-        Surface(
-            color = WeTheme.colorScheme.surface,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .height(50.dp)
-            ) {}
-        }
-    }
-}
-
-/**
- * 首页内容分页器
- */
 @Composable
 private fun HomeContentPager(
     pagerState: PagerState,
@@ -206,127 +135,4 @@ private fun HomeContentPager(
             HomeTab.Me -> MeScreen(navController)
         }
     }
-}
-
-/**
- * 首页顶部栏
- */
-@Composable
-private fun HomeTopBar(
-    title: String,
-    viewModel: ProfileViewModel,
-    onNavigateToAddFriend: () -> Unit
-) {
-    var menuExpanded by remember { mutableStateOf(false) }
-    var anchorPosition by remember { mutableStateOf(Offset.Zero) }
-    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
-
-    val launchScanner = rememberScanCodeLauncher { qrCodes ->
-        viewModel.handleScannedQRCode(qrCodes.first())
-    }
-
-    Column {
-        WeTopBar(title = title) {
-            ActionIcon(
-                icon = R.drawable.ic_search_outlined,
-                description = "搜索"
-            )
-
-            WeTopBarIcon(
-                modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
-                    anchorPosition = layoutCoordinates.positionInWindow()
-                    anchorSize = layoutCoordinates.size
-                },
-                icon = R.drawable.ic_plus_circle_outlined,
-                description = "更多"
-            ) {
-                menuExpanded = true
-            }
-        }
-
-        WeDivider()
-    }
-
-    QuickActions(
-        expanded = menuExpanded,
-        anchorPosition = anchorPosition,
-        anchorSize = anchorSize,
-        onDismiss = { menuExpanded = false }
-    ) { action ->
-        when (action) {
-            QuickAction.AddFriend -> onNavigateToAddFriend()
-            QuickAction.Scan -> launchScanner()
-            else -> {}
-        }
-    }
-}
-
-@Composable
-private fun HomeBottomBar(
-    unreadCounts: Map<HomeTab, Int>,
-    pagerState: PagerState,
-    onTabSelected: (Int) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(HomeTheme.colorScheme.tabBarBackground)
-    ) {
-        WeDivider()
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .height(56.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            HomeTab.tabs.forEachIndexed { index, screen ->
-                val isSelected = pagerState.currentPage == index
-                val currentIcon = if (isSelected) screen.selectedIcon else screen.icon
-                val currentColor = if (isSelected) {
-                    WeTheme.colorScheme.primary
-                } else {
-                    HomeTheme.colorScheme.tabBarIconInactive
-                }
-                val badge = unreadCounts[screen] ?: 0
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .weClickable { onTabSelected(index) },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    WeBadge(
-                        visible = badge > 0,
-                        content = badge.toBadgeText(),
-                        size = 20.dp,
-                        offset = DpOffset(x = 12.dp, y = (-2).dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(currentIcon),
-                            contentDescription = null,
-                            modifier = Modifier.size(26.dp),
-                            tint = currentColor
-                        )
-                    }
-                    Text(
-                        text = screen.label,
-                        fontSize = 12.sp,
-                        color = currentColor
-                    )
-                }
-            }
-        }
-    }
-}
-
-private fun HomeTab.getDisplayTitle(unreadCounts: Map<HomeTab, Int>): String = when {
-    this == HomeTab.Chats -> {
-        val unread = unreadCounts[this] ?: 0
-        if (unread > 0) "$label($unread)" else label
-    }
-
-    else -> label
 }

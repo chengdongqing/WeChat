@@ -1,0 +1,9 @@
+<resources>
+    <string name="contacts_menu_new_friends">New Friends</string>
+    <string name="contacts_menu_group_chat">Group Chats</string>
+    <string name="contacts_menu_tags">Tags</string>
+    <string name="contacts_menu_official_accounts">Official Accounts</string>
+
+    <string name="contacts_action_edit_profile">Edit friend profile</string>
+    <string name="contacts_friend_count">%d friends</string>
+</resources>

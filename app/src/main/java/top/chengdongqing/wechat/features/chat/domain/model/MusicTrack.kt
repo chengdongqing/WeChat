@@ -10,8 +10,8 @@ import top.chengdongqing.wechat.R
 enum class MusicTrack(
     val title: String,
     val artist: String,
-    @param:DrawableRes val albumArtRes: Int,
-    @param:RawRes val audioRes: Int
+    @get:DrawableRes val albumArtRes: Int,
+    @get:RawRes val audioRes: Int
 ) {
     Perfect(
         title = "Perfect",

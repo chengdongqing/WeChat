@@ -1,0 +1,12 @@
+<resources>
+    <string name="chat_action_mark_unread">标为未读</string>
+    <string name="chat_action_mark_read">标为已读</string>
+    <string name="chat_action_sticky_top">置顶该聊天</string>
+    <string name="chat_action_remove_top">取消置顶</string>
+    <string name="chat_action_hide">不显示该聊天</string>
+    <string name="chat_action_delete">删除该聊天</string>
+
+    <string name="chat_hide_hint_title">不显示聊天后，聊天记录将不会被删除</string>
+    <string name="chat_hide_hint_content">进入聊天详情，可以找回聊天。</string>
+    <string name="chat_delete_hint">删除后，将清空记录同时不显示聊天</string>
+</resources>

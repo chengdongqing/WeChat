@@ -1,0 +1,11 @@
+<resources>
+    <string name="home_action_new_group">发起群聊</string>
+    <string name="home_action_add_friend">添加朋友</string>
+    <string name="home_action_scan">扫一扫</string>
+    <string name="home_action_payment">收付款</string>
+
+    <string name="home_tab_wechat">微信</string>
+    <string name="home_tab_contacts">通讯录</string>
+    <string name="home_tab_discovery">发现</string>
+    <string name="home_tab_me">我</string>
+</resources>

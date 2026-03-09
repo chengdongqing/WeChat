@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -45,9 +46,11 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
 import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
 import top.chengdongqing.wechat.features.home.model.QuickAction
 import top.chengdongqing.wechat.features.home.theme.HomeTheme
+import top.chengdongqing.wechat.features.settings.domain.model.AppLanguage
 
 @Composable
 fun QuickActions(
@@ -64,7 +67,7 @@ fun QuickActions(
     LaunchedEffect(expanded) {
         if (expanded) {
             shouldShow = true
-            delay(10) // 极短延迟确保 Popup 已挂载后再播动画
+            delay(10)
             isVisible = true
         } else {
             isVisible = false
@@ -73,7 +76,10 @@ fun QuickActions(
 
     if (!shouldShow) return
 
-    val menuWidth = 160.dp
+    val menuWidth = when (LocalAppLanguage.current) {
+        AppLanguage.English -> 180.dp
+        else -> 160.dp
+    }
     val density = LocalDensity.current
     val popupOffset = remember(density, anchorPosition, anchorSize) {
         with(density) {
@@ -145,6 +151,8 @@ fun QuickActions(
 
 @Composable
 private fun ActionItem(action: QuickAction, onClick: () -> Unit) {
+    val color = HomeTheme.colorScheme.quickActionText
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,13 +164,13 @@ private fun ActionItem(action: QuickAction, onClick: () -> Unit) {
         Icon(
             painter = painterResource(action.icon),
             contentDescription = null,
-            tint = Color.White,
+            tint = color,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
-            text = action.label,
-            color = Color.White,
+            text = stringResource(action.label),
+            color = color,
             fontSize = 16.sp
         )
     }

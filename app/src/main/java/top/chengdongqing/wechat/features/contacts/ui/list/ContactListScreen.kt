@@ -17,11 +17,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.contact.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
@@ -30,9 +31,11 @@ import top.chengdongqing.wechat.core.designsystem.components.contextmenu.remembe
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.features.contacts.ui.list.components.TopFunctionList
+import top.chengdongqing.wechat.features.settings.domain.model.AppLanguage
 
 @Composable
 fun ContactListScreen(
@@ -79,24 +82,6 @@ fun ContactListScreen(
                     }
                 }
 
-                state.groups.isEmpty() -> {
-                    // 空状态
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "暂无联系人",
-                                color = WeTheme.colorScheme.textSecondary,
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-                }
-
                 else -> {
                     // 联系人分组列表
                     state.groups.forEach { (initial, contacts) ->
@@ -112,7 +97,13 @@ fun ContactListScreen(
                             key = { it.id },
                             contentType = { "ContactItem" } // 告诉 LazyColumn 哪些项是同一种布局，提高复用效率
                         ) { contact ->
-                            val contextMenuState = rememberContextMenuState()
+                            val contextMenuState = rememberContextMenuState(
+                                itemWidthDp = when (LocalAppLanguage.current) {
+                                    AppLanguage.English -> 160.dp
+                                    else -> 140.dp
+                                }
+                            )
+                            val actionLabel = stringResource(R.string.contacts_action_edit_profile)
 
                             Column(
                                 modifier = Modifier.background(WeTheme.colorScheme.surface)
@@ -125,7 +116,7 @@ fun ContactListScreen(
                                             if (!contact.isSelf) {
                                                 contextMenuState.show(
                                                     position,
-                                                    listOf("设置朋友资料"),
+                                                    listOf(actionLabel),
                                                     0
                                                 )
                                             }
@@ -172,7 +163,7 @@ private fun ContactFooter(count: Int) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "${count}个朋友",
+            text = stringResource(R.string.contacts_friend_count, count),
             color = WeTheme.colorScheme.textSecondary
         )
     }
