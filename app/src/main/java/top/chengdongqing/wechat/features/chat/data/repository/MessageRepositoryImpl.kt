@@ -87,7 +87,7 @@ class MessageRepositoryImpl @Inject constructor(
         val finalMessageId = messageId ?: randomUUID()
         val isSelf = receiverId == myProfile.id
         val isCall = content is MessageContent.Call
-        val shouldSkipSend = isSelf || isCall // 如果是给自己发的，或者是通话记录，直接设置为发送成功，且不走发送逻辑
+        val shouldSkipSend = isSelf || isCall // 如果是给自己发的，或者是通话记录，直接设置为发送成功，不走发送逻辑
 
         // 构建消息实体
         val entity = content.toEntity(
@@ -98,7 +98,7 @@ class MessageRepositoryImpl @Inject constructor(
             timestamp = System.currentTimeMillis(),
             json = json
         ).copy(
-            // 如果需要发送，初始状态设为 Sending，否则直接 Sent
+            // 如果需要发送，初始状态设为 Sending，否则直接 Delivered
             sendStatus = if (shouldSkipSend) SendStatus.Delivered else SendStatus.Sending
         )
 
@@ -373,7 +373,7 @@ class MessageRepositoryImpl @Inject constructor(
     ) {
         messageDao.update(messageId) { message ->
             message.copy(
-                sendStatus = SendStatus.Failed,
+                sendStatus = status,
                 failReason = failedReason
             )
         }

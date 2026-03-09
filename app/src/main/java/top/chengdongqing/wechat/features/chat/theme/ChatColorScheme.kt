@@ -33,11 +33,12 @@ data class ChatColorScheme(
     val textField: Color,
 
     // 录音相关
-    val recordBackground: Color,     // 底部弧形背景
-    val recordActionDefault: Color,  // 操作按钮默认背景
-    val recordActionCancel: Color,   // 取消按钮激活色
-    val recordActionConvert: Color,  // 转文字按钮激活色
-    val recordWaveBar: Color,        // 声纹条颜色
+    val recordBackground: Color,
+    val recordActionDefault: Color,
+    val recordActionCancel: Color,
+    val recordActionConvert: Color,
+    val recordActionLabel: Color,
+    val recordWaveBar: Color,
 )
 
 private val ChatLightColors = ChatColorScheme(
@@ -53,6 +54,7 @@ private val ChatLightColors = ChatColorScheme(
     recordActionDefault = Color(0xFFE9E9E9),
     recordActionCancel = Danger,
     recordActionConvert = Color(0xFFD8D8D8),
+    recordActionLabel = TextPrimaryDark,
     recordWaveBar = Color(0xFF191919)
 )
 
@@ -69,6 +71,7 @@ private val ChatDarkColors = ChatColorScheme(
     recordActionDefault = Color(0xFF3A3A3A),
     recordActionCancel = Danger,
     recordActionConvert = Color(0xFF4A4A4A),
+    recordActionLabel = TextPrimaryDark,
     recordWaveBar = Color(0xFFE5E5E5)
 )
 

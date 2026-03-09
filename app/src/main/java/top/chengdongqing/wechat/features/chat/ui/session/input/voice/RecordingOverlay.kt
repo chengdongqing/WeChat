@@ -161,7 +161,7 @@ private fun ActionButton(
         Text(
             text = label,
             fontSize = 12.sp,
-            color = ChatTheme.colorScheme.recordActionDefault
+            color = ChatTheme.colorScheme.recordActionLabel
         )
     }
 }

@@ -25,6 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
@@ -33,7 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.theme.Black
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -88,7 +90,8 @@ fun VoiceContent(message: ChatMessage) {
 private fun VoiceIcon(
     isFromMe: Boolean,
     isPlaying: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    color: Color = WeTheme.colorScheme.textPrimary
 ) {
     val transition = rememberInfiniteTransition(label = "VoiceIconTransition")
     val progress by if (isPlaying) {
@@ -131,7 +134,12 @@ private fun VoiceIcon(
             maskPath.addOval(Rect(center = Offset(centerX, centerY), radius = radius))
 
             clipPath(maskPath) {
-                with(painter) { draw(size = size) }
+                with(painter) {
+                    draw(
+                        size = size,
+                        colorFilter = ColorFilter.tint(color)
+                    )
+                }
             }
         }
     }
@@ -143,7 +151,7 @@ private fun VoiceDurationText(text: String) {
         text = text,
         style = TextStyle(
             fontSize = 16.sp,
-            color = Black
+            color = WeTheme.colorScheme.textPrimary
         )
     )
 }

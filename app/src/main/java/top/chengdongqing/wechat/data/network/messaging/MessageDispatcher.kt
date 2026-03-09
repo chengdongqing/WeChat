@@ -101,7 +101,6 @@ class MessageDispatcher @Inject constructor(
         protocol: ChatProtocol,
         entityBuilder: suspend () -> MessageEntity
     ) {
-        // 已存在该消息直接发送送达回执
         messageRepository.handleIncomingMessage(
             protocol,
             entityBuilder,
