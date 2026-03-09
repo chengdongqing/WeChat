@@ -89,10 +89,10 @@
     <string name="privacy_add_method_other">Others</string>
     <string name="privacy_add_method_other_desc">Chats with deleted contacts, etc.</string>
 
-    <string name="more_minor_mode">Minor Mode</string>
-    <string name="more_care_mode">Care Mode</string>
-    <string name="more_auto_save_photo">Auto-save photos after capture or edit</string>
-    <string name="more_auto_save_video">Auto-save videos after capture or edit</string>
+    <string name="more_minor_mode">Guardian Mode</string>
+    <string name="more_care_mode">Easy Mode</string>
+    <string name="more_auto_save_photo">Auto-save photos after capturing or editing</string>
+    <string name="more_auto_save_video">Auto-save videos after capturing or editing</string>
     <string name="more_system_permissions">System Permissions</string>
 
     <string name="permission_title">System Permissions</string>
@@ -118,4 +118,19 @@
     <string name="connection_wifi_direct_desc">Direct device-to-device connection without a router, great for offline environments.</string>
     <string name="connection_bluetooth">Bluetooth</string>
     <string name="connection_bluetooth_desc">Low-power discovery of nearby devices, suitable for short-range messaging.</string>
+
+    <string name="chat_settings_background">Background</string>
+    <string name="chat_settings_earpiece">Switch to ear speaker</string>
+    <string name="chat_settings_send_button">Show "Send Button"</string>
+    <string name="chat_settings_e2e">End-to-End Encryption</string>
+    <string name="chat_settings_e2e_desc">Once either party enables this, an encrypted connection is established automatically.</string>
+
+    <string name="chat_history_title">Chat History</string>
+    <string name="chat_history_import_title">Import &amp; Export</string>
+    <string name="chat_history_import_desc">Import chat history from another device, or export to another device.</string>
+    <string name="chat_history_backup_title">Backup &amp; Restore</string>
+    <string name="chat_history_backup_desc">Back up chats to another storage device so that you can restore theme if you lose your phone or use a new one.</string>
+    <string name="chat_history_clear">Clear All Chat History</string>
+    <string name="chat_history_clear_title">Clear all chat history?</string>
+    <string name="chat_history_clear_content">Cleared messages cannot be recovered once cleared. Are you sure you want to clear all personal and group chat messages?</string>
 </resources>

@@ -22,7 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -37,7 +39,10 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 fun ChatManagementScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
-            WeTopBar(title = "聊天记录管理", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.settings_chat_history),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -54,15 +59,15 @@ fun ChatManagementScreen(onBack: () -> Unit) {
             ) {
                 ChatHandleCard(
                     icon = R.drawable.ic_import_export,
-                    title = "导入与导出",
-                    description = "从其它设备导入聊天记录，或将聊天记录导出到其它设备。",
-                    onClick = { }
+                    title = stringResource(R.string.chat_history_import_title),
+                    description = stringResource(R.string.chat_history_import_desc),
+                    onClick = {}
                 )
                 ChatHandleCard(
                     icon = R.drawable.ic_backup_restore,
-                    title = "备份与恢复",
-                    description = "把手机里的聊天记录备份到其他存储设备，以便在丢失或使用新手机时恢复聊天记录。",
-                    onClick = { }
+                    title = stringResource(R.string.chat_history_backup_title),
+                    description = stringResource(R.string.chat_history_backup_desc),
+                    onClick = {}
                 )
             }
 
@@ -74,9 +79,10 @@ fun ChatManagementScreen(onBack: () -> Unit) {
 @Composable
 private fun BoxScope.ClearChatButton() {
     val dialog = rememberDialogState()
+    val resources = LocalResources.current
 
     Text(
-        text = "清空全部聊天记录",
+        text = stringResource(R.string.chat_history_clear),
         color = LinkColor,
         fontSize = 13.sp,
         modifier = Modifier
@@ -84,8 +90,8 @@ private fun BoxScope.ClearChatButton() {
             .padding(bottom = 40.dp)
             .weClickable {
                 dialog.show(
-                    title = "确定清空全部聊天记录吗？",
-                    content = "被清空的聊天记录将无法恢复，请再次确认是否清空所有个人和群的聊天记录",
+                    title = resources.getString(R.string.chat_history_clear_title),
+                    content = resources.getString(R.string.chat_history_clear_content),
                     okText = R.string.action_clear,
                     okColor = Danger,
                     onOk = {}

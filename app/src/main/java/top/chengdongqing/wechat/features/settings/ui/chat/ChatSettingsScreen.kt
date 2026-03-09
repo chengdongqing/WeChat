@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
@@ -18,7 +20,10 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 fun ChatSettingsScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
-            WeTopBar(title = "聊天", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.settings_chat),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -29,19 +34,19 @@ fun ChatSettingsScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             WeSettingItem(
-                label = "聊天背景",
+                label = stringResource(R.string.chat_settings_background),
                 showDivider = false,
                 onClick = {}
             )
             WeSettingGroup {
                 WeSettingItem(
-                    label = "使用听筒播放语音消息",
+                    label = stringResource(R.string.chat_settings_earpiece),
                     showArrow = false
                 ) {
                     WeSwitch()
                 }
                 WeSettingItem(
-                    label = "使用独立的发送按钮",
+                    label = stringResource(R.string.chat_settings_send_button),
                     showArrow = false,
                     showDivider = false,
                 ) {
@@ -49,8 +54,8 @@ fun ChatSettingsScreen(onBack: () -> Unit) {
                 }
             }
             WeSettingItem(
-                label = "端到端加密",
-                description = "只要一方开启，双方将自动建立加密连接。",
+                label = stringResource(R.string.chat_settings_e2e),
+                description = stringResource(R.string.chat_settings_e2e_desc),
                 showArrow = false,
                 showDivider = false,
                 height = 68.dp
