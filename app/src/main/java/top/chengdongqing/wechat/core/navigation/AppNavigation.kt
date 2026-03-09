@@ -17,8 +17,8 @@ import top.chengdongqing.wechat.core.util.encode
 import top.chengdongqing.wechat.features.chat.navigation.chatNavGraph
 import top.chengdongqing.wechat.features.common.PlainTextScreen
 import top.chengdongqing.wechat.features.common.WebViewScreen
-import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.contacts.navigation.contactsNavGraph
+import top.chengdongqing.wechat.features.home.theme.HomeTheme
 import top.chengdongqing.wechat.features.home.ui.HomeScreen
 import top.chengdongqing.wechat.features.me.navigation.meNavGraph
 import top.chengdongqing.wechat.features.me.ui.setup.ProfileSetupScreen
@@ -52,8 +52,8 @@ sealed class Screen(val route: String) {
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-//    startDestination: String = Screen.Splash.route,
-    startDestination: String = ContactsRoute.Detail.createRoute("wxid_4fc764a449ec"),
+    startDestination: String = Screen.Home.route,
+//    startDestination: String = ContactsRoute.Detail.createRoute("wxid_4fc764a449ec"),
 ) {
     // 页面返回
     val goBack: () -> Unit = {
@@ -158,7 +158,9 @@ private fun NavGraphBuilder.homeNavGraph(navController: NavHostController) {
             }
         }
     ) {
-        HomeScreen(navController)
+        HomeTheme {
+            HomeScreen(navController)
+        }
     }
 }
 

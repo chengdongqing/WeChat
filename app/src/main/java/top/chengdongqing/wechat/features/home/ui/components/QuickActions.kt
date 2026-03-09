@@ -47,6 +47,7 @@ import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
 import top.chengdongqing.wechat.features.home.model.QuickAction
+import top.chengdongqing.wechat.features.home.theme.HomeTheme
 
 @Composable
 fun QuickActions(
@@ -83,6 +84,8 @@ fun QuickActions(
         }
     }
 
+    val backgroundColor = HomeTheme.colorScheme.quickActionBackground
+
     Popup(
         offset = popupOffset,
         onDismissRequest = { isVisible = false },
@@ -118,8 +121,8 @@ fun QuickActions(
                 modifier = Modifier
                     .width(menuWidth)
                     .padding(top = 8.dp)
-                    .drawMenuArrow()
-                    .background(Grey_4C, RoundedCornerShape(4.dp))
+                    .drawMenuArrow(backgroundColor)
+                    .background(backgroundColor, RoundedCornerShape(4.dp))
             ) {
                 val actions = QuickAction.entries
                 actions.forEachIndexed { index, action ->
@@ -165,19 +168,17 @@ private fun ActionItem(action: QuickAction, onClick: () -> Unit) {
     }
 }
 
-private fun Modifier.drawMenuArrow(): Modifier = this.drawBehind {
+private fun Modifier.drawMenuArrow(backgroundColor: Color): Modifier = this.drawBehind {
     val sizePx = 14.dp.toPx()
     val arrowOff = 16.dp.toPx()
     val tx = size.width - arrowOff
 
     rotate(degrees = 45f, pivot = Offset(tx, -sizePx / 2)) {
         drawRoundRect(
-            color = Grey_4C,
+            color = backgroundColor,
             topLeft = Offset(tx - sizePx / 2, 0f),
             size = Size(sizePx, sizePx),
             cornerRadius = CornerRadius(2.dp.toPx())
         )
     }
 }
-
-val Grey_4C = Color(0xFF4C4C4C)

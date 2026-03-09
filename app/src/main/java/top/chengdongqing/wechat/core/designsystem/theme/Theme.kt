@@ -37,9 +37,7 @@ data class WeColorScheme(
     val textSecondary: Color,
     val textTertiary: Color,     // 时间戳、占位符等
     // 其他
-    val divider: Color,
-    val tabBarBackground: Color,
-    val tabBarIconInactive: Color,
+    val divider: Color,          // 分隔线
 )
 
 val LightColorScheme = WeColorScheme(
@@ -51,8 +49,6 @@ val LightColorScheme = WeColorScheme(
     textSecondary = TextSecondaryLight,
     textTertiary = TextTertiaryLight,
     divider = DividerLight,
-    tabBarBackground = Grey_F7,
-    tabBarIconInactive = Black,
 )
 
 val DarkColorScheme = WeColorScheme(
@@ -64,8 +60,6 @@ val DarkColorScheme = WeColorScheme(
     textSecondary = TextSecondaryDark,
     textTertiary = TextTertiaryDark,
     divider = DividerDark,
-    tabBarBackground = Dark_TabBar,
-    tabBarIconInactive = TabBarIconInactiveDark,
 )
 
 /**

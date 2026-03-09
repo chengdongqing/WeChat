@@ -60,6 +60,7 @@ import top.chengdongqing.wechat.features.contacts.ui.list.ContactListScreen
 import top.chengdongqing.wechat.features.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.features.home.model.QuickAction
 import top.chengdongqing.wechat.features.home.navigation.HomeTab
+import top.chengdongqing.wechat.features.home.theme.HomeTheme
 import top.chengdongqing.wechat.features.home.ui.components.QuickActions
 import top.chengdongqing.wechat.features.me.ui.MeScreen
 import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
@@ -117,7 +118,8 @@ fun HomeScreen(
                 }
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         HomeContentPager(
             pagerState = pagerState,
@@ -268,7 +270,7 @@ private fun HomeBottomBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(WeTheme.colorScheme.tabBarBackground)
+            .background(HomeTheme.colorScheme.tabBarBackground)
     ) {
         WeDivider()
 
@@ -285,7 +287,7 @@ private fun HomeBottomBar(
                 val currentColor = if (isSelected) {
                     WeTheme.colorScheme.primary
                 } else {
-                    WeTheme.colorScheme.tabBarIconInactive
+                    HomeTheme.colorScheme.tabBarIconInactive
                 }
                 val badge = unreadCounts[screen] ?: 0
 

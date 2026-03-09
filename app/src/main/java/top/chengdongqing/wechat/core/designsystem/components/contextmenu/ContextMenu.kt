@@ -48,8 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.core.designsystem.theme.Black
-import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
 import kotlin.math.roundToInt
 
@@ -107,7 +106,7 @@ fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onClic
         modifier = Modifier
             .padding(8.dp)
             .width(menuWidthDp),
-        color = White,
+        color = WeTheme.colorScheme.surfaceVariant,
         shadowElevation = 12.dp,
         tonalElevation = 2.dp
     ) {
@@ -124,7 +123,7 @@ fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onClic
                     Text(
                         text = item,
                         fontSize = 15.sp,
-                        color = Black
+                        color = WeTheme.colorScheme.textPrimary
                     )
                 }
             }

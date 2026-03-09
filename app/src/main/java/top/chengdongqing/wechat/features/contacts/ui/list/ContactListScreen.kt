@@ -31,7 +31,6 @@ import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weConte
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.features.contacts.ui.list.components.TopFunctionList
 
@@ -50,7 +49,7 @@ fun ContactListScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(White)
+            .background(WeTheme.colorScheme.background)
     ) {
         LazyColumn(
             state = listState,
