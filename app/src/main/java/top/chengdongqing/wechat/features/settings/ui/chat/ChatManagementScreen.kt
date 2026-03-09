@@ -22,9 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -106,7 +104,7 @@ private fun ChatHandleCard(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = Color.White,
+        color = WeTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -117,33 +115,29 @@ private fun ChatHandleCard(
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = null,
-                tint = Color.Gray,
+                tint = WeTheme.colorScheme.textSecondary,
                 modifier = Modifier.size(22.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    style = TextStyle(
-                        fontSize = 17.sp,
-                        color = WeTheme.colorScheme.textPrimary,
-                    )
+                    fontSize = 17.sp,
+                    color = WeTheme.colorScheme.textPrimary,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
-                    style = TextStyle(
-                        fontSize = 13.sp,
-                        color = WeTheme.colorScheme.textSecondary,
-                        lineHeight = 20.sp
-                    )
+                    fontSize = 13.sp,
+                    color = WeTheme.colorScheme.textSecondary,
+                    lineHeight = 20.sp
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
                 painter = painterResource(R.drawable.ic_right_outlined),
                 contentDescription = null,
-                tint = Color.DarkGray,
+                tint = WeTheme.colorScheme.textSecondary,
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .size(24.dp)

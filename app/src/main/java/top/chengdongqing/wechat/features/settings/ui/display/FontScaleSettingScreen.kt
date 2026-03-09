@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -176,12 +175,14 @@ private fun FontSizeSelectorLabel(steps: Int) {
             Text(
                 text = "A",
                 fontSize = 14.sp,
+                color = WeTheme.colorScheme.textPrimary,
                 modifier = Modifier.offset(x = (-4).dp, y = (-4).dp)
             )
             Text(
                 text = "A",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
+                color = WeTheme.colorScheme.textPrimary,
                 modifier = Modifier.offset(x = 8.dp)
             )
         }
@@ -190,6 +191,8 @@ private fun FontSizeSelectorLabel(steps: Int) {
 
 @Composable
 private fun FontSizeScaleTicks(steps: Int) {
+    val color = WeTheme.colorScheme.textSecondary
+
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
@@ -202,7 +205,7 @@ private fun FontSizeScaleTicks(steps: Int) {
 
         // 主横线
         drawLine(
-            color = Color.Black.copy(alpha = 0.6f),
+            color = color,
             start = Offset(0f, centerY),
             end = Offset(width, centerY),
             strokeWidth = 0.5.dp.toPx()
@@ -212,7 +215,7 @@ private fun FontSizeScaleTicks(steps: Int) {
         repeat(tickCount) { i ->
             val x = if (i == steps) width else i * stepWidth
             drawLine(
-                color = Color.Black.copy(alpha = 0.6f),
+                color = color,
                 start = Offset(x, centerY - 10f),
                 end = Offset(x, centerY + 10f),
                 strokeWidth = 0.5.dp.toPx()

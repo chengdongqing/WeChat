@@ -79,16 +79,17 @@ private fun AboutHeader() {
     Text(
         text = stringResource(R.string.app_name),
         style = TextStyle(
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
             color = WeTheme.colorScheme.textPrimary
         )
     )
+    Spacer(modifier = Modifier.height(4.dp))
     Text(
         text = "Version $versionName",
         style = TextStyle(
             fontSize = 15.sp,
-            color = WeTheme.colorScheme.textPrimary
+            color = WeTheme.colorScheme.textSecondary
         )
     )
 }

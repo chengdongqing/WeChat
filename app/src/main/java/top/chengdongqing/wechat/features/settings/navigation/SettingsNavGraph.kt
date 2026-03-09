@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.features.settings.navigation
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.settings.ui.SettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.about.AboutScreen
@@ -137,7 +138,9 @@ private fun NavGraphBuilder.displayNavGraph(
         LanguageSettingScreen(onBack)
     }
     composable(SettingsRoute.FontScaleSetting.route) {
-        FontScaleSettingScreen(onBack)
+        ChatTheme {
+            FontScaleSettingScreen(onBack)
+        }
     }
 }
 
