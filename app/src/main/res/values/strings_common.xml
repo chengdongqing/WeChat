@@ -1,0 +1,16 @@
+<resources>
+    <string name="action_ok">确定</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_delete">删除</string>
+    <string name="action_save">保存</string>
+    <string name="action_back">返回</string>
+    <string name="action_got_it">我知道了</string>
+    <string name="action_select_from_gallery">从相册选择</string>
+    <string name="action_take_photo">拍摄新照片</string>
+    <string name="action_save_to_phone">保存到本地</string>
+
+    <string name="msg_network_unavailable">当前无法连接网络，可检查网络设置是否正常。</string>
+    <string name="msg_processing">处理中…</string>
+    <string name="msg_save_success">保存成功</string>
+    <string name="msg_save_failed">保存失败</string>
+</resources>

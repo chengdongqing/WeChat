@@ -10,9 +10,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
@@ -38,9 +40,9 @@ fun EditSignatureScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "个性签名", onBack = onBack) {
+            WeTopBar(title = stringResource(R.string.me_profile_bio), onBack = onBack) {
                 WeButton(
-                    "保存",
+                    text = stringResource(R.string.action_save),
                     size = ButtonSize.Small,
                     enabled = signature != uiState.profile?.signature
                 ) {

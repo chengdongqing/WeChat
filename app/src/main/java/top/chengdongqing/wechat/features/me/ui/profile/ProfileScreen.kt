@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -55,7 +56,7 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "个人资料", onBack = onBack)
+            WeTopBar(title = stringResource(R.string.me_profile), onBack = onBack)
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -123,7 +124,7 @@ private fun ProfileContent(
         Column {
             // 头像
             ProfileItem(
-                label = "头像",
+                label = stringResource(R.string.me_profile_avatar),
                 onClick = onNavigateToAvatarEdit
             ) {
                 AvatarContent(profile?.avatarPath)
@@ -131,7 +132,7 @@ private fun ProfileContent(
 
             // 名字
             ProfileItem(
-                label = "名字",
+                label = stringResource(R.string.me_profile_name),
                 onClick = onNavigateToNameEdit
             ) {
                 TextContent(profile?.nickname)
@@ -139,15 +140,15 @@ private fun ProfileContent(
 
             // 性别
             ProfileItem(
-                label = "性别",
+                label = stringResource(R.string.me_profile_gender),
                 onClick = onNavigateToGenderEdit
             ) {
-                TextContent(profile?.gender?.label)
+                TextContent(profile?.gender?.label?.let { stringResource(it) })
             }
 
             // 微信号
             ProfileItem(
-                label = "微信号",
+                label = stringResource(R.string.me_profile_wechat_id),
                 onClick = onNavigateToIdView
             ) {
                 TextContent(profile?.id)
@@ -155,7 +156,7 @@ private fun ProfileContent(
 
             // 二维码
             ProfileItem(
-                label = "我的二维码",
+                label = stringResource(R.string.me_profile_qrcode),
                 onClick = onNavigateToQRCode
             ) {
                 QRCodeContent()
@@ -163,7 +164,7 @@ private fun ProfileContent(
 
             // 签名
             ProfileItem(
-                label = "签名",
+                label = stringResource(R.string.me_profile_bio),
                 showDivider = false,
                 onClick = onNavigateToSignatureEdit
             ) {
@@ -173,7 +174,7 @@ private fun ProfileContent(
 
         // 其他设置
         ProfileItem(
-            label = "来电铃声",
+            label = stringResource(R.string.me_profile_ringtone),
             showDivider = false,
             onClick = null
         ) {}

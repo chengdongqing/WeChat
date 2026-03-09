@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,20 +61,24 @@ fun EditIDScreen(
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "微信号：${uiState.profile?.id}",
+                text = "${stringResource(R.string.me_profile_wechat_id)}：${uiState.profile?.id}",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium,
                 color = WeTheme.colorScheme.textPrimary
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "由于无中心服务器，为确保当前的设备的唯一性，微信号暂不支持修改。",
+                text = stringResource(R.string.me_edit_id_hint),
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 color = WeTheme.colorScheme.textSecondary
             )
             Spacer(modifier = Modifier.weight(1f))
-            WeButton(text = "返回", type = ButtonType.Plain, onClick = onBack)
+            WeButton(
+                text = stringResource(R.string.action_back),
+                type = ButtonType.Plain,
+                onClick = onBack
+            )
             Spacer(modifier = Modifier.height(100.dp))
         }
     }

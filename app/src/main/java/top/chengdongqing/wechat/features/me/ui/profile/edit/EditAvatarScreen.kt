@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -73,10 +75,12 @@ fun EditAvatarScreen(
         }
     }
 
+    val menuOptions = rememberMenuOptions()
+
     StatusBarAppearanceEffect(isDark = false)
     Box(modifier = Modifier.background(Black)) {
         WeTopBar(
-            title = "头像",
+            title = stringResource(R.string.me_profile_avatar),
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .zIndex(1f),
@@ -84,8 +88,11 @@ fun EditAvatarScreen(
             contentColor = White,
             onBack = onBack
         ) {
-            ActionIcon(icon = R.drawable.ic_more_outlined, description = "更多") {
-                actionSheet.show(MenuOptions) { index ->
+            ActionIcon(
+                icon = R.drawable.ic_more_outlined,
+                description = "更多"
+            ) {
+                actionSheet.show(menuOptions) { index ->
                     when (index) {
                         0 -> launchAlbum(VisualMediaType.Image, 1)
                         1 -> launchCamera(VisualMediaType.Image)
@@ -98,14 +105,23 @@ fun EditAvatarScreen(
         ZoomableAsyncImage(
             state = state,
             model = profile?.avatarPath,
-            contentDescription = "头像",
+            contentDescription = stringResource(R.string.me_profile_avatar),
             modifier = Modifier.fillMaxSize()
         )
     }
 }
 
-private val MenuOptions = listOf(
-    ActionSheetItem("从相册选择"),
-    ActionSheetItem("拍摄新照片"),
-    ActionSheetItem("保存到本地")
-)
+@Composable
+private fun rememberMenuOptions(): List<ActionSheetItem> {
+    val selectText = stringResource(R.string.action_select_from_gallery)
+    val takePhotoText = stringResource(R.string.action_take_photo)
+    val saveText = stringResource(R.string.action_save_to_phone)
+
+    return remember {
+        listOf(
+            ActionSheetItem(selectText),
+            ActionSheetItem(takePhotoText),
+            ActionSheetItem(saveText)
+        )
+    }
+}

@@ -11,9 +11,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
@@ -30,8 +32,8 @@ fun EditGenderScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val genderOptions = Gender.entries.map { stringResource(it.label) to it }
 
-    val genderOptions = remember { Gender.entries.map { it.label to it } }
     var gender by remember { mutableStateOf<Gender?>(null) }
     LaunchedEffect(uiState.profile) {
         uiState.profile?.gender?.let { gender = it }
@@ -41,9 +43,9 @@ fun EditGenderScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "设置性别", onBack = onBack) {
+            WeTopBar(title = stringResource(R.string.me_edit_gender), onBack = onBack) {
                 WeButton(
-                    "完成",
+                    text = stringResource(R.string.action_save),
                     size = ButtonSize.Small,
                     enabled = gender != null && gender != uiState.profile?.gender
                 ) {

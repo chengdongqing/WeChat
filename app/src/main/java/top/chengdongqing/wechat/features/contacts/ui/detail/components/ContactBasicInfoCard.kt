@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -139,7 +140,7 @@ private fun GenderIcon(
 
     Icon(
         painter = painterResource(icon),
-        contentDescription = gender.name,
+        contentDescription = stringResource(gender.label),
         tint = tint,
         modifier = modifier.size(16.dp)
     )

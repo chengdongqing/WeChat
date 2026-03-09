@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WeChat Lan</string>
+    <string name="app_name" translatable="false">WeChat Lan</string>
 
     <string name="nfc_hce_description">微信碰一碰</string>
     <string name="nfc_hce_aid_description">微信碰一碰加好友</string>

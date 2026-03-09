@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.me.ui.qrcode
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.QRCodeState
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.drawQrCode
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
@@ -46,7 +48,8 @@ class QrCardRenderer(
     private val profile: UserProfile,
     private val state: QRCodeState,
     private val avatarBitmap: Bitmap,
-    private val textMeasurer: TextMeasurer
+    private val textMeasurer: TextMeasurer,
+    private val context: Context
 ) {
     /**
      * 生成卡片 Bitmap
@@ -158,7 +161,7 @@ class QrCardRenderer(
 
     /** 绘制居中提示语 */
     private fun DrawScope.drawHintText(layout: CardLayout) {
-        val text = "扫一扫上面的二维码图案，加我为朋友。"
+        val text = context.getString(R.string.me_qrcode_hint)
         val measured = textMeasurer.measure(
             text,
             style = TextStyle(fontSize = 12.sp)

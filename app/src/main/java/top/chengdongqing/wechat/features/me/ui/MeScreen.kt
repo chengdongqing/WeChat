@@ -18,8 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -73,15 +72,35 @@ fun MeScreen(
             )
             StatusSection()
         }
-        WeMenuListItem("服务", R.drawable.ic_pay_logo_outlined, Color(0xFF07C160))
+        WeMenuListItem(
+            label = stringResource(R.string.me_menu_service),
+            icon = R.drawable.ic_pay_logo_outlined,
+            iconColor = Color(0xFF07C160)
+        )
         Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
-            WeMenuListItem("收藏", R.drawable.ic_favorites_outlined_colorful, Color.Unspecified)
+            WeMenuListItem(
+                label = stringResource(R.string.me_menu_favorites),
+                icon = R.drawable.ic_favorites_outlined_colorful,
+                iconColor = Color.Unspecified
+            )
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            WeMenuListItem("朋友圈", R.drawable.ic_album_outlined, Color(0xFF2782D7))
+            WeMenuListItem(
+                label = stringResource(R.string.me_menu_moments),
+                icon = R.drawable.ic_album_outlined,
+                iconColor = Color(0xFF2782D7)
+            )
             WeDivider(modifier = Modifier.padding(start = 56.dp))
-            WeMenuListItem("表情", R.drawable.ic_emoji_outlined, Color(0xFFF9C018))
+            WeMenuListItem(
+                label = stringResource(R.string.me_menu_stickers),
+                icon = R.drawable.ic_emoji_outlined,
+                iconColor = Color(0xFFF9C018)
+            )
         }
-        WeMenuListItem("设置", R.drawable.ic_settings_outlined, Color(0xFF2782D7)) {
+        WeMenuListItem(
+            label = stringResource(R.string.me_menu_settings),
+            icon = R.drawable.ic_settings_outlined,
+            iconColor = Color(0xFF2782D7)
+        ) {
             navController.navigate(SettingsRoute.Settings.route)
         }
     }
@@ -134,7 +153,7 @@ fun UserInfoSection(
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "微信号：${profile?.id}",
+                    text = "${stringResource(R.string.me_id)}：${profile?.id}",
                     fontSize = 14.sp,
                     color = WeTheme.colorScheme.textSecondary,
                     modifier = Modifier
@@ -170,11 +189,21 @@ fun StatusSection() {
                 .clip(CircleShape)
                 .border(0.5.dp, WeTheme.colorScheme.divider, CircleShape)
                 .clickable { }
-                .padding(horizontal = 12.dp, vertical = 4.dp),
+                .padding(horizontal = 6.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Add, null, modifier = Modifier.size(14.dp), tint = Color.Gray)
-            Text("状态", fontSize = 12.sp, color = Color.Gray)
+            Icon(
+                painter = painterResource(R.drawable.ic_plus_outlined),
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = WeTheme.colorScheme.textSecondary
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = stringResource(R.string.me_status),
+                fontSize = 12.sp,
+                color = WeTheme.colorScheme.textSecondary
+            )
         }
     }
 }

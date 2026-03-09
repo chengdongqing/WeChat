@@ -1,8 +1,10 @@
 package top.chengdongqing.wechat.features.me.domain.model
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.core.util.randomUUID
 
+@Immutable
 @Serializable
 data class UserProfile(
     val id: String,
@@ -48,20 +50,3 @@ data class UserProfile(
     }
 }
 
-/**
- * 性别枚举
- */
-@Serializable
-enum class Gender(val label: String, val pronoun: String) {
-    Male("男", "他"),
-    Female("女", "她");
-
-    companion object {
-        fun Gender?.getIndex(): Int = this?.ordinal ?: -1
-
-        fun fromIndex(index: Int): Gender? = entries.getOrNull(index)
-
-        val Gender?.safePronoun: String
-            get() = this?.pronoun ?: "他"
-    }
-}

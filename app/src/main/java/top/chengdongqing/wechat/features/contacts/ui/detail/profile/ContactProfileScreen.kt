@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -81,7 +82,7 @@ fun ContactProfileScreen(
                 }
                 WeSettingGroup("更多信息") {
                     WeSettingItem(
-                        label = "我和${contact.gender.safePronoun}的共同群聊",
+                        label = "我和${stringResource(contact.gender.safePronoun)}的共同群聊",
                         trailing = { WeSettingValue("0个") }
                     )
                     contact.signature?.let {

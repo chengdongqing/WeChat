@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
@@ -92,7 +93,6 @@ fun QRCodeScreen(
             viewModel.generateQRCode()
         }
 
-        // 提前返回，避免后续空值检查
         val profile = uiState.profile ?: return@RequestAddFriendPermission
         if (uiState.qrCode.isEmpty()) return@RequestAddFriendPermission
 
@@ -126,7 +126,7 @@ fun QRCodeScreen(
         val textMeasurer = rememberTextMeasurer()
 
         val cardRenderer = remember(profile, qrCodeState, avatarBitmap) {
-            QrCardRenderer(profile, qrCodeState, avatarBitmap, textMeasurer)
+            QrCardRenderer(profile, qrCodeState, avatarBitmap, textMeasurer, context)
         }
 
         Scaffold(
@@ -260,7 +260,7 @@ private fun ProfileInfo(profile: UserProfile) {
 @Composable
 private fun QRCodeHintText() {
     Text(
-        text = "扫一扫上面的二维码图案，加我为朋友。",
+        text = stringResource(R.string.me_qrcode_hint),
         fontSize = 12.sp,
         color = WeTheme.colorScheme.textSecondary
     )
@@ -283,11 +283,20 @@ private fun QRCodeFooter(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        LinkText("扫一扫", launchScanner)
+        LinkText(
+            text = stringResource(R.string.me_qrcode_scan),
+            onClick = launchScanner
+        )
         FooterDivider()
-        LinkText("换个样式", onChangeStyle)
+        LinkText(
+            text = stringResource(R.string.me_qrcode_change_style),
+            onClick = onChangeStyle
+        )
         FooterDivider()
-        LinkText("保存图片", onSaveToAlbum)
+        LinkText(
+            text = stringResource(R.string.me_qrcode_save),
+            onClick = onSaveToAlbum
+        )
     }
 }
 
@@ -335,7 +344,7 @@ private fun handleSaveToAlbum(
     viewModel: ProfileViewModel
 ) {
     toast.show(
-        title = "处理中...",
+        title = context.getString(R.string.msg_processing),
         icon = ToastIcon.Loading,
         duration = Duration.INFINITE,
         mask = true
@@ -352,13 +361,17 @@ private fun handleSaveToAlbum(
             delay(200)
 
             toast.show(
-                title = if (success) "已保存到相册" else "保存失败",
+                title = if (success) {
+                    context.getString(R.string.msg_save_success)
+                } else {
+                    context.getString(R.string.msg_save_failed)
+                },
                 icon = if (success) ToastIcon.Success else ToastIcon.Fail
             )
         } catch (e: Exception) {
             toast.hide()
             toast.show(
-                title = "保存失败: ${e.message}",
+                title = "${context.getString(R.string.msg_save_failed)}: ${e.message}",
                 icon = ToastIcon.Fail
             )
         }

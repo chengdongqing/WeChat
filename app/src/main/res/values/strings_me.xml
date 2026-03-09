@@ -1,0 +1,35 @@
+<resources>
+    <string name="me_menu_service">服务</string>
+    <string name="me_menu_favorites">收藏</string>
+    <string name="me_menu_moments">朋友圈</string>
+    <string name="me_menu_stickers">表情</string>
+    <string name="me_menu_settings">设置</string>
+
+    <string name="me_id">微信号</string>
+    <string name="me_status">状态</string>
+
+    <string name="me_profile">个人资料</string>
+    <string name="me_profile_avatar">头像</string>
+    <string name="me_profile_name">名字</string>
+    <string name="me_profile_gender">性别</string>
+    <string name="me_profile_wechat_id">微信号</string>
+    <string name="me_profile_qrcode">我的二维码</string>
+    <string name="me_profile_bio">签名</string>
+    <string name="me_profile_ringtone">来电铃声</string>
+
+    <string name="me_edit_name">更改名字</string>
+    <string name="me_edit_name_hint">好名字可以让你的朋友更容记住你。</string>
+
+    <string name="me_edit_gender">设置性别</string>
+    <string name="gender_male">男</string>
+    <string name="gender_female">女</string>
+    <string name="gender_male_pronoun">他</string>
+    <string name="gender_female_pronoun">她</string>
+
+    <string name="me_edit_id_hint">由于无中心服务器，为确保当前的设备的唯一性，微信号暂不支持修改。</string>
+
+    <string name="me_qrcode_hint">扫一扫上面的二维码图案，加我为朋友。</string>
+    <string name="me_qrcode_scan">扫一扫</string>
+    <string name="me_qrcode_change_style">换个样式</string>
+    <string name="me_qrcode_save">保存图片</string>
+</resources>
