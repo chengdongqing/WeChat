@@ -53,7 +53,7 @@ sealed class Screen(val route: String) {
 fun AppNavigation(
     navController: NavHostController,
 //    startDestination: String = Screen.Splash.route,
-    startDestination: String = ChatRoute.ChatSession.createRoute("wxid_ba87c7b93470"),
+    startDestination: String = ChatRoute.ChatInfo.createRoute("wxid_ba87c7b93470"),
 //    startDestination: String = SettingsRoute.DisplaySettings.route
 ) {
     // 页面返回

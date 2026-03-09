@@ -38,7 +38,6 @@ import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.ui.info.components.ChatBackgroundSetting
 
@@ -97,7 +96,7 @@ fun ChatInfoScreen(
                 showDivider = false,
                 onClick = {
                     dialog.show(
-                        title = "确定删除和${uiState.contactName}的聊天记录吗？",
+                        title = "确定清空和「${uiState.contactName}」的聊天记录吗？",
                         okText = "清空",
                         okColor = Danger,
                         onOk = { viewModel.clearMessages() }
@@ -105,6 +104,7 @@ fun ChatInfoScreen(
                 }
             )
             WeSettingItem("投诉", showDivider = false)
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
@@ -118,7 +118,7 @@ private fun ContactListBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(White)
+            .background(WeTheme.colorScheme.surface)
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {

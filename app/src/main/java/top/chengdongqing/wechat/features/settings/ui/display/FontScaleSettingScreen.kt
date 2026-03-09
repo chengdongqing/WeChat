@@ -105,8 +105,8 @@ private fun ChatPreview(modifier: Modifier) {
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(
-                rememberScrollState(),
-                rememberBounceOverscrollEffect()
+                state = rememberScrollState(),
+                overscrollEffect = rememberBounceOverscrollEffect()
             )
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)

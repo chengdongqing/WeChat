@@ -33,7 +33,7 @@ fun WeSettingGroup(title: String? = null, content: @Composable () -> Unit) {
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
             )
         }
-        Column(modifier = Modifier.background(White)) {
+        Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
             content()
         }
     }
