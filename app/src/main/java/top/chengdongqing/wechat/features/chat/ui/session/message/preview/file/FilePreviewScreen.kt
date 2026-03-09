@@ -74,7 +74,7 @@ fun FilePreviewScreen(
                 Spacer(modifier = Modifier.height(18.dp))
                 Text(
                     text = "文件大小：" + formatFileSize(context, uiState.fileSize),
-                    color = WeTheme.colorScheme.textPrimary,
+                    color = WeTheme.colorScheme.textSecondary,
                     fontSize = 17.sp
                 )
 

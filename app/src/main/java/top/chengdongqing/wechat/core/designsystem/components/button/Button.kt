@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
 
 enum class ButtonType {
@@ -111,7 +113,16 @@ private fun buttonColorSchemeOf(type: ButtonType, enabled: Boolean): ButtonColor
             if (enabled) Color.White else Color(0xFFBBBBBB)
         )
 
-        ButtonType.Danger -> ButtonColors(Color.Black.copy(0.05f), Danger)
-        ButtonType.Plain -> ButtonColors(Color.Black.copy(0.05f), TextPrimaryLight)
+        ButtonType.Danger -> if (LocalIsDarkTheme.current) {
+            ButtonColors(Danger, TextPrimaryDark)
+        } else {
+            ButtonColors(Color.Black.copy(0.05f), Danger)
+        }
+
+        ButtonType.Plain -> if (LocalIsDarkTheme.current) {
+            ButtonColors(Color.White.copy(0.1f), TextPrimaryDark)
+        } else {
+            ButtonColors(Color.Black.copy(0.05f), TextPrimaryLight)
+        }
     }
 }

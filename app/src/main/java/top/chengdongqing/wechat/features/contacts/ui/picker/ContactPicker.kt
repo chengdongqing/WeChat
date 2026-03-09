@@ -127,7 +127,7 @@ fun ContactPicker(
                                 key = initial,
                                 contentType = "Initial"
                             ) {
-                                GroupTitle(initial, background = White)
+                                GroupTitle(initial, background = WeTheme.colorScheme.surface)
                             }
 
                             itemsIndexed(

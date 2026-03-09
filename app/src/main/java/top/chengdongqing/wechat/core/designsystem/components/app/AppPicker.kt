@@ -46,7 +46,6 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.showToast
@@ -128,7 +127,7 @@ fun AppPicker(
                                 key = initial,
                                 contentType = "Initial"
                             ) {
-                                GroupTitle(initial, background = White)
+                                GroupTitle(initial, background = WeTheme.colorScheme.surface)
                             }
 
                             itemsIndexed(
