@@ -35,4 +35,23 @@
     <string name="notification_msg_sound">Alert sound</string>
     <string name="notification_ringtone">Ringtone for Incoming Calls</string>
     <string name="notification_ringtone_hint">Friends can hear my ringtone when calling me</string>
+
+    <string name="notification_display_hidden_all">Show \"You have 1 new message\" only</string>
+    <string name="notification_display_sender_only">Show sender name only</string>
+    <string name="notification_display_sender_and_content">Show sender name and message content</string>
+
+    <string name="notification_in_chat_sound">Sound</string>
+    <string name="notification_in_chat_vibration">Vibration</string>
+    <string name="notification_in_chat_hint">These switches control sound and vibration in the following scenarios</string>
+    <string name="notification_in_chat_hint_item1">- New message in chat list</string>
+    <string name="notification_in_chat_hint_item2">- New message in current chat</string>
+
+    <string name="notification_sound_follow_system">Automatic</string>
+    <string name="notification_sound_blocks">Toys</string>
+    <string name="notification_sound_cute">Cupid</string>
+    <string name="notification_sound_ethereal">Celestial</string>
+    <string name="notification_sound_playful">Delight</string>
+    <string name="notification_sound_crisp">Crystals</string>
+    <string name="notification_sound_nimble">Fairy</string>
+    <string name="notification_sound_elegant">Elegance</string>
 </resources>

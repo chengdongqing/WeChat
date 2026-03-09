@@ -1,10 +1,15 @@
 package top.chengdongqing.wechat.features.settings.domain.model
 
+import androidx.annotation.StringRes
+import top.chengdongqing.wechat.R
+
 /**
  * 通知显示方式
  */
-enum class NotificationDisplay(val description: String) {
-    HiddenAll("仅显示「你收到了1条消息」"),
-    SenderOnly("显示朋友和群聊的名称"),
-    SenderAndContent("显示朋友、群聊名称及消息内容");
+enum class NotificationDisplay(
+    @get:StringRes val description: Int
+) {
+    HiddenAll(R.string.notification_display_hidden_all),
+    SenderOnly(R.string.notification_display_sender_only),
+    SenderAndContent(R.string.notification_display_sender_and_content);
 }

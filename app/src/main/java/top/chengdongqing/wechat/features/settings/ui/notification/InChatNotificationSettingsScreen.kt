@@ -9,9 +9,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
@@ -22,7 +24,10 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 fun InChatNotificationSettingsScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
-            WeTopBar(title = "聊天界面中的新消息通知", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.notification_in_chat),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -33,13 +38,13 @@ fun InChatNotificationSettingsScreen(onBack: () -> Unit) {
         ) {
             WeSettingGroup {
                 WeSettingItem(
-                    label = "声音",
+                    label = stringResource(R.string.notification_in_chat_sound),
                     showArrow = false
                 ) {
                     WeSwitch(checked = true)
                 }
                 WeSettingItem(
-                    label = "振动",
+                    label = stringResource(R.string.notification_in_chat_vibration),
                     showArrow = false,
                     showDivider = false
                 ) {
@@ -60,9 +65,18 @@ private fun SettingHint() {
     )
 
     Column(modifier = Modifier.padding(24.dp)) {
-        Text(text = "此处的开关可以控制以下场景的声音与振动", style = textStyle)
+        Text(
+            text = stringResource(R.string.notification_in_chat_hint),
+            style = textStyle
+        )
         Spacer(modifier = Modifier.height(26.dp))
-        Text(text = "- 聊天列表中收到新消息", style = textStyle)
-        Text(text = "- 当前聊天中收到新消息", style = textStyle)
+        Text(
+            text = stringResource(R.string.notification_in_chat_hint_item1),
+            style = textStyle
+        )
+        Text(
+            text = stringResource(R.string.notification_in_chat_hint_item2),
+            style = textStyle
+        )
     }
 }

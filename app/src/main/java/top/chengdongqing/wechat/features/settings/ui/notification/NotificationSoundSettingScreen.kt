@@ -14,7 +14,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
@@ -25,13 +28,25 @@ import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
 
 @Composable
 fun NotificationSoundSettingScreen(onBack: () -> Unit) {
-    val soundOptions = remember { NotificationSound.entries.map { it.label to it } }
+    val resources = LocalResources.current
+    val soundOptions = remember {
+        NotificationSound.entries.map {
+            resources.getString(it.labelRes) to it
+        }
+    }
     var sound by remember { mutableStateOf(NotificationSound.FollowSystem) }
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "消息提示音", onBack = onBack) {
-                WeButton(text = "完成", size = ButtonSize.Small, enabled = false)
+            WeTopBar(
+                title = stringResource(R.string.notification_msg_sound),
+                onBack = onBack
+            ) {
+                WeButton(
+                    text = stringResource(R.string.action_done),
+                    size = ButtonSize.Small,
+                    enabled = false
+                )
             }
         },
         containerColor = WeTheme.colorScheme.background

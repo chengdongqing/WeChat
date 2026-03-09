@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -32,8 +33,11 @@ fun EditGenderScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val genderOptions = Gender.entries.map { stringResource(it.label) to it }
+    val resources = LocalResources.current
 
+    val genderOptions = remember {
+        Gender.entries.map { resources.getString(it.label) to it }
+    }
     var gender by remember { mutableStateOf<Gender?>(null) }
     LaunchedEffect(uiState.profile) {
         uiState.profile?.gender?.let { gender = it }
@@ -45,7 +49,7 @@ fun EditGenderScreen(
         topBar = {
             WeTopBar(title = stringResource(R.string.me_edit_gender), onBack = onBack) {
                 WeButton(
-                    text = stringResource(R.string.action_save),
+                    text = stringResource(R.string.action_done),
                     size = ButtonSize.Small,
                     enabled = gender != null && gender != uiState.profile?.gender
                 ) {

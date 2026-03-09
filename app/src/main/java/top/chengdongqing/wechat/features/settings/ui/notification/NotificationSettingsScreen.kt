@@ -24,6 +24,7 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.util.navigateToAppSettings
+import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 
 @Composable
@@ -35,7 +36,10 @@ fun NotificationSettingsScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = stringResource(R.string.settings_notifications), onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.settings_notifications),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -105,7 +109,7 @@ fun NotificationSettingsScreen(
                         navController.navigate(SettingsRoute.NotificationSoundSetting.route)
                     }
                 ) {
-                    WeSettingValue("跟随系统")
+                    WeSettingValue(stringResource(NotificationSound.FollowSystem.labelRes))
                 }
                 WeSettingItem(
                     label = stringResource(R.string.notification_ringtone),

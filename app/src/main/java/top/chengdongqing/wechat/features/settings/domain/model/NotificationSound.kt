@@ -1,20 +1,21 @@
 package top.chengdongqing.wechat.features.settings.domain.model
 
+import androidx.annotation.StringRes
 import top.chengdongqing.wechat.R
 
 /**
  * 通知提示音
  */
 enum class NotificationSound(
-    val label: String,
-    val soundResId: Int
+    @get:StringRes val labelRes: Int,
+    val soundRes: Int
 ) {
-    FollowSystem("跟随系统", R.raw.sent_message),
-    Blocks("积木", R.raw.sent_message),
-    Cute("可爱", R.raw.sent_message),
-    Ethereal("空灵", R.raw.sent_message),
-    Playful("俏皮", R.raw.sent_message),
-    Crisp("清脆", R.raw.sent_message),
-    Nimble("灵动", R.raw.sent_message),
-    Elegant("优雅", R.raw.sent_message);
+    FollowSystem(R.string.notification_sound_follow_system, R.raw.sent_message),
+    Blocks(R.string.notification_sound_blocks, R.raw.sent_message),
+    Cute(R.string.notification_sound_cute, R.raw.sent_message),
+    Ethereal(R.string.notification_sound_ethereal, R.raw.sent_message),
+    Playful(R.string.notification_sound_playful, R.raw.sent_message),
+    Crisp(R.string.notification_sound_crisp, R.raw.sent_message),
+    Nimble(R.string.notification_sound_nimble, R.raw.sent_message),
+    Elegant(R.string.notification_sound_elegant, R.raw.sent_message);
 }

@@ -35,4 +35,23 @@
     <string name="notification_msg_sound">消息提示音</string>
     <string name="notification_ringtone">来电铃声</string>
     <string name="notification_ringtone_hint">呼叫我时朋友也可听见我的来电铃声</string>
+
+    <string name="notification_display_hidden_all">仅显示「你收到了1条消息」</string>
+    <string name="notification_display_sender_only">显示朋友和群聊的名称</string>
+    <string name="notification_display_sender_and_content">显示朋友、群聊名称及消息内容</string>
+
+    <string name="notification_in_chat_sound">声音</string>
+    <string name="notification_in_chat_vibration">振动</string>
+    <string name="notification_in_chat_hint">此处的开关可以控制以下场景的声音与振动</string>
+    <string name="notification_in_chat_hint_item1">- 聊天列表中收到新消息</string>
+    <string name="notification_in_chat_hint_item2">- 当前聊天中收到新消息</string>
+
+    <string name="notification_sound_follow_system">跟随系统</string>
+    <string name="notification_sound_blocks">积木</string>
+    <string name="notification_sound_cute">可爱</string>
+    <string name="notification_sound_ethereal">空灵</string>
+    <string name="notification_sound_playful">俏皮</string>
+    <string name="notification_sound_crisp">清脆</string>
+    <string name="notification_sound_nimble">灵动</string>
+    <string name="notification_sound_elegant">优雅</string>
 </resources>
