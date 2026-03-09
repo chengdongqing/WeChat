@@ -13,8 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -34,7 +37,7 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "设置", onBack = onBack)
+            WeTopBar(title = stringResource(R.string.settings), onBack = onBack)
         },
         containerColor = WeTheme.colorScheme.background,
     ) { innerPadding ->
@@ -48,40 +51,40 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            WeSettingGroup("通用") {
+            WeSettingGroup(stringResource(R.string.settings_group_general)) {
                 WeSettingItem(
-                    label = "通知",
+                    label = stringResource(R.string.settings_notifications),
                     onClick = {
                         navController.navigate(SettingsRoute.NotificationSettings.route)
                     }
                 )
                 WeSettingItem(
-                    label = "界面与显示",
+                    label = stringResource(R.string.settings_display),
                     onClick = {
                         navController.navigate(SettingsRoute.DisplaySettings.route)
                     }
                 )
                 WeSettingItem(
-                    label = "朋友权限",
+                    label = stringResource(R.string.settings_privacy),
                     onClick = {
                         navController.navigate(SettingsRoute.PrivacySettings.route)
                     }
                 )
                 WeSettingItem(
-                    label = "存储空间",
+                    label = stringResource(R.string.settings_storage),
                     onClick = {}
                 )
                 WeSettingItem(
-                    label = "更多",
+                    label = stringResource(R.string.settings_more),
                     showDivider = false,
                     onClick = {
                         navController.navigate(SettingsRoute.MoreSettings.route)
                     }
                 )
             }
-            WeSettingGroup("功能") {
+            WeSettingGroup(stringResource(R.string.settings_group_features)) {
                 WeSettingItem(
-                    label = "连接模式",
+                    label = stringResource(R.string.settings_connection),
                     onClick = {
                         navController.navigate(SettingsRoute.ConnectionModeSettings.route)
                     }
@@ -89,32 +92,32 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                     WeSettingValue("Wi-Fi")
                 }
                 WeSettingItem(
-                    label = "聊天",
+                    label = stringResource(R.string.settings_chat),
                     onClick = {
                         navController.navigate(SettingsRoute.ChatSettings.route)
                     }
                 )
                 WeSettingItem(
-                    label = "聊天记录管理",
+                    label = stringResource(R.string.settings_chat_history),
                     showDivider = false,
                     onClick = {
                         navController.navigate(SettingsRoute.ChatManagement.route)
                     }
                 )
             }
-            WeSettingGroup("帮助与关于") {
+            WeSettingGroup(stringResource(R.string.settings_group_help)) {
                 WeSettingItem(
-                    label = "帮助与反馈",
+                    label = stringResource(R.string.settings_help),
                     onClick = {}
                 )
                 WeSettingItem(
-                    label = "关于微信",
+                    label = stringResource(R.string.settings_about),
                     showDivider = false,
                     onClick = {
                         navController.navigate(SettingsRoute.About.route)
                     }
                 ) {
-                    WeSettingValue("版本 $versionName")
+                    WeSettingValue("${stringResource(R.string.settings_version)} $versionName")
                 }
             }
             LogoutButton()
@@ -126,15 +129,19 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
 @Composable
 private fun LogoutButton() {
     val dialog = rememberDialogState()
+    val resources = LocalResources.current
 
     val showDialog = {
         dialog.show(
-            title = "确定退出登录吗？",
-            content = "将删除所有的数据，并彻底注销账号！",
+            title = resources.getString(R.string.settings_logout_title),
+            content = resources.getString(R.string.settings_logout_content),
             okColor = Danger,
             onOk = {}
         )
     }
 
-    WeDangerButton(label = "退出登录", onClick = showDialog)
+    WeDangerButton(
+        label = stringResource(R.string.settings_logout),
+        onClick = showDialog
+    )
 }

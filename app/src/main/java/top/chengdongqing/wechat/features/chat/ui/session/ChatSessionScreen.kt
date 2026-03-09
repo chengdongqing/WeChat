@@ -23,6 +23,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
@@ -139,7 +140,7 @@ fun ChatSessionScreen(
                 is MessageUiEvent.ShowDeleteConfirm -> {
                     dialog.show(
                         title = "确认删除？",
-                        okText = "删除",
+                        okText = R.string.action_delete,
                         okColor = Danger
                     ) {
                         if (event.messageId != null) {
@@ -153,7 +154,7 @@ fun ChatSessionScreen(
                 is MessageUiEvent.ShowDownloadConfirm -> {
                     dialog.show(
                         title = "确认保存？",
-                        okText = "保存"
+                        okText = R.string.action_save
                     ) {
                         viewModel.saveSelectedMessageFiles(toast)
                     }

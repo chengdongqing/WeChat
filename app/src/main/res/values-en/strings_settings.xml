@@ -1,0 +1,38 @@
+<resources>
+    <string name="settings">Settings</string>
+
+    <string name="settings_group_general">General</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_display">Display</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_storage">Storage</string>
+    <string name="settings_more">More</string>
+
+    <string name="settings_group_features">Features</string>
+    <string name="settings_connection">Connection</string>
+    <string name="settings_chat">Chat</string>
+    <string name="settings_chat_history">Chat History</string>
+
+    <string name="settings_group_help">Help &amp; About</string>
+    <string name="settings_help">Help &amp; Feedback</string>
+    <string name="settings_about">About WeChat</string>
+    <string name="settings_version">Version</string>
+
+    <string name="settings_logout">Log Out</string>
+    <string name="settings_logout_title">Log Out?</string>
+    <string name="settings_logout_content">All data will be deleted and your account will be permanently deactivated.</string>
+
+    <string name="notification_msg">Message Notifications</string>
+    <string name="notification_call">Voice &amp; Video Call Notifications</string>
+    <string name="notification_display">Notification Content</string>
+    <string name="notification_display_desc">Show friend and group chat names, profile photos and messages</string>
+
+    <string name="notification_group_sound">Sound &amp; Vibration</string>
+    <string name="notification_system_settings">Go to Settings</string>
+    <string name="notification_in_chat">In-Chat and Chat List Messages</string>
+
+    <string name="notification_group_ringtone">Alert sounds &amp; Ringtones</string>
+    <string name="notification_msg_sound">Alert sound</string>
+    <string name="notification_ringtone">Ringtone for Incoming Calls</string>
+    <string name="notification_ringtone_hint">Friends can hear my ringtone when calling me</string>
+</resources>

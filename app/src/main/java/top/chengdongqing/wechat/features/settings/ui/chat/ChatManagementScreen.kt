@@ -86,7 +86,7 @@ private fun BoxScope.ClearChatButton() {
                 dialog.show(
                     title = "确定清空全部聊天记录吗？",
                     content = "被清空的聊天记录将无法恢复，请再次确认是否清空所有个人和群的聊天记录",
-                    okText = "清空",
+                    okText = R.string.action_clear,
                     okColor = Danger,
                     onOk = {}
                 )

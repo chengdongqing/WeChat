@@ -4,6 +4,7 @@
     <string name="action_delete">Delete</string>
     <string name="action_save">Save</string>
     <string name="action_back">Back</string>
+    <string name="action_clear">Clear</string>
     <string name="action_got_it">Got It</string>
     <string name="action_select_from_gallery">Select from Gallery</string>
     <string name="action_take_photo">Take a Photo</string>

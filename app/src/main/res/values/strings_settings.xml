@@ -1,0 +1,38 @@
+<resources>
+    <string name="settings">设置</string>
+
+    <string name="settings_group_general">通用</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_display">界面与显示</string>
+    <string name="settings_privacy">朋友权限</string>
+    <string name="settings_storage">存储空间</string>
+    <string name="settings_more">更多</string>
+
+    <string name="settings_group_features">功能</string>
+    <string name="settings_connection">连接模式</string>
+    <string name="settings_chat">聊天</string>
+    <string name="settings_chat_history">聊天记录管理</string>
+
+    <string name="settings_group_help">帮助与关于</string>
+    <string name="settings_help">帮助与反馈</string>
+    <string name="settings_about">关于微信</string>
+    <string name="settings_version">版本</string>
+
+    <string name="settings_logout">退出登录</string>
+    <string name="settings_logout_title">确定退出登录吗？</string>
+    <string name="settings_logout_content">将删除所有的数据，并彻底注销账号！</string>
+
+    <string name="notification_msg">消息通知</string>
+    <string name="notification_call">语音和视频通话通知</string>
+    <string name="notification_display">通知显示内容</string>
+    <string name="notification_display_desc">显示朋友和群聊的名称、头像、消息内容</string>
+
+    <string name="notification_group_sound">声音与振动</string>
+    <string name="notification_system_settings">前往系统设置</string>
+    <string name="notification_in_chat">聊天界面中的新消息通知</string>
+
+    <string name="notification_group_ringtone">提示音和铃声</string>
+    <string name="notification_msg_sound">消息提示音</string>
+    <string name="notification_ringtone">来电铃声</string>
+    <string name="notification_ringtone_hint">呼叫我时朋友也可听见我的来电铃声</string>
+</resources>

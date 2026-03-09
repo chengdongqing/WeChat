@@ -12,8 +12,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
@@ -33,7 +35,7 @@ fun NotificationSettingsScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "通知", onBack = onBack)
+            WeTopBar(title = stringResource(R.string.settings_notifications), onBack = onBack)
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -49,13 +51,13 @@ fun NotificationSettingsScreen(
         ) {
             WeSettingGroup {
                 WeSettingItem(
-                    label = "消息通知",
+                    label = stringResource(R.string.notification_msg),
                     showArrow = false
                 ) {
                     WeSwitch(checked = true)
                 }
                 WeSettingItem(
-                    label = "语音和视频通话通知",
+                    label = stringResource(R.string.notification_call),
                     showArrow = false,
                     showDivider = false
                 ) {
@@ -63,42 +65,42 @@ fun NotificationSettingsScreen(
                 }
             }
             WeSettingItem(
-                label = "通知显示内容",
-                description = "显示朋友和群聊的名称、头像、消息内容",
+                label = stringResource(R.string.notification_display),
+                description = stringResource(R.string.notification_display_desc),
                 showDivider = false,
                 height = 68.dp,
                 onClick = {
                     navController.navigate(SettingsRoute.NotificationDisplaySetting.route)
                 }
             )
-            WeSettingGroup("声音与振动") {
+            WeSettingGroup(stringResource(R.string.notification_group_sound)) {
                 WeSettingItem(
-                    label = "消息通知",
+                    label = stringResource(R.string.notification_msg),
                     onClick = {
                         context.navigateToAppSettings(true)
                     }
                 ) {
-                    WeSettingValue("前往系统设置")
+                    WeSettingValue(stringResource(R.string.notification_system_settings))
                 }
                 WeSettingItem(
-                    label = "语音和视频通话通知",
+                    label = stringResource(R.string.notification_call),
                     onClick = {
                         context.navigateToAppSettings(true)
                     }
                 ) {
-                    WeSettingValue("前往系统设置")
+                    WeSettingValue(stringResource(R.string.notification_system_settings))
                 }
                 WeSettingItem(
-                    label = "聊天界面中的新消息通知",
+                    label = stringResource(R.string.notification_in_chat),
                     showDivider = false,
                     onClick = {
                         navController.navigate(SettingsRoute.InChatNotificationSetting.route)
                     }
                 )
             }
-            WeSettingGroup("提示音和铃声") {
+            WeSettingGroup(stringResource(R.string.notification_group_ringtone)) {
                 WeSettingItem(
-                    label = "消息提示音",
+                    label = stringResource(R.string.notification_msg_sound),
                     onClick = {
                         navController.navigate(SettingsRoute.NotificationSoundSetting.route)
                     }
@@ -106,13 +108,13 @@ fun NotificationSettingsScreen(
                     WeSettingValue("跟随系统")
                 }
                 WeSettingItem(
-                    label = "来电铃声",
+                    label = stringResource(R.string.notification_ringtone),
                     onClick = {}
                 ) {
                     WeSettingValue("Lullaby")
                 }
                 WeSettingItem(
-                    label = "呼叫我时朋友也可听见我的来电铃声",
+                    label = stringResource(R.string.notification_ringtone_hint),
                     showArrow = false,
                     showDivider = false
                 ) {

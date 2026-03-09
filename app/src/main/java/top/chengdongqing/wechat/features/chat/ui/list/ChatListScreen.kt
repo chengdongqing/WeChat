@@ -139,9 +139,7 @@ private fun ChatContextMenuHandler(
     val dialog = rememberDialogState()
     val hideTitle = stringResource(R.string.chat_hide_hint_title)
     val hideContent = stringResource(R.string.chat_hide_hint_content)
-    val gotItText = stringResource(R.string.action_got_it)
     val deleteHint = stringResource(R.string.chat_delete_hint)
-    val deleteText = stringResource(R.string.action_delete)
 
     WeContextMenu(state) { targetIndex, menuIndex ->
         val chat = chats.getOrNull(targetIndex) ?: return@WeContextMenu
@@ -152,13 +150,13 @@ private fun ChatContextMenuHandler(
             2 -> dialog.show(
                 title = hideTitle,
                 content = hideContent,
-                okText = gotItText,
+                okText = R.string.action_got_it,
                 onCancel = null
             ) { viewModel.hideChat(chat.id) }
 
             3 -> dialog.show(
                 title = deleteHint,
-                okText = deleteText,
+                okText = R.string.action_delete,
                 okColor = Danger
             ) { viewModel.deleteChat(chat.id) }
         }

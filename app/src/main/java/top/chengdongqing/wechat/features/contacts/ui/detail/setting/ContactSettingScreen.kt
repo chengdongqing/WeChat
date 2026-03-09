@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -107,7 +108,7 @@ private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
             title = "即将删除联系人“${contact.displayName}”",
             content = "删除后对方不会收到通知",
             okColor = Danger,
-            okText = "删除",
+            okText = R.string.action_delete,
             onOk = onDelete
         )
     }
