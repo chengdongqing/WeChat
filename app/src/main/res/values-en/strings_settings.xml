@@ -121,7 +121,7 @@
 
     <string name="chat_settings_background">Background</string>
     <string name="chat_settings_earpiece">Switch to ear speaker</string>
-    <string name="chat_settings_send_button">Show "Send Button"</string>
+    <string name="chat_settings_send_button">Show \"Send\" Button</string>
     <string name="chat_settings_e2e">End-to-End Encryption</string>
     <string name="chat_settings_e2e_desc">Once either party enables this, an encrypted connection is established automatically.</string>
 
@@ -133,4 +133,8 @@
     <string name="chat_history_clear">Clear All Chat History</string>
     <string name="chat_history_clear_title">Clear all chat history?</string>
     <string name="chat_history_clear_content">Cleared messages cannot be recovered once cleared. Are you sure you want to clear all personal and group chat messages?</string>
+
+    <string name="about_features">What\'s Fresh</string>
+    <string name="about_complaint">Feedback</string>
+    <string name="about_update">Version Update</string>
 </resources>

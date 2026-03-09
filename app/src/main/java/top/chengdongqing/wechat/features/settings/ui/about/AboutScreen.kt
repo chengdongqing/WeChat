@@ -99,15 +99,15 @@ private fun AboutActionList() {
     Column(modifier = Modifier.padding(horizontal = 24.dp)) {
         WeDivider()
         WeSettingItem(
-            label = "功能介绍",
+            label = stringResource(R.string.about_features),
             onClick = {}
         )
         WeSettingItem(
-            label = "投诉",
+            label = stringResource(R.string.about_complaint),
             onClick = {}
         )
         WeSettingItem(
-            label = "版本更新",
+            label = stringResource(R.string.about_update),
             onClick = {},
             showDivider = false
         )
