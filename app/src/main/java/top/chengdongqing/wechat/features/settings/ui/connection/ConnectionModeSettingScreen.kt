@@ -13,9 +13,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
@@ -25,13 +28,25 @@ import top.chengdongqing.wechat.features.settings.domain.model.ConnectionMode
 
 @Composable
 fun ConnectionModeSettingScreen(onBack: () -> Unit) {
-    val connectionOptions = remember { ConnectionMode.entries.map { it.label to it } }
+    val resources = LocalResources.current
+    val connectionOptions = remember {
+        ConnectionMode.entries.map {
+            resources.getString(it.labelRes) to it
+        }
+    }
     var connection by remember { mutableStateOf(ConnectionMode.WifiLan) }
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "连接模式", onBack = onBack) {
-                WeButton(text = "完成", size = ButtonSize.Small, enabled = false)
+            WeTopBar(
+                title = stringResource(R.string.settings_connection),
+                onBack = onBack
+            ) {
+                WeButton(
+                    text = stringResource(R.string.action_done),
+                    size = ButtonSize.Small,
+                    enabled = false
+                )
             }
         },
         containerColor = WeTheme.colorScheme.background
@@ -61,10 +76,16 @@ private fun SettingHint() {
     )
 
     Column(modifier = Modifier.padding(24.dp)) {
-        Text(text = "连接模式说明", style = textStyle)
+        Text(
+            text = stringResource(R.string.connection_hint),
+            style = textStyle
+        )
         Spacer(modifier = Modifier.height(26.dp))
         ConnectionMode.entries.forEachIndexed { index, mode ->
-            Text(text = "${index + 1}. ${mode.label}: ${mode.description}", style = textStyle)
+            Text(
+                text = "${index + 1}. ${stringResource(mode.labelRes)}: ${stringResource(mode.descriptionRes)}",
+                style = textStyle
+            )
             Spacer(modifier = Modifier.height(8.dp))
         }
     }

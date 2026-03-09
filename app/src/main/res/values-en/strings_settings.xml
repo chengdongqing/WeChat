@@ -109,4 +109,13 @@
     <string name="permission_bluetooth_desc">Used to find and connect with nearby friends without internet.</string>
     <string name="permission_wifi">Wi-Fi</string>
     <string name="permission_wifi_desc">Used for high-speed file transfer and message sync on LAN.</string>
+
+    <string name="connection_title">Connection</string>
+    <string name="connection_hint">About Connection Modes</string>
+    <string name="connection_wifi_lan">Wi-Fi LAN</string>
+    <string name="connection_wifi_lan_desc">High-speed transfer on the same Wi-Fi, ideal for large files and stable calls.</string>
+    <string name="connection_wifi_direct">Wi-Fi Direct (P2P)</string>
+    <string name="connection_wifi_direct_desc">Direct device-to-device connection without a router, great for offline environments.</string>
+    <string name="connection_bluetooth">Bluetooth</string>
+    <string name="connection_bluetooth_desc">Low-power discovery of nearby devices, suitable for short-range messaging.</string>
 </resources>

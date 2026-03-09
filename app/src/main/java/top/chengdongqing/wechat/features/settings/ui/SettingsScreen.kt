@@ -28,6 +28,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.util.getVersionName
+import top.chengdongqing.wechat.features.settings.domain.model.ConnectionMode
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 
 @Composable
@@ -89,7 +90,7 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                         navController.navigate(SettingsRoute.ConnectionModeSettings.route)
                     }
                 ) {
-                    WeSettingValue("Wi-Fi")
+                    WeSettingValue(stringResource(ConnectionMode.WifiLan.labelRes))
                 }
                 WeSettingItem(
                     label = stringResource(R.string.settings_chat),

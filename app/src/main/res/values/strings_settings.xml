@@ -109,4 +109,13 @@
     <string name="permission_bluetooth_desc">用于在无网络环境下搜索并连接周边好友等。</string>
     <string name="permission_wifi">Wi-Fi</string>
     <string name="permission_wifi_desc">用于局域网内的高速文件传输与消息同步等。</string>
+
+    <string name="connection_title">连接模式</string>
+    <string name="connection_hint">连接模式说明</string>
+    <string name="connection_wifi_lan">Wi-Fi 局域网</string>
+    <string name="connection_wifi_lan_desc">在同一 Wi-Fi 下高速传输，适合大文件发送与稳定通话。</string>
+    <string name="connection_wifi_direct">Wi-Fi 直连 (P2P)</string>
+    <string name="connection_wifi_direct_desc">无需接入路由器，设备间直接互联，适合户外无网络环境。</string>
+    <string name="connection_bluetooth">蓝牙</string>
+    <string name="connection_bluetooth_desc">低功耗发现周边设备，适合近距离发送短消息。</string>
 </resources>
