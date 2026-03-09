@@ -114,10 +114,7 @@ fun WeInput(
 
         // 底部横线
         if (showDivider) {
-            WeDivider(
-                thickness = 1.dp,
-                color = indicatorColor
-            )
+            WeDivider(color = indicatorColor)
         }
     }
 }

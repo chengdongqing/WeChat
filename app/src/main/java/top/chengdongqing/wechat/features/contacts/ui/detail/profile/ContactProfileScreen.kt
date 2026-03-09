@@ -70,39 +70,42 @@ fun ContactProfileScreen(
                     onClick = onNavigateToEdit
                 )
             }
-            WeSettingGroup("朋友权限") {
-                WeSettingItem(
-                    label = "权限",
-                    trailing = { WeSettingValue("聊天、朋友圈、微信运动等") },
-                    showDivider = false
-                )
-            }
-            WeSettingGroup("更多信息") {
-                WeSettingItem(
-                    label = "我和${contact.gender.safePronoun}的共同群聊",
-                    trailing = { WeSettingValue("0个") }
-                )
-                contact.signature?.let {
+
+            if (contact.isFriend) {
+                WeSettingGroup("朋友权限") {
                     WeSettingItem(
-                        label = "签名",
-                        trailing = { WeSettingValue(it) },
-                        showArrow = false
-                    )
-                }
-                contact.source?.let {
-                    WeSettingItem(
-                        label = "来源",
-                        trailing = { WeSettingValue(it.getDescription(contact.isFromMe)) },
-                        showArrow = false
-                    )
-                }
-                contact.addedAt?.let {
-                    WeSettingItem(
-                        label = "添加时间",
-                        trailing = { WeSettingValue(it.toYearMonthDisplay()) },
-                        showArrow = false,
+                        label = "权限",
+                        trailing = { WeSettingValue("聊天、朋友圈、微信运动等") },
                         showDivider = false
                     )
+                }
+                WeSettingGroup("更多信息") {
+                    WeSettingItem(
+                        label = "我和${contact.gender.safePronoun}的共同群聊",
+                        trailing = { WeSettingValue("0个") }
+                    )
+                    contact.signature?.let {
+                        WeSettingItem(
+                            label = "签名",
+                            trailing = { WeSettingValue(it) },
+                            showArrow = false
+                        )
+                    }
+                    contact.source?.let {
+                        WeSettingItem(
+                            label = "来源",
+                            trailing = { WeSettingValue(it.getDescription(contact.isFromMe)) },
+                            showArrow = false
+                        )
+                    }
+                    contact.addedAt?.let {
+                        WeSettingItem(
+                            label = "添加时间",
+                            trailing = { WeSettingValue(it.toYearMonthDisplay()) },
+                            showArrow = false,
+                            showDivider = false
+                        )
+                    }
                 }
             }
         }

@@ -67,16 +67,18 @@ fun ContactSettingScreen(
                 }
                 WeSettingItem("朋友权限", showDivider = false)
             }
-            WeSettingGroup {
-                WeSettingItem("把他（她）推荐给朋友")
-                WeSettingItem("添加到桌面", showDivider = false)
-            }
-            WeSettingItem(
-                label = "设为星标朋友",
-                showArrow = false,
-                showDivider = false
-            ) {
-                WeSwitch()
+            if (contact.isFriend) {
+                WeSettingGroup {
+                    WeSettingItem("把他（她）推荐给朋友")
+                    WeSettingItem("添加到桌面", showDivider = false)
+                }
+                WeSettingItem(
+                    label = "设为星标朋友",
+                    showArrow = false,
+                    showDivider = false
+                ) {
+                    WeSwitch()
+                }
             }
             WeSettingGroup {
                 WeSettingItem(label = "加入黑名单", showArrow = false) {
@@ -87,8 +89,10 @@ fun ContactSettingScreen(
                 WeSettingItem("投诉", showDivider = false)
             }
 
-            DeleteButton(contact) {
-                viewModel.deleteContact()
+            if (contact.isFriend) {
+                DeleteButton(contact) {
+                    viewModel.deleteContact()
+                }
             }
         }
     }

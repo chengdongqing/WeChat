@@ -41,6 +41,7 @@ import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.cropper.rememberImageCropperLauncher
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.createImageUri
 
@@ -91,7 +92,8 @@ fun AvatarSelector(
                 Icon(
                     painter = painterResource(R.drawable.ic_camera_filled),
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
+                    tint = WeTheme.colorScheme.textPrimary
                 )
             },
             onClick = handleShowMenu

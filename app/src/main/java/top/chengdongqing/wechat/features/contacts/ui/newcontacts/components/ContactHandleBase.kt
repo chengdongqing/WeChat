@@ -37,7 +37,6 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDial
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 enum class FriendActionType(val title: String) {
@@ -140,7 +139,7 @@ private fun BoxScope.BottomMask() {
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         Color.Transparent,
-                        Color.White.copy(alpha = 0.8f)
+                        WeTheme.colorScheme.surface
                     )
                 )
             )
@@ -193,7 +192,7 @@ private fun ConfirmButton(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(White)
+            .background(WeTheme.colorScheme.surface)
             .navigationBarsPadding()
             .padding(bottom = 32.dp, top = 4.dp),
         contentAlignment = Alignment.Center

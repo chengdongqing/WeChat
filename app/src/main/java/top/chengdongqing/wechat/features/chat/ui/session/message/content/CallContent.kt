@@ -12,7 +12,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -21,6 +20,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.call.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -49,7 +49,8 @@ fun CallContent(message: ChatMessage) {
             Icon(
                 painter = painterResource(if (isVideoCall) R.drawable.ic_video_outlined else R.drawable.ic_hangup_outlined),
                 contentDescription = content.type.label,
-                Modifier
+                tint = WeTheme.colorScheme.textPrimary,
+                modifier = Modifier
                     .size(22.dp)
                     .graphicsLayer(scaleX = if (isFromMe && isVideoCall) -1f else 1f),
             )
@@ -58,7 +59,7 @@ fun CallContent(message: ChatMessage) {
                 text = description,
                 style = TextStyle(
                     fontSize = 16.sp,
-                    color = Color.Black
+                    color = WeTheme.colorScheme.textPrimary
                 )
             )
         }

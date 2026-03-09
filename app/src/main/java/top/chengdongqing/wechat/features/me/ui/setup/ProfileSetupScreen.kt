@@ -20,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,7 +34,6 @@ import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeIn
 import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.features.me.ui.setup.components.AvatarSelector
 
 @Composable
@@ -52,12 +50,12 @@ fun ProfileSetupScreen(
         topBar = {
             WeTopBar(
                 title = "设置个人资料",
-                containerColor = White,
                 onBack = onBack,
-                backIconResId = R.drawable.ic_close_outlined
+                backIconResId = R.drawable.ic_close_outlined,
+                containerColor = WeTheme.colorScheme.surface
             )
         },
-        containerColor = White
+        containerColor = WeTheme.colorScheme.surface
     ) { paddingValues ->
         ProfileSetupContent(
             modifier = Modifier.padding(paddingValues),
@@ -115,7 +113,7 @@ private fun ProfileSetupContent(
                 value = uiState.nickname,
                 label = "名字",
                 placeholder = "请填写名字",
-                activeColor = Color(0xFFE5E5E5),
+                activeColor = WeTheme.colorScheme.divider,
                 maxLength = 17,
                 enabled = !uiState.isLoading,
                 onValueChange = onNicknameChange
