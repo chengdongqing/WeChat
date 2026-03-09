@@ -10,7 +10,7 @@ enum class NotificationSound(
     @get:StringRes val labelRes: Int,
     val soundRes: Int
 ) {
-    FollowSystem(R.string.notification_sound_follow_system, R.raw.sent_message),
+    FollowSystem(R.string.settings_follow_system, R.raw.sent_message),
     Blocks(R.string.notification_sound_blocks, R.raw.sent_message),
     Cute(R.string.notification_sound_cute, R.raw.sent_message),
     Ethereal(R.string.notification_sound_ethereal, R.raw.sent_message),

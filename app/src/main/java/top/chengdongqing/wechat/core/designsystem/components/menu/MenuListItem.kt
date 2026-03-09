@@ -42,20 +42,21 @@ fun WeMenuListItem(
             .fillMaxWidth()
             .height(height)
             .background(WeTheme.colorScheme.surface)
-            .clickable(enabled = showArrow) { onClick?.invoke() }
+            .clickable(enabled = onClick != null) { onClick?.invoke() }
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(22.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
+            modifier = Modifier.weight(1f),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             icon?.let { MenuIcon(it, iconColor) }
             MenuLabel(label, description)
         }
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {

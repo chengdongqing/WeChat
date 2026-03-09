@@ -11,9 +11,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -30,20 +33,29 @@ fun DarkModeSettingScreen(
     viewModel: DisplaySettingsViewModel = hiltViewModel()
 ) {
     val initialTheme by viewModel.theme.collectAsStateWithLifecycle()
+    val resources = LocalResources.current
+
     var theme by remember(initialTheme) { mutableStateOf(initialTheme) }
     val themeOptions = remember {
         AppTheme.entries.filter {
             !it.isFollowSystem
         }.map {
-            it.label to it
+            resources.getString(it.labelRes) to it
         }
     }
     val hasChanged = theme != initialTheme
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "深色模式", onBack = onBack) {
-                WeButton(text = "完成", size = ButtonSize.Small, enabled = hasChanged) {
+            WeTopBar(
+                title = stringResource(R.string.display_theme),
+                onBack = onBack
+            ) {
+                WeButton(
+                    text = stringResource(R.string.action_done),
+                    size = ButtonSize.Small,
+                    enabled = hasChanged
+                ) {
                     viewModel.saveTheme(theme)
                     onBack()
                 }
@@ -58,8 +70,8 @@ fun DarkModeSettingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             WeSettingItem(
-                label = "跟随系统",
-                description = "开启后，将跟随系统打开或关闭深色模式",
+                label = stringResource(R.string.settings_follow_system),
+                description = stringResource(R.string.display_theme_follow_system_desc),
                 showArrow = false,
                 showDivider = false,
                 height = 68.dp
@@ -70,7 +82,7 @@ fun DarkModeSettingScreen(
             }
 
             if (!theme.isFollowSystem) {
-                WeSettingGroup("手动选择") {
+                WeSettingGroup(stringResource(R.string.display_theme_manual_select)) {
                     WeRadioGroup(
                         options = themeOptions,
                         value = theme

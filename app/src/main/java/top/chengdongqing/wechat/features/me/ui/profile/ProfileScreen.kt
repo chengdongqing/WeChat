@@ -1,19 +1,17 @@
 package top.chengdongqing.wechat.features.me.ui.profile
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -21,19 +19,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
-import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
@@ -123,7 +118,7 @@ private fun ProfileContent(
         // 基本信息组
         Column {
             // 头像
-            ProfileItem(
+            WeSettingItem(
                 label = stringResource(R.string.me_profile_avatar),
                 onClick = onNavigateToAvatarEdit
             ) {
@@ -131,31 +126,31 @@ private fun ProfileContent(
             }
 
             // 名字
-            ProfileItem(
+            WeSettingItem(
                 label = stringResource(R.string.me_profile_name),
                 onClick = onNavigateToNameEdit
             ) {
-                TextContent(profile?.nickname)
+                WeSettingValue(profile?.nickname)
             }
 
             // 性别
-            ProfileItem(
+            WeSettingItem(
                 label = stringResource(R.string.me_profile_gender),
                 onClick = onNavigateToGenderEdit
             ) {
-                TextContent(profile?.gender?.label?.let { stringResource(it) })
+                WeSettingValue(profile?.gender?.label?.let { stringResource(it) })
             }
 
             // 微信号
-            ProfileItem(
+            WeSettingItem(
                 label = stringResource(R.string.me_profile_wechat_id),
                 onClick = onNavigateToIdView
             ) {
-                TextContent(profile?.id)
+                WeSettingValue(profile?.id)
             }
 
             // 二维码
-            ProfileItem(
+            WeSettingItem(
                 label = stringResource(R.string.me_profile_qrcode),
                 onClick = onNavigateToQRCode
             ) {
@@ -163,44 +158,24 @@ private fun ProfileContent(
             }
 
             // 签名
-            ProfileItem(
+            WeSettingItem(
                 label = stringResource(R.string.me_profile_bio),
                 showDivider = false,
                 onClick = onNavigateToSignatureEdit
             ) {
-                TextContent(profile?.signature)
+                WeSettingValue(
+                    text = profile?.signature,
+                    modifier = Modifier.widthIn(max = 200.dp)
+                )
             }
         }
 
         // 其他设置
-        ProfileItem(
+        WeSettingItem(
             label = stringResource(R.string.me_profile_ringtone),
             showDivider = false,
             onClick = null
         ) {}
-    }
-}
-
-/**
- * 个人资料项组件
- */
-@Composable
-private fun ProfileItem(
-    label: String,
-    showDivider: Boolean = true,
-    onClick: (() -> Unit)?,
-    trailing: @Composable RowScope.() -> Unit
-) {
-    Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
-        WeMenuListItem(
-            label = label,
-            trailing = trailing,
-            onClick = onClick
-        )
-
-        if (showDivider) {
-            WeDivider(modifier = Modifier.padding(start = 16.dp))
-        }
     }
 }
 
@@ -230,22 +205,4 @@ private fun QRCodeContent() {
         modifier = Modifier.size(24.dp),
         tint = WeTheme.colorScheme.textSecondary
     )
-}
-
-/**
- * 文本内容
- */
-@Composable
-private fun RowScope.TextContent(text: String?) {
-    text?.let {
-        Text(
-            text = text,
-            fontSize = 16.sp,
-            color = WeTheme.colorScheme.textSecondary,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.End
-        )
-    }
 }

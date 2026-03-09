@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
@@ -49,7 +50,12 @@ fun ContactProfileScreen(
             WeSettingGroup("备注") {
                 WeSettingItem(
                     label = "备注名",
-                    trailing = { WeSettingValue(contact.remarkName) },
+                    trailing = {
+                        WeSettingValue(
+                            text = contact.remarkName,
+                            modifier = Modifier.widthIn(max = 200.dp)
+                        )
+                    },
                     onClick = onNavigateToEdit
                 )
                 WeSettingItem(
@@ -62,7 +68,12 @@ fun ContactProfileScreen(
                 )
                 WeSettingItem(
                     label = "备忘",
-                    trailing = { WeSettingValue(contact.note) },
+                    trailing = {
+                        WeSettingValue(
+                            text = contact.note,
+                            modifier = Modifier.widthIn(max = 200.dp)
+                        )
+                    },
                     onClick = onNavigateToEdit
                 )
                 WeSettingItem(
@@ -88,7 +99,12 @@ fun ContactProfileScreen(
                     contact.signature?.let {
                         WeSettingItem(
                             label = "签名",
-                            trailing = { WeSettingValue(it) },
+                            trailing = {
+                                WeSettingValue(
+                                    text = it,
+                                    modifier = Modifier.widthIn(max = 200.dp)
+                                )
+                            },
                             showArrow = false
                         )
                     }

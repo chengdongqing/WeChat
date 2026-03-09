@@ -21,6 +21,6 @@ enum class Gender(
         fun fromIndex(index: Int): Gender? = entries.getOrNull(index)
 
         val Gender?.safePronoun: Int
-            get() = this?.pronoun ?: R.string.gender_male_pronoun
+            get() = this?.pronoun ?: Male.pronoun
     }
 }

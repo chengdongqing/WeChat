@@ -63,13 +63,16 @@ fun WeSettingItem(
 }
 
 @Composable
-fun RowScope.WeSettingValue(text: String?) {
+fun WeSettingValue(
+    text: String?,
+    modifier: Modifier = Modifier
+) {
     text?.let {
         Text(
             text = text,
             fontSize = 16.sp,
             color = WeTheme.colorScheme.textSecondary,
-            modifier = Modifier.weight(1f),
+            modifier = modifier,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.End

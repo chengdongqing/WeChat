@@ -10,8 +10,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
@@ -25,14 +28,27 @@ fun LanguageSettingScreen(
     viewModel: DisplaySettingsViewModel = hiltViewModel()
 ) {
     val initialLanguage by viewModel.language.collectAsStateWithLifecycle()
+    val resources = LocalResources.current
+
     var language by remember(initialLanguage) { mutableStateOf(initialLanguage) }
-    val languageOptions = remember { AppLanguage.entries.map { it.label to it } }
+    val languageOptions = remember {
+        AppLanguage.entries.map {
+            resources.getString(it.labelRes) to it
+        }
+    }
     val hasChanged = language != initialLanguage
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "多语言", onBack = onBack) {
-                WeButton(text = "完成", size = ButtonSize.Small, enabled = hasChanged) {
+            WeTopBar(
+                title = stringResource(R.string.display_language),
+                onBack = onBack
+            ) {
+                WeButton(
+                    text = stringResource(R.string.action_done),
+                    size = ButtonSize.Small,
+                    enabled = hasChanged
+                ) {
                     viewModel.saveLanguage(language)
                     onBack()
                 }

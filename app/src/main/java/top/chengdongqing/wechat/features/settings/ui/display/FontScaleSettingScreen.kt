@@ -25,6 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,9 +57,14 @@ fun FontScaleSettingScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "字体大小", onBack = onBack) {
+            WeTopBar(
+                title = stringResource(R.string.display_font_scale),
+                onBack = onBack
+            ) {
                 WeButton(
-                    text = "完成", size = ButtonSize.Small, enabled = hasChanged
+                    text = stringResource(R.string.action_done),
+                    size = ButtonSize.Small,
+                    enabled = hasChanged
                 ) {
                     viewModel.saveFontScale(fontScale)
                     onBack()
@@ -82,11 +89,13 @@ fun FontScaleSettingScreen(
 
 @Composable
 private fun ChatPreview(modifier: Modifier) {
+    val resources = LocalResources.current
+
     val messages = remember {
         val texts = listOf(
-            "预览字体大小",
-            "拖动下面的滑块，可设置字体大小",
-            "设置后，会改变聊天和朋友圈的字体大小。如果在使用过程中存在问题或意见，可反馈给微信团队"
+            resources.getString(R.string.display_font_scale_preview_title),
+            resources.getString(R.string.display_font_scale_preview_hint),
+            resources.getString(R.string.display_font_scale_preview_desc)
         )
         val id = randomUUID()
         texts.mapIndexed { index, text ->
@@ -159,9 +168,10 @@ private fun FontSizeSelectorLabel(steps: Int) {
         contentAlignment = Alignment.CenterStart
     ) {
         val stepWidth = maxWidth / steps
-        val labelOffset = stepWidth * 1 // index = 1
+        val labelOffset = stepWidth * 1
+
         Text(
-            text = "标准",
+            text = stringResource(R.string.display_font_scale_normal),
             fontSize = 17.sp,
             color = WeTheme.colorScheme.textPrimary,
             modifier = Modifier.offset(x = labelOffset - 16.dp)

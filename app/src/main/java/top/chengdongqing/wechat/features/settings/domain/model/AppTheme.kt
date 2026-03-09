@@ -1,24 +1,24 @@
 package top.chengdongqing.wechat.features.settings.domain.model
 
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
+import top.chengdongqing.wechat.R
 
 /**
  * 主题
  */
 enum class AppTheme(
-    val label: String,
+    @get:StringRes val labelRes: Int,
     val mode: Int
 ) {
-    FollowSystem("跟随系统", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM),
-    Light("普通模式", AppCompatDelegate.MODE_NIGHT_NO),
-    Dark("深色模式", AppCompatDelegate.MODE_NIGHT_YES);
+    FollowSystem(R.string.settings_follow_system, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM),
+    Light(R.string.display_theme_light, AppCompatDelegate.MODE_NIGHT_NO),
+    Dark(R.string.display_theme_dark, AppCompatDelegate.MODE_NIGHT_YES);
 
-    val isFollowSystem: Boolean
-        get() = this == FollowSystem
+    val isFollowSystem get() = this == FollowSystem
 
     companion object {
-        fun fromName(name: String?): AppTheme {
-            return entries.find { it.name == name } ?: FollowSystem
-        }
+        fun fromName(name: String?): AppTheme =
+            entries.find { it.name == name } ?: FollowSystem
     }
 }

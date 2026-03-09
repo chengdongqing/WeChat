@@ -8,10 +8,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
@@ -29,7 +31,10 @@ fun DisplaySettingsScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "界面与显示", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.settings_display),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -40,29 +45,29 @@ fun DisplaySettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             WeSettingItem(
-                label = "深色模式",
+                label = stringResource(R.string.display_theme),
                 showDivider = false,
                 onClick = {
                     navController.navigate(SettingsRoute.ThemeSetting.route)
                 }
             ) {
-                WeSettingValue(settings.theme.label)
+                WeSettingValue(stringResource(settings.theme.labelRes))
             }
             WeSettingGroup {
                 WeSettingItem(
-                    label = "字体大小",
+                    label = stringResource(R.string.display_font_scale),
                     onClick = {
                         navController.navigate(SettingsRoute.FontScaleSetting.route)
                     }
                 )
                 WeSettingItem(
-                    label = "多语言",
+                    label = stringResource(R.string.display_language),
                     showDivider = false,
                     onClick = {
                         navController.navigate(SettingsRoute.LanguageSetting.route)
                     }
                 ) {
-                    WeSettingValue(settings.language.label)
+                    WeSettingValue(stringResource(settings.language.labelRes))
                 }
             }
         }

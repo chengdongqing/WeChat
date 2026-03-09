@@ -1,19 +1,21 @@
 package top.chengdongqing.wechat.features.settings.domain.model
 
+import androidx.annotation.StringRes
+import top.chengdongqing.wechat.R
+
 /**
  * 语言
  */
 enum class AppLanguage(
-    val label: String,
+    @get:StringRes val labelRes: Int,
     val locale: String?
 ) {
-    FollowSystem("跟随系统", null),
-    Chinese("简体中文", "zh"),
-    English("English", "en");
+    FollowSystem(R.string.settings_follow_system, null),
+    Chinese(R.string.display_language_chinese, "zh"),
+    English(R.string.display_language_english, "en");
 
     companion object {
-        fun fromName(name: String?): AppLanguage {
-            return entries.find { it.name == name } ?: FollowSystem
-        }
+        fun fromName(name: String?): AppLanguage =
+            entries.find { it.name == name } ?: FollowSystem
     }
 }
