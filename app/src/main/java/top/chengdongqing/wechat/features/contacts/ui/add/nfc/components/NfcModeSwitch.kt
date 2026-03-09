@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.ui.add.nfc.components
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 @Composable
@@ -25,24 +28,26 @@ fun NfcModeSwitch(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
-            .background(Color.White.copy(alpha = 0.1f))
+            .background(WeTheme.colorScheme.surface)
             .padding(4.dp)
     ) {
         listOf(true to "去扫描", false to "被扫描").forEach { (mode, label) ->
             val selected = isReaderMode == mode
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(if (selected) GreenPrimary else Color.Unspecified)
-                    .weClickable { onModeChange(mode) }
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = label,
-                    color = if (selected) Color.White else Color.White.copy(0.5f),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
-                )
+            AnimatedContent(targetState = selected) { selected ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (selected) GreenPrimary else Color.Unspecified)
+                        .weClickable { onModeChange(mode) }
+                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = label,
+                        color = if (selected) White else WeTheme.colorScheme.textSecondary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }

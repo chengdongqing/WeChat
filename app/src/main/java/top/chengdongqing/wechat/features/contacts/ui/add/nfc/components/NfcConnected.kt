@@ -53,6 +53,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.NfcAddState
 
@@ -85,42 +86,33 @@ fun NfcConnected(
             .fillMaxWidth()
     ) {
         ConnectedBadge()
-
         Spacer(Modifier.height(24.dp))
-
         PeerAvatar(contact = contact, addState = addState)
-
         Spacer(Modifier.height(22.dp))
-
         Text(
             text = contact.nickname,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = WeTheme.colorScheme.textPrimary
         )
-
         Spacer(Modifier.height(5.dp))
-
         Text(
             text = "微信号: ${contact.id}",
             fontSize = 12.sp,
-            color = Color.White.copy(alpha = 0.32f)
+            color = WeTheme.colorScheme.textSecondary
         )
-
         contact.signature?.let {
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "\"${contact.signature}\"",
+                text = it,
                 fontSize = 13.sp,
-                color = Color.White.copy(alpha = 0.5f),
+                color = WeTheme.colorScheme.textSecondary,
                 textAlign = TextAlign.Center,
                 maxLines = 2,
                 lineHeight = 20.sp
             )
         }
-
         Spacer(Modifier.height(44.dp))
-
         AddActionArea(addState = addState, onAddFriend = onAddFriend)
     }
 }
@@ -194,7 +186,7 @@ private fun PeerAvatar(contact: Contact, addState: NfcAddState) {
                         text = contact.nickname.take(1),
                         fontSize = 30.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = WeTheme.colorScheme.textPrimary
                     )
             }
         }
@@ -246,13 +238,21 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
     ) { state ->
         when (state) {
             is NfcAddState.Idle ->
-                NfcActionButton(text = "添加到通讯录", enabled = true, onClick = onAddFriend)
+                NfcActionButton(
+                    text = "添加到通讯录",
+                    enabled = true,
+                    onClick = onAddFriend
+                )
 
             is NfcAddState.PeerReady ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     PeerReadyHint()
                     Spacer(Modifier.height(18.dp))
-                    NfcActionButton(text = "添加到通讯录", enabled = true, onClick = onAddFriend)
+                    NfcActionButton(
+                        text = "添加到通讯录",
+                        enabled = true,
+                        onClick = onAddFriend
+                    )
                 }
 
             is NfcAddState.WaitingForPeer ->
@@ -264,7 +264,7 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
                     Text(
                         text = "请告知对方点击添加",
                         fontSize = 12.sp,
-                        color = Color.White.copy(alpha = 0.35f)
+                        color = WeTheme.colorScheme.textSecondary
                     )
                 }
 
@@ -278,7 +278,7 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
                     Text(
                         text = "正在添加...",
                         fontSize = 15.sp,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = WeTheme.colorScheme.textSecondary
                     )
                 }
 
@@ -291,13 +291,13 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
                         text = "等待超时",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFFEF4444)
+                        color = WeTheme.colorScheme.danger
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
                         text = "对方未在 60 秒内点击添加",
                         fontSize = 13.sp,
-                        color = Color.White.copy(alpha = 0.4f)
+                        color = WeTheme.colorScheme.textSecondary
                     )
                     Spacer(Modifier.height(24.dp))
                     NfcActionButton(text = "重新发起", enabled = true, onClick = onAddFriend)
@@ -308,7 +308,7 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
                     Text(
                         text = state.message,
                         fontSize = 14.sp,
-                        color = Color(0xFFEF4444),
+                        color = WeTheme.colorScheme.danger,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(18.dp))
@@ -414,7 +414,7 @@ private fun AddSuccessView() {
             text = "添加成功",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.White
+            color = WeTheme.colorScheme.textPrimary
         )
 
         Spacer(Modifier.height(4.dp))
@@ -422,7 +422,7 @@ private fun AddSuccessView() {
         Text(
             text = "已加入通讯录，现在可以开始聊天了",
             fontSize = 13.sp,
-            color = Color.White.copy(alpha = 0.45f)
+            color = WeTheme.colorScheme.textSecondary
         )
     }
 }

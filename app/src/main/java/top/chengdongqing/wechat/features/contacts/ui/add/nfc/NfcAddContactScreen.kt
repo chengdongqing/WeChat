@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,14 +21,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.nfc.HcePreferredService
 import top.chengdongqing.wechat.core.nfc.NfcAvailability
 import top.chengdongqing.wechat.core.nfc.NfcReaderDispatch
@@ -60,15 +57,13 @@ fun NfcAddContactScreen(
         }
     }
 
-    StatusBarAppearanceEffect(false)
     Scaffold(
-        containerColor = Color.Transparent,
-        topBar = { NfcTopBar(onBack) }
+        topBar = { NfcTopBar(onBack) },
+        containerColor = WeTheme.colorScheme.surfaceVariant
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFF0A1628), Color(0xFF0F2240))))
                 .padding(innerPadding)
         ) {
             when (nfcAvailability) {
@@ -163,7 +158,6 @@ private fun NfcTopBar(onBack: () -> Unit) {
     WeTopBar(
         title = "碰一碰",
         onBack = onBack,
-        contentColor = Color.White,
-        containerColor = Color.Unspecified
+        containerColor = WeTheme.colorScheme.surfaceVariant
     )
 }

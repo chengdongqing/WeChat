@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
 fun NfcActionButton(
@@ -35,7 +36,7 @@ fun NfcActionButton(
             text = text,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = if (enabled) Color.White else Color.White.copy(alpha = 0.35f)
+            color = if (enabled) Color.White else WeTheme.colorScheme.textSecondary
         )
     }
 }

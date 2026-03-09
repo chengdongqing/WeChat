@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +51,7 @@ fun NfcFailed(reason: String, onRetry: () -> Unit) {
             text = reason,
             fontSize = 17.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.White,
+            color = WeTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Center
         )
 
@@ -61,11 +60,15 @@ fun NfcFailed(reason: String, onRetry: () -> Unit) {
         Text(
             text = "请重新靠近对方手机再试",
             fontSize = 13.sp,
-            color = Color.White.copy(alpha = 0.4f)
+            color = WeTheme.colorScheme.textSecondary
         )
 
         Spacer(Modifier.height(36.dp))
 
-        NfcActionButton(text = "重新碰一碰", enabled = true, onClick = onRetry)
+        NfcActionButton(
+            text = "重新碰一碰",
+            enabled = true,
+            onClick = onRetry
+        )
     }
 }

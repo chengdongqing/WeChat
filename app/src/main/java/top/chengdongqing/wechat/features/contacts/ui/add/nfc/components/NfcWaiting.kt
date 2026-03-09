@@ -1,11 +1,17 @@
 package top.chengdongqing.wechat.features.contacts.ui.add.nfc.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -27,7 +34,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
 fun NfcWaiting(isReaderMode: Boolean) {
@@ -49,22 +56,34 @@ fun NfcWaiting(isReaderMode: Boolean) {
             text = "将手机和对方手机背靠背",
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
-            color = Color.White,
+            color = WeTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(12.dp))
-        Text(
-            text = buildString {
-                append("碰触后将自动拉取对方信息\n")
-                if (!isReaderMode) {
-                    append("部分手机需要手动设置 NFC 为 HCE 卡模拟模式")
-                }
-            },
-            fontSize = 14.sp,
-            color = Color.White.copy(alpha = 0.5f),
-            textAlign = TextAlign.Center,
-            lineHeight = 22.sp
-        )
+        AnimatedContent(
+            targetState = isReaderMode,
+            transitionSpec = {
+                (fadeIn(animationSpec = tween(220, delayMillis = 90)) +
+                        scaleIn(initialScale = 0.92f, animationSpec = tween(220, delayMillis = 90)))
+                    .togetherWith(fadeOut(animationSpec = tween(90)))
+                    .using(
+                        SizeTransform(clip = false)
+                    )
+            }
+        ) { isReaderMode ->
+            Text(
+                text = buildString {
+                    append("碰触后将自动拉取对方信息\n")
+                    if (!isReaderMode) {
+                        append("部分手机需要手动设置 NFC 为 HCE 卡模拟模式")
+                    }
+                },
+                fontSize = 14.sp,
+                color = WeTheme.colorScheme.textSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 22.sp
+            )
+        }
     }
 }
 
@@ -130,4 +149,9 @@ private fun PulsingNfcIcon() {
     }
 }
 
-private data class RingConfig(val delayMs: Int, val sizeDp: Float, val maxAlpha: Float)
+@Immutable
+private data class RingConfig(
+    val delayMs: Int,
+    val sizeDp: Float,
+    val maxAlpha: Float
+)

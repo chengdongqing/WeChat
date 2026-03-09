@@ -21,12 +21,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
 fun NfcConnecting() {
@@ -65,7 +65,7 @@ fun NfcConnecting() {
             text = "正在获取对方信息...",
             fontSize = 17.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.White
+            color = WeTheme.colorScheme.textPrimary
         )
 
         Spacer(Modifier.height(8.dp))
@@ -73,7 +73,7 @@ fun NfcConnecting() {
         Text(
             text = "请保持手机靠近",
             fontSize = 13.sp,
-            color = Color.White.copy(alpha = 0.4f)
+            color = WeTheme.colorScheme.textSecondary
         )
     }
 }

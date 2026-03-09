@@ -2,14 +2,17 @@ package top.chengdongqing.wechat.features.contacts.ui.add
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -20,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -37,7 +41,9 @@ import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.re
 import top.chengdongqing.wechat.core.designsystem.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
+import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileUiState
@@ -85,13 +91,20 @@ fun AddContactScreen(
 
         // 请求权限
         Scaffold(
-            topBar = { WeTopBar(title = "添加朋友", onBack = onBack) },
-            snackbarHost = { SnackbarHost(snackbarHostState) }
+            topBar = {
+                WeTopBar(
+                    title = "添加朋友",
+                    onBack = onBack,
+                    containerColor = WeTheme.colorScheme.surface
+                )
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            containerColor = WeTheme.colorScheme.surface
         ) { innerPadding ->
             AddFriendContent(
                 uiState = uiState,
-                innerPadding = innerPadding,
-                options = addFriendOptions
+                options = addFriendOptions,
+                modifier = Modifier.padding(innerPadding)
             )
         }
 
@@ -105,18 +118,19 @@ fun AddContactScreen(
 @Composable
 private fun AddFriendContent(
     uiState: ProfileUiState,
-    innerPadding: PaddingValues,
-    options: List<AddFriendItem>
+    options: List<AddFriendItem>,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
-            .padding(innerPadding)
+        modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF7F7F7))
+            .verticalScroll(
+                state = rememberScrollState(),
+                overscrollEffect = rememberBounceOverscrollEffect()
+            )
     ) {
         AddFriendOptionsList(options)
 
-        // 只有当二维码生成后才显示
         if (uiState.profile != null && uiState.qrCode.isNotEmpty()) {
             QrCodeSection(
                 qrContent = uiState.qrCode,
@@ -132,19 +146,17 @@ private fun AddFriendContent(
  */
 @Composable
 private fun AddFriendOptionsList(options: List<AddFriendItem>) {
-    Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
-        options.forEachIndexed { index, item ->
+    Column {
+        for (option in options) {
             WeMenuListItem(
-                label = item.title,
-                description = item.description,
-                icon = item.icon,
-                iconColor = item.iconColor,
+                label = option.title,
+                description = option.description,
+                icon = option.icon,
+                iconColor = option.iconColor,
                 height = 68.dp,
-                onClick = item.onClick
+                onClick = option.onClick
             )
-            if (index < options.lastIndex) {
-                WeDivider(modifier = Modifier.padding(start = 58.dp))
-            }
+            WeDivider(modifier = Modifier.padding(start = 58.dp))
         }
     }
 }
@@ -171,7 +183,14 @@ private fun QrCodeSection(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        WeQRCode(qrCodeState, modifier = Modifier.size(targetWidth))
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(White)
+                .padding(12.dp)
+        ) {
+            WeQRCode(qrCodeState, modifier = Modifier.size(targetWidth))
+        }
         Spacer(modifier = Modifier.height(30.dp))
         Text(
             text = "我的微信号: $wxId",

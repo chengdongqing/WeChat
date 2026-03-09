@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 @Composable
@@ -52,7 +53,7 @@ fun NfcUnavailable(
                     text = if (actionLabel != null) "NFC" else "⚠",
                     fontSize = if (actionLabel != null) 22.sp else 34.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.45f)
+                    color = WeTheme.colorScheme.textSecondary
                 )
             }
 
@@ -62,7 +63,7 @@ fun NfcUnavailable(
                 text = title,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White,
+                color = WeTheme.colorScheme.textPrimary,
                 textAlign = TextAlign.Center
             )
 
@@ -71,7 +72,7 @@ fun NfcUnavailable(
             Text(
                 text = description,
                 fontSize = 14.sp,
-                color = Color.White.copy(alpha = 0.5f),
+                color = WeTheme.colorScheme.textSecondary,
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp
             )
@@ -92,7 +93,7 @@ fun NfcUnavailable(
                         text = actionLabel,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color.White
+                        color = WeTheme.colorScheme.textPrimary
                     )
                 }
 
@@ -101,7 +102,7 @@ fun NfcUnavailable(
                 Text(
                     text = "开启后返回此页面即可使用",
                     fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.32f)
+                    color = WeTheme.colorScheme.textSecondary
                 )
             }
         }
