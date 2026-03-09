@@ -142,6 +142,9 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
             onBack = onBack,
             onDelete = {
                 navController.popBackStack(Screen.Home.route, inclusive = false)
+            },
+            onNavigateToContactProfile = {
+                navController.navigate(ContactsRoute.ProfileEdit.createRoute(contactId))
             }
         )
     }

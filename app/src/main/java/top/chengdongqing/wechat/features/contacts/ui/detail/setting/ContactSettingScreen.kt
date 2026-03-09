@@ -31,6 +31,7 @@ fun ContactSettingScreen(
     contactId: String,
     onBack: () -> Unit,
     onDelete: () -> Unit,
+    onNavigateToContactProfile: () -> Unit,
     viewModel: ContactDetailViewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
         factory.create(contactId)
     }
@@ -61,7 +62,7 @@ fun ContactSettingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             WeSettingGroup {
-                WeSettingItem("设置朋友资料") {
+                WeSettingItem("设置朋友资料", onClick = onNavigateToContactProfile) {
                     WeSettingValue(contact.displayName)
                 }
                 WeSettingItem("朋友权限", showDivider = false)

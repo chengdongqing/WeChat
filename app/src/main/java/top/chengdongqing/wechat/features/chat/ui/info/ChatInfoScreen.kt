@@ -96,7 +96,7 @@ fun ChatInfoScreen(
                 showDivider = false,
                 onClick = {
                     dialog.show(
-                        title = "确定清空和「${uiState.contactName}」的聊天记录吗？",
+                        title = "确定删除和${uiState.contactName}的聊天记录吗？",
                         okText = "清空",
                         okColor = Danger,
                         onOk = { viewModel.clearMessages() }

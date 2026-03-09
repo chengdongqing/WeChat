@@ -96,12 +96,14 @@ fun ContactProfileScreen(
                         showArrow = false
                     )
                 }
-                WeSettingItem(
-                    label = "添加时间",
-                    trailing = { WeSettingValue(contact.addedAt?.toYearMonthDisplay()) },
-                    showArrow = false,
-                    showDivider = false
-                )
+                contact.addedAt?.let {
+                    WeSettingItem(
+                        label = "添加时间",
+                        trailing = { WeSettingValue(it.toYearMonthDisplay()) },
+                        showArrow = false,
+                        showDivider = false
+                    )
+                }
             }
         }
     }

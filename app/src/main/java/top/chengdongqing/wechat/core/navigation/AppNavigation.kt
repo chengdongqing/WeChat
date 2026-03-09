@@ -53,7 +53,7 @@ sealed class Screen(val route: String) {
 fun AppNavigation(
     navController: NavHostController,
 //    startDestination: String = Screen.Splash.route,
-    startDestination: String = ContactsRoute.Detail.createRoute("wxid_ba87c7b93470"),
+    startDestination: String = ContactsRoute.Detail.createRoute("wxid_4fc764a449ec"),
 ) {
     // 页面返回
     val goBack: () -> Unit = {

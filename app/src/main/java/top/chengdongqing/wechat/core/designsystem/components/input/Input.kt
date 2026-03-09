@@ -90,7 +90,7 @@ fun WeInput(
                         if (value.isEmpty()) {
                             Text(
                                 text = placeholder,
-                                color = Color.LightGray,
+                                color = WeTheme.colorScheme.textSecondary,
                                 fontSize = 17.sp
                             )
                         }
