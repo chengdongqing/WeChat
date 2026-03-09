@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 
@@ -52,7 +52,7 @@ private fun BasicInfoSection(
     contact: Contact,
     onProfileClick: () -> Unit
 ) {
-    Column(modifier = Modifier.background(Color.White)) {
+    Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
         // 头像和基本信息
         ContactBasicInfoCard(contact = contact)
         Spacer(modifier = Modifier.height(12.dp))

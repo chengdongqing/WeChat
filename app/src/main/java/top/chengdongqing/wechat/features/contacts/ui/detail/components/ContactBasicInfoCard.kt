@@ -38,7 +38,7 @@ fun ContactBasicInfoCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(WeTheme.colorScheme.surface)
             .padding(16.dp),
         verticalAlignment = if (contact.isSelf) Alignment.CenterVertically else Alignment.Top
     ) {
@@ -114,7 +114,7 @@ private fun NameWithGender(
             text = name,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = WeTheme.colorScheme.textPrimary
         )
 
         if (gender != null) {

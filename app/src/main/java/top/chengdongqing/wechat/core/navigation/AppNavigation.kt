@@ -14,10 +14,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import top.chengdongqing.wechat.core.util.decode
 import top.chengdongqing.wechat.core.util.encode
-import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.chat.navigation.chatNavGraph
 import top.chengdongqing.wechat.features.common.PlainTextScreen
 import top.chengdongqing.wechat.features.common.WebViewScreen
+import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.contacts.navigation.contactsNavGraph
 import top.chengdongqing.wechat.features.home.ui.HomeScreen
 import top.chengdongqing.wechat.features.me.navigation.meNavGraph
@@ -53,8 +53,7 @@ sealed class Screen(val route: String) {
 fun AppNavigation(
     navController: NavHostController,
 //    startDestination: String = Screen.Splash.route,
-    startDestination: String = ChatRoute.ChatInfo.createRoute("wxid_ba87c7b93470"),
-//    startDestination: String = SettingsRoute.DisplaySettings.route
+    startDestination: String = ContactsRoute.Detail.createRoute("wxid_ba87c7b93470"),
 ) {
     // 页面返回
     val goBack: () -> Unit = {

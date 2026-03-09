@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,7 +34,7 @@ fun MomentPhotosSection(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .background(Color.White)
+            .background(WeTheme.colorScheme.surface)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -55,7 +54,7 @@ fun MomentPhotosSection(onClick: () -> Unit) {
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
             contentDescription = "查看朋友圈",
-            tint = Color.DarkGray,
+            tint = WeTheme.colorScheme.textSecondary,
             modifier = Modifier
                 .size(24.dp)
                 .offset(x = 8.dp)

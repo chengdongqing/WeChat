@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.CallOptions
 import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
@@ -40,7 +41,7 @@ fun ActionButtonsSection(
 ) {
     val actionSheet = rememberActionSheetState()
 
-    Column(modifier = Modifier.background(Color.White)) {
+    Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
         when {
             contact.isSelf || contact.isFriend -> {
                 ContactActionButton(

@@ -104,7 +104,7 @@ private fun MenuArrow() {
     Icon(
         painter = painterResource(R.drawable.ic_right_outlined),
         contentDescription = null,
-        tint = WeTheme.colorScheme.textTertiary,
+        tint = WeTheme.colorScheme.textSecondary,
         modifier = Modifier
             .size(24.dp)
             .offset(x = 8.dp)

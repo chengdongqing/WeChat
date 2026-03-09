@@ -74,7 +74,7 @@ private fun ProfileTitleRow(modifier: Modifier = Modifier) {
             modifier = Modifier.width(80.dp),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black
+            color = WeTheme.colorScheme.textPrimary
         )
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
