@@ -88,4 +88,25 @@
     <string name="privacy_add_method_card">Contact Card</string>
     <string name="privacy_add_method_other">Others</string>
     <string name="privacy_add_method_other_desc">Chats with deleted contacts, etc.</string>
+
+    <string name="more_minor_mode">Minor Mode</string>
+    <string name="more_care_mode">Care Mode</string>
+    <string name="more_auto_save_photo">Auto-save photos after capture or edit</string>
+    <string name="more_auto_save_video">Auto-save videos after capture or edit</string>
+    <string name="more_system_permissions">System Permissions</string>
+
+    <string name="permission_title">System Permissions</string>
+    <string name="permission_enabled">Enabled</string>
+    <string name="permission_location">Location</string>
+    <string name="permission_location_desc">Used to search nearby Wi-Fi nodes and Bluetooth devices.</string>
+    <string name="permission_microphone">Microphone</string>
+    <string name="permission_microphone_desc">Used to record voice messages or make real-time calls.</string>
+    <string name="permission_camera">Camera</string>
+    <string name="permission_camera_desc">Used to take photos, videos, make calls and scan QR codes.</string>
+    <string name="permission_nfc">NFC</string>
+    <string name="permission_nfc_desc">Used to quickly connect or exchange contacts via tap.</string>
+    <string name="permission_bluetooth">Bluetooth</string>
+    <string name="permission_bluetooth_desc">Used to find and connect with nearby friends without internet.</string>
+    <string name="permission_wifi">Wi-Fi</string>
+    <string name="permission_wifi_desc">Used for high-speed file transfer and message sync on LAN.</string>
 </resources>

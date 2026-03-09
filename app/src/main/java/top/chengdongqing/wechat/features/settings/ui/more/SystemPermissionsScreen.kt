@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -54,7 +55,10 @@ fun SystemPermissionSettingsScreen(onBack: () -> Unit) {
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "系统权限管理", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.permission_title),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -72,8 +76,8 @@ fun SystemPermissionSettingsScreen(onBack: () -> Unit) {
                     val isGranted = permissionStatusMap[permission] ?: false
 
                     WeSettingItem(
-                        label = permission.label,
-                        description = permission.description,
+                        label = stringResource(permission.labelRes),
+                        description = stringResource(permission.descriptionRes),
                         showDivider = index < permissions.lastIndex,
                         height = 68.dp,
                         onClick = {
@@ -83,7 +87,7 @@ fun SystemPermissionSettingsScreen(onBack: () -> Unit) {
                         if (isGranted) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_check),
-                                contentDescription = "已开启",
+                                contentDescription = stringResource(R.string.permission_enabled),
                                 tint = WeTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
                             )

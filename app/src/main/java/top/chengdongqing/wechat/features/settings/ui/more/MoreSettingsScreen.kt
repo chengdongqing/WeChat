@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
@@ -23,7 +25,10 @@ fun MoreSettingsScreen(
 ) {
     Scaffold(
         topBar = {
-            WeTopBar(title = "更多", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.settings_more),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -35,24 +40,24 @@ fun MoreSettingsScreen(
         ) {
             WeSettingGroup {
                 WeSettingItem(
-                    label = "未成年模式",
+                    label = stringResource(R.string.more_minor_mode),
                     onClick = {}
                 )
                 WeSettingItem(
-                    label = "关怀模式",
+                    label = stringResource(R.string.more_care_mode),
                     showDivider = false,
                     onClick = {}
                 )
             }
             WeSettingGroup {
                 WeSettingItem(
-                    label = "自动保存拍摄或编辑后的图片",
+                    label = stringResource(R.string.more_auto_save_photo),
                     showArrow = false
                 ) {
                     WeSwitch()
                 }
                 WeSettingItem(
-                    label = "自动保存拍摄或编辑后的视频",
+                    label = stringResource(R.string.more_auto_save_video),
                     showArrow = false,
                     showDivider = false
                 ) {
@@ -60,7 +65,7 @@ fun MoreSettingsScreen(
                 }
             }
             WeSettingItem(
-                label = "系统权限",
+                label = stringResource(R.string.more_system_permissions),
                 showDivider = false,
                 onClick = {
                     navController.navigate(SettingsRoute.SystemPermissionSettings.route)
