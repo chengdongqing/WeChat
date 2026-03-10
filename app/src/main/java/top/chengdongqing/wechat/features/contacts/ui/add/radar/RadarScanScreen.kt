@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -117,7 +118,10 @@ private fun BackButton(onBack: () -> Unit) {
             .clickable { onBack() }
             .padding(horizontal = 16.dp, vertical = 6.dp)
     ) {
-        Text(text = "退出", color = Color.Gray)
+        Text(
+            text = stringResource(R.string.action_exit),
+            color = Color.Gray
+        )
     }
 }
 

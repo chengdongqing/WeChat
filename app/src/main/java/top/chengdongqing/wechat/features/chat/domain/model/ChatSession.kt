@@ -16,6 +16,8 @@ data class ChatSession(
     val lastMessage: String? = null,
     val lastMessageType: MessageType? = null,
     val lastMessageTime: Long? = null,
+    val lastMessageRecalled: Boolean = false,
+    val lastMessageFromMe: Boolean = true,
     val draftMessage: String? = null,
     val backgroundPath: String? = null,
     val unreadCount: Int = 0,

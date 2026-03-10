@@ -1,21 +1,18 @@
 package top.chengdongqing.wechat.features.call.model
 
-import top.chengdongqing.wechat.core.util.format
-import kotlin.time.Duration.Companion.seconds
+import androidx.annotation.StringRes
+import top.chengdongqing.wechat.R
 
 /**
  * 通话状态（结果）
  */
-enum class CallStatus(val description: String, val descriptionForMe: String) {
-    Cancelled("对方已取消", "已取消"),
-    Declined("已拒绝", "对方已拒绝"),
-    Finished("已接通", "已接通"),
-    Missed("未应答", "对方无应答"),
-    Failed("连接失败", "连接失败");
-
-    companion object {
-        fun describeDuration(duration: Long): String {
-            return "通话时长 ${duration.seconds.format()}"
-        }
-    }
+enum class CallStatus(
+    @get:StringRes val descriptionRes: Int,
+    @get:StringRes val descriptionForMeRes: Int
+) {
+    Cancelled(R.string.call_status_cancelled, R.string.call_status_cancelled_by_me),
+    Declined(R.string.call_status_declined, R.string.call_status_declined_by_me),
+    Finished(R.string.call_status_finished, R.string.call_status_finished),
+    Missed(R.string.call_status_missed, R.string.call_status_missed_by_me),
+    Failed(R.string.call_status_failed, R.string.call_status_failed);
 }

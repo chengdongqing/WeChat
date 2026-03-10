@@ -328,20 +328,6 @@ fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
     }
 }
 
-fun MessageContent.toPreviewText(): String = when (this) {
-    is MessageContent.Text -> text
-    is MessageContent.Image -> "[图片]"
-    is MessageContent.Voice -> "[语音]"
-    is MessageContent.Video -> "[视频]"
-    is MessageContent.File -> "[文件]"
-    is MessageContent.Location -> "[位置]"
-    is MessageContent.Favorite -> "[收藏]"
-    is MessageContent.ContactCard -> "[名片]"
-    is MessageContent.Sticker -> "[表情]"
-    is MessageContent.Call -> "[${type.label}]"
-    else -> "消息"
-}
-
 @Serializable
 data class MediaContent(
     val width: Int = 0,

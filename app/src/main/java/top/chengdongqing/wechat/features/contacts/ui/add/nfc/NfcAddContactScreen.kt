@@ -21,10 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.nfc.HcePreferredService
@@ -58,8 +61,14 @@ fun NfcAddContactScreen(
     }
 
     Scaffold(
-        topBar = { NfcTopBar(onBack) },
-        containerColor = WeTheme.colorScheme.surfaceVariant
+        topBar = {
+            WeTopBar(
+                title = stringResource(R.string.add_contact_option_nfc_desc),
+                onBack = onBack,
+                containerColor = Color.Unspecified
+            )
+        },
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -80,7 +89,9 @@ fun NfcAddContactScreen(
                         title = "NFC 未开启",
                         description = "请前往系统设置开启 NFC 功能后，再回来使用碰一碰。",
                         actionLabel = "前往开启 NFC",
-                        onAction = { context.startActivity(Intent(Settings.ACTION_NFC_SETTINGS)) }
+                        onAction = {
+                            context.startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
+                        }
                     )
 
                 NfcAvailability.Enabled ->
@@ -151,13 +162,4 @@ private fun NfcMainContent(
             }
         }
     }
-}
-
-@Composable
-private fun NfcTopBar(onBack: () -> Unit) {
-    WeTopBar(
-        title = "碰一碰",
-        onBack = onBack,
-        containerColor = WeTheme.colorScheme.surfaceVariant
-    )
 }

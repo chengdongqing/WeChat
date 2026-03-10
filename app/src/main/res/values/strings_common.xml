@@ -18,6 +18,7 @@
     <string name="action_pause">暂停</string>
     <string name="action_send">发送</string>
     <string name="action_search">搜索</string>
+    <string name="action_exit">退出</string>
 
     <string name="msg_network_unavailable">当前无法连接网络，可检查网络设置是否正常。</string>
     <string name="msg_processing">处理中…</string>

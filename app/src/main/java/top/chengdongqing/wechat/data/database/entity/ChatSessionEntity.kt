@@ -18,6 +18,8 @@ data class ChatSessionEntity(
     val lastMessage: String?,           // 最后一条消息内容
     val lastMessageType: MessageType?,  // 最后一条消息类型
     val lastMessageTime: Long?,         // 最后一条消息时间
+    val lastMessageRecalled: Boolean = false,   // 最后一条消息是否撤回了
+    val lastMessageFromMe: Boolean = true,   // 最后一条消息是否是我发送的
 
     val unreadCount: Int = 0,           // 未读消息数
 

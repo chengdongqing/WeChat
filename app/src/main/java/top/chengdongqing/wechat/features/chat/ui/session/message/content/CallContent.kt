@@ -14,19 +14,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.features.call.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.theme.ChatTheme
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun CallContent(message: ChatMessage) {
+    val resources = LocalResources.current
     val isFromMe = message.isFromMe
     val content = message.content as MessageContent.Call
     val isVideoCall = content.type.isVideoCall
@@ -35,11 +39,17 @@ fun CallContent(message: ChatMessage) {
     val description = remember {
         if (status == CallStatus.Finished) {
             content.duration?.let {
-                return@remember CallStatus.describeDuration(it)
+                return@remember resources.getString(
+                    R.string.call_status_duration,
+                    it.seconds.format()
+                )
             }
         }
-        if (isFromMe) status.descriptionForMe else status.description
+        resources.getString(if (isFromMe) status.descriptionForMeRes else status.descriptionRes)
     }
+
+    val colors = ChatTheme.colorScheme
+    val color = if (isFromMe) colors.bubbleTextOutgoing else colors.bubbleTextIncoming
 
     CompositionLocalProvider(
         LocalLayoutDirection provides if (isFromMe) LayoutDirection.Rtl else LayoutDirection.Ltr
@@ -50,8 +60,8 @@ fun CallContent(message: ChatMessage) {
         ) {
             Icon(
                 painter = painterResource(if (isVideoCall) R.drawable.ic_video_outlined else R.drawable.ic_hangup_outlined),
-                contentDescription = content.type.label,
-                tint = WeTheme.colorScheme.textPrimary,
+                contentDescription = stringResource(content.type.labelRes),
+                tint = color,
                 modifier = Modifier
                     .size(22.dp)
                     .graphicsLayer(scaleX = if (isFromMe && isVideoCall) -1f else 1f),
@@ -59,10 +69,8 @@ fun CallContent(message: ChatMessage) {
             Spacer(Modifier.width(12.dp))
             Text(
                 text = description,
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    color = WeTheme.colorScheme.textPrimary
-                )
+                fontSize = 16.sp,
+                color = color
             )
         }
     }

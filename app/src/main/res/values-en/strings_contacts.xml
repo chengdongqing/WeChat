@@ -62,4 +62,5 @@
     <string name="add_contact_option_radar_desc">Quick add friends in your vicinity</string>
     <string name="add_contact_option_face_to_face_title">Join Private Group</string>
     <string name="add_contact_option_face_to_face_desc">Join a group with friends nearby</string>
+    <string name="add_contact_option_face_to_face_desc_full">Join a group chat with friends nearby by \n entering the required four digits</string>
 </resources>

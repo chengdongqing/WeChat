@@ -111,4 +111,30 @@
     <string name="location_tab_all">All</string>
     <string name="location_current">My Location</string>
     <string name="location_navigate">Go</string>
+
+    <string name="call_type_voice">Voice Call</string>
+    <string name="call_type_video">Video Call</string>
+
+    <string name="call_status_cancelled">Call canceled by caller</string>
+    <string name="call_status_cancelled_by_me">Canceled</string>
+    <string name="call_status_declined">Declined</string>
+    <string name="call_status_declined_by_me">Call Declined</string>
+    <string name="call_status_finished">Connected</string>
+    <string name="call_status_missed">No answer</string>
+    <string name="call_status_missed_by_me">Other party not available</string>
+    <string name="call_status_failed">Connection failed</string>
+    <string name="call_status_duration">Duration: %s</string>
+
+    <string name="message_preview_image">[Image]</string>
+    <string name="message_preview_voice">[Voice]</string>
+    <string name="message_preview_video">[Video]</string>
+    <string name="message_preview_file">[File]</string>
+    <string name="message_preview_location">[Location]</string>
+    <string name="message_preview_favorite">[Favorite]</string>
+    <string name="message_preview_contact_card">[Contact]</string>
+    <string name="message_preview_sticker">[Sticker]</string>
+    <string name="message_preview_music">[Music]</string>
+    <string name="message_preview_voice_call">[Voice Call]</string>
+    <string name="message_preview_video_call">[Video Call]</string>
+    <string name="message_preview_draft">[Draft]</string>
 </resources>

@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.data.model
 
+import android.content.Context
 import kotlinx.serialization.Serializable
+import top.chengdongqing.wechat.R
 
 @Serializable
 enum class MessageType {
@@ -42,17 +44,20 @@ enum class MessageType {
         }
 }
 
-fun MessageType.toPreviewText(content: String): String = when (this) {
+/**
+ * 获取消息预览文本
+ */
+fun MessageType.toPreviewText(context: Context, content: String): String = when (this) {
     MessageType.Text -> content
-    MessageType.Image -> "[图片]"
-    MessageType.Voice -> "[语音]"
-    MessageType.Video -> "[视频]"
-    MessageType.File -> "[文件]"
-    MessageType.Location -> "[位置]"
-    MessageType.Favorite -> "[收藏]"
-    MessageType.ContactCard -> "[名片]"
-    MessageType.Sticker -> "[表情]"
-    MessageType.Music -> "[音乐]"
-    MessageType.VoiceCall -> "[语音通话]"
-    MessageType.VideoCall -> "[视频通话]"
+    MessageType.Image -> context.getString(R.string.message_preview_image)
+    MessageType.Voice -> context.getString(R.string.message_preview_voice)
+    MessageType.Video -> context.getString(R.string.message_preview_video)
+    MessageType.File -> context.getString(R.string.message_preview_file)
+    MessageType.Location -> context.getString(R.string.message_preview_location)
+    MessageType.Favorite -> context.getString(R.string.message_preview_favorite)
+    MessageType.ContactCard -> context.getString(R.string.message_preview_contact_card)
+    MessageType.Sticker -> context.getString(R.string.message_preview_sticker)
+    MessageType.Music -> context.getString(R.string.message_preview_music)
+    MessageType.VoiceCall -> context.getString(R.string.message_preview_voice_call)
+    MessageType.VideoCall -> context.getString(R.string.message_preview_video_call)
 }

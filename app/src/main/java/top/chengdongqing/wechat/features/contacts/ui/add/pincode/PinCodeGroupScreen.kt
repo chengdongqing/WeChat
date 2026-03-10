@@ -30,11 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.util.NeonGreenIndication
@@ -46,11 +48,11 @@ fun PinCodeGroupScreen(onBack: () -> Unit) {
 
     StatusBarAppearanceEffect(false)
     Scaffold(
-        containerColor = Color(0xFF1E1E1E),
+        containerColor = Color(0xFF171F1E),
         topBar = {
             WeTopBar(
-                title = "面对面建群",
-                containerColor = Color(0xFF1E1E1E),
+                title = stringResource(R.string.add_contact_option_face_to_face_title),
+                containerColor = Color.Unspecified,
                 contentColor = Color.White,
                 onBack = onBack
             )
@@ -63,7 +65,7 @@ fun PinCodeGroupScreen(onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "和身边的朋友输入同样的四个数字，\n进入同一个群聊",
+                text = stringResource(R.string.add_contact_option_face_to_face_desc_full),
                 color = Color.Gray,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(top = 8.dp),
@@ -81,7 +83,7 @@ fun PinCodeGroupScreen(onBack: () -> Unit) {
 }
 
 @Composable
-fun DigitCodeInput(code: String) {
+private fun DigitCodeInput(code: String) {
     Row(
         modifier = Modifier.padding(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -121,7 +123,7 @@ fun DigitCodeInput(code: String) {
 }
 
 @Composable
-fun CustomNumberKeyboard(
+private fun CustomNumberKeyboard(
     onNumberClick: (String) -> Unit,
     onDelete: () -> Unit
 ) {

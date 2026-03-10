@@ -10,17 +10,20 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.data.model.toPreviewText
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import top.chengdongqing.wechat.data.network.service.modules.CallModule
 import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
 import top.chengdongqing.wechat.data.notification.NotificationHelper
-import top.chengdongqing.wechat.features.chat.data.mapper.toPreviewText
+import top.chengdongqing.wechat.features.chat.data.mapper.toMessageType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -59,6 +62,10 @@ class NetworkService : Service() {
     @Inject
     @IoScope
     lateinit var scope: CoroutineScope
+
+    @Inject
+    @ApplicationContext
+    lateinit var context: Context
 
     companion object {
         private const val TAG = "P2PService"
@@ -195,9 +202,11 @@ class NetworkService : Service() {
     private suspend fun handleNewMessage(message: ChatMessage) {
         // 查询联系人昵称
         val contact = contactRepository.getContact(message.senderId)
-        val senderName = contact?.displayName ?: "新消息"
+        val senderName = contact?.displayName ?: "未知联系人"
+
         // 获取内容预览信息
-        val previewText = message.content.toPreviewText()
+        val textContent = (message.content as? MessageContent.Text)?.text ?: ""
+        val previewText = message.content.toMessageType().toPreviewText(context, textContent)
 
         notificationHelper.showMessageNotification(
             sessionId = message.sessionId,

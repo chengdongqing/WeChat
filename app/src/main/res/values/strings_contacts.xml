@@ -62,4 +62,5 @@
     <string name="add_contact_option_radar_desc">添加身边的朋友</string>
     <string name="add_contact_option_face_to_face_title">面对面建群</string>
     <string name="add_contact_option_face_to_face_desc">与身边的朋友进入同一个群聊</string>
+    <string name="add_contact_option_face_to_face_desc_full">和身边的朋友输入同样的四个数字，\n进入同一个群聊</string>
 </resources>

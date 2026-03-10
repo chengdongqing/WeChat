@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.data.network.messaging
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -9,7 +11,7 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.model.toPreviewText
+import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.call.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
@@ -30,6 +32,7 @@ class ChatSessionUpdater @Inject constructor(
     private val contactRepository: ContactRepository,
     profileRepository: ProfileRepository,
     private val activeSessionManager: ActiveSessionManager,
+    @param:ApplicationContext private val context: Context,
     @param:IoScope private val scope: CoroutineScope
 ) {
     private var currentProfile: UserProfile? = null
@@ -58,7 +61,11 @@ class ChatSessionUpdater @Inject constructor(
             else -> true
         }
 
-        val previewText = message.contentType.toPreviewText(message.content)
+        // 只有文本才需要保存预览的文本
+        val previewText = when (message.contentType) {
+            MessageType.Text -> message.content
+            else -> ""
+        }
         val existing = chatSessionRepository.exists(message.sessionId)
 
         if (existing) {
@@ -68,8 +75,10 @@ class ChatSessionUpdater @Inject constructor(
                 lastMessageId = message.id,
                 lastMessage = previewText,
                 lastMessageType = message.contentType,
-                isSending = isSending,
-                lastMessageTime = message.timestamp
+                lastMessageTime = message.timestamp,
+                lastMessageRecalled = false,
+                lastMessageFromMe = message.isFromMe,
+                isSending = isSending
             )
             // 累加未读数
             if (shouldIncrementUnread) {
@@ -89,6 +98,7 @@ class ChatSessionUpdater @Inject constructor(
                     lastMessage = previewText,
                     lastMessageType = message.contentType,
                     lastMessageTime = message.timestamp,
+                    lastMessageFromMe = message.isFromMe,
                     isSending = isSending,
                     unreadCount = if (shouldIncrementUnread) 1 else 0
                 )

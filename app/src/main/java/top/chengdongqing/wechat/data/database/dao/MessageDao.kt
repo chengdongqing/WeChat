@@ -46,7 +46,7 @@ interface MessageDao : BaseDao<MessageEntity> {
     )
     suspend fun getLocalPathsByIds(ids: Set<String>): List<String>
 
-    @Query("SELECT * FROM messages WHERE sessionId = :sessionId LIMIT 1")
+    @Query("SELECT * FROM messages WHERE sessionId = :sessionId order by timestamp desc LIMIT 1")
     suspend fun getLatestMessage(sessionId: String): MessageEntity?
 
     @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE id = :messageId)")

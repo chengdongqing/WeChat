@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -65,7 +66,7 @@ fun NfcFailed(reason: String, onRetry: () -> Unit) {
 
         Spacer(Modifier.height(36.dp))
 
-        NfcActionButton(
+        WeButton(
             text = "重新碰一碰",
             enabled = true,
             onClick = onRetry

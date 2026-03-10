@@ -20,8 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +42,8 @@ import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.designsystem.util.parseRichText
 import top.chengdongqing.wechat.core.designsystem.util.rememberEmojiInlineContent
 import top.chengdongqing.wechat.core.util.toChatDisplayTime
+import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.data.model.toPreviewText
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 
 @Composable
@@ -82,25 +86,10 @@ private fun SessionAvatar(chat: ChatSession) {
 }
 
 @Composable
-private fun RowScope.SessionContent(chat: ChatSession) {
-    val isDraft = chat.draftMessage?.isNotBlank().isTrue()
-    val draftColor = WeTheme.colorScheme.danger
-    val normalColor = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
-
-    // 拼接草稿前缀 + 正文；仅正文部分走表情解析
-    val annotatedText = remember(isDraft, chat.draftMessage, chat.lastMessage) {
-        val bodyText = if (isDraft) chat.draftMessage!! else chat.lastMessage ?: ""
-        val parsedBody = bodyText.parseRichText(mode = RichTextMode.EmojiOnly)
-
-        buildAnnotatedString {
-            if (isDraft) {
-                withStyle(SpanStyle(color = draftColor)) { append("[草稿] ") }
-            }
-            append(parsedBody)
-        }
-    }
-
+private fun RowScope.SessionContent(session: ChatSession) {
+    val annotatedText = rememberAnnotatedText(session)
     val inlineContent = rememberEmojiInlineContent(annotatedText, emojiSize = 17.sp)
+    val normalColor = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
 
     Column(
         modifier = Modifier
@@ -108,7 +97,7 @@ private fun RowScope.SessionContent(chat: ChatSession) {
             .padding(vertical = 2.dp)
     ) {
         Text(
-            text = chat.contactName,
+            text = session.contactName,
             fontSize = 16.sp,
             maxLines = 1,
             color = WeTheme.colorScheme.textPrimary,
@@ -116,7 +105,7 @@ private fun RowScope.SessionContent(chat: ChatSession) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (chat.isSending) {
+            if (session.isSending) {
                 Icon(
                     painter = painterResource(R.drawable.ic_sending_filled),
                     contentDescription = null,
@@ -160,5 +149,46 @@ private fun SessionStatus(chat: ChatSession) {
                 .alpha(if (chat.isMuted) 1f else 0f),
             tint = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
         )
+    }
+}
+
+@Composable
+private fun rememberAnnotatedText(session: ChatSession): AnnotatedString {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+    val isDraft = session.draftMessage?.isNotBlank().isTrue()
+    val draftColor = WeTheme.colorScheme.danger
+
+    return remember(session) {
+        buildAnnotatedString {
+            when {
+                // 提示已撤回
+                session.lastMessageRecalled && !isDraft -> {
+                    val resId =
+                        if (session.lastMessageFromMe) R.string.chat_recalled_by_me else R.string.chat_recalled_by_other
+                    append(resources.getString(resId))
+                }
+
+                // 文本消息显示内容
+                session.lastMessageType == MessageType.Text || isDraft -> {
+                    val bodyText =
+                        if (isDraft) session.draftMessage!! else session.lastMessage ?: ""
+                    val parsedBody = bodyText.parseRichText(mode = RichTextMode.EmojiOnly)
+
+                    // 拼接草稿前缀 + 正文；仅正文部分走表情解析
+                    if (isDraft) {
+                        withStyle(SpanStyle(color = draftColor)) {
+                            append(resources.getString(R.string.message_preview_draft) + " ")
+                        }
+                    }
+                    append(parsedBody)
+                }
+
+                // 其他消息显示类型名称
+                else -> {
+                    session.lastMessageType?.toPreviewText(context, "")?.let { append(it) }
+                }
+            }
+        }
     }
 }

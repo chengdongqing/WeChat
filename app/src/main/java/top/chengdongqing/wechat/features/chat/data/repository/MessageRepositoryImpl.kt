@@ -218,14 +218,13 @@ class MessageRepositoryImpl @Inject constructor(
             messageDao.update(messageId) { message ->
                 message.copy(
                     isRecalled = true,
-                    content = if (isFromMe) message.content else "" // 对方撤回的置空消息内容
+                    content = if (isFromMe) message.content else "" // 如果是对方撤回的：置空消息内容
                 )
             }
             // 更新会话
-            chatSessionDao.markAsRecalledByMessageId(
+            chatSessionDao.markAsRecalled(
                 message.sessionId,
-                messageId,
-                if (isFromMe) "你撤回了一条消息" else "对方撤回了一条消息"
+                messageId
             )
         }
 

@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -238,7 +239,7 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
     ) { state ->
         when (state) {
             is NfcAddState.Idle ->
-                NfcActionButton(
+                WeButton(
                     text = "添加到通讯录",
                     enabled = true,
                     onClick = onAddFriend
@@ -248,7 +249,7 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     PeerReadyHint()
                     Spacer(Modifier.height(18.dp))
-                    NfcActionButton(
+                    WeButton(
                         text = "添加到通讯录",
                         enabled = true,
                         onClick = onAddFriend
@@ -257,7 +258,7 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
 
             is NfcAddState.WaitingForPeer ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    NfcActionButton(text = "等待对方添加...", enabled = false)
+                    WeButton(text = "等待对方添加...", enabled = false)
                     Spacer(Modifier.height(14.dp))
                     BouncingDots()
                     Spacer(Modifier.height(8.dp))
@@ -300,7 +301,7 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
                         color = WeTheme.colorScheme.textSecondary
                     )
                     Spacer(Modifier.height(24.dp))
-                    NfcActionButton(text = "重新发起", enabled = true, onClick = onAddFriend)
+                    WeButton(text = "重新发起", enabled = true, onClick = onAddFriend)
                 }
 
             is NfcAddState.Error ->
@@ -312,7 +313,7 @@ private fun AddActionArea(addState: NfcAddState, onAddFriend: () -> Unit) {
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(18.dp))
-                    NfcActionButton(text = "重试", enabled = true, onClick = onAddFriend)
+                    WeButton(text = "重试", enabled = true, onClick = onAddFriend)
                 }
         }
     }
