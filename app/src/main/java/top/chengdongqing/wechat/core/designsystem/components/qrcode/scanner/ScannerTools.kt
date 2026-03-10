@@ -26,8 +26,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -35,6 +38,15 @@ import top.chengdongqing.wechat.core.util.showToast
 
 @Composable
 internal fun BoxScope.ScannerTools(state: ScannerState) {
+    val context = LocalContext.current
+    val resources = LocalResources.current
+
+    val pickMedia = rememberPickMediasLauncher {
+        state.scanPhoto(it.first().uri) {
+            context.showToast(resources.getString(R.string.scan_recognize_failed))
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -43,20 +55,13 @@ internal fun BoxScope.ScannerTools(state: ScannerState) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         ToolItem(
-            label = "闪光灯",
+            label = stringResource(R.string.scan_tool_flash),
             icon = if (state.isFlashOn) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff,
             iconColor = if (state.isFlashOn) WeTheme.colorScheme.primary else Color.White
         ) {
             state.toggleFlashState()
         }
-
-        val context = LocalContext.current
-        val pickMedia = rememberPickMediasLauncher {
-            state.scanPhoto(it.first().uri) {
-                context.showToast("识别失败")
-            }
-        }
-        ToolItem(label = "相册", icon = Icons.Filled.Image) {
+        ToolItem(label = stringResource(R.string.scan_tool_album), icon = Icons.Filled.Image) {
             pickMedia(VisualMediaType.Image, 1)
             if (state.isFlashOn) {
                 state.toggleFlashState()

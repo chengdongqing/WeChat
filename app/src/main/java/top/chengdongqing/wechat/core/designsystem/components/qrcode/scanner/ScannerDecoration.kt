@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -29,7 +30,7 @@ internal fun BoxScope.ScannerDecoration() {
     ScanningAnimation()
 
     Text(
-        text = "扫二维码 / 条码",
+        text = stringResource(R.string.scan_hint),
         color = Color.White,
         fontSize = 16.sp,
         modifier = Modifier

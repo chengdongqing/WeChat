@@ -37,6 +37,7 @@
     <string name="camera_tip_video">Hold to record video</string>
     <string name="camera_flash_toggle">Toggle Flash</string>
     <string name="camera_switch">Switch Camera</string>
+    <string name="separator">, </string>
 
     <string name="time_yesterday">Yesterday</string>
     <string name="time_monday">Mon</string>
@@ -47,5 +48,8 @@
     <string name="time_saturday">Sat</string>
     <string name="time_sunday">Sun</string>
 
-    <string name="separator">, </string>
+    <string name="scan_hint">Scan QR / Barcode</string>
+    <string name="scan_tool_flash">Flash</string>
+    <string name="scan_tool_album">Album</string>
+    <string name="scan_recognize_failed">Recognition failed</string>
 </resources>

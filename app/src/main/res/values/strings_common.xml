@@ -37,6 +37,7 @@
     <string name="camera_tip_video">长按摄像</string>
     <string name="camera_flash_toggle">开关闪光灯</string>
     <string name="camera_switch">切换相机</string>
+    <string name="separator">，</string>
 
     <string name="time_yesterday">昨天</string>
     <string name="time_monday">周一</string>
@@ -47,5 +48,8 @@
     <string name="time_saturday">周六</string>
     <string name="time_sunday">周日</string>
 
-    <string name="separator">，</string>
+    <string name="scan_hint">扫二维码 / 条码</string>
+    <string name="scan_tool_flash">闪光灯</string>
+    <string name="scan_tool_album">相册</string>
+    <string name="scan_recognize_failed">识别失败</string>
 </resources>
