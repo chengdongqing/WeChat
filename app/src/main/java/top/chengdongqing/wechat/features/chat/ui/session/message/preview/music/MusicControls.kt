@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -28,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 @Composable
@@ -78,42 +76,10 @@ fun MusicControls(
             .padding(horizontal = 24.dp, vertical = 40.dp)
     ) {
         // 进度条
-        Slider(
+        WeSlider(
             value = progress,
-            onValueChange = onProgressChange,
-            modifier = Modifier.fillMaxWidth(),
-            colors = SliderDefaults.colors(
-                thumbColor = Color.White,
-                activeTrackColor = Color.White.copy(alpha = 0.5f),
-                inactiveTrackColor = Color.White.copy(alpha = 0.2f)
-            ),
-            thumb = {
-                Spacer(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .offset(y = 4.dp)
-                        .clip(CircleShape)
-                        .background(White)
-                )
-            },
-            track = { sliderState ->
-                Box {
-                    // 轨道底色
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(2.dp)
-                            .background(White.copy(alpha = 0.1f))
-                    )
-                    // 已播放部分
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxWidth(sliderState.value)
-                            .height(2.dp)
-                            .background(White.copy(alpha = 0.4f))
-                    )
-                }
-            }
+            range = 0f..1f,
+            onChange = onProgressChange
         )
 
         // 当前时间 / 总时长

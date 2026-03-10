@@ -66,7 +66,7 @@ private fun BoxScope.PlayIcon(state: VideoPlayerState) {
             contentDescription = "播放",
             modifier = Modifier
                 .align(Alignment.Center)
-                .size(120.dp)
+                .size(100.dp)
                 .alpha(0.4f),
             tint = Color.White
         )

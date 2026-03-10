@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.theme.White
 
 /**
  * 滑块
@@ -58,7 +59,7 @@ fun WeSlider(
     disabled: Boolean = false,
     height: Dp = 48.dp,
     showTrack: Boolean = true,
-    handleSize: Dp = 28.dp,
+    handleSize: Dp = 8.dp,
     formatter: ((Float) -> String)? = null,
     onChangeFinished: (() -> Unit)? = null,
     onChange: (Float) -> Unit
@@ -125,7 +126,7 @@ fun WeSlider(
                     Modifier
                         .fillMaxWidth()
                         .height(2.dp)
-                        .background(WeTheme.colorScheme.divider),
+                        .background(White.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     // 高亮线段
@@ -133,7 +134,7 @@ fun WeSlider(
                         Modifier
                             .fillMaxWidth(percent)
                             .height(2.dp)
-                            .background(WeTheme.colorScheme.primary)
+                            .background(White.copy(alpha = 0.4f))
                     )
                 }
             }
@@ -142,7 +143,11 @@ fun WeSlider(
                 Modifier
                     .size(handleSize)
                     .offset(offsetX - halfHandleSize)
-                    .shadow(halfHandleSize, CircleShape, spotColor = WeTheme.colorScheme.divider)
+                    .shadow(
+                        shape = CircleShape,
+                        elevation = halfHandleSize,
+                        spotColor = WeTheme.colorScheme.divider
+                    )
                     .background(Color.White, CircleShape)
             )
         }

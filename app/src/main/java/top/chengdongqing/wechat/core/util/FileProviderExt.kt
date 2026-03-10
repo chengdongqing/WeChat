@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.R
 import java.io.File
 
 /**
@@ -57,7 +58,7 @@ suspend fun Context.createVideoUri(): Uri =
 fun Context.shareUri(
     uri: Uri,
     mimeType: String,
-    title: String = "分享文件"
+    title: String = getString(R.string.action_share)
 ) {
     val shareUri = if (uri.scheme == "file") {
         getFileProviderUri(File(uri.path!!))

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.util.shareUri
@@ -30,9 +31,9 @@ class MediaPreviewViewModel @Inject constructor(
                 filename = media.filename
             )
             if (res != null) {
-                context.showToast("已保存到相册")
+                context.showToast(context.getString(R.string.msg_save_success))
             } else {
-                context.showToast("保存失败")
+                context.showToast(context.getString(R.string.msg_save_failed))
             }
         }
     }
@@ -41,6 +42,6 @@ class MediaPreviewViewModel @Inject constructor(
      * 分享媒体文件
      */
     fun shareMedia(media: MediaItem) {
-        context.shareUri(media.uri, media.mimeType, "分享媒体文件")
+        context.shareUri(media.uri, media.mimeType)
     }
 }

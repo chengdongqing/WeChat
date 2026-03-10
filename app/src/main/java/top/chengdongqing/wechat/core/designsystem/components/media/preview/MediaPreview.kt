@@ -27,10 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import me.saket.telephoto.zoomable.rememberZoomableState
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
@@ -117,10 +119,16 @@ private fun BoxScope.ToolBar(
             .navigationBarsPadding(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ActionIcon(imageVector = Icons.Outlined.Share, label = "分享") {
+        ActionIcon(
+            imageVector = Icons.Outlined.Share,
+            label = stringResource(R.string.action_share)
+        ) {
             viewModel.shareMedia(media)
         }
-        ActionIcon(imageVector = Icons.Outlined.Download, label = "保存") {
+        ActionIcon(
+            imageVector = Icons.Outlined.Download,
+            label = stringResource(R.string.action_save)
+        ) {
             viewModel.saveMedia(media)
         }
     }
