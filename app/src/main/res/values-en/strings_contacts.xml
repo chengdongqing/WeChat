@@ -5,5 +5,50 @@
     <string name="contacts_menu_official_accounts">Official Accounts</string>
 
     <string name="contacts_action_edit_profile">Edit friend profile</string>
-    <string name="contacts_friend_count">%d friends</string>
+    <string name="contacts_count">%d friends</string>
+
+    <string name="contact_avatar_description">Avatar</string>
+    <string name="contact_label_nickname">Name: </string>
+    <string name="contact_label_wechat_id">WeChat ID: </string>
+    <string name="contact_profile_title">Profile</string>
+    <string name="contact_profile_label_signature">Signature</string>
+    <string name="contact_profile_label_note">Note</string>
+    <string name="contact_moments_title">Moments</string>
+    <string name="contact_action_send_message">Send Message</string>
+    <string name="contact_action_voice_video_call">Voice or Video Call</string>
+    <string name="contact_action_add_to_contacts">Add to Contacts</string>
+
+    <string name="contact_profile_section_remark">Alias</string>
+    <string name="contact_profile_remark_name">Alias</string>
+    <string name="contact_profile_remark_phone">Phone No.</string>
+    <string name="contact_profile_remark_tags">Tags</string>
+    <string name="contact_profile_remark_note">Note</string>
+    <string name="contact_profile_remark_photos">Photo</string>
+    <string name="contact_profile_section_permissions">Friends\' permissions</string>
+    <string name="contact_profile_permissions_label">Permissions</string>
+    <string name="contact_profile_permissions_value">Chats, Moments, WeRun, etc.</string>
+    <string name="contact_profile_section_more">More Info</string>
+    <string name="contact_profile_common_groups">Shared Groups</string>
+    <string name="contact_profile_common_groups_count">%d</string>
+    <string name="contact_profile_signature">What\'s Up</string>
+    <string name="contact_profile_source">From</string>
+    <string name="contact_profile_added_at">Add time</string>
+
+    <string name="contact_profile_edit_title">Set Remarks</string>
+    <string name="contact_profile_edit_label_name">Alias</string>
+    <string name="contact_profile_edit_label_tags">Tags</string>
+    <string name="contact_profile_edit_label_note">Note</string>
+    <string name="contact_profile_edit_label_photo">Photo</string>
+    <string name="contact_profile_edit_add_tag">Add Tags</string>
+    <string name="contact_profile_edit_note_placeholder">Enter Text</string>
+    <string name="contact_profile_edit_add_photo">Add Photo</string>
+
+    <string name="contact_settings_title">Friend Settings</string>
+    <string name="contact_settings_profile">Edit friend profile</string>
+    <string name="contact_settings_permissions">Privacy</string>
+    <string name="contact_settings_recommend">Share Contact</string>
+    <string name="contact_settings_add_to_desktop">Add to Home Screen</string>
+    <string name="contact_settings_star">Add Star</string>
+    <string name="contact_settings_block">Block</string>
+    <string name="contact_settings_report">Report</string>
 </resources>

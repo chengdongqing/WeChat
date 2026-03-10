@@ -5,5 +5,50 @@
     <string name="contacts_menu_official_accounts">公众号</string>
 
     <string name="contacts_action_edit_profile">设置朋友资料</string>
-    <string name="contacts_friend_count">%d个朋友</string>
+    <string name="contacts_count">%d个朋友</string>
+
+    <string name="contact_avatar_description">头像</string>
+    <string name="contact_label_nickname">昵称：</string>
+    <string name="contact_label_wechat_id">微信号：</string>
+    <string name="contact_profile_title">朋友资料</string>
+    <string name="contact_profile_label_signature">签名</string>
+    <string name="contact_profile_label_note">备忘</string>
+    <string name="contact_moments_title">朋友圈</string>
+    <string name="contact_action_send_message">发消息</string>
+    <string name="contact_action_voice_video_call">音视频通话</string>
+    <string name="contact_action_add_to_contacts">添加到通讯录</string>
+
+    <string name="contact_profile_section_remark">备注</string>
+    <string name="contact_profile_remark_name">备注名</string>
+    <string name="contact_profile_remark_phone">电话</string>
+    <string name="contact_profile_remark_tags">标签</string>
+    <string name="contact_profile_remark_note">备忘</string>
+    <string name="contact_profile_remark_photos">照片</string>
+    <string name="contact_profile_section_permissions">朋友权限</string>
+    <string name="contact_profile_permissions_label">权限</string>
+    <string name="contact_profile_permissions_value">聊天、朋友圈、微信运动等</string>
+    <string name="contact_profile_section_more">更多信息</string>
+    <string name="contact_profile_common_groups">我和%s的共同群聊</string>
+    <string name="contact_profile_common_groups_count">%d个</string>
+    <string name="contact_profile_signature">签名</string>
+    <string name="contact_profile_source">来源</string>
+    <string name="contact_profile_added_at">添加时间</string>
+
+    <string name="contact_profile_edit_title">设置备注</string>
+    <string name="contact_profile_edit_label_name">备注名</string>
+    <string name="contact_profile_edit_label_tags">标签</string>
+    <string name="contact_profile_edit_label_note">备忘</string>
+    <string name="contact_profile_edit_label_photo">照片</string>
+    <string name="contact_profile_edit_add_tag">添加标签</string>
+    <string name="contact_profile_edit_note_placeholder">添加文字</string>
+    <string name="contact_profile_edit_add_photo">添加照片</string>
+
+    <string name="contact_settings_title">朋友设置</string>
+    <string name="contact_settings_profile">设置朋友资料</string>
+    <string name="contact_settings_permissions">朋友权限</string>
+    <string name="contact_settings_recommend">把他（她）推荐给朋友</string>
+    <string name="contact_settings_add_to_desktop">添加到桌面</string>
+    <string name="contact_settings_star">设为星标朋友</string>
+    <string name="contact_settings_block">加入黑名单</string>
+    <string name="contact_settings_report">投诉</string>
 </resources>

@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,10 +25,6 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
-/**
- * 朋友资料信息项
- * 包含标签和备注信息
- */
 @Composable
 fun ContactProfileItem(
     contact: Contact,
@@ -41,27 +38,23 @@ fun ContactProfileItem(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // 朋友资料标题行
         ProfileTitleRow()
 
         if (contact.signature?.isNotBlank().isTrue()) {
             ProfileInfoRow(
-                label = "签名",
+                label = stringResource(R.string.contact_profile_label_signature),
                 value = contact.signature ?: ""
             )
         }
         if (contact.note?.isNotEmpty().isTrue()) {
             ProfileInfoRow(
-                label = "备忘",
+                label = stringResource(R.string.contact_profile_label_note),
                 value = contact.note!!
             )
         }
     }
 }
 
-/**
- * 朋友资料标题行
- */
 @Composable
 private fun ProfileTitleRow(modifier: Modifier = Modifier) {
     Row(
@@ -70,7 +63,7 @@ private fun ProfileTitleRow(modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "朋友资料",
+            text = stringResource(R.string.contact_profile_title),
             modifier = Modifier.width(80.dp),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
@@ -78,7 +71,7 @@ private fun ProfileTitleRow(modifier: Modifier = Modifier) {
         )
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
-            contentDescription = "查看详情",
+            contentDescription = null,
             tint = Color.DarkGray,
             modifier = Modifier
                 .size(24.dp)
@@ -87,9 +80,6 @@ private fun ProfileTitleRow(modifier: Modifier = Modifier) {
     }
 }
 
-/**
- * 资料信息行（标签、备注等）
- */
 @Composable
 private fun ProfileInfoRow(
     label: String,

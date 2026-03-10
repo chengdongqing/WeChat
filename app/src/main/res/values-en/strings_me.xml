@@ -23,8 +23,8 @@
     <string name="me_edit_gender">Set Gender</string>
     <string name="gender_male">Male</string>
     <string name="gender_female">Female</string>
-    <string name="gender_male_pronoun">He</string>
-    <string name="gender_female_pronoun">She</string>
+    <string name="gender_male_pronoun">Him</string>
+    <string name="gender_female_pronoun">Her</string>
 
     <string name="me_edit_id_hint">As there is no central server, the WeChat ID cannot be changed to ensure device uniqueness.</string>
 

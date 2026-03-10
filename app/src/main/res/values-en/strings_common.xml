@@ -47,5 +47,5 @@
     <string name="time_saturday">Sat</string>
     <string name="time_sunday">Sun</string>
 
-    <string name="separator">，</string>
+    <string name="separator">, </string>
 </resources>

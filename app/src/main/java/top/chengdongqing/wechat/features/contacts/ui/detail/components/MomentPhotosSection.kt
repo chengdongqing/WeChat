@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.contacts.ui.detail.components
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,15 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
-/**
- * 朋友圈照片预览项
- */
 @Composable
 fun MomentPhotosSection(onClick: () -> Unit) {
     Row(
@@ -40,7 +37,7 @@ fun MomentPhotosSection(onClick: () -> Unit) {
     ) {
         Row(modifier = Modifier.weight(1f)) {
             Text(
-                text = "朋友圈",
+                text = stringResource(R.string.contact_moments_title),
                 color = WeTheme.colorScheme.textPrimary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
@@ -53,7 +50,7 @@ fun MomentPhotosSection(onClick: () -> Unit) {
 
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
-            contentDescription = "查看朋友圈",
+            contentDescription = null,
             tint = WeTheme.colorScheme.textSecondary,
             modifier = Modifier
                 .size(24.dp)
@@ -62,9 +59,6 @@ fun MomentPhotosSection(onClick: () -> Unit) {
     }
 }
 
-/**
- * 朋友圈照片网格
- */
 @Composable
 private fun MomentPhotoGrid() {
     val photoResIds = remember {
@@ -76,23 +70,12 @@ private fun MomentPhotoGrid() {
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         photoResIds.take(3).forEach { photoResId ->
-            MomentPhotoThumbnail(photoResId = photoResId)
+            Image(
+                painter = painterResource(photoResId),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(48.dp)
+            )
         }
     }
-}
-
-/**
- * 朋友圈照片缩略图
- */
-@Composable
-private fun MomentPhotoThumbnail(
-    @DrawableRes photoResId: Int,
-    modifier: Modifier = Modifier
-) {
-    Image(
-        painter = painterResource(photoResId),
-        contentDescription = "朋友圈照片",
-        contentScale = ContentScale.Crop,
-        modifier = modifier.size(48.dp)
-    )
 }

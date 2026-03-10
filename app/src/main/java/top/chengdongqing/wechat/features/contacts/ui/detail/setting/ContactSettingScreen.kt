@@ -53,7 +53,10 @@ fun ContactSettingScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "朋友设置", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.contact_settings_title),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -65,18 +68,32 @@ fun ContactSettingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             WeSettingGroup {
-                WeSettingItem("设置朋友资料", onClick = onNavigateToContactProfile) {
+                WeSettingItem(
+                    label = stringResource(R.string.contact_settings_profile),
+                    onClick = onNavigateToContactProfile
+                ) {
                     WeSettingValue(contact.displayName)
                 }
-                WeSettingItem("朋友权限", showDivider = false)
+                WeSettingItem(
+                    label = stringResource(R.string.contact_settings_permissions),
+                    showDivider = false,
+                    onClick = {}
+                )
             }
             if (contact.isFriend) {
                 WeSettingGroup {
-                    WeSettingItem("把他（她）推荐给朋友")
-                    WeSettingItem("添加到桌面", showDivider = false)
+                    WeSettingItem(
+                        label = stringResource(R.string.contact_settings_recommend),
+                        onClick = {}
+                    )
+                    WeSettingItem(
+                        label = stringResource(R.string.contact_settings_add_to_desktop),
+                        showDivider = false,
+                        onClick = {}
+                    )
                 }
                 WeSettingItem(
-                    label = "设为星标朋友",
+                    label = stringResource(R.string.contact_settings_star),
                     showArrow = false,
                     showDivider = false
                 ) {
@@ -84,12 +101,19 @@ fun ContactSettingScreen(
                 }
             }
             WeSettingGroup {
-                WeSettingItem(label = "加入黑名单", showArrow = false) {
+                WeSettingItem(
+                    label = stringResource(R.string.contact_settings_block),
+                    showArrow = false
+                ) {
                     WeSwitch(checked = contact.isBlocked) {
                         viewModel.toggleBlock()
                     }
                 }
-                WeSettingItem("投诉", showDivider = false)
+                WeSettingItem(
+                    label = stringResource(R.string.contact_settings_report),
+                    showDivider = false,
+                    onClick = {}
+                )
             }
 
             if (contact.isFriend) {

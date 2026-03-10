@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,10 +74,14 @@ fun EditContactProfileScreen(
         topBar = {
             WeTopBar(
                 onBack = onBack,
-                backText = "取消",
+                backText = stringResource(R.string.action_cancel),
                 containerColor = WeTheme.colorScheme.surface
             ) {
-                WeButton(text = "完成", size = ButtonSize.Small, loading = uiState.isSaving) {
+                WeButton(
+                    text = stringResource(R.string.action_done),
+                    size = ButtonSize.Small,
+                    loading = uiState.isSaving
+                ) {
                     viewModel.saveChanges()
                 }
             }
@@ -97,7 +102,7 @@ fun EditContactProfileScreen(
             ) {
                 Spacer(modifier = Modifier.height(12.dp))
                 ListItem(
-                    label = "备注名",
+                    label = stringResource(R.string.contact_profile_edit_label_name),
                     padding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                 ) {
                     WeInput(
@@ -108,23 +113,26 @@ fun EditContactProfileScreen(
                         onValueChange = { viewModel.updateRemarkName(it) }
                     )
                 }
-                ListItem("标签") {
-                    LinkedRow("添加标签") {}
+                ListItem(label = stringResource(R.string.contact_profile_edit_label_tags)) {
+                    LinkedRow {}
                 }
                 ListItem(
-                    label = "备忘",
+                    label = stringResource(R.string.contact_profile_edit_label_note),
                     padding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
                 ) {
                     WeInput(
                         value = uiState.note,
-                        placeholder = "添加文字",
+                        placeholder = stringResource(R.string.contact_profile_edit_note_placeholder),
                         singleLine = false,
                         maxLength = 100,
                         showDivider = false,
                         onValueChange = { viewModel.updateNote(it) }
                     )
                 }
-                ListItem(label = "照片", modifier = Modifier.size(120.dp)) {
+                ListItem(
+                    label = stringResource(R.string.contact_profile_edit_label_photo),
+                    modifier = Modifier.size(120.dp)
+                ) {
                     PhotoSection()
                 }
             }
@@ -141,7 +149,7 @@ private fun TitleSection() {
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "设置备注",
+            text = stringResource(R.string.contact_profile_edit_title),
             color = WeTheme.colorScheme.textPrimary,
             fontSize = 22.sp,
             fontWeight = FontWeight.Medium
@@ -177,7 +185,10 @@ private fun ListItem(
 }
 
 @Composable
-private fun LinkedRow(label: String, onClick: () -> Unit) {
+private fun LinkedRow(
+    label: String = stringResource(R.string.contact_profile_edit_add_tag),
+    onClick: () -> Unit
+) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -212,6 +223,10 @@ private fun PhotoSection() {
             modifier = Modifier.size(32.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "添加照片", color = LinkColor, fontSize = 15.sp)
+        Text(
+            text = stringResource(R.string.contact_profile_edit_add_photo),
+            color = LinkColor,
+            fontSize = 15.sp
+        )
     }
 }

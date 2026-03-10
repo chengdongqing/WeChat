@@ -14,10 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.toYearMonthDisplay
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewModel
@@ -36,7 +38,10 @@ fun ContactProfileScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "朋友资料", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.contact_profile_title),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -47,9 +52,9 @@ fun ContactProfileScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            WeSettingGroup("备注") {
+            WeSettingGroup(stringResource(R.string.contact_profile_section_remark)) {
                 WeSettingItem(
-                    label = "备注名",
+                    label = stringResource(R.string.contact_profile_remark_name),
                     trailing = {
                         WeSettingValue(
                             text = contact.remarkName,
@@ -59,15 +64,15 @@ fun ContactProfileScreen(
                     onClick = onNavigateToEdit
                 )
                 WeSettingItem(
-                    label = "电话",
+                    label = stringResource(R.string.contact_profile_remark_phone),
                     onClick = onNavigateToEdit
                 )
                 WeSettingItem(
-                    label = "标签",
+                    label = stringResource(R.string.contact_profile_remark_tags),
                     onClick = onNavigateToEdit
                 )
                 WeSettingItem(
-                    label = "备忘",
+                    label = stringResource(R.string.contact_profile_remark_note),
                     trailing = {
                         WeSettingValue(
                             text = contact.note,
@@ -77,28 +82,43 @@ fun ContactProfileScreen(
                     onClick = onNavigateToEdit
                 )
                 WeSettingItem(
-                    label = "照片",
+                    label = stringResource(R.string.contact_profile_remark_photos),
                     showDivider = false,
                     onClick = onNavigateToEdit
                 )
             }
 
             if (contact.isFriend) {
-                WeSettingGroup("朋友权限") {
+                WeSettingGroup(stringResource(R.string.contact_profile_section_permissions)) {
                     WeSettingItem(
-                        label = "权限",
-                        trailing = { WeSettingValue("聊天、朋友圈、微信运动等") },
+                        label = stringResource(R.string.contact_profile_permissions_label),
+                        trailing = {
+                            WeSettingValue(
+                                text = stringResource(R.string.contact_profile_permissions_value),
+                                modifier = Modifier.widthIn(max = 200.dp)
+                            )
+                        },
                         showDivider = false
                     )
                 }
-                WeSettingGroup("更多信息") {
+                WeSettingGroup(stringResource(R.string.contact_profile_section_more)) {
                     WeSettingItem(
-                        label = "我和${stringResource(contact.gender.safePronoun)}的共同群聊",
-                        trailing = { WeSettingValue("0个") }
+                        label = stringResource(
+                            R.string.contact_profile_common_groups,
+                            stringResource(contact.gender.safePronoun)
+                        ),
+                        trailing = {
+                            WeSettingValue(
+                                stringResource(
+                                    R.string.contact_profile_common_groups_count,
+                                    0
+                                )
+                            )
+                        }
                     )
                     contact.signature?.let {
                         WeSettingItem(
-                            label = "签名",
+                            label = stringResource(R.string.contact_profile_signature),
                             trailing = {
                                 WeSettingValue(
                                     text = it,
@@ -110,15 +130,15 @@ fun ContactProfileScreen(
                     }
                     contact.source?.let {
                         WeSettingItem(
-                            label = "来源",
+                            label = stringResource(R.string.contact_profile_source),
                             trailing = { WeSettingValue(it.getDescription(contact.isFromMe)) },
                             showArrow = false
                         )
                     }
                     contact.addedAt?.let {
                         WeSettingItem(
-                            label = "添加时间",
-                            trailing = { WeSettingValue(it.toYearMonthDisplay()) },
+                            label = stringResource(R.string.contact_profile_added_at),
+                            trailing = { WeSettingValue(it.toYearMonthDisplay(LocalAppLanguage.current)) },
                             showArrow = false,
                             showDivider = false
                         )

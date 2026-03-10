@@ -47,5 +47,5 @@
     <string name="time_saturday">周六</string>
     <string name="time_sunday">周日</string>
 
-    <string name="separator">, </string>
+    <string name="separator">，</string>
 </resources>

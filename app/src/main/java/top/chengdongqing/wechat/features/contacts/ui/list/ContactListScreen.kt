@@ -163,7 +163,7 @@ private fun ContactFooter(count: Int) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = stringResource(R.string.contacts_friend_count, count),
+            text = stringResource(R.string.contacts_count, count),
             color = WeTheme.colorScheme.textSecondary
         )
     }

@@ -28,9 +28,6 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
-/**
- * 联系人头像和基本信息卡片
- */
 @Composable
 fun ContactBasicInfoCard(
     contact: Contact,
@@ -49,14 +46,11 @@ fun ContactBasicInfoCard(
     }
 }
 
-/**
- * 联系人头像组件
- */
 @Composable
 private fun ContactAvatar(avatarUrl: Any) {
     AsyncImage(
         model = avatarUrl,
-        contentDescription = "头像",
+        contentDescription = stringResource(R.string.contact_avatar_description),
         error = painterResource(R.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(64.dp)
@@ -64,25 +58,20 @@ private fun ContactAvatar(avatarUrl: Any) {
     )
 }
 
-/**
- * 联系人基本信息（姓名、性别、昵称、微信号）
- */
 @Composable
 private fun ContactBasicInfo(
     contact: Contact,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        // 姓名和性别
         NameWithGender(
             name = contact.displayName,
             gender = contact.gender
         )
 
-        // 昵称
         if (!contact.isSelf) {
             InfoText(
-                label = "昵称：",
+                label = stringResource(R.string.contact_label_nickname),
                 value = contact.nickname,
                 modifier = Modifier.padding(top = 2.dp)
             )
@@ -90,17 +79,13 @@ private fun ContactBasicInfo(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // 微信号
         InfoText(
-            label = "微信号：",
+            label = stringResource(R.string.contact_label_wechat_id),
             value = contact.id
         )
     }
 }
 
-/**
- * 姓名和性别组合组件
- */
 @Composable
 private fun NameWithGender(
     name: String,
@@ -125,9 +110,6 @@ private fun NameWithGender(
     }
 }
 
-/**
- * 性别图标
- */
 @Composable
 private fun GenderIcon(
     gender: Gender,
@@ -146,9 +128,6 @@ private fun GenderIcon(
     )
 }
 
-/**
- * 信息文本组件（用于显示昵称、微信号等）
- */
 @Composable
 private fun InfoText(
     label: String,
@@ -156,7 +135,7 @@ private fun InfoText(
     modifier: Modifier = Modifier
 ) {
     Text(
-        text = "$label$value",
+        text = "$label $value",
         color = WeTheme.colorScheme.textSecondary,
         fontSize = 14.sp,
         modifier = modifier

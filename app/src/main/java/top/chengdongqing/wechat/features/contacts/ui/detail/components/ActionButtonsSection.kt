@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,14 +47,14 @@ fun ActionButtonsSection(
             contact.isSelf || contact.isFriend -> {
                 ContactActionButton(
                     icon = R.drawable.ic_message_outlined,
-                    text = "发消息",
+                    text = stringResource(R.string.contact_action_send_message),
                     onClick = { onAction(ContactAction.SendMessage) }
                 )
                 if (contact.isFriend) {
                     WeDivider()
                     ContactActionButton(
                         icon = R.drawable.ic_voice_video_outlined,
-                        text = "音视频通话",
+                        text = stringResource(R.string.contact_action_voice_video_call),
                         onClick = {
                             actionSheet.show(CallOptions) { index ->
                                 val callType = when (index) {
@@ -69,7 +70,7 @@ fun ActionButtonsSection(
 
             else -> {
                 ContactActionButton(
-                    text = "添加到通讯录",
+                    text = stringResource(R.string.contact_action_add_to_contacts),
                     onClick = { onAction(ContactAction.AddToContacts) }
                 )
             }
