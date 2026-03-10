@@ -33,11 +33,13 @@ import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import kotlin.math.abs
@@ -94,7 +96,7 @@ private fun BottomArcBackground() {
 }
 
 /**
- * 操作按钮行（取消/转文字）
+ * 操作按钮行
  */
 @Composable
 private fun ActionButtons(recordState: RecordState) {
@@ -106,13 +108,13 @@ private fun ActionButtons(recordState: RecordState) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         ActionButton(
-            label = "取 消",
+            label = stringResource(R.string.voice_action_cancel),
             isActive = recordState == RecordState.Cancel,
             activeColor = ChatTheme.colorScheme.recordActionCancel,
             activeTextColor = Color.White
         )
         ActionButton(
-            label = "文 字",
+            label = stringResource(R.string.voice_action_text),
             isActive = recordState == RecordState.Convert,
             activeColor = ChatTheme.colorScheme.recordActionConvert,
             activeTextColor = WeTheme.colorScheme.textPrimary
@@ -122,10 +124,6 @@ private fun ActionButtons(recordState: RecordState) {
 
 /**
  * 单个操作按钮
- *
- * 动画效果：
- * - 激活时放大到80dp
- * - 未激活时64dp
  */
 @Composable
 private fun ActionButton(
@@ -173,9 +171,9 @@ private fun ActionButton(
 private fun BottomHintText(recordState: RecordState) {
     Text(
         text = when (recordState) {
-            RecordState.Cancel -> "松开手指，取消发送"
-            RecordState.Convert -> "松开手指，转文字"
-            else -> "松开 发送"
+            RecordState.Cancel -> stringResource(R.string.voice_release_to_cancel)
+            RecordState.Convert -> stringResource(R.string.voice_release_to_convert)
+            else -> stringResource(R.string.voice_release_to_send)
         },
         color = WeTheme.colorScheme.textSecondary,
         fontSize = 14.sp

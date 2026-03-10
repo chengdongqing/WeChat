@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,8 +76,6 @@ fun EditAvatarScreen(
         }
     }
 
-    val menuOptions = rememberMenuOptions()
-
     StatusBarAppearanceEffect(isDark = false)
     Box(modifier = Modifier.background(Black)) {
         WeTopBar(
@@ -92,9 +89,9 @@ fun EditAvatarScreen(
         ) {
             ActionIcon(
                 icon = R.drawable.ic_more_outlined,
-                description = "更多"
+                description = stringResource(R.string.action_more)
             ) {
-                actionSheet.show(menuOptions) { index ->
+                actionSheet.show(MenuOptions) { index ->
                     when (index) {
                         0 -> launchAlbum(VisualMediaType.Image, 1)
                         1 -> launchCamera(VisualMediaType.Image)
@@ -113,17 +110,10 @@ fun EditAvatarScreen(
     }
 }
 
-@Composable
-private fun rememberMenuOptions(): List<ActionSheetItem> {
-    val selectText = stringResource(R.string.action_select_from_gallery)
-    val takePhotoText = stringResource(R.string.action_take_photo)
-    val saveText = stringResource(R.string.action_save_to_phone)
-
-    return remember {
-        listOf(
-            ActionSheetItem(selectText),
-            ActionSheetItem(takePhotoText),
-            ActionSheetItem(saveText)
-        )
-    }
+private val MenuOptions by lazy {
+    listOf(
+        ActionSheetItem(R.string.action_select_from_gallery),
+        ActionSheetItem(R.string.action_take_photo),
+        ActionSheetItem(R.string.action_save_to_phone)
+    )
 }

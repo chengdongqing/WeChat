@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +34,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
@@ -288,8 +290,8 @@ private suspend fun handleRecordingComplete(
 private fun RecordButtonText(recordState: RecordState) {
     Text(
         text = when (recordState) {
-            RecordState.TooShort -> "说话时间太短"
-            else -> "按住 说话"
+            RecordState.TooShort -> stringResource(R.string.voice_too_short)
+            else -> stringResource(R.string.voice_hold_to_talk)
         },
         color = when (recordState) {
             RecordState.TooShort -> WeTheme.colorScheme.danger

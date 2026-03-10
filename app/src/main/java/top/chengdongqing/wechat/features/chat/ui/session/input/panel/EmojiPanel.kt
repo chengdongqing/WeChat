@@ -36,7 +36,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -137,10 +139,15 @@ private fun CategoriesTab(
     currentTab: Int,
     onTabChange: (index: Int) -> Unit
 ) {
+    val resources = LocalResources.current
     val tabs = remember {
         listOf(
-            TabItem(0, R.drawable.ic_emoji_outlined, "表情"),
-            TabItem(1, R.drawable.ic_like_outlined, "贴纸")
+            TabItem(0, R.drawable.ic_emoji_outlined, resources.getString(R.string.sticker_title)),
+            TabItem(
+                1,
+                R.drawable.ic_like_outlined,
+                resources.getString(R.string.sticker_custom_title)
+            )
         )
     }
 
@@ -223,7 +230,7 @@ private fun EmojiGrid(
             // 最近使用部分
             if (recentEmojis.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    EmojiSectionHeader("最近使用")
+                    EmojiSectionHeader(stringResource(R.string.sticker_recent))
                 }
                 items(
                     items = recentEmojis,
@@ -235,7 +242,7 @@ private fun EmojiGrid(
 
             // 所有表情部分
             item(span = { GridItemSpan(maxLineSpan) }) {
-                EmojiSectionHeader("所有表情")
+                EmojiSectionHeader(stringResource(R.string.sticker_all))
             }
             items(
                 items = Emojis.all,
@@ -304,7 +311,7 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Backspace,
-            contentDescription = "退格",
+            contentDescription = stringResource(R.string.sticker_backspace),
             modifier = Modifier.size(22.dp),
             tint = WeTheme.colorScheme.textPrimary
         )

@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,6 +23,8 @@ fun TimeDivider(
     messages: List<ChatMessage>,
     index: Int
 ) {
+    val resources = LocalResources.current
+
     // 是否显示时间
     val shouldShow by remember(index, messages.size) {
         derivedStateOf {
@@ -41,7 +44,7 @@ fun TimeDivider(
         val message = messages[index]
         // 时间格式化
         val time = remember(message.timestamp) {
-            message.timestamp.toChatDisplayTime()
+            message.timestamp.toChatDisplayTime(resources)
         }
 
         TimeText(time)

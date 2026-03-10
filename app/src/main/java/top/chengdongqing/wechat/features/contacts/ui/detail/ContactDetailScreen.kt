@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
@@ -109,7 +110,7 @@ private fun ContactDetailTopBar(
         if (showMoreAction) {
             ActionIcon(
                 icon = R.drawable.ic_more_outlined,
-                description = "更多",
+                description = stringResource(R.string.action_more),
                 onClick = onMoreClick
             )
         }

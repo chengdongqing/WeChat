@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -43,7 +44,7 @@ fun ChatSessionTopBar(
         titleContent = {
             ChatSessionTitle(viewModel, uiState)
         },
-        backText = if (isSelectMode) "取消" else null,
+        backText = if (isSelectMode) stringResource(R.string.action_cancel) else null,
         onBack = {
             if (isSelectMode) {
                 viewModel.exitSelectMode()
@@ -54,7 +55,10 @@ fun ChatSessionTopBar(
         unreadCount = unreadCount
     ) {
         if (!isSelectMode) {
-            ActionIcon(icon = R.drawable.ic_more_outlined, description = "更多") {
+            ActionIcon(
+                icon = R.drawable.ic_more_outlined,
+                description = stringResource(R.string.action_more)
+            ) {
                 onNavigateToInfo()
             }
         }
@@ -72,11 +76,21 @@ private fun ChatSessionTitle(
     } else {
         WeTheme.colorScheme.divider
     }
-    val statusDesc = if (uiState.isOnline) "在线" else "离线"
+    val statusDesc = stringResource(
+        if (uiState.isOnline) {
+            R.string.chat_status_online
+        } else {
+            R.string.chat_status_offline
+        }
+    )
     val title = when {
         !uiState.isSelectMode -> uiState.title
-        uiState.selectedCount > 0 -> "已选择${uiState.selectedCount}条消息"
-        else -> "选择消息"
+        uiState.selectedCount > 0 -> stringResource(
+            R.string.chat_selected_count,
+            uiState.selectedCount
+        )
+
+        else -> stringResource(R.string.chat_select_mode)
     }
 
     Box(
@@ -106,7 +120,7 @@ private fun ChatSessionTitle(
             if (uiState.isMuted) {
                 Icon(
                     painter = painterResource(R.drawable.ic_mute_outlined),
-                    contentDescription = "免打扰",
+                    contentDescription = stringResource(R.string.chat_muted_desc),
                     modifier = Modifier.size(16.dp),
                     tint = WeTheme.colorScheme.textSecondary
                 )
@@ -115,7 +129,7 @@ private fun ChatSessionTitle(
             if (!uiState.isSpeakerOn) {
                 Icon(
                     painter = painterResource(R.drawable.ic_ear_outlined),
-                    contentDescription = "通过听筒播放语音",
+                    contentDescription = stringResource(R.string.chat_earpiece_desc),
                     modifier = Modifier.size(16.dp),
                     tint = WeTheme.colorScheme.textSecondary
                 )
@@ -125,7 +139,7 @@ private fun ChatSessionTitle(
                 if (isE2EActive) {
                     Icon(
                         painter = painterResource(R.drawable.ic_lock_filled),
-                        contentDescription = "已加密",
+                        contentDescription = stringResource(R.string.chat_encrypted_desc),
                         modifier = Modifier.size(16.dp),
                         tint = WeTheme.colorScheme.textSecondary
                     )

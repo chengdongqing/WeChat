@@ -9,4 +9,79 @@
     <string name="chat_hide_hint_title">Chat history will not be deleted after hiding.</string>
     <string name="chat_hide_hint_content">You can find it again in chat details.</string>
     <string name="chat_delete_hint">This will delete all messages and hide the chat.</string>
+
+    <string name="chat_action_album">Gallery</string>
+    <string name="chat_action_camera">Camera</string>
+    <string name="chat_action_video_call">Video Call</string>
+    <string name="chat_action_location">Location</string>
+    <string name="chat_action_transfer">Transfer</string>
+    <string name="chat_action_favorite">Favorites</string>
+    <string name="chat_action_voice">Voice Input</string>
+    <string name="chat_action_card">Contact Card</string>
+    <string name="chat_action_file">Files</string>
+    <string name="chat_action_app">App</string>
+    <string name="chat_action_music">Music</string>
+
+    <string name="chat_camera_photo">Take Photo</string>
+    <string name="chat_camera_video">Take Video</string>
+    <string name="chat_camera_title">System Camera</string>
+    <string name="chat_call_video">Video Call</string>
+    <string name="chat_call_voice">Voice Call</string>
+    <string name="chat_location_send">Send Location</string>
+    <string name="chat_location_share">Real-time Location</string>
+    <string name="chat_file_transfer">File Transfer</string>
+
+    <string name="sticker_title">Sticker</string>
+    <string name="sticker_custom_title">Custom Sticker</string>
+    <string name="sticker_recent">Recent</string>
+    <string name="sticker_all">All Stickers</string>
+    <string name="sticker_backspace">Backspace</string>
+
+    <string name="voice_hold_to_talk">Hold to Talk</string>
+    <string name="voice_release_to_send">Release to Send</string>
+    <string name="voice_release_to_convert">Release to Convert Text</string>
+    <string name="voice_release_to_cancel">Release to Cancel</string>
+    <string name="voice_too_short">Too Short</string>
+    <string name="voice_action_cancel">Cancel</string>
+    <string name="voice_action_text">Text</string>
+
+    <string name="chat_status_online">Online</string>
+    <string name="chat_status_offline">Offline</string>
+    <string name="chat_selected_count">%d selected</string>
+    <string name="chat_select_mode">Select Messages</string>
+    <string name="chat_muted_desc">Mute Notifications</string>
+    <string name="chat_earpiece_desc">Playing via Earpiece</string>
+    <string name="chat_encrypted_desc">Encrypted</string>
+
+    <string name="message_action_copy">Copy</string>
+    <string name="message_action_delete">Delete</string>
+    <string name="message_action_forward">Forward</string>
+    <string name="message_action_favorite">Favorite</string>
+    <string name="message_action_remind">Reminder</string>
+    <string name="message_action_recall">Recall</string>
+    <string name="message_action_multi_select">Select</string>
+    <string name="message_action_speaker">Speaker</string>
+    <string name="message_action_earpiece">Earpiece</string>
+    <string name="message_action_quote">Quote</string>
+    <string name="message_action_download">Save</string>
+
+    <string name="chat_info">Chat Info</string>
+    <string name="chat_info_search">Search Chat History</string>
+    <string name="chat_info_mute">Mute Notifications</string>
+    <string name="chat_info_pin">Sticky on Top</string>
+    <string name="chat_info_remind">Alert</string>
+    <string name="chat_info_clear_background">Clear Background</string>
+    <string name="chat_info_background_setting">Background</string>
+    <string name="chat_info_background_clear_title">Clear current chat background?</string>
+    <string name="chat_info_clear">Clear Chat History</string>
+    <string name="chat_info_clear_title">Confirm Deletion of the chat history with %s?</string>
+    <string name="chat_info_complaint">Report</string>
+
+    <string name="msg_confirm_delete">Delete?</string>
+    <string name="msg_confirm_save">Save?</string>
+    <string name="msg_confirm_forward">Forward to %d selected contacts?</string>
+    <string name="msg_empty_message_title">Notice</string>
+    <string name="msg_empty_message_content">Cannot send an empty message</string>
+    <string name="contact_delete_title">Delete \"%s\"?</string>
+    <string name="contact_delete_content">They will not be notified</string>
 </resources>

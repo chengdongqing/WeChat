@@ -74,20 +74,26 @@ fun rememberCallLauncher(
 }
 
 val CallOptions = listOf(
-    ActionSheetItem("视频通话", icon = {
-        Icon(
-            painter = painterResource(R.drawable.ic_video_filled),
-            contentDescription = null,
-            tint = WeTheme.colorScheme.textPrimary,
-            modifier = Modifier.size(18.dp)
-        )
-    }),
-    ActionSheetItem("语音通话", icon = {
-        Icon(
-            painter = painterResource(R.drawable.ic_call_filled),
-            contentDescription = null,
-            tint = WeTheme.colorScheme.textPrimary,
-            modifier = Modifier.size(18.dp)
-        )
-    })
+    ActionSheetItem(
+        labelRes = R.string.chat_call_video,
+        icon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_video_filled),
+                contentDescription = null,
+                tint = WeTheme.colorScheme.textPrimary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    ),
+    ActionSheetItem(
+        labelRes = R.string.chat_call_voice,
+        icon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_call_filled),
+                contentDescription = null,
+                tint = WeTheme.colorScheme.textPrimary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+    )
 )

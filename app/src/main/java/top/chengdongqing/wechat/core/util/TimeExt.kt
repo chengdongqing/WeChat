@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.core.util
 
+import android.content.res.Resources
+import top.chengdongqing.wechat.R
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
@@ -36,7 +38,7 @@ fun Duration.format(isFull: Boolean = false): String {
 /**
  * 格式化聊天时间
  */
-fun Long.toChatDisplayTime(): String {
+fun Long.toChatDisplayTime(resources: Resources): String {
     val targetInstant = Instant.ofEpochMilli(this)
     val target = LocalDateTime.ofInstant(targetInstant, ZoneId.systemDefault())
     val now = LocalDateTime.now()
@@ -51,22 +53,22 @@ fun Long.toChatDisplayTime(): String {
 
         // 昨天
         targetDate.isEqual(nowDate.minusDays(1)) -> {
-            "昨天 ${target.format(TimeFormatter)}"
+            "${resources.getString(R.string.time_yesterday)} ${target.format(TimeFormatter)}"
         }
 
         // 一周内 (2-7天前)
         targetDate.isAfter(nowDate.minusDays(7)) -> {
-            val weekDay = when (target.dayOfWeek) {
-                DayOfWeek.MONDAY -> "周一"
-                DayOfWeek.TUESDAY -> "周二"
-                DayOfWeek.WEDNESDAY -> "周三"
-                DayOfWeek.THURSDAY -> "周四"
-                DayOfWeek.FRIDAY -> "周五"
-                DayOfWeek.SATURDAY -> "周六"
-                DayOfWeek.SUNDAY -> "周日"
-                else -> ""
+            val weekDayRes = when (target.dayOfWeek) {
+                DayOfWeek.MONDAY -> R.string.time_monday
+                DayOfWeek.TUESDAY -> R.string.time_tuesday
+                DayOfWeek.WEDNESDAY -> R.string.time_wednesday
+                DayOfWeek.THURSDAY -> R.string.time_thursday
+                DayOfWeek.FRIDAY -> R.string.time_friday
+                DayOfWeek.SATURDAY -> R.string.time_saturday
+                DayOfWeek.SUNDAY -> R.string.time_sunday
+                else -> R.string.time_monday
             }
-            "$weekDay ${target.format(TimeFormatter)}"
+            "${resources.getString(weekDayRes)} ${target.format(TimeFormatter)}"
         }
 
         // 今年以内

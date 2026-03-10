@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.core.designsystem.components.dialog
 
-import android.content.res.Resources
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -184,16 +184,15 @@ interface DialogState {
 @Composable
 fun rememberDialogState(): DialogState {
     val scope = rememberCoroutineScope()
-    val resources = LocalResources.current
-    val state = remember { DialogStateImpl(scope, resources) }
+    val state = remember { DialogStateImpl(scope) }
 
     if (state.visible) {
         state.props?.let { props ->
             WeDialog(
                 title = props.title,
                 content = props.content,
-                okText = props.okText,
-                cancelText = props.cancelText,
+                okText = stringResource(props.okText),
+                cancelText = stringResource(props.cancelText),
                 okColor = props.okColor,
                 onOk = {
                     props.onOk?.invoke()
@@ -220,8 +219,7 @@ fun rememberDialogState(): DialogState {
 }
 
 private class DialogStateImpl(
-    private val scope: CoroutineScope,
-    private val resources: Resources
+    private val scope: CoroutineScope
 ) : DialogState {
     override var visible by mutableStateOf(false)
     var props by mutableStateOf<DialogProps?>(null)
@@ -230,8 +228,8 @@ private class DialogStateImpl(
     override fun show(
         title: String,
         content: String?,
-        okText: Int,
-        cancelText: Int,
+        @StringRes okText: Int,
+        @StringRes cancelText: Int,
         okColor: Color,
         closeOnAction: Boolean,
         onCancel: (() -> Unit)?,
@@ -240,8 +238,8 @@ private class DialogStateImpl(
         props = DialogProps(
             title,
             content,
-            resources.getString(okText),
-            resources.getString(cancelText),
+            okText,
+            cancelText,
             okColor,
             closeOnAction,
             onCancel,
@@ -258,11 +256,12 @@ private class DialogStateImpl(
     }
 }
 
+@Immutable
 private data class DialogProps(
     val title: String,
     val content: String?,
-    val okText: String,
-    val cancelText: String,
+    @get:StringRes val okText: Int,
+    @get:StringRes val cancelText: Int,
     val okColor: Color,
     val closeOnAction: Boolean,
     val onCancel: (() -> Unit)?,

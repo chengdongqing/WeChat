@@ -9,4 +9,80 @@
     <string name="chat_hide_hint_title">不显示聊天后，聊天记录将不会被删除</string>
     <string name="chat_hide_hint_content">进入聊天详情，可以找回聊天。</string>
     <string name="chat_delete_hint">删除后，将清空记录同时不显示聊天</string>
+
+    <string name="chat_action_album">照片</string>
+    <string name="chat_action_camera">拍摄</string>
+    <string name="chat_action_video_call">视频通话</string>
+    <string name="chat_action_location">位置</string>
+    <string name="chat_action_transfer">转账</string>
+    <string name="chat_action_favorite">收藏</string>
+    <string name="chat_action_voice">语音输入</string>
+    <string name="chat_action_card">个人名片</string>
+    <string name="chat_action_file">文件</string>
+    <string name="chat_action_app">应用程序</string>
+    <string name="chat_action_music">音乐</string>
+
+    <string name="chat_camera_photo">拍摄照片</string>
+    <string name="chat_camera_video">拍摄视频</string>
+    <string name="chat_camera_title">调用系统相机</string>
+    <string name="chat_call_video">视频通话</string>
+    <string name="chat_call_voice">语音通话</string>
+    <string name="chat_location_send">发送位置</string>
+    <string name="chat_location_share">共享实时位置</string>
+    <string name="chat_file_transfer">文件传输助手</string>
+
+    <string name="sticker_title">表情</string>
+    <string name="sticker_custom_title">动图</string>
+    <string name="sticker_recent">最近使用</string>
+    <string name="sticker_all">所有表情</string>
+    <string name="sticker_backspace">退格</string>
+
+    <string name="voice_hold_to_talk">按住 说话</string>
+    <string name="voice_release_to_send">松开 发送</string>
+    <string name="voice_release_to_convert">松开 转文字</string>
+    <string name="voice_release_to_cancel">松开 取消发送</string>
+    <string name="voice_too_short">说话时间太短</string>
+    <string name="voice_action_cancel">取 消</string>
+    <string name="voice_action_text">文 字</string>
+
+    <string name="chat_status_online">在线</string>
+    <string name="chat_status_offline">离线</string>
+    <string name="chat_selected_count">已选择%d条消息</string>
+    <string name="chat_select_mode">选择消息</string>
+    <string name="chat_muted_desc">免打扰</string>
+    <string name="chat_earpiece_desc">通过听筒播放语音</string>
+    <string name="chat_encrypted_desc">已加密</string>
+
+    <string name="message_action_copy">复制</string>
+    <string name="message_action_delete">删除</string>
+    <string name="message_action_forward">转发</string>
+    <string name="message_action_favorite">收藏</string>
+    <string name="message_action_remind">提醒</string>
+    <string name="message_action_recall">撤回</string>
+    <string name="message_action_multi_select">多选</string>
+    <string name="message_action_speaker">扬声器</string>
+    <string name="message_action_earpiece">听筒</string>
+    <string name="message_action_quote">引用</string>
+    <string name="message_action_download">保存</string>
+
+    <string name="chat_info">聊天信息</string>
+    <string name="chat_info_search">查找聊天记录</string>
+    <string name="chat_info_mute">消息免打扰</string>
+    <string name="chat_info_pin">置顶聊天</string>
+    <string name="chat_info_remind">提醒</string>
+    <string name="chat_info_clear_background">清除当前背景</string>
+    <string name="chat_info_background_setting">设置当前聊天背景</string>
+    <string name="chat_info_background_clear_title">确定清除当前聊天背景吗？</string>
+    <string name="chat_info_clear">清空聊天记录</string>
+    <string name="chat_info_clear_title">确定删除和%s的聊天记录吗？</string>
+    <string name="chat_info_complaint">投诉</string>
+
+    <string name="msg_confirm_delete">确认删除？</string>
+    <string name="msg_confirm_save">确认保存？</string>
+    <string name="msg_confirm_forward">确定转发给选定的%d位联系人吗？</string>
+    <string name="msg_empty_message_title">提示</string>
+    <string name="msg_empty_message_content">不能发送空白消息</string>
+
+    <string name="contact_delete_title">即将删除联系人\"%s\"</string>
+    <string name="contact_delete_content">删除后对方不会收到通知</string>
 </resources>

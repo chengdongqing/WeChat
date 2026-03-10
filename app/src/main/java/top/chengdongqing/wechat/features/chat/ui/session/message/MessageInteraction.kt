@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextRange
 import top.chengdongqing.wechat.R
@@ -36,19 +37,19 @@ data class ChatSessionUiState(
  */
 enum class MessageAction(
     @get:DrawableRes val icon: Int,
-    val label: String
+    @get:StringRes val labelRes: Int
 ) {
-    Copy(R.drawable.ic_copy_filled, "复制"),
-    Delete(R.drawable.ic_delete_filled, "删除"),
-    Forward(R.drawable.ic_forward_filled, "转发"),
-    Favorite(R.drawable.ic_favorites_filled, "收藏"),
-    Remind(R.drawable.ic_bell_filled, "提醒"),
-    Recall(R.drawable.ic_recall_outlined, "撤回"),
-    MultiSelect(R.drawable.ic_multi_select_outlined, "多选"),
-    SpeakerMode(R.drawable.ic_speaker_filled, "扬声器"),
-    EarpieceMode(R.drawable.ic_ear_filled, "听筒"),
-    Quote(R.drawable.ic_quote_filled, "引用"),
-    Download(R.drawable.ic_download_filled, "保存")
+    Copy(R.drawable.ic_copy_filled, R.string.message_action_copy),
+    Delete(R.drawable.ic_delete_filled, R.string.message_action_delete),
+    Forward(R.drawable.ic_forward_filled, R.string.message_action_forward),
+    Favorite(R.drawable.ic_favorites_filled, R.string.message_action_favorite),
+    Remind(R.drawable.ic_bell_filled, R.string.message_action_remind),
+    Recall(R.drawable.ic_recall_outlined, R.string.message_action_recall),
+    MultiSelect(R.drawable.ic_multi_select_outlined, R.string.message_action_multi_select),
+    SpeakerMode(R.drawable.ic_speaker_filled, R.string.message_action_speaker),
+    EarpieceMode(R.drawable.ic_ear_filled, R.string.message_action_earpiece),
+    Quote(R.drawable.ic_quote_filled, R.string.message_action_quote),
+    Download(R.drawable.ic_download_filled, R.string.message_action_download)
 }
 
 /**
@@ -56,12 +57,12 @@ enum class MessageAction(
  */
 enum class MultiMessageAction(
     @get:DrawableRes val icon: Int,
-    val label: String
+    @get:StringRes val labelRes: Int
 ) {
-    Forward(R.drawable.ic_forward_outlined, "转发"),
-    Favorite(R.drawable.ic_favorites_outlined, "收藏"),
-    Delete(R.drawable.ic_delete_outlined, "删除"),
-    Download(R.drawable.ic_download_outlined, "保存"),
+    Forward(R.drawable.ic_forward_outlined, R.string.message_action_forward),
+    Favorite(R.drawable.ic_favorites_outlined, R.string.message_action_favorite),
+    Delete(R.drawable.ic_delete_outlined, R.string.message_action_delete),
+    Download(R.drawable.ic_download_outlined, R.string.message_action_download)
 }
 
 /**

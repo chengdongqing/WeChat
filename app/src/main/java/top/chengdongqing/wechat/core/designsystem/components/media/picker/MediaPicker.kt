@@ -30,9 +30,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
@@ -81,9 +83,9 @@ private fun TopBar(
     val actionSheet = rememberActionSheetState()
     val typeOptions = remember {
         listOf(
-            ActionSheetItem("选择图片", value = VisualMediaType.Image),
-            ActionSheetItem("选择视频", value = VisualMediaType.Video),
-            ActionSheetItem("图片和视频", value = VisualMediaType.ImageAndVideo)
+            ActionSheetItem(R.string.media_select_image, value = VisualMediaType.Image),
+            ActionSheetItem(R.string.media_select_video, value = VisualMediaType.Video),
+            ActionSheetItem(R.string.media_select_all, value = VisualMediaType.ImageAndVideo)
         )
     }
 
@@ -121,7 +123,7 @@ private fun TopBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = typeOptions.find { it.value == state.type }?.label!!,
+                text = stringResource(typeOptions.find { it.value == state.type }?.labelRes!!),
                 color = WeTheme.colorScheme.textPrimary,
                 fontSize = 16.sp
             )
@@ -129,7 +131,7 @@ private fun TopBar(
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     imageVector = Icons.Filled.ArrowDropDownCircle,
-                    contentDescription = "更多",
+                    contentDescription = stringResource(R.string.action_more),
                     tint = Color.LightGray,
                     modifier = Modifier.size(20.dp)
                 )
@@ -155,7 +157,7 @@ private fun BottomBar(state: MediaPickerState, onConfirm: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
-            text = "预览$countDescription",
+            text = "${stringResource(R.string.action_preview)}$countDescription",
             color = WeTheme.colorScheme.textPrimary,
             fontSize = 16.sp,
             modifier = Modifier
@@ -165,7 +167,7 @@ private fun BottomBar(state: MediaPickerState, onConfirm: () -> Unit) {
                 }
         )
         WeButton(
-            text = "确定$countDescription",
+            text = "${stringResource(R.string.action_ok)}$countDescription",
             size = ButtonSize.Small,
             enabled = selectedCount > 0
         ) {

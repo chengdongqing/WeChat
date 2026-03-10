@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -28,6 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
@@ -90,23 +94,23 @@ private fun MorePanelGrid(
     items: List<MoreAction>,
     onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
 ) {
-    FlowRow(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(4),
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 12.dp, vertical = 6.dp),
-        maxItemsInEachRow = 4,
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalArrangement = Arrangement.spacedBy(36.dp)
+        verticalArrangement = Arrangement.spacedBy(36.dp),
+        userScrollEnabled = false
     ) {
-        items.forEach { item ->
-            MorePanelItem(
-                item = item,
-                onClick = { onAction(item, false) },
-                onLongClick = { onAction(item, true) }
-            )
-        }
-        if (items.size < ChunkCount) {
-            repeat(ChunkCount - items.size) {
+        items(ChunkCount) { index ->
+            val item = items.getOrNull(index)
+            if (item != null) {
+                MorePanelItem(
+                    item = item,
+                    onClick = { onAction(item, false) },
+                    onLongClick = { onAction(item, true) }
+                )
+            } else {
                 Spacer(modifier = Modifier.size(52.dp))
             }
         }
@@ -119,7 +123,10 @@ private fun MorePanelItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Box(
             modifier = Modifier
                 .size(52.dp)
@@ -138,12 +145,14 @@ private fun MorePanelItem(
                 tint = WeTheme.colorScheme.textPrimary
             )
         }
-
         Text(
-            text = item.label,
+            text = stringResource(item.labelRes),
             modifier = Modifier.padding(top = 4.dp),
             fontSize = 12.sp,
-            color = WeTheme.colorScheme.textSecondary
+            color = WeTheme.colorScheme.textSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
         )
     }
 }

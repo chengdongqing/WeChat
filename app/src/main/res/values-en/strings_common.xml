@@ -6,6 +6,8 @@
     <string name="action_done">Done</string>
     <string name="action_back">Back</string>
     <string name="action_clear">Clear</string>
+    <string name="action_preview">Preview</string>
+    <string name="action_more">More</string>
     <string name="action_got_it">Got It</string>
     <string name="action_select_from_gallery">Select from Gallery</string>
     <string name="action_take_photo">Take a Photo</string>
@@ -15,4 +17,22 @@
     <string name="msg_processing">Processing…</string>
     <string name="msg_save_success">Save Successes</string>
     <string name="msg_save_failed">Save Failed</string>
+
+    <string name="map_amap">Amap</string>
+    <string name="map_baidu">Baidu Maps</string>
+    <string name="map_tencent">Tencent Maps</string>
+    <string name="map_google">Google Maps</string>
+
+    <string name="media_select_image">Select Photo</string>
+    <string name="media_select_video">Select Video</string>
+    <string name="media_select_all">Photos &amp; Videos</string>
+
+    <string name="time_yesterday">Yesterday</string>
+    <string name="time_monday">Mon</string>
+    <string name="time_tuesday">Tue</string>
+    <string name="time_wednesday">Wed</string>
+    <string name="time_thursday">Thu</string>
+    <string name="time_friday">Fri</string>
+    <string name="time_saturday">Sat</string>
+    <string name="time_sunday">Sun</string>
 </resources>

@@ -114,10 +114,10 @@ private fun BottomBar(location: LocationPreviewInfo) {
     val actionSheet = rememberActionSheetState()
     val mapOptions = remember {
         listOf(
-            ActionSheetItem("高德地图"),
-            ActionSheetItem("百度地图"),
-            ActionSheetItem("腾讯地图"),
-            ActionSheetItem("谷歌地图"),
+            ActionSheetItem(R.string.map_amap),
+            ActionSheetItem(R.string.map_baidu),
+            ActionSheetItem(R.string.map_tencent),
+            ActionSheetItem(R.string.map_google),
         )
     }
 

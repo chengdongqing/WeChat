@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import top.chengdongqing.wechat.R
@@ -102,16 +104,20 @@ fun ContactSettingScreen(
 @Composable
 private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
     val dialog = rememberDialogState()
+    val resources = LocalResources.current
 
     val showDialog = {
         dialog.show(
-            title = "即将删除联系人“${contact.displayName}”",
-            content = "删除后对方不会收到通知",
+            title = resources.getString(R.string.contact_delete_title, contact.displayName),
+            content = resources.getString(R.string.contact_delete_content),
             okColor = Danger,
             okText = R.string.action_delete,
             onOk = onDelete
         )
     }
 
-    WeDangerButton(label = "删除", onClick = showDialog)
+    WeDangerButton(
+        label = stringResource(R.string.action_delete),
+        onClick = showDialog
+    )
 }

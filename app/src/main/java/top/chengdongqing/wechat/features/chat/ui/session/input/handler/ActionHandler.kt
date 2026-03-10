@@ -6,7 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
@@ -66,12 +68,13 @@ fun rememberActionHandler(
     onSelectMusic: () -> Unit
 ): ActionHandler {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val actionSheet = rememberActionSheetState()
     val chatContext = LocalChatSessionContext.current
     val isSelf = chatContext?.isSelf.isTrue()
 
-    // 动态生成位置选项根据
+    // 动态生成位置选项
     val locationOptions = remember(isSelf) {
         if (isSelf) listOf(LocationOptions[0]) else LocationOptions
     }
@@ -120,7 +123,7 @@ fun rememberActionHandler(
                     // 长按：显示系统相机选项
                     actionSheet.show(
                         options = CameraOptions,
-                        title = "调用系统相机"
+                        title = R.string.chat_camera_title
                     ) { index ->
                         when (index) {
                             0 -> launchSystemCamera(false)
@@ -143,7 +146,7 @@ fun rememberActionHandler(
                 actionSheet.show(locationOptions) { index ->
                     when (index) {
                         0 -> locationLauncher.pickLocation()
-                        1 -> {} // TODO: 实时位置
+                        1 -> {}
                     }
                 }
             },
@@ -153,23 +156,27 @@ fun rememberActionHandler(
             onCard = {
                 val content = MessageContent.ContactCard(
                     userId = randomUUID(),
-                    name = "文件传输助手",
+                    name = resources.getString(R.string.chat_file_transfer),
                     avatar = ""
                 )
                 onSendMessage(content)
             },
-            onFavorite = { /* TODO */ },
-            onVoiceInput = { /* TODO */ }
+            onFavorite = {},
+            onVoiceInput = {}
         )
     }
 }
 
-private val CameraOptions = listOf(
-    ActionSheetItem("拍摄照片"),
-    ActionSheetItem("拍摄视频")
-)
+private val CameraOptions by lazy {
+    listOf(
+        ActionSheetItem(R.string.chat_camera_photo),
+        ActionSheetItem(R.string.chat_camera_video)
+    )
+}
 
-val LocationOptions = listOf(
-    ActionSheetItem("发送位置"),
-    ActionSheetItem("共享实时位置")
-)
+private val LocationOptions by lazy {
+    listOf(
+        ActionSheetItem(R.string.chat_location_send),
+        ActionSheetItem(R.string.chat_location_share)
+    )
+}

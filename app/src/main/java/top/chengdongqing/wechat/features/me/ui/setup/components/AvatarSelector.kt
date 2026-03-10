@@ -58,7 +58,12 @@ fun AvatarSelector(
     val selectorState = rememberAvatarSelectorState(onAvatarChange)
     val scope = rememberCoroutineScope()
     val actionSheet = rememberActionSheetState()
-    val options = remember { listOf(ActionSheetItem("拍照"), ActionSheetItem("从相册选择")) }
+    val options = remember {
+        listOf(
+            ActionSheetItem(R.string.action_take_photo),
+            ActionSheetItem(R.string.action_select_from_gallery)
+        )
+    }
 
     val handleShowMenu = {
         if (enabled) {

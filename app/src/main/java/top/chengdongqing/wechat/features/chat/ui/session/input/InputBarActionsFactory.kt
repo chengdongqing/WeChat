@@ -5,9 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
@@ -34,6 +36,7 @@ fun rememberInputBarActions(
     onLaunchCall: (CallType) -> Unit
 ): InputBarActions {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val state by controller.state.collectAsStateWithLifecycle()
     val dialog = rememberDialogState()
@@ -73,7 +76,11 @@ fun rememberInputBarActions(
                     onSendMessage(MessageContent.Text(state.inputText))
                     controller.clearInput()
                 } else {
-                    dialog.show("提示", "不能发送空白消息", onCancel = null)
+                    dialog.show(
+                        title = resources.getString(R.string.msg_empty_message_title),
+                        content = resources.getString(R.string.msg_empty_message_content),
+                        onCancel = null
+                    )
                 }
             },
             onInsertEmoji = controller::insertEmoji,

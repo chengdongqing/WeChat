@@ -92,7 +92,7 @@ private fun HomeTopBar(
                     anchorSize = layoutCoordinates.size
                 },
                 icon = R.drawable.ic_plus_circle_outlined,
-                description = "更多"
+                description = stringResource(R.string.action_more)
             ) {
                 menuExpanded = true
             }

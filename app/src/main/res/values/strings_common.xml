@@ -6,13 +6,33 @@
     <string name="action_done">完成</string>
     <string name="action_back">返回</string>
     <string name="action_clear">清空</string>
+    <string name="action_preview">预览</string>
+    <string name="action_more">更多</string>
     <string name="action_got_it">我知道了</string>
     <string name="action_select_from_gallery">从相册选择</string>
-    <string name="action_take_photo">拍摄新照片</string>
+    <string name="action_take_photo">拍照</string>
     <string name="action_save_to_phone">保存到本地</string>
 
     <string name="msg_network_unavailable">当前无法连接网络，可检查网络设置是否正常。</string>
     <string name="msg_processing">处理中…</string>
     <string name="msg_save_success">保存成功</string>
     <string name="msg_save_failed">保存失败</string>
+
+    <string name="map_amap">高德地图</string>
+    <string name="map_baidu">百度地图</string>
+    <string name="map_tencent">腾讯地图</string>
+    <string name="map_google">谷歌地图</string>
+
+    <string name="media_select_image">选择图片</string>
+    <string name="media_select_video">选择视频</string>
+    <string name="media_select_all">图片和视频</string>
+
+    <string name="time_yesterday">昨天</string>
+    <string name="time_monday">周一</string>
+    <string name="time_tuesday">周二</string>
+    <string name="time_wednesday">周三</string>
+    <string name="time_thursday">周四</string>
+    <string name="time_friday">周五</string>
+    <string name="time_saturday">周六</string>
+    <string name="time_sunday">周日</string>
 </resources>

@@ -13,11 +13,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
@@ -31,13 +34,20 @@ fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Uni
     val scope = rememberCoroutineScope()
     val dialog = rememberDialogState()
     val actionSheet = rememberActionSheetState()
+    val resources = LocalResources.current
+
     val options = remember(background) {
         val list = mutableListOf(
-            ActionSheetItem("拍一张"),
-            ActionSheetItem("从相册选择")
+            ActionSheetItem(R.string.action_take_photo),
+            ActionSheetItem(R.string.action_select_from_gallery)
         )
         if (background != null) {
-            list.add(ActionSheetItem(label = "清除当前背景", color = Danger))
+            list.add(
+                ActionSheetItem(
+                    labelRes = R.string.chat_info_clear_background,
+                    color = Danger
+                )
+            )
         }
         list
     }
@@ -48,15 +58,19 @@ fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Uni
                 0 -> scope.launch { selectorState.handleCameraAction() }
                 1 -> selectorState.pickVisualMedia()
                 2 -> {
-                    dialog.show("确定清除当前聊天背景吗？", onOk = {
+                    dialog.show(resources.getString(R.string.chat_info_background_clear_title)) {
                         onBackgroundChange(null)
-                    })
+                    }
                 }
             }
         }
     }
 
-    WeSettingItem("设置当前聊天背景", showDivider = false, onClick = handleShowMenu)
+    WeSettingItem(
+        label = stringResource(R.string.chat_info_background_setting),
+        showDivider = false,
+        onClick = handleShowMenu
+    )
 }
 
 @OptIn(ExperimentalPermissionsApi::class)

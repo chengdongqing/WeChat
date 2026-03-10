@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.core.designsystem.components.actionsheet
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,15 +26,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 data class ActionSheetItem(
-    val label: String,
-    val description: String? = null,
+    @get:StringRes val labelRes: Int,
+    @get:StringRes val descriptionRes: Int? = null,
     val color: Color? = null,
     val disabled: Boolean = false,
     val value: Any? = null,
@@ -105,14 +109,14 @@ fun WeActionSheet(
                             Spacer(modifier = Modifier.width(10.dp))
                         }
                         Text(
-                            text = item.label,
+                            text = stringResource(item.labelRes),
                             color = item.color ?: WeTheme.colorScheme.textPrimary,
                             fontSize = 16.sp
                         )
                     }
-                    item.description?.let {
+                    item.descriptionRes?.let {
                         Text(
-                            text = it,
+                            text = stringResource(it),
                             color = WeTheme.colorScheme.textSecondary,
                             fontSize = 12.sp
                         )
@@ -138,7 +142,7 @@ fun WeActionSheet(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "取消",
+                    text = stringResource(R.string.action_cancel),
                     color = WeTheme.colorScheme.textPrimary,
                     fontSize = 16.sp
                 )
@@ -159,7 +163,7 @@ interface ActionSheetState {
      */
     fun show(
         options: List<ActionSheetItem>,
-        title: String? = null,
+        @StringRes title: Int? = null,
         onChange: (index: Int) -> Unit
     )
 
@@ -176,7 +180,7 @@ fun rememberActionSheetState(): ActionSheetState {
     state.props?.let { props ->
         WeActionSheet(
             visible = state.visible,
-            title = props.title,
+            title = props.title?.let { stringResource(it) },
             options = props.options,
             onCancel = { state.hide() },
             onTap = props.onChange
@@ -193,7 +197,7 @@ private class ActionSheetStateImpl : ActionSheetState {
 
     override fun show(
         options: List<ActionSheetItem>,
-        title: String?,
+        @StringRes title: Int?,
         onChange: (index: Int) -> Unit
     ) {
         props = ActionSheetProps(options, title, onChange)
@@ -205,8 +209,9 @@ private class ActionSheetStateImpl : ActionSheetState {
     }
 }
 
+@Immutable
 private data class ActionSheetProps(
     val options: List<ActionSheetItem>,
-    val title: String? = null,
+    @get:StringRes val title: Int? = null,
     val onChange: (index: Int) -> Unit
 )

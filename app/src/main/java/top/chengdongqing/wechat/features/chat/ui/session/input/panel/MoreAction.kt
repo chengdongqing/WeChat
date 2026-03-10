@@ -1,24 +1,25 @@
 package top.chengdongqing.wechat.features.chat.ui.session.input.panel
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import top.chengdongqing.wechat.R
 
 /**
  * 更多操作枚举
  */
 enum class MoreAction(
-    val label: String,
+    @get:StringRes val labelRes: Int,
     @get:DrawableRes val icon: Int
 ) {
-    Album("照片", R.drawable.ic_album_filled),
-    Camera("拍摄", R.drawable.ic_camera_filled),
-    VideoCall("视频通话", R.drawable.ic_video_filled),
-    Location("位置", R.drawable.ic_location_filled),
-    Transfer("转账", R.drawable.ic_transfer_filled),
-    Favorite("收藏", R.drawable.ic_favorites_filled),
-    Voice("语音输入", R.drawable.ic_mic2_filled),
-    Card("个人名片", R.drawable.ic_person_filled),
-    File("文件", R.drawable.ic_folder_filled),
-    App("应用程序", R.drawable.ic_apk_filled),
-    Music("音乐", R.drawable.ic_music_filled);
+    Album(R.string.chat_action_album, R.drawable.ic_album_filled),
+    Camera(R.string.chat_action_camera, R.drawable.ic_camera_filled),
+    VideoCall(R.string.chat_action_video_call, R.drawable.ic_video_filled),
+    Location(R.string.chat_action_location, R.drawable.ic_location_filled),
+    Transfer(R.string.chat_action_transfer, R.drawable.ic_transfer_filled),
+    Favorite(R.string.chat_action_favorite, R.drawable.ic_favorites_filled),
+    Voice(R.string.chat_action_voice, R.drawable.ic_mic2_filled),
+    Card(R.string.chat_action_card, R.drawable.ic_person_filled),
+    File(R.string.chat_action_file, R.drawable.ic_folder_filled),
+    App(R.string.chat_action_app, R.drawable.ic_apk_filled),
+    Music(R.string.chat_action_music, R.drawable.ic_music_filled);
 }

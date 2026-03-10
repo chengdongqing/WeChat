@@ -22,7 +22,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,11 +53,15 @@ fun ChatInfoScreen(
     }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val resources = LocalResources.current
     val dialog = rememberDialogState()
 
     Scaffold(
         topBar = {
-            WeTopBar(title = "聊天信息", onBack = onBack)
+            WeTopBar(
+                title = stringResource(R.string.chat_info),
+                onBack = onBack
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -72,19 +78,32 @@ fun ChatInfoScreen(
                 onNavigateToContact = { onNavigateToContact(chatId) }
             )
 
-            WeSettingItem("查找聊天记录", showDivider = false)
+            WeSettingItem(
+                label = stringResource(R.string.chat_info_search),
+                showDivider = false
+            )
             WeSettingGroup {
-                WeSettingItem(label = "消息免打扰", showArrow = false) {
+                WeSettingItem(
+                    label = stringResource(R.string.chat_info_mute),
+                    showArrow = false
+                ) {
                     WeSwitch(checked = uiState.isMuted) {
                         viewModel.toggleMuted()
                     }
                 }
-                WeSettingItem(label = "置顶聊天", showArrow = false) {
+                WeSettingItem(
+                    label = stringResource(R.string.chat_info_pin),
+                    showArrow = false
+                ) {
                     WeSwitch(checked = uiState.isPinned) {
                         viewModel.togglePinned()
                     }
                 }
-                WeSettingItem(label = "提醒", showArrow = false, showDivider = false) {
+                WeSettingItem(
+                    label = stringResource(R.string.chat_info_remind),
+                    showArrow = false,
+                    showDivider = false
+                ) {
                     WeSwitch()
                 }
             }
@@ -92,18 +111,24 @@ fun ChatInfoScreen(
                 viewModel.updateBackground(it)
             }
             WeSettingItem(
-                label = "清空聊天记录",
+                label = stringResource(R.string.chat_info_clear),
                 showDivider = false,
                 onClick = {
                     dialog.show(
-                        title = "确定删除和${uiState.contactName}的聊天记录吗？",
+                        title = resources.getString(
+                            R.string.chat_info_clear_title,
+                            uiState.contactName
+                        ),
                         okText = R.string.action_clear,
                         okColor = Danger,
                         onOk = { viewModel.clearMessages() }
                     )
                 }
             )
-            WeSettingItem("投诉", showDivider = false)
+            WeSettingItem(
+                label = stringResource(R.string.chat_info_complaint),
+                showDivider = false
+            )
             Spacer(modifier = Modifier.height(100.dp))
         }
     }

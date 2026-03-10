@@ -37,6 +37,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -256,14 +257,14 @@ private fun ActionButton(
     ) {
         Icon(
             painter = painterResource(action.icon),
-            contentDescription = action.label,
+            contentDescription = stringResource(action.labelRes),
             tint = Color.White,
             modifier = Modifier
                 .size(24.dp)
                 .padding(bottom = 4.dp)
         )
         Text(
-            text = action.label,
+            text = stringResource(action.labelRes),
             color = Color.White,
             fontSize = 11.sp
         )
