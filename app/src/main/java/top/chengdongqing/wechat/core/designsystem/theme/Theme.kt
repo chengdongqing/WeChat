@@ -21,6 +21,7 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.core.view.WindowCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.features.settings.domain.model.AppLanguage
 import top.chengdongqing.wechat.features.settings.domain.model.AppTheme
 import top.chengdongqing.wechat.features.settings.ui.display.DisplaySettingsViewModel
@@ -104,6 +105,7 @@ fun WeTheme(
         }
     }
 
+    // 沉浸式状态栏兼容低版本
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
         val view = LocalView.current
         if (!view.isInEditMode) {
@@ -117,6 +119,9 @@ fun WeTheme(
             }
         }
     }
+
+    // 设置状态栏文字颜色
+    StatusBarAppearanceEffect(isDark = !isDarkTheme)
 
     MaterialTheme {
         CompositionLocalProvider(

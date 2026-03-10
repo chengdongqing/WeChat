@@ -19,7 +19,7 @@
     <string name="action_send">Send</string>
     <string name="action_search">Search</string>
 
-    <string name="msg_network_unavailable">No network connection. Please check your network settings.</string>
+    <string name="msg_network_unavailable">Network unavailable. Check the network settings.</string>
     <string name="msg_processing">Processing…</string>
     <string name="msg_save_success">Save Successes</string>
     <string name="msg_save_failed">Save Failed</string>

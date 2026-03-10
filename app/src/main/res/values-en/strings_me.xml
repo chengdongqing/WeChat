@@ -1,8 +1,8 @@
 <resources>
-    <string name="me_menu_service">Services</string>
+    <string name="me_menu_service">Pay and Services</string>
     <string name="me_menu_favorites">Favorites</string>
-    <string name="me_menu_moments">Moments</string>
-    <string name="me_menu_stickers">Stickers</string>
+    <string name="me_menu_moments">My Posts</string>
+    <string name="me_menu_stickers">Sticker Gallery</string>
     <string name="me_menu_settings">Settings</string>
 
     <string name="me_id">ID</string>

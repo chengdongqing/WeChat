@@ -54,7 +54,7 @@ fun ChatListScreen(
         if (!isWifiConnected) {
             WeInformationBar(
                 type = InformationBarType.TipsWeak,
-                message = "当前无法连接网络，可检查网络设置是否正常。",
+                message = stringResource(R.string.msg_network_unavailable),
                 shape = RectangleShape
             )
             WeDivider()

@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -89,7 +90,13 @@ fun WeInformationBar(
                 tint = colors.iconColor
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(text = message, fontSize = 14.sp, color = colors.textColor)
+            Text(
+                text = message,
+                fontSize = 14.sp,
+                color = colors.textColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
             Spacer(modifier = Modifier.weight(1f))
             linkText?.let {
                 Text(
