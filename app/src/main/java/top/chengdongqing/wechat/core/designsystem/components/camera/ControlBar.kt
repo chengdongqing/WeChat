@@ -47,11 +47,14 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import kotlin.math.abs
@@ -83,7 +86,7 @@ internal fun BoxScope.ControlBar(state: CameraState) {
             ) {
                 Icon(
                     imageVector = if (state.isFlashOn) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
-                    contentDescription = "开关闪光灯",
+                    contentDescription = stringResource(R.string.camera_flash_toggle),
                     tint = Color.White
                 )
             }
@@ -93,7 +96,7 @@ internal fun BoxScope.ControlBar(state: CameraState) {
             ) {
                 Icon(
                     Icons.Filled.FlipCameraAndroid,
-                    contentDescription = "切换相机",
+                    contentDescription = stringResource(R.string.camera_switch),
                     tint = Color.White
                 )
             }
@@ -190,15 +193,16 @@ fun ZoomControlBar(state: CameraState) {
 
 @Composable
 fun TipText(state: CameraState) {
+    val resources = LocalResources.current
     val tips = remember {
         buildList {
             if (state.type == VisualMediaType.ImageAndVideo || state.type == VisualMediaType.Image) {
-                add("轻触拍照")
+                add(resources.getString(R.string.camera_tip_photo))
             }
             if (state.type == VisualMediaType.ImageAndVideo || state.type == VisualMediaType.Video) {
-                add("长按摄像")
+                add(resources.getString(R.string.camera_tip_video))
             }
-        }.joinToString("，")
+        }.joinToString(resources.getString(R.string.separator))
     }
 
     Text(

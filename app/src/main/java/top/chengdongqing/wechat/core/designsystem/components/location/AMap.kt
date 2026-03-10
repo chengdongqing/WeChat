@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
@@ -117,7 +118,7 @@ fun BoxScope.LocationControl(map: AMap, onClick: ((LatLng) -> Unit)? = null) {
     ) {
         Icon(
             imageVector = Icons.Outlined.MyLocation,
-            contentDescription = "当前位置",
+            contentDescription = stringResource(R.string.location_current),
             tint = WeTheme.colorScheme.textPrimary,
             modifier = Modifier.size(26.dp)
         )

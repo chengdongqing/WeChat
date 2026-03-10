@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.core.designsystem.components.location.picker.locationlist
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,13 +18,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.amap.api.maps.CameraUpdateFactory
@@ -34,11 +34,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
 import top.chengdongqing.wechat.core.designsystem.components.location.picker.LocationPickerState
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.LaunchedUpdateEffect
+import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
 
 @Composable
@@ -101,9 +103,15 @@ fun SearchPanel(state: LocationPickerState) {
 
 @Composable
 private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
-    val options = remember { listOf("附近", "不限") }
-    var itemWidth by remember { mutableStateOf(0.dp) }
+    val resources = LocalResources.current
+    val options = remember {
+        listOf(
+            resources.getString(R.string.location_tab_nearby),
+            resources.getString(R.string.location_tab_all)
+        )
+    }
     val density = LocalDensity.current
+    val itemWidths = remember { mutableStateListOf(*Array(options.size) { 0.dp }) }
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -111,30 +119,40 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
                 val active = index == type
                 Text(
                     text = item,
-                    color = if (active) {
-                        WeTheme.colorScheme.primary
-                    } else {
-                        WeTheme.colorScheme.textPrimary
-                    },
+                    color = if (active) WeTheme.colorScheme.primary
+                    else WeTheme.colorScheme.textPrimary,
                     modifier = Modifier
                         .onSizeChanged {
-                            itemWidth = with(density) { it.width.toDp() }
+                            itemWidths[index] = with(density) { it.width.toDp() }
                         }
-                        .clickable {
-                            onChange(index)
-                        }
+                        .weClickable { onChange(index) }
                         .padding(vertical = 3.dp)
                 )
             }
         }
 
+        val targetOffsetX = remember(type, itemWidths.toList()) {
+            var offset = 0.dp
+            for (i in 0 until type) {
+                offset += itemWidths[i] + 16.dp
+            }
+            offset
+        }
+
         val animatedOffsetX by animateDpAsState(
-            (type * itemWidth.value + type * 16).dp,
-            label = ""
+            targetValue = targetOffsetX,
+            label = "TabIndicator"
         )
+
+        val indicatorWidth = itemWidths.getOrElse(type) { 0.dp }
+        val animatedWidth by animateDpAsState(
+            targetValue = indicatorWidth,
+            label = "TabIndicatorWidth"
+        )
+
         HorizontalDivider(
             modifier = Modifier
-                .width(itemWidth)
+                .width(animatedWidth)
                 .offset(x = animatedOffsetX),
             thickness = 2.dp,
             color = WeTheme.colorScheme.primary

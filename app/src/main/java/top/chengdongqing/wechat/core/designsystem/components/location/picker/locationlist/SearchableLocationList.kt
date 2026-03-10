@@ -26,8 +26,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.amap.api.maps.CameraUpdateFactory
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.location.picker.LocationPickerState
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -121,7 +123,7 @@ private fun SearchInput(state: LocationPickerState) {
     WeSearchBar(
         value = "",
         modifier = Modifier.padding(16.dp),
-        placeholder = "搜索地点",
+        placeholder = stringResource(R.string.location_search_placeholder),
         disabled = true,
         onClick = {
             state.isSearchMode = true

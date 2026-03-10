@@ -31,6 +31,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -44,7 +45,7 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 fun WeSearchBar(
     value: String,
     modifier: Modifier = Modifier,
-    placeholder: String = "搜索",
+    placeholder: String = stringResource(R.string.action_search),
     disabled: Boolean = false,
     backgroundColor: Color = WeTheme.colorScheme.background,
     focused: Boolean? = null,
@@ -108,7 +109,7 @@ fun WeSearchBar(
         }
         if (isFocused) {
             Text(
-                text = "取消",
+                text = stringResource(R.string.action_cancel),
                 color = LinkColor,
                 fontSize = 16.sp,
                 modifier = Modifier

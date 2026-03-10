@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.amap.api.maps.model.BitmapDescriptor
@@ -167,13 +168,13 @@ private fun TopBar(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
-            text = "取消",
+            text = stringResource(R.string.action_cancel),
             color = Color.White,
             fontSize = 16.sp,
             modifier = Modifier.weClickable { onCancel() }
         )
         WeButton(
-            text = "确定",
+            text = stringResource(R.string.action_done),
             size = ButtonSize.Small,
             enabled = hasSelected,
             loading = isLoading,

@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -229,10 +230,13 @@ private fun TopBar(
     val isEnabled = uiState.selectedCount > 0
     val buttonText = run {
         val suffix = if (isEnabled) "(${uiState.selectedCount})" else ""
-        "完成$suffix"
+        "${stringResource(R.string.action_done)}$suffix"
     }
 
-    WeTopBar(title = "选择应用程序", onBack = onBack) {
+    WeTopBar(
+        title = stringResource(R.string.app_select_title),
+        onBack = onBack
+    ) {
         WeButton(
             text = buttonText,
             size = ButtonSize.Small,

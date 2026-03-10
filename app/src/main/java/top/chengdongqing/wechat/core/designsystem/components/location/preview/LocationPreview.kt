@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,7 +99,7 @@ private fun TopBar(onBack: () -> Unit) {
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_back_circle_filled),
-            contentDescription = "返回",
+            contentDescription = stringResource(R.string.action_back),
             modifier = Modifier
                 .offset(x = 14.dp, y = 16.dp)
                 .size(26.dp)
@@ -172,7 +173,11 @@ private fun BottomBar(location: LocationPreviewInfo) {
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "导航", color = WeTheme.colorScheme.textSecondary, fontSize = 14.sp)
+            Text(
+                text = stringResource(R.string.location_navigate),
+                color = WeTheme.colorScheme.textSecondary,
+                fontSize = 14.sp
+            )
         }
     }
 }

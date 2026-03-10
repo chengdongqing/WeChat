@@ -23,8 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -44,7 +46,7 @@ fun MusicOverlay(
     WePopup(
         visible = state.isMusicOpen,
         padding = PaddingValues(vertical = 16.dp),
-        title = "选择音乐",
+        title = stringResource(R.string.music_select_title),
         onClose = onClose
     ) {
         val context = LocalContext.current
@@ -137,7 +139,7 @@ private fun MusicItem(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "发送",
+                text = stringResource(R.string.action_send),
                 color = WeTheme.colorScheme.link,
                 fontSize = 15.sp
             )

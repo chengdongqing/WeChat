@@ -16,6 +16,8 @@
     <string name="action_save_to_phone">Save to Album</string>
     <string name="action_play">Play</string>
     <string name="action_pause">Pause</string>
+    <string name="action_send">Send</string>
+    <string name="action_search">Search</string>
 
     <string name="msg_network_unavailable">No network connection. Please check your network settings.</string>
     <string name="msg_processing">Processing…</string>
@@ -31,6 +33,11 @@
     <string name="media_select_video">Select Video</string>
     <string name="media_select_all">Photos &amp; Videos</string>
 
+    <string name="camera_tip_photo">Tap to take photo</string>
+    <string name="camera_tip_video">Hold to record video</string>
+    <string name="camera_flash_toggle">Toggle Flash</string>
+    <string name="camera_switch">Switch Camera</string>
+
     <string name="time_yesterday">Yesterday</string>
     <string name="time_monday">Mon</string>
     <string name="time_tuesday">Tue</string>
@@ -39,4 +46,6 @@
     <string name="time_friday">Fri</string>
     <string name="time_saturday">Sat</string>
     <string name="time_sunday">Sun</string>
+
+    <string name="separator">，</string>
 </resources>

@@ -105,4 +105,11 @@
     <string name="message_music_album_cover">专辑封面</string>
     <string name="message_file_size">文件大小：%s</string>
     <string name="message_file_not_found">文件不存在或已被清理</string>
+    <string name="music_select_title">选择音乐</string>
+    <string name="app_select_title">选择应用程序</string>
+    <string name="location_search_placeholder">搜索地点</string>
+    <string name="location_tab_nearby">附近</string>
+    <string name="location_tab_all">不限</string>
+    <string name="location_current">当前位置</string>
+    <string name="location_navigate">导航</string>
 </resources>

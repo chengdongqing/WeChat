@@ -16,6 +16,8 @@
     <string name="action_save_to_phone">保存到本地</string>
     <string name="action_play">播放</string>
     <string name="action_pause">暂停</string>
+    <string name="action_send">发送</string>
+    <string name="action_search">搜索</string>
 
     <string name="msg_network_unavailable">当前无法连接网络，可检查网络设置是否正常。</string>
     <string name="msg_processing">处理中…</string>
@@ -31,6 +33,11 @@
     <string name="media_select_video">选择视频</string>
     <string name="media_select_all">图片和视频</string>
 
+    <string name="camera_tip_photo">轻触拍照</string>
+    <string name="camera_tip_video">长按摄像</string>
+    <string name="camera_flash_toggle">开关闪光灯</string>
+    <string name="camera_switch">切换相机</string>
+
     <string name="time_yesterday">昨天</string>
     <string name="time_monday">周一</string>
     <string name="time_tuesday">周二</string>
@@ -39,4 +46,6 @@
     <string name="time_friday">周五</string>
     <string name="time_saturday">周六</string>
     <string name="time_sunday">周日</string>
+
+    <string name="separator">, </string>
 </resources>

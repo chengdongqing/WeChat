@@ -23,7 +23,7 @@
     <string name="chat_action_music">Music</string>
 
     <string name="chat_camera_photo">Take Photo</string>
-    <string name="chat_camera_video">Take Video</string>
+    <string name="chat_camera_video">Record Video</string>
     <string name="chat_camera_title">System Camera</string>
     <string name="chat_call_video">Video Call</string>
     <string name="chat_call_voice">Voice Call</string>
@@ -104,4 +104,11 @@
     <string name="message_music_album_cover">Album Cover</string>
     <string name="message_file_size">File Size: %s</string>
     <string name="message_file_not_found">File not found or has been cleared</string>
+    <string name="music_select_title">Select Music</string>
+    <string name="app_select_title">Select App</string>
+    <string name="location_search_placeholder">Search location</string>
+    <string name="location_tab_nearby">Nearby</string>
+    <string name="location_tab_all">All</string>
+    <string name="location_current">My Location</string>
+    <string name="location_navigate">Go</string>
 </resources>
