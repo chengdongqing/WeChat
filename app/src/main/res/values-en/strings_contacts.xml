@@ -51,4 +51,15 @@
     <string name="contact_settings_star">Add Star</string>
     <string name="contact_settings_block">Block</string>
     <string name="contact_settings_report">Report</string>
+
+    <string name="add_contact_title">Add Contacts</string>
+    <string name="add_contact_my_wechat_id">My WeChat ID: %s</string>
+    <string name="add_contact_option_scan_title">Scan</string>
+    <string name="add_contact_option_scan_desc">Scan contact\'s QR code</string>
+    <string name="add_contact_option_nfc_title">Tap</string>
+    <string name="add_contact_option_nfc_desc">Add friends via NFC</string>
+    <string name="add_contact_option_radar_title">Radar</string>
+    <string name="add_contact_option_radar_desc">Quick add friends in your vicinity</string>
+    <string name="add_contact_option_face_to_face_title">Join Private Group</string>
+    <string name="add_contact_option_face_to_face_desc">Join a group with friends nearby</string>
 </resources>

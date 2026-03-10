@@ -51,4 +51,15 @@
     <string name="contact_settings_star">设为星标朋友</string>
     <string name="contact_settings_block">加入黑名单</string>
     <string name="contact_settings_report">投诉</string>
+
+    <string name="add_contact_title">添加朋友</string>
+    <string name="add_contact_my_wechat_id">我的微信号: %s</string>
+    <string name="add_contact_option_scan_title">扫一扫</string>
+    <string name="add_contact_option_scan_desc">扫描二维码名片</string>
+    <string name="add_contact_option_nfc_title">碰一碰</string>
+    <string name="add_contact_option_nfc_desc">通过NFC添加朋友</string>
+    <string name="add_contact_option_radar_title">雷达</string>
+    <string name="add_contact_option_radar_desc">添加身边的朋友</string>
+    <string name="add_contact_option_face_to_face_title">面对面建群</string>
+    <string name="add_contact_option_face_to_face_desc">与身边的朋友进入同一个群聊</string>
 </resources>

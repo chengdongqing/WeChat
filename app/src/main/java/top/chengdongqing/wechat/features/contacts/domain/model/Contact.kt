@@ -1,11 +1,13 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
+import androidx.compose.runtime.Immutable
 import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 /**
  * 联系人实体模型
  */
+@Immutable
 data class Contact(
     val id: String,
     val nickname: String,

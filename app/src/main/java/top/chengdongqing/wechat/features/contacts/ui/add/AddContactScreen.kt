@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,8 +46,8 @@ import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
+import top.chengdongqing.wechat.features.contacts.domain.model.AddContactOption
 import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
-import top.chengdongqing.wechat.features.me.ui.profile.ProfileUiState
 import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
 
 @Composable
@@ -82,18 +83,20 @@ fun AddContactScreen(
             onNavigateToWebView = onNavigateToWebView
         )
 
-        val addFriendOptions = rememberAddFriendOptions(
-            launchScanner = launchScanner,
-            onNavigateToNFC = onNavigateToNFC,
-            onNavigateToRadar = onNavigateToRadar,
-            onNavigateToGroup = onNavigateToGroup
-        )
+        // 处理点击事件
+        val handleAction = { option: AddContactOption ->
+            when (option) {
+                AddContactOption.Scan -> launchScanner()
+                AddContactOption.Nfc -> onNavigateToNFC()
+                AddContactOption.Radar -> onNavigateToRadar()
+                AddContactOption.FaceToFaceGroup -> onNavigateToGroup()
+            }
+        }
 
-        // 请求权限
         Scaffold(
             topBar = {
                 WeTopBar(
-                    title = "添加朋友",
+                    title = stringResource(R.string.add_contact_title),
                     onBack = onBack,
                     containerColor = WeTheme.colorScheme.surface
                 )
@@ -101,60 +104,42 @@ fun AddContactScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = WeTheme.colorScheme.surface
         ) { innerPadding ->
-            AddFriendContent(
-                uiState = uiState,
-                options = addFriendOptions,
-                modifier = Modifier.padding(innerPadding)
-            )
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize()
+                    .verticalScroll(
+                        state = rememberScrollState(),
+                        overscrollEffect = rememberBounceOverscrollEffect()
+                    )
+            ) {
+                AddContactOptionsList(handleAction)
+
+                if (uiState.profile != null && uiState.qrCode.isNotEmpty()) {
+                    QrCodeSection(
+                        qrContent = uiState.qrCode,
+                        myId = uiState.profile!!.id,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         }
 
         LoadingDialog(uiState.isLoading)
     }
 }
 
-/**
- * 添加好友页面内容
- */
 @Composable
-private fun AddFriendContent(
-    uiState: ProfileUiState,
-    options: List<AddFriendItem>,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(
-                state = rememberScrollState(),
-                overscrollEffect = rememberBounceOverscrollEffect()
-            )
-    ) {
-        AddFriendOptionsList(options)
-
-        if (uiState.profile != null && uiState.qrCode.isNotEmpty()) {
-            QrCodeSection(
-                qrContent = uiState.qrCode,
-                wxId = uiState.profile.id,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-/**
- * 添加好友选项列表
- */
-@Composable
-private fun AddFriendOptionsList(options: List<AddFriendItem>) {
+private fun AddContactOptionsList(onClick: (AddContactOption) -> Unit) {
     Column {
-        for (option in options) {
+        AddContactOption.entries.forEach { option ->
             WeMenuListItem(
-                label = option.title,
-                description = option.description,
+                label = stringResource(option.titleRes),
+                description = stringResource(option.descriptionRes),
                 icon = option.icon,
                 iconColor = option.iconColor,
                 height = 68.dp,
-                onClick = option.onClick
+                onClick = { onClick(option) }
             )
             WeDivider(modifier = Modifier.padding(start = 58.dp))
         }
@@ -167,7 +152,7 @@ private fun AddFriendOptionsList(options: List<AddFriendItem>) {
 @Composable
 private fun QrCodeSection(
     qrContent: String,
-    wxId: String,
+    myId: String,
     modifier: Modifier = Modifier
 ) {
     val qrCodeState = rememberQRCodeState(
@@ -193,65 +178,10 @@ private fun QrCodeSection(
         }
         Spacer(modifier = Modifier.height(30.dp))
         Text(
-            text = "我的微信号: $wxId",
+            text = stringResource(R.string.add_contact_my_wechat_id, myId),
             fontSize = 15.sp,
             color = WeTheme.colorScheme.textPrimary,
             textAlign = TextAlign.Center
         )
     }
 }
-
-/**
- * 记忆化添加好友选项
- */
-@Composable
-private fun rememberAddFriendOptions(
-    launchScanner: () -> Unit,
-    onNavigateToNFC: () -> Unit,
-    onNavigateToRadar: () -> Unit,
-    onNavigateToGroup: () -> Unit
-): List<AddFriendItem> {
-    return remember(launchScanner, onNavigateToRadar, onNavigateToGroup) {
-        listOf(
-            AddFriendItem(
-                title = "扫一扫",
-                icon = R.drawable.ic_scan_outlined,
-                iconColor = Color(0xFF2B7CF1),
-                description = "扫描二维码名片",
-                onClick = launchScanner
-            ),
-            AddFriendItem(
-                title = "碰一碰",
-                icon = R.drawable.ic_nfc_outlined,
-                iconColor = Color(0xFF10AEFF),
-                description = "通过NFC添加朋友",
-                onClick = onNavigateToNFC
-            ),
-            AddFriendItem(
-                title = "雷达",
-                icon = R.drawable.ic_radar_outlined,
-                iconColor = Color(0xFF7468BE),
-                description = "添加身边的朋友",
-                onClick = onNavigateToRadar
-            ),
-            AddFriendItem(
-                title = "面对面建群",
-                icon = R.drawable.ic_group_chat_outlined,
-                iconColor = Color(0xFF07C160),
-                description = "与身边的朋友进入同一个群聊",
-                onClick = onNavigateToGroup
-            )
-        )
-    }
-}
-
-/**
- * 添加好友选项数据类
- */
-data class AddFriendItem(
-    val title: String,
-    val icon: Int,
-    val iconColor: Color,
-    val description: String,
-    val onClick: () -> Unit
-)
