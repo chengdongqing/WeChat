@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.util.openFile
 import top.chengdongqing.wechat.core.util.showToast
@@ -113,7 +114,11 @@ class FilePreviewViewModel @AssistedInject constructor(
                 filename = _uiState.value.filename
             )
 
-            context.showToast("文件保存${if (res != null) "成功" else "失败"}")
+            if (res != null) {
+                context.showToast(context.getString(R.string.msg_save_success))
+            } else {
+                context.showToast(context.getString(R.string.msg_save_failed))
+            }
             _uiState.update {
                 it.copy(isSaving = false)
             }

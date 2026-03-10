@@ -4,13 +4,13 @@ import androidx.compose.runtime.Composable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.CallContent
+import top.chengdongqing.wechat.features.chat.ui.session.message.content.ContactCardContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.FileContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.LocationContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.MediaContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.MusicContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.StickerContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.TextContent
-import top.chengdongqing.wechat.features.chat.ui.session.message.content.UserCardContent
 import top.chengdongqing.wechat.features.chat.ui.session.message.content.VoiceContent
 
 /**
@@ -26,7 +26,7 @@ fun MessageContent(message: ChatMessage) {
         is MessageContent.Call -> CallContent(message)
         is MessageContent.Location -> LocationContent(content)
         is MessageContent.File -> FileContent(message)
-        is MessageContent.ContactCard -> UserCardContent(content)
+        is MessageContent.ContactCard -> ContactCardContent(content)
         is MessageContent.Music -> MusicContent(content)
         else -> Unit
     }

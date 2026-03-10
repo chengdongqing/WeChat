@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -33,7 +34,7 @@ fun MusicContent(content: MessageContent.Music) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painter = painterResource(music.albumArtRes),
-                contentDescription = "专辑封面",
+                contentDescription = stringResource(R.string.message_music_album_cover),
                 modifier = Modifier
                     .fillMaxHeight()
                     .aspectRatio(1f)
@@ -58,7 +59,7 @@ fun MusicContent(content: MessageContent.Music) {
             Box(modifier = Modifier.padding(end = 8.dp)) {
                 Icon(
                     painter = painterResource(R.drawable.ic_play_filled),
-                    contentDescription = "播放",
+                    contentDescription = stringResource(R.string.action_play),
                     tint = White,
                     modifier = Modifier.size(22.dp)
                 )

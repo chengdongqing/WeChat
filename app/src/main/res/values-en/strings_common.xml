@@ -7,11 +7,14 @@
     <string name="action_back">Back</string>
     <string name="action_clear">Clear</string>
     <string name="action_preview">Preview</string>
+    <string name="action_open">Open</string>
     <string name="action_more">More</string>
     <string name="action_got_it">Got It</string>
     <string name="action_select_from_gallery">Select from Gallery</string>
     <string name="action_take_photo">Take a Photo</string>
     <string name="action_save_to_phone">Save to Album</string>
+    <string name="action_play">Play</string>
+    <string name="action_pause">Pause</string>
 
     <string name="msg_network_unavailable">No network connection. Please check your network settings.</string>
     <string name="msg_processing">Processing…</string>

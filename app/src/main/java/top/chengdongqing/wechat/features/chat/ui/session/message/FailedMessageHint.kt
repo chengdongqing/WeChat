@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
@@ -15,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.util.isWithinSeconds
@@ -42,6 +44,7 @@ fun FailedMessageHint(message: ChatMessage) {
 
 @Composable
 private fun rememberHintText(message: ChatMessage): AnnotatedString {
+    val resources = LocalResources.current
     val chatContext = LocalChatSessionContext.current
     val textColor = WeTheme.colorScheme.textSecondary
     val linkStyles = rememberLinkStyles()
@@ -54,15 +57,15 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                 when {
                     message.isRecalled -> {
                         if (message.isFromMe) {
-                            append("你撤回了一条消息")
+                            append(resources.getString(R.string.chat_recalled_by_me))
                         } else {
-                            append("对方撤回了一条消息")
+                            append(resources.getString(R.string.chat_recalled_by_other))
                         }
                     }
 
-                    message.isSent -> append("消息已发出，但未收到对方的回执。")
+                    message.isSent -> append(resources.getString(R.string.chat_sent_no_receipt))
 
-                    error != null -> append(error.message)
+                    error != null -> append(resources.getString(error.messageRes))
                 }
             }
 
@@ -70,7 +73,11 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
             val (actionLabel, actionAnnotation) = when {
                 !message.isRecalled && (error?.canRetry.isTrue()
                         || message.isSent) -> {
-                    val label = if (error == SendError.Cancelled) "再次发送" else "重试"
+                    val label = if (error == SendError.Cancelled) {
+                        resources.getString(R.string.chat_action_resend)
+                    } else {
+                        resources.getString(R.string.chat_action_retry)
+                    }
                     label to LinkAnnotation.Clickable(
                         tag = "retry",
                         styles = linkStyles,
@@ -79,7 +86,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                 }
 
                 !message.isRecalled && error == SendError.NotFriend -> {
-                    "发送朋友验证" to LinkAnnotation.Clickable(
+                    resources.getString(R.string.chat_action_send_verify) to LinkAnnotation.Clickable(
                         tag = "verify",
                         styles = linkStyles,
                         linkInteractionListener = { chatContext?.onNavigateToRequestAddFriend() }
@@ -95,7 +102,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                 message.isRecalled && message.isFromMe
                         && message.content is MessageContent.Text
                         && message.timestamp.isWithinSeconds() -> {
-                    "重新编辑" to LinkAnnotation.Clickable(
+                    resources.getString(R.string.chat_action_reedit) to LinkAnnotation.Clickable(
                         tag = "reedit",
                         styles = linkStyles,
                         linkInteractionListener = { chatContext?.onReeditMessage(message.content.text) }

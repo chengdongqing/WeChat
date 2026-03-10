@@ -7,11 +7,14 @@
     <string name="action_back">返回</string>
     <string name="action_clear">清空</string>
     <string name="action_preview">预览</string>
+    <string name="action_open">打开</string>
     <string name="action_more">更多</string>
     <string name="action_got_it">我知道了</string>
     <string name="action_select_from_gallery">从相册选择</string>
     <string name="action_take_photo">拍照</string>
     <string name="action_save_to_phone">保存到本地</string>
+    <string name="action_play">播放</string>
+    <string name="action_pause">暂停</string>
 
     <string name="msg_network_unavailable">当前无法连接网络，可检查网络设置是否正常。</string>
     <string name="msg_processing">处理中…</string>

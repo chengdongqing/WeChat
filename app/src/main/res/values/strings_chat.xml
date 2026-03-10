@@ -85,4 +85,24 @@
 
     <string name="contact_delete_title">即将删除联系人\"%s\"</string>
     <string name="contact_delete_content">删除后对方不会收到通知</string>
+
+    <string name="send_error_connection_failed">连接失败。</string>
+    <string name="send_error_cancelled">已取消发送。</string>
+    <string name="send_error_not_friend">对方开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证，对方验证通过后，才能聊天。</string>
+    <string name="send_error_blocked">消息已发出，但被对方拒收了。</string>
+    <string name="send_error_too_large">消息内容过大。</string>
+    <string name="send_error_unknown">未知错误。</string>
+
+    <string name="chat_recalled_by_me">你撤回了一条消息</string>
+    <string name="chat_recalled_by_other">对方撤回了一条消息</string>
+    <string name="chat_sent_no_receipt">消息已发出，但未收到对方的回执。</string>
+    <string name="chat_action_resend">再次发送</string>
+    <string name="chat_action_retry">重试</string>
+    <string name="chat_action_send_verify">发送朋友验证</string>
+    <string name="chat_action_reedit">重新编辑</string>
+
+    <string name="message_contact_card">个人名片</string>
+    <string name="message_music_album_cover">专辑封面</string>
+    <string name="message_file_size">文件大小：%s</string>
+    <string name="message_file_not_found">文件不存在或已被清理</string>
 </resources>

@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -43,9 +44,19 @@ fun PlayButton(isPlaying: Boolean, onClick: () -> Unit) {
         AnimatedContent(targetState = isPlaying) { isPlaying ->
             Icon(
                 painter = painterResource(
-                    if (isPlaying) R.drawable.ic_pause_filled else R.drawable.ic_play_filled
+                    if (isPlaying) {
+                        R.drawable.ic_pause_filled
+                    } else {
+                        R.drawable.ic_play_filled
+                    }
                 ),
-                contentDescription = if (isPlaying) "暂停" else "播放",
+                contentDescription = stringResource(
+                    if (isPlaying) {
+                        R.string.action_play
+                    } else {
+                        R.string.action_pause
+                    }
+                ),
                 modifier = Modifier.fillMaxSize(),
                 tint = Color.White.copy(alpha = 0.8f)
             )

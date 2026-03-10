@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -65,6 +66,7 @@ fun ChatSessionScreen(
     val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
+    val resources = LocalResources.current
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
     val dialog = rememberDialogState()
@@ -139,7 +141,7 @@ fun ChatSessionScreen(
             when (event) {
                 is MessageUiEvent.ShowDeleteConfirm -> {
                     dialog.show(
-                        title = "确认删除？",
+                        title = resources.getString(R.string.msg_confirm_delete),
                         okText = R.string.action_delete,
                         okColor = Danger
                     ) {
@@ -153,7 +155,7 @@ fun ChatSessionScreen(
 
                 is MessageUiEvent.ShowDownloadConfirm -> {
                     dialog.show(
-                        title = "确认保存？",
+                        title = resources.getString(R.string.msg_confirm_save),
                         okText = R.string.action_save
                     ) {
                         viewModel.saveSelectedMessageFiles(toast)

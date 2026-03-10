@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -22,7 +23,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
 @Composable
-fun UserCardContent(content: MessageContent.ContactCard) {
+fun ContactCardContent(content: MessageContent.ContactCard) {
     Column(modifier = Modifier.padding(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
@@ -41,7 +42,7 @@ fun UserCardContent(content: MessageContent.ContactCard) {
         }
         WeDivider(modifier = Modifier.padding(top = 12.dp))
         Text(
-            text = "个人名片",
+            text = stringResource(R.string.message_contact_card),
             fontSize = 10.sp,
             color = WeTheme.colorScheme.textSecondary,
             modifier = Modifier.offset(y = 5.dp)

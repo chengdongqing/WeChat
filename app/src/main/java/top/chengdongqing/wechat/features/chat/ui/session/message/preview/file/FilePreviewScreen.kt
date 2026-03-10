@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -73,7 +74,10 @@ fun FilePreviewScreen(
                 )
                 Spacer(modifier = Modifier.height(18.dp))
                 Text(
-                    text = "文件大小：" + formatFileSize(context, uiState.fileSize),
+                    text = stringResource(
+                        R.string.message_file_size,
+                        formatFileSize(context, uiState.fileSize)
+                    ),
                     color = WeTheme.colorScheme.textSecondary,
                     fontSize = 17.sp
                 )
@@ -81,7 +85,7 @@ fun FilePreviewScreen(
                 if (!uiState.fileExists) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "文件不存在或已被清理",
+                        text = stringResource(R.string.message_file_not_found),
                         color = WeTheme.colorScheme.textSecondary,
                         fontSize = 14.sp
                     )
@@ -95,10 +99,18 @@ fun FilePreviewScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                WeButton("打开", type = ButtonType.Plain, enabled = uiState.fileExists) {
+                WeButton(
+                    text = stringResource(R.string.action_open),
+                    type = ButtonType.Plain,
+                    enabled = uiState.fileExists
+                ) {
                     viewModel.openFile()
                 }
-                WeButton("保存", loading = uiState.isSaving, enabled = uiState.fileExists) {
+                WeButton(
+                    text = stringResource(R.string.action_save),
+                    loading = uiState.isSaving,
+                    enabled = uiState.fileExists
+                ) {
                     viewModel.saveFile()
                 }
             }
