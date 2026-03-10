@@ -16,7 +16,4 @@ interface DisplaySettingsRepository {
     suspend fun saveTheme(theme: AppTheme)
 
     suspend fun saveLanguage(language: AppLanguage)
-
-    /** App 启动时恢复已保存的设置 */
-    suspend fun restoreOnStartup()
 }

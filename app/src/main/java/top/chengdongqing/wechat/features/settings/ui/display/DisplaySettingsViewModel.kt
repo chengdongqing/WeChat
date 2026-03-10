@@ -40,14 +40,20 @@ class DisplaySettingsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppLanguage.FollowSystem)
 
     fun saveFontScale(fontScale: AppFontScale) {
-        viewModelScope.launch { repository.saveFontScale(fontScale) }
+        viewModelScope.launch {
+            repository.saveFontScale(fontScale)
+        }
     }
 
     fun saveTheme(theme: AppTheme) {
-        viewModelScope.launch { repository.saveTheme(theme) }
+        viewModelScope.launch {
+            repository.saveTheme(theme)
+        }
     }
 
     fun saveLanguage(language: AppLanguage) {
-        viewModelScope.launch { repository.saveLanguage(language) }
+        viewModelScope.launch {
+            repository.saveLanguage(language)
+        }
     }
 }
