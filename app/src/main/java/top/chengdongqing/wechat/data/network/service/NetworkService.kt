@@ -76,7 +76,7 @@ class NetworkService : Service() {
     lateinit var vibratorHelper: VibratorHelper
 
     @Inject
-    lateinit var notificationSettingsRepository: NotificationSettingsRepository
+    lateinit var notificationRepository: NotificationSettingsRepository
 
     @Inject
     lateinit var activeSessionManager: ActiveSessionManager
@@ -221,44 +221,36 @@ class NetworkService : Service() {
     private suspend fun handleNewMessage(message: ChatMessage) {
         val soundEnabled = inChatSoundEnabled()
         val vibrationEnabled = inChatVibrationEnabled()
-        val ringtoneUri = notificationSound().toUri(context)
 
-        when {
-            soundEnabled && vibrationEnabled -> {
-                val contact = contactRepository.getContact(message.senderId)
-                val sender = contact?.displayName
-                    ?: context.getString(R.string.msg_notification_contact_unknown)
-                val unreadCount = chatSessionDao.getById(message.senderId)?.unreadCount ?: 0
-                // 获取消息内容
-                val content = resolveContent(message)
+        if (soundEnabled && vibrationEnabled) {
+            val contact = contactRepository.getContact(message.senderId)
+            val sender = contact?.displayName
+                ?: context.getString(R.string.msg_notification_contact_unknown)
+            val unreadCount = chatSessionDao.getById(message.senderId)?.unreadCount ?: 0
+            // 获取消息内容
+            val content = resolveContent(message)
 
-                // 构建通知内容
-                val (title, text) = resolveNotificationText(sender, content, unreadCount)
-                // 获取头像
-                val avatarBitmap = contact?.avatarPath?.let { BitmapFactory.decodeFile(it) }
+            // 构建通知内容
+            val (title, text) = resolveNotificationText(sender, content, unreadCount)
+            // 获取头像
+            val avatarBitmap = contact?.avatarPath?.let { BitmapFactory.decodeFile(it) }
 
-                // 显示通知
-                notificationHelper.showMessageNotification(
-                    sessionId = message.sessionId,
-                    title = title,
-                    content = text,
-                    notificationId = message.sessionId.hashCode(),
-                    ringtoneUri = ringtoneUri,
-                    avatarBitmap = avatarBitmap
-                )
-            }
+            // 显示通知
+            notificationHelper.showMessageNotification(
+                sessionId = message.sessionId,
+                title = title,
+                content = text,
+                notificationId = message.sessionId.hashCode(),
+                avatarBitmap = avatarBitmap
+            )
+        }
 
-            soundEnabled -> {
-                val ringtone = RingtoneManager.getRingtone(
-                    context,
-                    ringtoneUri
-                )
-                ringtone.play()
-            }
-
-            vibrationEnabled -> {
-                vibratorHelper.vibrate(longArrayOf(0, 250, 250, 250))
-            }
+        if (soundEnabled) {
+            val soundUri = notificationSound().toUri(context)
+            RingtoneManager.getRingtone(context, soundUri).play()
+        }
+        if (vibrationEnabled) {
+            vibratorHelper.vibrate(longArrayOf(0, 250, 250, 250))
         }
     }
 
@@ -325,16 +317,16 @@ class NetworkService : Service() {
     }
 
     private suspend fun notificationDisplay(): NotificationDisplay =
-        notificationSettingsRepository.notificationDisplay.first()
+        notificationRepository.notificationDisplay.first()
 
     private suspend fun inChatSoundEnabled(): Boolean =
-        !activeSessionManager.inChat || notificationSettingsRepository.inChatSoundEnabled.first()
+        !activeSessionManager.inChat || notificationRepository.inChatSoundEnabled.first()
 
     private suspend fun inChatVibrationEnabled(): Boolean =
-        !activeSessionManager.inChat || notificationSettingsRepository.inChatVibrationEnabled.first()
+        !activeSessionManager.inChat || notificationRepository.inChatVibrationEnabled.first()
 
     private suspend fun notificationSound(): NotificationSound =
-        notificationSettingsRepository.notificationSound.first()
+        notificationRepository.notificationSound.first()
 }
 
 fun Context.createNetworkServiceIntent(action: String): Intent {

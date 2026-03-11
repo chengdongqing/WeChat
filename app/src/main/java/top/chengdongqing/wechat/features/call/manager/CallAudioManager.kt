@@ -7,8 +7,12 @@ import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.media.VibratorHelper
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
+import top.chengdongqing.wechat.features.settings.domain.model.toUri
+import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,8 +31,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class CallAudioManager @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    private val vibratorHelper: VibratorHelper
+    private val vibratorHelper: VibratorHelper,
+    private val notificationRepository: NotificationSettingsRepository,
+    @param:ApplicationContext private val context: Context
 ) {
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var ringtonePlayer: MediaPlayer? = null
@@ -139,10 +144,11 @@ class CallAudioManager @Inject constructor(
      *
      * @param isIncoming 是否为来电（来电时会振动）
      */
-    fun startRingtone(isIncoming: Boolean) {
-        if (ringtonePlayer?.isPlaying == true) return
+    suspend fun startRingtone(isIncoming: Boolean) {
+        stopRingtone()
 
-        ringtonePlayer = MediaPlayer.create(context, R.raw.ringtone_default)?.apply {
+        val ringtoneUri = ringtone().toUri(context)
+        ringtonePlayer = MediaPlayer.create(context, ringtoneUri)?.apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
@@ -206,4 +212,7 @@ class CallAudioManager @Inject constructor(
      */
     private fun shouldVibrate() =
         audioManager.ringerMode != AudioManager.RINGER_MODE_SILENT
+
+    private suspend fun ringtone(): RingtoneSound =
+        notificationRepository.ringtone.first()
 }

@@ -7,6 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.notification.NotificationHelper
@@ -14,6 +15,7 @@ import top.chengdongqing.wechat.features.call.manager.CallAudioManager
 import top.chengdongqing.wechat.features.call.manager.CallManager
 import top.chengdongqing.wechat.features.call.model.CallState
 import top.chengdongqing.wechat.features.call.ui.CallActivity
+import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,6 +35,7 @@ class CallModule @Inject constructor(
     private val callManager: CallManager,
     private val callAudioManager: CallAudioManager,
     private val notificationHelper: NotificationHelper,
+    private val notificationRepository: NotificationSettingsRepository,
     @param:ApplicationContext private val context: Context
 ) {
     private companion object {
@@ -67,7 +70,9 @@ class CallModule @Inject constructor(
             .collect { state ->
                 when (state.callState) {
                     CallState.Incoming -> {
-                        launchCallActivity()
+                        if (callNotificationEnabled()) {
+                            launchCallActivity()
+                        }
                         callAudioManager.startRingtone(isIncoming = true)
                         notificationHelper.showIncomingNotification(
                             title = state.peerName,
@@ -129,4 +134,7 @@ class CallModule @Inject constructor(
     private fun dismissNotification() {
         notificationHelper.cancelNotification(NotificationHelper.CALL_NOTIFICATION_ID)
     }
+
+    private suspend fun callNotificationEnabled(): Boolean =
+        notificationRepository.callNotificationEnabled.first()
 }

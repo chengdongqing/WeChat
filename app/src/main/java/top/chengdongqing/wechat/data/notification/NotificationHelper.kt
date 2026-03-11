@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
@@ -56,6 +55,8 @@ class NotificationHelper @Inject constructor(
             "新消息",
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
+            setSound(null, null)
+            enableVibration(false)
             description = "收到新消息时使用的通知类别"
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC // 锁屏也显示
         }
@@ -66,6 +67,8 @@ class NotificationHelper @Inject constructor(
             "音视频通话邀请通知",
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
+            setSound(null, null)
+            enableVibration(false)
             description = "收到音视频通话邀请时使用的通知类别"
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC  // 锁屏也显示
         }
@@ -117,7 +120,6 @@ class NotificationHelper @Inject constructor(
         title: String?,
         content: String,
         notificationId: Int,
-        ringtoneUri: Uri,
         avatarBitmap: Bitmap?
     ) {
         // 构建跳转 Intent：使用 DeepLink 机制跳转到对应的聊天界面
@@ -137,13 +139,14 @@ class NotificationHelper @Inject constructor(
         val notification = NotificationCompat.Builder(context, MESSAGE_CHANNEL_ID)
             .setSmallIcon(R.drawable.img_logo) // app logo
             .setLargeIcon(avatarBitmap) // 头像
+            .setSound(null)
+            .setVibrate(null)
             .setContentTitle(title) // 标题
             .setContentText(content) // 内容
             .setPriority(NotificationCompat.PRIORITY_HIGH) // 优先级
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE) // 帮助系统进行通知分类
             .setContentIntent(pendingIntent) // 支持点击跳转
-            .setSound(ringtoneUri) // 提示音
             .setAutoCancel(true) // 自动消失
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE) // 帮助系统进行免打扰模式分类
             .build()
 
         // 显示通知
@@ -174,6 +177,8 @@ class NotificationHelper @Inject constructor(
 
         val notification = NotificationCompat.Builder(context, CALL_CHANNEL_ID)
             .setSmallIcon(R.drawable.img_logo)
+            .setSound(null)
+            .setVibrate(null)
             .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -199,6 +204,8 @@ class NotificationHelper @Inject constructor(
 
         val notification = NotificationCompat.Builder(context, CALL_CHANNEL_ID)
             .setSmallIcon(R.drawable.img_logo)
+            .setSound(null)
+            .setVibrate(null)
             .setContentTitle(text)
             .setContentIntent(intent)
             .setOngoing(true)
