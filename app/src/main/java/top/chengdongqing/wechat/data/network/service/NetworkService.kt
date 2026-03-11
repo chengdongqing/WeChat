@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.media.RingtoneManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -12,20 +14,28 @@ import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.media.VibratorHelper
+import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.model.toPreviewText
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import top.chengdongqing.wechat.data.network.service.modules.CallModule
 import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
 import top.chengdongqing.wechat.data.notification.NotificationHelper
+import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.data.mapper.toMessageType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.settings.domain.model.NotificationDisplay
+import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
+import top.chengdongqing.wechat.features.settings.domain.model.toUri
+import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import javax.inject.Inject
 
 /**
@@ -57,7 +67,19 @@ class NetworkService : Service() {
     lateinit var contactRepository: ContactRepository
 
     @Inject
+    lateinit var chatSessionDao: ChatSessionDao
+
+    @Inject
     lateinit var notificationHelper: NotificationHelper
+
+    @Inject
+    lateinit var vibratorHelper: VibratorHelper
+
+    @Inject
+    lateinit var notificationSettingsRepository: NotificationSettingsRepository
+
+    @Inject
+    lateinit var activeSessionManager: ActiveSessionManager
 
     @Inject
     @IoScope
@@ -159,8 +181,7 @@ class NetworkService : Service() {
     }
 
     /**
-     * 监听新消息，当前正在查看该会话时不发通知
-     * 自己发送的消息也不通知（对方 ACK 触发的流转）
+     * 监听新消息
      */
     private suspend fun observeIncomingMessages() {
         chatModule.incomingMessageFlow.collect { message ->
@@ -196,24 +217,78 @@ class NetworkService : Service() {
 
     /**
      * 处理新消息通知
-     *
-     * 发件人优先取备注名，查不到联系人时兜底显示"新消息"。
      */
     private suspend fun handleNewMessage(message: ChatMessage) {
-        // 查询联系人昵称
-        val contact = contactRepository.getContact(message.senderId)
-        val senderName = contact?.displayName ?: "未知联系人"
+        val soundEnabled = inChatSoundEnabled()
+        val vibrationEnabled = inChatVibrationEnabled()
+        val ringtoneUri = notificationSound().toUri(context)
 
-        // 获取内容预览信息
+        when {
+            soundEnabled && vibrationEnabled -> {
+                val contact = contactRepository.getContact(message.senderId)
+                val sender = contact?.displayName
+                    ?: context.getString(R.string.msg_notification_contact_unknown)
+                val unreadCount = chatSessionDao.getById(message.senderId)?.unreadCount ?: 0
+                // 获取消息内容
+                val content = resolveContent(message)
+
+                // 构建通知内容
+                val (title, text) = resolveNotificationText(sender, content, unreadCount)
+                // 获取头像
+                val avatarBitmap = contact?.avatarPath?.let { BitmapFactory.decodeFile(it) }
+
+                // 显示通知
+                notificationHelper.showMessageNotification(
+                    sessionId = message.sessionId,
+                    title = title,
+                    content = text,
+                    notificationId = message.sessionId.hashCode(),
+                    ringtoneUri = ringtoneUri,
+                    avatarBitmap = avatarBitmap
+                )
+            }
+
+            soundEnabled -> {
+                val ringtone = RingtoneManager.getRingtone(
+                    context,
+                    ringtoneUri
+                )
+                ringtone.play()
+            }
+
+            vibrationEnabled -> {
+                vibratorHelper.vibrate(longArrayOf(0, 250, 250, 250))
+            }
+        }
+    }
+
+    private fun resolveContent(message: ChatMessage): String {
         val textContent = (message.content as? MessageContent.Text)?.text ?: ""
-        val previewText = message.content.toMessageType().toPreviewText(context, textContent)
+        return message.content.toMessageType().toPreviewText(context, textContent)
+    }
 
-        notificationHelper.showMessageNotification(
-            sessionId = message.sessionId,
-            title = senderName,
-            content = previewText,
-            notificationId = message.sessionId.hashCode()
-        )
+    private suspend fun resolveNotificationText(
+        sender: String,
+        content: String,
+        unreadCount: Int
+    ): Pair<String?, String> {
+        val prefix = if (unreadCount > 1) "[${unreadCount}条] " else ""
+        return when (notificationDisplay()) {
+            NotificationDisplay.HiddenAll -> Pair(
+                null,
+                prefix + context.getString(R.string.msg_notification_hidden)
+            )
+
+            NotificationDisplay.SenderOnly -> Pair(
+                sender,
+                prefix + context.getString(R.string.msg_notification_sender_only)
+            )
+
+            NotificationDisplay.SenderAndContent -> Pair(
+                sender,
+                prefix + content
+            )
+        }
     }
 
     /**
@@ -248,6 +323,18 @@ class NetworkService : Service() {
             .build()
         startForeground(NOTIFICATION_ID, notification)
     }
+
+    private suspend fun notificationDisplay(): NotificationDisplay =
+        notificationSettingsRepository.notificationDisplay.first()
+
+    private suspend fun inChatSoundEnabled(): Boolean =
+        !activeSessionManager.inChat || notificationSettingsRepository.inChatSoundEnabled.first()
+
+    private suspend fun inChatVibrationEnabled(): Boolean =
+        !activeSessionManager.inChat || notificationSettingsRepository.inChatVibrationEnabled.first()
+
+    private suspend fun notificationSound(): NotificationSound =
+        notificationSettingsRepository.notificationSound.first()
 }
 
 fun Context.createNetworkServiceIntent(action: String): Intent {

@@ -55,6 +55,12 @@
     <string name="notification_sound_nimble">灵动</string>
     <string name="notification_sound_elegant">优雅</string>
 
+    <string name="ringtone_default">微信</string>
+    <string name="ringtone_mi">小米抒情版</string>
+    <string name="ringtone_mi_jazz">小米爵士版</string>
+    <string name="ringtone_mi_house">小米电子版</string>
+    <string name="ringtone_mi_remix">小米清新版</string>
+
     <string name="display_theme">深色模式</string>
     <string name="display_theme_light">普通模式</string>
     <string name="display_theme_dark">深色模式</string>

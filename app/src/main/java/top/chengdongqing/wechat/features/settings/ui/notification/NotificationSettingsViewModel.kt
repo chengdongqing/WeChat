@@ -1,19 +1,26 @@
 package top.chengdongqing.wechat.features.settings.ui.notification
 
+import android.content.Context
+import android.media.Ringtone
+import android.media.RingtoneManager
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationDisplay
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
 import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 
 @HiltViewModel
 class NotificationSettingsViewModel @Inject constructor(
-    private val repository: NotificationSettingsRepository
+    private val repository: NotificationSettingsRepository,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val msgNotificationEnabled = repository.msgNotificationEnabled
@@ -40,6 +47,13 @@ class NotificationSettingsViewModel @Inject constructor(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             NotificationSound.FollowSystem
+        )
+
+    val ringtone = repository.ringtone
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            RingtoneSound.Default
         )
 
     val ringtoneAudibleEnabled = repository.ringtoneAudibleEnabled
@@ -69,7 +83,29 @@ class NotificationSettingsViewModel @Inject constructor(
         viewModelScope.launch { repository.setNotificationSound(sound) }
     }
 
+    fun setRingtone(ringtone: RingtoneSound) {
+        viewModelScope.launch { repository.setRingtone(ringtone) }
+    }
+
     fun toggleRingtoneAudible(enabled: Boolean) {
         viewModelScope.launch { repository.toggleRingtoneAudible(enabled) }
+    }
+
+    private var previewRingtone: Ringtone? = null
+
+    fun previewSound(uri: Uri) {
+        previewRingtone?.stop()
+        previewRingtone = RingtoneManager.getRingtone(context, uri)
+        previewRingtone?.play()
+    }
+
+    fun stopPreview() {
+        previewRingtone?.stop()
+        previewRingtone = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopPreview()
     }
 }

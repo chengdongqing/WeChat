@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.ContextMenuState
@@ -49,6 +50,17 @@ fun ChatListScreen(
         }
     )
     val overscrollEffect = rememberBounceOverscrollEffect()
+
+    /**
+     * 注册当前是否在聊天列表的状态
+     */
+    LifecycleResumeEffect(Unit) {
+        viewModel.activeSessionManager.enterList()
+
+        onPauseOrDispose {
+            viewModel.activeSessionManager.leaveList()
+        }
+    }
 
     Column {
         if (!isWifiConnected) {

@@ -171,4 +171,8 @@
     <string name="call_notification_outgoing">Calling %s…</string>
     <string name="call_notification_connecting">Connecting…</string>
     <string name="call_notification_ongoing">In call - %s</string>
+
+    <string name="msg_notification_hidden">You have a new message</string>
+    <string name="msg_notification_sender_only">sent you a message</string>
+    <string name="msg_notification_contact_unknown">Unknown Contact</string>
 </resources>

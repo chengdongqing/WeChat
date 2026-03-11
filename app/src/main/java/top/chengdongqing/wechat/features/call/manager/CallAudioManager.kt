@@ -6,11 +6,9 @@ import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.media.VibratorHelper
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,11 +27,11 @@ import javax.inject.Singleton
  */
 @Singleton
 class CallAudioManager @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val vibratorHelper: VibratorHelper
 ) {
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var ringtonePlayer: MediaPlayer? = null
-    private val vibrator: Vibrator? = resolveVibrator()
 
     /**
      * 保存通话前的音频设置
@@ -144,7 +142,7 @@ class CallAudioManager @Inject constructor(
     fun startRingtone(isIncoming: Boolean) {
         if (ringtonePlayer?.isPlaying == true) return
 
-        ringtonePlayer = MediaPlayer.create(context, R.raw.phonering)?.apply {
+        ringtonePlayer = MediaPlayer.create(context, R.raw.ringtone_default)?.apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
@@ -156,7 +154,7 @@ class CallAudioManager @Inject constructor(
         }
 
         if (isIncoming && shouldVibrate()) {
-            vibrate(pattern = longArrayOf(0, 1000, 1000), repeat = 0)
+            vibratorHelper.vibrate(longArrayOf(0, 1000, 1000), repeat = 0)
         }
     }
 
@@ -169,7 +167,7 @@ class CallAudioManager @Inject constructor(
             release()
         }
         ringtonePlayer = null
-        vibrator?.cancel()
+        vibratorHelper.cancel()
     }
 
     /**
@@ -180,7 +178,7 @@ class CallAudioManager @Inject constructor(
      * @param onComplete 播放完成回调
      */
     fun playHangupTone(onComplete: () -> Unit) {
-        MediaPlayer.create(context, R.raw.playend)?.apply {
+        MediaPlayer.create(context, R.raw.tip_call_end)?.apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
@@ -198,7 +196,7 @@ class CallAudioManager @Inject constructor(
      * 接通时的双击振动反馈
      */
     fun vibrateOnConnected() {
-        vibrate(pattern = longArrayOf(0, 200, 300, 200), repeat = -1)
+        vibratorHelper.vibrate(longArrayOf(0, 200, 300, 200))
     }
 
     /**
@@ -208,35 +206,4 @@ class CallAudioManager @Inject constructor(
      */
     private fun shouldVibrate() =
         audioManager.ringerMode != AudioManager.RINGER_MODE_SILENT
-
-    /**
-     * 执行振动
-     *
-     * @param pattern 振动模式数组（毫秒）
-     * @param repeat 重复索引（-1 表示不重复）
-     */
-    private fun vibrate(pattern: LongArray, repeat: Int) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator?.vibrate(VibrationEffect.createWaveform(pattern, repeat))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator?.vibrate(pattern, repeat)
-        }
-    }
-
-    /**
-     * 获取 Vibrator 实例
-     *
-     * Android 12+ 通过 VibratorManager 获取
-     * Android 12- 直接获取系统服务
-     */
-    private fun resolveVibrator(): Vibrator? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager)
-                .defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        }
-    }
 }

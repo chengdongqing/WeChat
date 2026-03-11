@@ -27,29 +27,29 @@ import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
 import top.chengdongqing.wechat.features.settings.domain.model.toUri
 
 @Composable
-fun NotificationSoundSettingScreen(
+fun RingtoneSettingScreen(
     onBack: () -> Unit,
     viewModel: NotificationSettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
-    val initialSound by viewModel.notificationSound.collectAsStateWithLifecycle()
-    var sound by remember(initialSound) { mutableStateOf(initialSound) }
-    val soundOptions = remember {
-        NotificationSound.entries.map {
+    val initialRingtone by viewModel.ringtone.collectAsStateWithLifecycle()
+    var ringtone by remember(initialRingtone) { mutableStateOf(initialRingtone) }
+    val ringtoneOptions = remember {
+        RingtoneSound.entries.map {
             resources.getString(it.labelRes) to it
         }
     }
-    val hasChanged = sound != initialSound
+    val hasChanged = ringtone != initialRingtone
 
     Scaffold(
         topBar = {
             WeTopBar(
-                title = stringResource(R.string.notification_msg_sound),
+                title = stringResource(R.string.notification_ringtone),
                 onBack = onBack
             ) {
                 WeButton(
@@ -57,7 +57,7 @@ fun NotificationSoundSettingScreen(
                     size = ButtonSize.Small,
                     enabled = hasChanged
                 ) {
-                    viewModel.setNotificationSound(sound)
+                    viewModel.setRingtone(ringtone)
                     onBack()
                 }
             }
@@ -74,10 +74,10 @@ fun NotificationSoundSettingScreen(
                 .padding(innerPadding)
         ) {
             WeRadioGroup(
-                options = soundOptions,
-                value = sound
+                options = ringtoneOptions,
+                value = ringtone
             ) {
-                sound = it
+                ringtone = it
                 viewModel.previewSound(it.toUri(context))
             }
             Spacer(modifier = Modifier.height(100.dp))

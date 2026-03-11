@@ -44,12 +44,11 @@ class SoundTipPlayer @Inject constructor(
         // 预加载常用音频
         preload(
             context,
-            R.raw.sent_message,
-            R.raw.playend,
-            R.raw.phonering,
-            R.raw.play_completed,
-            R.raw.qrcode_completed,
-            R.raw.after_upload_voice
+            R.raw.tip_call_end,
+            R.raw.ringtone_default,
+            R.raw.tip_voice_played,
+            R.raw.tip_qrcode_completed,
+            R.raw.tip_after_upload_voice
         )
     }
 

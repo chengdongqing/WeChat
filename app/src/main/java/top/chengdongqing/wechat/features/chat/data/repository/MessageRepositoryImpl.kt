@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -38,6 +39,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import java.io.File
 import javax.inject.Inject
 
@@ -53,6 +55,7 @@ class MessageRepositoryImpl @Inject constructor(
     private val fileReferenceManager: FileReferenceManager,
     private val transferManager: TransferManager,
     private val notificationHelper: NotificationHelper,
+    private val notificationSettingsRepository: NotificationSettingsRepository,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope
 ) : MessageRepository {
@@ -336,20 +339,22 @@ class MessageRepositoryImpl @Inject constructor(
             // 发送送达回执
             sendAck(protocol)
 
-            // 查询是否开启免打扰
-            val isMuted = chatSessionRepository.isSessionMuted(protocol.senderId)
-
             // 满足指定条件就推送到消息流以触发消息通知
-            val isNotifyRequired = !isMuted && // 未开启免打扰
-                    !entity.isFromMe && // 不是给自己发的
-                    !entity.contentType.isCallMessage && // 不是通话消息
-                    !activeSessionManager.isActive(entity.sessionId) // 当前未在消息所在的会话页
-            if (isNotifyRequired) {
+            if (shouldNotify(entity, protocol.senderId)) {
                 onNotifyRequired(entity.toDomain(json))
             }
         } catch (e: Exception) {
             Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)
         }
+    }
+
+    private suspend fun shouldNotify(entity: MessageEntity, senderId: String): Boolean {
+        if (entity.isFromMe) return false // 给自己发的
+        if (!msgNotificationEnabled()) return false // 未开启消息通知
+        if (entity.contentType.isCallMessage) return false  // 通话消息
+        if (activeSessionManager.isActive(entity.sessionId)) return false // 当前在消息所在的会话页
+        if (chatSessionRepository.isSessionMuted(senderId)) return false // 开启免打扰
+        return true
     }
 
     /**
@@ -382,4 +387,7 @@ class MessageRepositoryImpl @Inject constructor(
             transferManager.setCancelled(messageId)
         }
     }
+
+    private suspend fun msgNotificationEnabled(): Boolean =
+        notificationSettingsRepository.msgNotificationEnabled.first()
 }

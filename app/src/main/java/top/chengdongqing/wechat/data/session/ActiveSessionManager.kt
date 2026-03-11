@@ -6,12 +6,15 @@ import javax.inject.Singleton
 
 /**
  * 当前会话管理
- * 方便处理已进入的会话不发送通知，不计入未读
  */
 @Singleton
 class ActiveSessionManager @Inject constructor() {
 
     private val _activeSessionId = MutableStateFlow<String?>(null)
+    private val _inChatList = MutableStateFlow(false)
+
+    val inChat: Boolean
+        get() = _activeSessionId.value != null || _inChatList.value
 
     fun enter(sessionId: String) {
         _activeSessionId.value = sessionId
@@ -23,5 +26,13 @@ class ActiveSessionManager @Inject constructor() {
 
     fun isActive(sessionId: String): Boolean {
         return _activeSessionId.value == sessionId
+    }
+
+    fun enterList() {
+        _inChatList.value = true
+    }
+
+    fun leaveList() {
+        _inChatList.value = false
     }
 }

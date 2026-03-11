@@ -86,7 +86,7 @@ class AudioPlaybackManager(
         messages: List<ChatMessage>,
         isSpeakerOn: Boolean
     ) {
-        soundTipPlayer.play(R.raw.play_completed)
+        soundTipPlayer.play(R.raw.tip_voice_played)
 
         val nextVoice = findNextUnreadVoice(messageId, messages)
         if (nextVoice != null) {

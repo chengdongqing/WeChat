@@ -40,6 +40,7 @@ fun NotificationSettingsScreen(
     val callEnabled by viewModel.callNotificationEnabled.collectAsStateWithLifecycle()
     val notificationDisplay by viewModel.notificationDisplay.collectAsStateWithLifecycle()
     val notificationSound by viewModel.notificationSound.collectAsStateWithLifecycle()
+    val ringtone by viewModel.ringtone.collectAsStateWithLifecycle()
     val ringtoneAudibleEnabled by viewModel.ringtoneAudibleEnabled.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -127,9 +128,11 @@ fun NotificationSettingsScreen(
                 }
                 WeSettingItem(
                     label = stringResource(R.string.notification_ringtone),
-                    onClick = {}
+                    onClick = {
+                        navController.navigate(SettingsRoute.RingtoneSetting.route)
+                    }
                 ) {
-                    WeSettingValue("Lullaby")
+                    WeSettingValue(stringResource(ringtone.labelRes))
                 }
                 WeSettingItem(
                     label = stringResource(R.string.notification_ringtone_hint),

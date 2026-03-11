@@ -53,7 +53,7 @@ fun rememberScanCodeLauncher(onChange: (Array<String>) -> Unit): () -> Unit {
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            soundTipPlayer.play(R.raw.qrcode_completed) // 播放提示音
+            soundTipPlayer.play(R.raw.tip_qrcode_completed) // 播放提示音
             result.data?.getStringArrayExtra(QRCodeScannerActivity.EXTRA_QR_CODES)?.let(onChange)
         }
     }

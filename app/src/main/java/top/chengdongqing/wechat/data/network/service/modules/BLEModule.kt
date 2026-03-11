@@ -24,7 +24,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -86,7 +85,7 @@ class BLEModule @Inject constructor(
     // 事件流：所有好友请求相关事件都从这里发出
     private val _friendRequestEvents =
         MutableSharedFlow<FriendRequestEvent>(extraBufferCapacity = 8)
-    val friendRequestEvents: SharedFlow<FriendRequestEvent> = _friendRequestEvents.asSharedFlow()
+    val friendRequestEvents = _friendRequestEvents.asSharedFlow()
 
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
     private var gattServer: BluetoothGattServer? = null
@@ -163,6 +162,7 @@ class BLEModule @Inject constructor(
                         override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
                             Log.d(TAG, "✅ BLE 广播已启动")
                         }
+
                         override fun onStartFailure(errorCode: Int) {
                             Log.e(TAG, "BLE 广播启动失败，错误码: $errorCode")
                         }
@@ -229,6 +229,7 @@ class BLEModule @Inject constructor(
                     deviceSessions[device.address] = DeviceSession()
                     Log.d(TAG, "✅ 设备已连接: ${device.address}")
                 }
+
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     deviceSessions.remove(device.address)
                     Log.d(TAG, "设备已断开: ${device.address}")

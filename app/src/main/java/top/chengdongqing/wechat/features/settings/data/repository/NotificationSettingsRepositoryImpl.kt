@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.di.NotificationSettingsDataStore
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationDisplay
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
 import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 
 class NotificationSettingsRepositoryImpl @Inject constructor(
@@ -25,6 +26,7 @@ class NotificationSettingsRepositoryImpl @Inject constructor(
         val IN_CHAT_VIBRATION_KEY = booleanPreferencesKey("in_chat_vibration_enabled")
         val NOTIFICATION_DISPLAY_KEY = stringPreferencesKey("notification_display")
         val NOTIFICATION_SOUND_KEY = stringPreferencesKey("notification_sound")
+        val RINGTONE_KEY = stringPreferencesKey("ringtone")
         val RINGTONE_AUDIBLE_KEY = booleanPreferencesKey("ringtone_audible_enabled")
     }
 
@@ -60,6 +62,14 @@ class NotificationSettingsRepositoryImpl @Inject constructor(
         }
         .distinctUntilChanged()
 
+    override val ringtone: Flow<RingtoneSound> = dataStore.data
+        .map { preferences ->
+            preferences[RINGTONE_KEY]
+                ?.let { runCatching { RingtoneSound.valueOf(it) }.getOrNull() }
+                ?: RingtoneSound.Default
+        }
+        .distinctUntilChanged()
+
     override val ringtoneAudibleEnabled: Flow<Boolean> = dataStore.data
         .map { it[RINGTONE_AUDIBLE_KEY] ?: true }
         .distinctUntilChanged()
@@ -86,6 +96,10 @@ class NotificationSettingsRepositoryImpl @Inject constructor(
 
     override suspend fun setNotificationSound(sound: NotificationSound) {
         dataStore.edit { it[NOTIFICATION_SOUND_KEY] = sound.name }
+    }
+
+    override suspend fun setRingtone(ringtone: RingtoneSound) {
+        dataStore.edit { it[RINGTONE_KEY] = ringtone.name }
     }
 
     override suspend fun toggleRingtoneAudible(enabled: Boolean) {

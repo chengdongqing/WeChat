@@ -6,12 +6,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
-    private val chatSessionRepository: ChatSessionRepository
+    private val chatSessionRepository: ChatSessionRepository,
+    val activeSessionManager: ActiveSessionManager
 ) : ViewModel() {
 
     val chats = chatSessionRepository

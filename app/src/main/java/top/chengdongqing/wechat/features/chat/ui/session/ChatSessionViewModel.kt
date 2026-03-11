@@ -355,7 +355,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                 content = content
             ).onSuccess {
                 if (content is MessageContent.Voice) {
-                    soundTipPlayer.play(R.raw.after_upload_voice)
+                    soundTipPlayer.play(R.raw.tip_after_upload_voice)
                 }
             }
         }

@@ -20,6 +20,7 @@ import top.chengdongqing.wechat.features.settings.ui.notification.InChatNotifica
 import top.chengdongqing.wechat.features.settings.ui.notification.NotificationDisplaySettingScreen
 import top.chengdongqing.wechat.features.settings.ui.notification.NotificationSettingsScreen
 import top.chengdongqing.wechat.features.settings.ui.notification.NotificationSoundSettingScreen
+import top.chengdongqing.wechat.features.settings.ui.notification.RingtoneSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.privacy.AddMeMethodSettingScreen
 import top.chengdongqing.wechat.features.settings.ui.privacy.ContactBlacklistScreen
 import top.chengdongqing.wechat.features.settings.ui.privacy.PrivacySettingsScreen
@@ -31,6 +32,7 @@ sealed class SettingsRoute(val route: String) {
     object NotificationDisplaySetting : SettingsRoute("settings/notification/display")
     object InChatNotificationSetting : SettingsRoute("settings/notification/in_chat")
     object NotificationSoundSetting : SettingsRoute("settings/notification/sound")
+    object RingtoneSetting : SettingsRoute("settings/notification/ringtone")
 
     object DisplaySettings : SettingsRoute("settings/display")
     object ThemeSetting : SettingsRoute("settings/display/theme")
@@ -159,5 +161,8 @@ private fun NavGraphBuilder.notificationNavGraph(
     }
     composable(SettingsRoute.NotificationSoundSetting.route) {
         NotificationSoundSettingScreen(onBack)
+    }
+    composable(SettingsRoute.RingtoneSetting.route) {
+        RingtoneSettingScreen(onBack)
     }
 }

@@ -7,7 +7,9 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
@@ -48,9 +50,6 @@ class NotificationHelper @Inject constructor(
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
-        // 获取系统默认通知音的 URI
-        val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-
         // 消息通知通道
         val messageChannel = NotificationChannel(
             MESSAGE_CHANNEL_ID,
@@ -58,10 +57,6 @@ class NotificationHelper @Inject constructor(
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
             description = "收到新消息时使用的通知类别"
-            setSound(alarmSound, Notification.AUDIO_ATTRIBUTES_DEFAULT)
-            setShowBadge(true)
-            enableLights(true)
-            enableVibration(true)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC // 锁屏也显示
         }
 
@@ -72,7 +67,6 @@ class NotificationHelper @Inject constructor(
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
             description = "收到音视频通话邀请时使用的通知类别"
-            setSound(null, null) // 避免触发系统铃声，用自定义铃声
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC  // 锁屏也显示
         }
 
@@ -120,16 +114,18 @@ class NotificationHelper @Inject constructor(
      */
     fun showMessageNotification(
         sessionId: String,
-        title: String,
+        title: String?,
         content: String,
-        notificationId: Int
+        notificationId: Int,
+        ringtoneUri: Uri,
+        avatarBitmap: Bitmap?
     ) {
+        // 构建跳转 Intent：使用 DeepLink 机制跳转到对应的聊天界面
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = "wechat://chat/$sessionId".toUri()
             setPackage(context.packageName)
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
-
         val pendingIntent = PendingIntent.getActivity(
             context,
             notificationId,
@@ -137,17 +133,20 @@ class NotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        // 构建通知
         val notification = NotificationCompat.Builder(context, MESSAGE_CHANNEL_ID)
-            .setSmallIcon(R.drawable.img_logo)
-            .setContentTitle(title)
-            .setContentText(content)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
-            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
-            .setAutoCancel(true)
+            .setSmallIcon(R.drawable.img_logo) // app logo
+            .setLargeIcon(avatarBitmap) // 头像
+            .setContentTitle(title) // 标题
+            .setContentText(content) // 内容
+            .setPriority(NotificationCompat.PRIORITY_HIGH) // 优先级
+            .setContentIntent(pendingIntent) // 支持点击跳转
+            .setSound(ringtoneUri) // 提示音
+            .setAutoCancel(true) // 自动消失
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE) // 帮助系统进行免打扰模式分类
             .build()
 
+        // 显示通知
         notificationManager.notify(notificationId, notification)
     }
 

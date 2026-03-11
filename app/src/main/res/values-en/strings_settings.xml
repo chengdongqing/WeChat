@@ -55,6 +55,12 @@
     <string name="notification_sound_nimble">Fairy</string>
     <string name="notification_sound_elegant">Elegance</string>
 
+    <string name="ringtone_default">WeChat</string>
+    <string name="ringtone_mi">Mi</string>
+    <string name="ringtone_mi_jazz">Mi Jazz</string>
+    <string name="ringtone_mi_house">Mi House</string>
+    <string name="ringtone_mi_remix">Mi Remix</string>
+
     <string name="display_theme">Dark Mode</string>
     <string name="display_theme_light">Light</string>
     <string name="display_theme_dark">Dark</string>

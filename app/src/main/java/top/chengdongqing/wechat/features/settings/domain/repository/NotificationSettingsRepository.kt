@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.features.settings.domain.repository
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationDisplay
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
 
 interface NotificationSettingsRepository {
 
@@ -32,9 +33,14 @@ interface NotificationSettingsRepository {
     val notificationDisplay: Flow<NotificationDisplay>
 
     /**
-     * 消息通知铃声
+     * 消息通知提示音
      */
     val notificationSound: Flow<NotificationSound>
+
+    /**
+     * 来电铃声
+     */
+    val ringtone: Flow<RingtoneSound>
 
     /**
      * 来电时朋友可听见铃声
@@ -47,6 +53,7 @@ interface NotificationSettingsRepository {
     suspend fun toggleInChatVibration(enabled: Boolean)
     suspend fun setNotificationDisplay(display: NotificationDisplay)
     suspend fun setNotificationSound(sound: NotificationSound)
+    suspend fun setRingtone(ringtone: RingtoneSound)
     suspend fun toggleRingtoneAudible(enabled: Boolean)
 
     /**
