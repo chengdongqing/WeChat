@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -89,7 +90,13 @@ fun AvatarSelector(
         Spacer(modifier = Modifier.height(20.dp))
 
         WeButton(
-            text = if (avatarUri != null) "更换头像" else "设置头像",
+            text = stringResource(
+                if (avatarUri != null) {
+                    R.string.setup_avatar_change
+                } else {
+                    R.string.setup_avatar_set
+                }
+            ),
             type = ButtonType.Plain,
             size = ButtonSize.Small,
             enabled = enabled,

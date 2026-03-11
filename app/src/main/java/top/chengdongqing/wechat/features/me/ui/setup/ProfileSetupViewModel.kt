@@ -1,15 +1,18 @@
 package top.chengdongqing.wechat.features.me.ui.setup
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -25,7 +28,8 @@ data class ProfileSetupUiState(
 @HiltViewModel
 class ProfileSetupViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val privateFileManager: PrivateFileManager
+    private val privateFileManager: PrivateFileManager,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileSetupUiState())
@@ -88,7 +92,7 @@ class ProfileSetupViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "保存失败: ${e.message}"
+                        errorMessage = "${context.getString(R.string.msg_save_failed)}: ${e.message}"
                     )
                 }
             }
@@ -107,9 +111,9 @@ class ProfileSetupViewModel @Inject constructor(
      */
     private fun validateProfile(nickname: String, avatarUri: Uri?): String? {
         return when {
-            nickname.isBlank() -> "名字不能为空"
-            !UserProfile.isValidName(nickname) -> "名字长度应为2-17个字符"
-            avatarUri == null -> "请设置头像"
+            nickname.isBlank() -> context.getString(R.string.setup_error_name_empty)
+            !UserProfile.isValidName(nickname) -> context.getString(R.string.setup_error_name_length)
+            avatarUri == null -> context.getString(R.string.setup_error_avatar_required)
             else -> null
         }
     }

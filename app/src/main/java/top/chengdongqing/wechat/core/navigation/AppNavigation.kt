@@ -22,6 +22,7 @@ import top.chengdongqing.wechat.features.home.theme.HomeTheme
 import top.chengdongqing.wechat.features.home.ui.HomeScreen
 import top.chengdongqing.wechat.features.me.navigation.meNavGraph
 import top.chengdongqing.wechat.features.me.ui.setup.ProfileSetupScreen
+import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 import top.chengdongqing.wechat.features.settings.navigation.settingsNavGraph
 import top.chengdongqing.wechat.features.startup.SplashScreen
 import top.chengdongqing.wechat.features.startup.WelcomeScreen
@@ -106,9 +107,14 @@ private fun NavGraphBuilder.onboardingNavGraph(
         route = Screen.Welcome.route,
         enterTransition = { fadeIn(animationSpec = tween(durationMillis = 0)) }
     ) {
-        WelcomeScreen(onNavigateToSetup = {
-            navController.navigate(Screen.ProfileSetup.route)
-        })
+        WelcomeScreen(
+            onNavigateToSetup = {
+                navController.navigate(Screen.ProfileSetup.route)
+            },
+            onNavigateToLanguage = {
+                navController.navigate(SettingsRoute.LanguageSetting.route)
+            }
+        )
     }
 
     // 资料设置页

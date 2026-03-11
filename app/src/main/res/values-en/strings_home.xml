@@ -8,4 +8,17 @@
     <string name="home_tab_contacts">Contacts</string>
     <string name="home_tab_discovery">Discover</string>
     <string name="home_tab_me">Me</string>
+
+    <string name="welcome_start">Get Started</string>
+    <string name="welcome_language">Language</string>
+
+    <string name="setup_title">Set Up Profile</string>
+    <string name="setup_nickname_label">Name</string>
+    <string name="setup_nickname_placeholder">Enter your name</string>
+    <string name="setup_nickname_hint">Pick a name friends will remember.</string>
+    <string name="setup_avatar_set">Set Avatar</string>
+    <string name="setup_avatar_change">Change Avatar</string>
+    <string name="setup_error_name_empty">Name cannot be empty</string>
+    <string name="setup_error_name_length">Name must be 2–17 characters</string>
+    <string name="setup_error_avatar_required">Please set an avatar</string>
 </resources>

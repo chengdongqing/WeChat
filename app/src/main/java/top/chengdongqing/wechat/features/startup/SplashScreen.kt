@@ -17,9 +17,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.R
 
-/**
- * 启动页
- */
 @Composable
 fun SplashScreen(
     onNavigateToHome: () -> Unit,

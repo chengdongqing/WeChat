@@ -11,9 +11,6 @@ import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepos
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
-/**
- * 应用启动状态
- */
 sealed class StartupState {
     /** 检查中 */
     object Checking : StartupState()
@@ -25,13 +22,6 @@ sealed class StartupState {
     object ReadyForHome : StartupState()
 }
 
-/**
- * 启动状态管理 ViewModel
- *
- * 职责：
- * - 检查用户是否已初始化资料
- * - 决定启动后的导航目标
- */
 @HiltViewModel
 class StartupViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,

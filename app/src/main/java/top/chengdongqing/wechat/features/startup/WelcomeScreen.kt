@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -24,18 +25,10 @@ import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
-/**
- * 欢迎页
- *
- * 用途：首次使用时的欢迎界面
- * 功能：
- * - 语言选择
- * - 引导用户进入资料设置
- */
 @Composable
 fun WelcomeScreen(
-    onNavigateToSetup: () -> Unit = {},
-    onNavigateToLanguage: () -> Unit = {}
+    onNavigateToSetup: () -> Unit,
+    onNavigateToLanguage: () -> Unit
 ) {
     StatusBarAppearanceEffect(isDark = isSystemInDarkTheme())
 
@@ -58,7 +51,7 @@ fun WelcomeScreen(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                text = "语言",
+                text = stringResource(R.string.welcome_language),
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 15.sp,
                 modifier = Modifier.weClickable {
@@ -76,7 +69,7 @@ fun WelcomeScreen(
                 .padding(40.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            WeButton("开始使用") {
+            WeButton(stringResource(R.string.welcome_start)) {
                 onNavigateToSetup()
             }
         }

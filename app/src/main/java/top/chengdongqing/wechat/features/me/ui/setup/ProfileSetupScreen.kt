@@ -21,6 +21,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -49,7 +50,7 @@ fun ProfileSetupScreen(
     Scaffold(
         topBar = {
             WeTopBar(
-                title = "设置个人资料",
+                title = stringResource(R.string.setup_title),
                 onBack = onBack,
                 backIconResId = R.drawable.ic_close_outlined,
                 containerColor = WeTheme.colorScheme.surface
@@ -111,8 +112,8 @@ private fun ProfileSetupContent(
 
             WeInput(
                 value = uiState.nickname,
-                label = "名字",
-                placeholder = "请填写名字",
+                label = stringResource(R.string.setup_nickname_label),
+                placeholder = stringResource(R.string.setup_nickname_placeholder),
                 activeColor = WeTheme.colorScheme.divider,
                 maxLength = 17,
                 enabled = !uiState.isLoading,
@@ -120,7 +121,7 @@ private fun ProfileSetupContent(
             )
 
             Text(
-                text = "好名字可以让你的朋友更容易记住你。",
+                text = stringResource(R.string.setup_nickname_hint),
                 fontSize = 13.sp,
                 color = WeTheme.colorScheme.textSecondary,
                 modifier = Modifier
@@ -141,7 +142,7 @@ private fun ProfileSetupContent(
                     .padding(bottom = bottomPadding)
             ) {
                 WeButton(
-                    text = "确定",
+                    text = stringResource(R.string.action_ok),
                     enabled = !uiState.isLoading,
                     onClick = onComplete
                 )
