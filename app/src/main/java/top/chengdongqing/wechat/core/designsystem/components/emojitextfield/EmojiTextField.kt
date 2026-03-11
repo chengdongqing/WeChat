@@ -7,11 +7,13 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.text.Editable
+import android.text.InputType
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.TextWatcher
 import android.text.style.ImageSpan
 import android.view.Gravity
+import android.view.inputmethod.EditorInfo
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,7 +64,9 @@ fun EmojiTextField(
     textColor: androidx.compose.ui.graphics.Color = WeTheme.colorScheme.textPrimary,
     maxHeightDp: Dp? = EmojiTextFieldConfig.DEFAULT_MAX_HEIGHT_DP,
     onValueChange: (String) -> Unit,
-    onLineCountChange: ((Int) -> Unit)? = null
+    onLineCountChange: ((Int) -> Unit)? = null,
+    imeAction: ImeAction = ImeAction.Default,
+    onImeAction: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -76,6 +81,7 @@ fun EmojiTextField(
     // 避免闭包捕获旧的 lambda
     val currentOnValueChange by rememberUpdatedState(onValueChange)
     val currentOnLineCountChange by rememberUpdatedState(onLineCountChange)
+    val currentOnImeAction by rememberUpdatedState(onImeAction)
 
     AndroidView(
         modifier = modifier
@@ -85,6 +91,27 @@ fun EmojiTextField(
             AppCompatEditText(ctx).apply {
                 setupConfig(fontSizeSp, cursorWidthPx, maxHeightPx)
                 focusRequester.bind(this)
+
+                if (imeAction != ImeAction.Default) {
+                    inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+
+                    val resolvedImeOptions = when (imeAction) {
+                        ImeAction.Send -> EditorInfo.IME_ACTION_SEND
+                        ImeAction.Done -> EditorInfo.IME_ACTION_DONE
+                        ImeAction.Search -> EditorInfo.IME_ACTION_SEARCH
+                        else -> EditorInfo.IME_ACTION_UNSPECIFIED
+                    }
+                    imeOptions = resolvedImeOptions
+
+                    setOnEditorActionListener { _, actionId, _ ->
+                        if (actionId == resolvedImeOptions) {
+                            currentOnImeAction?.invoke()
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                }
 
                 addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(

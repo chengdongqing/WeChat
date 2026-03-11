@@ -23,6 +23,7 @@ data class ChatSessionUiState(
     val backgroundPath: String? = null,
     val isMuted: Boolean = false,
     val isSpeakerOn: Boolean = true,
+    val isSendButtonOn: Boolean = true,
     val isOnline: Boolean = false,
     val draftMessage: String? = null,
     val isSelectMode: Boolean = false,

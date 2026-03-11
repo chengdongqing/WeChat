@@ -35,9 +35,10 @@ class InputBarController(
     val focusRequester: NativeFocusRequester,
     private val keyboardController: SoftwareKeyboardController?,
     private val recentEmojisStore: RecentEmojisStore,
+    private val isSendButtonOn: Boolean,
     private val scope: CoroutineScope
 ) {
-    private val _state = MutableStateFlow(InputBarState())
+    private val _state = MutableStateFlow(InputBarState(isSendButtonOn = isSendButtonOn))
     val state = _state.asStateFlow()
 
     // ============================================
@@ -240,6 +241,7 @@ class InputBarController(
 @Composable
 fun rememberInputBarController(
     focusRequester: NativeFocusRequester,
+    isSendButtonOn: Boolean = true,
     recentEmojisStore: RecentEmojisStore = hiltViewModel<RecentEmojisViewModel>().store
 ): InputBarController {
     val scope = rememberCoroutineScope()
@@ -247,11 +249,12 @@ fun rememberInputBarController(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     // 创建控制器
-    val controller = remember(focusRequester) {
+    val controller = remember(focusRequester, isSendButtonOn) {
         InputBarController(
             focusRequester = focusRequester,
             keyboardController = keyboardController,
             recentEmojisStore = recentEmojisStore,
+            isSendButtonOn = isSendButtonOn,
             scope = scope
         )
     }

@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -17,7 +20,14 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun ChatSettingsScreen(onBack: () -> Unit) {
+fun ChatSettingsScreen(
+    onBack: () -> Unit,
+    viewModel: ChatSettingsViewModel = hiltViewModel()
+) {
+    val speakerEnabled by viewModel.speakerEnabled.collectAsStateWithLifecycle()
+    val sendButtonEnabled by viewModel.sendButtonEnabled.collectAsStateWithLifecycle()
+    val e2eEnabled by viewModel.e2eEnabled.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             WeTopBar(
@@ -43,14 +53,20 @@ fun ChatSettingsScreen(onBack: () -> Unit) {
                     label = stringResource(R.string.chat_settings_earpiece),
                     showArrow = false
                 ) {
-                    WeSwitch()
+                    WeSwitch(
+                        checked = !speakerEnabled,
+                        onChange = viewModel::toggleSpeaker
+                    )
                 }
                 WeSettingItem(
                     label = stringResource(R.string.chat_settings_send_button),
                     showArrow = false,
                     showDivider = false,
                 ) {
-                    WeSwitch(checked = true)
+                    WeSwitch(
+                        checked = sendButtonEnabled,
+                        onChange = viewModel::toggleSendButton
+                    )
                 }
             }
             WeSettingItem(
@@ -60,7 +76,10 @@ fun ChatSettingsScreen(onBack: () -> Unit) {
                 showDivider = false,
                 height = 68.dp
             ) {
-                WeSwitch(checked = true)
+                WeSwitch(
+                    checked = e2eEnabled,
+                    onChange = viewModel::toggleE2e
+                )
             }
         }
     }

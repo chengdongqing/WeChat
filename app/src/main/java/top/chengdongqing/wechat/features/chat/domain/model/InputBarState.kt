@@ -13,13 +13,14 @@ data class InputBarState(
     val isExpanded: Boolean = false,
     val lineCount: Int = 1,
     val recentEmojis: List<Emoji> = emptyList(),
-    val isMusicOpen: Boolean = false
+    val isMusicOpen: Boolean = false,
+    val isSendButtonOn: Boolean = true
 ) {
     /**
      * 是否显示发送按钮
      */
     val shouldShowSendButton: Boolean
-        get() = inputText.isNotBlank()
+        get() = isSendButtonOn && inputText.isNotBlank()
 
     /**
      * 是否显示全屏输入按钮

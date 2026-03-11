@@ -18,10 +18,10 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepos
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscoveryRepository
 import top.chengdongqing.wechat.features.me.data.repository.ProfileRepositoryImpl
-import top.chengdongqing.wechat.features.me.data.repository.SettingsRepositoryImpl
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
-import top.chengdongqing.wechat.features.me.domain.repository.SettingsRepository
+import top.chengdongqing.wechat.features.settings.data.repository.ChatSettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.data.repository.DisplaySettingsRepositoryImpl
+import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.DisplaySettingsRepository
 
 @Module
@@ -37,8 +37,8 @@ interface RepositoryModule {
     @Binds
     @Singleton
     fun bindSettingsRepository(
-        impl: SettingsRepositoryImpl
-    ): SettingsRepository
+        impl: ChatSettingsRepositoryImpl
+    ): ChatSettingsRepository
 
     @Binds
     @Singleton

@@ -19,9 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
@@ -59,7 +61,7 @@ fun InputBar(
     onLaunchCall: (type: CallType) -> Unit
 ) {
     val focusRequester = remember { NativeFocusRequester() }
-    val controller = rememberInputBarController(focusRequester)
+    val controller = rememberInputBarController(focusRequester, uiState.isSendButtonOn)
     val state by controller.state.collectAsStateWithLifecycle()
     val actions = rememberInputBarActions(
         controller = controller,
@@ -199,13 +201,25 @@ private fun InputFieldArea(
                 onConvertToText = { _, _ -> }
             )
         } else {
-            EmojiTextField(
-                value = state.inputText,
-                focusRequester = focusRequester,
-                onValueChange = actions.onTextChange,
-                onLineCountChange = actions.onLineCountChange,
-                modifier = Modifier.padding(end = 12.dp)
-            )
+            key(state.isSendButtonOn) {
+                EmojiTextField(
+                    value = state.inputText,
+                    focusRequester = focusRequester,
+                    onValueChange = actions.onTextChange,
+                    onLineCountChange = actions.onLineCountChange,
+                    imeAction = if (state.isSendButtonOn) {
+                        ImeAction.Default
+                    } else {
+                        ImeAction.Send
+                    },
+                    onImeAction = {
+                        if (state.inputText.isNotBlank()) {
+                            actions.onSendText()
+                        }
+                    },
+                    modifier = Modifier.padding(end = 12.dp)
+                )
+            }
             SpeechInputButton(
                 onResult = actions.onSpeechResult,
                 modifier = Modifier.align(Alignment.BottomEnd)

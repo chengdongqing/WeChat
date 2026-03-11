@@ -58,7 +58,7 @@ import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
-import top.chengdongqing.wechat.features.me.domain.repository.SettingsRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import java.io.File
 import kotlin.time.Duration
 
@@ -68,7 +68,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val chatSessionRepository: ChatSessionRepository,
     private val messageRepository: MessageRepository,
     private val profileRepository: ProfileRepository,
-    private val settingsRepository: SettingsRepository,
+    private val chatSettingsRepository: ChatSettingsRepository,
     private val contactRepository: ContactRepository,
     private val contactP2PRepository: ContactP2PRepository,
     private val publicFileManager: PublicFileManager,
@@ -290,11 +290,22 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private fun observeSettings() {
         viewModelScope.launch {
-            settingsRepository.speakerEnabled.collect { isOn ->
-                _uiState.update {
-                    it.copy(
-                        isSpeakerOn = isOn
-                    )
+            launch {
+                chatSettingsRepository.speakerEnabled.collect { isOn ->
+                    _uiState.update {
+                        it.copy(
+                            isSpeakerOn = isOn
+                        )
+                    }
+                }
+            }
+            launch {
+                chatSettingsRepository.sendButtonEnabled.collect { isOn ->
+                    _uiState.update {
+                        it.copy(
+                            isSendButtonOn = isOn
+                        )
+                    }
                 }
             }
         }
@@ -381,7 +392,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun toggleSpeaker() {
         val isSpeakerOn = !_uiState.value.isSpeakerOn
         viewModelScope.launch {
-            settingsRepository.toggleSpeaker(isSpeakerOn)
+            chatSettingsRepository.toggleSpeaker(isSpeakerOn)
         }
     }
 
