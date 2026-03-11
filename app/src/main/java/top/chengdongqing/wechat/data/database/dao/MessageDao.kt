@@ -46,6 +46,9 @@ interface MessageDao : BaseDao<MessageEntity> {
     )
     suspend fun getLocalPathsByIds(ids: Set<String>): List<String>
 
+    @Query("SELECT DISTINCT localPath FROM messages WHERE localPath IS NOT NULL")
+    suspend fun getAllLocalPaths(): List<String>
+
     @Query("SELECT * FROM messages WHERE sessionId = :sessionId order by timestamp desc LIMIT 1")
     suspend fun getLatestMessage(sessionId: String): MessageEntity?
 
@@ -75,4 +78,7 @@ interface MessageDao : BaseDao<MessageEntity> {
 
     @Query("DELETE FROM messages WHERE id IN (:ids)")
     suspend fun deleteByIds(ids: Set<String>)
+
+    @Query("DELETE FROM messages")
+    suspend fun deleteAll()
 }

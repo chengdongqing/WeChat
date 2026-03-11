@@ -76,6 +76,11 @@ interface ChatSessionRepository {
     suspend fun deleteSession(sessionId: String, shouldHide: Boolean = true)
 
     /**
+     * 清空全部聊天记录
+     */
+    suspend fun deleteAllSessions()
+
+    /**
      * 总未读数
      */
     fun observeTotalUnreadCount(): Flow<Int>

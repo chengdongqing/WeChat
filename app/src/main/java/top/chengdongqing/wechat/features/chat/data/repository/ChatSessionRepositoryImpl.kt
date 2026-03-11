@@ -146,6 +146,24 @@ class ChatSessionRepositoryImpl @Inject constructor(
         sessionCache.remove(sessionId)
     }
 
+    override suspend fun deleteAllSessions() {
+        // 查询所有会话的媒体文件路径
+        val localPaths = messageDao.getAllLocalPaths()
+
+        // 清空所有消息 + 隐藏所有会话（保留置顶/免打扰等设置）
+        database.withTransaction {
+            chatSessionDao.clearAll()
+            messageDao.deleteAll()
+        }
+
+        // 批量删除本地文件
+        val toDelete = fileReferenceManager.releaseAll(localPaths)
+        deleteLocalFiles(toDelete)
+
+        // 清空会话缓存
+        sessionCache.evictAll()
+    }
+
     override fun observeTotalUnreadCount(): Flow<Int> {
         return chatSessionDao.observeAll().map { list ->
             list.sumOf {

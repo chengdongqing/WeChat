@@ -89,6 +89,18 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
     )
     suspend fun clearLastMessage(sessionId: String, now: Long = System.currentTimeMillis())
 
+    @Query(
+        """
+        UPDATE chat_sessions 
+        SET lastMessage = NULL,
+            lastMessageId = NULL,
+            isHidden = 1,
+            unreadCount = 0,
+            updatedAt = :now
+    """
+    )
+    suspend fun clearAll(now: Long = System.currentTimeMillis())
+
     @Query("DELETE FROM chat_sessions WHERE id = :sessionId")
     suspend fun deleteById(sessionId: String)
 }

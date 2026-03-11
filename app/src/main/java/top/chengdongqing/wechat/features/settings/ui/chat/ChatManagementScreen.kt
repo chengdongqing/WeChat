@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
@@ -36,7 +37,10 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 @Composable
-fun ChatManagementScreen(onBack: () -> Unit) {
+fun ChatManagementScreen(
+    onBack: () -> Unit,
+    viewModel: ChatManagementViewModel = hiltViewModel()
+) {
     Scaffold(
         topBar = {
             WeTopBar(
@@ -71,13 +75,13 @@ fun ChatManagementScreen(onBack: () -> Unit) {
                 )
             }
 
-            ClearChatButton()
+            ClearChatButton(viewModel)
         }
     }
 }
 
 @Composable
-private fun BoxScope.ClearChatButton() {
+private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
     val dialog = rememberDialogState()
     val resources = LocalResources.current
 
@@ -94,7 +98,7 @@ private fun BoxScope.ClearChatButton() {
                     content = resources.getString(R.string.chat_history_clear_content),
                     okText = R.string.action_clear,
                     okColor = Danger,
-                    onOk = {}
+                    onOk = viewModel::deleteAllSessions
                 )
             }
     )
