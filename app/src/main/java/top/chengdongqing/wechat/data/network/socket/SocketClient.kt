@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.data.network.socket
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.config.TransferConfig
@@ -14,6 +15,7 @@ import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.PacketWriter
+import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import java.net.InetSocketAddress
 import java.net.Socket
 import javax.inject.Inject
@@ -28,11 +30,15 @@ import javax.inject.Singleton
 class SocketClient @Inject constructor(
     private val json: Json,
     private val e2e: E2ESessionManager,
-    private val connectionManager: ConnectionManager
+    private val connectionManager: ConnectionManager,
+    private val chatSettingsRepository: ChatSettingsRepository
 ) {
     private companion object {
         const val TAG = "SocketClient"
     }
+
+    private suspend fun isE2eEnabled(): Boolean =
+        chatSettingsRepository.e2eEnabled.first()
 
     /**
      * 主动连接指定用户
@@ -95,10 +101,10 @@ class SocketClient @Inject constructor(
      *
      * 重连场景先清除旧 E2E session，生成新密钥对后随握手包发出公钥。
      */
-    private fun sendHandshake(connection: PeerConnection, myUserId: String) {
+    private suspend fun sendHandshake(connection: PeerConnection, myUserId: String) {
         e2e.removeSession(connection.userId)
 
-        val e2eKey = e2e.prepareHandshake(connection.userId)
+        val e2eKey = if (isE2eEnabled()) e2e.prepareHandshake(connection.userId) else null
         val hs = ChatProtocol.Handshake(senderId = myUserId, e2ePublicKey = e2eKey)
         val body = json.encodeToString<ChatProtocol>(hs).toByteArray(Charsets.UTF_8)
 

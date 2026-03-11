@@ -36,12 +36,6 @@ interface RepositoryModule {
 
     @Binds
     @Singleton
-    fun bindSettingsRepository(
-        impl: ChatSettingsRepositoryImpl
-    ): ChatSettingsRepository
-
-    @Binds
-    @Singleton
     fun bindContactRepository(
         impl: ContactRepositoryImpl
     ): ContactRepository
@@ -81,4 +75,10 @@ interface RepositoryModule {
     fun bindDisplaySettingsRepository(
         impl: DisplaySettingsRepositoryImpl
     ): DisplaySettingsRepository
+
+    @Binds
+    @Singleton
+    fun bindChatSettingsRepository(
+        impl: ChatSettingsRepositoryImpl
+    ): ChatSettingsRepository
 }

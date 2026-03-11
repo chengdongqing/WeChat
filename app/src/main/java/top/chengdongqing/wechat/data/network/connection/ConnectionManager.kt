@@ -41,7 +41,7 @@ class ConnectionManager @Inject constructor(
     }
 
     // Socket 连接池
-    private val connections = ConcurrentHashMap<String, PeerConnection>()
+    val connections = ConcurrentHashMap<String, PeerConnection>()
 
     // 连接状态事件流
     private val _connectionEvents = MutableSharedFlow<ConnectionEvent>()
