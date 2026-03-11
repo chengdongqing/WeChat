@@ -32,6 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.background.ChatBackgroundSetting
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -41,7 +42,6 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.features.chat.ui.info.components.ChatBackgroundSetting
 
 @Composable
 fun ChatInfoScreen(
@@ -107,7 +107,10 @@ fun ChatInfoScreen(
                     WeSwitch()
                 }
             }
-            ChatBackgroundSetting(background = uiState.backgroundPath) {
+            ChatBackgroundSetting(
+                label = stringResource(R.string.chat_info_background_setting),
+                value = uiState.backgroundPath,
+            ) {
                 viewModel.updateBackground(it)
             }
             WeSettingItem(

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.background.ChatBackgroundSetting
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
@@ -27,6 +28,7 @@ fun ChatSettingsScreen(
     val speakerEnabled by viewModel.speakerEnabled.collectAsStateWithLifecycle()
     val sendButtonEnabled by viewModel.sendButtonEnabled.collectAsStateWithLifecycle()
     val e2eEnabled by viewModel.e2eEnabled.collectAsStateWithLifecycle()
+    val chatBackground by viewModel.chatBackground.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -43,11 +45,12 @@ fun ChatSettingsScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            WeSettingItem(
+            ChatBackgroundSetting(
                 label = stringResource(R.string.chat_settings_background),
-                showDivider = false,
-                onClick = {}
-            )
+                value = chatBackground,
+            ) {
+                viewModel.setChatBackground(it)
+            }
             WeSettingGroup {
                 WeSettingItem(
                     label = stringResource(R.string.chat_settings_earpiece),

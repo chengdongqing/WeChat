@@ -50,6 +50,10 @@ class ChatInfoViewModel @AssistedInject constructor(
         fun create(chatId: String): ChatInfoViewModel
     }
 
+    companion object {
+        private const val TAG = "ChatInfoVM"
+    }
+
     init {
         ensureSessionExists()
     }
@@ -135,7 +139,7 @@ class ChatInfoViewModel @AssistedInject constructor(
 
                 context.showToast(if (uri == null) "背景清除成功" else "背景设置成功")
             } catch (e: Exception) {
-                Log.e("ChatInfoVM", "更新背景图片失败", e)
+                Log.e(TAG, "更新背景图片失败", e)
                 context.showToast("背景设置失败")
             }
         }

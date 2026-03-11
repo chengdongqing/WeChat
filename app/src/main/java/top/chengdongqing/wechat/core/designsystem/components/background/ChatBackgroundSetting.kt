@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.info.components
+package top.chengdongqing.wechat.core.designsystem.components.background
 
 import android.Manifest
 import android.content.Context
@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
@@ -29,19 +28,23 @@ import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.util.createImageUri
 
 @Composable
-fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Unit) {
-    val selectorState = rememberBackgroundSelectorState(onBackgroundChange)
+fun ChatBackgroundSetting(
+    label: String,
+    value: String?,
+    onChange: (Uri?) -> Unit
+) {
+    val selectorState = rememberBackgroundSelectorState(onChange)
     val scope = rememberCoroutineScope()
     val dialog = rememberDialogState()
     val actionSheet = rememberActionSheetState()
     val resources = LocalResources.current
 
-    val options = remember(background) {
+    val options = remember(value) {
         val list = mutableListOf(
             ActionSheetItem(R.string.action_take_photo),
             ActionSheetItem(R.string.action_select_from_gallery)
         )
-        if (background != null) {
+        if (value != null) {
             list.add(
                 ActionSheetItem(
                     labelRes = R.string.chat_info_clear_background,
@@ -59,7 +62,7 @@ fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Uni
                 1 -> selectorState.pickVisualMedia()
                 2 -> {
                     dialog.show(resources.getString(R.string.chat_info_background_clear_title)) {
-                        onBackgroundChange(null)
+                        onChange(null)
                     }
                 }
             }
@@ -67,7 +70,7 @@ fun ChatBackgroundSetting(background: String?, onBackgroundChange: (Uri?) -> Uni
     }
 
     WeSettingItem(
-        label = stringResource(R.string.chat_info_background_setting),
+        label = label,
         showDivider = false,
         onClick = handleShowMenu
     )

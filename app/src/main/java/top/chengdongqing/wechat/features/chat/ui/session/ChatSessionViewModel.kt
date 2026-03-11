@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -273,41 +274,39 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private fun observeSessionChanges() {
         viewModelScope.launch {
-            sessionFlow.collect { session ->
-                session?.let { s ->
-                    _uiState.update {
-                        it.copy(
-                            backgroundPath = s.backgroundPath,
-                            isMuted = s.isMuted,
-                            isOnline = s.isOnline,
-                            draftMessage = s.draftMessage
-                        )
+            sessionFlow
+                .combine(chatSettingsRepository.chatBackground) { session, globalBackground ->
+                    Pair(session, globalBackground)
+                }
+                .collect { (session, globalBackground) ->
+                    session?.let { s ->
+                        _uiState.update {
+                            it.copy(
+                                backgroundPath = s.backgroundPath ?: globalBackground,
+                                isMuted = s.isMuted,
+                                isOnline = s.isOnline,
+                                draftMessage = s.draftMessage
+                            )
+                        }
                     }
                 }
-            }
         }
     }
 
     private fun observeSettings() {
         viewModelScope.launch {
-            launch {
-                chatSettingsRepository.speakerEnabled.collect { isOn ->
+            chatSettingsRepository.speakerEnabled
+                .combine(chatSettingsRepository.sendButtonEnabled) { speaker, sendButton ->
+                    Pair(speaker, sendButton)
+                }
+                .collect { (speaker, sendButton) ->
                     _uiState.update {
                         it.copy(
-                            isSpeakerOn = isOn
+                            isSpeakerOn = speaker,
+                            isSendButtonOn = sendButton
                         )
                     }
                 }
-            }
-            launch {
-                chatSettingsRepository.sendButtonEnabled.collect { isOn ->
-                    _uiState.update {
-                        it.copy(
-                            isSendButtonOn = isOn
-                        )
-                    }
-                }
-            }
         }
     }
 
