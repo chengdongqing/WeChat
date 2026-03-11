@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.features.call.manager.CallAudioManager
 import top.chengdongqing.wechat.features.call.manager.CallManager
@@ -69,25 +70,34 @@ class CallModule @Inject constructor(
                         launchCallActivity()
                         callAudioManager.startRingtone(isIncoming = true)
                         notificationHelper.showIncomingNotification(
-                            state.peerName,
-                            state.isVideoCall
+                            title = state.peerName,
+                            text = context.getString(
+                                if (state.isVideoCall) R.string.call_notification_incoming_video
+                                else R.string.call_notification_incoming_voice
+                            )
                         )
                     }
 
                     CallState.Outgoing -> {
                         callAudioManager.startRingtone(isIncoming = false)
-                        notificationHelper.showOngoingNotification("正在呼叫 ${state.peerName}...")
+                        notificationHelper.showOngoingNotification(
+                            context.getString(R.string.call_notification_outgoing, state.peerName)
+                        )
                     }
 
                     CallState.Connecting -> {
                         callAudioManager.stopRingtone()
-                        notificationHelper.showOngoingNotification("连接中...")
+                        notificationHelper.showOngoingNotification(
+                            context.getString(R.string.call_notification_connecting)
+                        )
                     }
 
                     CallState.Connected -> {
                         callAudioManager.vibrateOnConnected()
                         callAudioManager.enterCallMode(state.isVideoCall)
-                        notificationHelper.showOngoingNotification("通话中 - ${state.peerName}")
+                        notificationHelper.showOngoingNotification(
+                            context.getString(R.string.call_notification_ongoing, state.peerName)
+                        )
                     }
 
                     CallState.Ended -> {

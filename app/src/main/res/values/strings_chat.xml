@@ -113,6 +113,19 @@
     <string name="location_current">当前位置</string>
     <string name="location_navigate">导航</string>
 
+    <string name="message_preview_image">[图片]</string>
+    <string name="message_preview_voice">[语音]</string>
+    <string name="message_preview_video">[视频]</string>
+    <string name="message_preview_file">[文件]</string>
+    <string name="message_preview_location">[位置]</string>
+    <string name="message_preview_favorite">[收藏]</string>
+    <string name="message_preview_contact_card">[名片]</string>
+    <string name="message_preview_sticker">[表情]</string>
+    <string name="message_preview_music">[音乐]</string>
+    <string name="message_preview_voice_call">[语音通话]</string>
+    <string name="message_preview_video_call">[视频通话]</string>
+    <string name="message_preview_draft">[草稿]</string>
+
     <string name="call_type_voice">语音通话</string>
     <string name="call_type_video">视频通话</string>
 
@@ -126,16 +139,37 @@
     <string name="call_status_failed">连接失败</string>
     <string name="call_status_duration">通话时长 %s</string>
 
-    <string name="message_preview_image">[图片]</string>
-    <string name="message_preview_voice">[语音]</string>
-    <string name="message_preview_video">[视频]</string>
-    <string name="message_preview_file">[文件]</string>
-    <string name="message_preview_location">[位置]</string>
-    <string name="message_preview_favorite">[收藏]</string>
-    <string name="message_preview_contact_card">[名片]</string>
-    <string name="message_preview_sticker">[表情]</string>
-    <string name="message_preview_music">[音乐]</string>
-    <string name="message_preview_voice_call">[语音通话]</string>
-    <string name="message_preview_video_call">[视频通话]</string>
-    <string name="message_preview_draft">[草稿]</string>
+    <string name="call_control_mic">麦克风</string>
+    <string name="call_control_speaker">扬声器</string>
+    <string name="call_control_camera">摄像头</string>
+    <string name="call_control_flip">翻转</string>
+    <string name="call_control_cancel">取消</string>
+    <string name="call_control_hangup">挂断</string>
+    <string name="call_control_decline">拒绝</string>
+    <string name="call_control_accept">接听</string>
+    <string name="call_control_minimize">最小化</string>
+    <string name="call_control_status_on">%s已开</string>
+    <string name="call_control_status_off">%s已关</string>
+
+    <string name="call_state_outgoing">等待对方接受邀请…</string>
+    <string name="call_state_incoming_video">邀请你视频通话…</string>
+    <string name="call_state_incoming_voice">邀请你语音通话…</string>
+    <string name="call_state_connecting">连接中…</string>
+    <string name="call_state_ended_normal_by_me">已挂断，通话结束</string>
+    <string name="call_state_ended_normal_by_other">对方已挂断，通话结束</string>
+    <string name="call_state_ended_declined_by_me">已拒绝了对方的通话请求</string>
+    <string name="call_state_ended_declined_by_other">对方拒绝了你的通话请求</string>
+    <string name="call_state_ended_cancelled_by_me">已取消，通话结束</string>
+    <string name="call_state_ended_cancelled_by_other">对方已取消，通话结束</string>
+    <string name="call_state_ended_timeout">对方无应答</string>
+    <string name="call_state_ended_busy">对方忙线中</string>
+    <string name="call_state_ended_offline">对方不在线</string>
+    <string name="call_state_ended_error">连接失败</string>
+    <string name="call_state_ended">通话结束</string>
+
+    <string name="call_notification_incoming_video">视频通话 来电</string>
+    <string name="call_notification_incoming_voice">语音通话 来电</string>
+    <string name="call_notification_outgoing">正在呼叫 %s…</string>
+    <string name="call_notification_connecting">连接中…</string>
+    <string name="call_notification_ongoing">通话中 - %s</string>
 </resources>

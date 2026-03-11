@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,20 +30,24 @@ fun CallUserInfo(
         if (!largeAvatar) {
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                userName,
-                style = MaterialTheme.typography.headlineSmall,
+                text = userName,
+                fontSize = 24.sp,
                 color = Color.White
             )
             statusText?.let {
                 Spacer(modifier = Modifier.height(40.dp))
-                Text(it, fontSize = 14.sp, color = Color.White.copy(0.7f))
+                Text(
+                    text = it,
+                    fontSize = 14.sp,
+                    color = Color.White.copy(0.7f)
+                )
             }
         }
     }
 }
 
 @Composable
-fun UserAvatar(avatarPath: String?) {
+private fun UserAvatar(avatarPath: String?) {
     AsyncImage(
         model = avatarPath,
         contentDescription = null,

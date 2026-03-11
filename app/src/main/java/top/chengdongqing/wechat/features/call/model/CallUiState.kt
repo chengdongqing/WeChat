@@ -1,5 +1,8 @@
 package top.chengdongqing.wechat.features.call.model
 
+import android.content.Context
+import top.chengdongqing.wechat.R
+
 /**
  * 通话 UI 状态
  */
@@ -50,23 +53,29 @@ data class CallUiState(
     // 是否允许切换全屏（只有视频接通后才允许点击大背景隐藏控件）
     val canToggleControls: Boolean get() = isVideoCallActive
 
-    fun getStatusText(): String = when (callState) {
-        CallState.Outgoing -> "等待对方接受邀请..."
-        CallState.Incoming -> if (isVideoCall) "邀请你视频通话..." else "邀请你语音通话..."
-        CallState.Connecting -> "连接中..."
-        CallState.Connected -> formatDuration(duration)
-        CallState.Ended -> when (hangupResult?.reason) {
-            HangupReason.Normal -> if (hangupResult.isFromMe) "已挂断，通话结束" else "对方已挂断，通话结束"
-            HangupReason.Declined -> if (isOutgoing) "对方拒绝了你的通话请求" else "已拒绝了对方的通话请求"
-            HangupReason.Cancelled -> if (isOutgoing) "已取消，通话结束" else "对方已取消，通话结束"
-            HangupReason.Timeout -> "对方无应答"
-            HangupReason.Busy -> "对方忙线中"
-            HangupReason.Offline -> "对方不在线"
-            HangupReason.Error -> "连接失败"
-            else -> "通话结束"
-        }
+    fun getStatusText(context: Context): String? = when (callState) {
+        CallState.Outgoing -> context.getString(R.string.call_state_outgoing)
+        CallState.Incoming -> context.getString(
+            if (isVideoCall) R.string.call_state_incoming_video
+            else R.string.call_state_incoming_voice
+        )
 
-        CallState.Idle -> ""
+        CallState.Connecting -> context.getString(R.string.call_state_connecting)
+        CallState.Connected -> formatDuration(duration)
+        CallState.Ended -> context.getString(
+            when (hangupResult?.reason) {
+                HangupReason.Normal -> if (hangupResult.isFromMe) R.string.call_state_ended_normal_by_me else R.string.call_state_ended_normal_by_other
+                HangupReason.Declined -> if (isOutgoing) R.string.call_state_ended_declined_by_other else R.string.call_state_ended_declined_by_me
+                HangupReason.Cancelled -> if (isOutgoing) R.string.call_state_ended_cancelled_by_me else R.string.call_state_ended_cancelled_by_other
+                HangupReason.Timeout -> R.string.call_state_ended_timeout
+                HangupReason.Busy -> R.string.call_state_ended_busy
+                HangupReason.Offline -> R.string.call_state_ended_offline
+                HangupReason.Error -> R.string.call_state_ended_error
+                else -> R.string.call_state_ended
+            }
+        )
+
+        CallState.Idle -> null
     }
 
     companion object {

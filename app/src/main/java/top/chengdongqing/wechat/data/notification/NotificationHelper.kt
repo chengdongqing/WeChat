@@ -159,8 +159,8 @@ class NotificationHelper @Inject constructor(
      */
     @SuppressLint("FullScreenIntentPolicy")
     fun showIncomingNotification(
-        peerName: String,
-        isVideo: Boolean,
+        title: String,
+        text: String,
         notificationId: Int = CALL_NOTIFICATION_ID
     ) {
         val pendingIntent = PendingIntent.getActivity(
@@ -173,11 +173,10 @@ class NotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val typeText = if (isVideo) "视频通话" else "语音通话"
         val notification = NotificationCompat.Builder(context, CALL_CHANNEL_ID)
             .setSmallIcon(R.drawable.img_logo)
-            .setContentTitle(peerName)
-            .setContentText("$typeText 来电")
+            .setContentTitle(title)
+            .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setContentIntent(pendingIntent)

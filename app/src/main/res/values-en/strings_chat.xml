@@ -93,7 +93,7 @@
     <string name="send_error_unknown">Unknown error.</string>
 
     <string name="chat_recalled_by_me">You recalled a message</string>
-    <string name="chat_recalled_by_other">The other party recalled a message</string>
+    <string name="chat_recalled_by_other">The other user recalled a message</string>
     <string name="chat_sent_no_receipt">Message sent, but no receipt received.</string>
     <string name="chat_action_resend">Resend</string>
     <string name="chat_action_retry">Retry</string>
@@ -112,19 +112,6 @@
     <string name="location_current">My Location</string>
     <string name="location_navigate">Go</string>
 
-    <string name="call_type_voice">Voice Call</string>
-    <string name="call_type_video">Video Call</string>
-
-    <string name="call_status_cancelled">Call canceled by caller</string>
-    <string name="call_status_cancelled_by_me">Canceled</string>
-    <string name="call_status_declined">Declined</string>
-    <string name="call_status_declined_by_me">Call Declined</string>
-    <string name="call_status_finished">Connected</string>
-    <string name="call_status_missed">No answer</string>
-    <string name="call_status_missed_by_me">Other party not available</string>
-    <string name="call_status_failed">Connection failed</string>
-    <string name="call_status_duration">Duration: %s</string>
-
     <string name="message_preview_image">[Image]</string>
     <string name="message_preview_voice">[Voice]</string>
     <string name="message_preview_video">[Video]</string>
@@ -137,4 +124,51 @@
     <string name="message_preview_voice_call">[Voice Call]</string>
     <string name="message_preview_video_call">[Video Call]</string>
     <string name="message_preview_draft">[Draft]</string>
+
+    <string name="call_type_voice">Voice Call</string>
+    <string name="call_type_video">Video Call</string>
+
+    <string name="call_status_cancelled">Call canceled by caller</string>
+    <string name="call_status_cancelled_by_me">Canceled</string>
+    <string name="call_status_declined">Declined</string>
+    <string name="call_status_declined_by_me">Call Declined</string>
+    <string name="call_status_finished">Connected</string>
+    <string name="call_status_missed">Call not answered</string>
+    <string name="call_status_missed_by_me">Other user not available</string>
+    <string name="call_status_failed">Connection failed</string>
+    <string name="call_status_duration">Duration: %s</string>
+
+    <string name="call_control_mic">Mic</string>
+    <string name="call_control_speaker">Speaker</string>
+    <string name="call_control_camera">Camera</string>
+    <string name="call_control_flip">Flip</string>
+    <string name="call_control_cancel">Cancel</string>
+    <string name="call_control_hangup">Hang Up</string>
+    <string name="call_control_decline">Decline</string>
+    <string name="call_control_accept">Accept</string>
+    <string name="call_control_minimize">Minimize</string>
+    <string name="call_control_status_on">%s On</string>
+    <string name="call_control_status_off">%s Off</string>
+
+    <string name="call_state_outgoing">Awaiting response…</string>
+    <string name="call_state_incoming_video">Invites you to a video call…</string>
+    <string name="call_state_incoming_voice">Invites you to a voice call…</string>
+    <string name="call_state_connecting">Connecting…</string>
+    <string name="call_state_ended_normal_by_me">Call ended</string>
+    <string name="call_state_ended_normal_by_other">Call ended by other user</string>
+    <string name="call_state_ended_declined_by_me">You declined the call</string>
+    <string name="call_state_ended_declined_by_other">Call request declined</string>
+    <string name="call_state_ended_cancelled_by_me">Call cancelled</string>
+    <string name="call_state_ended_cancelled_by_other">Call ended by other user</string>
+    <string name="call_state_ended_timeout">No answer</string>
+    <string name="call_state_ended_busy">Other user is busy</string>
+    <string name="call_state_ended_offline">Other user is offline</string>
+    <string name="call_state_ended_error">Connection failed</string>
+    <string name="call_state_ended">Call ended</string>
+
+    <string name="call_notification_incoming_video">Incoming Video Call</string>
+    <string name="call_notification_incoming_voice">Incoming Voice Call</string>
+    <string name="call_notification_outgoing">Calling %s…</string>
+    <string name="call_notification_connecting">Connecting…</string>
+    <string name="call_notification_ongoing">In call - %s</string>
 </resources>

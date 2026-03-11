@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
@@ -29,7 +30,7 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
  */
 @Composable
 fun CallTopBar(
-    statusText: String,
+    statusText: String?,
     onMinimizeClick: () -> Unit,
     modifier: Modifier = Modifier,
     isDarkBackground: Boolean = false
@@ -56,9 +57,9 @@ fun CallTopBar(
         )
 
         // 状态文本（居中显示）
-        if (statusText.isNotEmpty()) {
+        statusText?.let {
             StatusText(
-                text = statusText,
+                text = it,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -75,7 +76,7 @@ private fun MinimizeButton(
 ) {
     Icon(
         painter = painterResource(R.drawable.ic_minimize_outlined),
-        contentDescription = "最小化",
+        contentDescription = stringResource(R.string.call_control_minimize),
         modifier = modifier
             .size(32.dp)
             .offset(x = 14.dp)

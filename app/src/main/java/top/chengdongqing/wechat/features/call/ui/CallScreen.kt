@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
@@ -127,6 +128,9 @@ private fun FullScreenLayer(uiState: CallUiState, viewModel: CallViewModel) {
 /** 控件层：顶栏 + 中间用户信息 + 底部操作栏 */
 @Composable
 private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
+    val context = LocalContext.current
+    val statusText = uiState.getStatusText(context)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -134,7 +138,7 @@ private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CallTopBar(
-            statusText = if (uiState.isCallActive) uiState.getStatusText() else "",
+            statusText = if (uiState.isCallActive) statusText else null,
             onMinimizeClick = viewModel.actions.onMinimize,
             isDarkBackground = uiState.isVideoCall
         )
@@ -150,7 +154,7 @@ private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
                     userName = uiState.peerName,
                     userAvatar = uiState.peerAvatar,
                     largeAvatar = uiState.showCenterAvatar,
-                    statusText = if (!uiState.isCallActive) uiState.getStatusText() else null
+                    statusText = if (!uiState.isCallActive) statusText else null
                 )
             }
         }
