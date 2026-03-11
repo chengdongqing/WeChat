@@ -32,9 +32,8 @@ fun DarkModeSettingScreen(
     onBack: () -> Unit,
     viewModel: DisplaySettingsViewModel = hiltViewModel()
 ) {
-    val initialTheme by viewModel.theme.collectAsStateWithLifecycle()
     val resources = LocalResources.current
-
+    val initialTheme by viewModel.theme.collectAsStateWithLifecycle()
     var theme by remember(initialTheme) { mutableStateOf(initialTheme) }
     val themeOptions = remember {
         AppTheme.entries.filter {

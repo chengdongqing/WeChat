@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -27,14 +29,19 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollE
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
 
 @Composable
-fun NotificationSoundSettingScreen(onBack: () -> Unit) {
+fun NotificationSoundSettingScreen(
+    onBack: () -> Unit,
+    viewModel: NotificationSettingsViewModel = hiltViewModel()
+) {
     val resources = LocalResources.current
+    val initialSound by viewModel.notificationSound.collectAsStateWithLifecycle()
+    var sound by remember(initialSound) { mutableStateOf(initialSound) }
     val soundOptions = remember {
         NotificationSound.entries.map {
             resources.getString(it.labelRes) to it
         }
     }
-    var sound by remember { mutableStateOf(NotificationSound.FollowSystem) }
+    val hasChanged = sound != initialSound
 
     Scaffold(
         topBar = {
@@ -45,8 +52,11 @@ fun NotificationSoundSettingScreen(onBack: () -> Unit) {
                 WeButton(
                     text = stringResource(R.string.action_done),
                     size = ButtonSize.Small,
-                    enabled = false
-                )
+                    enabled = hasChanged
+                ) {
+                    viewModel.setNotificationSound(sound)
+                    onBack()
+                }
             }
         },
         containerColor = WeTheme.colorScheme.background

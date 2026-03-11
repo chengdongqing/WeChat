@@ -41,9 +41,7 @@ class LogoutUseCase @Inject constructor(
             database.clearAllTables()
 
             // 清空 DataStore
-            profileRepository.clear()
-            displaySettingsRepository.clearAll()
-            chatSettingsRepository.clearAll()
+            clearDataStore()
 
             // 删除所有媒体文件
             privateFileManager.clearAll()
@@ -53,5 +51,11 @@ class LogoutUseCase @Inject constructor(
         }
     }.onFailure {
         Log.e(TAG, "退出登录失败", it)
+    }
+
+    private suspend fun clearDataStore() {
+        profileRepository.clear()
+        displaySettingsRepository.clearAll()
+        chatSettingsRepository.clearAll()
     }
 }

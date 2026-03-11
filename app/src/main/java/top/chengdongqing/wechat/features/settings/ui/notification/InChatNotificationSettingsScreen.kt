@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -21,7 +24,13 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun InChatNotificationSettingsScreen(onBack: () -> Unit) {
+fun InChatNotificationSettingsScreen(
+    onBack: () -> Unit,
+    viewModel: NotificationSettingsViewModel = hiltViewModel()
+) {
+    val inChatSoundEnabled by viewModel.inChatSoundEnabled.collectAsStateWithLifecycle()
+    val inChatVibrationEnabled by viewModel.inChatVibrationEnabled.collectAsStateWithLifecycle()
+
     Scaffold(
         topBar = {
             WeTopBar(
@@ -41,14 +50,20 @@ fun InChatNotificationSettingsScreen(onBack: () -> Unit) {
                     label = stringResource(R.string.notification_in_chat_sound),
                     showArrow = false
                 ) {
-                    WeSwitch(checked = true)
+                    WeSwitch(
+                        checked = inChatSoundEnabled,
+                        onChange = viewModel::toggleInChatSound
+                    )
                 }
                 WeSettingItem(
                     label = stringResource(R.string.notification_in_chat_vibration),
                     showArrow = false,
                     showDivider = false
                 ) {
-                    WeSwitch(checked = true)
+                    WeSwitch(
+                        checked = inChatVibrationEnabled,
+                        onChange = viewModel::toggleInChatVibration
+                    )
                 }
             }
 

@@ -12,6 +12,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -21,14 +23,19 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationDisplay
 
 @Composable
-fun NotificationDisplaySettingScreen(onBack: () -> Unit) {
+fun NotificationDisplaySettingScreen(
+    onBack: () -> Unit,
+    viewModel: NotificationSettingsViewModel = hiltViewModel()
+) {
     val resources = LocalResources.current
+    val initialDisplay by viewModel.notificationDisplay.collectAsStateWithLifecycle()
+    var display by remember(initialDisplay) { mutableStateOf(initialDisplay) }
     val displayOptions = remember {
         NotificationDisplay.entries.map {
-            resources.getString(it.description) to it
+            resources.getString(it.descriptionRes) to it
         }
     }
-    var display by remember { mutableStateOf(NotificationDisplay.SenderAndContent) }
+    val hasChanged = display != initialDisplay
 
     Scaffold(
         topBar = {
@@ -39,8 +46,11 @@ fun NotificationDisplaySettingScreen(onBack: () -> Unit) {
                 WeButton(
                     text = stringResource(R.string.action_done),
                     size = ButtonSize.Small,
-                    enabled = false
-                )
+                    enabled = hasChanged
+                ) {
+                    viewModel.setNotificationDisplay(display)
+                    onBack()
+                }
             }
         },
         containerColor = WeTheme.colorScheme.background

@@ -10,10 +10,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -24,15 +27,20 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.util.navigateToAppSettings
-import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 
 @Composable
 fun NotificationSettingsScreen(
     navController: NavHostController,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    viewModel: NotificationSettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val msgEnabled by viewModel.msgNotificationEnabled.collectAsStateWithLifecycle()
+    val callEnabled by viewModel.callNotificationEnabled.collectAsStateWithLifecycle()
+    val notificationDisplay by viewModel.notificationDisplay.collectAsStateWithLifecycle()
+    val notificationSound by viewModel.notificationSound.collectAsStateWithLifecycle()
+    val ringtoneAudibleEnabled by viewModel.ringtoneAudibleEnabled.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -58,19 +66,25 @@ fun NotificationSettingsScreen(
                     label = stringResource(R.string.notification_msg),
                     showArrow = false
                 ) {
-                    WeSwitch(checked = true)
+                    WeSwitch(
+                        checked = msgEnabled,
+                        onChange = viewModel::toggleMsgNotification
+                    )
                 }
                 WeSettingItem(
                     label = stringResource(R.string.notification_call),
                     showArrow = false,
                     showDivider = false
                 ) {
-                    WeSwitch(checked = true)
+                    WeSwitch(
+                        checked = callEnabled,
+                        onChange = viewModel::toggleCallNotification
+                    )
                 }
             }
             WeSettingItem(
                 label = stringResource(R.string.notification_display),
-                description = stringResource(R.string.notification_display_desc),
+                description = stringResource(notificationDisplay.descriptionRes),
                 showDivider = false,
                 height = 68.dp,
                 onClick = {
@@ -109,7 +123,7 @@ fun NotificationSettingsScreen(
                         navController.navigate(SettingsRoute.NotificationSoundSetting.route)
                     }
                 ) {
-                    WeSettingValue(stringResource(NotificationSound.FollowSystem.labelRes))
+                    WeSettingValue(stringResource(notificationSound.labelRes))
                 }
                 WeSettingItem(
                     label = stringResource(R.string.notification_ringtone),
@@ -122,7 +136,10 @@ fun NotificationSettingsScreen(
                     showArrow = false,
                     showDivider = false
                 ) {
-                    WeSwitch(checked = true)
+                    WeSwitch(
+                        checked = ringtoneAudibleEnabled,
+                        onChange = viewModel::toggleRingtoneAudible
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(100.dp))

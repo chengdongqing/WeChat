@@ -27,9 +27,8 @@ fun LanguageSettingScreen(
     onBack: () -> Unit,
     viewModel: DisplaySettingsViewModel = hiltViewModel()
 ) {
-    val initialLanguage by viewModel.language.collectAsStateWithLifecycle()
     val resources = LocalResources.current
-
+    val initialLanguage by viewModel.language.collectAsStateWithLifecycle()
     var language by remember(initialLanguage) { mutableStateOf(initialLanguage) }
     val languageOptions = remember {
         AppLanguage.entries.map {

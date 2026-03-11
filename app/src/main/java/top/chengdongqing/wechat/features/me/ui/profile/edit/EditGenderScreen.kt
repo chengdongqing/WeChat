@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,16 +31,14 @@ fun EditGenderScreen(
     onBack: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val resources = LocalResources.current
-
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val initialGender = uiState.profile?.gender
     val genderOptions = remember {
         Gender.entries.map { resources.getString(it.label) to it }
     }
-    var gender by remember { mutableStateOf<Gender?>(null) }
-    LaunchedEffect(uiState.profile) {
-        uiState.profile?.gender?.let { gender = it }
-    }
+    var gender by remember(initialGender) { mutableStateOf(initialGender) }
+    val hasChanged = gender != initialGender
 
     ProfileEventEffect(viewModel, onBack)
 
@@ -54,7 +51,7 @@ fun EditGenderScreen(
                 WeButton(
                     text = stringResource(R.string.action_done),
                     size = ButtonSize.Small,
-                    enabled = gender != null && gender != uiState.profile?.gender
+                    enabled = hasChanged
                 ) {
                     viewModel.updateField(ProfileField.Gender(gender!!))
                 }
