@@ -24,6 +24,7 @@
     <string name="msg_processing">Processing…</string>
     <string name="msg_save_success">Save Successes</string>
     <string name="msg_save_failed">Save Failed</string>
+    <string name="msg_process_failed">Process Failed</string>
 
     <string name="map_amap">Amap</string>
     <string name="map_baidu">Baidu Maps</string>

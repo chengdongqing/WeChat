@@ -10,12 +10,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
@@ -27,7 +29,9 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.core.util.getVersionName
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.features.settings.domain.model.ConnectionMode
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 
@@ -121,23 +125,41 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                     WeSettingValue("${stringResource(R.string.settings_version)} $versionName")
                 }
             }
-            LogoutButton()
+            LogoutButton(navController)
             Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }
 
 @Composable
-private fun LogoutButton() {
+private fun LogoutButton(
+    navController: NavHostController,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
     val dialog = rememberDialogState()
     val resources = LocalResources.current
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.logoutResult.collect { result ->
+            result.onSuccess {
+                // 导航到登录页，清除回退栈
+                navController.navigate(Screen.Welcome.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }.onFailure {
+                // 提示失败
+                context.showToast(resources.getString(R.string.msg_process_failed))
+            }
+        }
+    }
 
     val showDialog = {
         dialog.show(
             title = resources.getString(R.string.settings_logout_title),
             content = resources.getString(R.string.settings_logout_content),
             okColor = Danger,
-            onOk = {}
+            onOk = viewModel::exit
         )
     }
 

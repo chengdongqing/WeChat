@@ -19,7 +19,7 @@ interface ProfileRepository {
     /**
      * 保存用户资料
      */
-    suspend fun saveProfile(profile: UserProfile): Result<Unit>
+    suspend fun saveProfile(profile: UserProfile)
 
     /**
      * 更新用户资料
@@ -29,7 +29,7 @@ interface ProfileRepository {
         gender: Gender? = null,
         signature: String? = null,
         avatarPath: String? = null
-    ): Result<Unit>
+    )
 
     /**
      * 检查是否已设置过资料
@@ -39,5 +39,5 @@ interface ProfileRepository {
     /**
      * 清除用户资料
      */
-    suspend fun clearProfile(): Result<Unit>
+    suspend fun clear()
 }

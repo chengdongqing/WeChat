@@ -78,7 +78,7 @@ class ProfileSetupViewModel @Inject constructor(
                 )
 
                 // 保存资料
-                profileRepository.saveProfile(profile).getOrThrow()
+                profileRepository.saveProfile(profile)
 
                 _uiState.update { it.copy(isLoading = false) }
                 onSuccess()

@@ -59,4 +59,8 @@ class DisplaySettingsRepositoryImpl @Inject constructor(
         // 应用：触发app资源重定向与activity重启
         AppCompatDelegate.setApplicationLocales(locales)
     }
+
+    override suspend fun clearAll() {
+        dataStore.edit { it.clear() }
+    }
 }

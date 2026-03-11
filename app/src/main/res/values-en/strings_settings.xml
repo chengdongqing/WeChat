@@ -19,8 +19,8 @@
     <string name="settings_about">About WeChat</string>
     <string name="settings_version">Version</string>
 
-    <string name="settings_logout">Log Out</string>
-    <string name="settings_logout_title">Log Out?</string>
+    <string name="settings_logout">Sign Out</string>
+    <string name="settings_logout_title">Sign out of your account?</string>
     <string name="settings_logout_content">All data will be deleted and your account will be permanently deactivated.</string>
 
     <string name="notification_msg">Message Notifications</string>

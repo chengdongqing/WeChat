@@ -216,17 +216,11 @@ class PrivateFileManager @Inject constructor(
         }
 
     /**
-     * 清理所有媒体文件
+     * 清理所有文件
      */
-    suspend fun clearAllMediaFiles(): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            listOf(avatarDir, imagesDir, videosDir, recordingsDir, filesDir).forEach { dir ->
-                dir.listFiles()?.forEach { it.delete() }
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    suspend fun clearAll() = withContext(Dispatchers.IO) {
+        context.filesDir.deleteRecursively()
+        context.getExternalFilesDir(null)?.deleteRecursively()
     }
 
     /**

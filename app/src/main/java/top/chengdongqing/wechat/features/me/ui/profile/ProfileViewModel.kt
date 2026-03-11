@@ -141,43 +141,34 @@ class ProfileViewModel @Inject constructor(
      * 执行具体的更新操作
      */
     private suspend fun performUpdate(field: ProfileField): Result<Unit> {
-        return when (field) {
-            is ProfileField.Nickname -> profileRepository.updateProfile(nickname = field.value.trim())
-            is ProfileField.Gender -> profileRepository.updateProfile(gender = field.value)
-            is ProfileField.Signature -> profileRepository.updateProfile(signature = field.value.trim())
-            is ProfileField.Avatar -> updateAvatar(field.uri)
+        return runCatching {
+            when (field) {
+                is ProfileField.Nickname -> profileRepository.updateProfile(nickname = field.value.trim())
+                is ProfileField.Gender -> profileRepository.updateProfile(gender = field.value)
+                is ProfileField.Signature -> profileRepository.updateProfile(signature = field.value.trim())
+                is ProfileField.Avatar -> updateAvatar(field.uri)
+            }
         }
     }
 
     /**
      * 更新头像
-     *
-     * 1. 删除旧头像
-     * 2. 保存新头像
-     * 3. 更新资料
      */
-    private suspend fun updateAvatar(uri: Uri): Result<Unit> {
-        val profile = _uiState.value.profile
-            ?: return Result.failure(Exception("资料未加载"))
+    private suspend fun updateAvatar(uri: Uri) {
+        val profile = _uiState.value.profile ?: throw Exception("资料未加载")
 
-        return try {
-            // 删除旧头像
-            profile.avatarPath?.let { privateFileManager.deleteFile(it) }
+        // 删除旧头像
+        profile.avatarPath?.let { privateFileManager.deleteFile(it) }
 
-            // 保存新头像
-            val newPath = privateFileManager.saveAvatar(uri, profile.id).getOrThrow()
+        // 保存新头像
+        val newPath = privateFileManager.saveAvatar(uri, profile.id).getOrThrow()
 
-            // 更新资料
-            profileRepository.updateProfile(avatarPath = newPath)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        // 更新资料
+        profileRepository.updateProfile(avatarPath = newPath)
     }
 
     /**
      * 验证输入
-     *
-     * @return 错误信息，null 表示验证通过
      */
     private fun validateInput(field: ProfileField): String? {
         return when (field) {

@@ -43,7 +43,7 @@ class ProfileRepositoryImpl @Inject constructor(
     // 内存快照
     override fun getProfile(): UserProfile? = profileState.value
 
-    override suspend fun saveProfile(profile: UserProfile): Result<Unit> = runCatching {
+    override suspend fun saveProfile(profile: UserProfile) {
         dataStore.edit { preferences ->
             preferences[PROFILE_KEY] = profile.toJson()
         }
@@ -54,7 +54,7 @@ class ProfileRepositoryImpl @Inject constructor(
         gender: Gender?,
         signature: String?,
         avatarPath: String?
-    ): Result<Unit> = runCatching {
+    ) {
         val currentProfile = getProfile()
             ?: throw IllegalStateException("Profile not found")
 
@@ -72,15 +72,8 @@ class ProfileRepositoryImpl @Inject constructor(
         return getProfile() != null
     }
 
-    override suspend fun clearProfile(): Result<Unit> {
-        return try {
-            dataStore.edit { preferences ->
-                preferences.remove(PROFILE_KEY)
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    override suspend fun clear() {
+        dataStore.edit { it.clear() }
     }
 
     private fun String.toProfile(): UserProfile? = runCatching {

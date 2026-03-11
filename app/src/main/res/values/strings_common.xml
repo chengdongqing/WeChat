@@ -24,6 +24,7 @@
     <string name="msg_processing">处理中…</string>
     <string name="msg_save_success">保存成功</string>
     <string name="msg_save_failed">保存失败</string>
+    <string name="msg_process_failed">操作失败</string>
 
     <string name="map_amap">高德地图</string>
     <string name="map_baidu">百度地图</string>

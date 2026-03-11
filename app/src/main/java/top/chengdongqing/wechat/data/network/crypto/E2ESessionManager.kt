@@ -145,4 +145,9 @@ class E2ESessionManager @Inject constructor(
 
     private fun requireSession(peerId: String): Session =
         sessions[peerId] ?: throw IllegalStateException("无 E2E session: $peerId")
+
+    fun clearAll() {
+        sessions.clear()
+        pendingKeyPairs.clear()
+    }
 }
