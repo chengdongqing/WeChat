@@ -14,12 +14,16 @@ import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.DisplaySettingsRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.PrivacySettingsRepository
 
 class LogoutUseCase @Inject constructor(
     private val database: WeDatabase,
     private val profileRepository: ProfileRepository,
     private val displaySettingsRepository: DisplaySettingsRepository,
     private val chatSettingsRepository: ChatSettingsRepository,
+    private val notificationSettingsRepository: NotificationSettingsRepository,
+    private val privacySettingsRepository: PrivacySettingsRepository,
     private val connectionManager: ConnectionManager,
     private val e2eSessionManager: E2ESessionManager,
     private val privateFileManager: PrivateFileManager,
@@ -57,5 +61,7 @@ class LogoutUseCase @Inject constructor(
         profileRepository.clear()
         displaySettingsRepository.clearAll()
         chatSettingsRepository.clearAll()
+        notificationSettingsRepository.clearAll()
+        privacySettingsRepository.clearAll()
     }
 }

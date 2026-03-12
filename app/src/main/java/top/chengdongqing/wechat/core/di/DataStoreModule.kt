@@ -29,6 +29,10 @@ annotation class ChatSettingsDataStore
 @Retention(AnnotationRetention.RUNTIME)
 annotation class NotificationSettingsDataStore
 
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class PrivacySettingsDataStore
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DataStoreModule {
@@ -63,5 +67,13 @@ object DataStoreModule {
     fun provideNotificationSettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
         PreferenceDataStoreFactory.create(
             produceFile = { context.preferencesDataStoreFile("notification_settings") }
+        )
+
+    @Provides
+    @Singleton
+    @PrivacySettingsDataStore
+    fun providePrivacySettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create(
+            produceFile = { context.preferencesDataStoreFile("privacy_settings") }
         )
 }

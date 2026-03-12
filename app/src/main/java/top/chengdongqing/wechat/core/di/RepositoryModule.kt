@@ -22,9 +22,11 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.data.repository.ChatSettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.data.repository.DisplaySettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.data.repository.NotificationSettingsRepositoryImpl
+import top.chengdongqing.wechat.features.settings.data.repository.PrivacySettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.DisplaySettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.PrivacySettingsRepository
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -89,4 +91,10 @@ interface RepositoryModule {
     fun bindNotificationSettingsRepository(
         impl: NotificationSettingsRepositoryImpl
     ): NotificationSettingsRepository
+
+    @Binds
+    @Singleton
+    fun bindPrivacySettingsRepository(
+        impl: PrivacySettingsRepositoryImpl
+    ): PrivacySettingsRepository
 }
