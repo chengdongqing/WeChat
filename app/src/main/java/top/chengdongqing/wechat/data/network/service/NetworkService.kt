@@ -198,17 +198,20 @@ class NetworkService : Service() {
         when (event) {
             is FriendRequestEvent.NewRequest -> notificationHelper.showFriendRequestNotification(
                 title = event.nickname,
-                content = "请求添加你为朋友"
+                content = context.getString(R.string.contact_notification_request_content)
             )
 
             is FriendRequestEvent.RequestAccepted -> notificationHelper.showFriendRequestNotification(
-                title = "好友申请",
+                title = context.getString(R.string.contact_notification_accepted_title),
                 content = event.message
             )
 
             is FriendRequestEvent.AutoAdded -> notificationHelper.showFriendRequestNotification(
-                title = "新的朋友",
-                content = "你已添加了${event.nickname}，现在可以开始聊天了"
+                title = context.getString(R.string.contact_notification_auto_added_title),
+                content = context.getString(
+                    R.string.contact_notification_auto_added_content,
+                    event.nickname
+                )
             )
 
             else -> {}
@@ -225,7 +228,7 @@ class NetworkService : Service() {
         if (soundEnabled && vibrationEnabled) {
             val contact = contactRepository.getContact(message.senderId)
             val sender = contact?.displayName
-                ?: context.getString(R.string.msg_notification_contact_unknown)
+                ?: context.getString(R.string.chat_notification_contact_unknown)
             val unreadCount = chatSessionDao.getById(message.senderId)?.unreadCount ?: 0
             // 获取消息内容
             val content = resolveContent(message)
@@ -268,12 +271,12 @@ class NetworkService : Service() {
         return when (notificationDisplay()) {
             NotificationDisplay.HiddenAll -> Pair(
                 null,
-                prefix + context.getString(R.string.msg_notification_hidden)
+                prefix + context.getString(R.string.chat_notification_hidden)
             )
 
             NotificationDisplay.SenderOnly -> Pair(
                 sender,
-                prefix + context.getString(R.string.msg_notification_sender_only)
+                prefix + context.getString(R.string.chat_notification_sender_only)
             )
 
             NotificationDisplay.SenderAndContent -> Pair(

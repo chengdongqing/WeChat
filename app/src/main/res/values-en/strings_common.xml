@@ -19,6 +19,7 @@
     <string name="action_send">Send</string>
     <string name="action_search">Search</string>
     <string name="action_exit">Exit</string>
+    <string name="action_view">Review</string>
 
     <string name="msg_network_unavailable">Network unavailable. Check the network settings.</string>
     <string name="msg_processing">Processing…</string>

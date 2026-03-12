@@ -63,4 +63,37 @@
     <string name="add_contact_option_face_to_face_title">Join Private Group</string>
     <string name="add_contact_option_face_to_face_desc">Join a group with friends nearby</string>
     <string name="add_contact_option_face_to_face_desc_full">Join a group chat with friends nearby by \n entering the required four digits</string>
+
+    <string name="contact_action_apply">Add Friend</string>
+    <string name="contact_action_verify">Accept Friend Request</string>
+    <string name="contact_label_greeting">Greeting Message</string>
+    <string name="contact_label_remark">Remark</string>
+    <string name="contact_label_tag">Tags</string>
+    <string name="contact_label_note">Note</string>
+    <string name="contact_label_permission">Friend Permissions</string>
+    <string name="contact_action_add_tag">Add Tag</string>
+    <string name="contact_action_add_note">Add Note</string>
+    <string name="contact_action_set_permission">Set Permissions</string>
+    <string name="contact_msg_request_sent">Friend request sent</string>
+    <string name="contact_msg_friend_added">Friend added</string>
+
+    <string name="new_contacts_title">New Friends</string>
+    <string name="new_contacts_title_with_count">New Friends (%1$d)</string>
+    <string name="new_contacts_action_add">Add Friend</string>
+    <string name="new_contacts_search_placeholder">Search ID / Name</string>
+    <string name="new_contacts_menu_add_phone">Add Phone Contacts</string>
+    <string name="new_contacts_section_recent">Last 3 Days</string>
+    <string name="new_contacts_section_older">Earlier</string>
+    <string name="new_contacts_outgoing_prefix">Me: </string>
+    <string name="new_contacts_avatar_desc">User Avatar</string>
+    <string name="new_contacts_status_pending">Pending</string>
+    <string name="new_contacts_status_accepted">Added</string>
+    <string name="new_contacts_status_rejected">Declined</string>
+    <string name="new_contacts_status_expired">Expired</string>
+
+    <string name="contact_notification_request_content">wants to add you as a friend</string>
+    <string name="contact_notification_accepted_title">Friend Request</string>
+    <string name="contact_notification_auto_added_title">New Friend</string>
+    <string name="contact_notification_auto_added_content">You have added %1$s. Start chatting now!</string>
+    <string name="contact_notification_request_accepted">Your friend request has been accepted</string>
 </resources>

@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.ui.newcontacts.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,9 +41,9 @@ import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
-enum class FriendActionType(val title: String) {
-    Apply("申请添加朋友"),
-    Verify("通过朋友验证")
+enum class FriendActionType(@get:StringRes val titleRes: Int) {
+    Apply(R.string.contact_action_apply),
+    Verify(R.string.contact_action_verify)
 }
 
 @Composable
@@ -58,7 +60,7 @@ internal fun ContactHandleBase(
     Scaffold(
         topBar = {
             WeTopBar(
-                title = type.title,
+                title = stringResource(type.titleRes),
                 containerColor = WeTheme.colorScheme.surface,
                 onBack = onBack
             )
@@ -80,7 +82,7 @@ internal fun ContactHandleBase(
                 ) {
                     Spacer(modifier = Modifier.height(12.dp))
                     if (type == FriendActionType.Apply) {
-                        ListItem("打招呼内容") {
+                        ListItem(stringResource(R.string.contact_label_greeting)) {
                             BasicTextField(
                                 value = greetingText,
                                 onValueChange = onGreetingChange,
@@ -94,7 +96,7 @@ internal fun ContactHandleBase(
                             )
                         }
                     }
-                    ListItem("备注") {
+                    ListItem(stringResource(R.string.contact_label_remark)) {
                         BasicTextField(
                             value = remarkText,
                             onValueChange = onRemarkChange,
@@ -107,9 +109,15 @@ internal fun ContactHandleBase(
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
-                    ListItem("标签") { LinkedRow("添加标签") {} }
-                    ListItem("备忘") { LinkedRow("添加备忘") {} }
-                    ListItem("朋友权限") { LinkedRow("设置朋友权限") {} }
+                    ListItem(stringResource(R.string.contact_label_tag)) {
+                        LinkedRow(stringResource(R.string.contact_action_add_tag)) {}
+                    }
+                    ListItem(stringResource(R.string.contact_label_note)) {
+                        LinkedRow(stringResource(R.string.contact_action_add_note)) {}
+                    }
+                    ListItem(stringResource(R.string.contact_label_permission)) {
+                        LinkedRow(stringResource(R.string.contact_action_set_permission)) {}
+                    }
                     Spacer(modifier = Modifier.height(40.dp))
                 }
 
@@ -119,7 +127,11 @@ internal fun ContactHandleBase(
 
             // 确认按钮
             ConfirmButton(
-                text = if (type == FriendActionType.Apply) "发送" else "完成",
+                text = if (type == FriendActionType.Apply) {
+                    stringResource(R.string.action_send)
+                } else {
+                    stringResource(R.string.action_done)
+                },
                 onClick = onComplete
             )
         }

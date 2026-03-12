@@ -24,7 +24,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,6 +60,7 @@ fun NewContactsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val overscrollEffect = rememberBounceOverscrollEffect()
+    val resources = LocalResources.current
 
     // 按时间分组
     val (recent, older) = remember(uiState.filteredRequests) {
@@ -93,7 +96,7 @@ fun NewContactsScreen(
                 ) {
                     WeSearchBar(
                         value = uiState.searchQuery,
-                        placeholder = "搜索 账号/名字",
+                        placeholder = stringResource(R.string.new_contacts_search_placeholder),
                         backgroundColor = WeTheme.colorScheme.surface,
                         onChange = { viewModel.onSearchQueryChange(it) }
                     )
@@ -104,7 +107,7 @@ fun NewContactsScreen(
             if (uiState.searchQuery.isEmpty()) {
                 item {
                     WeMenuListItem(
-                        label = "添加手机联系人",
+                        label = stringResource(R.string.new_contacts_menu_add_phone),
                         icon = R.drawable.ic_call_filled,
                         iconColor = WeTheme.colorScheme.primary
                     )
@@ -114,7 +117,7 @@ fun NewContactsScreen(
             // 近三天
             if (recent.isNotEmpty()) {
                 renderRequestSection(
-                    title = "近三天",
+                    title = resources.getString(R.string.new_contacts_section_recent),
                     list = recent,
                     viewModel = viewModel,
                     onItemClick = { onNavigateToVerify(it) }
@@ -123,7 +126,7 @@ fun NewContactsScreen(
             // 三天前
             if (older.isNotEmpty()) {
                 renderRequestSection(
-                    title = "三天前",
+                    title = resources.getString(R.string.new_contacts_section_older),
                     list = older,
                     viewModel = viewModel,
                     onItemClick = { onNavigateToVerify(it) }
@@ -140,10 +143,17 @@ private fun NewFriendsTopBar(
     pendingCount: Int
 ) {
     WeTopBar(
-        title = if (pendingCount > 0) "新的朋友($pendingCount)" else "新的朋友",
+        title = if (pendingCount > 0) {
+            stringResource(R.string.new_contacts_title_with_count, pendingCount)
+        } else {
+            stringResource(R.string.new_contacts_title)
+        },
         onBack = onBack,
         actions = {
-            ActionText("添加朋友", onClick = onNavigateToAdd)
+            ActionText(
+                text = stringResource(R.string.new_contacts_action_add),
+                onClick = onNavigateToAdd
+            )
         }
     )
 }
@@ -191,12 +201,17 @@ private fun FriendRequestItem(
 ) {
     val contextMenuState = rememberContextMenuState()
     val isOutgoing = request.direction.isOutgoing
+    val resources = LocalResources.current
 
     Column(
         modifier = Modifier
             .background(WeTheme.colorScheme.surface)
             .weContextMenu { position ->
-                contextMenuState.show(position, listOf("删除"), 0)
+                contextMenuState.show(
+                    position = position,
+                    options = listOf(resources.getString(R.string.action_delete)),
+                    listIndex = 0
+                )
             }
     ) {
         Row(
@@ -211,7 +226,11 @@ private fun FriendRequestItem(
             // 信息主体 (昵称 & 留言)
             RequestContent(
                 nickname = request.peerNickname,
-                message = (if (isOutgoing) "我：" else "") + request.greetingMessage,
+                message = (if (isOutgoing) {
+                    stringResource(R.string.new_contacts_outgoing_prefix)
+                } else {
+                    ""
+                }) + request.greetingMessage,
                 modifier = Modifier.weight(1f)
             )
             // 状态处理器 (按钮或文字)
@@ -235,7 +254,7 @@ private fun FriendRequestItem(
 private fun RequestAvatar(url: String?) {
     AsyncImage(
         model = url ?: R.drawable.img_avatar_placeholder,
-        contentDescription = "用户头像",
+        contentDescription = stringResource(R.string.new_contacts_avatar_desc),
         error = painterResource(R.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(48.dp)
@@ -279,19 +298,19 @@ private fun RequestStatusHandler(
         RequestStatus.Pending -> {
             if (request.direction == RequestDirection.Incoming) {
                 WeButton(
-                    text = "查看",
+                    text = stringResource(R.string.action_view),
                     type = ButtonType.Plain,
                     size = ButtonSize.Small,
                     onClick = onActionClick
                 )
             } else {
-                StatusText("等待验证")
+                StatusText(stringResource(R.string.new_contacts_status_pending))
             }
         }
 
-        RequestStatus.Accepted -> StatusText("已添加")
-        RequestStatus.Rejected -> StatusText("已拒绝")
-        RequestStatus.Expired -> StatusText("已过期")
+        RequestStatus.Accepted -> StatusText(stringResource(R.string.new_contacts_status_accepted))
+        RequestStatus.Rejected -> StatusText(stringResource(R.string.new_contacts_status_rejected))
+        RequestStatus.Expired -> StatusText(stringResource(R.string.new_contacts_status_expired))
     }
 }
 

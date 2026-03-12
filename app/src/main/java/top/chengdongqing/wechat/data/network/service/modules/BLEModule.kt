@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.toMD5Bytes
 import top.chengdongqing.wechat.data.network.protocol.P2PMessage
@@ -366,7 +367,9 @@ class BLEModule @Inject constructor(
         private suspend fun handleFriendRequestResponse(message: P2PMessage.FriendRequestResponse) {
             friendRequestRepository.handleRequestResponse(message.toDomain())
             if (message.action == RequestAction.ACCEPT) {
-                _friendRequestEvents.emit(FriendRequestEvent.RequestAccepted("对方已同意你的好友申请"))
+                _friendRequestEvents.emit(
+                    FriendRequestEvent.RequestAccepted(context.getString(R.string.contact_notification_request_accepted))
+                )
                 Log.d(TAG, "好友请求已被接受")
             }
         }
