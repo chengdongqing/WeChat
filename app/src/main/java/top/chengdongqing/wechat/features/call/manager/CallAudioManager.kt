@@ -157,7 +157,7 @@ class CallAudioManager @Inject constructor(
             start()
         }
 
-        if (isIncoming && shouldVibrate()) {
+        if (isIncoming) {
             vibratorHelper.vibrate(longArrayOf(0, 1000, 1000), repeat = 0)
         }
     }
@@ -202,14 +202,6 @@ class CallAudioManager @Inject constructor(
     fun vibrateOnConnected() {
         vibratorHelper.vibrate(longArrayOf(0, 200, 300, 200))
     }
-
-    /**
-     * 判断是否应该振动
-     *
-     * 非静音模式下才振动
-     */
-    private fun shouldVibrate() =
-        audioManager.ringerMode != AudioManager.RINGER_MODE_SILENT
 
     private suspend fun myRingtone(): RingtoneSound =
         notificationRepository.ringtone.first()
