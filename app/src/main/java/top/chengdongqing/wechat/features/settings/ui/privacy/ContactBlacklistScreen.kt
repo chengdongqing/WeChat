@@ -10,25 +10,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.features.contacts.domain.model.ContactItem
 
 @Composable
 fun ContactBlacklistScreen(
     onBack: () -> Unit,
-    onNavigateToContactDetail: (contactId: String) -> Unit
+    onNavigateToContactDetail: (contactId: String) -> Unit,
+    viewModel: ContactBlacklistViewModel = hiltViewModel()
 ) {
-    val contacts by remember { mutableStateOf(emptyList<ContactItem>()) }
+    val contacts by viewModel.blockedContacts.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {

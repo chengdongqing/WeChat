@@ -50,7 +50,7 @@ fun ActionButtonsSection(
                     text = stringResource(R.string.contact_action_send_message),
                     onClick = { onAction(ContactAction.SendMessage) }
                 )
-                if (contact.isFriend) {
+                if (contact.isFriend && !contact.isBlocked) {
                     WeDivider()
                     ContactActionButton(
                         icon = R.drawable.ic_voice_video_outlined,

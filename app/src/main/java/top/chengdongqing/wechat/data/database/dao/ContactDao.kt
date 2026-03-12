@@ -9,8 +9,8 @@ import top.chengdongqing.wechat.data.database.entity.ContactEntity
 @Dao
 interface ContactDao : BaseDao<ContactEntity> {
 
-    @Query("SELECT * FROM contacts")
-    fun observeAll(): Flow<List<ContactEntity>>
+    @Query("SELECT * FROM contacts where isBlocked = :isBlocked")
+    fun observeAll(isBlocked: Boolean): Flow<List<ContactEntity>>
 
     @Query("SELECT * FROM contacts WHERE id = :userId")
     fun observeById(userId: String): Flow<ContactEntity?>

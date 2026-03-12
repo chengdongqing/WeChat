@@ -9,7 +9,7 @@ interface ContactRepository {
     /**
      * 获取所有联系人
      */
-    fun observeAllContacts(): Flow<List<Contact>>
+    fun observeAllContacts(isBlocked: Boolean = false): Flow<List<Contact>>
 
     /**
      * 获取联系人详情

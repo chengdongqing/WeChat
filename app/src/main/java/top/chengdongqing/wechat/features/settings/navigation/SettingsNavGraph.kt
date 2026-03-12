@@ -120,9 +120,12 @@ private fun NavGraphBuilder.privacyNavGraph(
         AddMeMethodSettingScreen(onBack)
     }
     composable(SettingsRoute.ContactBlacklist.route) {
-        ContactBlacklistScreen(onBack) { id ->
-            navController.navigate(ContactsRoute.Detail.createRoute(id))
-        }
+        ContactBlacklistScreen(
+            onBack = onBack,
+            onNavigateToContactDetail = { id ->
+                navController.navigate(ContactsRoute.Detail.createRoute(id))
+            }
+        )
     }
 }
 

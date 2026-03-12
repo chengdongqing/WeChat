@@ -96,4 +96,6 @@
     <string name="contact_notification_auto_added_title">New Friend</string>
     <string name="contact_notification_auto_added_content">You have added %1$s. Start chatting now!</string>
     <string name="contact_notification_request_accepted">Your friend request has been accepted</string>
+
+    <string name="contact_blocked_hint">This person is now blocked from sending you messages</string>
 </resources>

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.copyToClipboard
 import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.core.util.showToast
@@ -102,7 +103,7 @@ class MessageToolbarManager(
             MessageAction.Copy -> {
                 currentState.selectedText?.let {
                     context.copyToClipboard(it, "message")
-                    context.showToast("已复制")
+                    context.showToast(context.getString(R.string.msg_copied))
                 }
             }
 

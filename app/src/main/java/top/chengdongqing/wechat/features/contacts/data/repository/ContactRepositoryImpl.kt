@@ -27,8 +27,8 @@ class ContactRepositoryImpl @Inject constructor(
     // 联系人缓存
     private val contactCache = LruCache<String, Contact>(100)
 
-    override fun observeAllContacts(): Flow<List<Contact>> {
-        return contactDao.observeAll().map { it.toDomain() }
+    override fun observeAllContacts(isBlocked: Boolean): Flow<List<Contact>> {
+        return contactDao.observeAll(isBlocked).map { it.toDomain() }
     }
 
     override suspend fun getContact(userId: String): Contact? {
