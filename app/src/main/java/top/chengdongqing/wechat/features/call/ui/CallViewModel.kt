@@ -3,7 +3,6 @@ package top.chengdongqing.wechat.features.call.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -11,7 +10,6 @@ import org.webrtc.EglBase
 import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.features.call.manager.CallManager
 import top.chengdongqing.wechat.features.call.model.CallActions
-import top.chengdongqing.wechat.features.call.model.CallState
 import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import javax.inject.Inject
@@ -59,9 +57,7 @@ class CallViewModel @Inject constructor(
      * 已有通话进行中时忽略（状态机保护）。
      */
     fun startCall(peerId: String, callType: CallType) {
-        if (state.value.callState != CallState.Idle) return
-
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val contact = contactRepository.getContact(peerId)
             callManager.startCall(
                 peerId = peerId,
@@ -80,4 +76,11 @@ class CallViewModel @Inject constructor(
 
     /** 重新采集本地视频 */
     fun restartVideoCapture() = callManager.restartVideoCapture()
+
+    override fun onCleared() {
+        super.onCleared()
+
+        // 重置状态
+        callManager.reset()
+    }
 }

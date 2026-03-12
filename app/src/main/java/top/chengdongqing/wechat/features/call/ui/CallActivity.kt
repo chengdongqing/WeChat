@@ -46,8 +46,10 @@ class CallActivity : ComponentActivity() {
      */
     private fun handleIntent(intent: Intent?) {
         val peerId = intent?.getStringExtra(EXTRA_PEER_ID) ?: return
-        val callType =
-            intent.getStringExtra(EXTRA_CALL_TYPE)?.let { CallType.valueOf(it) } ?: return
+        val callType = intent.getStringExtra(EXTRA_CALL_TYPE)?.let {
+            CallType.valueOf(it)
+        } ?: return
+
         viewModel.startCall(peerId, callType)
     }
 

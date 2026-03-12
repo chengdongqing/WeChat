@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -68,6 +69,7 @@ class CallManager @Inject constructor(
     private companion object {
         const val TAG = "CallManager"
         const val RING_TIMEOUT_MS = 30_000L  // 无应答超时，30s 后自动挂断
+        const val CONNECT_TIMEOUT_MS = 15_000L // 连接中持续15s自动挂断
     }
 
     private val _state = MutableStateFlow(CallUiState())
@@ -82,6 +84,9 @@ class CallManager @Inject constructor(
     /** 是否为发起方，影响通话记录的写入方式 */
     private var isOutgoing = false
 
+    // 有序信令队列
+    private val signalingChannel = Channel<ChatProtocol.Signaling>(capacity = 64)
+
     // ==================== 初始化 ====================
 
     /**
@@ -94,7 +99,22 @@ class CallManager @Inject constructor(
         isInitialized = true
         this.myUserId = myUserId
 
-        scope.launch { signalingManager.incomingSignaling.collect { handleIncomingSignaling(it) } }
+        scope.launch {
+            signalingManager.incomingSignaling.collect { msg ->
+                when (msg) {
+                    is ChatProtocol.Signaling.IceCandidate -> launch { handleRemoteIce(msg) }
+                    else -> signalingChannel.send(msg)
+                }
+            }
+        }
+
+        // 顺序消费有序信令
+        scope.launch {
+            for (msg in signalingChannel) {
+                handleIncomingSignaling(msg)
+            }
+        }
+
         scope.launch { webRTCManager.iceConnectionState.collect { handleIceStateChange(it) } }
         scope.launch { webRTCManager.localIceCandidates.collect { sendIceCandidate(it) } }
     }
@@ -108,9 +128,7 @@ class CallManager @Inject constructor(
      * 流程：ensureConnected → WebRTC 初始化 → createOffer → 发送 Offer → 启动超时计时
      */
     fun startCall(peerId: String, peerName: String, peerAvatar: String?, callType: CallType) {
-        if (_state.value.callState != CallState.Idle) {
-            return
-        }
+        if (!_state.value.callState.isTerminal) return
 
         isOutgoing = true
         val callId = randomUUID()
@@ -193,7 +211,8 @@ class CallManager @Inject constructor(
 
     /** 取消去电（对方未接听时），发送 Hangup(Cancelled) 给对方 */
     fun cancel() {
-        if (_state.value.callState != CallState.Outgoing) return
+        val s = _state.value.callState
+        if (s != CallState.Outgoing && s != CallState.Connecting) return
         sendHangup(HangupReason.Cancelled)
         endCall(HangupReason.Cancelled)
     }
@@ -316,7 +335,7 @@ class CallManager @Inject constructor(
      * [CallModule] 监听到 Incoming 后自动启动 CallActivity + 铃声 + 通知。
      */
     private suspend fun handleOffer(offer: ChatProtocol.Signaling.Offer) {
-        if (_state.value.callState != CallState.Idle) {
+        if (!_state.value.callState.isTerminal) {
             signalingManager.send(
                 targetUserId = offer.senderId,
                 message = ChatProtocol.Signaling.Busy(
@@ -372,8 +391,11 @@ class CallManager @Inject constructor(
     /** 收到 Answer，设置远端 SDP，切换为 Connecting 等待 ICE 建立 */
     private suspend fun handleAnswer(answer: ChatProtocol.Signaling.Answer) {
         if (_state.value.callId != answer.messageId || _state.value.callState != CallState.Outgoing) return
+
         cancelTimeout()
         _state.update { it.copy(callState = CallState.Connecting) }
+        startTimeout(CONNECT_TIMEOUT_MS)   // 15s ICE 连接超时
+
         webRTCManager.setRemoteDescription(
             SessionDescription(
                 SessionDescription.Type.ANSWER,
@@ -445,7 +467,8 @@ class CallManager @Inject constructor(
             }
 
             PeerConnection.IceConnectionState.FAILED -> {
-                if (_state.value.callState == CallState.Connected) {
+                val current = _state.value.callState
+                if (current == CallState.Connected || current == CallState.Connecting) {
                     endCall(HangupReason.Error)
                 }
             }
@@ -475,12 +498,18 @@ class CallManager @Inject constructor(
     // ==================== 超时 & 计时 ====================
 
     /** 启动无应答超时，30s 后自动发 Hangup(Timeout) 并结束通话 */
-    private fun startTimeout() {
+    private fun startTimeout(timeout: Long = RING_TIMEOUT_MS) {
         timeoutJob?.cancel()
         timeoutJob = scope.launch {
-            delay(RING_TIMEOUT_MS)
-            sendHangup(HangupReason.Timeout)
-            endCall(HangupReason.Timeout)
+            delay(timeout)
+
+            val reason = if (timeout == RING_TIMEOUT_MS) {
+                HangupReason.Timeout
+            } else {
+                HangupReason.Error
+            }
+            sendHangup(reason)
+            endCall(reason)
         }
     }
 
@@ -512,8 +541,7 @@ class CallManager @Inject constructor(
      * 4. 延迟 3s 重置状态为 Idle（给 UI 展示结果的时间）
      */
     private fun endCall(reason: HangupReason, isFromMe: Boolean = false, duration: Long? = null) {
-        // 如果已经在 Ending 或 Idle 状态，不再重复执行释放逻辑
-        if (_state.value.callState == CallState.Ended || _state.value.callState == CallState.Idle) {
+        if (_state.value.callState.isTerminal) {
             return
         }
 
@@ -533,9 +561,6 @@ class CallManager @Inject constructor(
         scope.launch {
             // 保存通话记录
             saveCallRecord(snapshot, reason, duration)
-            delay(3000)
-            // 重置通话状态
-            _state.value = CallUiState()
         }
     }
 
@@ -574,6 +599,12 @@ class CallManager @Inject constructor(
                     timestamp = System.currentTimeMillis()
                 )
             )
+        }
+    }
+
+    fun reset() {
+        if (_state.value.callState.isTerminal) {
+            _state.value = CallUiState()
         }
     }
 
