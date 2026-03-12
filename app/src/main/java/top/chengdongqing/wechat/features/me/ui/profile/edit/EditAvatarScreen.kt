@@ -93,8 +93,8 @@ fun EditAvatarScreen(
             ) {
                 actionSheet.show(MenuOptions) { index ->
                     when (index) {
-                        0 -> launchAlbum(VisualMediaType.Image, 1)
-                        1 -> launchCamera(VisualMediaType.Image)
+                        0 -> launchCamera(VisualMediaType.Image)
+                        1 -> launchAlbum(VisualMediaType.Image, 1)
                         2 -> saveAvatar()
                     }
                 }
@@ -112,8 +112,8 @@ fun EditAvatarScreen(
 
 private val MenuOptions by lazy {
     listOf(
-        ActionSheetItem(R.string.action_select_from_gallery),
         ActionSheetItem(R.string.action_take_photo),
+        ActionSheetItem(R.string.action_select_from_gallery),
         ActionSheetItem(R.string.action_save_to_phone)
     )
 }

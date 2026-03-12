@@ -141,13 +141,11 @@ class CallAudioManager @Inject constructor(
      *
      * 铃声循环播放直到调用 stopRingtone
      * 来电时额外触发振动（静音模式下跳过）
-     *
-     * @param isIncoming 是否为来电（来电时会振动）
      */
-    suspend fun startRingtone(isIncoming: Boolean) {
+    suspend fun startRingtone(isIncoming: Boolean, ringtone: RingtoneSound? = null) {
         stopRingtone()
 
-        val ringtoneUri = ringtone().toUri(context)
+        val ringtoneUri = (ringtone ?: myRingtone()).toUri(context)
         ringtonePlayer = MediaPlayer.create(context, ringtoneUri)?.apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
@@ -213,6 +211,6 @@ class CallAudioManager @Inject constructor(
     private fun shouldVibrate() =
         audioManager.ringerMode != AudioManager.RINGER_MODE_SILENT
 
-    private suspend fun ringtone(): RingtoneSound =
+    private suspend fun myRingtone(): RingtoneSound =
         notificationRepository.ringtone.first()
 }

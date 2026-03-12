@@ -8,6 +8,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.webrtc.IceCandidate
@@ -28,6 +29,8 @@ import top.chengdongqing.wechat.features.call.model.HangupResult
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
+import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,7 +62,8 @@ class CallManager @Inject constructor(
     private val callAudioManager: CallAudioManager,
     private val contactRepository: ContactRepository,
     private val messageRepository: MessageRepository,
-    private val messageDispatcher: MessageDispatcher
+    private val messageDispatcher: MessageDispatcher,
+    private val notificationRepository: NotificationSettingsRepository
 ) {
     private companion object {
         const val TAG = "CallManager"
@@ -300,6 +304,7 @@ class CallManager @Inject constructor(
             is ChatProtocol.Signaling.Hangup -> handleHangup(message)
             is ChatProtocol.Signaling.Busy -> handleBusy(message)
             is ChatProtocol.Signaling.MediaState -> handleMediaState(message)
+            is ChatProtocol.Signaling.RingtoneInfo -> handleRingtoneInfo(message)
         }
     }
 
@@ -348,6 +353,20 @@ class CallManager @Inject constructor(
         )
 
         startTimeout()
+
+        // 告知对方我的铃声设置
+        signalingManager.send(
+            targetUserId = offer.senderId,
+            message = ChatProtocol.Signaling.RingtoneInfo(
+                messageId = offer.messageId,
+                senderId = myUserId,
+                ringtone = if (ringtoneAudibleEnabled()) {
+                    myRingtone()
+                } else {
+                    RingtoneSound.Default
+                }
+            )
+        )
     }
 
     /** 收到 Answer，设置远端 SDP，切换为 Connecting 等待 ICE 建立 */
@@ -387,6 +406,18 @@ class CallManager @Inject constructor(
                 isPeerVideoOn = state.isVideoOn,
                 isPeerMicOn = state.isMicOn,
                 isPeerSpeakerOn = state.isSpeakerOn
+            )
+        }
+    }
+
+    private fun handleRingtoneInfo(info: ChatProtocol.Signaling.RingtoneInfo) {
+        if (_state.value.callId != info.messageId) return
+        if (_state.value.callState != CallState.Outgoing) return
+
+        scope.launch {
+            callAudioManager.startRingtone(
+                isIncoming = false,
+                ringtone = info.ringtone
             )
         }
     }
@@ -545,6 +576,12 @@ class CallManager @Inject constructor(
             )
         }
     }
+
+    private suspend fun myRingtone(): RingtoneSound =
+        notificationRepository.ringtone.first()
+
+    private suspend fun ringtoneAudibleEnabled(): Boolean =
+        notificationRepository.ringtoneAudibleEnabled.first()
 }
 
 /** 将挂断原因映射为通话记录状态 */

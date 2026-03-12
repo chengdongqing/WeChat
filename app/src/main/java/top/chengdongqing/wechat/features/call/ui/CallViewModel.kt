@@ -60,6 +60,7 @@ class CallViewModel @Inject constructor(
      */
     fun startCall(peerId: String, callType: CallType) {
         if (state.value.callState != CallState.Idle) return
+
         viewModelScope.launch(Dispatchers.IO) {
             val contact = contactRepository.getContact(peerId)
             callManager.startCall(

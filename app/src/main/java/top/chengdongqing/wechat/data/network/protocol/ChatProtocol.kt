@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.call.model.HangupReason
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
 
 /**
  * 聊天消息协议
@@ -131,6 +132,14 @@ sealed class ChatProtocol {
             val isVideoOn: Boolean = true,
             val isMicOn: Boolean = true,
             val isSpeakerOn: Boolean = true
+        ) : Signaling()
+
+        /** 铃声信息 */
+        @Serializable
+        data class RingtoneInfo(
+            override val messageId: String,
+            override val senderId: String,
+            val ringtone: RingtoneSound
         ) : Signaling()
     }
 

@@ -72,8 +72,8 @@ class CallModule @Inject constructor(
                     CallState.Incoming -> {
                         if (callNotificationEnabled()) {
                             launchCallActivity()
+                            callAudioManager.startRingtone(isIncoming = true)
                         }
-                        callAudioManager.startRingtone(isIncoming = true)
                         notificationHelper.showIncomingNotification(
                             title = state.peerName,
                             text = context.getString(
@@ -84,7 +84,6 @@ class CallModule @Inject constructor(
                     }
 
                     CallState.Outgoing -> {
-                        callAudioManager.startRingtone(isIncoming = false)
                         notificationHelper.showOngoingNotification(
                             context.getString(R.string.call_notification_outgoing, state.peerName)
                         )
