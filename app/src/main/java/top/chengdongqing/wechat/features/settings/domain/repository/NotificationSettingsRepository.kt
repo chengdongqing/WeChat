@@ -57,7 +57,7 @@ interface NotificationSettingsRepository {
     suspend fun toggleRingtoneAudible(enabled: Boolean)
 
     /**
-     * 退出登录时清除所有通知设置
+     * 退出登录时清除所有设置
      */
     suspend fun clearAll()
 }

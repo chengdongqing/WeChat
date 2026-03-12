@@ -20,10 +20,12 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscove
 import top.chengdongqing.wechat.features.me.data.repository.ProfileRepositoryImpl
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.data.repository.ChatSettingsRepositoryImpl
+import top.chengdongqing.wechat.features.settings.data.repository.ConnectionSettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.data.repository.DisplaySettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.data.repository.NotificationSettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.data.repository.PrivacySettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.DisplaySettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.PrivacySettingsRepository
@@ -97,4 +99,10 @@ interface RepositoryModule {
     fun bindPrivacySettingsRepository(
         impl: PrivacySettingsRepositoryImpl
     ): PrivacySettingsRepository
+
+    @Binds
+    @Singleton
+    fun bindConnectionModeSettingsRepository(
+        impl: ConnectionSettingsRepositoryImpl
+    ): ConnectionSettingsRepository
 }

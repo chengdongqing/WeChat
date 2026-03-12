@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
@@ -32,13 +34,19 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollE
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.core.util.getVersionName
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.features.settings.domain.model.ConnectionMode
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
+import top.chengdongqing.wechat.features.settings.ui.connection.ConnectionSettingsViewModel
 
 @Composable
-fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
+fun SettingsScreen(
+    navController: NavHostController,
+    onBack: () -> Unit,
+    viewModel: ConnectionSettingsViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     val versionName = remember { context.getVersionName() }
+
+    val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -94,7 +102,7 @@ fun SettingsScreen(navController: NavHostController, onBack: () -> Unit) {
                         navController.navigate(SettingsRoute.ConnectionModeSettings.route)
                     }
                 ) {
-                    WeSettingValue(stringResource(ConnectionMode.WifiLan.labelRes))
+                    WeSettingValue(stringResource(connectionMode.labelRes))
                 }
                 WeSettingItem(
                     label = stringResource(R.string.settings_chat),

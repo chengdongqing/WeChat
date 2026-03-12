@@ -18,6 +18,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -27,14 +29,19 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.settings.domain.model.ConnectionMode
 
 @Composable
-fun ConnectionModeSettingScreen(onBack: () -> Unit) {
+fun ConnectionModeSettingScreen(
+    onBack: () -> Unit,
+    viewModel: ConnectionSettingsViewModel = hiltViewModel()
+) {
     val resources = LocalResources.current
+    val initialMode by viewModel.connectionMode.collectAsStateWithLifecycle()
+    var mode by remember(initialMode) { mutableStateOf(initialMode) }
     val connectionOptions = remember {
         ConnectionMode.entries.map {
             resources.getString(it.labelRes) to it
         }
     }
-    var connection by remember { mutableStateOf(ConnectionMode.WifiLan) }
+    val hasChanged = mode != initialMode
 
     Scaffold(
         topBar = {
@@ -45,8 +52,11 @@ fun ConnectionModeSettingScreen(onBack: () -> Unit) {
                 WeButton(
                     text = stringResource(R.string.action_done),
                     size = ButtonSize.Small,
-                    enabled = false
-                )
+                    enabled = hasChanged
+                ) {
+                    viewModel.setConnectionMode(mode)
+                    onBack()
+                }
             }
         },
         containerColor = WeTheme.colorScheme.background
@@ -58,9 +68,9 @@ fun ConnectionModeSettingScreen(onBack: () -> Unit) {
         ) {
             WeRadioGroup(
                 options = connectionOptions,
-                value = connection
+                value = mode
             ) {
-                connection = it
+                mode = it
             }
 
             SettingHint()
