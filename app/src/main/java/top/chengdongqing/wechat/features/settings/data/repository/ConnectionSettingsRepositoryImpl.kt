@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.di.ConnectionSettingsDataStore
-import top.chengdongqing.wechat.features.settings.domain.model.ConnectionMode
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 import javax.inject.Inject
 

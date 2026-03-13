@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -39,6 +40,8 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.ToastState
 import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
+import top.chengdongqing.wechat.data.network.connection.ConnectionRequiredEvent
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -77,6 +80,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val notificationHelper: NotificationHelper,
     val activeSessionManager: ActiveSessionManager,
     e2eSessionManager: E2ESessionManager,
+    chatTransportManager: ChatTransportManager,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -93,6 +97,21 @@ class ChatSessionViewModel @AssistedInject constructor(
     val uiState = _uiState.asStateFlow()
 
     private val _visibleCount = MutableStateFlow(PAGE_SIZE)
+
+    val connectionRequired = chatTransportManager.connectionRequired
+        .filterIsInstance<ConnectionRequiredEvent.Bluetooth>()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    // TODO: sendMessage 失败时记录 messageId
+    private var pendingMessageId: String? = null
+
+    fun retrySendPending() {
+        val id = pendingMessageId ?: return
+        viewModelScope.launch {
+            messageRepository.retrySend(id)
+            pendingMessageId = null
+        }
+    }
 
     // region 工具条
 

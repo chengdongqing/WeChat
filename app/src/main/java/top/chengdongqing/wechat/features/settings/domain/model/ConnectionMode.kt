@@ -1,21 +1,18 @@
 package top.chengdongqing.wechat.features.settings.domain.model
 
-import androidx.annotation.StringRes
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 
-/**
- * 连接模式
- */
-enum class ConnectionMode(
-    @get:StringRes val labelRes: Int,
-    @get:StringRes val descriptionRes: Int
-) {
-    WiFiLan(R.string.connection_wifi_lan, R.string.connection_wifi_lan_desc),
-    WiFiDirect(R.string.connection_wifi_direct, R.string.connection_wifi_direct_desc),
-    Bluetooth(R.string.connection_bluetooth, R.string.connection_bluetooth_desc);
-
-    companion object {
-        fun fromName(name: String?): ConnectionMode =
-            ConnectionMode.entries.find { it.name == name } ?: WiFiLan
+val ConnectionMode.labelRes: Int
+    get() = when (this) {
+        ConnectionMode.WiFiLan -> R.string.connection_wifi_lan
+        ConnectionMode.WiFiDirect -> R.string.connection_wifi_direct
+        ConnectionMode.Bluetooth -> R.string.connection_bluetooth
     }
-}
+
+val ConnectionMode.descriptionRes: Int
+    get() = when (this) {
+        ConnectionMode.WiFiLan -> R.string.connection_wifi_lan_desc
+        ConnectionMode.WiFiDirect -> R.string.connection_wifi_direct_desc
+        ConnectionMode.Bluetooth -> R.string.connection_bluetooth_desc
+    }

@@ -7,7 +7,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.features.settings.domain.model.ConnectionMode
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 
 @HiltViewModel

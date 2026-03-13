@@ -1,7 +1,5 @@
 package top.chengdongqing.wechat.data.network.messaging
 
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +30,6 @@ class ChatSessionUpdater @Inject constructor(
     private val contactRepository: ContactRepository,
     profileRepository: ProfileRepository,
     private val activeSessionManager: ActiveSessionManager,
-    @param:ApplicationContext private val context: Context,
     @param:IoScope private val scope: CoroutineScope
 ) {
     private var currentProfile: UserProfile? = null

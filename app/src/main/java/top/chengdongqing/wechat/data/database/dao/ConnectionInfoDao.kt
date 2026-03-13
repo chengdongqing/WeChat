@@ -5,12 +5,16 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 
 @Dao
 interface ConnectionInfoDao : BaseDao<ConnectionInfoEntity> {
 
     @Query("SELECT * FROM connection_info WHERE userId = :userId ORDER BY priority ASC")
     suspend fun getById(userId: String): ConnectionInfoEntity?
+
+    @Query("select * from connection_info where connectionMode = :connectionMode")
+    suspend fun getByMode(connectionMode: ConnectionMode): List<ConnectionInfoEntity>
 
     @Query("SELECT isOnline FROM connection_info WHERE userId = :userId")
     fun observeOnlineStatus(userId: String): Flow<Boolean?>

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.connection
+package top.chengdongqing.wechat.data.network.connection.wifi
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +16,9 @@ import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.config.TransferConfig.PING_INTERVAL
 import top.chengdongqing.wechat.data.network.config.TransferConfig.PONG_TIMEOUT
+import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
+import top.chengdongqing.wechat.data.network.connection.ConnectionException
+import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.protocol.Packet
@@ -241,19 +244,3 @@ class ConnectionManager @Inject constructor(
     }
 }
 
-/**
- * 连接事件
- */
-sealed class ConnectionEvent {
-    /**
-     * TCP 连接已建立并完成握手
-     */
-    data class Connected(val userId: String, val conn: PeerConnection) : ConnectionEvent()
-
-    /**
-     * 连接已断开
-     *
-     * @param reason 说明原因（主动断开 / Pong 超时 / 接收异常等）
-     */
-    data class Disconnected(val userId: String, val reason: String?) : ConnectionEvent()
-}

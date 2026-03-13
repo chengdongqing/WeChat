@@ -14,6 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -35,6 +38,7 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollE
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.features.call.ui.startCall
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.bluetooth.BluetoothDeviceOverlay
 import top.chengdongqing.wechat.features.chat.ui.session.components.ChatSessionTopBar
 import top.chengdongqing.wechat.features.chat.ui.session.components.MultiSelectBottomBar
 import top.chengdongqing.wechat.features.chat.ui.session.components.TimeDivider
@@ -61,6 +65,28 @@ fun ChatSessionScreen(
         factory.create(chatId)
     }
 ) {
+    val connectionRequired by viewModel.connectionRequired.collectAsStateWithLifecycle()
+    var showBluetoothOverlay by remember { mutableStateOf(false) }
+    var pendingUserId by remember { mutableStateOf("") }
+
+    LaunchedEffect(connectionRequired) {
+        connectionRequired?.let { event ->
+            pendingUserId = event.userId
+            showBluetoothOverlay = true
+        }
+    }
+
+    BluetoothDeviceOverlay(
+        visible = showBluetoothOverlay,
+        userId = pendingUserId,
+        onConnected = {
+            showBluetoothOverlay = false
+            // 连接建立后重试发送
+            viewModel.retrySendPending()
+        },
+        onClose = { showBluetoothOverlay = false }
+    )
+
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()

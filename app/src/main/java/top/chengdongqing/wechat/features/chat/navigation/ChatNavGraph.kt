@@ -10,9 +10,9 @@ import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.domain.model.MusicTrack
 import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import top.chengdongqing.wechat.features.chat.ui.info.ChatInfoScreen
+import top.chengdongqing.wechat.features.chat.ui.preview.file.FilePreviewScreen
+import top.chengdongqing.wechat.features.chat.ui.preview.music.MusicPreviewScreen
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionScreen
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.file.FilePreviewScreen
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.MusicPreviewScreen
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 
 sealed class ChatRoute(val route: String) {

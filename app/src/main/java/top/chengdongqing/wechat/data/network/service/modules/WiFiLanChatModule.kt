@@ -6,16 +6,16 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
-import top.chengdongqing.wechat.data.database.entity.ConnectionType
-import top.chengdongqing.wechat.data.network.connection.ConnectionManager
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.network.connection.wifi.ConnectionManager
+import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient
+import top.chengdongqing.wechat.data.network.connection.wifi.SocketServer
 import top.chengdongqing.wechat.data.network.discovery.DiscoveredDevice
 import top.chengdongqing.wechat.data.network.discovery.DiscoveryEvent
 import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
 import top.chengdongqing.wechat.data.network.discovery.ServiceRegistrationState
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.service.NetworkService
-import top.chengdongqing.wechat.data.network.socket.SocketClient
-import top.chengdongqing.wechat.data.network.socket.SocketServer
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
@@ -26,7 +26,7 @@ import javax.inject.Singleton
  * 聊天模块
  */
 @Singleton
-class ChatModule @Inject constructor(
+class WiFiLanChatModule @Inject constructor(
     private val nsdDiscovery: NSDDiscovery,
     private val socketServer: SocketServer,
     private val socketClient: SocketClient,
@@ -59,7 +59,7 @@ class ChatModule @Inject constructor(
         // 启动消息接收服务
         messageReceiver.start()
 
-        Log.d(TAG, "聊天模块已启动")
+        Log.d(TAG, "Wi-Fi Lan 聊天模块已启动")
     }
 
     fun stop() {
@@ -70,7 +70,7 @@ class ChatModule @Inject constructor(
         // 释放Wi-Fi锁
         wifiLockManager.releaseKeepAlive()
 
-        Log.d(TAG, "聊天模块已停止")
+        Log.d(TAG, "Wi-Fi Lan 聊天模块已停止")
     }
 
     /**
@@ -119,7 +119,7 @@ class ChatModule @Inject constructor(
         connectionInfoDao.insert(
             ConnectionInfoEntity(
                 userId = device.userId,
-                connectionType = ConnectionType.WiFiLan,
+                connectionMode = ConnectionMode.WiFiLan,
                 ipAddress = device.host,
                 port = device.port,
                 serviceName = device.serviceName,

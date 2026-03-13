@@ -14,8 +14,8 @@ import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.model.PermissionResult
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
-import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
@@ -42,7 +42,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class MessageReceiver @Inject constructor(
-    private val connectionManager: ConnectionManager,
+    private val transport: ChatTransportManager,
     private val messageSender: MessageSender,
     private val messageDispatcher: MessageDispatcher,
     private val contactRepository: ContactRepository,
@@ -66,7 +66,7 @@ class MessageReceiver @Inject constructor(
      */
     fun start() {
         scope.launch {
-            connectionManager.connectionEvents.collect { event ->
+            transport.connectionEvents.collect { event ->
                 when (event) {
                     is ConnectionEvent.Connected -> {
                         startListening(event.conn)

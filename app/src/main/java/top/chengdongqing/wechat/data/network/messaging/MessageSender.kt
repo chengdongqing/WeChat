@@ -14,13 +14,14 @@ import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.config.TransferConfig
+import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
-import top.chengdongqing.wechat.data.network.connection.ConnectionManager
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.ReceiptType
-import top.chengdongqing.wechat.data.network.socket.SocketClient
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -37,7 +38,7 @@ import kotlin.coroutines.cancellation.CancellationException
 class MessageSender @Inject constructor(
     private val database: WeDatabase,
     private val socketClient: SocketClient,
-    private val connectionManager: ConnectionManager,
+    private val transport: ChatTransportManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
     private val chatSessionDao: ChatSessionDao,
@@ -72,7 +73,7 @@ class MessageSender @Inject constructor(
 
         return runCatching {
             ensureConnected(message.receiverId, message.senderId)
-            connectionManager.send(message.receiverId, packet)
+            transport.send(message.receiverId, packet)
             updateStatus(
                 messageId = message.id,
                 sessionId = message.receiverId,
@@ -115,7 +116,7 @@ class MessageSender @Inject constructor(
 
                 // 获取 Wi-Fi 锁，避免在后台传输时被系统限制性能
                 wifiLockManager.withTransferLock {
-                    connectionManager.sendAtomicTransfer(message.receiverId) { writer ->
+                    transport.sendAtomicTransfer(message.receiverId) { writer ->
                         // 发送消息元数据；FILE_META 立即 flush，让接收端尽快进入接收状态
                         writer.write(Packet(PacketType.FILE_META, serializeMediaMeta(meta)))
                         // 分片分送文件；FILE_CHUNK writeNoFlush，由 buffer 自动 flush 减少 syscall
@@ -156,7 +157,7 @@ class MessageSender @Inject constructor(
 
         runCatching {
             ensureConnected(receiverId, myUserId ?: "")
-            connectionManager.send(receiverId, packet)
+            transport.send(receiverId, packet)
         }.onFailure {
             Log.w(TAG, "回执发送失败: $receiverId")
         }
@@ -166,8 +167,14 @@ class MessageSender @Inject constructor(
      * 确保与目标用户有可用连接
      */
     suspend fun ensureConnected(targetUserId: String, myUserId: String) {
-        if (connectionManager.isConnected(targetUserId)) return
-        connectFromDb(targetUserId, myUserId)
+        if (transport.isConnected(targetUserId)) return
+
+        when (transport.mode.value) {
+            ConnectionMode.WiFiLan -> connectFromDb(targetUserId, myUserId)
+            else -> {
+                /* 由各自 Transport 的 send() 内部处理 */
+            }
+        }
     }
 
     /**

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.message.preview.music.MusicBackground
+import top.chengdongqing.wechat.features.chat.ui.preview.music.MusicBackground
 
 @Composable
 fun MusicContent(content: MessageContent.Music) {

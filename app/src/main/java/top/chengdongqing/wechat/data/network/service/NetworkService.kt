@@ -14,6 +14,7 @@ import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -21,10 +22,13 @@ import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.media.VibratorHelper
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.model.toPreviewText
+import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
+import top.chengdongqing.wechat.data.network.service.modules.BluetoothChatModule
 import top.chengdongqing.wechat.data.network.service.modules.CallModule
-import top.chengdongqing.wechat.data.network.service.modules.ChatModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
+import top.chengdongqing.wechat.data.network.service.modules.WiFiLanChatModule
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.data.mapper.toMessageType
@@ -35,6 +39,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationDisplay
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
 import top.chengdongqing.wechat.features.settings.domain.model.toUri
+import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import javax.inject.Inject
 
@@ -43,7 +48,7 @@ import javax.inject.Inject
  *
  * 以前台服务形式长期运行，统一管理多个子模块：
  * - [BLEModule]：蓝牙设备发现与好友添加
- * - [ChatModule]：TCP 消息收发
+ * - [WiFiLanChatModule]：TCP 消息收发
  * - [CallModule]：音视频通话管理
  *
  * 启动流程：前台通知 → 读取个人资料 → 各模块按序启动 → 订阅事件流
@@ -55,7 +60,16 @@ class NetworkService : Service() {
     lateinit var bleModule: BLEModule
 
     @Inject
-    lateinit var chatModule: ChatModule
+    lateinit var wifiLanChatModule: WiFiLanChatModule
+
+    @Inject
+    lateinit var bluetoothChatModule: BluetoothChatModule
+
+    @Inject
+    lateinit var connectionSettingsRepository: ConnectionSettingsRepository
+
+    @Inject
+    lateinit var chatTransportManager: ChatTransportManager
 
     @Inject
     lateinit var callModule: CallModule
@@ -140,15 +154,18 @@ class NetworkService : Service() {
      */
     private suspend fun initializeModules() {
         try {
-            val myProfile = profileRepository.getProfile() ?: run {
-                Log.w(TAG, "未找到个人资料，服务启动失败")
-                return
+            val myProfile = profileRepository.getProfile() ?: return
+            val connectionMode = connectionSettingsRepository.connectionMode.first()
+
+            bleModule.start(scope)
+
+            // 根据连接模式启动对应聊天模块
+            when (connectionMode) {
+                ConnectionMode.WiFiLan -> wifiLanChatModule.start(myProfile.id, scope)
+                ConnectionMode.Bluetooth -> bluetoothChatModule.start(myProfile.id, scope)
+                ConnectionMode.WiFiDirect -> {}
             }
 
-            // 启动 BLE 模块（好友添加）
-            bleModule.start(scope)
-            // 启动聊天模块（消息收发）
-            chatModule.start(myProfile.id, scope)
             // 启动通话模块（视频/语音通话）
             callModule.start(myProfile.id, scope)
 
@@ -156,8 +173,10 @@ class NetworkService : Service() {
             scope.launch { observeFriendRequestEvents() }
             // 监听新消息
             scope.launch { observeIncomingMessages() }
-
-            Log.d(TAG, "所有模块已启动")
+            // 监听连接模式切换，重启聊天模块
+            scope.launch { observeConnectionModeChanges(myProfile.id) }
+            // 监听连接模式切换，动态管理连接
+            scope.launch { chatTransportManager.observeMode(connectionSettingsRepository.connectionMode) }
         } catch (e: Exception) {
             Log.e(TAG, "初始化模块失败", e)
         }
@@ -165,11 +184,43 @@ class NetworkService : Service() {
 
     private fun stopAllModules() {
         bleModule.stop()
-        chatModule.stop()
+        wifiLanChatModule.stop()
+        bluetoothChatModule.stop()
         callModule.stop()
     }
 
     // ==================== 事件订阅 ====================
+
+    private suspend fun observeConnectionModeChanges(myUserId: String) {
+        Log.d(TAG, "开始监听模式变化")
+        connectionSettingsRepository.connectionMode
+            .drop(1)  // 跳过初始值，只响应后续变化
+            .collect { newMode ->
+                try {
+                    Log.d(TAG, "收到模式变化: $newMode")
+
+                    // 断开现有连接
+                    chatTransportManager.disconnectAll()
+
+                    // 停止所有聊天模块
+                    wifiLanChatModule.stop()
+                    bluetoothChatModule.stop()
+
+                    Log.d(TAG, "开始重启新模式: $newMode")
+
+                    // 启动新模式对应的模块
+                    when (newMode) {
+                        ConnectionMode.WiFiLan -> wifiLanChatModule.start(myUserId, scope)
+                        ConnectionMode.Bluetooth -> bluetoothChatModule.start(myUserId, scope)
+                        ConnectionMode.WiFiDirect -> {}
+                    }
+
+                    Log.d(TAG, "模式已切换")
+                } catch (e: Exception) {
+                    Log.e(TAG, "模式切换异常", e)
+                }
+            }
+    }
 
     /**
      * 监听 BLE 好友请求事件，触发对应通知
@@ -184,7 +235,7 @@ class NetworkService : Service() {
      * 监听新消息
      */
     private suspend fun observeIncomingMessages() {
-        chatModule.incomingMessageFlow.collect { message ->
+        wifiLanChatModule.incomingMessageFlow.collect { message ->
             handleNewMessage(message)
         }
     }

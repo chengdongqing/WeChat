@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.features.chat.ui.session.message.preview.music
+package top.chengdongqing.wechat.features.chat.ui.preview.music
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background

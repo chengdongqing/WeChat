@@ -3,13 +3,14 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 
 @Entity(tableName = "connection_info")
 data class ConnectionInfoEntity(
     @PrimaryKey
     val userId: String,                 // 用户ID
 
-    val connectionType: ConnectionType, // 连接类型
+    val connectionMode: ConnectionMode, // 连接类型
 
     // WiFi LAN 信息
     val ipAddress: String? = null,      // IP地址
@@ -32,9 +33,3 @@ data class ConnectionInfoEntity(
     @Embedded
     val audit: EntityAudit = EntityAudit()
 )
-
-enum class ConnectionType {
-    WiFiLan,       // WiFi局域网
-    WiFiDirect,    // WiFi直连
-    Bluetooth      // 蓝牙
-}

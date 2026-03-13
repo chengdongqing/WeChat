@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.socket
+package top.chengdongqing.wechat.data.network.connection.wifi
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
@@ -7,7 +7,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
-import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
@@ -56,10 +55,12 @@ class SocketClient @Inject constructor(
             val socket = createSocket(host, port)
             val conn = PeerConnection(
                 userId = userId,
-                socket = socket,
                 reader = PacketReader(socket.getInputStream()),
-                writer = PacketWriter(socket.getOutputStream())
+                writer = PacketWriter(socket.getOutputStream()),
+                isActiveProvider = { socket.isConnected && !socket.isClosed },
+                closeAction = { socket.close() }
             )
+
             // 保存连接
             connectionManager.register(conn)
             // 推送连接成功事件

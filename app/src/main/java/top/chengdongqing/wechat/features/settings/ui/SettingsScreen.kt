@@ -34,6 +34,7 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollE
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.core.util.getVersionName
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.features.settings.domain.model.labelRes
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 import top.chengdongqing.wechat.features.settings.ui.connection.ConnectionSettingsViewModel
 

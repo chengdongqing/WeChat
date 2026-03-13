@@ -1,16 +1,14 @@
-package top.chengdongqing.wechat.data.network.socket
+package top.chengdongqing.wechat.data.network.connection.wifi
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
-import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
@@ -66,9 +64,12 @@ class SocketServer @Inject constructor(
      * 停止监听，关闭所有入站连接
      */
     fun stop() {
-        serverSocket?.close()
-        serverSocket = null
-        scope.cancel()
+        try {
+            serverSocket?.close()
+            serverSocket = null
+        } catch (_: Exception) {
+            Log.d(TAG, "Socket 服务已关闭")
+        }
     }
 
     /**
@@ -112,7 +113,13 @@ class SocketServer @Inject constructor(
             // 取消超时限制
             socket.soTimeout = 0
 
-            val conn = PeerConnection(userId, socket, reader, writer)
+            val conn = PeerConnection(
+                userId = userId,
+                reader = reader,
+                writer = writer,
+                isActiveProvider = { socket.isConnected && !socket.isClosed },
+                closeAction = { socket.close() }
+            )
             // 保存连接
             connectionManager.register(conn)
             // 推送连接事件
