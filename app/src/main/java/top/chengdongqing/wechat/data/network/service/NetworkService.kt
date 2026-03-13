@@ -28,6 +28,7 @@ import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import top.chengdongqing.wechat.data.network.service.modules.BluetoothChatModule
 import top.chengdongqing.wechat.data.network.service.modules.CallModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
+import top.chengdongqing.wechat.data.network.service.modules.WiFiDirectChatModule
 import top.chengdongqing.wechat.data.network.service.modules.WiFiLanChatModule
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -64,6 +65,9 @@ class NetworkService : Service() {
 
     @Inject
     lateinit var bluetoothChatModule: BluetoothChatModule
+
+    @Inject
+    lateinit var wifiDirectChatModule: WiFiDirectChatModule
 
     @Inject
     lateinit var connectionSettingsRepository: ConnectionSettingsRepository
@@ -163,7 +167,7 @@ class NetworkService : Service() {
             when (connectionMode) {
                 ConnectionMode.WiFiLan -> wifiLanChatModule.start(myProfile.id, scope)
                 ConnectionMode.Bluetooth -> bluetoothChatModule.start(myProfile.id, scope)
-                ConnectionMode.WiFiDirect -> {}
+                ConnectionMode.WiFiDirect -> wifiDirectChatModule.prepare()
             }
 
             // 启动通话模块（视频/语音通话）
@@ -186,6 +190,7 @@ class NetworkService : Service() {
         bleModule.stop()
         wifiLanChatModule.stop()
         bluetoothChatModule.stop()
+        wifiDirectChatModule.stop()
         callModule.stop()
     }
 

@@ -99,7 +99,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val _visibleCount = MutableStateFlow(PAGE_SIZE)
 
     val connectionRequired = chatTransportManager.connectionRequired
-        .filterIsInstance<ConnectionRequiredEvent.Bluetooth>()
+        .filterIsInstance<ConnectionRequiredEvent>()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     // TODO: sendMessage 失败时记录 messageId

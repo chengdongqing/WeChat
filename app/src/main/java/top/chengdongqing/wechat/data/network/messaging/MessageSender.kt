@@ -170,7 +170,10 @@ class MessageSender @Inject constructor(
         if (transport.isConnected(targetUserId)) return
 
         when (transport.mode.value) {
-            ConnectionMode.WiFiLan -> connectFromDb(targetUserId, myUserId)
+            ConnectionMode.WiFiLan,
+            ConnectionMode.WiFiDirect -> {
+                connectFromDb(targetUserId, myUserId)
+            }
             else -> {
                 /* 由各自 Transport 的 send() 内部处理 */
             }

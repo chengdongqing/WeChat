@@ -116,7 +116,7 @@ class WiFiLanChatModule @Inject constructor(
      */
     private suspend fun handleDeviceFound(device: DiscoveredDevice, myUserId: String) {
         // 保存连接信息
-        connectionInfoDao.insert(
+        connectionInfoDao.insertOrUpdate(
             ConnectionInfoEntity(
                 userId = device.userId,
                 connectionMode = ConnectionMode.WiFiLan,

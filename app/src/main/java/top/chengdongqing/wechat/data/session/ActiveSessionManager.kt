@@ -16,6 +16,9 @@ class ActiveSessionManager @Inject constructor() {
     val inChat: Boolean
         get() = _activeSessionId.value != null || _inChatList.value
 
+    val activeSessionId: String?
+        get() = _activeSessionId.value
+
     fun enter(sessionId: String) {
         _activeSessionId.value = sessionId
     }

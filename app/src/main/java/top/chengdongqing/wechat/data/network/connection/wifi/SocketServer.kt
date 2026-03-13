@@ -7,8 +7,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
+import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
@@ -16,6 +19,7 @@ import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.PacketWriter
+import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import javax.inject.Inject
@@ -32,6 +36,7 @@ class SocketServer @Inject constructor(
     private val json: Json,
     private val e2e: E2ESessionManager,
     private val connectionManager: ConnectionManager,
+    private val connectionInfoDao: ConnectionInfoDao,
     @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
@@ -46,10 +51,12 @@ class SocketServer @Inject constructor(
      * ServerSocket(0) 让系统分配随机端口，localPort 获取实际值。
      * receiveBufferSize 在 accept 前设置，子 socket 会自动继承。
      */
-    suspend fun start(): Int = withContext(Dispatchers.IO) {
+    suspend fun start(port: Int = 0): Int = withContext(Dispatchers.IO) {
         try {
-            val socket = ServerSocket(0).apply {
+            val socket = ServerSocket().apply {
                 receiveBufferSize = TransferConfig.SOCKET_RECV_BUFFER
+
+                bind(InetSocketAddress("0.0.0.0", port))
             }
             serverSocket = socket
             scope.launch { acceptLoop() }
@@ -129,6 +136,21 @@ class SocketServer @Inject constructor(
             connectionManager.startReceiving(conn)
             // 开始维持心跳
             connectionManager.startHeartbeat(conn)
+
+            Log.d(TAG, "握手成功：" + userId + "," + socket.inetAddress.hostAddress)
+
+            // 保存连接信息到数据库
+            val info = ConnectionInfoEntity(
+                userId = userId,
+                connectionMode = ConnectionMode.WiFiDirect,
+                ipAddress = socket.inetAddress.hostAddress,
+                port = socket.port,
+                isOnline = true,
+                lastSeen = System.currentTimeMillis(),
+                priority = 0
+            )
+            connectionInfoDao.insertOrUpdate(info)
+            Log.d(TAG, "已保存连接信息: $info")
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()

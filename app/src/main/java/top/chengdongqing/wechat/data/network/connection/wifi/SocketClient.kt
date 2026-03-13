@@ -15,7 +15,9 @@ import top.chengdongqing.wechat.data.network.protocol.PacketReader
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.PacketWriter
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
+import java.net.Inet4Address
 import java.net.InetSocketAddress
+import java.net.NetworkInterface
 import java.net.Socket
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -89,6 +91,16 @@ class SocketClient @Inject constructor(
      * soTimeout = 0：不用读超时，由 Ping-Pong 判断连接存活。
      */
     private fun createSocket(host: String, port: Int): Socket = Socket().apply {
+        // 1. 获取 P2P 网卡的接口名 (通常是 p2p-p2p0-x 或 wlan1)
+        val p2pInterface = NetworkInterface.getNetworkInterfaces().asSequence().find {
+            it.name.contains("p2p") || it.name.contains("wlan1")
+        }
+
+        // 2. 将 Socket 绑定到该本地网卡的地址上
+        p2pInterface?.inetAddresses?.asSequence()?.find { it is Inet4Address }?.let { localAddr ->
+            bind(InetSocketAddress(localAddr, 0))
+        }
+
         sendBufferSize = TransferConfig.SOCKET_SEND_BUFFER
         receiveBufferSize = TransferConfig.SOCKET_RECV_BUFFER
         connect(InetSocketAddress(host, port), TransferConfig.CONNECT_TIMEOUT)

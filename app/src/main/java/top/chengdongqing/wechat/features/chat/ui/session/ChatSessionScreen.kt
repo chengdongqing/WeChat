@@ -36,9 +36,10 @@ import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.network.connection.ConnectionRequiredEvent
 import top.chengdongqing.wechat.features.call.ui.startCall
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.bluetooth.BluetoothDeviceOverlay
 import top.chengdongqing.wechat.features.chat.ui.session.components.ChatSessionTopBar
 import top.chengdongqing.wechat.features.chat.ui.session.components.MultiSelectBottomBar
 import top.chengdongqing.wechat.features.chat.ui.session.components.TimeDivider
@@ -46,6 +47,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageItem
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.MessageToolbar
+import top.chengdongqing.wechat.features.chat.ui.session.peer.PeerDeviceOverlay
 import top.chengdongqing.wechat.features.chat.ui.session.util.KeyboardScrollEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.LoadMoreEffect
 import top.chengdongqing.wechat.features.chat.ui.session.util.MessageDataScrollEffect
@@ -66,25 +68,31 @@ fun ChatSessionScreen(
     }
 ) {
     val connectionRequired by viewModel.connectionRequired.collectAsStateWithLifecycle()
-    var showBluetoothOverlay by remember { mutableStateOf(false) }
+    var showPeerOverlay by remember { mutableStateOf(true) }
     var pendingUserId by remember { mutableStateOf("") }
+    var pendingMode by remember { mutableStateOf(ConnectionMode.WiFiDirect) }
 
     LaunchedEffect(connectionRequired) {
         connectionRequired?.let { event ->
             pendingUserId = event.userId
-            showBluetoothOverlay = true
+            pendingMode = when (event) {
+                is ConnectionRequiredEvent.Bluetooth -> ConnectionMode.Bluetooth
+                is ConnectionRequiredEvent.WiFiDirect -> ConnectionMode.WiFiDirect
+            }
+            showPeerOverlay = true
         }
     }
 
-    BluetoothDeviceOverlay(
-        visible = showBluetoothOverlay,
+    PeerDeviceOverlay(
+        visible = showPeerOverlay,
         userId = pendingUserId,
+        mode = pendingMode,
         onConnected = {
-            showBluetoothOverlay = false
+            showPeerOverlay = false
             // 连接建立后重试发送
             viewModel.retrySendPending()
         },
-        onClose = { showBluetoothOverlay = false }
+        onClose = { showPeerOverlay = false }
     )
 
     val messages by viewModel.messages.collectAsStateWithLifecycle()

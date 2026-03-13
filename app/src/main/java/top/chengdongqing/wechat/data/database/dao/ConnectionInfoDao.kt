@@ -10,6 +10,23 @@ import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 @Dao
 interface ConnectionInfoDao : BaseDao<ConnectionInfoEntity> {
 
+    @Transaction
+    suspend fun insertOrUpdate(entity: ConnectionInfoEntity) {
+        val existing = getById(entity.userId)
+        if (existing == null) {
+            insert(entity)
+        } else {
+            update(
+                entity.copy(
+                    audit = entity.audit.copy(
+                        createdAt = existing.audit.createdAt, // 保留原始创建时间
+                        updatedAt = System.currentTimeMillis()
+                    )
+                )
+            )
+        }
+    }
+
     @Query("SELECT * FROM connection_info WHERE userId = :userId ORDER BY priority ASC")
     suspend fun getById(userId: String): ConnectionInfoEntity?
 

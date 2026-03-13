@@ -96,10 +96,11 @@ class BluetoothBondManager @Inject constructor(
     @SuppressLint("MissingPermission")
     private suspend fun saveAndConnect(userId: String, device: BluetoothDevice, myUserId: String) {
         // 存配对后的真实 MAC，永久有效
-        connectionInfoDao.insert(
+        connectionInfoDao.insertOrUpdate(
             ConnectionInfoEntity(
                 userId = userId,
                 connectionMode = ConnectionMode.Bluetooth,
+                bluetoothName = device.name,
                 bluetoothAddress = device.address,
                 lastSeen = System.currentTimeMillis()
             )
