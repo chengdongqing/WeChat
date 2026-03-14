@@ -17,10 +17,10 @@ import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
-import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import top.chengdongqing.wechat.data.network.protocol.PacketType
-import top.chengdongqing.wechat.data.network.protocol.ReceiptType
+import top.chengdongqing.wechat.data.network.model.ChatProtocol
+import top.chengdongqing.wechat.data.network.model.Packet
+import top.chengdongqing.wechat.data.network.model.PacketType
+import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import java.io.BufferedOutputStream
 import java.io.File

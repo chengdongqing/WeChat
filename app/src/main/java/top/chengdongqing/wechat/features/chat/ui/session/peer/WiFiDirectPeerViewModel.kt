@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.data.network.connection.wifi.WiFiDirectConnector
 import top.chengdongqing.wechat.data.network.service.modules.WiFiDirectChatModule
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
@@ -24,10 +22,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WiFiDirectPeerViewModel @Inject constructor(
-    private val connectionInfoDao: ConnectionInfoDao,
     private val wifiDirectConnector: WiFiDirectConnector,
     private val wifiDirectChatModule: WiFiDirectChatModule,
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
 ) : PeerDeviceViewModel() {
 
     companion object {
@@ -67,19 +64,11 @@ class WiFiDirectPeerViewModel @Inject constructor(
 
     override fun startScan() {
         _uiState.update { it.copy(isScanning = true, error = null) }
-
-        // 先清理旧状态
+        // 先停止旧的扫描，完成后再启动，避免状态残留
         p2pManager.cancelConnect(channel, null)
         p2pManager.stopPeerDiscovery(channel, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                // 停止完成后再开始新的扫描
-                discoverPeers()
-            }
-
-            override fun onFailure(reason: Int) {
-                // 停止失败也继续，可能本来就没在扫描
-                discoverPeers()
-            }
+            override fun onSuccess() = discoverPeers()
+            override fun onFailure(reason: Int) = discoverPeers()
         })
     }
 
@@ -91,13 +80,13 @@ class WiFiDirectPeerViewModel @Inject constructor(
             }
 
             override fun onFailure(reason: Int) {
-                val reasonText = when (reason) {
+                val reason = when (reason) {
                     WifiP2pManager.ERROR -> "内部错误（检查位置权限）"
                     WifiP2pManager.P2P_UNSUPPORTED -> "设备不支持 WiFi Direct"
                     WifiP2pManager.BUSY -> "系统忙，请稍后重试"
                     else -> "未知错误: $reason"
                 }
-                _uiState.update { it.copy(isScanning = false, error = "扫描失败：$reasonText") }
+                _uiState.update { it.copy(isScanning = false, error = "扫描失败：$reason") }
             }
         })
     }
@@ -119,23 +108,13 @@ class WiFiDirectPeerViewModel @Inject constructor(
                 )
             }.onSuccess {
                 _uiState.update { it.copy(connectingDeviceId = null) }
-
-                val info = ConnectionInfoEntity(
-                    userId = userId,
-                    p2pMacAddress = p2pDevice.deviceAddress,
-                    p2pDeviceName = p2pDevice.deviceName,
-                    p2pIpAddress = "192.168.49.1",
-                    p2pPort = 8888,
-                    isOnline = true,
-                    lastSeen = System.currentTimeMillis()
-                )
-                connectionInfoDao.insertOrUpdate(info)
-                println("已保存连接信息: $info")
-
                 onSuccess()
             }.onFailure { e ->
                 _uiState.update {
-                    it.copy(connectingDeviceId = null, error = e.message ?: "连接失败")
+                    it.copy(
+                        connectingDeviceId = null,
+                        error = e.message ?: "连接失败"
+                    )
                 }
             }
         }
@@ -143,20 +122,20 @@ class WiFiDirectPeerViewModel @Inject constructor(
 
     override fun addNearbyDevice(device: PeerDevice) {
         _uiState.update { state ->
-            val existing = state.nearbyDevices.indexOfFirst { it.id == device.id }
             val updated = state.nearbyDevices.toMutableList()
-            if (existing >= 0) updated[existing] = device else updated.add(device)
+            val index = updated.indexOfFirst { it.id == device.id }
+            if (index >= 0) updated[index] = device else updated.add(device)
             state.copy(nearbyDevices = updated)
         }
     }
 
     fun onPeersChanged(devices: List<WifiP2pDevice>) {
-        val peers = devices.map { device ->
+        val peers = devices.map { d ->
             PeerDevice.WiFiDirect(
-                id = device.deviceAddress,
-                name = device.deviceName,
-                isPaired = device.status == WifiP2pDevice.CONNECTED,
-                device = device
+                id = d.deviceAddress,
+                name = d.deviceName,
+                isPaired = d.status == WifiP2pDevice.CONNECTED,
+                device = d,
             )
         }
         _uiState.update { it.copy(nearbyDevices = peers, isScanning = false) }

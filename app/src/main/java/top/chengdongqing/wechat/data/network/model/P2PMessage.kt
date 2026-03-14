@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.protocol
+package top.chengdongqing.wechat.data.network.model
 
 import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.features.me.domain.model.Gender

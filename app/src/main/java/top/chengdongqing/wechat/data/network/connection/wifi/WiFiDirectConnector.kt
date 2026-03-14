@@ -20,7 +20,6 @@ class WiFiDirectConnector @Inject constructor() {
 
     /**
      * 发起 P2P 连接
-     * 连接成功后根据角色决定是启动 Server 还是 Client
      */
     @SuppressLint("MissingPermission")
     suspend fun connect(
@@ -38,12 +37,11 @@ class WiFiDirectConnector @Inject constructor() {
         suspendCancellableCoroutine { cont ->
             p2pManager.connect(channel, config, object : WifiP2pManager.ActionListener {
                 override fun onSuccess() {
-                    Log.d(TAG, "P2P 连接请求已发出，等待对方确认")
                     if (cont.isActive) cont.resume(Unit)
                 }
 
                 override fun onFailure(reason: Int) {
-                    Log.e(TAG, "P2P 连接请求失败: $reason")
+                    Log.w(TAG, "P2P 连接请求失败: $reason")
                     if (cont.isActive) cont.resumeWithException(
                         Exception("P2P 连接失败: $reason")
                     )

@@ -45,7 +45,7 @@ class HomeViewModel @Inject constructor(
      * 启动后台网络服务
      */
     init {
-        val intent = context.createNetworkServiceIntent(NetworkService.ACTION_START_CONNECT)
+        val intent = context.createNetworkServiceIntent(NetworkService.ACTION_START_SERVICE)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent)
         } else {

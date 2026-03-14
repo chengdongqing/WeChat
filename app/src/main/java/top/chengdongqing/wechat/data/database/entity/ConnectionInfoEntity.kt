@@ -17,8 +17,6 @@ data class ConnectionInfoEntity(
     // WiFi Direct 信息
     val p2pMacAddress: String? = null,     // P2P MAC地址
     val p2pDeviceName: String? = null,     // P2P设备名
-    val p2pIpAddress: String? = null,      // IP地址
-    val p2pPort: Int? = null,              // 端口号
 
     // Bluetooth 信息
     val bluetoothAddress: String? = null, // 蓝牙地址
@@ -38,8 +36,6 @@ fun ConnectionInfoEntity.mergeWith(existing: ConnectionInfoEntity): ConnectionIn
         lanServiceName = this.lanServiceName ?: existing.lanServiceName,
         p2pMacAddress = this.p2pMacAddress ?: existing.p2pMacAddress,
         p2pDeviceName = this.p2pDeviceName ?: existing.p2pDeviceName,
-        p2pIpAddress = this.p2pIpAddress ?: existing.lanIpAddress,
-        p2pPort = this.p2pPort ?: existing.p2pPort,
         bluetoothAddress = this.bluetoothAddress ?: existing.bluetoothAddress,
         bluetoothName = this.bluetoothName ?: existing.bluetoothName,
         audit = this.audit.copy(

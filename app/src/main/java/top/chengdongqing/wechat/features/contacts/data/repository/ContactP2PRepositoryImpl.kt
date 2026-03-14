@@ -17,8 +17,8 @@ import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.model.ConnectionCapabilities
 import top.chengdongqing.wechat.data.network.model.DiscoveryBeacon
-import top.chengdongqing.wechat.data.network.protocol.P2PMessage
-import top.chengdongqing.wechat.data.network.protocol.P2PMessageTransmitter
+import top.chengdongqing.wechat.data.network.model.P2PMessage
+import top.chengdongqing.wechat.data.network.model.P2PMessageTransmitter
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
 import top.chengdongqing.wechat.data.network.service.modules.FriendRequestEvent
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact

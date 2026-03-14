@@ -1,22 +1,21 @@
-package top.chengdongqing.wechat.data.network.connection.wifi
+package top.chengdongqing.wechat.data.network.connection.bluetooth
 
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.network.connection.BaseChatTransport
-import top.chengdongqing.wechat.data.network.connection.ConnectionException
+import top.chengdongqing.wechat.data.network.connection.ConnectionRequiredEvent
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 /**
- * Wi-Fi LAN 传输层
+ * 蓝牙聊天传输层
  */
 @Singleton
-class WiFiLanChatTransport @Inject constructor(
-    private val socketClient: TcpSocketClient,
-    override val connectionManager: TcpConnectionManager,
+class BtChatTransport @Inject constructor(
+    private val socketClient: BtSocketClient,
+    override val connectionManager: BtConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val profileRepository: ProfileRepository
 ) : BaseChatTransport(connectionManager) {
@@ -24,7 +23,7 @@ class WiFiLanChatTransport @Inject constructor(
     private val myUserId
         get() = profileRepository.getProfile()?.id ?: error("用户信息为空")
 
-    override suspend fun send(userId: String, packet: Packet) = ensureConnected(userId) {
+    override suspend fun send(userId: String, packet: Packet) = ensureConnected(userId, packet) {
         connectionManager.send(userId, packet)
     }
 
@@ -36,23 +35,15 @@ class WiFiLanChatTransport @Inject constructor(
     }
 
     override suspend fun tryAutoReconnect(userId: String): Boolean {
-        val info = connectionInfoDao.getById(userId)
-            ?.takeIf { it.lanIpAddress != null && it.lanPort != null }
-            ?: return false
+        val mac = connectionInfoDao.getById(userId)?.bluetoothAddress ?: return false
 
         return socketClient.connect(
             userId = userId,
-            host = info.lanIpAddress!!,
-            port = info.lanPort!!,
-            myUserId = myUserId,
+            macAddress = mac,
+            myUserId = myUserId
         ).isSuccess
     }
 
     override suspend fun <T> onConnectionUnavailable(userId: String, packet: Packet?) =
-        Result.failure<T>(
-            ConnectionException(
-                "未找到连接信息: $userId",
-                SendError.ConnectionFailed
-            )
-        )
+        requireConnectionFromUi(ConnectionRequiredEvent.Bluetooth(userId, packet))
 }

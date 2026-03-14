@@ -17,55 +17,62 @@ import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 
+/**
+ * 蓝牙配对与连接管理器。
+ *
+ * 负责处理配对状态机（未配对 → 配对中 → 已配对）并在配对成功后
+ * 建立 RFCOMM 连接，同时将连接信息持久化供后续重连使用。
+ */
 @Singleton
-class BluetoothBondManager @Inject constructor(
+class BtBondManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val connectionInfoDao: ConnectionInfoDao,
-    private val socketClient: SocketClient,
-    @param:IoScope private val scope: CoroutineScope
+    private val socketClient: BtSocketClient,
+    @param:IoScope private val scope: CoroutineScope,
 ) {
     companion object {
-        private const val TAG = "BluetoothBondManager"
+        private const val TAG = "BtBondManager"
     }
 
+    /**
+     * 根据当前配对状态决策：
+     * - 已配对：直接保存并连接
+     * - 未配对：发起配对请求，等待系统广播结果
+     * - 配对中：说明其他地方已触发配对，直接挂起等待结果
+     */
     @SuppressLint("MissingPermission")
     suspend fun bondAndConnect(userId: String, device: BluetoothDevice, myUserId: String) {
         when (device.bondState) {
-            BluetoothDevice.BOND_BONDED -> {
-                saveAndConnect(userId, device, myUserId)
-            }
-
+            BluetoothDevice.BOND_BONDED -> saveAndConnect(userId, device, myUserId)
             BluetoothDevice.BOND_NONE -> {
                 device.createBond()
                 waitForBond(userId, device, myUserId)
             }
-
-            BluetoothDevice.BOND_BONDING -> {
-                waitForBond(userId, device, myUserId)
-            }
+            BluetoothDevice.BOND_BONDING -> waitForBond(userId, device, myUserId)
         }
     }
 
+    /**
+     * 挂起当前协程，监听 [BluetoothDevice.ACTION_BOND_STATE_CHANGED] 广播，
+     * 直到目标设备配对成功或被拒绝。
+     *
+     * - 配对成功：保存连接信息并建立 RFCOMM 连接，然后恢复协程
+     * - 用户拒绝：取消协程，调用方会收到 [CancellationException]
+     * - 协程被外部取消：注销广播接收器，防止泄漏
+     */
     private suspend fun waitForBond(
         userId: String,
         device: BluetoothDevice,
-        myUserId: String
+        myUserId: String,
     ) = suspendCancellableCoroutine { cont ->
         val receiver = object : BroadcastReceiver() {
             @SuppressLint("MissingPermission")
             override fun onReceive(context: Context, intent: Intent) {
-                val bondDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent.getParcelableExtra(
-                        BluetoothDevice.EXTRA_DEVICE,
-                        BluetoothDevice::class.java
-                    )
-                } else {
-                    @Suppress("DEPRECATION")
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                } ?: return
-
+                // 过滤掉非目标设备的广播（系统可能同时扫描多台设备）
+                val bondDevice = intent.bluetoothDevice ?: return
                 if (bondDevice.address != device.address) return
 
                 when (intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, -1)) {
@@ -74,7 +81,6 @@ class BluetoothBondManager @Inject constructor(
                         scope.launch { saveAndConnect(userId, bondDevice, myUserId) }
                         if (cont.isActive) cont.resume(Unit)
                     }
-
                     BluetoothDevice.BOND_NONE -> {
                         Log.w(TAG, "用户拒绝配对: $userId")
                         context.unregisterReceiver(this)
@@ -83,15 +89,14 @@ class BluetoothBondManager @Inject constructor(
                 }
             }
         }
-        context.registerReceiver(
-            receiver,
-            IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
-        )
-        cont.invokeOnCancellation {
-            runCatching { context.unregisterReceiver(receiver) }
-        }
+
+        context.registerReceiver(receiver, IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED))
+        cont.invokeOnCancellation { runCatching { context.unregisterReceiver(receiver) } }
     }
 
+    /**
+     * 将连接信息写入数据库，并建立 RFCOMM Socket 连接
+     */
     @SuppressLint("MissingPermission")
     private suspend fun saveAndConnect(userId: String, device: BluetoothDevice, myUserId: String) {
         connectionInfoDao.insertOrUpdate(
@@ -100,17 +105,19 @@ class BluetoothBondManager @Inject constructor(
                 bluetoothName = device.name,
                 bluetoothAddress = device.address,
                 isOnline = true,
-                lastSeen = System.currentTimeMillis()
+                lastSeen = System.currentTimeMillis(),
             )
         )
-        socketClient.connect(
-            userId = userId,
-            macAddress = device.address,
-            myUserId = myUserId
-        ).onSuccess {
-            Log.d(TAG, "RFCOMM 已连接: $userId")
-        }.onFailure {
-            Log.e(TAG, "RFCOMM 连接失败: $userId", it)
-        }
+        socketClient.connect(userId = userId, macAddress = device.address, myUserId = myUserId)
+            .onSuccess { Log.d(TAG, "RFCOMM 已连接: $userId") }
+            .onFailure { Log.e(TAG, "RFCOMM 连接失败: $userId", it) }
     }
 }
+
+private val Intent.bluetoothDevice: BluetoothDevice?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+    } else {
+        @Suppress("DEPRECATION")
+        getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+    }

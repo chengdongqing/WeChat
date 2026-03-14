@@ -44,18 +44,26 @@ class CallModule @Inject constructor(
 
     private var observerJob: Job? = null
 
-    /** 初始化 CallManager 并开始订阅状态变化 */
+    /**
+     * 初始化 CallManager 并开始订阅状态变化
+     */
     fun start(myUserId: String, scope: CoroutineScope) {
         callManager.init(myUserId)
-        observerJob = scope.launch { observeCallState() }
+        observerJob = scope.launch {
+            observeCallState()
+        }
+
         Log.d(TAG, "通话模块已启动")
     }
 
-    /** 取消状态订阅，退出音频模式，关闭通知 */
+    /**
+     * 取消状态订阅，退出音频模式，关闭通知
+     */
     fun stop() {
         observerJob?.cancel()
         callAudioManager.exitCallMode()
         dismissNotification()
+
         Log.d(TAG, "通话模块已停止")
     }
 

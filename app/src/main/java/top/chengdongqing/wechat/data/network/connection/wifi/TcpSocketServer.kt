@@ -3,24 +3,15 @@ package top.chengdongqing.wechat.data.network.connection.wifi
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
-import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
-import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
-import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import top.chengdongqing.wechat.data.network.protocol.PacketReader
-import top.chengdongqing.wechat.data.network.protocol.PacketType
-import top.chengdongqing.wechat.data.network.protocol.PacketWriter
-import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
+import top.chengdongqing.wechat.data.network.connection.PeerHandshakeHandler
+import top.chengdongqing.wechat.data.network.model.PacketReader
+import top.chengdongqing.wechat.data.network.model.PacketWriter
 import java.net.ServerSocket
 import java.net.Socket
 import javax.inject.Inject
@@ -28,21 +19,15 @@ import javax.inject.Singleton
 
 /**
  * TCP 入站连接管理器
- *
- * 监听随机端口，接受对方 [SocketClient] 的入站连接。
- * 每条连接独立协程处理：握手验证 → E2E 密钥交换 → 收包循环。
  */
 @Singleton
-class SocketServer @Inject constructor(
-    private val json: Json,
-    private val e2e: E2ESessionManager,
-    private val connectionManager: ConnectionManager,
-    private val connectionInfoDao: ConnectionInfoDao,
-    private val connectionSettingsRepository: ConnectionSettingsRepository,
+class TcpSocketServer @Inject constructor(
+    private val connectionManager: TcpConnectionManager,
+    private val handshakeHandler: PeerHandshakeHandler,
     @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
-        const val TAG = "SocketServer"
+        const val TAG = "TcpSocketServer"
     }
 
     private var serverSocket: ServerSocket? = null
@@ -112,7 +97,7 @@ class SocketServer @Inject constructor(
             socket.soTimeout = TransferConfig.HANDSHAKE_TIMEOUT
 
             // 执行握手
-            val userId = performHandshake(reader, writer) ?: run {
+            val userId = handshakeHandler.acceptHandshake(reader, writer) ?: run {
                 Log.w(TAG, "握手失败，关闭连接")
                 socket.close()
                 return@withContext
@@ -136,13 +121,6 @@ class SocketServer @Inject constructor(
             connectionManager.startReceiving(conn)
             // 开始维持心跳
             connectionManager.startHeartbeat(conn)
-
-            val connectionMode = connectionSettingsRepository.connectionMode.first()
-            if (connectionMode == ConnectionMode.WiFiDirect) {
-                socket.inetAddress.hostAddress?.let { ip ->
-                    saveConnectionInfo(userId, ip)
-                }
-            }
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()
@@ -150,65 +128,12 @@ class SocketServer @Inject constructor(
     }
 
     /**
-     * 保存连接信息到数据库
-     */
-    private suspend fun saveConnectionInfo(userId: String, ip: String) {
-        val info = ConnectionInfoEntity(
-            userId = userId,
-            p2pIpAddress = ip,
-            p2pPort = 8888,
-            isOnline = true,
-            lastSeen = System.currentTimeMillis()
-        )
-        connectionInfoDao.insertOrUpdate(info)
-        Log.d(TAG, "已保存连接信息: $info")
-    }
-
-    /**
      * 配置 Socket 参数
-     *
-     * tcpNoDelay = true：禁用 Nagle，避免与 Delayed ACK 叠加产生 40ms 延迟。
      */
     private fun configureSocket(socket: Socket) {
         socket.sendBufferSize = TransferConfig.SOCKET_SEND_BUFFER
         socket.receiveBufferSize = TransferConfig.SOCKET_RECV_BUFFER
         socket.keepAlive = true
-        socket.tcpNoDelay = true
-    }
-
-    /**
-     * 执行握手协议
-     *
-     * 读取第一个包，验证类型为 HANDSHAKE，解析 senderId。
-     * 若携带 e2ePublicKey，作为被动方完成 E2E 密钥交换并立即回传 ACK。
-     * 成功返回 senderId，失败返回 null。
-     */
-    private fun performHandshake(reader: PacketReader, writer: PacketWriter): String? {
-        return try {
-            val packet = reader.read()
-            if (packet.type != PacketType.HANDSHAKE) {
-                Log.w(TAG, "握手包类型错误: ${packet.type}")
-                return null
-            }
-
-            val hs = json.decodeFromString<ChatProtocol.Handshake>(
-                String(packet.body, Charsets.UTF_8)
-            )
-
-            hs.e2ePublicKey?.let { peerKey ->
-                val myKey = e2e.acceptHandshake(hs.senderId, peerKey)
-                val ack = ChatProtocol.Handshake(senderId = hs.senderId, e2ePublicKeyAck = myKey)
-                writer.write(
-                    Packet(
-                        PacketType.HANDSHAKE,
-                        json.encodeToString<ChatProtocol>(ack).toByteArray(Charsets.UTF_8)
-                    )
-                )
-            }
-
-            hs.senderId
-        } catch (_: Exception) {
-            null
-        }
+        socket.tcpNoDelay = true // 禁用 Nagle，避免与 Delayed ACK 叠加产生 40ms 延迟。
     }
 }

@@ -13,62 +13,60 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
-import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
-import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import top.chengdongqing.wechat.data.network.protocol.PacketReader
-import top.chengdongqing.wechat.data.network.protocol.PacketType
-import top.chengdongqing.wechat.data.network.protocol.PacketWriter
+import top.chengdongqing.wechat.data.network.connection.PeerHandshakeHandler
+import top.chengdongqing.wechat.data.network.model.PacketReader
+import top.chengdongqing.wechat.data.network.model.PacketWriter
 import java.util.UUID
 
 /**
- * RFCOMM 入站连接管理器
+ * RFCOMM 服务端，负责监听并接入对方设备发起的蓝牙连接。
  */
 @Singleton
-class SocketServer @Inject constructor(
+class BtSocketServer @Inject constructor(
+    private val connectionManager: BtConnectionManager,
+    private val handshakeHandler: PeerHandshakeHandler,
     @param:ApplicationContext private val context: Context,
-    private val json: Json,
-    private val e2e: E2ESessionManager,
-    private val connectionManager: ConnectionManager,
-    @param:IoScope private val scope: CoroutineScope
+    @param:IoScope private val scope: CoroutineScope,
 ) {
     companion object {
-        private const val TAG = "RfcommServer"
+        private const val TAG = "BtSocketServer"
+
+        /** 固定 UUID，客户端必须用同一个 UUID 才能找到并连接此服务 */
         val RFCOMM_UUID: UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66")
-        private const val SERVICE_NAME = "WeChatChat"
+        private const val SERVICE_NAME = "WeChat_Chat"
     }
 
     private var serverSocket: BluetoothServerSocket? = null
 
+    /**
+     * 创建 RFCOMM 服务 socket 并在后台启动 accept 循环
+     */
     @SuppressLint("MissingPermission")
     suspend fun start() = withContext(Dispatchers.IO) {
         try {
             val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE)
                     as BluetoothManager).adapter
-            serverSocket = adapter.listenUsingRfcommWithServiceRecord(
-                SERVICE_NAME,
-                RFCOMM_UUID
-            )
+            serverSocket = adapter.listenUsingRfcommWithServiceRecord(SERVICE_NAME, RFCOMM_UUID)
             scope.launch { acceptLoop() }
-            Log.d(TAG, "RFCOMM 服务已启动")
         } catch (e: Exception) {
             Log.e(TAG, "RFCOMM 服务启动失败", e)
         }
     }
 
+    /**
+     * 关闭服务 socket
+     */
     fun stop() {
-        try {
-            serverSocket?.close()
-            serverSocket = null
-        } catch (_: Exception) {
-            Log.d(TAG, "RFCOMM 服务已关闭")
-        }
+        runCatching { serverSocket?.close() }
+        serverSocket = null
     }
 
+    /**
+     * 持续等待客户端连接
+     */
     private fun acceptLoop() {
         val socket = serverSocket ?: return
         while (true) {
@@ -82,13 +80,17 @@ class SocketServer @Inject constructor(
         }
     }
 
+    /**
+     * 处理单条入站连接：握手 → 注册连接 → 启动收包和心跳。
+     * 任意步骤失败都关闭 socket，不影响其他连接。
+     */
     private suspend fun handleClient(socket: BluetoothSocket) = withContext(Dispatchers.IO) {
         try {
             val reader = PacketReader(socket.inputStream)
             val writer = PacketWriter(socket.outputStream)
 
-            val userId = performHandshake(reader, writer) ?: run {
-                Log.w(TAG, "握手失败")
+            val userId = handshakeHandler.acceptHandshake(reader, writer) ?: run {
+                Log.w(TAG, "握手失败，关闭连接")
                 socket.close()
                 return@withContext
             }
@@ -98,7 +100,7 @@ class SocketServer @Inject constructor(
                 reader = reader,
                 writer = writer,
                 isActiveProvider = { socket.isConnected },
-                closeAction = { socket.close() }
+                closeAction = { socket.close() },
             )
 
             connectionManager.register(conn)
@@ -108,30 +110,6 @@ class SocketServer @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()
-        }
-    }
-
-    private fun performHandshake(reader: PacketReader, writer: PacketWriter): String? {
-        return try {
-            val packet = reader.read()
-            if (packet.type != PacketType.HANDSHAKE) return null
-
-            val hs = json.decodeFromString<ChatProtocol.Handshake>(
-                String(packet.body, Charsets.UTF_8)
-            )
-            hs.e2ePublicKey?.let { peerKey ->
-                val myKey = e2e.acceptHandshake(hs.senderId, peerKey)
-                val ack = ChatProtocol.Handshake(senderId = hs.senderId, e2ePublicKeyAck = myKey)
-                writer.write(
-                    Packet(
-                        PacketType.HANDSHAKE,
-                        json.encodeToString<ChatProtocol>(ack).toByteArray(Charsets.UTF_8)
-                    )
-                )
-            }
-            hs.senderId
-        } catch (_: Exception) {
-            null
         }
     }
 }

@@ -3,19 +3,19 @@ package top.chengdongqing.wechat.data.network.service.modules
 import android.util.Log
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import top.chengdongqing.wechat.data.network.connection.bluetooth.ConnectionManager
-import top.chengdongqing.wechat.data.network.connection.bluetooth.SocketServer
+import top.chengdongqing.wechat.data.network.connection.bluetooth.BtConnectionManager
+import top.chengdongqing.wechat.data.network.connection.bluetooth.BtSocketServer
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 
 @Singleton
 class BluetoothChatModule @Inject constructor(
-    private val socketServer: SocketServer,
-    private val connectionManager: ConnectionManager,
+    private val socketServer: BtSocketServer,
+    private val connectionManager: BtConnectionManager,
     private val wifiLockManager: WifiLockManager,
     private val messageReceiver: MessageReceiver,
 ) {
-    companion object {
+    private companion object {
         private const val TAG = "BluetoothChatModule"
     }
 
@@ -32,8 +32,13 @@ class BluetoothChatModule @Inject constructor(
     }
 
     fun stop() {
-        socketServer.stop()
+        // 关闭所有连接
         connectionManager.closeAll()
+        // 关闭socket服务
+        socketServer.stop()
+        // 释放Wi-Fi 锁
+        wifiLockManager.releaseKeepAlive()
+
         Log.d(TAG, "蓝牙聊天模块已停止")
     }
 }

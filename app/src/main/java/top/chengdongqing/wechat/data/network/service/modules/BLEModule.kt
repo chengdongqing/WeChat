@@ -31,8 +31,8 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.toMD5Bytes
-import top.chengdongqing.wechat.data.network.protocol.P2PMessage
-import top.chengdongqing.wechat.data.network.protocol.RequestAction
+import top.chengdongqing.wechat.data.network.model.P2PMessage
+import top.chengdongqing.wechat.data.network.model.RequestAction
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.data.model.UserProfileTransfer
@@ -62,7 +62,6 @@ class BLEModule @Inject constructor(
     private val imageExt: ImageExt,
     private val json: Json
 ) {
-
     companion object {
         private const val TAG = "BLEModule"
 

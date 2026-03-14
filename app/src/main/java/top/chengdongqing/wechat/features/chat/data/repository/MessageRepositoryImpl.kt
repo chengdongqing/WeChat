@@ -26,8 +26,8 @@ import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
-import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.ReceiptType
+import top.chengdongqing.wechat.data.network.model.ChatProtocol
+import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager

@@ -16,7 +16,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -37,7 +36,6 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
-import top.chengdongqing.wechat.data.network.connection.ConnectionRequiredEvent
 import top.chengdongqing.wechat.features.call.ui.startCall
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.ChatSessionTopBar
@@ -67,36 +65,37 @@ fun ChatSessionScreen(
         factory.create(chatId)
     }
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val connectionRequired by viewModel.connectionRequired.collectAsStateWithLifecycle()
-    var showPeerOverlay by remember { mutableStateOf(false) }
-    var pendingUserId by remember { mutableStateOf("") }
-    var pendingMode by remember { mutableStateOf(ConnectionMode.Bluetooth) }
+    val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
+    val showPeerOverlay = remember { mutableStateOf(false) }
 
-    LaunchedEffect(connectionRequired) {
-        connectionRequired?.let { event ->
-            pendingUserId = event.userId
-            pendingMode = when (event) {
-                is ConnectionRequiredEvent.Bluetooth -> ConnectionMode.Bluetooth
-                is ConnectionRequiredEvent.WiFiDirect -> ConnectionMode.WiFiDirect
-            }
-            showPeerOverlay = true
+    LaunchedEffect(connectionRequired, connectionMode) {
+        connectionRequired?.let {
+            showPeerOverlay.value = true
+        }
+
+        // Wi-Fi direct模式下，如果没有连接，自动显示弹窗
+        if (connectionMode == ConnectionMode.WiFiDirect && !viewModel.isConnected()) {
+            showPeerOverlay.value = true
+        }
+    }
+
+    LaunchedEffect(uiState.isOnline) {
+        if (uiState.isOnline && showPeerOverlay.value) {
+            showPeerOverlay.value = false
         }
     }
 
     PeerDeviceOverlay(
-        visible = showPeerOverlay,
-        userId = pendingUserId,
-        mode = pendingMode,
-        onConnected = {
-            showPeerOverlay = false
-            // 连接建立后重试发送
-            viewModel.retrySendPending()
-        },
-        onClose = { showPeerOverlay = false }
+        visible = showPeerOverlay.value,
+        userId = chatId,
+        mode = connectionMode,
+        onConnected = { showPeerOverlay.value = false },
+        onClose = { showPeerOverlay.value = false }
     )
 
     val messages by viewModel.messages.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
 
     val context = LocalContext.current

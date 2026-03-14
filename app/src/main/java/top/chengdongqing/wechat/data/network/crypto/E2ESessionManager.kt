@@ -4,8 +4,8 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import top.chengdongqing.wechat.data.network.protocol.PacketType
+import top.chengdongqing.wechat.data.network.model.Packet
+import top.chengdongqing.wechat.data.network.model.PacketType
 import javax.inject.Inject
 import javax.inject.Singleton
 

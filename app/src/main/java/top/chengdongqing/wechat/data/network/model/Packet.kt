@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.protocol
+package top.chengdongqing.wechat.data.network.model
 
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import java.io.BufferedInputStream

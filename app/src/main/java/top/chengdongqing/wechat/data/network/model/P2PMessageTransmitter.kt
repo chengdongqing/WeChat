@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.protocol
+package top.chengdongqing.wechat.data.network.model
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGatt

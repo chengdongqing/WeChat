@@ -42,6 +42,7 @@ import top.chengdongqing.wechat.core.util.toPercent
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
+import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -49,6 +50,7 @@ import kotlin.time.Duration.Companion.milliseconds
 fun MediaContent(message: ChatMessage) {
     val targetWidth = rememberScreenFractionWidth()
     val content = message.content as MessageContent.Media
+    val chatContext = LocalChatSessionContext.current
 
     Box(
         modifier = Modifier
@@ -72,7 +74,9 @@ fun MediaContent(message: ChatMessage) {
                 VideoOverlay(
                     message = message,
                     durationText = content.duration.milliseconds.format(),
-                    onActionClick = {}
+                    onActionClick = {
+                        chatContext?.onStopTransfer(message.id)
+                    }
                 )
             }
         }

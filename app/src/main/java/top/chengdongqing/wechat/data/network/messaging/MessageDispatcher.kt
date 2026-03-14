@@ -10,8 +10,8 @@ import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
-import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.ReceiptType
+import top.chengdongqing.wechat.data.network.model.ChatProtocol
+import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage

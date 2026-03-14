@@ -3,9 +3,9 @@ package top.chengdongqing.wechat.data.network.connection
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import top.chengdongqing.wechat.data.network.protocol.PacketReader
-import top.chengdongqing.wechat.data.network.protocol.PacketWriter
+import top.chengdongqing.wechat.data.network.model.Packet
+import top.chengdongqing.wechat.data.network.model.PacketReader
+import top.chengdongqing.wechat.data.network.model.PacketWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
@@ -26,7 +26,7 @@ data class PeerConnection(
     val lastPongTime: AtomicLong = AtomicLong(System.currentTimeMillis()),
     var heartbeatJob: Job? = null,
     private val isActiveProvider: () -> Boolean,
-    private val closeAction: () -> Unit,
+    private val closeAction: () -> Unit
 ) {
     val isActive: Boolean get() = isActiveProvider()
 

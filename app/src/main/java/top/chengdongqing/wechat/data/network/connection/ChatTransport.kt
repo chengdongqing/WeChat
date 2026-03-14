@@ -3,45 +3,56 @@ package top.chengdongqing.wechat.data.network.connection
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import java.util.concurrent.ConcurrentHashMap
+import top.chengdongqing.wechat.data.network.model.Packet
 
 /**
- * 对 MessageReceiver 暴露的能力
- * 只关心：有新连接时给我一个可消费的 channel
+ * 传输层抽象。
+ *
+ * 屏蔽底层连接方式（TCP / Bluetooth / WiFi Direct），
+ * 上层只需关心连接事件和收发数据包。
  */
-interface InboundTransport {
-    val connectionEvents: Flow<ConnectionEvent>
-}
+interface ChatTransport {
 
-/**
- * 对 MessageSender / TransferManager 暴露的能力
- * 只关心：我能发包
- */
-interface OutboundTransport {
     /**
-     * 需要用户介入才能建立连接时触发
-     * 蓝牙/WiFi Direct 没有已知连接信息时使用
+     * 新连接建立或连接断开时发出，消费方负责初始化/清理会话
+     */
+    val connectionEvents: Flow<ConnectionEvent>
+
+    /**
+     * 需要用户介入才能建立连接时发出。
+     * 适用于无法自动重连的传输方式（如蓝牙、WiFi Direct），
+     * UI 层收到后应引导用户手动操作。
      */
     val connectionRequired: SharedFlow<ConnectionRequiredEvent>
 
-    suspend fun send(userId: String, packet: Packet): Result<Unit>
-
-    suspend fun sendAtomicTransfer(
-        userId: String,
-        block: suspend (EncryptingPacketWriter) -> Unit
-    ): Result<Unit>
-
+    /**
+     * 当前是否与 [userId] 保持着活跃连接
+     */
     fun isConnected(userId: String): Boolean
 
+    /**
+     * 向 [userId] 发送一个数据包，连接不存在或发送失败时返回 [Result.failure]
+     */
+    suspend fun send(userId: String, packet: Packet): Result<Unit>
+
+    /**
+     * 向 [userId] 发送一次原子传输，适用于需要独占写通道的场景（如文件传输）。
+     *
+     * [block] 在独占的 [EncryptingPacketWriter] 上执行，
+     * block 结束前其他写操作会被阻塞。
+     */
+    suspend fun sendAtomicTransfer(
+        userId: String,
+        block: suspend (EncryptingPacketWriter) -> Unit,
+    ): Result<Unit>
+
+    /**
+     * 主动断开与 [userId] 的连接并释放相关资源
+     */
     suspend fun disconnect(userId: String)
 
+    /**
+     * 断开所有活跃连接
+     */
     suspend fun disconnectAll()
-}
-
-/**
- * 完整传输能力 = 收 + 发
- */
-interface ChatTransport : InboundTransport, OutboundTransport {
-    val connections: ConcurrentHashMap<String, PeerConnection>
 }

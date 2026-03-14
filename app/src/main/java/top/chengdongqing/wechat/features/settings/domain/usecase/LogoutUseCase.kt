@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.clearAllCache
 import top.chengdongqing.wechat.data.database.WeDatabase
-import top.chengdongqing.wechat.data.network.connection.wifi.ConnectionManager
+import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
@@ -24,7 +24,7 @@ class LogoutUseCase @Inject constructor(
     private val chatSettingsRepository: ChatSettingsRepository,
     private val notificationSettingsRepository: NotificationSettingsRepository,
     private val privacySettingsRepository: PrivacySettingsRepository,
-    private val connectionManager: ConnectionManager,
+    private val connectionManager: TcpConnectionManager,
     private val e2eSessionManager: E2ESessionManager,
     private val privateFileManager: PrivateFileManager,
     @param:ApplicationContext private val context: Context

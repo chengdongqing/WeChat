@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.features.contacts.data.mapper
 
-import top.chengdongqing.wechat.data.network.protocol.P2PMessage
-import top.chengdongqing.wechat.data.network.protocol.RequestAction
+import top.chengdongqing.wechat.data.network.model.P2PMessage
+import top.chengdongqing.wechat.data.network.model.RequestAction
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendProfileResponse
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequestResponse
 import top.chengdongqing.wechat.features.contacts.domain.model.IncomingFriendRequest

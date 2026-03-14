@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.data.network.connection.bluetooth.BluetoothBondManager
+import top.chengdongqing.wechat.data.network.connection.bluetooth.BtBondManager
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDeviceUiState
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -23,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class BluetoothPeerViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val bluetoothBondManager: BluetoothBondManager,
+    private val bluetoothBondManager: BtBondManager,
     private val profileRepository: ProfileRepository
 ) : PeerDeviceViewModel() {
 

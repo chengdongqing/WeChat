@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.data.network.crypto
 
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import top.chengdongqing.wechat.data.network.protocol.PacketWriter
+import top.chengdongqing.wechat.data.network.model.Packet
+import top.chengdongqing.wechat.data.network.model.PacketWriter
 
 /**
  * 透明加密代理

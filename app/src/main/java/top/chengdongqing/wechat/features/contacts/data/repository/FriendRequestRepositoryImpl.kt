@@ -17,9 +17,9 @@ import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.database.entity.RequestStatus
 import top.chengdongqing.wechat.data.model.ContactAddSource
-import top.chengdongqing.wechat.data.network.protocol.P2PMessage
-import top.chengdongqing.wechat.data.network.protocol.P2PMessageTransmitter
-import top.chengdongqing.wechat.data.network.protocol.RequestAction
+import top.chengdongqing.wechat.data.network.model.P2PMessage
+import top.chengdongqing.wechat.data.network.model.P2PMessageTransmitter
+import top.chengdongqing.wechat.data.network.model.RequestAction
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendProfileResponse

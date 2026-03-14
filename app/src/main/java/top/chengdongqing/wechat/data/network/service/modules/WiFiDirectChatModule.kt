@@ -9,17 +9,16 @@ import android.net.wifi.p2p.WifiP2pManager
 import android.os.Looper
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.data.network.connection.wifi.ConnectionManager
-import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient
-import top.chengdongqing.wechat.data.network.connection.wifi.SocketServer
+import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
+import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
+import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketServer
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
-import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -27,19 +26,18 @@ import javax.inject.Singleton
 
 @Singleton
 class WiFiDirectChatModule @Inject constructor(
-    private val socketServer: SocketServer,
-    private val socketClient: SocketClient,
-    private val connectionManager: ConnectionManager,
+    private val socketServer: TcpSocketServer,
+    private val socketClient: TcpSocketClient,
+    private val connectionManager: TcpConnectionManager,
     private val profileRepository: ProfileRepository,
     private val activeSessionManager: ActiveSessionManager,
-    private val wifiLockManager: WifiLockManager,
     private val messageReceiver: MessageReceiver,
     @param:ApplicationContext private val context: Context,
-    @param:IoScope private val scope: CoroutineScope
+    @param:IoScope private val scope: CoroutineScope,
 ) {
-    companion object {
+    private companion object {
         private const val TAG = "WiFiDirectChatModule"
-        private const val DEFAULT_PORT = 8888
+        private const val PORT = 8888
     }
 
     private val p2pManager by lazy {
@@ -48,41 +46,33 @@ class WiFiDirectChatModule @Inject constructor(
     private val channel by lazy {
         p2pManager.initialize(context, Looper.getMainLooper(), null)
     }
-    private var receiver: BroadcastReceiver? = null
+    private var connectionReceiver: BroadcastReceiver? = null
 
+    /**
+     * 初始化模块：清理旧组、申请锁、启动服务、监听连接状态
+     */
     suspend fun prepare() {
         removeGroup()
-
-        // 申请Wi-Fi锁，后台通信保活
-//        wifiLockManager.acquireKeepAlive()
-        socketServer.start(DEFAULT_PORT)
-        // 启动消息接收服务
+        socketServer.start(PORT)
         messageReceiver.start()
-        // 监听Wi-Fi direct状态
         observeConnectionState()
 
         Log.d(TAG, "WiFi Direct 模块已就绪，等待用户选择角色")
     }
 
-    // 用户点「创建群组」
-    suspend fun startAsOwner() {
-        createGroup()
-        Log.d(TAG, "已创建 P2P 组，等待 Client 加入")
-    }
+    suspend fun startAsOwner() = createGroup()
 
-    // 用户点「加入群组」，只需要扫描，连接在用户选设备时触发
-    fun startAsClient() {
-        scope.launch {
-            removeGroup()  // 先清掉旧组
-            Log.d(TAG, "Client 模式，开始扫描")
-        }
-    }
+    suspend fun startAsClient() = removeGroup()
 
+    /**
+     * 停止模块，释放所有资源
+     */
     suspend fun stop() {
         removeGroup()
-        socketServer.stop()
+        unregisterConnectionReceiver()
         connectionManager.closeAll()
-        unregisterReceiver()
+        socketServer.stop()
+
         Log.d(TAG, "WiFi Direct 聊天模块已停止")
     }
 
@@ -90,87 +80,76 @@ class WiFiDirectChatModule @Inject constructor(
     private suspend fun createGroup() = suspendCancellableCoroutine { cont ->
         p2pManager.createGroup(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() {
-                Log.d(TAG, "P2P 组创建成功，我是 GO")
-                if (cont.isActive) cont.resume(Unit) { _, _, _ -> }
+                cont.resumeIfActive(Unit)
             }
 
             override fun onFailure(reason: Int) {
-                Log.w(TAG, "P2P 组创建失败: $reason，走普通连接流程")
-                if (cont.isActive) cont.resume(Unit) { _, _, _ -> } // 失败不阻塞，继续启动
+                Log.w(TAG, "P2P 组创建失败: $reason，继续执行")
+                cont.resumeIfActive(Unit)
             }
         })
     }
 
     private suspend fun removeGroup() = suspendCancellableCoroutine { cont ->
         p2pManager.removeGroup(channel, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                if (cont.isActive) cont.resume(Unit) { _, _, _ -> }
-            }
-
-            override fun onFailure(reason: Int) {
-                if (cont.isActive) cont.resume(Unit) { _, _, _ -> }
-            }
+            override fun onSuccess() = cont.resumeIfActive(Unit)
+            override fun onFailure(reason: Int) = cont.resumeIfActive(Unit)
         })
     }
 
+    /**
+     * 监听 P2P 连接状态变化，群组建立后由客户端主动发起 TCP 连接
+     */
     private fun observeConnectionState() {
-        Log.d(TAG, "注册 P2P 广播")
-        receiver = object : BroadcastReceiver() {
+        connectionReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                Log.d(TAG, "收到广播: ${intent.action}")
-                when (intent.action) {
-                    WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
-                        p2pManager.requestConnectionInfo(channel) { info ->
-                            if (info != null && info.groupFormed) {
-                                val goIp = info.groupOwnerAddress?.hostAddress
-                                val goUserId = activeSessionManager.activeSessionId
-                                    ?: return@requestConnectionInfo
+                if (intent.action != WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION) return
 
-                                Log.d(
-                                    TAG,
-                                    "P2P 组已建立 - isGroupOwner: ${info.isGroupOwner}, goIp: $goIp"
-                                )
-                                if (info.isGroupOwner) {
-                                    Log.d(TAG, "我是 GO，等待 Client 连接")
-                                } else if (goIp != null) {
-                                    scope.launch {
-                                        connectAsClient(goUserId, goIp)
-                                    }
-                                }
-                            } else {
-                                Log.d(TAG, "P2P 组已解散")
-                                connectionManager.closeAll()
+                p2pManager.requestConnectionInfo(channel) { info ->
+                    if (info != null && info.groupFormed) {
+                        val goIp =
+                            info.groupOwnerAddress?.hostAddress ?: return@requestConnectionInfo
+                        val goUserId =
+                            activeSessionManager.activeSessionId ?: return@requestConnectionInfo
+
+                        if (!info.isGroupOwner) {
+                            scope.launch {
+                                delay(1000)
+                                connectAsClient(goUserId, goIp)
                             }
                         }
+                    } else {
+                        connectionManager.closeAll()
                     }
                 }
             }
         }
 
-        val filter = IntentFilter().apply {
-            addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION)
-        }
-        context.registerReceiver(receiver, filter)
+        context.registerReceiver(
+            connectionReceiver,
+            IntentFilter(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION),
+        )
     }
 
-    private suspend fun connectAsClient(goUserId: String, goIp: String) =
-        withContext(Dispatchers.IO) {
-            val myUserId = profileRepository.getProfile()?.id ?: return@withContext
+    private suspend fun connectAsClient(goUserId: String, goIp: String) {
+        val myUserId = profileRepository.getProfile()?.id ?: return
 
-            socketClient.connect(
-                userId = goUserId,
-                host = goIp,
-                port = DEFAULT_PORT,
-                myUserId = myUserId
-            )
+        socketClient.connect(
+            userId = goUserId,
+            host = goIp,
+            port = PORT,
+            myUserId = myUserId
+        )
+    }
 
-            Log.d(TAG, "connectAsClient：已连接")
-        }
-
-    private fun unregisterReceiver() {
-        receiver?.let {
+    private fun unregisterConnectionReceiver() {
+        connectionReceiver?.let {
             runCatching { context.unregisterReceiver(it) }
-            receiver = null
+            connectionReceiver = null
         }
     }
+}
+
+private fun <T> CancellableContinuation<T>.resumeIfActive(value: T) {
+    if (isActive) resume(value) { _, _, _ -> }
 }

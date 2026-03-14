@@ -40,6 +40,7 @@ import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -61,6 +62,7 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRe
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 import java.io.File
 import kotlin.time.Duration
 
@@ -77,8 +79,9 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val soundTipPlayer: SoundTipPlayer,
     private val notificationHelper: NotificationHelper,
     val activeSessionManager: ActiveSessionManager,
+    private val chatTransportManager: ChatTransportManager,
     e2eSessionManager: E2ESessionManager,
-    chatTransportManager: ChatTransportManager,
+    connectionSettingsRepository: ConnectionSettingsRepository,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -99,15 +102,8 @@ class ChatSessionViewModel @AssistedInject constructor(
     val connectionRequired = chatTransportManager.connectionRequired
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    // TODO: sendMessage 失败时记录 messageId
-    private var pendingMessageId: String? = null
-
-    fun retrySendPending() {
-        val id = pendingMessageId ?: return
-        viewModelScope.launch {
-            messageRepository.retrySend(id)
-            pendingMessageId = null
-        }
+    fun isConnected(): Boolean {
+        return chatTransportManager.isConnected(chatId)
     }
 
     // region 工具条
@@ -201,7 +197,7 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     // endregion
 
-    // region 加密 & 未读
+    // region 加密 & 未读等
 
     val isE2EActive = e2eSessionManager.encryptedPeers
         .map { it.contains(chatId) }
@@ -216,6 +212,13 @@ class ChatSessionViewModel @AssistedInject constructor(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
             initialValue = 0
+        )
+
+    val connectionMode = connectionSettingsRepository.connectionMode
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = ConnectionMode.WiFiLan
         )
 
     // endregion

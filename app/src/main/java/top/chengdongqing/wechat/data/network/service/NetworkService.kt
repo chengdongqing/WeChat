@@ -112,8 +112,8 @@ class NetworkService : Service() {
         private const val NOTIFICATION_ID = 1001
         private const val CHANNEL_ID = "p2p_service_channel"
 
-        const val ACTION_START_CONNECT = "action_start_connect" // 登录成功后调用
-        const val ACTION_STOP_CONNECT = "action_stop_connect"   // 退出登录调用
+        const val ACTION_START_SERVICE = "action_start_service" // 登录成功后调用
+        const val ACTION_STOP_SERVICE = "action_stop_service"   // 退出登录调用
         const val ACTION_RETRY_BLE = "action_retry_ble"         // 权限授予后调用
     }
 
@@ -121,19 +121,22 @@ class NetworkService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
-            ACTION_START_CONNECT -> {
+            ACTION_START_SERVICE -> {
                 // 注册通知
                 createNotificationChannel()
                 startForegroundService()
+
                 // 启动各个子模块
-                scope.launch { initializeModules() }
+                scope.launch {
+                    initializeModules()
+                }
             }
 
             ACTION_RETRY_BLE -> {
                 bleModule.start(scope)
             }
 
-            ACTION_STOP_CONNECT -> {
+            ACTION_STOP_SERVICE -> {
                 scope.launch { stopAllModules() }
             }
         }
@@ -200,30 +203,21 @@ class NetworkService : Service() {
     // ==================== 事件订阅 ====================
 
     private suspend fun observeConnectionModeChanges(myUserId: String) {
-        Log.d(TAG, "开始监听模式变化")
         connectionSettingsRepository.connectionMode
             .drop(1)  // 跳过初始值，只响应后续变化
             .collect { newMode ->
                 try {
-                    Log.d(TAG, "收到模式变化: $newMode")
-
-                    // 断开现有连接
-                    chatTransportManager.disconnectAll()
-
                     // 停止所有聊天模块
                     wifiLanChatModule.stop()
+                    wifiDirectChatModule.stop()
                     bluetoothChatModule.stop()
 
-                    Log.d(TAG, "开始重启新模式: $newMode")
-
-                    // 启动新模式对应的模块
+                    // 重启新模式对应的模块
                     when (newMode) {
                         ConnectionMode.WiFiLan -> wifiLanChatModule.start(myUserId, scope)
                         ConnectionMode.Bluetooth -> bluetoothChatModule.start()
-                        ConnectionMode.WiFiDirect -> {}
+                        ConnectionMode.WiFiDirect -> wifiDirectChatModule.prepare()
                     }
-
-                    Log.d(TAG, "模式已切换")
                 } catch (e: Exception) {
                     Log.e(TAG, "模式切换异常", e)
                 }

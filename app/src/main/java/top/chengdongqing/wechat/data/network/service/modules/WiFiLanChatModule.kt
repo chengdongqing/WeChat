@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
-import top.chengdongqing.wechat.data.network.connection.wifi.ConnectionManager
-import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient
-import top.chengdongqing.wechat.data.network.connection.wifi.SocketServer
+import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
+import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
+import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketServer
 import top.chengdongqing.wechat.data.network.discovery.DiscoveredDevice
 import top.chengdongqing.wechat.data.network.discovery.DiscoveryEvent
 import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
@@ -27,16 +27,16 @@ import javax.inject.Singleton
 @Singleton
 class WiFiLanChatModule @Inject constructor(
     private val nsdDiscovery: NSDDiscovery,
-    private val socketServer: SocketServer,
-    private val socketClient: SocketClient,
-    private val connectionManager: ConnectionManager,
+    private val socketServer: TcpSocketServer,
+    private val socketClient: TcpSocketClient,
+    private val connectionManager: TcpConnectionManager,
     private val wifiLockManager: WifiLockManager,
     private val messageReceiver: MessageReceiver,
     private val connectionInfoDao: ConnectionInfoDao,
     private val contactRepository: ContactRepository
 ) {
     private companion object {
-        const val TAG = "ChatModule"
+        const val TAG = "WiFiLanChatModule"
     }
 
     /** 透传 [MessageReceiver] 的新消息流，供 [NetworkService] 订阅通知 */
@@ -62,10 +62,10 @@ class WiFiLanChatModule @Inject constructor(
     }
 
     fun stop() {
-        // 停止TCP服务
-        socketServer.stop()
         // 关闭所有连接
         connectionManager.closeAll()
+        // 停止TCP服务
+        socketServer.stop()
         // 释放Wi-Fi锁
         wifiLockManager.releaseKeepAlive()
 

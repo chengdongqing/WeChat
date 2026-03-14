@@ -16,11 +16,10 @@ import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
-import top.chengdongqing.wechat.data.network.connection.ConnectionMode
-import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import top.chengdongqing.wechat.data.network.protocol.PacketType
-import top.chengdongqing.wechat.data.network.protocol.ReceiptType
+import top.chengdongqing.wechat.data.network.model.ChatProtocol
+import top.chengdongqing.wechat.data.network.model.Packet
+import top.chengdongqing.wechat.data.network.model.PacketType
+import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -29,7 +28,6 @@ import java.io.FileInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
-import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient as wifiSocketClient
 
 /**
  * 消息发送器
@@ -37,7 +35,6 @@ import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient as wif
 @Singleton
 class MessageSender @Inject constructor(
     private val database: WeDatabase,
-    private val wifiSocketClient: wifiSocketClient,
     private val transport: ChatTransportManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
@@ -159,37 +156,6 @@ class MessageSender @Inject constructor(
     }
 
     /**
-     * 确保与目标用户有可用连接
-     */
-    suspend fun ensureConnected(targetUserId: String, myUserId: String) {
-        if (transport.isConnected(targetUserId)) return
-
-        val info = connectionInfoDao.getById(targetUserId)
-
-        val finalInfo = when (transport.mode.value) {
-            ConnectionMode.WiFiLan -> takeIf { info?.lanIpAddress != null && info.lanPort != null }?.let {
-                Pair(info?.lanIpAddress!!, info.lanPort!!)
-            }
-
-            ConnectionMode.WiFiDirect -> takeIf { info?.p2pIpAddress != null && info.p2pPort != null }?.let {
-                Pair(info?.p2pIpAddress!!, info.p2pPort!!)
-            }
-
-            ConnectionMode.Bluetooth -> null
-        }
-        val (ip, port) = finalInfo ?: return
-
-        wifiSocketClient.connect(
-            userId = targetUserId,
-            host = ip,
-            port = port,
-            myUserId = myUserId
-        ).getOrElse {
-            throw ConnectionException("连接失败: $targetUserId", SendError.ConnectionFailed)
-        }
-    }
-
-    /**
      * 流式读文件，按 chunk 回调
      */
     private suspend inline fun streamFileChunks(
@@ -282,7 +248,9 @@ class MessageSender @Inject constructor(
             }
         }
         // 标记为离线
-        connectionInfoDao.markOffline(receiverId)
+        if (error !is CancellationException) {
+            connectionInfoDao.markOffline(receiverId)
+        }
     }
 
     /**

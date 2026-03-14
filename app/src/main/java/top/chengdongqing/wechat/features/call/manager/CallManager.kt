@@ -17,9 +17,14 @@ import org.webrtc.PeerConnection
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
+import top.chengdongqing.wechat.data.model.SendError
+import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
+import top.chengdongqing.wechat.data.network.connection.ConnectionException
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
-import top.chengdongqing.wechat.data.network.messaging.MessageSender
-import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
+import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.service.modules.CallModule
 import top.chengdongqing.wechat.features.call.model.CallState
 import top.chengdongqing.wechat.features.call.model.CallStatus
@@ -58,12 +63,14 @@ import javax.inject.Singleton
 @Singleton
 class CallManager @Inject constructor(
     private val signalingManager: SignalingManager,
-    private val messageSender: MessageSender,
     private val webRTCManager: WebRTCManager,
     private val callAudioManager: CallAudioManager,
     private val contactRepository: ContactRepository,
     private val messageRepository: MessageRepository,
     private val messageDispatcher: MessageDispatcher,
+    private val transport: ChatTransportManager,
+    private val connectionInfoDao: ConnectionInfoDao,
+    private val socketClient: TcpSocketClient,
     private val notificationRepository: NotificationSettingsRepository
 ) {
     private companion object {
@@ -145,8 +152,12 @@ class CallManager @Inject constructor(
         )
 
         scope.launch {
-            runCatching { messageSender.ensureConnected(peerId, myUserId) }
-                .onFailure { endCall(HangupReason.Offline); return@launch }
+            runCatching {
+                ensureConnected(peerId, myUserId)
+            }.onFailure {
+                endCall(HangupReason.Offline)
+                return@launch
+            }
 
             runCatching {
                 webRTCManager.initialize()
@@ -168,6 +179,32 @@ class CallManager @Inject constructor(
                 Log.e(TAG, "发起通话失败", it)
                 endCall(HangupReason.Error)
             }
+        }
+    }
+
+    /**
+     * 确保与目标用户有可用连接
+     */
+    private suspend fun ensureConnected(targetUserId: String, myUserId: String) {
+        if (transport.isConnected(targetUserId)) return
+        if (transport.mode.value != ConnectionMode.WiFiLan) return
+
+        // 从数据库查询连接信息
+        val info = connectionInfoDao.getById(targetUserId)
+
+        // 获取IP和端口
+        val (ip, port) = takeIf { info?.lanIpAddress != null && info.lanPort != null }?.let {
+            Pair(info?.lanIpAddress!!, info.lanPort!!)
+        } ?: return
+
+        // 尝试连接
+        socketClient.connect(
+            userId = targetUserId,
+            host = ip,
+            port = port,
+            myUserId = myUserId
+        ).getOrElse {
+            throw ConnectionException("连接失败: $targetUserId", SendError.ConnectionFailed)
         }
     }
 

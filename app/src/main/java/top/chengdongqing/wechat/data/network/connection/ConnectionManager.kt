@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.connection.wifi
+package top.chengdongqing.wechat.data.network.connection
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
@@ -7,132 +7,72 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
-import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.config.TransferConfig.PING_INTERVAL
 import top.chengdongqing.wechat.data.network.config.TransferConfig.PONG_TIMEOUT
-import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
-import top.chengdongqing.wechat.data.network.connection.ConnectionException
-import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
-import top.chengdongqing.wechat.data.network.protocol.Packet
-import top.chengdongqing.wechat.data.network.protocol.PacketType
-import java.io.EOFException
-import java.net.SocketException
+import top.chengdongqing.wechat.data.network.model.Packet
+import top.chengdongqing.wechat.data.network.model.PacketType
 import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Singleton
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * 连接管理器
+ * 连接管理器基类
+ *
+ * 提供连接池维护、收发消息、心跳等通用能力。
  */
-@Singleton
-class ConnectionManager @Inject constructor(
-    private val e2e: E2ESessionManager,
-    private val connectionInfoDao: ConnectionInfoDao,
-    @param:IoScope private val scope: CoroutineScope
+abstract class ConnectionManager(
+    protected open val e2e: E2ESessionManager,
+    protected open val connectionInfoDao: ConnectionInfoDao,
+    protected open val scope: CoroutineScope
 ) {
-
-    private companion object {
-        const val TAG = "ConnectionManager"
-    }
-
-    // Socket 连接池
     val connections = ConcurrentHashMap<String, PeerConnection>()
 
-    // 连接状态事件流
-    private val _connectionEvents = MutableSharedFlow<ConnectionEvent>()
+    private val _connectionEvents = MutableSharedFlow<ConnectionEvent>(extraBufferCapacity = 8)
     val connectionEvents = _connectionEvents.asSharedFlow()
 
-    /**
-     * 获取指定连接
-     */
-    fun getConnection(userId: String) = connections[userId]
+    fun isConnected(userId: String) = connections[userId]?.isActive == true
 
-    /**
-     * 获取指定连接
-     * 连接不存在时抛出异常
-     */
     fun requireConnection(userId: String) =
-        getConnection(userId) ?: throw ConnectionException(
+        connections[userId] ?: throw ConnectionException(
             "未找到连接: $userId",
             SendError.ConnectionFailed
         )
 
-    /**
-     * 是否已连接
-     */
-    fun isConnected(userId: String): Boolean = getConnection(userId)?.isActive.isTrue()
-
-    /**
-     * 注册连接
-     */
-    suspend fun register(conn: PeerConnection) {
-        // 关闭可能已存在的连接
+    open suspend fun register(conn: PeerConnection) {
         connections[conn.userId]?.close()
-        // 保存新连接
         connections[conn.userId] = conn
-        // 标记在线
-        connectionInfoDao.markOnline(conn.userId, System.currentTimeMillis())
+        connectionInfoDao.markOnline(conn.userId, conn.lastPongTime.get())
     }
 
-    /**
-     * 关闭指定连接
-     */
-    fun close(userId: String) {
-        connections.remove(userId)?.close()
-    }
+    fun close(userId: String) = connections.remove(userId)?.close()
 
-    /**
-     * 关闭所有连接
-     */
     fun closeAll() {
         connections.values.forEach { it.close() }
         connections.clear()
     }
 
-    /**
-     * 推送连接事件
-     */
-    suspend fun emitEvent(event: ConnectionEvent) {
-        _connectionEvents.emit(event)
+    suspend fun emitEvent(event: ConnectionEvent) = _connectionEvents.emit(event)
+
+    suspend fun send(userId: String, packet: Packet): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val conn = requireConnection(userId)
+            conn.writer.write(e2e.encryptPacket(userId, packet))
+            // 有消息往来，重置空闲计时
+            conn.lastPongTime.set(System.currentTimeMillis())
+        }.onFailure { e ->
+            Log.e(tag, "发送失败: $userId", e)
+            disconnect(userId)
+            throw e
+        }
     }
 
-    /**
-     * 发送单个 Packet
-     *
-     * 加密后写入并立即 flush，失败时断开连接。
-     */
-    suspend fun send(userId: String, packet: Packet): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                val conn = requireConnection(userId)
-                conn.writer.write(e2e.encryptPacket(userId, packet))
-                // 有消息往来，重置空闲计时
-                conn.lastPongTime.set(System.currentTimeMillis())
-            }.onFailure { e ->
-                Log.e(TAG, "发送失败: $userId", e)
-                disconnect(userId)
-                throw e
-            }
-        }
-
-    /**
-     * 原子发送一组 Packet（文件传输专用）
-     *
-     * [Mutex] 保证 FILE_META + FILE_CHUNK 序列不被其他传输插入。
-     * block 内通过 [EncryptingPacketWriter.writeNoFlush] 批量写入，
-     * block 结束后统一 flush，减少 syscall 次数。
-     */
     suspend fun sendAtomicTransfer(
         userId: String,
-        block: suspend (EncryptingPacketWriter) -> Unit
+        block: suspend (EncryptingPacketWriter) -> Unit,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val conn = requireConnection(userId)
         conn.transferMutex.lock()
@@ -142,8 +82,11 @@ class ConnectionManager @Inject constructor(
             conn.writer.flush()
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(TAG, "原子传输失败: $userId", e)
-            disconnect(userId)
+            Log.e(tag, "原子传输失败: $userId", e)
+            // 非用户主动取消才需要断开连接
+            if (e !is CancellationException) {
+                disconnect(userId)
+            }
             Result.failure(e)
         } finally {
             conn.decrementTransferCount()
@@ -151,23 +94,13 @@ class ConnectionManager @Inject constructor(
         }
     }
 
-    /**
-     * 断开指定连接
-     */
     suspend fun disconnect(userId: String) = withContext(Dispatchers.IO) {
         close(userId)
+        e2e.removeSession(userId)
         connectionInfoDao.markOffline(userId)
         emitEvent(ConnectionEvent.Disconnected(userId, "主动断开"))
     }
 
-    /**
-     * 心跳保活
-     *
-     * 每隔 [TransferConfig.PING_INTERVAL] 发一次 Ping。
-     * 超过 [TransferConfig.PONG_TIMEOUT] 未收到 Pong 则主动断开。
-     * 文件传输中（[PeerConnection.activeTransferCount] > 0）跳过，
-     * 传输结束时 [PeerConnection.decrementTransferCount] 会重置 lastPongTime 防止误判。
-     */
     fun startHeartbeat(conn: PeerConnection) {
         conn.lastPongTime.set(System.currentTimeMillis())
         conn.heartbeatJob = scope.launch {
@@ -197,7 +130,7 @@ class ConnectionManager @Inject constructor(
                         }
                 }
             } catch (_: Exception) {
-                Log.w(TAG, "心跳异常，断开: ${conn.userId}")
+                Log.w(tag, "心跳异常，断开: ${conn.userId}")
                 // 断开连接
                 disconnect(conn.userId)
                 // 标记离线
@@ -206,9 +139,6 @@ class ConnectionManager @Inject constructor(
         }
     }
 
-    /**
-     * 收包循环
-     */
     fun startReceiving(conn: PeerConnection, onHandshake: ((Packet) -> Unit)? = null) {
         scope.launch {
             try {
@@ -219,31 +149,22 @@ class ConnectionManager @Inject constructor(
                         PacketType.PONG -> conn.lastPongTime.set(System.currentTimeMillis())
                         PacketType.HANDSHAKE -> onHandshake?.invoke(packet)
                         else -> {
-                            // 解密数据包
                             val decrypted = e2e.decryptPacket(conn.userId, packet)
-
                             if (decrypted.body.isNotEmpty()) {
-                                // 推送到处理队列
                                 conn.receiveChannel.send(decrypted)
                             } else {
-                                Log.w(TAG, "解密后 body 为空，丢弃: ${conn.userId}")
+                                Log.w(tag, "解密后 body 为空，丢弃: ${conn.userId}")
                             }
                         }
                     }
                 }
-            } catch (e: Exception) {
-                when (e) {
-                    is EOFException, is SocketException -> {
-                        Log.w(TAG, "接收中断: ${conn.userId}")
-                    }
-
-                    else -> Log.e(TAG, "接收中断: ${conn.userId}", e)
-                }
+            } catch (_: Exception) {
+                Log.w(tag, "接收异常: ${conn.userId}")
             } finally {
-                e2e.removeSession(conn.userId)
                 disconnect(conn.userId)
             }
         }
     }
-}
 
+    protected abstract val tag: String
+}
