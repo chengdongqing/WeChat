@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 
@@ -33,11 +35,19 @@ fun EmptyView(mode: ConnectionMode) {
             tint = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f),
             modifier = Modifier.size(48.dp),
         )
-        Text(text = "未找到附近设备", fontSize = 14.sp, color = WeTheme.colorScheme.textSecondary)
         Text(
-            text = if (mode == ConnectionMode.Bluetooth) "请确保对方已开启蓝牙" else "请确保对方已开启 Wi-Fi Direct",
-            fontSize = 12.sp,
+            text = stringResource(R.string.conn_empty_no_devices),
+            color = WeTheme.colorScheme.textSecondary,
+            fontSize = 14.sp
+        )
+        Text(
+            text = if (mode == ConnectionMode.Bluetooth) {
+                stringResource(R.string.conn_empty_ensure_bluetooth)
+            } else {
+                stringResource(R.string.conn_empty_ensure_wifi_direct)
+            },
             color = WeTheme.colorScheme.textSecondary.copy(alpha = 0.6f),
+            fontSize = 12.sp
         )
     }
 }
