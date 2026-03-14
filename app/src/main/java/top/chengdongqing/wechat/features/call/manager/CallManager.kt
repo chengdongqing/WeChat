@@ -318,16 +318,18 @@ class CallManager @Inject constructor(
         val current = _state.value
         if (current.callState == CallState.Idle || current.callState == CallState.Ended) return
         scope.launch {
-            signalingManager.send(
-                targetUserId = current.peerId,
-                message = ChatProtocol.Signaling.MediaState(
-                    messageId = current.callId,
-                    senderId = myUserId,
-                    isVideoOn = current.isVideoOn,
-                    isMicOn = current.isMicOn,
-                    isSpeakerOn = current.isSpeakerOn
+            runCatching {
+                signalingManager.send(
+                    targetUserId = current.peerId,
+                    message = ChatProtocol.Signaling.MediaState(
+                        messageId = current.callId,
+                        senderId = myUserId,
+                        isVideoOn = current.isVideoOn,
+                        isMicOn = current.isMicOn,
+                        isSpeakerOn = current.isSpeakerOn
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -373,13 +375,15 @@ class CallManager @Inject constructor(
      */
     private suspend fun handleOffer(offer: ChatProtocol.Signaling.Offer) {
         if (!_state.value.callState.isTerminal) {
-            signalingManager.send(
-                targetUserId = offer.senderId,
-                message = ChatProtocol.Signaling.Busy(
-                    messageId = offer.messageId,
-                    senderId = myUserId
+            runCatching {
+                signalingManager.send(
+                    targetUserId = offer.senderId,
+                    message = ChatProtocol.Signaling.Busy(
+                        messageId = offer.messageId,
+                        senderId = myUserId
+                    )
                 )
-            )
+            }
             return
         }
 
@@ -411,18 +415,20 @@ class CallManager @Inject constructor(
         startTimeout()
 
         // 告知对方我的铃声设置
-        signalingManager.send(
-            targetUserId = offer.senderId,
-            message = ChatProtocol.Signaling.RingtoneInfo(
-                messageId = offer.messageId,
-                senderId = myUserId,
-                ringtone = if (ringtoneAudibleEnabled()) {
-                    myRingtone()
-                } else {
-                    RingtoneSound.Default
-                }
+        runCatching {
+            signalingManager.send(
+                targetUserId = offer.senderId,
+                message = ChatProtocol.Signaling.RingtoneInfo(
+                    messageId = offer.messageId,
+                    senderId = myUserId,
+                    ringtone = if (ringtoneAudibleEnabled()) {
+                        myRingtone()
+                    } else {
+                        RingtoneSound.Default
+                    }
+                )
             )
-        )
+        }
     }
 
     /** 收到 Answer，设置远端 SDP，切换为 Connecting 等待 ICE 建立 */
@@ -519,16 +525,18 @@ class CallManager @Inject constructor(
         val current = _state.value
         if (current.callState == CallState.Idle || current.callState == CallState.Ended) return
         scope.launch {
-            signalingManager.send(
-                current.peerId,
-                ChatProtocol.Signaling.IceCandidate(
-                    messageId = current.callId,
-                    senderId = myUserId,
-                    candidate = candidate.sdp,
-                    sdpMid = candidate.sdpMid,
-                    sdpMLineIndex = candidate.sdpMLineIndex
+            runCatching {
+                signalingManager.send(
+                    current.peerId,
+                    ChatProtocol.Signaling.IceCandidate(
+                        messageId = current.callId,
+                        senderId = myUserId,
+                        candidate = candidate.sdp,
+                        sdpMid = candidate.sdpMid,
+                        sdpMLineIndex = candidate.sdpMLineIndex
+                    )
                 )
-            )
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
 import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
@@ -22,7 +23,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SignalingManager @Inject constructor(
-    private val connectionManager: TcpConnectionManager,
+    private val transport: ChatTransportManager,
     private val json: Json
 ) {
     private companion object {
@@ -42,11 +43,12 @@ class SignalingManager @Inject constructor(
      */
     suspend fun send(targetUserId: String, message: ChatProtocol.Signaling) {
         val body = json.encodeToString<ChatProtocol.Signaling>(message).toByteArray(Charsets.UTF_8)
-        connectionManager.send(
+        transport.send(
             userId = targetUserId,
             packet = Packet(PacketType.SIGNALING, body)
         ).onFailure {
             Log.w(TAG, "发送失败: ${message::class.simpleName}")
+            throw it
         }
     }
 

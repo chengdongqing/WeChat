@@ -68,16 +68,13 @@ class MessageSender @Inject constructor(
             )
         )
 
-        return runCatching {
-            transport.send(message.receiverId, packet)
+        return transport.send(message.receiverId, packet).onFailure {
             updateStatus(
                 messageId = message.id,
                 sessionId = message.receiverId,
                 status = SendStatus.Sent
             )
-        }.onFailure { e ->
-            handleSendError(message.id, message.receiverId, e)
-            throw e
+            handleSendError(message.id, message.receiverId, it)
         }
     }
 
@@ -148,11 +145,10 @@ class MessageSender @Inject constructor(
             )
         )
 
-        runCatching {
-            transport.send(receiverId, packet)
-        }.onFailure {
-            Log.w(TAG, "回执发送失败: $receiverId")
-        }
+        transport.send(receiverId, packet)
+            .onFailure {
+                Log.w(TAG, "回执发送失败: $receiverId")
+            }
     }
 
     /**

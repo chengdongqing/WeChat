@@ -63,10 +63,9 @@ abstract class ConnectionManager(
             conn.writer.write(e2e.encryptPacket(userId, packet))
             // 有消息往来，重置空闲计时
             conn.lastPongTime.set(System.currentTimeMillis())
-        }.onFailure { e ->
-            Log.e(tag, "发送失败: $userId", e)
+        }.onFailure {
+            Log.e(tag, "发送失败: $userId", it)
             disconnect(userId)
-            throw e
         }
     }
 
