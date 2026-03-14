@@ -129,6 +129,8 @@ class MessageReceiver @Inject constructor(
     private suspend fun handleJsonPacket(userId: String, packet: Packet) {
         val protocol = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
 
+        println("-------handleJsonPacket: $userId, $protocol")
+
         // 拦截非好友/已拉黑（在非回执包时判断）
         if (protocol !is ChatProtocol.MessageReceipt
             && !canProcessMessage(userId, protocol.messageId)

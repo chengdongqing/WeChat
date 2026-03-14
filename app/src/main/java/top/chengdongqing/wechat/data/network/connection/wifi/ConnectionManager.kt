@@ -114,6 +114,8 @@ class ConnectionManager @Inject constructor(
             runCatching {
                 val conn = requireConnection(userId)
                 conn.writer.write(e2e.encryptPacket(userId, packet))
+                // 有消息往来，重置空闲计时
+                conn.lastPongTime.set(System.currentTimeMillis())
             }.onFailure { e ->
                 Log.e(TAG, "发送失败: $userId", e)
                 disconnect(userId)
@@ -218,10 +220,11 @@ class ConnectionManager @Inject constructor(
                         PacketType.HANDSHAKE -> onHandshake?.invoke(packet)
                         else -> {
                             // 解密数据包
-                            val packet = e2e.decryptPacket(conn.userId, packet)
-                            if (packet.body.isNotEmpty()) {
+                            val decrypted = e2e.decryptPacket(conn.userId, packet)
+
+                            if (decrypted.body.isNotEmpty()) {
                                 // 推送到处理队列
-                                conn.receiveChannel.send(packet)
+                                conn.receiveChannel.send(decrypted)
                             } else {
                                 Log.w(TAG, "解密后 body 为空，丢弃: ${conn.userId}")
                             }

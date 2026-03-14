@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
-import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.connection.wifi.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient
 import top.chengdongqing.wechat.data.network.connection.wifi.SocketServer
@@ -119,13 +118,11 @@ class WiFiLanChatModule @Inject constructor(
         connectionInfoDao.insertOrUpdate(
             ConnectionInfoEntity(
                 userId = device.userId,
-                connectionMode = ConnectionMode.WiFiLan,
-                ipAddress = device.host,
-                port = device.port,
-                serviceName = device.serviceName,
+                lanIpAddress = device.host,
+                lanPort = device.port,
+                lanServiceName = device.serviceName,
                 isOnline = true,
-                lastSeen = System.currentTimeMillis(),
-                priority = 0
+                lastSeen = System.currentTimeMillis()
             )
         )
 

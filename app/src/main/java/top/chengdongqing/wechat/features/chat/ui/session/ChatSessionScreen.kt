@@ -68,9 +68,9 @@ fun ChatSessionScreen(
     }
 ) {
     val connectionRequired by viewModel.connectionRequired.collectAsStateWithLifecycle()
-    var showPeerOverlay by remember { mutableStateOf(true) }
+    var showPeerOverlay by remember { mutableStateOf(false) }
     var pendingUserId by remember { mutableStateOf("") }
-    var pendingMode by remember { mutableStateOf(ConnectionMode.WiFiDirect) }
+    var pendingMode by remember { mutableStateOf(ConnectionMode.Bluetooth) }
 
     LaunchedEffect(connectionRequired) {
         connectionRequired?.let { event ->

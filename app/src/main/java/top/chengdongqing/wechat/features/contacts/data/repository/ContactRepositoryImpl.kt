@@ -8,8 +8,8 @@ import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
-import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
+import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.data.mapper.toEntity
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
@@ -20,7 +20,7 @@ class ContactRepositoryImpl @Inject constructor(
     private val database: WeDatabase,
     private val contactDao: ContactDao,
     private val chatSessionDao: ChatSessionDao,
-    private val messageDao: MessageDao,
+    private val chatSessionRepository: ChatSessionRepository,
     private val connectionInfoDao: ConnectionInfoDao
 ) : ContactRepository {
 
@@ -69,15 +69,13 @@ class ContactRepositoryImpl @Inject constructor(
 
     override suspend fun deleteContact(userId: String) {
         database.withTransaction {
+            // 删除会话的所有信息、所有消息记录、所有会话文件
+            chatSessionRepository.deleteSession(userId)
+            chatSessionDao.deleteById(userId)
             // 删除联系人
             contactDao.deleteById(userId)
-            // 删除会话
-            chatSessionDao.deleteById(userId)
-            // 删除所有消息
-            messageDao.deleteBySessionId(userId)
             // 删除连接信息
             connectionInfoDao.deleteById(userId)
-            // TODO 删除文件缓存
         }
 
         contactCache.remove(userId)

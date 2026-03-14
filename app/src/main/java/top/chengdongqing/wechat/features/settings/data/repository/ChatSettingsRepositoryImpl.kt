@@ -9,15 +9,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.di.ChatSettingsDataStore
-import top.chengdongqing.wechat.data.network.connection.wifi.ConnectionManager
-import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import javax.inject.Inject
 
 class ChatSettingsRepositoryImpl @Inject constructor(
-    @param:ChatSettingsDataStore private val dataStore: DataStore<Preferences>,
-    private val connectionManager: ConnectionManager,
-    private val e2ESessionManager: E2ESessionManager
+    @param:ChatSettingsDataStore private val dataStore: DataStore<Preferences>
 ) : ChatSettingsRepository {
 
     private companion object {
@@ -53,13 +49,6 @@ class ChatSettingsRepositoryImpl @Inject constructor(
 
     override suspend fun toggleE2e(enabled: Boolean) {
         dataStore.edit { it[E2E_KEY] = enabled }
-
-        // 清除密钥
-        connectionManager.connections.forEach { conn ->
-            e2ESessionManager.removeSession(conn.key)
-        }
-        // 关闭连接，将自动重连
-        connectionManager.closeAll()
     }
 
     override suspend fun setChatBackground(path: String?) {

@@ -7,7 +7,6 @@ import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
-import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.getIndex
 
@@ -36,12 +35,6 @@ class DatabaseConverters {
 
     @TypeConverter
     fun toAddSource(value: String): ContactAddSource = ContactAddSource.valueOf(value)
-
-    @TypeConverter
-    fun fromConnectionMode(value: ConnectionMode) = value.name
-
-    @TypeConverter
-    fun toConnectionMode(value: String): ConnectionMode = ConnectionMode.valueOf(value)
 
     @TypeConverter
     fun fromMessageType(value: MessageType) = value.name

@@ -15,7 +15,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
-import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -24,7 +23,7 @@ import kotlin.coroutines.resume
 class BluetoothBondManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val connectionInfoDao: ConnectionInfoDao,
-    private val rfcommClient: RfcommClient,
+    private val socketClient: SocketClient,
     @param:IoScope private val scope: CoroutineScope
 ) {
     companion object {
@@ -95,17 +94,16 @@ class BluetoothBondManager @Inject constructor(
 
     @SuppressLint("MissingPermission")
     private suspend fun saveAndConnect(userId: String, device: BluetoothDevice, myUserId: String) {
-        // 存配对后的真实 MAC，永久有效
         connectionInfoDao.insertOrUpdate(
             ConnectionInfoEntity(
                 userId = userId,
-                connectionMode = ConnectionMode.Bluetooth,
                 bluetoothName = device.name,
                 bluetoothAddress = device.address,
+                isOnline = true,
                 lastSeen = System.currentTimeMillis()
             )
         )
-        rfcommClient.connect(
+        socketClient.connect(
             userId = userId,
             macAddress = device.address,
             myUserId = myUserId

@@ -134,7 +134,7 @@ class NetworkService : Service() {
             }
 
             ACTION_STOP_CONNECT -> {
-                stopAllModules()
+                scope.launch { stopAllModules() }
             }
         }
 
@@ -143,8 +143,11 @@ class NetworkService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopAllModules()
-        Log.d(TAG, "P2P 服务已停止")
+
+        scope.launch {
+            stopAllModules()
+            Log.d(TAG, "P2P 服务已停止")
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -166,7 +169,7 @@ class NetworkService : Service() {
             // 根据连接模式启动对应聊天模块
             when (connectionMode) {
                 ConnectionMode.WiFiLan -> wifiLanChatModule.start(myProfile.id, scope)
-                ConnectionMode.Bluetooth -> bluetoothChatModule.start(myProfile.id, scope)
+                ConnectionMode.Bluetooth -> bluetoothChatModule.start()
                 ConnectionMode.WiFiDirect -> wifiDirectChatModule.prepare()
             }
 
@@ -186,7 +189,7 @@ class NetworkService : Service() {
         }
     }
 
-    private fun stopAllModules() {
+    private suspend fun stopAllModules() {
         bleModule.stop()
         wifiLanChatModule.stop()
         bluetoothChatModule.stop()
@@ -216,7 +219,7 @@ class NetworkService : Service() {
                     // 启动新模式对应的模块
                     when (newMode) {
                         ConnectionMode.WiFiLan -> wifiLanChatModule.start(myUserId, scope)
-                        ConnectionMode.Bluetooth -> bluetoothChatModule.start(myUserId, scope)
+                        ConnectionMode.Bluetooth -> bluetoothChatModule.start()
                         ConnectionMode.WiFiDirect -> {}
                     }
 

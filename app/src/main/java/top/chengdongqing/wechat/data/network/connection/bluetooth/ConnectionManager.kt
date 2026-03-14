@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.network.config.TransferConfig.PING_INTERVAL
 import top.chengdongqing.wechat.data.network.config.TransferConfig.PONG_TIMEOUT
@@ -26,8 +27,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class BtConnectionManager @Inject constructor(
+class ConnectionManager @Inject constructor(
     private val e2e: E2ESessionManager,
+    private val connectionInfoDao: ConnectionInfoDao,
     @param:IoScope private val scope: CoroutineScope
 ) {
     companion object {
@@ -50,10 +52,12 @@ class BtConnectionManager @Inject constructor(
             SendError.ConnectionFailed
         )
 
-    fun register(conn: PeerConnection) {
+    suspend fun register(conn: PeerConnection) {
         connections[conn.userId]?.close()
         connections[conn.userId] = conn
         startIdleTimer(conn)
+        // 标记在线
+        connectionInfoDao.markOnline(conn.userId, System.currentTimeMillis())
     }
 
     fun close(userId: String) {
@@ -76,9 +80,10 @@ class BtConnectionManager @Inject constructor(
                 conn.writer.write(e2e.encryptPacket(userId, packet))
                 // 有消息往来，重置空闲计时
                 conn.lastPongTime.set(System.currentTimeMillis())
-            }.onFailure {
+            }.onFailure { e ->
+                Log.e(TAG, "发送失败: $userId", e)
                 disconnect(userId)
-                throw it
+                throw e
             }
         }
 
@@ -94,6 +99,7 @@ class BtConnectionManager @Inject constructor(
             conn.writer.flush()
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(TAG, "原子传输失败: $userId", e)
             disconnect(userId)
             Result.failure(e)
         } finally {
@@ -144,9 +150,14 @@ class BtConnectionManager @Inject constructor(
                         PacketType.PONG -> conn.lastPongTime.set(System.currentTimeMillis())
                         PacketType.HANDSHAKE -> onHandshake?.invoke(packet)
                         else -> {
+                            // 解密数据包
                             val decrypted = e2e.decryptPacket(conn.userId, packet)
+
                             if (decrypted.body.isNotEmpty()) {
+                                // 推送到处理队列
                                 conn.receiveChannel.send(decrypted)
+                            } else {
+                                Log.w(TAG, "解密后 body 为空，丢弃: ${conn.userId}")
                             }
                         }
                     }

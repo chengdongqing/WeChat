@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
-import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.connection.wifi.WiFiDirectConnector
 import top.chengdongqing.wechat.data.network.service.modules.WiFiDirectChatModule
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
@@ -123,12 +122,12 @@ class WiFiDirectPeerViewModel @Inject constructor(
 
                 val info = ConnectionInfoEntity(
                     userId = userId,
-                    connectionMode = ConnectionMode.WiFiDirect,
-                    ipAddress = "192.168.49.1",
-                    port = 8888,
+                    p2pMacAddress = p2pDevice.deviceAddress,
+                    p2pDeviceName = p2pDevice.deviceName,
+                    p2pIpAddress = "192.168.49.1",
+                    p2pPort = 8888,
                     isOnline = true,
-                    lastSeen = System.currentTimeMillis(),
-                    priority = 0
+                    lastSeen = System.currentTimeMillis()
                 )
                 connectionInfoDao.insertOrUpdate(info)
                 println("已保存连接信息: $info")

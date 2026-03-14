@@ -17,7 +17,6 @@ import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
-import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient
 import top.chengdongqing.wechat.data.network.protocol.ChatProtocol
 import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketType
@@ -30,6 +29,7 @@ import java.io.FileInputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
+import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient as wifiSocketClient
 
 /**
  * 消息发送器
@@ -37,7 +37,7 @@ import kotlin.coroutines.cancellation.CancellationException
 @Singleton
 class MessageSender @Inject constructor(
     private val database: WeDatabase,
-    private val socketClient: SocketClient,
+    private val wifiSocketClient: wifiSocketClient,
     private val transport: ChatTransportManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
@@ -72,7 +72,6 @@ class MessageSender @Inject constructor(
         )
 
         return runCatching {
-            ensureConnected(message.receiverId, message.senderId)
             transport.send(message.receiverId, packet)
             updateStatus(
                 messageId = message.id,
@@ -93,9 +92,6 @@ class MessageSender @Inject constructor(
     suspend fun sendMediaMessage(message: MessageEntity, file: File): Result<Unit> =
         withContext(Dispatchers.IO) {
             runCatching {
-                // 确保已连接
-                ensureConnected(message.receiverId, message.senderId)
-
                 // 获取文件大小
                 val fileSize = file.length()
                 // 计算哈希值
@@ -156,7 +152,6 @@ class MessageSender @Inject constructor(
         )
 
         runCatching {
-            ensureConnected(receiverId, myUserId ?: "")
             transport.send(receiverId, packet)
         }.onFailure {
             Log.w(TAG, "回执发送失败: $receiverId")
@@ -169,32 +164,25 @@ class MessageSender @Inject constructor(
     suspend fun ensureConnected(targetUserId: String, myUserId: String) {
         if (transport.isConnected(targetUserId)) return
 
-        when (transport.mode.value) {
-            ConnectionMode.WiFiLan,
-            ConnectionMode.WiFiDirect -> {
-                connectFromDb(targetUserId, myUserId)
-            }
-            else -> {
-                /* 由各自 Transport 的 send() 内部处理 */
-            }
-        }
-    }
-
-    /**
-     * 从数据库取连接信息并建立出站连接
-     */
-    private suspend fun connectFromDb(targetUserId: String, myUserId: String) {
         val info = connectionInfoDao.getById(targetUserId)
-            .takeIf { it?.ipAddress != null && it.port != null }
-            ?: throw ConnectionException(
-                "未找到连接信息: $targetUserId",
-                SendError.ConnectionFailed
-            )
 
-        socketClient.connect(
+        val finalInfo = when (transport.mode.value) {
+            ConnectionMode.WiFiLan -> takeIf { info?.lanIpAddress != null && info.lanPort != null }?.let {
+                Pair(info?.lanIpAddress!!, info.lanPort!!)
+            }
+
+            ConnectionMode.WiFiDirect -> takeIf { info?.p2pIpAddress != null && info.p2pPort != null }?.let {
+                Pair(info?.p2pIpAddress!!, info.p2pPort!!)
+            }
+
+            ConnectionMode.Bluetooth -> null
+        }
+        val (ip, port) = finalInfo ?: return
+
+        wifiSocketClient.connect(
             userId = targetUserId,
-            host = info.ipAddress!!,
-            port = info.port!!,
+            host = ip,
+            port = port,
             myUserId = myUserId
         ).getOrElse {
             throw ConnectionException("连接失败: $targetUserId", SendError.ConnectionFailed)

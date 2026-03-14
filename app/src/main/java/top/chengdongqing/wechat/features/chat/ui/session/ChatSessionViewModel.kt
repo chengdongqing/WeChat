@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -41,7 +40,6 @@ import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
-import top.chengdongqing.wechat.data.network.connection.ConnectionRequiredEvent
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -99,7 +97,6 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val _visibleCount = MutableStateFlow(PAGE_SIZE)
 
     val connectionRequired = chatTransportManager.connectionRequired
-        .filterIsInstance<ConnectionRequiredEvent>()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     // TODO: sendMessage 失败时记录 messageId

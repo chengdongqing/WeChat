@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.network.connection.wifi
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -19,7 +20,7 @@ import top.chengdongqing.wechat.data.network.protocol.Packet
 import top.chengdongqing.wechat.data.network.protocol.PacketReader
 import top.chengdongqing.wechat.data.network.protocol.PacketType
 import top.chengdongqing.wechat.data.network.protocol.PacketWriter
-import java.net.InetSocketAddress
+import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 import java.net.ServerSocket
 import java.net.Socket
 import javax.inject.Inject
@@ -37,6 +38,7 @@ class SocketServer @Inject constructor(
     private val e2e: E2ESessionManager,
     private val connectionManager: ConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
+    private val connectionSettingsRepository: ConnectionSettingsRepository,
     @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
@@ -53,10 +55,8 @@ class SocketServer @Inject constructor(
      */
     suspend fun start(port: Int = 0): Int = withContext(Dispatchers.IO) {
         try {
-            val socket = ServerSocket().apply {
+            val socket = ServerSocket(port).apply {
                 receiveBufferSize = TransferConfig.SOCKET_RECV_BUFFER
-
-                bind(InetSocketAddress("0.0.0.0", port))
             }
             serverSocket = socket
             scope.launch { acceptLoop() }
@@ -137,24 +137,31 @@ class SocketServer @Inject constructor(
             // 开始维持心跳
             connectionManager.startHeartbeat(conn)
 
-            Log.d(TAG, "握手成功：" + userId + "," + socket.inetAddress.hostAddress)
-
-            // 保存连接信息到数据库
-            val info = ConnectionInfoEntity(
-                userId = userId,
-                connectionMode = ConnectionMode.WiFiDirect,
-                ipAddress = socket.inetAddress.hostAddress,
-                port = socket.port,
-                isOnline = true,
-                lastSeen = System.currentTimeMillis(),
-                priority = 0
-            )
-            connectionInfoDao.insertOrUpdate(info)
-            Log.d(TAG, "已保存连接信息: $info")
+            val connectionMode = connectionSettingsRepository.connectionMode.first()
+            if (connectionMode == ConnectionMode.WiFiDirect) {
+                socket.inetAddress.hostAddress?.let { ip ->
+                    saveConnectionInfo(userId, ip)
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()
         }
+    }
+
+    /**
+     * 保存连接信息到数据库
+     */
+    private suspend fun saveConnectionInfo(userId: String, ip: String) {
+        val info = ConnectionInfoEntity(
+            userId = userId,
+            p2pIpAddress = ip,
+            p2pPort = 8888,
+            isOnline = true,
+            lastSeen = System.currentTimeMillis()
+        )
+        connectionInfoDao.insertOrUpdate(info)
+        Log.d(TAG, "已保存连接信息: $info")
     }
 
     /**

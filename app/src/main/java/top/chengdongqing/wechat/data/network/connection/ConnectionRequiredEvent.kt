@@ -8,15 +8,15 @@ import top.chengdongqing.wechat.data.network.protocol.Packet
  */
 sealed class ConnectionRequiredEvent {
     abstract val userId: String
-    abstract val pendingPacket: Packet
+    abstract val pendingPacket: Packet?
 
     data class Bluetooth(
         override val userId: String,
-        override val pendingPacket: Packet
+        override val pendingPacket: Packet?
     ) : ConnectionRequiredEvent()
 
     data class WiFiDirect(
         override val userId: String,
-        override val pendingPacket: Packet
+        override val pendingPacket: Packet?
     ) : ConnectionRequiredEvent()
 }

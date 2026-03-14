@@ -29,11 +29,11 @@ import java.util.UUID
  * RFCOMM 入站连接管理器
  */
 @Singleton
-class RfcommServer @Inject constructor(
+class SocketServer @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val json: Json,
     private val e2e: E2ESessionManager,
-    private val connectionManager: BtConnectionManager,
+    private val connectionManager: ConnectionManager,
     @param:IoScope private val scope: CoroutineScope
 ) {
     companion object {

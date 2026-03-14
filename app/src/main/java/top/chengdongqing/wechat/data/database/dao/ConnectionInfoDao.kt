@@ -5,7 +5,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
-import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.database.entity.mergeWith
 
 @Dao
 interface ConnectionInfoDao : BaseDao<ConnectionInfoEntity> {
@@ -16,37 +16,15 @@ interface ConnectionInfoDao : BaseDao<ConnectionInfoEntity> {
         if (existing == null) {
             insert(entity)
         } else {
-            update(
-                entity.copy(
-                    audit = entity.audit.copy(
-                        createdAt = existing.audit.createdAt, // 保留原始创建时间
-                        updatedAt = System.currentTimeMillis()
-                    )
-                )
-            )
+            update(entity.mergeWith(existing))
         }
     }
 
-    @Query("SELECT * FROM connection_info WHERE userId = :userId ORDER BY priority ASC")
+    @Query("SELECT * FROM connection_info WHERE userId = :userId")
     suspend fun getById(userId: String): ConnectionInfoEntity?
-
-    @Query("select * from connection_info where connectionMode = :connectionMode")
-    suspend fun getByMode(connectionMode: ConnectionMode): List<ConnectionInfoEntity>
 
     @Query("SELECT isOnline FROM connection_info WHERE userId = :userId")
     fun observeOnlineStatus(userId: String): Flow<Boolean?>
-
-    @Transaction
-    suspend fun update(
-        userId: String,
-        updateBlock: (ConnectionInfoEntity) -> ConnectionInfoEntity
-    ) {
-        val old = getById(userId) ?: return
-        val new = updateBlock(old).copy(
-            audit = old.audit.copy(updatedAt = System.currentTimeMillis())
-        )
-        update(new)
-    }
 
     @Query("UPDATE connection_info SET isOnline = 0, updatedAt = :now WHERE userId = :userId")
     suspend fun markOffline(userId: String, now: Long = System.currentTimeMillis())

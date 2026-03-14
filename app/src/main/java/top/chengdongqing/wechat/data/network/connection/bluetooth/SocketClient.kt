@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.data.network.connection.bluetooth
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,11 +26,11 @@ import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettings
  * RFCOMM 出站连接管理器
  */
 @Singleton
-class RfcommClient @Inject constructor(
+class SocketClient @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val json: Json,
     private val e2e: E2ESessionManager,
-    private val btConnectionManager: BtConnectionManager,
+    private val connectionManager: ConnectionManager,
     private val chatSettingsRepository: ChatSettingsRepository,
 ) {
     companion object {
@@ -45,12 +46,7 @@ class RfcommClient @Inject constructor(
         myUserId: String
     ): Result<PeerConnection> = withContext(Dispatchers.IO) {
         runCatching {
-            val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE)
-                    as BluetoothManager).adapter
-            val device = adapter.getRemoteDevice(macAddress)
-            val socket = device.createRfcommSocketToServiceRecord(RfcommServer.RFCOMM_UUID)
-            socket.connect()
-
+            val socket = createSocket(macAddress)
             val conn = PeerConnection(
                 userId = userId,
                 reader = PacketReader(socket.inputStream),
@@ -59,30 +55,43 @@ class RfcommClient @Inject constructor(
                 closeAction = { socket.close() }
             )
 
-            btConnectionManager.register(conn)
-            btConnectionManager.emitEvent(ConnectionEvent.Connected(userId, conn))
+            // 保存连接
+            connectionManager.register(conn)
+            // 推送连接成功事件
+            connectionManager.emitEvent(ConnectionEvent.Connected(userId, conn))
 
             // 发握手包
             sendHandshake(conn, myUserId)
             // 开始收包
-            btConnectionManager.startReceiving(conn) { packet ->
+            connectionManager.startReceiving(conn) { packet ->
                 handleE2EInHandshake(conn, packet)
             }
             // 开始心跳
-            btConnectionManager.startHeartbeat(conn)
+            connectionManager.startHeartbeat(conn)
 
             conn
         }.onFailure {
             Log.e(TAG, "连接失败: $userId", it)
-            btConnectionManager.emitEvent(ConnectionEvent.Disconnected(userId, it.message))
+            connectionManager.emitEvent(ConnectionEvent.Disconnected(userId, it.message))
+        }
+    }
+
+    private fun createSocket(macAddress: String): BluetoothSocket {
+        val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE)
+                as BluetoothManager).adapter
+        val device = adapter.getRemoteDevice(macAddress)
+        return device.createRfcommSocketToServiceRecord(SocketServer.RFCOMM_UUID).apply {
+            connect()
         }
     }
 
     private suspend fun sendHandshake(conn: PeerConnection, myUserId: String) {
         e2e.removeSession(conn.userId)
+
         val e2eKey = if (isE2eEnabled()) e2e.prepareHandshake(conn.userId) else null
         val hs = ChatProtocol.Handshake(senderId = myUserId, e2ePublicKey = e2eKey)
         val body = json.encodeToString<ChatProtocol>(hs).toByteArray(Charsets.UTF_8)
+
         conn.writer.write(Packet(PacketType.HANDSHAKE, body))
     }
 

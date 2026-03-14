@@ -18,6 +18,8 @@ import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.connection.wifi.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.wifi.SocketClient
 import top.chengdongqing.wechat.data.network.connection.wifi.SocketServer
+import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
+import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -30,6 +32,8 @@ class WiFiDirectChatModule @Inject constructor(
     private val connectionManager: ConnectionManager,
     private val profileRepository: ProfileRepository,
     private val activeSessionManager: ActiveSessionManager,
+    private val wifiLockManager: WifiLockManager,
+    private val messageReceiver: MessageReceiver,
     @param:ApplicationContext private val context: Context,
     @param:IoScope private val scope: CoroutineScope
 ) {
@@ -45,33 +49,37 @@ class WiFiDirectChatModule @Inject constructor(
         p2pManager.initialize(context, Looper.getMainLooper(), null)
     }
     private var receiver: BroadcastReceiver? = null
-    private var isGroupOwner = false
 
     suspend fun prepare() {
         removeGroup()
+
+        // 申请Wi-Fi锁，后台通信保活
+//        wifiLockManager.acquireKeepAlive()
         socketServer.start(DEFAULT_PORT)
-        registerReceiver()
+        // 启动消息接收服务
+        messageReceiver.start()
+        // 监听Wi-Fi direct状态
+        observeConnectionState()
+
         Log.d(TAG, "WiFi Direct 模块已就绪，等待用户选择角色")
     }
 
     // 用户点「创建群组」
     suspend fun startAsOwner() {
         createGroup()
-        isGroupOwner = true
         Log.d(TAG, "已创建 P2P 组，等待 Client 加入")
     }
 
     // 用户点「加入群组」，只需要扫描，连接在用户选设备时触发
     fun startAsClient() {
-        isGroupOwner = false
         scope.launch {
             removeGroup()  // 先清掉旧组
             Log.d(TAG, "Client 模式，开始扫描")
         }
     }
 
-    fun stop() {
-        p2pManager.removeGroup(channel, null)
+    suspend fun stop() {
+        removeGroup()
         socketServer.stop()
         connectionManager.closeAll()
         unregisterReceiver()
@@ -105,7 +113,7 @@ class WiFiDirectChatModule @Inject constructor(
         })
     }
 
-    private fun registerReceiver() {
+    private fun observeConnectionState() {
         Log.d(TAG, "注册 P2P 广播")
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {

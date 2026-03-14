@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.protocol.Packet
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 对 MessageReceiver 暴露的能力
@@ -41,4 +42,6 @@ interface OutboundTransport {
 /**
  * 完整传输能力 = 收 + 发
  */
-interface ChatTransport : InboundTransport, OutboundTransport
+interface ChatTransport : InboundTransport, OutboundTransport {
+    val connections: ConcurrentHashMap<String, PeerConnection>
+}

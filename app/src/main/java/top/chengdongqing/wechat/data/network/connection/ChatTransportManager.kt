@@ -6,7 +6,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -18,6 +17,7 @@ import top.chengdongqing.wechat.data.network.connection.wifi.WiFiDirectChatTrans
 import top.chengdongqing.wechat.data.network.connection.wifi.WiFiLanChatTransport
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.protocol.Packet
+import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 
 /**
  * 根据当前 ConnectionMode 路由到对应的 ChatTransport
@@ -27,6 +27,7 @@ class ChatTransportManager @Inject constructor(
     private val wifiLan: WiFiLanChatTransport,
     private val wifiDirect: WiFiDirectChatTransport,
     private val bluetooth: BluetoothChatTransport,
+    chatSettingsRepository: ChatSettingsRepository,
     @param:IoScope private val scope: CoroutineScope
 ) : ChatTransport {
 
@@ -58,8 +59,14 @@ class ChatTransportManager @Inject constructor(
     /** 汇总所有模式的连接请求事件，UI 层订阅这一个即可 */
     private val _connectionRequired =
         MutableSharedFlow<ConnectionRequiredEvent>(extraBufferCapacity = 8)
-    override val connectionRequired: SharedFlow<ConnectionRequiredEvent> =
-        _connectionRequired.asSharedFlow()
+    override val connectionRequired = _connectionRequired.asSharedFlow()
+
+    override val connections
+        get() = when (_mode.value) {
+            ConnectionMode.WiFiLan -> wifiLan.connections
+            ConnectionMode.WiFiDirect -> wifiDirect.connections
+            ConnectionMode.Bluetooth -> bluetooth.connections
+        }
 
     init {
         // 汇总蓝牙和 WiFi Direct 的 connectionRequired 事件
@@ -69,6 +76,13 @@ class ChatTransportManager @Inject constructor(
         ).onEach {
             _connectionRequired.emit(it)
         }.launchIn(scope)
+
+        // 监听 E2E 状态变化，断开所有连接，以触发自动重连
+        chatSettingsRepository.e2eEnabled
+            .onEach {
+                disconnectAll()
+            }
+            .launchIn(scope)
     }
 
     override suspend fun send(userId: String, packet: Packet) =
@@ -83,5 +97,9 @@ class ChatTransportManager @Inject constructor(
 
     override suspend fun disconnect(userId: String) = active.disconnect(userId)
 
-    override suspend fun disconnectAll() = active.disconnectAll()
+    override suspend fun disconnectAll() {
+        wifiLan.disconnectAll()
+        wifiDirect.disconnectAll()
+        bluetooth.disconnectAll()
+    }
 }

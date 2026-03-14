@@ -25,7 +25,7 @@ import top.chengdongqing.wechat.data.database.entity.MessageEntity
         ConnectionInfoEntity::class,
         MediaFileEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(DatabaseConverters::class)

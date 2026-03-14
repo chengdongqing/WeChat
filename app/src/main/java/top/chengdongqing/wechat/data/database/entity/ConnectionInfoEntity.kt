@@ -3,23 +3,22 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 
 @Entity(tableName = "connection_info")
 data class ConnectionInfoEntity(
     @PrimaryKey
     val userId: String,                 // 用户ID
 
-    val connectionMode: ConnectionMode, // 连接类型
-
     // WiFi LAN 信息
-    val ipAddress: String? = null,      // IP地址
-    val port: Int? = null,              // 端口号
-    val serviceName: String? = null,    // NSD服务名
+    val lanIpAddress: String? = null,      // IP地址
+    val lanPort: Int? = null,              // 端口号
+    val lanServiceName: String? = null,    // NSD服务名
 
     // WiFi Direct 信息
-    val macAddress: String? = null,     // MAC地址
-    val p2pDeviceName: String? = null,  // P2P设备名
+    val p2pMacAddress: String? = null,     // P2P MAC地址
+    val p2pDeviceName: String? = null,     // P2P设备名
+    val p2pIpAddress: String? = null,      // IP地址
+    val p2pPort: Int? = null,              // 端口号
 
     // Bluetooth 信息
     val bluetoothAddress: String? = null, // 蓝牙地址
@@ -28,8 +27,24 @@ data class ConnectionInfoEntity(
     val isOnline: Boolean = false,      // 是否在线
     val lastSeen: Long,                 // 最后在线时间
 
-    val priority: Int = 0,              // 连接优先级（0最高）
-
     @Embedded
     val audit: EntityAudit = EntityAudit()
 )
+
+fun ConnectionInfoEntity.mergeWith(existing: ConnectionInfoEntity): ConnectionInfoEntity {
+    return this.copy(
+        lanIpAddress = this.lanIpAddress ?: existing.lanIpAddress,
+        lanPort = this.lanPort ?: existing.lanPort,
+        lanServiceName = this.lanServiceName ?: existing.lanServiceName,
+        p2pMacAddress = this.p2pMacAddress ?: existing.p2pMacAddress,
+        p2pDeviceName = this.p2pDeviceName ?: existing.p2pDeviceName,
+        p2pIpAddress = this.p2pIpAddress ?: existing.lanIpAddress,
+        p2pPort = this.p2pPort ?: existing.p2pPort,
+        bluetoothAddress = this.bluetoothAddress ?: existing.bluetoothAddress,
+        bluetoothName = this.bluetoothName ?: existing.bluetoothName,
+        audit = this.audit.copy(
+            createdAt = existing.audit.createdAt,
+            updatedAt = System.currentTimeMillis()
+        )
+    )
+}
