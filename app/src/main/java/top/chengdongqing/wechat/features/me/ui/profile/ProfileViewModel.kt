@@ -9,10 +9,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.file.PrivateFileManager
@@ -22,6 +24,8 @@ import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
+import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import javax.inject.Inject
 
 /**
@@ -37,7 +41,8 @@ class ProfileViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val privateFileManager: PrivateFileManager,
     private val publicFileManager: PublicFileManager,
-    private val qrCodeUseCase: QRCodeUseCase
+    private val qrCodeUseCase: QRCodeUseCase,
+    notificationRepository: NotificationSettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -45,6 +50,13 @@ class ProfileViewModel @Inject constructor(
 
     private val _eventFlow = MutableSharedFlow<ProfileUiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
+
+    val ringtone = notificationRepository.ringtone
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = RingtoneSound.Default
+        )
 
     init {
         loadProfile()

@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -262,7 +263,8 @@ private fun QRCodeHintText() {
     Text(
         text = stringResource(R.string.me_qrcode_hint),
         fontSize = 12.sp,
-        color = WeTheme.colorScheme.textSecondary
+        color = WeTheme.colorScheme.textSecondary,
+        textAlign = TextAlign.Center
     )
 }
 

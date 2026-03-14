@@ -61,7 +61,7 @@ fun InputPanelHolder(
                 .fillMaxWidth()
                 .height(animatedPanelHeight)
                 .background(WeTheme.colorScheme.background)
-                .clipToBounds() // 防止内容溢出
+                .clipToBounds()
         ) {
             when (inputMode) {
                 InputMode.Emoji -> EmojiPanel(

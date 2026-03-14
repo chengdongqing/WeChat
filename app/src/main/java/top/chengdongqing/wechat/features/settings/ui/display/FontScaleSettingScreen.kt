@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,7 +74,7 @@ fun FontScaleSettingScreen(
             }
         },
         bottomBar = {
-            FontSizeSelector(
+            FontScaleSelector(
                 value = fontScale,
                 onChange = { fontScale = it }
             )
@@ -82,14 +84,23 @@ fun FontScaleSettingScreen(
         CompositionLocalProvider(
             LocalFontScale provides fontScale.scale
         ) {
-            ChatPreview(modifier = Modifier.padding(innerPadding))
+            ChatPreview(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
         }
     }
 }
 
 @Composable
-private fun ChatPreview(modifier: Modifier) {
+private fun ChatPreview(
+    viewModel: DisplaySettingsViewModel,
+    modifier: Modifier
+) {
     val resources = LocalResources.current
+    val avatarPath by produceState<Any?>(R.drawable.img_logo) {
+        value = viewModel.profileRepository.getProfile()?.avatarPath
+    }
 
     val messages = remember {
         val texts = listOf(
@@ -122,7 +133,7 @@ private fun ChatPreview(modifier: Modifier) {
         for (message in messages) {
             MessageItem(
                 message = message,
-                myAvatar = R.drawable.img_avatar,
+                myAvatar = avatarPath,
                 peerAvatar = R.drawable.img_logo
             )
         }
@@ -130,7 +141,7 @@ private fun ChatPreview(modifier: Modifier) {
 }
 
 @Composable
-private fun FontSizeSelector(
+private fun FontScaleSelector(
     value: AppFontScale,
     onChange: (AppFontScale) -> Unit
 ) {
@@ -138,15 +149,16 @@ private fun FontSizeSelector(
 
     Column(
         modifier = Modifier
+            .navigationBarsPadding()
             .fillMaxWidth()
             .background(WeTheme.colorScheme.surface)
             .padding(horizontal = 32.dp)
             .padding(top = 16.dp, bottom = 28.dp)
     ) {
-        FontSizeSelectorLabel(steps)
+        FontScaleSelectorLabel(steps)
 
         Box(contentAlignment = Alignment.Center) {
-            FontSizeScaleTicks(steps = steps)
+            FontScaleScaleTicks(steps = steps)
 
             WeSlider(
                 value = value.ordinal.toFloat(),
@@ -162,7 +174,7 @@ private fun FontSizeSelector(
 }
 
 @Composable
-private fun FontSizeSelectorLabel(steps: Int) {
+private fun FontScaleSelectorLabel(steps: Int) {
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
@@ -200,7 +212,7 @@ private fun FontSizeSelectorLabel(steps: Int) {
 }
 
 @Composable
-private fun FontSizeScaleTicks(steps: Int) {
+private fun FontScaleScaleTicks(steps: Int) {
     val color = WeTheme.colorScheme.textSecondary
 
     Canvas(

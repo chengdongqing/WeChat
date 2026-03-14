@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.model.AppFontScale
 import top.chengdongqing.wechat.features.settings.domain.model.AppLanguage
 import top.chengdongqing.wechat.features.settings.domain.model.AppTheme
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DisplaySettingsViewModel @Inject constructor(
-    private val repository: DisplaySettingsRepository
+    private val repository: DisplaySettingsRepository,
+    val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     val settings = repository.settings

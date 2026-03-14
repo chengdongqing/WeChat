@@ -34,6 +34,8 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.navigation.MeRoute
+import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
+import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 
 /**
  * 个人资料页面
@@ -48,6 +50,7 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val ringtone by viewModel.ringtone.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -60,6 +63,7 @@ fun ProfileScreen(
             ProfileContent(
                 modifier = Modifier.padding(innerPadding),
                 profile = uiState.profile,
+                ringtone = ringtone,
                 onNavigateToAvatarEdit = {
                     navController.navigate(MeRoute.Edit.AVATAR)
                 },
@@ -77,6 +81,9 @@ fun ProfileScreen(
                 },
                 onNavigateToSignatureEdit = {
                     navController.navigate(MeRoute.Edit.SIGNATURE)
+                },
+                onNavigateToRingtoneSetting = {
+                    navController.navigate(SettingsRoute.RingtoneSetting.route)
                 }
             )
 
@@ -99,12 +106,14 @@ fun ProfileScreen(
 private fun ProfileContent(
     modifier: Modifier = Modifier,
     profile: UserProfile?,
+    ringtone: RingtoneSound,
     onNavigateToAvatarEdit: () -> Unit,
     onNavigateToNameEdit: () -> Unit,
     onNavigateToGenderEdit: () -> Unit,
     onNavigateToIdView: () -> Unit,
     onNavigateToQRCode: () -> Unit,
-    onNavigateToSignatureEdit: () -> Unit
+    onNavigateToSignatureEdit: () -> Unit,
+    onNavigateToRingtoneSetting: () -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -174,8 +183,10 @@ private fun ProfileContent(
         WeSettingItem(
             label = stringResource(R.string.me_profile_ringtone),
             showDivider = false,
-            onClick = null
-        ) {}
+            onClick = onNavigateToRingtoneSetting
+        ) {
+            WeSettingValue(stringResource(ringtone.labelRes))
+        }
     }
 }
 

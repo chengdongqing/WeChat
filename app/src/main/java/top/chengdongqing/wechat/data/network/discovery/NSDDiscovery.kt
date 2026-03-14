@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.data.network.discovery
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
@@ -307,10 +306,17 @@ class NSDDiscovery @Inject constructor(
      * 2. 任意 IPv4 — 兜底，覆盖非标准内网段
      * 3. 任意非回环地址 — 最终兜底，IPv6 或其他
      */
-    @SuppressLint("NewApi")
     private fun NsdServiceInfo.extractHost(): String? {
-        // 过滤回环地址，剩余为候选地址
-        val valid = hostAddresses.filter { !it.isLoopbackAddress }
+        // 获取候选地址列表
+        val allAddresses = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
+            hostAddresses
+        } else {
+            @Suppress("DEPRECATION")
+            listOfNotNull(host)
+        }
+
+        // 过滤回环地址
+        val valid = allAddresses.filter { !it.isLoopbackAddress }
         if (valid.isEmpty()) return null
 
         val ipv4 = valid.filterIsInstance<Inet4Address>()

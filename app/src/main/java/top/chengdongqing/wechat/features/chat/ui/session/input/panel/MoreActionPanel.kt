@@ -96,9 +96,7 @@ private fun MorePanelGrid(
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
         verticalArrangement = Arrangement.spacedBy(36.dp),
         userScrollEnabled = false
     ) {

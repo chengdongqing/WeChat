@@ -41,6 +41,8 @@ import androidx.core.location.LocationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -48,6 +50,7 @@ import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.service.NetworkService
 import top.chengdongqing.wechat.data.network.service.createNetworkServiceIntent
 
+@OptIn(ExperimentalPermissionsApi::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun RequestAddFriendPermission(
@@ -82,6 +85,11 @@ fun RequestAddFriendPermission(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    val permissions = remember(extraPermissions) {
+        AddFriendPermissions + extraPermissions
+    }
+    val permissionState = rememberMultiplePermissionsState(permissions)
+
     // 根据状态渲染 UI
     when {
         bluetoothAdapter == null -> {
@@ -91,21 +99,25 @@ fun RequestAddFriendPermission(
 
         !isBluetoothEnabled -> {
             BluetoothEnableGuide {
-                context.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+                if (permissionState.allPermissionsGranted) {
+                    context.startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+                } else {
+                    permissionState.launchMultiplePermissionRequest()
+                }
             }
         }
 
         !isLocationEnabled -> {
             LocationEnableGuide {
-                context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                if (permissionState.allPermissionsGranted) {
+                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                } else {
+                    permissionState.launchMultiplePermissionRequest()
+                }
             }
         }
 
         else -> {
-            val permissions = remember(extraPermissions) {
-                AddFriendPermissions + extraPermissions
-            }
-
             // 开关都开了，才进入权限检查包装器
             PermissionWrapper(
                 permissions = permissions,
@@ -131,21 +143,17 @@ fun RequestAddFriendPermission(
 val AddFriendPermissions by lazy {
     buildList {
         // 蓝牙+定位权限
-        val list = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            listOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_CONNECT,
-                Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            add(Manifest.permission.BLUETOOTH_SCAN)
+            add(Manifest.permission.BLUETOOTH_CONNECT)
+            add(Manifest.permission.BLUETOOTH_ADVERTISE)
+            add(Manifest.permission.ACCESS_FINE_LOCATION)
         } else {
-            listOf(
-                Manifest.permission.BLUETOOTH,
-                Manifest.permission.BLUETOOTH_ADMIN,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            )
+            add(Manifest.permission.BLUETOOTH)
+            add(Manifest.permission.BLUETOOTH_ADMIN)
+            add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        addAll(list)
+
         // 通知权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             add(Manifest.permission.POST_NOTIFICATIONS)
