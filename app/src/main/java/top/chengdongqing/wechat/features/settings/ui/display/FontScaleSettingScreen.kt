@@ -149,9 +149,9 @@ private fun FontScaleSelector(
 
     Column(
         modifier = Modifier
-            .navigationBarsPadding()
             .fillMaxWidth()
             .background(WeTheme.colorScheme.surface)
+            .navigationBarsPadding()
             .padding(horizontal = 32.dp)
             .padding(top = 16.dp, bottom = 28.dp)
     ) {

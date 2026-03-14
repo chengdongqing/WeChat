@@ -76,7 +76,7 @@ fun ChatSessionScreen(
         }
 
         // Wi-Fi direct模式下，如果没有连接，自动显示弹窗
-        if (connectionMode == ConnectionMode.WiFiDirect && !viewModel.isConnected()) {
+        if (connectionMode == ConnectionMode.WiFiDirect && !viewModel.isConnected() && !uiState.isSelf) {
             showPeerOverlay.value = true
         }
     }
