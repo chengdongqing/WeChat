@@ -89,10 +89,8 @@ class BluetoothPeerViewModel @Inject constructor(
         val btDevice = (device as? PeerDevice.Bluetooth)?.device ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(connectingDeviceId = device.id, error = null) }
-            val myUserId = profileRepository.getProfile()?.id ?: run {
-                _uiState.update { it.copy(connectingDeviceId = null, error = "未找到个人资料") }
-                return@launch
-            }
+            val myUserId = profileRepository.getProfile()?.id ?: return@launch
+
             runCatching {
                 bluetoothBondManager.bondAndConnect(
                     userId = userId,

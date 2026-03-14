@@ -21,19 +21,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
 fun ScanningIndicator(isScanning: Boolean) {
     if (!isScanning) return
+
     val scale by rememberInfiniteTransition(label = "scan").animateFloat(
         initialValue = 1f,
         targetValue = 1.15f,
         animationSpec = infiniteRepeatable(tween(800, easing = LinearEasing), RepeatMode.Reverse),
         label = "scale",
     )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -49,7 +53,7 @@ fun ScanningIndicator(isScanning: Boolean) {
                 .background(WeTheme.colorScheme.primary)
         )
         Text(
-            text = "正在搜索附近设备...",
+            text = stringResource(R.string.conn_status_scanning),
             fontSize = 13.sp,
             color = WeTheme.colorScheme.textSecondary
         )

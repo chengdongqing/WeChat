@@ -175,4 +175,26 @@
     <string name="chat_notification_hidden">You have a new message</string>
     <string name="chat_notification_sender_only">sent you a message</string>
     <string name="chat_notification_contact_unknown">Unknown Contact</string>
+
+    <string name="conn_title_select_bluetooth_device">Select Bluetooth Device</string>
+    <string name="conn_title_select_wifi_direct_device">Select Wi-Fi Direct Device</string>
+    <string name="conn_section_paired_devices">Paired Devices</string>
+    <string name="conn_section_nearby_devices">Nearby Devices</string>
+    <string name="conn_label_select_mode">Select Connection Mode</string>
+    <string name="conn_desc_mode_hint">One device creates a group, the other joins it</string>
+    <string name="conn_label_create_group">Create Group</string>
+    <string name="conn_desc_create_group">Let the other device connect to you</string>
+    <string name="conn_label_join_group">Join Group</string>
+    <string name="conn_desc_join_group">Search and connect to the other device</string>
+    <string name="conn_device_status_paired">Paired</string>
+    <string name="conn_signal_excellent">Excellent</string>
+    <string name="conn_signal_good">Good</string>
+    <string name="conn_signal_fair">Fair</string>
+    <string name="conn_signal_weak">Weak</string>
+    <string name="conn_empty_no_devices">No nearby devices found</string>
+    <string name="conn_empty_ensure_bluetooth">Please make sure the other device has Bluetooth enabled</string>
+    <string name="conn_empty_ensure_wifi_direct">Please make sure the other device has Wi-Fi Direct enabled</string>
+    <string name="conn_status_group_created">Group Created</string>
+    <string name="conn_desc_group_created_hint">Waiting for the other device to select "Join Group"</string>
+    <string name="conn_status_scanning">Scanning for nearby devices…</string>
 </resources>

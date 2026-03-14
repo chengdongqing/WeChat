@@ -5,7 +5,6 @@ import android.content.Context
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Looper
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,10 +25,6 @@ class WiFiDirectPeerViewModel @Inject constructor(
     private val wifiDirectChatModule: WiFiDirectChatModule,
     @param:ApplicationContext private val context: Context,
 ) : PeerDeviceViewModel() {
-
-    companion object {
-        private const val TAG = "WiFiDirectPeerViewModel"
-    }
 
     private val _uiState = MutableStateFlow(PeerDeviceUiState())
     override val uiState = _uiState.asStateFlow()
@@ -75,9 +70,7 @@ class WiFiDirectPeerViewModel @Inject constructor(
     @SuppressLint("MissingPermission")
     private fun discoverPeers() {
         p2pManager.discoverPeers(channel, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                Log.d(TAG, "P2P 扫描已启动")
-            }
+            override fun onSuccess() {}
 
             override fun onFailure(reason: Int) {
                 val reason = when (reason) {

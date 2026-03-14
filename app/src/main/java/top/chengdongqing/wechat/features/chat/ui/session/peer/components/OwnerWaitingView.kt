@@ -22,9 +22,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -35,6 +37,7 @@ fun OwnerWaitingView() {
         animationSpec = infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Reverse),
         label = "scale",
     )
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -52,13 +55,13 @@ fun OwnerWaitingView() {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "群组已创建",
+            text = stringResource(R.string.conn_status_group_created),
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = WeTheme.colorScheme.textPrimary
         )
         Text(
-            text = "等待对方选择「加入群组」连接你",
+            text = stringResource(R.string.conn_desc_group_created_hint),
             fontSize = 13.sp,
             color = WeTheme.colorScheme.textSecondary
         )

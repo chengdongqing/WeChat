@@ -176,4 +176,26 @@
     <string name="chat_notification_hidden">你收到了1条消息</string>
     <string name="chat_notification_sender_only">给你发来了1条消息</string>
     <string name="chat_notification_contact_unknown">未知联系人</string>
+
+    <string name="conn_title_select_bluetooth_device">选择蓝牙设备</string>
+    <string name="conn_title_select_wifi_direct_device">选择 Wi-Fi Direct 设备</string>
+    <string name="conn_section_paired_devices">已配对设备</string>
+    <string name="conn_section_nearby_devices">附近设备</string>
+    <string name="conn_label_select_mode">选择连接方式</string>
+    <string name="conn_desc_mode_hint">一台设备创建群组，另一台加入群组</string>
+    <string name="conn_label_create_group">创建群组</string>
+    <string name="conn_desc_create_group">让对方来连接你</string>
+    <string name="conn_label_join_group">加入群组</string>
+    <string name="conn_desc_join_group">搜索并连接对方</string>
+    <string name="conn_device_status_paired">已配对</string>
+    <string name="conn_signal_excellent">信号极强</string>
+    <string name="conn_signal_good">信号良好</string>
+    <string name="conn_signal_fair">信号一般</string>
+    <string name="conn_signal_weak">信号较弱</string>
+    <string name="conn_empty_no_devices">未找到附近设备</string>
+    <string name="conn_empty_ensure_bluetooth">请确保对方已开启蓝牙</string>
+    <string name="conn_empty_ensure_wifi_direct">请确保对方已开启 Wi-Fi Direct</string>
+    <string name="conn_status_group_created">群组已创建</string>
+    <string name="conn_desc_group_created_hint">等待对方选择「加入群组」连接你</string>
+    <string name="conn_status_scanning">正在搜索附近设备…</string>
 </resources>

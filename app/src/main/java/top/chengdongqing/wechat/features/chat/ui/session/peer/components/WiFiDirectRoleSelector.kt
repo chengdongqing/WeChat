@@ -21,10 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -40,13 +42,13 @@ fun WiFiDirectRoleSelector(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "选择连接方式",
+            text = stringResource(R.string.conn_label_select_mode),
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = WeTheme.colorScheme.textPrimary
         )
         Text(
-            text = "一台设备创建群组，另一台加入群组",
+            text = stringResource(R.string.conn_desc_mode_hint),
             fontSize = 13.sp,
             color = WeTheme.colorScheme.textSecondary
         )
@@ -58,15 +60,15 @@ fun WiFiDirectRoleSelector(
             RoleButton(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.WifiTethering,
-                label = "创建群组",
-                description = "让对方来连接你",
+                label = stringResource(R.string.conn_label_create_group),
+                description = stringResource(R.string.conn_desc_create_group),
                 onClick = onCreateGroup,
             )
             RoleButton(
                 modifier = Modifier.weight(1f),
                 icon = Icons.Default.Wifi,
-                label = "加入群组",
-                description = "搜索并连接对方",
+                label = stringResource(R.string.conn_label_join_group),
+                description = stringResource(R.string.conn_desc_join_group),
                 onClick = onJoinGroup,
             )
         }

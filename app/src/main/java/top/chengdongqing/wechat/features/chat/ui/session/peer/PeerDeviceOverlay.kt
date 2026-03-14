@@ -11,10 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -41,8 +43,8 @@ fun PeerDeviceOverlay(
         visible = visible,
         padding = PaddingValues(vertical = 16.dp),
         title = when (mode) {
-            ConnectionMode.Bluetooth -> "选择蓝牙设备"
-            ConnectionMode.WiFiDirect -> "选择 Wi-Fi Direct 设备"
+            ConnectionMode.Bluetooth -> stringResource(R.string.conn_title_select_bluetooth_device)
+            ConnectionMode.WiFiDirect -> stringResource(R.string.conn_title_select_wifi_direct_device)
             else -> return
         },
         onClose = onClose
@@ -117,7 +119,7 @@ private fun LazyListScope.peerDeviceListContent(
     }
 
     if (state.pairedDevices.isNotEmpty()) {
-        item { SectionHeader("已配对设备") }
+        item { SectionHeader(stringResource(R.string.conn_section_paired_devices)) }
         items(state.pairedDevices, key = { "bonded_${it.id}" }) { device ->
             DeviceItem(
                 device = device,
@@ -129,7 +131,7 @@ private fun LazyListScope.peerDeviceListContent(
     }
 
     if (state.nearbyDevices.isNotEmpty()) {
-        item { SectionHeader("附近设备") }
+        item { SectionHeader(stringResource(R.string.conn_section_nearby_devices)) }
         items(state.nearbyDevices, key = { it.id }) { device ->
             DeviceItem(
                 device = device,

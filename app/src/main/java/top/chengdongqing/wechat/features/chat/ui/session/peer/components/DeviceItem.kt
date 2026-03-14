@@ -22,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
 
@@ -70,7 +72,7 @@ fun DeviceItem(
             )
             Text(
                 text = when {
-                    device.isPaired -> "已配对"
+                    device.isPaired -> stringResource(R.string.conn_device_status_paired)
                     device.signalStrength != 0 -> signalStrengthText(device.signalStrength)
                     else -> ""
                 },
@@ -89,9 +91,10 @@ fun DeviceItem(
     }
 }
 
+@Composable
 private fun signalStrengthText(rssi: Int) = when {
-    rssi >= -60 -> "信号极强"
-    rssi >= -70 -> "信号良好"
-    rssi >= -80 -> "信号一般"
-    else -> "信号较弱"
+    rssi >= -60 -> stringResource(R.string.conn_signal_excellent)
+    rssi >= -70 -> stringResource(R.string.conn_signal_good)
+    rssi >= -80 -> stringResource(R.string.conn_signal_fair)
+    else -> stringResource(R.string.conn_signal_weak)
 }
