@@ -22,8 +22,7 @@ import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.NfcContactEvent
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
-import top.chengdongqing.wechat.features.me.data.model.UserProfileTransfer
-import top.chengdongqing.wechat.features.me.domain.model.Gender
+import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -341,7 +340,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
     /**
      * 解析 BLE 传输资料并保存头像
      */
-    private fun parseProfile(profile: UserProfileTransfer, avatarBytes: ByteArray?): Contact {
+    private fun parseProfile(profile: UserProfileBeacon, avatarBytes: ByteArray?): Contact {
         val avatarPath = avatarBytes?.let {
             imageExt.saveAvatarBytes(profile.userId, it, isThumbnail = false)
         }
@@ -350,7 +349,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
             nickname = profile.nickname,
             avatarPath = avatarPath,
             signature = profile.signature,
-            gender = Gender.fromIndex(profile.gender),
+            gender = profile.gender,
             publicKey = profile.publicKey
         )
     }

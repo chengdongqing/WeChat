@@ -9,8 +9,14 @@ import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
 import java.net.Inet4Address
 import java.net.NetworkInterface
+import java.net.URL
 
 /**
  * 获取本机IP
@@ -36,6 +42,44 @@ fun getLocalIpAddress(): String? {
     }
     return null
 }
+
+/**
+ * 下载头像到本地
+ */
+suspend fun downloadAvatar(url: String, targetFile: File): Result<File> =
+    withContext(Dispatchers.IO) {
+        runCatching {
+            val url = URL(url)
+            val connection = (url.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 5000
+                readTimeout = 10000
+                doInput = true
+            }
+
+            connection.connect()
+
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                throw Exception("HTTP Error: ${connection.responseCode}")
+            }
+
+            // 确保目录存在
+            targetFile.parentFile?.mkdirs()
+
+            connection.inputStream.use { input ->
+                FileOutputStream(targetFile).use { output ->
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    while (input.read(buffer).also { bytesRead = it } != -1) {
+                        output.write(buffer, 0, bytesRead)
+                    }
+                }
+            }
+
+            connection.disconnect()
+            targetFile
+        }
+    }
 
 @Composable
 fun rememberWifiConnected(): Boolean {

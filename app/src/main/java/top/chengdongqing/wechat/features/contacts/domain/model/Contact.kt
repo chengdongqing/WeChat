@@ -21,7 +21,8 @@ data class Contact(
     val isFromMe: Boolean = true,
     val isBlocked: Boolean = false,
     val addedAt: Long? = null,
-    val publicKey: String? = null
+    val publicKey: String? = null,
+    val version: Long = System.currentTimeMillis()
 ) {
     val displayName: String
         get() = remarkName ?: nickname

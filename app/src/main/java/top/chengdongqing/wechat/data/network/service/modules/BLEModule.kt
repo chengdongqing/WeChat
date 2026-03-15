@@ -34,8 +34,7 @@ import top.chengdongqing.wechat.data.network.model.P2PMessage
 import top.chengdongqing.wechat.data.network.model.RequestAction
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
-import top.chengdongqing.wechat.features.me.data.model.UserProfileTransfer
-import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.getIndex
+import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.ByteArrayOutputStream
 import java.util.UUID
@@ -462,11 +461,11 @@ class BLEModule @Inject constructor(
                 val myProfile = profileRepository.getProfile() ?: return
                 val avatarBytes = generateAvatarThumbnail(myProfile.avatarPath)
 
-                val profileTransfer = UserProfileTransfer(
+                val profileTransfer = UserProfileBeacon(
                     userId = myProfile.id,
                     nickname = myProfile.nickname,
                     signature = myProfile.signature,
-                    gender = myProfile.gender.getIndex(),
+                    gender = myProfile.gender,
                     avatarSize = avatarBytes?.size ?: 0,
                     publicKey = myProfile.publicKey
                 )

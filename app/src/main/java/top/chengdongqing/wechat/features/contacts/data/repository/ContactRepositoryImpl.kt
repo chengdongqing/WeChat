@@ -4,6 +4,7 @@ import android.util.LruCache
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import top.chengdongqing.wechat.core.util.getOrPutAsync
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
@@ -23,7 +24,7 @@ class ContactRepositoryImpl @Inject constructor(
     private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
     private val connectionInfoDao: ConnectionInfoDao,
-    private val packetSigner: PacketSigner
+    private val packetSigner: PacketSigner,
 ) : ContactRepository {
 
     // 联系人缓存
@@ -34,19 +35,9 @@ class ContactRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getContact(userId: String): Contact? {
-        // 先从缓存拿
-        synchronized(contactCache) {
-            contactCache.get(userId)?.let { return it }
+        return contactCache.getOrPutAsync(userId) {
+            contactDao.getById(userId)?.toDomain()
         }
-        // 缓存没有，查库
-        val contact = contactDao.getById(userId)?.toDomain()
-        // 查到后回填缓存
-        if (contact != null) {
-            synchronized(contactCache) {
-                contactCache.put(userId, contact)
-            }
-        }
-        return contact
     }
 
     override fun observeContact(userId: String): Flow<Contact?> {
@@ -67,6 +58,16 @@ class ContactRepositoryImpl @Inject constructor(
     ) {
         contactDao.update(contactId, updateBlock)
         contactCache.remove(contactId)
+
+        // 更新会话
+        getContact(contactId)?.let { contact ->
+            chatSessionDao.update(contactId) { session ->
+                session.copy(
+                    contactName = contact.displayName,
+                    contactAvatar = contact.avatarPath
+                )
+            }
+        }
     }
 
     override suspend fun deleteContact(userId: String) {

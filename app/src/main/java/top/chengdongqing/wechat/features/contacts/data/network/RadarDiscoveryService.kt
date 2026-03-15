@@ -1,6 +1,8 @@
-package top.chengdongqing.wechat.data.network.radar
+package top.chengdongqing.wechat.features.contacts.data.network
 
+import android.content.Context
 import android.net.wifi.WifiManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -11,9 +13,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.core.util.getLocalIpAddress
+import top.chengdongqing.wechat.data.network.avatar.AvatarServer
 import top.chengdongqing.wechat.data.network.model.RadarBeacon
-import top.chengdongqing.wechat.data.network.radar.RadarDiscoveryService.Companion.BEACON_TIMEOUT_MS
+import top.chengdongqing.wechat.features.contacts.data.network.RadarDiscoveryService.Companion.BEACON_TIMEOUT_MS
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.net.DatagramPacket
@@ -31,6 +33,7 @@ class RadarDiscoveryService @Inject constructor(
     private val json: Json,
     private val profileRepository: ProfileRepository,
     private val avatarServer: AvatarServer,
+    @param:ApplicationContext private val context: Context,
     @param:IoScope private val scope: CoroutineScope
 ) {
     companion object {
@@ -50,22 +53,21 @@ class RadarDiscoveryService @Inject constructor(
 
     private val myProfile: UserProfile? by lazy { profileRepository.getProfile() }
 
+    private val wifiManager by lazy { context.getSystemService(Context.WIFI_SERVICE) as WifiManager }
+
     /**
      * 启动雷达发现服务。
      * 依次初始化头像服务、多播 Socket，并并发启动接收、广播、超时清理三个协程。
      */
-    fun start(wifiManager: WifiManager) {
-        scope.launch {
-            val profile = myProfile ?: return@launch
-            val localPort = avatarServer.start(scope, profile.avatarPath!!)
-            val avatarUrl =
-                "http://${getLocalIpAddress()}:$localPort/avatar_${System.currentTimeMillis()}"
+    fun start() {
+        stop()
 
+        scope.launch {
             acquireMulticastLock(wifiManager)
             setupSocket()
 
             launch(Dispatchers.IO) { receiveLoop() }
-            launch(Dispatchers.IO) { beaconLoop(avatarUrl) }
+            launch(Dispatchers.IO) { beaconLoop() }
             launch { timeoutCleanerLoop() }
         }
     }
@@ -74,13 +76,16 @@ class RadarDiscoveryService @Inject constructor(
      * 停止雷达发现服务，释放所有网络资源并清空已发现的用户列表。
      */
     fun stop() {
+        multicastLock?.let {
+            if (it.isHeld) it.release()
+        }
+        multicastLock = null
+
         multicastSocket?.leaveGroup(group)
         multicastSocket?.close()
         multicastSocket = null
         multicastLock?.release()
         multicastLock = null
-
-        avatarServer.stop()
 
         _discoveredBeacons.value = emptyMap()
     }
@@ -114,7 +119,11 @@ class RadarDiscoveryService @Inject constructor(
                 // 忽略自己广播的包
                 if (beacon.userId == myProfile?.id) continue
 
-                _discoveredBeacons.update { it + (beacon.userId to beacon.copy(timestamp = System.currentTimeMillis())) }
+                _discoveredBeacons.update {
+                    it + (beacon.userId to beacon.copy(
+                        timestamp = System.currentTimeMillis()
+                    ))
+                }
             } catch (_: SocketTimeoutException) {
                 // soTimeout 到期属于正常现象，继续下一轮接收
             } catch (_: Exception) {
@@ -126,13 +135,13 @@ class RadarDiscoveryService @Inject constructor(
     /**
      * 定期向多播组广播自己的 Beacon，让局域网内其他设备感知到本机的存在。
      */
-    private suspend fun beaconLoop(avatarUrl: String) = withContext(Dispatchers.IO) {
+    private suspend fun beaconLoop() = withContext(Dispatchers.IO) {
         val profile = myProfile!!
         val payload = json.encodeToString(
             RadarBeacon(
                 userId = profile.id,
                 nickname = profile.nickname,
-                avatarUrl = avatarUrl
+                avatarUrl = avatarServer.avatarUrl
             )
         ).toByteArray(Charsets.UTF_8)
 

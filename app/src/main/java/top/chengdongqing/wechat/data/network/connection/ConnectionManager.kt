@@ -16,6 +16,9 @@ import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -27,6 +30,8 @@ import kotlin.coroutines.cancellation.CancellationException
 abstract class ConnectionManager(
     protected open val e2e: E2ESessionManager,
     protected open val connectionInfoDao: ConnectionInfoDao,
+    protected open val profileRepository: ProfileRepository,
+    protected open val contactRepository: ContactRepository,
     protected open val scope: CoroutineScope
 ) {
     val connections = ConcurrentHashMap<String, PeerConnection>()
@@ -71,7 +76,7 @@ abstract class ConnectionManager(
 
     suspend fun sendAtomicTransfer(
         userId: String,
-        block: suspend (EncryptingPacketWriter) -> Unit,
+        block: suspend (EncryptingPacketWriter) -> Unit
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val conn = requireConnection(userId)
         conn.transferMutex.lock()
@@ -120,13 +125,16 @@ abstract class ConnectionManager(
                         connectionInfoDao.markOnline(conn.userId, lastSeen)
                     }
 
-                    runCatching { conn.writer.write(Packet.ping()) }
-                        .onFailure {
-                            throw ConnectionException(
-                                "Ping 失败",
-                                SendError.ConnectionFailed
-                            )
-                        }
+                    runCatching {
+                        // 携带个人资料版本号
+                        val profileVersion = profileRepository.getProfile()?.updatedAt
+                        conn.writer.write(Packet.ping(profileVersion ?: 0))
+                    }.onFailure {
+                        throw ConnectionException(
+                            "Ping 失败",
+                            SendError.ConnectionFailed
+                        )
+                    }
                 }
             } catch (_: Exception) {
                 Log.w(tag, "心跳异常，断开: ${conn.userId}")
@@ -144,16 +152,29 @@ abstract class ConnectionManager(
                 while (conn.isActive) {
                     val packet = conn.reader.read()
                     when (packet.type) {
-                        PacketType.PING -> conn.writer.write(Packet.pong())
+                        PacketType.PING -> {
+                            conn.writer.write(Packet.pong())
+
+                            // 比对好友资料版本号，看是否需要更新对方的资料
+                            if (packet.body.size < 16) return@launch
+                            val buffer = ByteBuffer.wrap(packet.body)
+                            val remoteProfileVersion = buffer.getLong() // 自动取前8个字节
+
+                            val contact = contactRepository.getContact(conn.userId) ?: continue
+                            if (remoteProfileVersion > contact.version) {
+                                // 发送拉取个人资料请求
+                                send(
+                                    userId = conn.userId,
+                                    packet = Packet(PacketType.PROFILE_REQUEST)
+                                )
+                            }
+                        }
+
                         PacketType.PONG -> conn.lastPongTime.set(System.currentTimeMillis())
                         PacketType.HANDSHAKE -> onHandshake?.invoke(packet)
                         else -> {
                             val decrypted = e2e.decryptPacket(conn.userId, packet)
-                            if (decrypted.body.isNotEmpty()) {
-                                conn.receiveChannel.send(decrypted)
-                            } else {
-                                Log.w(tag, "解密后 body 为空，丢弃: ${conn.userId}")
-                            }
+                            conn.receiveChannel.send(decrypted)
                         }
                     }
                 }

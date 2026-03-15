@@ -16,10 +16,6 @@ enum class Gender(
     Female(R.string.gender_female, R.string.gender_female_pronoun);
 
     companion object {
-        fun Gender?.getIndex(): Int = this?.ordinal ?: -1
-
-        fun fromIndex(index: Int): Gender? = entries.getOrNull(index)
-
         val Gender?.safePronoun: Int
             get() = this?.pronoun ?: Male.pronoun
     }

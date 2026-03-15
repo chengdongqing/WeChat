@@ -268,26 +268,24 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val sessionFlow = chatSessionRepository.observeSession(chatId)
 
     init {
-        loadInitialData()
+        observeProfile()
         observeSessionChanges()
         observeSettings()
     }
 
-    private fun loadInitialData() {
+    private fun observeProfile() {
         viewModelScope.launch {
-            val contact = contactRepository.getContact(chatId)
-            val profile = profileRepository.getProfile()
-
-            _uiState.update {
-                it.copy(
-                    title = contact?.displayName ?: profile?.nickname ?: "",
-                    peerId = contact?.id,
-                    peerAvatar = contact?.avatarPath,
-                    myId = profile?.id,
-                    myAvatar = profile?.avatarPath,
-                    isSelf = contact == null
-                )
-            }
+            contactRepository.observeContact(chatId)
+                .combine(profileRepository.observeProfile()) { contact, profile ->
+                    _uiState.value.copy(
+                        title = contact?.displayName ?: profile?.nickname ?: "",
+                        peerId = contact?.id,
+                        peerAvatar = contact?.avatarPath,
+                        myId = profile?.id,
+                        myAvatar = profile?.avatarPath,
+                        isSelf = contact == null
+                    )
+                }.collect { newState -> _uiState.value = newState }
         }
     }
 
@@ -301,6 +299,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                     session?.let { s ->
                         _uiState.update {
                             it.copy(
+                                peerAvatar = s.contactAvatar,
                                 backgroundPath = s.backgroundPath ?: globalBackground,
                                 isMuted = s.isMuted,
                                 isOnline = s.isOnline,

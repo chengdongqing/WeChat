@@ -25,6 +25,7 @@ data class ContactEntity(
     val isFromMe: Boolean = true,         // 是否我主动添加
 
     val publicKey: String? = null,        // 证明身份的公钥
+    val version: Long,                    // 版本号，用于比对资料是否需要更新
 
     @Embedded
     val audit: EntityAudit = EntityAudit()

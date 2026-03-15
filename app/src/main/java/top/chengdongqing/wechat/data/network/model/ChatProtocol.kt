@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.call.model.HangupReason
+import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
 import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
 
 /**
@@ -93,6 +94,16 @@ sealed class ChatProtocol {
     ) : ChatProtocol() {
         override fun signingPayload() =
             "$messageId|$senderId|$receiverId|$receiptType|$timestamp"
+    }
+
+    @Serializable
+    data class FriendResponse(
+        override val messageId: String = "",
+        override val senderId: String,
+        override val signature: String = "",
+        val profile: UserProfileBeacon
+    ) : ChatProtocol() {
+        override fun signingPayload(): String = ""
     }
 
     /**

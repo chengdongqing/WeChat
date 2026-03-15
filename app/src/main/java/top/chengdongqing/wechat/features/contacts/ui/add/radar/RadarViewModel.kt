@@ -112,11 +112,13 @@ private fun List<RadarBeacon>.toRadarUsers(): List<RadarUser> {
             val initialRotation = 45.0
             val angle = (360.0 / countInThisRing) * i + initialRotation
 
+            val user = this[processedCount]
+
             result.add(
                 RadarUser(
-                    id = this[processedCount].userId,
-                    nickname = this[processedCount].nickname,
-                    avatarUrl = this[processedCount].avatarUrl,
+                    id = user.userId,
+                    nickname = user.nickname,
+                    avatarUrl = user.avatarUrl,
                     angle = angle % 360.0,
                     distance = ring.radius
                 )

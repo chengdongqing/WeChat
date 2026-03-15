@@ -11,7 +11,7 @@ import top.chengdongqing.wechat.data.database.entity.mergeWith
 interface ConnectionInfoDao : BaseDao<ConnectionInfoEntity> {
 
     @Transaction
-    suspend fun insertOrUpdate(entity: ConnectionInfoEntity) {
+    suspend fun upsert(entity: ConnectionInfoEntity) {
         val existing = getById(entity.userId)
         if (existing == null) {
             insert(entity)

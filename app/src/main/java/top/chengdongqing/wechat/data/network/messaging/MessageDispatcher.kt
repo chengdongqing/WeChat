@@ -1,10 +1,12 @@
 package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
+import androidx.core.net.toUri
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.util.downloadAvatar
 import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageType
@@ -16,6 +18,7 @@ import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,6 +33,7 @@ class MessageDispatcher @Inject constructor(
     private val messageRepository: MessageRepository,
     private val privateFileManager: PrivateFileManager,
     private val signalingManager: SignalingManager,
+    private val contactRepository: ContactRepository,
     private val json: Json
 ) {
     private companion object {
@@ -57,6 +61,7 @@ class MessageDispatcher @Inject constructor(
                 is ChatProtocol.CallMessage -> handleCallMessage(protocol)
                 is ChatProtocol.MessageReceipt -> handleReceipt(protocol)
                 is ChatProtocol.Signaling -> handleSignaling(protocol)
+                is ChatProtocol.FriendResponse -> handleFriendResponse(protocol)
                 else -> {}
             }
         }.onFailure {
@@ -162,6 +167,32 @@ class MessageDispatcher @Inject constructor(
      */
     private suspend fun handleSignaling(protocol: ChatProtocol.Signaling) {
         signalingManager.onSignalingReceived(protocol)
+    }
+
+    private suspend fun handleFriendResponse(protocol: ChatProtocol.FriendResponse) {
+        val profile = protocol.profile
+
+        // 下载头像
+        val avatarPath = profile.avatarUrl?.let {
+            val tempFile = File.createTempFile("IMG_", ".jpg")
+            val targetFile = downloadAvatar(it, tempFile).onFailure { e ->
+                Log.w(TAG, "头像下载失败", e)
+            }.getOrNull()
+            targetFile?.let {
+                privateFileManager.saveAvatar(targetFile.toUri(), profile.userId).getOrNull()
+            }
+        }
+
+        // 更新信息
+        contactRepository.updateContact(profile.userId) { contact ->
+            contact.copy(
+                avatarPath = avatarPath ?: contact.avatarPath,
+                nickname = profile.nickname,
+                signature = profile.signature,
+                gender = profile.gender,
+                version = System.currentTimeMillis() // 更新版本号
+            )
+        }
     }
 
     /**

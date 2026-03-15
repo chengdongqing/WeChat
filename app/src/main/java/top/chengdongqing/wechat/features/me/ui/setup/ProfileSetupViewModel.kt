@@ -55,10 +55,10 @@ class ProfileSetupViewModel @Inject constructor(
      * 验证并完成资料设置
      */
     fun completeSetup(onSuccess: () -> Unit) {
-        val currentState = _uiState.value
+        val current = _uiState.value
 
         // 验证
-        val validationError = validateProfile(currentState.nickname, currentState.avatarUri)
+        val validationError = validateProfile(current.nickname, current.avatarUri)
         if (validationError != null) {
             _uiState.update { it.copy(errorMessage = validationError) }
             return
@@ -74,14 +74,14 @@ class ProfileSetupViewModel @Inject constructor(
                 val publicKey = localIdentity.generateKeyPair()
 
                 // 保存头像文件
-                val avatarPath = currentState.avatarUri?.let { uri ->
+                val avatarPath = current.avatarUri?.let { uri ->
                     privateFileManager.saveAvatar(uri, userId).getOrThrow()
                 }
 
                 // 创建用户资料
                 val profile = UserProfile(
                     id = userId,
-                    nickname = currentState.nickname.trim(),
+                    nickname = current.nickname.trim(),
                     avatarPath = avatarPath,
                     publicKey = publicKey
                 )

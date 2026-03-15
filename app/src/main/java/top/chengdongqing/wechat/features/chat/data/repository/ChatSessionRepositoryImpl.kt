@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.util.deleteLocalFiles
+import top.chengdongqing.wechat.core.util.getOrPutAsync
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
@@ -48,19 +49,9 @@ class ChatSessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getSession(sessionId: String): ChatSession? {
-        // 先从缓存拿
-        synchronized(sessionCache) {
-            sessionCache.get(sessionId)?.let { return it }
+        return sessionCache.getOrPutAsync(sessionId) {
+            chatSessionDao.getById(sessionId)?.toDomain()
         }
-        // 缓存没有，查库
-        val session = chatSessionDao.getById(sessionId)?.toDomain()
-        // 查到后回填缓存
-        if (session != null) {
-            synchronized(sessionCache) {
-                sessionCache.put(sessionId, session)
-            }
-        }
-        return session
     }
 
     override suspend fun isSessionMuted(sessionId: String): Boolean {

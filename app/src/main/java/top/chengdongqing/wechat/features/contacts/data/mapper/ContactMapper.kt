@@ -21,7 +21,8 @@ fun ContactEntity.toDomain(): Contact = Contact(
     isBlocked = isBlocked,
     isFromMe = isFromMe,
     publicKey = publicKey,
-    addedAt = audit.createdAt
+    addedAt = audit.createdAt,
+    version = version
 )
 
 fun Contact.toEntity(): ContactEntity = ContactEntity(
@@ -33,7 +34,8 @@ fun Contact.toEntity(): ContactEntity = ContactEntity(
     remarkName = remarkName,
     note = note,
     isBlocked = isBlocked,
-    publicKey = publicKey
+    publicKey = publicKey,
+    version = version
 )
 
 @JvmName("toContactDomainList")

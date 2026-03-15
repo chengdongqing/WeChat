@@ -74,14 +74,18 @@ class MessageSender @Inject constructor(
             serializePolymorphic(protocol.copy(signature = signature))
         )
 
-        return transport.send(message.receiverId, packet).onFailure {
-            updateStatus(
-                messageId = message.id,
-                sessionId = message.receiverId,
-                status = SendStatus.Sent
-            )
-            handleSendError(message.id, message.receiverId, it)
-        }
+        return transport.send(message.receiverId, packet)
+            .onSuccess {
+                updateStatus(
+                    messageId = message.id,
+                    sessionId = message.receiverId,
+                    status = SendStatus.Sent
+                )
+            }
+            .onFailure { e ->
+                handleSendError(message.id, message.receiverId, e)
+                throw e
+            }
     }
 
     /**
@@ -89,57 +93,54 @@ class MessageSender @Inject constructor(
      *
      * 流程：算 MD5 → 确保连接 → WiFi Lock → 原子发送（META + CHUNK）
      */
-    suspend fun sendMediaMessage(message: MessageEntity, file: File): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                // 获取文件大小
-                val fileSize = file.length()
-                // 计算哈希值
-                val checksum = file.toMD5Hex()
+    suspend fun sendMediaMessage(message: MessageEntity, file: File): Result<Unit> = runCatching {
+        // 获取文件大小
+        val fileSize = file.length()
+        // 计算哈希值
+        val checksum = file.toMD5Hex()
 
-                // 构建消息元数据
-                val metadata = ChatProtocol.MediaMessage(
-                    messageId = message.id,
-                    senderId = message.senderId,
-                    receiverId = message.receiverId,
-                    signature = "",
-                    messageType = message.contentType,
-                    content = message.content,
-                    fileSize = fileSize,
-                    checksum = checksum,
-                    mediaDuration = message.mediaDuration,
-                    timestamp = message.timestamp
+        // 构建消息元数据
+        val metadata = ChatProtocol.MediaMessage(
+            messageId = message.id,
+            senderId = message.senderId,
+            receiverId = message.receiverId,
+            signature = "",
+            messageType = message.contentType,
+            content = message.content,
+            fileSize = fileSize,
+            checksum = checksum,
+            mediaDuration = message.mediaDuration,
+            timestamp = message.timestamp
+        )
+        val signature = packetSigner.sign(metadata, localIdentity.getPrivateKey())
+
+        // 获取 Wi-Fi 锁，避免在后台传输时被系统限制性能
+        wifiLockManager.withTransferLock {
+            transport.sendAtomicTransfer(message.receiverId) { writer ->
+                // 发送消息元数据；FILE_META 立即 flush，让接收端尽快进入接收状态
+                writer.write(
+                    Packet(
+                        type = PacketType.FILE_META,
+                        body = serializeMediaMeta(metadata.copy(signature = signature))
+                    )
                 )
-                val signature = packetSigner.sign(metadata, localIdentity.getPrivateKey())
-
-                // 获取 Wi-Fi 锁，避免在后台传输时被系统限制性能
-                wifiLockManager.withTransferLock {
-                    transport.sendAtomicTransfer(message.receiverId) { writer ->
-                        // 发送消息元数据；FILE_META 立即 flush，让接收端尽快进入接收状态
-                        writer.write(
-                            Packet(
-                                type = PacketType.FILE_META,
-                                body = serializeMediaMeta(metadata.copy(signature = signature))
-                            )
-                        )
-                        // 分片分送文件；FILE_CHUNK writeNoFlush，由 buffer 自动 flush 减少 syscall
-                        streamFileChunks(file, fileSize, message.id) { chunk ->
-                            writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
-                        }
-                    }.getOrThrow()
+                // 分片分送文件；FILE_CHUNK writeNoFlush，由 buffer 自动 flush 减少 syscall
+                streamFileChunks(file, fileSize, message.id) { chunk ->
+                    writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
                 }
-
-                // 更新消息的发送状态
-                updateStatus(
-                    messageId = message.id,
-                    sessionId = message.receiverId,
-                    status = SendStatus.Sent
-                )
-            }.onFailure { e ->
-                handleSendError(message.id, message.receiverId, e)
-                throw e
-            }
+            }.getOrThrow()
         }
+
+        // 更新消息的发送状态
+        updateStatus(
+            messageId = message.id,
+            sessionId = message.receiverId,
+            status = SendStatus.Sent
+        )
+    }.onFailure { e ->
+        handleSendError(message.id, message.receiverId, e)
+        throw e
+    }
 
     /**
      * 发送回执消息

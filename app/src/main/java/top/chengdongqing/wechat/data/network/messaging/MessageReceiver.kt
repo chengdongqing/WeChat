@@ -11,6 +11,7 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.model.PermissionResult
+import top.chengdongqing.wechat.data.network.avatar.AvatarServer
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
@@ -21,6 +22,8 @@ import top.chengdongqing.wechat.data.network.model.PacketType
 import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -45,6 +48,8 @@ class MessageReceiver @Inject constructor(
     private val messageSender: MessageSender,
     private val messageDispatcher: MessageDispatcher,
     private val contactRepository: ContactRepository,
+    private val profileRepository: ProfileRepository,
+    private val avatarServer: AvatarServer,
     private val packetSigner: PacketSigner,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope,
@@ -110,7 +115,14 @@ class MessageReceiver @Inject constructor(
             when (packet.type) {
                 PacketType.FILE_META -> handleFileMeta(userId, packet.body)
                 PacketType.FILE_CHUNK -> handleFileChunk(userId, packet.body)
-                else -> handleJsonPacket(userId, packet)
+                PacketType.PROFILE_REQUEST -> sendProfile(userId)
+                else -> {
+                    if (packet.body.isNotEmpty()) {
+                        handleJsonPacket(userId, packet)
+                    } else {
+                        Log.w(TAG, "解密后 body 为空，丢弃: $userId")
+                    }
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "处理 Packet 失败 (userId=$userId, type=${packet.type})", e)
@@ -122,14 +134,16 @@ class MessageReceiver @Inject constructor(
      * 反序列化 JSON 包并交给 MessageDispatcher 分发
      */
     private suspend fun handleJsonPacket(userId: String, packet: Packet) {
-        val packet = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
+        val protocol = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
 
-        // 拦截拒收（在非回执包时判断）
-        if (packet !is ChatProtocol.MessageReceipt
-            && !canProcessMessage(userId, packet)
-        ) return
+        when {
+            packet.type in PacketType.ADD_FRIEND_TYPES -> Unit // 加好友相关不判断
+            protocol is ChatProtocol.MessageReceipt -> Unit // 回执消息不判断
+            // 判断是否处理此消息（拉黑、不是好友、签名校验等）
+            !canProcessMessage(userId, protocol) -> return
+        }
 
-        messageDispatcher.dispatch(packet)
+        messageDispatcher.dispatch(protocol)
     }
 
     /**
@@ -250,6 +264,31 @@ class MessageReceiver @Inject constructor(
             messageDispatcher.dispatch(state.metadata, state.tempFile)
             mediaStates.remove(userId)
         }
+
+    /**
+     * 发送个人资料给对方
+     */
+    private suspend fun sendProfile(userId: String) {
+        val profile = profileRepository.getProfile() ?: return
+        val beacon = UserProfileBeacon(
+            userId = profile.id,
+            nickname = profile.nickname,
+            gender = profile.gender,
+            signature = profile.signature,
+            avatarUrl = avatarServer.avatarUrl,
+            publicKey = profile.publicKey
+        )
+        val protocol = ChatProtocol.FriendResponse(
+            senderId = profile.id,
+            profile = beacon
+        )
+        val packet = Packet(
+            type = PacketType.PROFILE_RESPONSE,
+            body = json.encodeToString<ChatProtocol>(protocol).toByteArray(Charsets.UTF_8)
+        )
+
+        transport.send(userId, packet)
+    }
 
     /**
      * 清理未完成的媒体接收状态，关闭流并删除临时文件

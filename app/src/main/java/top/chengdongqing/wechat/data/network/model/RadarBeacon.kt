@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class RadarBeacon(
     val userId: String,
     val nickname: String,
-    val avatarUrl: String?,
+    val avatarUrl: String,
     val timestamp: Long = System.currentTimeMillis()
 )

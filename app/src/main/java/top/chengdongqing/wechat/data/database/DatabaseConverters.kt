@@ -8,7 +8,6 @@ import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.features.me.domain.model.Gender
-import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.getIndex
 
 class DatabaseConverters {
 
@@ -25,10 +24,10 @@ class DatabaseConverters {
     fun toRequestDirection(value: String): RequestDirection = RequestDirection.valueOf(value)
 
     @TypeConverter
-    fun fromGender(value: Gender): Int = value.getIndex()
+    fun fromGender(value: Gender): String = value.name
 
     @TypeConverter
-    fun toGender(value: Int): Gender? = Gender.fromIndex(value)
+    fun toGender(value: String): Gender = Gender.valueOf(value)
 
     @TypeConverter
     fun fromAddSource(value: ContactAddSource) = value.name

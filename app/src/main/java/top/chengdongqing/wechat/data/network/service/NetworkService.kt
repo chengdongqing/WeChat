@@ -22,6 +22,7 @@ import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.media.VibratorHelper
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.model.toPreviewText
+import top.chengdongqing.wechat.data.network.avatar.AvatarServer
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.service.modules.BLEModule
@@ -77,6 +78,9 @@ class NetworkService : Service() {
 
     @Inject
     lateinit var callModule: CallModule
+
+    @Inject
+    lateinit var avatarServer: AvatarServer
 
     @Inject
     lateinit var profileRepository: ProfileRepository
@@ -176,6 +180,9 @@ class NetworkService : Service() {
                 ConnectionMode.WiFiDirect -> wifiDirectChatModule.prepare()
             }
 
+            // 启动头像服务
+            avatarServer.start()
+
             // 启动通话模块（视频/语音通话）
             callModule.start(myProfile.id, scope)
 
@@ -197,6 +204,7 @@ class NetworkService : Service() {
         wifiLanChatModule.stop()
         bluetoothChatModule.stop()
         wifiDirectChatModule.stop()
+        avatarServer.stop()
         callModule.stop()
     }
 

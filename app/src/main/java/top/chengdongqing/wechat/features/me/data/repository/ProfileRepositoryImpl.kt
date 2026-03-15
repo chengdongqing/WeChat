@@ -62,7 +62,7 @@ class ProfileRepositoryImpl @Inject constructor(
             userName = nickname,
             gender = gender,
             signature = signature,
-            avatarPath = avatarPath
+            avatarPath = avatarPath,
         )
 
         saveProfile(updatedProfile)

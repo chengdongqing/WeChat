@@ -99,7 +99,7 @@ class BtBondManager @Inject constructor(
      */
     @SuppressLint("MissingPermission")
     private suspend fun saveAndConnect(userId: String, device: BluetoothDevice, myUserId: String) {
-        connectionInfoDao.insertOrUpdate(
+        connectionInfoDao.upsert(
             ConnectionInfoEntity(
                 userId = userId,
                 bluetoothName = device.name,
