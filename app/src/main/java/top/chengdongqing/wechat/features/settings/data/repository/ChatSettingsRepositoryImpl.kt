@@ -60,8 +60,4 @@ class ChatSettingsRepositoryImpl @Inject constructor(
             }
         }
     }
-
-    override suspend fun clearAll() {
-        dataStore.edit { it.clear() }
-    }
 }

@@ -11,5 +11,6 @@ data class UserProfileTransfer(
     val nickname: String,
     val signature: String? = null,
     val gender: Int = -1,
-    val avatarSize: Int = 0 // 头像大小（字节）
+    val avatarSize: Int = 0, // 头像大小（字节）
+    val publicKey: String    // 公钥
 )

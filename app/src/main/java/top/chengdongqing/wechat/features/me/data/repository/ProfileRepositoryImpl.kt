@@ -72,10 +72,6 @@ class ProfileRepositoryImpl @Inject constructor(
         return getProfile() != null
     }
 
-    override suspend fun clear() {
-        dataStore.edit { it.clear() }
-    }
-
     private fun String.toProfile(): UserProfile? = runCatching {
         json.decodeFromString<UserProfile>(this)
     }.getOrNull()

@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.google.android.datatransport.runtime.dagger.multibindings.IntoSet
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -66,6 +67,7 @@ object DataStoreModule {
         )
 
     @Provides
+    @IntoSet
     @Singleton
     @NotificationSettingsDataStore
     fun provideNotificationSettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> =
@@ -88,4 +90,17 @@ object DataStoreModule {
         PreferenceDataStoreFactory.create(
             produceFile = { context.preferencesDataStoreFile("connection_settings") }
         )
+
+    @Provides
+    @Singleton
+    fun provideAllDataStores(
+        @ProfileDataStore profile: DataStore<Preferences>,
+        @DisplaySettingsDataStore display: DataStore<Preferences>,
+        @ChatSettingsDataStore chat: DataStore<Preferences>,
+        @NotificationSettingsDataStore notification: DataStore<Preferences>,
+        @PrivacySettingsDataStore privacy: DataStore<Preferences>,
+        @ConnectionSettingsDataStore connection: DataStore<Preferences>
+    ): Set<DataStore<Preferences>> = setOf(
+        profile, display, chat, notification, privacy, connection
+    )
 }

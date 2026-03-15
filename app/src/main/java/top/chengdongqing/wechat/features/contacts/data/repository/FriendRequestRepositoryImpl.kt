@@ -81,6 +81,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 requestId = requestId,
                 peerUserId = myProfile.id,
                 peerNickname = myProfile.nickname,
+                peerPublicKey = myProfile.publicKey,
                 greetingMessage = greetingMessage,
                 avatarSize = avatarBytes?.size ?: 0,
                 timestamp = currentTimestamp()
@@ -150,6 +151,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     request.requestId,
                     request.peerUserId,
                     request.peerNickname,
+                    request.peerPublicKey,
                     request.greetingMessage,
                     request.avatarData
                 )
@@ -199,7 +201,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     signature = response.signature,
                     gender = response.gender,
                     remarkName = originalRequest?.remark,
-                    note = originalRequest?.note
+                    note = originalRequest?.note,
+                    publicKey = response.publicKey
                 )
                 contactRepository.createContact(contact)
 
@@ -264,6 +267,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 signature = myProfile.signature,
                 gender = myProfile.gender,
                 avatarSize = avatarBytes?.size ?: 0,
+                publicKey = myProfile.publicKey,
                 timestamp = currentTimestamp()
             )
             transmitter.sendMessage(targetUserId, message, avatarBytes)
@@ -355,6 +359,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 signature = myProfile.signature,
                 gender = myProfile.gender,
                 avatarSize = avatarBytes?.size ?: 0,
+                publicKey = myProfile.publicKey,
                 timestamp = currentTimestamp()
             )
             transmitter.sendMessage(targetUserId, message, avatarBytes)
@@ -378,6 +383,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
             peerId = targetContact.id,
             peerName = targetContact.nickname,
             peerAvatarPath = targetContact.avatarPath,
+            peerPublicKey = targetContact.publicKey,
             greetingMessage = greetingMessage,
             remark = remark,
             note = note,
@@ -395,6 +401,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         requestId: String,
         peerUserId: String,
         peerNickname: String,
+        peerPublicKey: String,
         greetingMessage: String,
         avatarData: ByteArray?
     ) {
@@ -409,6 +416,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
             peerId = peerUserId,
             peerName = peerNickname,
             peerAvatarPath = avatarPath,
+            peerPublicKey = peerPublicKey,
             greetingMessage = greetingMessage,
             status = RequestStatus.Pending,
             direction = RequestDirection.Incoming,
@@ -431,7 +439,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
             avatarPath = request.peerAvatarPath,
             remarkName = remark ?: request.remark,
             note = note ?: request.note,
-            source = ContactAddSource.QRCode
+            source = ContactAddSource.QRCode,
+            publicKey = request.peerPublicKey
         )
         contactRepository.createContact(contact)
     }

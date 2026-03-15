@@ -136,13 +136,14 @@ class MessageDispatcher @Inject constructor(
                     messageRepository.recallMessage(protocol.messageId)
                 }
 
-                // 拉黑/非好友
+                // 拒收
                 ReceiptType.Blocked,
-                ReceiptType.NotFriend -> {
-                    val failedReason = if (type == ReceiptType.Blocked) {
-                        SendError.Blocked
-                    } else {
-                        SendError.NotFriend
+                ReceiptType.NotFriend,
+                ReceiptType.InvalidSignature -> {
+                    val failedReason = when (type) {
+                        ReceiptType.Blocked -> SendError.Blocked
+                        ReceiptType.NotFriend -> SendError.NotFriend
+                        ReceiptType.InvalidSignature -> SendError.Unknown
                     }
                     messageRepository.updateMessageStatus(
                         messageId = messageId,

@@ -12,6 +12,7 @@ data class UserProfile(
     val gender: Gender? = null,
     val signature: String? = null,
     val avatarPath: String? = null,
+    val publicKey: String, // 公钥
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
@@ -49,4 +50,3 @@ data class UserProfile(
         )
     }
 }
-

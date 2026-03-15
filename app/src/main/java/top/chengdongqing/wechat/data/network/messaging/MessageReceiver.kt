@@ -5,11 +5,9 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.model.PermissionResult
@@ -21,6 +19,7 @@ import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
 import top.chengdongqing.wechat.data.network.model.ReceiptType
+import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import java.io.BufferedOutputStream
 import java.io.File
@@ -46,6 +45,7 @@ class MessageReceiver @Inject constructor(
     private val messageSender: MessageSender,
     private val messageDispatcher: MessageDispatcher,
     private val contactRepository: ContactRepository,
+    private val packetSigner: PacketSigner,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
@@ -84,24 +84,19 @@ class MessageReceiver @Inject constructor(
      * 监听数据
      */
     private fun startListening(conn: PeerConnection) {
-        scope.launch {
-            consumePackets(conn.userId, conn.receiveChannel)
-        }
-    }
+        val userId = conn.userId
 
-    /**
-     * 循环消费 channel 中的 Packet，channel 关闭时退出并清理媒体状态
-     */
-    private suspend fun consumePackets(userId: String, channel: Channel<Packet>) {
-        try {
-            for (packet in channel) {
-                handlePacket(userId, packet)
+        scope.launch {
+            try {
+                for (packet in conn.receiveChannel) {
+                    handlePacket(userId, packet)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "消费异常: $userId", e)
+            } finally {
+                cleanupMediaState(userId)
+                Log.w(TAG, "连接已关闭: $userId")
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "消费异常: $userId", e)
-        } finally {
-            cleanupMediaState(userId)
-            Log.w(TAG, "连接已关闭: $userId")
         }
     }
 
@@ -127,21 +122,23 @@ class MessageReceiver @Inject constructor(
      * 反序列化 JSON 包并交给 MessageDispatcher 分发
      */
     private suspend fun handleJsonPacket(userId: String, packet: Packet) {
-        val protocol = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
+        val packet = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
 
-        // 拦截非好友/已拉黑（在非回执包时判断）
-        if (protocol !is ChatProtocol.MessageReceipt
-            && !canProcessMessage(userId, protocol.messageId)
+        // 拦截拒收（在非回执包时判断）
+        if (packet !is ChatProtocol.MessageReceipt
+            && !canProcessMessage(userId, packet)
         ) return
 
-        messageDispatcher.dispatch(protocol)
+        messageDispatcher.dispatch(packet)
     }
 
     /**
      * 校验发送者权限：非好友或被拉黑则发送拒收回执 并返回 false
      */
-    private suspend fun canProcessMessage(userId: String, messageId: String): Boolean {
-        return when (checkMessagePermission(userId)) {
+    private suspend fun canProcessMessage(userId: String, packet: ChatProtocol): Boolean {
+        val messageId = packet.messageId
+
+        return when (checkMessagePermission(userId, packet)) {
             PermissionResult.Blocked -> {
                 messageSender.sendReceipt(messageId, userId, ReceiptType.Blocked)
                 false
@@ -152,15 +149,31 @@ class MessageReceiver @Inject constructor(
                 false
             }
 
+            PermissionResult.InvalidSignature -> {
+                messageSender.sendReceipt(messageId, userId, ReceiptType.InvalidSignature)
+                false
+            }
+
             else -> true
         }
     }
 
-    private suspend fun checkMessagePermission(userId: String): PermissionResult {
+    private suspend fun checkMessagePermission(
+        userId: String,
+        packet: ChatProtocol
+    ): PermissionResult {
         val contact = contactRepository.getContact(userId)
+
         return when {
-            contact?.isBlocked.isTrue() -> PermissionResult.Blocked
+            // 非好友
             contact == null -> PermissionResult.NotFriend
+            // 被拉黑
+            contact.isBlocked -> PermissionResult.Blocked
+            // 验签失败
+            contact.publicKey == null || !packetSigner.verify(packet, contact.publicKey) -> {
+                PermissionResult.InvalidSignature
+            }
+
             else -> PermissionResult.Allowed
         }
     }
@@ -179,7 +192,7 @@ class MessageReceiver @Inject constructor(
         )
 
         // 拦截非好友/已拉黑
-        if (!canProcessMessage(metadata.senderId, metadata.messageId)) return
+        if (!canProcessMessage(metadata.senderId, metadata)) return
 
         withContext(Dispatchers.IO) {
             val tempFile = File(context.cacheDir, "recv_${metadata.messageId}.tmp")

@@ -10,9 +10,4 @@ interface PrivacySettingsRepository {
     val friendVerifyEnabled: Flow<Boolean>
 
     suspend fun toggleFriendVerify(enabled: Boolean)
-
-    /**
-     * 退出登录时清除所有设置
-     */
-    suspend fun clearAll()
 }

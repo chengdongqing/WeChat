@@ -31,6 +31,4 @@ interface ChatSettingsRepository {
     suspend fun toggleE2e(enabled: Boolean)
 
     suspend fun setChatBackground(path: String?)
-
-    suspend fun clearAll()
 }

@@ -21,8 +21,10 @@ data class ContactEntity(
 
     val isBlocked: Boolean = false,       // 是否拉黑
 
-    val source: ContactAddSource? = null,        // 添加方式
+    val source: ContactAddSource? = null, // 添加方式
     val isFromMe: Boolean = true,         // 是否我主动添加
+
+    val publicKey: String? = null,        // 证明身份的公钥
 
     @Embedded
     val audit: EntityAudit = EntityAudit()
@@ -30,4 +32,3 @@ data class ContactEntity(
     val displayName: String
         get() = remarkName ?: nickname
 }
-

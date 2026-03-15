@@ -25,7 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.R
@@ -460,11 +459,7 @@ class BLEModule @Inject constructor(
         @SuppressLint("MissingPermission")
         private suspend fun sendProfileData(device: BluetoothDevice) {
             try {
-                val myProfile = profileRepository.observeProfile().first() ?: run {
-                    Log.w(TAG, "无法获取个人资料")
-                    return
-                }
-
+                val myProfile = profileRepository.getProfile() ?: return
                 val avatarBytes = generateAvatarThumbnail(myProfile.avatarPath)
 
                 val profileTransfer = UserProfileTransfer(
@@ -472,7 +467,8 @@ class BLEModule @Inject constructor(
                     nickname = myProfile.nickname,
                     signature = myProfile.signature,
                     gender = myProfile.gender.getIndex(),
-                    avatarSize = avatarBytes?.size ?: 0
+                    avatarSize = avatarBytes?.size ?: 0,
+                    publicKey = myProfile.publicKey
                 )
 
                 val characteristic = getCharacteristic() ?: run {

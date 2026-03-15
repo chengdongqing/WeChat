@@ -17,6 +17,7 @@ sealed class P2PMessage {
         val requestId: String,
         val peerUserId: String,
         val peerNickname: String,
+        val peerPublicKey: String,
         val greetingMessage: String,
         val avatarSize: Int,
         val timestamp: Long
@@ -43,6 +44,7 @@ sealed class P2PMessage {
         val signature: String?,
         val gender: Gender?,
         val avatarSize: Int,
+        val publicKey: String,
         val timestamp: Long
     ) : P2PMessage()
 
@@ -54,6 +56,7 @@ sealed class P2PMessage {
         val signature: String?,
         val gender: Gender?,
         val avatarSize: Int,
+        val publicKey: String,
         val timestamp: Long
     ) : P2PMessage()
 
@@ -65,6 +68,7 @@ sealed class P2PMessage {
         val signature: String?,
         val gender: Gender?,
         val avatarSize: Int,
+        val publicKey: String,
         val timestamp: Long
     ) : P2PMessage()
 
@@ -76,6 +80,7 @@ sealed class P2PMessage {
         val signature: String?,
         val gender: Gender?,
         val avatarSize: Int,
+        val publicKey: String,
         val timestamp: Long
     ) : P2PMessage()
 }

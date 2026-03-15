@@ -105,8 +105,4 @@ class NotificationSettingsRepositoryImpl @Inject constructor(
     override suspend fun toggleRingtoneAudible(enabled: Boolean) {
         dataStore.edit { it[RINGTONE_AUDIBLE_KEY] = enabled }
     }
-
-    override suspend fun clearAll() {
-        dataStore.edit { it.clear() }
-    }
 }

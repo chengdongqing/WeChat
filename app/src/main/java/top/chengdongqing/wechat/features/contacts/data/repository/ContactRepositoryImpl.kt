@@ -9,6 +9,7 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
+import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.data.mapper.toEntity
@@ -21,7 +22,8 @@ class ContactRepositoryImpl @Inject constructor(
     private val contactDao: ContactDao,
     private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
-    private val connectionInfoDao: ConnectionInfoDao
+    private val connectionInfoDao: ConnectionInfoDao,
+    private val packetSigner: PacketSigner
 ) : ContactRepository {
 
     // 联系人缓存
@@ -76,6 +78,8 @@ class ContactRepositoryImpl @Inject constructor(
             contactDao.deleteById(userId)
             // 删除连接信息
             connectionInfoDao.deleteById(userId)
+            // 使公钥缓存失效
+            packetSigner.invalidateCache(userId)
         }
 
         contactCache.remove(userId)

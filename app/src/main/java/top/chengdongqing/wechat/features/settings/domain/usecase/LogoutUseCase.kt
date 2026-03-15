@@ -2,31 +2,30 @@ package top.chengdongqing.wechat.features.settings.domain.usecase
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.clearAllCache
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
-import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
-import top.chengdongqing.wechat.features.settings.domain.repository.DisplaySettingsRepository
-import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
-import top.chengdongqing.wechat.features.settings.domain.repository.PrivacySettingsRepository
+import top.chengdongqing.wechat.data.security.LocalIdentity
 
 class LogoutUseCase @Inject constructor(
     private val database: WeDatabase,
-    private val profileRepository: ProfileRepository,
-    private val displaySettingsRepository: DisplaySettingsRepository,
-    private val chatSettingsRepository: ChatSettingsRepository,
-    private val notificationSettingsRepository: NotificationSettingsRepository,
-    private val privacySettingsRepository: PrivacySettingsRepository,
+    private val dataStoreManager: DataStoreManager,
     private val connectionManager: TcpConnectionManager,
     private val e2eSessionManager: E2ESessionManager,
     private val privateFileManager: PrivateFileManager,
+    private val localIdentity: LocalIdentity,
     @param:ApplicationContext private val context: Context
 ) {
     companion object {
@@ -45,23 +44,40 @@ class LogoutUseCase @Inject constructor(
             database.clearAllTables()
 
             // 清空 DataStore
-            clearDataStore()
+            dataStoreManager.clearAll()
 
             // 删除所有媒体文件
             privateFileManager.clearAll()
 
             // 清除所有缓存
             context.clearAllCache()
+
+            // 删除密钥
+            localIdentity.clearIdentity()
         }
     }.onFailure {
         Log.e(TAG, "退出登录失败", it)
     }
+}
 
-    private suspend fun clearDataStore() {
-        profileRepository.clear()
-        displaySettingsRepository.clearAll()
-        chatSettingsRepository.clearAll()
-        notificationSettingsRepository.clearAll()
-        privacySettingsRepository.clearAll()
+@Singleton
+class DataStoreManager @Inject constructor(
+    private val allStores: Set<@JvmSuppressWildcards DataStore<Preferences>>,
+) {
+
+    /**
+     * 清理所有已注册的 DataStore 数据
+     * 使用 supervisorScope 确保即便其中一个清理失败，其他也能继续
+     */
+    suspend fun clearAll() {
+        supervisorScope {
+            allStores.forEach { store ->
+                launch {
+                    runCatching {
+                        store.edit { it.clear() }
+                    }
+                }
+            }
+        }
     }
 }

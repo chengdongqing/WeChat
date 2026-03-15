@@ -21,7 +21,8 @@ data class FriendProfileResponse(
     val nickname: String,
     val signature: String?,
     val gender: Gender?,
-    val avatarData: ByteArray?
+    val avatarData: ByteArray?,
+    val publicKey: String
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -57,6 +58,7 @@ data class IncomingFriendRequest(
     val requestId: String,
     val peerUserId: String,
     val peerNickname: String,
+    val peerPublicKey: String,
     val greetingMessage: String,
     val avatarData: ByteArray?,
     val timestamp: Long

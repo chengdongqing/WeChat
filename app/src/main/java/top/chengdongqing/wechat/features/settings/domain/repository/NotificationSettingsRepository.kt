@@ -55,9 +55,4 @@ interface NotificationSettingsRepository {
     suspend fun setNotificationSound(sound: NotificationSound)
     suspend fun setRingtone(ringtone: RingtoneSound)
     suspend fun toggleRingtoneAudible(enabled: Boolean)
-
-    /**
-     * 退出登录时清除所有设置
-     */
-    suspend fun clearAll()
 }

@@ -20,7 +20,8 @@ data class Contact(
     val source: ContactAddSource? = null,
     val isFromMe: Boolean = true,
     val isBlocked: Boolean = false,
-    val addedAt: Long? = null
+    val addedAt: Long? = null,
+    val publicKey: String? = null
 ) {
     val displayName: String
         get() = remarkName ?: nickname

@@ -26,8 +26,4 @@ class PrivacySettingsRepositoryImpl @Inject constructor(
     override suspend fun toggleFriendVerify(enabled: Boolean) {
         dataStore.edit { it[FRIEND_VERIFY_KEY] = enabled }
     }
-
-    override suspend fun clearAll() {
-        dataStore.edit { it.clear() }
-    }
 }

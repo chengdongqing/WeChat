@@ -11,6 +11,7 @@ fun P2PMessage.FriendRequest.toDomain(avatarData: ByteArray?): IncomingFriendReq
         requestId = requestId,
         peerUserId = peerUserId,
         peerNickname = peerNickname,
+        peerPublicKey = peerPublicKey,
         greetingMessage = greetingMessage,
         avatarData = avatarData,
         timestamp = timestamp
@@ -30,7 +31,8 @@ fun P2PMessage.AutoAddResponse.toDomain(avatarData: ByteArray?): FriendProfileRe
         nickname = nickname,
         signature = signature,
         gender = gender,
-        avatarData = avatarData
+        avatarData = avatarData,
+        publicKey = publicKey
     )
 }
 
@@ -40,6 +42,7 @@ fun P2PMessage.FullProfileResponse.toDomain(avatarData: ByteArray?): FriendProfi
         nickname = nickname,
         signature = signature,
         gender = gender,
-        avatarData = avatarData
+        avatarData = avatarData,
+        publicKey = publicKey
     )
 }

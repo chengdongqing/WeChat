@@ -26,6 +26,8 @@ import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.service.modules.CallModule
+import top.chengdongqing.wechat.data.network.signature.PacketSigner
+import top.chengdongqing.wechat.data.security.LocalIdentity
 import top.chengdongqing.wechat.features.call.model.CallState
 import top.chengdongqing.wechat.features.call.model.CallStatus
 import top.chengdongqing.wechat.features.call.model.CallType
@@ -71,6 +73,8 @@ class CallManager @Inject constructor(
     private val transport: ChatTransportManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val socketClient: TcpSocketClient,
+    private val packetSigner: PacketSigner,
+    private val localIdentity: LocalIdentity,
     private val notificationRepository: NotificationSettingsRepository
 ) {
     private companion object {
@@ -165,14 +169,18 @@ class CallManager @Inject constructor(
                 webRTCManager.startLocalMedia(callType)
 
                 val offer = webRTCManager.createOffer()
+                val packet = ChatProtocol.Signaling.Offer(
+                    messageId = callId,
+                    senderId = myUserId,
+                    callType = callType,
+                    sdp = offer.description,
+                    signature = ""
+                )
+                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+
                 signalingManager.send(
                     targetUserId = peerId,
-                    message = ChatProtocol.Signaling.Offer(
-                        messageId = callId,
-                        senderId = myUserId,
-                        callType = callType,
-                        sdp = offer.description
-                    )
+                    message = packet.copy(signature = signature)
                 )
                 startTimeout()
             }.onFailure {
@@ -220,17 +228,22 @@ class CallManager @Inject constructor(
         cancelTimeout()
         _state.update { it.copy(callState = CallState.Connecting) }
 
+
         scope.launch {
             runCatching {
                 val answer = webRTCManager.createAnswer()
+                val packet = ChatProtocol.Signaling.Answer(
+                    messageId = _state.value.callId,
+                    senderId = myUserId,
+                    callType = _state.value.callType,
+                    sdp = answer.description,
+                    signature = ""
+                )
+                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+
                 signalingManager.send(
                     targetUserId = _state.value.peerId,
-                    message = ChatProtocol.Signaling.Answer(
-                        messageId = _state.value.callId,
-                        senderId = myUserId,
-                        callType = _state.value.callType,
-                        sdp = answer.description
-                    )
+                    message = packet.copy(signature = signature)
                 )
             }.onFailure {
                 Log.e(TAG, "接听失败", it)
@@ -265,16 +278,23 @@ class CallManager @Inject constructor(
     /** 发送挂断信令给对方 */
     private fun sendHangup(reason: HangupReason) {
         val state = _state.value
+
         scope.launch {
-            signalingManager.send(
-                targetUserId = state.peerId,
-                message = ChatProtocol.Signaling.Hangup(
+            runCatching {
+                val packet = ChatProtocol.Signaling.Hangup(
                     messageId = state.callId,
                     senderId = myUserId,
                     reason = reason,
-                    duration = state.duration
+                    duration = state.duration,
+                    signature = ""
                 )
-            )
+                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+
+                signalingManager.send(
+                    targetUserId = state.peerId,
+                    message = packet.copy(signature = signature)
+                )
+            }
         }
     }
 
@@ -319,15 +339,19 @@ class CallManager @Inject constructor(
         if (current.callState == CallState.Idle || current.callState == CallState.Ended) return
         scope.launch {
             runCatching {
+                val packet = ChatProtocol.Signaling.MediaState(
+                    messageId = current.callId,
+                    senderId = myUserId,
+                    isVideoOn = current.isVideoOn,
+                    isMicOn = current.isMicOn,
+                    isSpeakerOn = current.isSpeakerOn,
+                    signature = ""
+                )
+                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+
                 signalingManager.send(
                     targetUserId = current.peerId,
-                    message = ChatProtocol.Signaling.MediaState(
-                        messageId = current.callId,
-                        senderId = myUserId,
-                        isVideoOn = current.isVideoOn,
-                        isMicOn = current.isMicOn,
-                        isSpeakerOn = current.isSpeakerOn
-                    )
+                    message = packet.copy(signature = signature)
                 )
             }
         }
@@ -376,12 +400,16 @@ class CallManager @Inject constructor(
     private suspend fun handleOffer(offer: ChatProtocol.Signaling.Offer) {
         if (!_state.value.callState.isTerminal) {
             runCatching {
+                val packet = ChatProtocol.Signaling.Busy(
+                    messageId = offer.messageId,
+                    senderId = myUserId,
+                    signature = ""
+                )
+                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+
                 signalingManager.send(
                     targetUserId = offer.senderId,
-                    message = ChatProtocol.Signaling.Busy(
-                        messageId = offer.messageId,
-                        senderId = myUserId
-                    )
+                    message = packet.copy(signature = signature)
                 )
             }
             return
@@ -416,17 +444,21 @@ class CallManager @Inject constructor(
 
         // 告知对方我的铃声设置
         runCatching {
+            val packet = ChatProtocol.Signaling.RingtoneInfo(
+                messageId = offer.messageId,
+                senderId = myUserId,
+                ringtone = if (ringtoneAudibleEnabled()) {
+                    myRingtone()
+                } else {
+                    RingtoneSound.Default
+                },
+                signature = ""
+            )
+            val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+
             signalingManager.send(
                 targetUserId = offer.senderId,
-                message = ChatProtocol.Signaling.RingtoneInfo(
-                    messageId = offer.messageId,
-                    senderId = myUserId,
-                    ringtone = if (ringtoneAudibleEnabled()) {
-                        myRingtone()
-                    } else {
-                        RingtoneSound.Default
-                    }
-                )
+                message = packet.copy(signature = signature)
             )
         }
     }
@@ -526,15 +558,19 @@ class CallManager @Inject constructor(
         if (current.callState == CallState.Idle || current.callState == CallState.Ended) return
         scope.launch {
             runCatching {
+                val packet = ChatProtocol.Signaling.IceCandidate(
+                    messageId = current.callId,
+                    senderId = myUserId,
+                    candidate = candidate.sdp,
+                    sdpMid = candidate.sdpMid,
+                    sdpMLineIndex = candidate.sdpMLineIndex,
+                    signature = ""
+                )
+                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+
                 signalingManager.send(
-                    current.peerId,
-                    ChatProtocol.Signaling.IceCandidate(
-                        messageId = current.callId,
-                        senderId = myUserId,
-                        candidate = candidate.sdp,
-                        sdpMid = candidate.sdpMid,
-                        sdpMLineIndex = candidate.sdpMLineIndex
-                    )
+                    targetUserId = current.peerId,
+                    message = packet.copy(signature = signature)
                 )
             }
         }
@@ -633,17 +669,17 @@ class CallManager @Inject constructor(
                 )
             )
         } else {
-            messageDispatcher.dispatch(
-                ChatProtocol.CallMessage(
-                    messageId = snapshot.callId,
-                    senderId = snapshot.peerId,
-                    receiverId = myUserId,
-                    status = status.name,
-                    duration = duration ?: snapshot.duration,
-                    callType = snapshot.callType,
-                    timestamp = System.currentTimeMillis()
-                )
+            val packet = ChatProtocol.CallMessage(
+                messageId = snapshot.callId,
+                senderId = snapshot.peerId,
+                receiverId = myUserId,
+                status = status.name,
+                duration = duration ?: snapshot.duration,
+                callType = snapshot.callType,
+                timestamp = System.currentTimeMillis(),
+                signature = ""
             )
+            messageDispatcher.dispatch(packet)
         }
     }
 

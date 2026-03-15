@@ -11,9 +11,4 @@ interface ConnectionSettingsRepository {
     val connectionMode: Flow<ConnectionMode>
 
     suspend fun setConnectionMode(mode: ConnectionMode)
-
-    /**
-     * 退出登录时清除所有设置
-     */
-    suspend fun clearAll()
 }

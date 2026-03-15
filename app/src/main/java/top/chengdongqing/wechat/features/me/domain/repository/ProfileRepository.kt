@@ -35,9 +35,4 @@ interface ProfileRepository {
      * 检查是否已设置过资料
      */
     suspend fun hasProfile(): Boolean
-
-    /**
-     * 清除用户资料
-     */
-    suspend fun clear()
 }

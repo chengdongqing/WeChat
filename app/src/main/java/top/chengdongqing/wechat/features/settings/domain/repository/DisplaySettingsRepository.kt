@@ -16,6 +16,4 @@ interface DisplaySettingsRepository {
     suspend fun saveTheme(theme: AppTheme)
 
     suspend fun saveLanguage(language: AppLanguage)
-
-    suspend fun clearAll()
 }

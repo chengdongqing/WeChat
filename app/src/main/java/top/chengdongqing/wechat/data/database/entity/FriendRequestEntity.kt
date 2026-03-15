@@ -12,6 +12,7 @@ data class FriendRequestEntity(
     val peerId: String,                 // 对方的ID
     val peerName: String,               // 对方的昵称
     val peerAvatarPath: String?,        // 对方的头像路径
+    val peerPublicKey: String?,          // 对方的公钥
 
     val greetingMessage: String,        // 打招呼内容
     val remark: String? = null,         // 备注

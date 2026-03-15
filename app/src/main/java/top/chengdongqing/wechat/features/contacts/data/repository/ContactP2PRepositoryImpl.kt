@@ -1,9 +1,7 @@
 package top.chengdongqing.wechat.features.contacts.data.repository
 
-import android.content.Context
 import android.util.Base64
 import android.util.Log
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -15,7 +13,6 @@ import top.chengdongqing.wechat.core.di.DefaultScope
 import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
-import top.chengdongqing.wechat.data.network.model.ConnectionCapabilities
 import top.chengdongqing.wechat.data.network.model.DiscoveryBeacon
 import top.chengdongqing.wechat.data.network.model.P2PMessage
 import top.chengdongqing.wechat.data.network.model.P2PMessageTransmitter
@@ -39,12 +36,11 @@ class ContactP2PRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
     private val imageExt: ImageExt,
-    @param:DefaultScope private val scope: CoroutineScope,
-    @param:ApplicationContext private val context: Context
+    @param:DefaultScope private val scope: CoroutineScope
 ) : ContactP2PRepository {
 
     private companion object {
-        const val TAG = "ContactP2P"
+        const val TAG = "ContactP2PRepository"
         const val AVATAR_THUMBNAIL_SIZE = 100
         const val AVATAR_MAX_SIZE_KB = 5
 
@@ -132,10 +128,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
             val profile = profileRepository.getProfile()
                 ?: throw Exception("未找到个人资料")
 
-            val beacon = DiscoveryBeacon.create(
-                userId = profile.id,
-                capabilities = getMyCapabilities()
-            )
+            val beacon = DiscoveryBeacon.create(profile.id)
 
             val bytes = DiscoveryBeacon.toByteArray(beacon)
             Base64.encodeToString(bytes, Base64.NO_WRAP)
@@ -216,6 +209,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
                     signature = my.signature,
                     gender = my.gender,
                     avatarSize = avatarBytes?.size ?: 0,
+                    publicKey = my.publicKey,
                     timestamp = System.currentTimeMillis()
                 )
                 transmitter.sendMessage(
@@ -257,6 +251,7 @@ class ContactP2PRepositoryImpl @Inject constructor(
                     signature = my.signature,
                     gender = my.gender,
                     avatarSize = avatarBytes?.size ?: 0,
+                    publicKey = my.publicKey,
                     timestamp = System.currentTimeMillis()
                 )
                 transmitter.sendMessage(
@@ -313,7 +308,8 @@ class ContactP2PRepositoryImpl @Inject constructor(
             nickname = message.nickname,
             avatarPath = avatarPath,
             signature = message.signature,
-            gender = message.gender
+            gender = message.gender,
+            publicKey = message.publicKey
         ).also { contactCache[it.id] = it }
     }
 
@@ -329,7 +325,8 @@ class ContactP2PRepositoryImpl @Inject constructor(
             nickname = message.nickname,
             avatarPath = avatarPath,
             signature = message.signature,
-            gender = message.gender
+            gender = message.gender,
+            publicKey = message.publicKey
         ).also { contactCache[it.id] = it }
     }
 
@@ -353,7 +350,8 @@ class ContactP2PRepositoryImpl @Inject constructor(
             nickname = profile.nickname,
             avatarPath = avatarPath,
             signature = profile.signature,
-            gender = Gender.fromIndex(profile.gender)
+            gender = Gender.fromIndex(profile.gender),
+            publicKey = profile.publicKey
         )
     }
 
@@ -378,9 +376,5 @@ class ContactP2PRepositoryImpl @Inject constructor(
     private fun getCurrentUserId(): String {
         return profileRepository.getProfile()?.id
             ?: throw Exception("未找到个人资料")
-    }
-
-    private fun getMyCapabilities(): Int {
-        return ConnectionCapabilities.getDeviceCapabilities(context)
     }
 }

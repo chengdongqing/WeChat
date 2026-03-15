@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.data.security.LocalIdentity
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -29,6 +30,7 @@ data class ProfileSetupUiState(
 class ProfileSetupViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val privateFileManager: PrivateFileManager,
+    private val localIdentity: LocalIdentity,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -68,6 +70,8 @@ class ProfileSetupViewModel @Inject constructor(
             try {
                 // 生成用户ID
                 val userId = UserProfile.generateId()
+                // 生成密钥
+                val publicKey = localIdentity.generateKeyPair()
 
                 // 保存头像文件
                 val avatarPath = currentState.avatarUri?.let { uri ->
@@ -78,7 +82,8 @@ class ProfileSetupViewModel @Inject constructor(
                 val profile = UserProfile(
                     id = userId,
                     nickname = currentState.nickname.trim(),
-                    avatarPath = avatarPath
+                    avatarPath = avatarPath,
+                    publicKey = publicKey
                 )
 
                 // 保存资料

@@ -138,7 +138,6 @@ class P2PMessageTransmitter @Inject constructor(
         characteristic: BluetoothGattCharacteristic,
         message: P2PMessage
     ): Boolean {
-        // 使用多态序列化将 P2PMessage 及其子类序列化为 JSON
         val messageJson = json.encodeToString<P2PMessage>(message)
         val messageBytes = messageJson.toByteArray(Charsets.UTF_8)
 

@@ -20,8 +20,10 @@ import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
 import top.chengdongqing.wechat.data.network.model.ReceiptType
+import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
+import top.chengdongqing.wechat.data.security.LocalIdentity
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.File
 import java.io.FileInputStream
@@ -42,6 +44,8 @@ class MessageSender @Inject constructor(
     private val wifiLockManager: WifiLockManager,
     private val transferManager: TransferManager,
     private val profileRepository: ProfileRepository,
+    private val packetSigner: PacketSigner,
+    private val localIdentity: LocalIdentity,
     private val json: Json
 ) {
     private companion object {
@@ -54,18 +58,20 @@ class MessageSender @Inject constructor(
      * 发送文本消息
      */
     suspend fun sendTextMessage(message: MessageEntity): Result<Unit> {
+        val protocol = ChatProtocol.TextMessage(
+            messageId = message.id,
+            senderId = message.senderId,
+            receiverId = message.receiverId,
+            signature = "",
+            messageType = message.contentType,
+            content = message.content,
+            timestamp = message.timestamp
+        )
+        val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
+
         val packet = Packet(
             PacketType.TEXT,
-            serializePolymorphic(
-                ChatProtocol.TextMessage(
-                    messageId = message.id,
-                    senderId = message.senderId,
-                    receiverId = message.receiverId,
-                    messageType = message.contentType,
-                    content = message.content,
-                    timestamp = message.timestamp
-                )
-            )
+            serializePolymorphic(protocol.copy(signature = signature))
         )
 
         return transport.send(message.receiverId, packet).onFailure {
@@ -92,10 +98,11 @@ class MessageSender @Inject constructor(
                 val checksum = file.toMD5Hex()
 
                 // 构建消息元数据
-                val meta = ChatProtocol.MediaMessage(
+                val metadata = ChatProtocol.MediaMessage(
                     messageId = message.id,
                     senderId = message.senderId,
                     receiverId = message.receiverId,
+                    signature = "",
                     messageType = message.contentType,
                     content = message.content,
                     fileSize = fileSize,
@@ -103,12 +110,18 @@ class MessageSender @Inject constructor(
                     mediaDuration = message.mediaDuration,
                     timestamp = message.timestamp
                 )
+                val signature = packetSigner.sign(metadata, localIdentity.getPrivateKey())
 
                 // 获取 Wi-Fi 锁，避免在后台传输时被系统限制性能
                 wifiLockManager.withTransferLock {
                     transport.sendAtomicTransfer(message.receiverId) { writer ->
                         // 发送消息元数据；FILE_META 立即 flush，让接收端尽快进入接收状态
-                        writer.write(Packet(PacketType.FILE_META, serializeMediaMeta(meta)))
+                        writer.write(
+                            Packet(
+                                type = PacketType.FILE_META,
+                                body = serializeMediaMeta(metadata.copy(signature = signature))
+                            )
+                        )
                         // 分片分送文件；FILE_CHUNK writeNoFlush，由 buffer 自动 flush 减少 syscall
                         streamFileChunks(file, fileSize, message.id) { chunk ->
                             writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
@@ -132,17 +145,19 @@ class MessageSender @Inject constructor(
      * 发送回执消息
      */
     suspend fun sendReceipt(messageId: String, receiverId: String, type: ReceiptType) {
+        val protocol = ChatProtocol.MessageReceipt(
+            messageId = messageId,
+            senderId = myUserId ?: return,
+            receiverId = receiverId,
+            receiptType = type,
+            signature = "",
+            timestamp = System.currentTimeMillis()
+        )
+        val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
+
         val packet = Packet(
             PacketType.RECEIPT,
-            serializePolymorphic(
-                ChatProtocol.MessageReceipt(
-                    messageId = messageId,
-                    senderId = myUserId ?: "",
-                    receiverId = receiverId,
-                    receiptType = type,
-                    timestamp = System.currentTimeMillis()
-                )
-            )
+            serializePolymorphic(protocol.copy(signature = signature))
         )
 
         transport.send(receiverId, packet)

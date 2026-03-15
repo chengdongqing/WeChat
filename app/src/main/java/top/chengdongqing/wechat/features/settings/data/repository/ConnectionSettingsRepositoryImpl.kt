@@ -27,8 +27,4 @@ class ConnectionSettingsRepositoryImpl @Inject constructor(
     override suspend fun setConnectionMode(mode: ConnectionMode) {
         dataStore.edit { it[CONNECTION_MODE_KEY] = mode.name }
     }
-
-    override suspend fun clearAll() {
-        dataStore.edit { it.clear() }
-    }
 }
