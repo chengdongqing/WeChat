@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,9 +27,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
+import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
@@ -40,14 +50,17 @@ fun ContactBasicInfoCard(
             .padding(16.dp),
         verticalAlignment = if (contact.isSelf) Alignment.CenterVertically else Alignment.Top
     ) {
-        ContactAvatar(contact.avatarPath ?: R.drawable.img_avatar_placeholder)
+        ContactAvatar(contact.avatarPath)
         Spacer(modifier = Modifier.width(16.dp))
         ContactBasicInfo(contact)
     }
 }
 
 @Composable
-private fun ContactAvatar(avatarUrl: Any) {
+private fun ContactAvatar(avatarUrl: Any?) {
+    var dialogVisible by remember { mutableStateOf(false) }
+    val close = { dialogVisible = false }
+
     AsyncImage(
         model = avatarUrl,
         contentDescription = stringResource(R.string.contact_avatar_description),
@@ -55,7 +68,27 @@ private fun ContactAvatar(avatarUrl: Any) {
         modifier = Modifier
             .size(64.dp)
             .clip(RoundedCornerShape(6.dp))
+            .weClickable { dialogVisible = true }
     )
+
+    /**
+     * 头像预览
+     */
+    if (dialogVisible) {
+        Dialog(
+            onDismissRequest = close,
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            ZoomableAsyncImage(
+                model = avatarUrl,
+                contentDescription = stringResource(R.string.me_profile_avatar),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Black),
+                onClick = { close() }
+            )
+        }
+    }
 }
 
 @Composable
