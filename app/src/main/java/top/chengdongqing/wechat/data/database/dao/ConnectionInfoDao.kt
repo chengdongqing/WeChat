@@ -5,7 +5,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
-import top.chengdongqing.wechat.data.database.entity.mergeWith
 
 @Dao
 interface ConnectionInfoDao : BaseDao<ConnectionInfoEntity> {

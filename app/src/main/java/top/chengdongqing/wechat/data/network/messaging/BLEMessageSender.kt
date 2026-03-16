@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.model
+package top.chengdongqing.wechat.data.network.messaging
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothGatt
@@ -8,7 +8,8 @@ import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
-import top.chengdongqing.wechat.data.network.service.modules.BLEModule
+import top.chengdongqing.wechat.data.network.model.FriendProtocol
+import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendModule
 import javax.inject.Inject
 
 /**
@@ -18,7 +19,7 @@ import javax.inject.Inject
  * 2. 二进制数据传输(可选)
  * 3. 分阶段传输: 先发送 JSON 元数据,再发送二进制数据
  */
-class P2PMessageTransmitter @Inject constructor(
+class BLEMessageSender @Inject constructor(
     private val bleDiscovery: BLEDiscovery,
     private val json: Json
 ) {
@@ -48,7 +49,7 @@ class P2PMessageTransmitter @Inject constructor(
     @SuppressLint("MissingPermission")
     suspend fun sendMessage(
         targetUserId: String,
-        message: P2PMessage,
+        message: FriendProtocol,
         binaryData: ByteArray? = null
     ): Boolean {
         var gatt: BluetoothGatt? = null
@@ -80,7 +81,7 @@ class P2PMessageTransmitter @Inject constructor(
             // 5. 等待数据传输完成后关闭连接
             delay(DELAY_BEFORE_CLOSE_MS)
             gatt.close()
-            Log.d(TAG, "✅ 消息发送完成")
+            Log.d(TAG, "消息发送完成")
             true
 
         } catch (e: Exception) {
@@ -115,15 +116,16 @@ class P2PMessageTransmitter @Inject constructor(
      */
     @SuppressLint("MissingPermission")
     private fun findCharacteristic(gatt: BluetoothGatt): BluetoothGattCharacteristic? {
-        val service = gatt.getService(BLEModule.SERVICE_UUID)
+        val service = gatt.getService(BLEAddFriendModule.Companion.SERVICE_UUID)
         if (service == null) {
-            Log.e(TAG, "未找到服务: ${BLEModule.SERVICE_UUID}")
+            Log.e(TAG, "未找到服务: ${BLEAddFriendModule.Companion.SERVICE_UUID}")
             return null
         }
 
-        val characteristic = service.getCharacteristic(BLEModule.CHARACTERISTIC_UUID)
+        val characteristic =
+            service.getCharacteristic(BLEAddFriendModule.Companion.CHARACTERISTIC_UUID)
         if (characteristic == null) {
-            Log.e(TAG, "未找到特征: ${BLEModule.CHARACTERISTIC_UUID}")
+            Log.e(TAG, "未找到特征: ${BLEAddFriendModule.Companion.CHARACTERISTIC_UUID}")
         }
 
         return characteristic
@@ -136,9 +138,9 @@ class P2PMessageTransmitter @Inject constructor(
     private suspend fun sendJsonMessage(
         gatt: BluetoothGatt,
         characteristic: BluetoothGattCharacteristic,
-        message: P2PMessage
+        message: FriendProtocol
     ): Boolean {
-        val messageJson = json.encodeToString<P2PMessage>(message)
+        val messageJson = json.encodeToString<FriendProtocol>(message)
         val messageBytes = messageJson.toByteArray(Charsets.UTF_8)
 
         Log.d(TAG, "发送 JSON: type=${message::class.simpleName}, size=${messageBytes.size} bytes")
@@ -146,9 +148,9 @@ class P2PMessageTransmitter @Inject constructor(
         val success = bleDiscovery.writeCharacteristic(gatt, characteristic, messageBytes)
 
         if (success) {
-            Log.d(TAG, "✅ JSON 发送成功")
+            Log.d(TAG, "JSON 发送成功")
         } else {
-            Log.e(TAG, "❌ JSON 发送失败")
+            Log.e(TAG, "JSON 发送失败")
         }
 
         return success
@@ -171,9 +173,9 @@ class P2PMessageTransmitter @Inject constructor(
         val success = bleDiscovery.writeCharacteristic(gatt, characteristic, binaryData)
 
         if (success) {
-            Log.d(TAG, "✅ 二进制数据发送成功")
+            Log.d(TAG, "二进制数据发送成功")
         } else {
-            Log.e(TAG, "❌ 二进制数据发送失败")
+            Log.e(TAG, "二进制数据发送失败")
         }
 
         return success

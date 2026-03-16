@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.data.model.QRCodeFormat
 import top.chengdongqing.wechat.data.model.QRCodeType
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,7 +15,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class QRCodeUseCase @Inject constructor(
-    private val contactP2PRepository: ContactP2PRepository
+    private val addFriendRepository: AddFriendRepository
 ) {
 
     /**
@@ -24,7 +24,7 @@ class QRCodeUseCase @Inject constructor(
     suspend fun generateMyQRCode(): Result<String> {
         return withContext(Dispatchers.IO) {
             try {
-                val beaconBase64 = contactP2PRepository.generateMyQRCode()
+                val beaconBase64 = addFriendRepository.generateMyQRCode()
                 val qrCode = QRCodeFormat.generateAddFriendQRCode(beaconBase64)
                 Result.success(qrCode)
             } catch (e: Exception) {
@@ -39,7 +39,7 @@ class QRCodeUseCase @Inject constructor(
     suspend fun handleScannedQRCode(qrContent: String): QRCodeResult {
         return when (val type = QRCodeFormat.parseQRCode(qrContent)) {
             is QRCodeType.AddFriend -> {
-                contactP2PRepository.handleScannedQRCode(type.beaconBase64).fold(
+                addFriendRepository.handleScannedQRCode(type.beaconBase64).fold(
                     onSuccess = { contact ->
                         QRCodeResult.AddFriend(contact)
                     },

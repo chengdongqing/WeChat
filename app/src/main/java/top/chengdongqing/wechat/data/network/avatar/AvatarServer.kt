@@ -4,11 +4,10 @@ import android.util.Log
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.getLocalIpAddress
+import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.File
 import java.io.OutputStream
@@ -17,56 +16,58 @@ import java.net.ServerSocket
 import java.net.Socket
 
 /**
- * 轻量级的头像服务器
+ * 头像服务器
  */
 @Singleton
 class AvatarServer @Inject constructor(
     private val profileRepository: ProfileRepository,
     @param:IoScope private val scope: CoroutineScope
-) {
+) : ServiceModule {
     private companion object {
-        const val TAG = "CallModule"
+        const val TAG = "AvatarServer"
     }
 
     private var serverSocket: ServerSocket? = null
     private var serverPort: Int = -1
-    val avatarUrl get() = "http://${getLocalIpAddress()}:${serverPort}/avatar?t=${System.currentTimeMillis()}"
+    val avatarUrl: String?
+        get() = if (serverPort == -1) null else "http://${getLocalIpAddress()}:${serverPort}/avatar?t=${System.currentTimeMillis()}"
 
-    /**
-     * 启动服务并返回系统分配的随机端口
-     */
-    suspend fun start() = withContext(Dispatchers.IO) {
-        val socket = ServerSocket(0, 50, InetAddress.getByName("0.0.0.0")).also {
-            serverSocket = it
-        }
-        serverPort = socket.localPort
-
-        scope.launch(Dispatchers.IO) {
-            while (!socket.isClosed) {
-                try {
-                    val client = socket.accept()
-
-                    launch {
-                        profileRepository.getProfile()?.avatarPath?.let {
-                            handleRequest(client, it)
-                        }
-                    }
-                } catch (_: Exception) {
-                    break
+    override fun start() {
+        scope.launch {
+            runCatching {
+                val socket = ServerSocket(0, 50, InetAddress.getByName("0.0.0.0")).also {
+                    serverSocket = it
                 }
+                serverPort = socket.localPort
+
+                while (!socket.isClosed) {
+                    try {
+                        val client = socket.accept()
+
+                        launch {
+                            profileRepository.getProfile()?.avatarPath?.let {
+                                handleRequest(client, it)
+                            }
+                        }
+                    } catch (_: Exception) {
+                        break
+                    }
+                }
+            }.onSuccess {
+                Log.d(TAG, "头像服务已启动")
+            }.onFailure {
+                Log.e(TAG, "头像服务启动失败", it)
             }
         }
-
-        Log.d(TAG, "头像服务器已启动")
-
-        return@withContext
     }
 
-    fun stop() {
-        serverSocket?.close()
-        serverSocket = null
-
-        Log.d(TAG, "头像服务器已停止")
+    override fun stop() {
+        runCatching {
+            serverSocket?.close()
+            serverSocket = null
+        }.onSuccess {
+            Log.d(TAG, "头像服务已停止")
+        }
     }
 
     private fun handleRequest(client: Socket, avatarPath: String) {

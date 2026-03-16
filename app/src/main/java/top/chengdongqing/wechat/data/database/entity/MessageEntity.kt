@@ -11,7 +11,7 @@ import top.chengdongqing.wechat.data.model.SendStatus
 @Entity(
     tableName = "messages",
     indices = [
-        Index(value = ["sessionId", "timestamp"]),  // 按会话和时间查询
+        Index(value = ["sessionId", "timestamp"])
     ]
 )
 data class MessageEntity(
@@ -22,23 +22,20 @@ data class MessageEntity(
     val receiverId: String,             // 接收者ID
 
     val contentType: MessageType,       // 消息类型
-    val content: String,                // 消息内容（JSON或文本）
+    val content: String,                // 消息内容
 
     val localPath: String? = null,      // 文件路径
     val fileSize: Long? = null,         // 文件大小
     val mediaDuration: Long? = null,    // 媒体时长
 
     val timestamp: Long,                // 发送时间戳
-
     val sentBytes: Long = 0L,           // 已发送字节数（断点位置）
     val sendStatus: SendStatus,         // 发送状态
     val isRead: Boolean = false,        // 是否已读
     val isPlayed: Boolean = false,      // 是否已播放（语音/视频）
     val isRecalled: Boolean = false,    // 是否已撤回
-
-    val isFromMe: Boolean,              // 是否是我发送的
-
-    val failReason: SendError? = null,  // 失败原因
+    val isFromMe: Boolean,              // 是否我发送的
+    val failReason: SendError? = null,  // 发送失败原因
 
     @Embedded
     val audit: EntityAudit = EntityAudit()

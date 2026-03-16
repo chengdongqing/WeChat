@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.service.modules
+package top.chengdongqing.wechat.data.network.service.call
 
 import android.content.Context
 import android.content.Intent
@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.data.notification.NotificationHelper
+import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.data.network.service.ServiceModule
+import top.chengdongqing.wechat.data.network.service.notification.NotificationHelper
 import top.chengdongqing.wechat.features.call.manager.CallAudioManager
 import top.chengdongqing.wechat.features.call.manager.CallManager
 import top.chengdongqing.wechat.features.call.model.CallState
@@ -21,14 +23,6 @@ import javax.inject.Singleton
 
 /**
  * 通话模块
- *
- * 订阅 [CallManager.state]，根据状态变化自动执行对应副作用：
- * - Incoming   → 启动 CallActivity + 播放铃声 + 显示来电通知
- * - Outgoing   → 播放拨号音 + 显示呼出通知
- * - Connecting → 停止铃声 + 显示连接中通知
- * - Connected  → 振动提示 + 切换通话音频模式 + 显示通话中通知
- * - Ended      → 播放挂断音 + 退出音频模式 + 关闭通知
- * - Idle       → 关闭通知
  */
 @Singleton
 class CallModule @Inject constructor(
@@ -36,52 +30,62 @@ class CallModule @Inject constructor(
     private val callAudioManager: CallAudioManager,
     private val notificationHelper: NotificationHelper,
     private val notificationRepository: NotificationSettingsRepository,
-    @param:ApplicationContext private val context: Context
-) {
+    @param:ApplicationContext private val context: Context,
+    @param:IoScope private val scope: CoroutineScope
+) : ServiceModule {
     private companion object {
         const val TAG = "CallModule"
     }
 
     private var observerJob: Job? = null
 
-    /**
-     * 初始化 CallManager 并开始订阅状态变化
-     */
-    fun start(myUserId: String, scope: CoroutineScope) {
-        callManager.init(myUserId)
-        observerJob = scope.launch {
-            observeCallState()
+    override fun start() {
+        runCatching {
+            // 初始化通话管理器
+            callManager.init()
+            // 开始监听通话状态
+            observerJob = scope.launch {
+                observeCallState()
+            }
+        }.onSuccess {
+            Log.d(TAG, "通话模块已启动")
+        }.onFailure {
+            Log.e(TAG, "通话模块已启动", it)
         }
+    }
 
-        Log.d(TAG, "通话模块已启动")
+    override fun stop() {
+        runCatching {
+            // 取消订阅状态
+            observerJob?.cancel()
+            // 退出音频模式
+            callAudioManager.exitCallMode()
+            // 清除通话通知
+            dismissNotification()
+        }.onSuccess {
+            Log.d(TAG, "通话模块已停止")
+        }
     }
 
     /**
-     * 取消状态订阅，退出音频模式，关闭通知
-     */
-    fun stop() {
-        observerJob?.cancel()
-        callAudioManager.exitCallMode()
-        dismissNotification()
-
-        Log.d(TAG, "通话模块已停止")
-    }
-
-    /**
-     * 订阅通话状态，callState 变化时触发对应副作用
-     *
-     * 用 distinctUntilChangedBy 避免同状态重复触发（如 peerName 更新导致的重组）
+     * 订阅通话状态
      */
     private suspend fun observeCallState() {
         callManager.state
             .distinctUntilChangedBy { it.callState }
             .collect { state ->
                 when (state.callState) {
+                    /**
+                     * 来电
+                     */
                     CallState.Incoming -> {
                         if (callNotificationEnabled()) {
+                            // 弹出通话界面
                             launchCallActivity()
+                            // 响铃
                             callAudioManager.startRingtone(isIncoming = true)
                         }
+
                         notificationHelper.showIncomingNotification(
                             title = state.peerName,
                             text = context.getString(
@@ -91,31 +95,51 @@ class CallModule @Inject constructor(
                         )
                     }
 
+                    /**
+                     * 呼叫
+                     */
                     CallState.Outgoing -> {
                         notificationHelper.showOngoingNotification(
                             context.getString(R.string.call_notification_outgoing, state.peerName)
                         )
                     }
 
+                    /**
+                     * 连接中
+                     */
                     CallState.Connecting -> {
+                        // 停止响铃
                         callAudioManager.stopRingtone()
+
                         notificationHelper.showOngoingNotification(
                             context.getString(R.string.call_notification_connecting)
                         )
                     }
 
+                    /**
+                     * 已连接
+                     */
                     CallState.Connected -> {
+                        // 触发振动
                         callAudioManager.vibrateOnConnected()
+                        // 进入通话音频
                         callAudioManager.enterCallMode(state.isVideoCall)
+
                         notificationHelper.showOngoingNotification(
                             context.getString(R.string.call_notification_ongoing, state.peerName)
                         )
                     }
 
+                    /**
+                     * 通话结束
+                     */
                     CallState.Ended -> {
+                        // 播放挂断提示音
                         callAudioManager.playHangupTone {
+                            // 退出通话音频
                             callAudioManager.exitCallMode()
                         }
+                        // 清除通知
                         dismissNotification()
                     }
 
@@ -125,10 +149,7 @@ class CallModule @Inject constructor(
     }
 
     /**
-     * 来电时自动启动通话界面
-     *
-     * FLAG_ACTIVITY_NEW_TASK: 从 Service 启动 Activity 必须
-     * 不传 peerId/callType: CallActivity 从 CallManager.state 读取
+     * 调起通话界面
      */
     private fun launchCallActivity() {
         val intent = Intent(context, CallActivity::class.java).apply {
@@ -137,11 +158,16 @@ class CallModule @Inject constructor(
         context.startActivity(intent)
     }
 
-    /** 关闭通话通知 */
+    /**
+     * 清除通知
+     */
     private fun dismissNotification() {
         notificationHelper.cancelNotification(NotificationHelper.CALL_NOTIFICATION_ID)
     }
 
+    /**
+     * 是否开启通话通知
+     */
     private suspend fun callNotificationEnabled(): Boolean =
         notificationRepository.callNotificationEnabled.first()
 }

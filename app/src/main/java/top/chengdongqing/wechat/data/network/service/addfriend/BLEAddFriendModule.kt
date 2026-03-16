@@ -1,7 +1,6 @@
-package top.chengdongqing.wechat.data.network.service.modules
+package top.chengdongqing.wechat.data.network.service.addfriend
 
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
@@ -27,11 +26,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.toMD5Bytes
-import top.chengdongqing.wechat.data.network.model.P2PMessage
-import top.chengdongqing.wechat.data.network.model.RequestAction
+import top.chengdongqing.wechat.data.network.model.FriendEvent
+import top.chengdongqing.wechat.data.network.model.FriendProtocol
+import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
@@ -43,25 +43,23 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * BLE 模块 - 负责好友添加功能
+ * 基于BLE的加好友相关服务
  *
- * 主要功能:
- * 1. 启动 BLE 广播，向附近设备广播用户身份（MD5 哈希）
- * 2. 启动 GATT 服务器，接收和发送好友请求数据
- * 3. 管理设备会话，处理数据分片传输
- * 4. 支持两阶段数据传输：JSON 元数据 + 二进制数据（如头像）
- * 5. 支持碰一碰（NFC）流程的消息路由
+ * 启动 BLE 广播，向附近设备广播用户身份
+ * 启动 GATT 服务器，接收和发送好友请求数据
  */
 @Singleton
-class BLEModule @Inject constructor(
-    @param:ApplicationContext private val context: Context,
+@SuppressLint("MissingPermission")
+class BLEAddFriendModule @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val friendRequestRepository: FriendRequestRepository,
     private val imageExt: ImageExt,
-    private val json: Json
-) {
+    private val json: Json,
+    @param:IoScope private val scope: CoroutineScope,
+    @param:ApplicationContext private val context: Context,
+) : ServiceModule {
     companion object {
-        private const val TAG = "BLEModule"
+        private const val TAG = "BLEAddFriendModule"
 
         val SERVICE_UUID: UUID = UUID.fromString("0000FE9F-0000-1000-8000-00805F9B34FB")
         val CHARACTERISTIC_UUID: UUID = UUID.fromString("0000FEA0-0000-1000-8000-00805F9B34FB")
@@ -70,95 +68,79 @@ class BLEModule @Inject constructor(
         private const val MAX_CHUNK_SIZE = 500
         private const val CHUNK_DELAY_MS = 50L
         private const val PROFILE_SEND_DELAY_MS = 100L
-
         private const val USER_ID_HASH_LENGTH = 4
-
         private const val AVATAR_THUMBNAIL_SIZE = 100
         private const val AVATAR_MAX_SIZE_KB = 5
-
         private const val JSON_START_MARKER = '{'
         private const val JSON_END_MARKER = '}'
     }
 
-    // 事件流：所有好友请求相关事件都从这里发出
-    private val _friendRequestEvents =
-        MutableSharedFlow<FriendRequestEvent>(extraBufferCapacity = 8)
-    val friendRequestEvents = _friendRequestEvents.asSharedFlow()
+    // 加好友相关事件流
+    private val _friendEvents = MutableSharedFlow<FriendEvent>(extraBufferCapacity = 8)
+    val friendEvents = _friendEvents.asSharedFlow()
 
+    // 会话（key为MAC地址）
+    private val deviceSessions = ConcurrentHashMap<String, DeviceSession>()
+
+    private val bluetoothManager by lazy { context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager }
+    private val bluetoothAdapter by lazy { bluetoothManager.adapter }
     private var bluetoothLeAdvertiser: BluetoothLeAdvertiser? = null
     private var gattServer: BluetoothGattServer? = null
 
-    // 设备会话：key = 设备MAC地址
-    private val deviceSessions = ConcurrentHashMap<String, DeviceSession>()
-
-    private val bluetoothAdapter: BluetoothAdapter? by lazy {
-        (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
-    }
-
-    // ==================== 公共接口 ====================
-
-    fun start(scope: CoroutineScope) {
-        startBLEAdvertising(scope)
-        startGattServer(scope)
-        Log.d(TAG, "✅ BLE 模块已启动")
-    }
-
-    @SuppressLint("MissingPermission")
-    fun stop() {
-        try {
-            bluetoothLeAdvertiser?.stopAdvertising(object : AdvertiseCallback() {})
-            gattServer?.close()
-            deviceSessions.clear()
-            Log.d(TAG, "BLE 模块已停止")
-        } catch (e: Exception) {
-            Log.e(TAG, "停止 BLE 服务失败", e)
+    override fun start() {
+        runCatching {
+            startBLEAdvertising()
+            startGattServer()
+        }.onSuccess {
+            Log.d(TAG, "加好友模块已启动")
+        }.onFailure {
+            Log.e(TAG, "加好友模块启动失败", it)
         }
     }
 
-    // ==================== BLE 广播 ====================
+    override fun stop() {
+        runCatching {
+            bluetoothLeAdvertiser?.stopAdvertising(object : AdvertiseCallback() {})
+            gattServer?.close()
+            deviceSessions.clear()
+        }.onSuccess {
+            Log.d(TAG, "加好友模块已停止")
+        }
+    }
 
-    @SuppressLint("MissingPermission")
-    private fun startBLEAdvertising(scope: CoroutineScope) {
+    /**
+     * 启动BLE广播
+     *
+     * 方便随时接收加好友请求
+     */
+    private fun startBLEAdvertising() {
         scope.launch {
-            try {
-                val adapter = bluetoothAdapter ?: run {
-                    Log.w(TAG, "蓝牙适配器不可用")
-                    return@launch
-                }
-                if (!adapter.isEnabled) {
-                    Log.w(TAG, "蓝牙未启用")
-                    return@launch
-                }
-
-                bluetoothLeAdvertiser = adapter.bluetoothLeAdvertiser ?: run {
-                    Log.w(TAG, "设备不支持 BLE 广播")
-                    return@launch
-                }
-
-                val myProfile = profileRepository.getProfile() ?: run {
-                    Log.w(TAG, "无法获取个人资料")
-                    return@launch
-                }
-                val userIdHash = myProfile.id.toMD5Bytes().copyOf(USER_ID_HASH_LENGTH)
+            runCatching {
+                // 检查蓝牙状态
+                if (checkBleReady().isFailure) return@launch
+                // 获取 userId 哈希
+                val profile = profileRepository.getProfile() ?: return@launch
+                val userIdHash = profile.id.toMD5Bytes().copyOf(USER_ID_HASH_LENGTH)
 
                 val settings = AdvertiseSettings.Builder()
-                    .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
-                    .setConnectable(true)
-                    .setTimeout(0)
-                    .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
+                    .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY) // 低延迟模式
+                    .setConnectable(true) // 允许其他设备发起 GATT 连接
+                    .setTimeout(0) // 持续广播不超时
+                    .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM) // 中等发射功率
+                    .build()
+                val advertiseData = AdvertiseData.Builder()
+                    .setIncludeDeviceName(false) // 广播包不包含设备名
+                    .addServiceUuid(ParcelUuid(SERVICE_UUID)) // 声明服务 UUID，扫描方可按此过滤
+                    .addServiceData(ParcelUuid(SERVICE_UUID), userIdHash) // 携带用户 ID 哈希
                     .build()
 
-                val data = AdvertiseData.Builder()
-                    .setIncludeDeviceName(false)
-                    .addServiceUuid(ParcelUuid(SERVICE_UUID))
-                    .addServiceData(ParcelUuid(SERVICE_UUID), userIdHash)
-                    .build()
-
-                bluetoothLeAdvertiser!!.startAdvertising(
-                    settings, data,
+                // 开始广播
+                bluetoothLeAdvertiser?.startAdvertising(
+                    settings,
+                    advertiseData,
                     object : AdvertiseCallback() {
                         override fun onStartSuccess(settingsInEffect: AdvertiseSettings) {
-                            Log.d(TAG, "✅ BLE 广播已启动")
+                            Log.d(TAG, "BLE 广播已启动")
                         }
 
                         override fun onStartFailure(errorCode: Int) {
@@ -166,27 +148,41 @@ class BLEModule @Inject constructor(
                         }
                     }
                 )
-            } catch (e: Exception) {
-                Log.e(TAG, "启动 BLE 广播异常", e)
+            }.onFailure {
+                Log.e(TAG, "启动 BLE 广播异常", it)
             }
         }
     }
 
-    // ==================== GATT 服务器 ====================
+    private fun checkBleReady(): Result<Unit> = runCatching {
+        val adapter = bluetoothAdapter ?: throw IllegalStateException("蓝牙适配器不可用")
 
-    @SuppressLint("MissingPermission")
-    private fun startGattServer(scope: CoroutineScope) {
+        if (!adapter.isEnabled) throw IllegalStateException("蓝牙未启用")
+
+        bluetoothLeAdvertiser = adapter.bluetoothLeAdvertiser
+            ?: throw IllegalStateException("设备不支持 BLE 广播")
+    }.onFailure {
+        it.message?.let { msg -> Log.w(TAG, msg) }
+    }
+
+    /**
+     * 启动 GATT 服务
+     *
+     * GATT = Generic Attribute Profile（通用属性协议）
+     * 是 BLE 设备之间交换数据的规范，定义了数据怎么组织、怎么读写。
+     *
+     * Characteristic（特征值）→ 具体数据字段，如"昵称""头像"
+     * Descriptor（描述符） → 字段的元信息，如"是否开启通知"
+     */
+    private fun startGattServer() {
         try {
-            val bluetoothManager =
-                context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-
             val characteristic = BluetoothGattCharacteristic(
                 CHARACTERISTIC_UUID,
-                BluetoothGattCharacteristic.PROPERTY_READ or
-                        BluetoothGattCharacteristic.PROPERTY_WRITE or
-                        BluetoothGattCharacteristic.PROPERTY_NOTIFY,
-                BluetoothGattCharacteristic.PERMISSION_READ or
-                        BluetoothGattCharacteristic.PERMISSION_WRITE
+                BluetoothGattCharacteristic.PROPERTY_READ or // 对方可以主动来读取数据
+                        BluetoothGattCharacteristic.PROPERTY_WRITE or // 对方可以向这里写入数据
+                        BluetoothGattCharacteristic.PROPERTY_NOTIFY, // 数据变化时主动推送给对方，无需对方轮询
+                BluetoothGattCharacteristic.PERMISSION_READ or // 读的权限
+                        BluetoothGattCharacteristic.PERMISSION_WRITE // 写的权限
             ).apply {
                 addDescriptor(
                     BluetoothGattDescriptor(
@@ -197,45 +193,44 @@ class BLEModule @Inject constructor(
                 )
             }
 
+            // 创建服务
             val service = BluetoothGattService(
                 SERVICE_UUID,
-                BluetoothGattService.SERVICE_TYPE_PRIMARY
+                BluetoothGattService.SERVICE_TYPE_PRIMARY // 表示这是主服务，对外直接暴露
             ).apply {
                 addCharacteristic(characteristic)
             }
 
+            // 启动服务，开始监听连接
             gattServer = bluetoothManager.openGattServer(
                 context,
-                GattServerCallbackImpl(scope)
-            )
-            gattServer?.addService(service)
-            Log.d(TAG, "✅ GATT 服务器已启动")
+                GattServerCallbackImpl() // 处理连接事件
+            ).apply {
+                addService(service)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "启动 GATT 服务器异常", e)
         }
     }
 
-    // ==================== GATT 回调 ====================
-
-    private inner class GattServerCallbackImpl(
-        private val scope: CoroutineScope
-    ) : BluetoothGattServerCallback() {
-
+    private inner class GattServerCallbackImpl : BluetoothGattServerCallback() {
         override fun onConnectionStateChange(device: BluetoothDevice, status: Int, newState: Int) {
             when (newState) {
+                // 连接了
                 BluetoothProfile.STATE_CONNECTED -> {
                     deviceSessions[device.address] = DeviceSession()
-                    Log.d(TAG, "✅ 设备已连接: ${device.address}")
                 }
 
+                // 断开了
                 BluetoothProfile.STATE_DISCONNECTED -> {
                     deviceSessions.remove(device.address)
-                    Log.d(TAG, "设备已断开: ${device.address}")
                 }
             }
         }
 
-        @SuppressLint("MissingPermission")
+        /**
+         * 对方设备向 Descriptor 写入数据时触发
+         */
         override fun onDescriptorWriteRequest(
             device: BluetoothDevice,
             requestId: Int,
@@ -245,16 +240,38 @@ class BLEModule @Inject constructor(
             offset: Int,
             value: ByteArray
         ) {
+            // 过滤无关写入
             if (descriptor.uuid == DESCRIPTOR_UUID) {
-                Log.d(TAG, "客户端订阅了通知: ${device.address}")
+                // 有些客户端写入后需要一个确认回包，否则会超时报错
                 if (responseNeeded) {
-                    gattServer?.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
+                    gattServer?.sendResponse(
+                        device,    // 回应的设备
+                        requestId, // 对应哪次请求
+                        BluetoothGatt.GATT_SUCCESS, // 告诉对方写入成功
+                        0,
+                        null // 不需要返回数据
+                    )
                 }
-                scope.launch { sendProfileData(device) }
+
+                when {
+                    // 开启通知
+                    value.contentEquals(BluetoothGattDescriptor.ENABLE_INDICATION_VALUE) -> {
+                        scope.launch {
+                            sendProfileData(device)
+                        }
+                    }
+
+                    // 关闭通知
+                    value.contentEquals(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE) -> {
+                        Log.d(TAG, "对方关闭了通知：${device.address}")
+                    }
+                }
             }
         }
 
-        @SuppressLint("MissingPermission")
+        /**
+         * 对方向 Characteristic 写入数据时触发
+         */
         override fun onCharacteristicWriteRequest(
             device: BluetoothDevice,
             requestId: Int,
@@ -267,6 +284,7 @@ class BLEModule @Inject constructor(
             scope.launch {
                 try {
                     val session = deviceSessions[device.address]
+                    // 没有会话时拒绝写入
                     if (session == null) {
                         Log.w(TAG, "设备会话不存在: ${device.address}")
                         sendGattResponse(
@@ -279,11 +297,14 @@ class BLEModule @Inject constructor(
                     }
 
                     if (!session.isReceivingBinary) {
+                        // 接收JSON（元数据等）
                         handleJsonDataChunk(session, value)
                     } else {
+                        // 接收二进制数据（头像等）
                         handleBinaryDataChunk(session, value)
                     }
 
+                    // 回应成功，让对方继续发下一块
                     sendGattResponse(device, requestId, responseNeeded, BluetoothGatt.GATT_SUCCESS)
                 } catch (e: Exception) {
                     Log.e(TAG, "处理写入请求失败: ${device.address}", e)
@@ -292,8 +313,7 @@ class BLEModule @Inject constructor(
             }
         }
 
-        // -------- 数据接收 --------
-
+        @Suppress("BlockingMethodInNonBlockingContext")
         private suspend fun handleJsonDataChunk(session: DeviceSession, chunk: ByteArray) {
             session.buffer.write(chunk)
             val jsonString = String(session.buffer.toByteArray(), Charsets.UTF_8)
@@ -313,6 +333,7 @@ class BLEModule @Inject constructor(
             }
         }
 
+        @Suppress("BlockingMethodInNonBlockingContext")
         private suspend fun handleBinaryDataChunk(session: DeviceSession, chunk: ByteArray) {
             session.buffer.write(chunk)
             if (session.buffer.size() >= session.expectedBinarySize) {
@@ -322,103 +343,55 @@ class BLEModule @Inject constructor(
             }
         }
 
-        // -------- 消息分发 --------
-
-        private suspend fun handleCompleteMessage(message: P2PMessage?, binaryData: ByteArray?) {
+        private suspend fun handleCompleteMessage(
+            message: FriendProtocol?,
+            binaryData: ByteArray?
+        ) {
             if (message == null) return
             try {
                 when (message) {
-                    is P2PMessage.FriendRequest -> handleFriendRequest(message, binaryData)
-                    is P2PMessage.FriendRequestResponse -> handleFriendRequestResponse(message)
-                    is P2PMessage.AutoAddResponse -> handleAutoAddResponse(message, binaryData)
-                    is P2PMessage.FullProfileResponse -> handleFullProfileResponse(
-                        message,
-                        binaryData
-                    )
-                    // 碰一碰：收到对方的申请
-                    is P2PMessage.NfcAddRequest -> handleNfcAddRequest(message, binaryData)
-                    // 碰一碰：收到对方的确认响应
-                    is P2PMessage.NfcAddResponse -> handleNfcAddResponse(message, binaryData)
+                    is FriendProtocol.FriendRequest -> handleFriendRequest(message, binaryData)
+                    is FriendProtocol.FriendResponse -> handleFriendResponse(message)
+                    is FriendProtocol.ProfileRequest -> handleProfileRequest()
+                    is FriendProtocol.ProfileResponse -> handleProfileResponse(message, binaryData)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "处理消息失败: ${message::class.simpleName}", e)
             }
         }
 
-        // -------- 各类消息处理器 --------
-
         private suspend fun handleFriendRequest(
-            message: P2PMessage.FriendRequest,
+            message: FriendProtocol.FriendRequest,
             binaryData: ByteArray?
         ) {
             friendRequestRepository.handleIncomingRequest(message.toDomain(binaryData))
-            _friendRequestEvents.emit(
-                FriendRequestEvent.NewRequest(
-                    nickname = message.peerNickname,
-                    message = message.greetingMessage
+            _friendEvents.emit(
+                FriendEvent.FriendRequest(
+                    nickname = message.nickname,
+                    message = message.greeting
                 )
             )
-            Log.d(TAG, "收到好友请求: ${message.peerNickname}")
         }
 
-        private suspend fun handleFriendRequestResponse(message: P2PMessage.FriendRequestResponse) {
+        private suspend fun handleFriendResponse(message: FriendProtocol.FriendResponse) {
             friendRequestRepository.handleRequestResponse(message.toDomain())
-            if (message.action == RequestAction.ACCEPT) {
-                _friendRequestEvents.emit(
-                    FriendRequestEvent.RequestAccepted(context.getString(R.string.contact_notification_request_accepted))
-                )
-                Log.d(TAG, "好友请求已被接受")
-            }
+            _friendEvents.emit(
+                FriendEvent.FriendResponse(message.result)
+            )
         }
 
-        private suspend fun handleAutoAddResponse(
-            message: P2PMessage.AutoAddResponse,
-            binaryData: ByteArray?
-        ) {
-            friendRequestRepository.handleAutoAddResponse(message.toDomain(binaryData))
-            _friendRequestEvents.emit(FriendRequestEvent.AutoAdded(message.nickname))
-            Log.d(TAG, "自动添加好友: ${message.nickname}")
+        private suspend fun handleProfileRequest() {
+
         }
 
-        private suspend fun handleFullProfileResponse(
-            message: P2PMessage.FullProfileResponse,
+        private suspend fun handleProfileResponse(
+            message: FriendProtocol.ProfileResponse,
             binaryData: ByteArray?
         ) {
             friendRequestRepository.handleFullProfileResponse(message.toDomain(binaryData))
             Log.d(TAG, "收到完整资料响应")
         }
 
-        /**
-         * 碰一碰：收到对方的 NfcAddRequest
-         * 直接透传到事件流，由 NfcAddFriendViewModel 处理业务逻辑
-         */
-        private suspend fun handleNfcAddRequest(
-            message: P2PMessage.NfcAddRequest,
-            binaryData: ByteArray?
-        ) {
-            Log.d(TAG, "收到碰一碰好友申请: ${message.nickname}")
-            _friendRequestEvents.emit(
-                FriendRequestEvent.NfcPeerAddRequest(message, binaryData)
-            )
-        }
-
-        /**
-         * 碰一碰：收到对方的 NfcAddResponse（对方确认了我的申请）
-         * 直接透传到事件流，由 NfcAddFriendViewModel 处理业务逻辑
-         */
-        private suspend fun handleNfcAddResponse(
-            message: P2PMessage.NfcAddResponse,
-            binaryData: ByteArray?
-        ) {
-            Log.d(TAG, "收到碰一碰好友响应: ${message.nickname}")
-            _friendRequestEvents.emit(
-                FriendRequestEvent.NfcPeerAddResponse(message, binaryData)
-            )
-        }
-
-        // -------- 工具方法 --------
-
-        @SuppressLint("MissingPermission")
         private fun sendGattResponse(
             device: BluetoothDevice,
             requestId: Int,
@@ -430,22 +403,19 @@ class BLEModule @Inject constructor(
             }
         }
 
-        private fun tryParseJsonMessage(jsonString: String): P2PMessage? {
+        private fun tryParseJsonMessage(jsonString: String): FriendProtocol? {
             return try {
-                json.decodeFromString<P2PMessage>(jsonString)
+                json.decodeFromString<FriendProtocol>(jsonString)
             } catch (e: Exception) {
                 Log.w(TAG, "JSON 解析失败: ${e.message}")
                 null
             }
         }
 
-        private fun extractBinarySizeFromMessage(message: P2PMessage): Int {
+        private fun extractBinarySizeFromMessage(message: FriendProtocol): Int {
             return when (message) {
-                is P2PMessage.FriendRequest -> message.avatarSize
-                is P2PMessage.AutoAddResponse -> message.avatarSize
-                is P2PMessage.FullProfileResponse -> message.avatarSize
-                is P2PMessage.NfcAddRequest -> message.avatarSize
-                is P2PMessage.NfcAddResponse -> message.avatarSize
+                is FriendProtocol.FriendRequest -> message.avatarSize
+                is FriendProtocol.ProfileResponse -> message.avatarSize
                 else -> 0
             }
         }
@@ -455,7 +425,6 @@ class BLEModule @Inject constructor(
         /**
          * 客户端订阅 Notification 后，主动推送本方资料给对方（BLE雷达场景）
          */
-        @SuppressLint("MissingPermission")
         private suspend fun sendProfileData(device: BluetoothDevice) {
             try {
                 val myProfile = profileRepository.getProfile() ?: return
@@ -509,7 +478,6 @@ class BLEModule @Inject constructor(
             return gattServer?.getService(SERVICE_UUID)?.getCharacteristic(CHARACTERISTIC_UUID)
         }
 
-        @SuppressLint("MissingPermission")
         private suspend fun sendDataChunked(
             server: BluetoothGattServer,
             device: BluetoothDevice,
@@ -540,7 +508,6 @@ class BLEModule @Inject constructor(
             Log.d(TAG, "[$dataType] 发送完成: $chunkCount 片，总大小 ${data.size} 字节")
         }
 
-        @SuppressLint("MissingPermission")
         private fun notifyCharacteristicChangedCompat(
             server: BluetoothGattServer,
             device: BluetoothDevice,
@@ -565,123 +532,33 @@ class BLEModule @Inject constructor(
             }
         }
     }
-
-    // ==================== 设备会话 ====================
-
-    private class DeviceSession {
-        var isReceivingBinary: Boolean = false
-            private set
-
-        val buffer: ByteArrayOutputStream = ByteArrayOutputStream()
-
-        var currentMessage: P2PMessage? = null
-            private set
-
-        var expectedBinarySize: Int = 0
-            private set
-
-        fun transitionToBinaryMode(binarySize: Int) {
-            isReceivingBinary = true
-            expectedBinarySize = binarySize
-        }
-
-        fun reset() {
-            buffer.reset()
-            currentMessage = null
-            expectedBinarySize = 0
-            isReceivingBinary = false
-        }
-
-        fun setCurrentMessage(message: P2PMessage) {
-            currentMessage = message
-        }
-    }
 }
 
-/**
- * 好友请求事件
- *
- * 用于向 UI 层传递好友请求相关的事件
- */
-sealed class FriendRequestEvent {
-    /**
-     * 扫一扫流程：收到新的好友请求
-     */
-    data class NewRequest(
-        val nickname: String,
-        val message: String
-    ) : FriendRequestEvent()
+private class DeviceSession {
+    var isReceivingBinary: Boolean = false
+        private set
 
-    /**
-     * 扫一扫流程：好友请求被接受
-     */
-    data class RequestAccepted(
-        val message: String
-    ) : FriendRequestEvent()
+    val buffer: ByteArrayOutputStream = ByteArrayOutputStream()
 
-    /**
-     * 自动添加成功（删除后重新添加场景）
-     */
-    data class AutoAdded(
-        val nickname: String
-    ) : FriendRequestEvent()
+    var currentMessage: FriendProtocol? = null
+        private set
 
-    /**
-     * 碰一碰流程：收到对方发来的 NfcAddRequest
-     *
-     * 表示对方已点击"添加到通讯录"，等待本方操作：
-     * - 若本方已点击：直接存库并回复 NfcAddResponse
-     * - 若本方未点击：展示"对方已准备好"提示
-     */
-    data class NfcPeerAddRequest(
-        val message: P2PMessage.NfcAddRequest,
-        val avatarBytes: ByteArray?
-    ) : FriendRequestEvent() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
+    var expectedBinarySize: Int = 0
+        private set
 
-            other as NfcPeerAddRequest
-
-            if (message != other.message) return false
-            if (!avatarBytes.contentEquals(other.avatarBytes)) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = message.hashCode()
-            result = 31 * result + (avatarBytes?.contentHashCode() ?: 0)
-            return result
-        }
+    fun transitionToBinaryMode(binarySize: Int) {
+        isReceivingBinary = true
+        expectedBinarySize = binarySize
     }
 
-    /**
-     * 碰一碰流程：收到对方发来的 NfcAddResponse
-     *
-     * 表示对方确认了本方的添加请求，双方交换完成。
-     * 收到此事件后将对方资料存库并显示成功。
-     */
-    data class NfcPeerAddResponse(
-        val message: P2PMessage.NfcAddResponse,
-        val avatarBytes: ByteArray?
-    ) : FriendRequestEvent() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
+    fun reset() {
+        buffer.reset()
+        currentMessage = null
+        expectedBinarySize = 0
+        isReceivingBinary = false
+    }
 
-            other as NfcPeerAddResponse
-
-            if (message != other.message) return false
-            if (!avatarBytes.contentEquals(other.avatarBytes)) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = message.hashCode()
-            result = 31 * result + (avatarBytes?.contentHashCode() ?: 0)
-            return result
-        }
+    fun setCurrentMessage(message: FriendProtocol) {
+        currentMessage = message
     }
 }

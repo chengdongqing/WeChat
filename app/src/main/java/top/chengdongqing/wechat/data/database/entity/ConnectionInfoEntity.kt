@@ -27,20 +27,20 @@ data class ConnectionInfoEntity(
 
     @Embedded
     val audit: EntityAudit = EntityAudit()
-)
-
-fun ConnectionInfoEntity.mergeWith(existing: ConnectionInfoEntity): ConnectionInfoEntity {
-    return this.copy(
-        lanIpAddress = this.lanIpAddress ?: existing.lanIpAddress,
-        lanPort = this.lanPort ?: existing.lanPort,
-        lanServiceName = this.lanServiceName ?: existing.lanServiceName,
-        p2pMacAddress = this.p2pMacAddress ?: existing.p2pMacAddress,
-        p2pDeviceName = this.p2pDeviceName ?: existing.p2pDeviceName,
-        bluetoothAddress = this.bluetoothAddress ?: existing.bluetoothAddress,
-        bluetoothName = this.bluetoothName ?: existing.bluetoothName,
-        audit = this.audit.copy(
-            createdAt = existing.audit.createdAt,
-            updatedAt = System.currentTimeMillis()
+) {
+    fun mergeWith(existing: ConnectionInfoEntity): ConnectionInfoEntity {
+        return this.copy(
+            lanIpAddress = this.lanIpAddress ?: existing.lanIpAddress,
+            lanPort = this.lanPort ?: existing.lanPort,
+            lanServiceName = this.lanServiceName ?: existing.lanServiceName,
+            p2pMacAddress = this.p2pMacAddress ?: existing.p2pMacAddress,
+            p2pDeviceName = this.p2pDeviceName ?: existing.p2pDeviceName,
+            bluetoothAddress = this.bluetoothAddress ?: existing.bluetoothAddress,
+            bluetoothName = this.bluetoothName ?: existing.bluetoothName,
+            audit = this.audit.copy(
+                createdAt = existing.audit.createdAt,
+                updatedAt = System.currentTimeMillis()
+            )
         )
-    )
+    }
 }

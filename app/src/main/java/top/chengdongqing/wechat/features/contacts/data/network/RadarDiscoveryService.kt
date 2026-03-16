@@ -136,12 +136,14 @@ class RadarDiscoveryService @Inject constructor(
      * 定期向多播组广播自己的 Beacon，让局域网内其他设备感知到本机的存在。
      */
     private suspend fun beaconLoop() = withContext(Dispatchers.IO) {
-        val profile = myProfile!!
+        val profile = myProfile ?: return@withContext
+        val avatarUrl = avatarServer.avatarUrl ?: return@withContext
+
         val payload = json.encodeToString(
             RadarBeacon(
                 userId = profile.id,
                 nickname = profile.nickname,
-                avatarUrl = avatarServer.avatarUrl
+                avatarUrl = avatarUrl
             )
         ).toByteArray(Charsets.UTF_8)
 

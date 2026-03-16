@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.service.modules
+package top.chengdongqing.wechat.data.network.service.chat
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
@@ -19,22 +19,24 @@ import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManage
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketServer
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
+import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Wi-Fi直连聊天模块
+ */
 @Singleton
 class WiFiDirectChatModule @Inject constructor(
     private val socketServer: TcpSocketServer,
     private val socketClient: TcpSocketClient,
     private val connectionManager: TcpConnectionManager,
-    private val profileRepository: ProfileRepository,
     private val activeSessionManager: ActiveSessionManager,
     private val messageReceiver: MessageReceiver,
     @param:ApplicationContext private val context: Context,
-    @param:IoScope private val scope: CoroutineScope,
-) {
+    @param:IoScope private val scope: CoroutineScope
+) : ServiceModule {
     private companion object {
         private const val TAG = "WiFiDirectChatModule"
         private const val PORT = 8888
@@ -47,17 +49,37 @@ class WiFiDirectChatModule @Inject constructor(
         p2pManager.initialize(context, Looper.getMainLooper(), null)
     }
     private var connectionReceiver: BroadcastReceiver? = null
+    private var myUserId: String? = null
+
+    override fun start() {
+        scope.launch {
+            runCatching {
+                removeGroup()
+                socketServer.start(PORT)
+                messageReceiver.start()
+                observeConnectionState()
+            }.onSuccess {
+                Log.d(TAG, "WiFi Direct 聊天模块已启动")
+            }.onFailure {
+                Log.e(TAG, "WiFi Direct 聊天模块启动失败", it)
+            }
+        }
+    }
 
     /**
-     * 初始化模块：清理旧组、申请锁、启动服务、监听连接状态
+     * 停止模块，释放所有资源
      */
-    suspend fun prepare() {
-        removeGroup()
-        socketServer.start(PORT)
-        messageReceiver.start()
-        observeConnectionState()
-
-        Log.d(TAG, "WiFi Direct 模块已就绪，等待用户选择角色")
+    override fun stop() {
+        scope.launch {
+            runCatching {
+                removeGroup()
+                unregisterConnectionReceiver()
+                connectionManager.closeAll()
+                socketServer.stop()
+            }.onSuccess {
+                Log.d(TAG, "WiFi Direct 聊天模块已停止")
+            }
+        }
     }
 
     suspend fun startAsOwner() = createGroup()
@@ -65,31 +87,28 @@ class WiFiDirectChatModule @Inject constructor(
     suspend fun startAsClient() = removeGroup()
 
     /**
-     * 停止模块，释放所有资源
+     * 创建组
      */
-    suspend fun stop() {
-        removeGroup()
-        unregisterConnectionReceiver()
-        connectionManager.closeAll()
-        socketServer.stop()
-
-        Log.d(TAG, "WiFi Direct 聊天模块已停止")
-    }
-
     @SuppressLint("MissingPermission")
-    private suspend fun createGroup() = suspendCancellableCoroutine { cont ->
-        p2pManager.createGroup(channel, object : WifiP2pManager.ActionListener {
-            override fun onSuccess() {
-                cont.resumeIfActive(Unit)
-            }
+    private suspend fun createGroup() {
+        removeGroup()
+        suspendCancellableCoroutine { cont ->
+            p2pManager.createGroup(channel, object : WifiP2pManager.ActionListener {
+                override fun onSuccess() {
+                    cont.resumeIfActive(Unit)
+                }
 
-            override fun onFailure(reason: Int) {
-                Log.w(TAG, "P2P 组创建失败: $reason，继续执行")
-                cont.resumeIfActive(Unit)
-            }
-        })
+                override fun onFailure(reason: Int) {
+                    Log.w(TAG, "P2P 组创建失败: $reason")
+                    cont.resumeIfActive(Unit)
+                }
+            })
+        }
     }
 
+    /**
+     * 解散组
+     */
     private suspend fun removeGroup() = suspendCancellableCoroutine { cont ->
         p2pManager.removeGroup(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() = cont.resumeIfActive(Unit)
@@ -98,7 +117,7 @@ class WiFiDirectChatModule @Inject constructor(
     }
 
     /**
-     * 监听 P2P 连接状态变化，群组建立后由客户端主动发起 TCP 连接
+     * 监听连接状态变化，群组建立后由客户端主动发起 TCP 连接
      */
     private fun observeConnectionState() {
         connectionReceiver = object : BroadcastReceiver() {
@@ -107,18 +126,17 @@ class WiFiDirectChatModule @Inject constructor(
 
                 p2pManager.requestConnectionInfo(channel) { info ->
                     if (info != null && info.groupFormed) {
-                        val goIp =
-                            info.groupOwnerAddress?.hostAddress ?: return@requestConnectionInfo
-                        val goUserId =
-                            activeSessionManager.activeSessionId ?: return@requestConnectionInfo
+                        val goIp = info.groupOwnerAddress?.hostAddress
+                        val goUserId = activeSessionManager.activeSessionId
 
-                        if (!info.isGroupOwner) {
+                        if (!info.isGroupOwner && goIp != null && goUserId != null) {
                             scope.launch {
                                 delay(1000)
-                                connectAsClient(goUserId, goIp)
+                                connectToGroupOwner(goUserId, goIp)
                             }
                         }
                     } else {
+                        // 解散组后关闭所有连接
                         connectionManager.closeAll()
                     }
                 }
@@ -131,15 +149,18 @@ class WiFiDirectChatModule @Inject constructor(
         )
     }
 
-    private suspend fun connectAsClient(goUserId: String, goIp: String) {
-        val myUserId = profileRepository.getProfile()?.id ?: return
-
-        socketClient.connect(
-            userId = goUserId,
-            host = goIp,
-            port = PORT,
-            myUserId = myUserId
-        )
+    /**
+     * 主动连接 Group Owner
+     */
+    private suspend fun connectToGroupOwner(goUserId: String, goIp: String) {
+        myUserId?.let {
+            socketClient.connect(
+                userId = goUserId,
+                host = goIp,
+                port = PORT,
+                myUserId = it
+            )
+        }
     }
 
     private fun unregisterConnectionReceiver() {

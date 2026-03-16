@@ -3,7 +3,6 @@ package top.chengdongqing.wechat.data.network.connection
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -39,13 +38,8 @@ class ChatTransportManager @Inject constructor(
     private val _mode = MutableStateFlow(ConnectionMode.WiFiLan)
     val mode = _mode.asStateFlow()
 
-    /**
-     * 订阅外部模式变化，切换后续收发路由
-     */
-    fun observeMode(connectionMode: Flow<ConnectionMode>) {
-        connectionMode
-            .onEach { _mode.value = it }
-            .launchIn(scope)
+    fun setMode(mode: ConnectionMode) {
+        _mode.value = mode
     }
 
     private val active: ChatTransport

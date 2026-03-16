@@ -56,17 +56,17 @@ interface FriendRequestRepository {
     /**
      * 处理收到的好友申请
      */
-    suspend fun handleIncomingRequest(request: IncomingFriendRequest)
+    suspend fun handleIncomingRequest(request: IncomingFriendRequest): Result<Unit>
 
     /**
      * 处理申请响应
      */
-    suspend fun handleRequestResponse(response: FriendRequestResponse)
+    suspend fun handleRequestResponse(response: FriendRequestResponse): Result<Unit>
 
     /**
      * 处理自动添加回复
      */
-    suspend fun handleAutoAddResponse(response: FriendProfileResponse)
+    suspend fun handleAutoAddResponse(response: FriendProfileResponse): Result<Unit>
 
     /**
      * 处理完整资料响应

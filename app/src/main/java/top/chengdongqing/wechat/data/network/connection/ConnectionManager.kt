@@ -151,31 +151,19 @@ abstract class ConnectionManager(
             try {
                 while (conn.isActive) {
                     val packet = conn.reader.read()
+                    val userId = conn.userId
+
                     when (packet.type) {
                         PacketType.PING -> {
+                            // 回应心跳
                             conn.writer.write(Packet.pong())
-
-                            // 比对好友资料版本号，看是否需要更新对方的资料
-                            if (packet.body.size < 16) return@launch
-                            val buffer = ByteBuffer.wrap(packet.body)
-                            val remoteProfileVersion = buffer.getLong() // 自动取前8个字节
-
-                            val contact = contactRepository.getContact(conn.userId) ?: continue
-                            if (remoteProfileVersion > contact.version) {
-                                // 发送拉取个人资料请求
-                                send(
-                                    userId = conn.userId,
-                                    packet = Packet(PacketType.PROFILE_REQUEST)
-                                )
-                            }
+                            // 检查对方的资料是否需要更新
+                            checkProfileVersion(userId, packet)
                         }
 
                         PacketType.PONG -> conn.lastPongTime.set(System.currentTimeMillis())
                         PacketType.HANDSHAKE -> onHandshake?.invoke(packet)
-                        else -> {
-                            val decrypted = e2e.decryptPacket(conn.userId, packet)
-                            conn.receiveChannel.send(decrypted)
-                        }
+                        else -> conn.receiveChannel.send(e2e.decryptPacket(userId, packet))
                     }
                 }
             } catch (_: Exception) {
@@ -183,6 +171,25 @@ abstract class ConnectionManager(
             } finally {
                 disconnect(conn.userId)
             }
+        }
+    }
+
+    /**
+     * 通过比对好友资料版本号，判断是否需要更新对方的资料
+     */
+    private suspend fun checkProfileVersion(userId: String, packet: Packet) {
+        if (packet.body.size < 16) return // 长度不对时直接忽略
+
+        val buffer = ByteBuffer.wrap(packet.body)
+        val remoteProfileVersion = buffer.getLong() // 将自动取8个字节
+
+        val contact = contactRepository.getContact(userId) ?: return
+        if (remoteProfileVersion > contact.version) {
+            // 发送拉取个人资料请求
+            send(
+                userId = userId,
+                packet = Packet(PacketType.PROFILE_REQUEST)
+            )
         }
     }
 

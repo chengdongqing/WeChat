@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
 import androidx.core.net.toUri
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
@@ -40,16 +41,14 @@ class MessageDispatcher @Inject constructor(
         const val TAG = "MessageDispatcher"
     }
 
-    /**
-     * 新消息流，供上层发送通知/更新 UI
-     *
-     * replay=0：不缓存历史消息，订阅者只收到订阅后的新消息
-     * extraBufferCapacity=64：突发消息不阻塞发送方协程
-     */
-    private val _incomingMessageFlow = MutableSharedFlow<ChatMessage>(
-        replay = 0, extraBufferCapacity = 64
+    private val _incomingMessages = MutableSharedFlow<ChatMessage>(
+        replay = 0, // 不缓存历史消息，订阅者只收到订阅后的新消息
+        extraBufferCapacity = 64 // 突发消息不阻塞发送方协程
     )
-    val incomingMessageFlow = _incomingMessageFlow.asSharedFlow()
+    /**
+     * 新消息流，供上层发送通知等
+     */
+    val incomingMessages: Flow<ChatMessage> = _incomingMessages.asSharedFlow()
 
     /**
      * 分发 JSON 类协议包（文本、回执、信令、心跳等）
@@ -110,7 +109,7 @@ class MessageDispatcher @Inject constructor(
             protocol,
             entityBuilder,
         ) { message ->
-            _incomingMessageFlow.emit(message)
+            _incomingMessages.emit(message)
         }
     }
 

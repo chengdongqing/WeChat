@@ -1,9 +1,9 @@
-package top.chengdongqing.wechat.data.network.service.modules
+package top.chengdongqing.wechat.data.network.service.chat
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
@@ -14,15 +14,15 @@ import top.chengdongqing.wechat.data.network.discovery.DiscoveryEvent
 import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
 import top.chengdongqing.wechat.data.network.discovery.ServiceRegistrationState
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
-import top.chengdongqing.wechat.data.network.service.NetworkService
+import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
-import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * 聊天模块
+ * Wi-Fi局域网聊天模块
  */
 @Singleton
 class WiFiLanChatModule @Inject constructor(
@@ -33,43 +33,48 @@ class WiFiLanChatModule @Inject constructor(
     private val wifiLockManager: WifiLockManager,
     private val messageReceiver: MessageReceiver,
     private val connectionInfoDao: ConnectionInfoDao,
-    private val contactRepository: ContactRepository
-) {
+    private val contactRepository: ContactRepository,
+    private val profileRepository: ProfileRepository,
+    @param:IoScope private val scope: CoroutineScope
+) : ServiceModule {
     private companion object {
         const val TAG = "WiFiLanChatModule"
     }
 
-    /** 透传 [MessageReceiver] 的新消息流，供 [NetworkService] 订阅通知 */
-    val incomingMessageFlow: SharedFlow<ChatMessage>
-        get() = messageReceiver.incomingMessageFlow
+    private val userId: String by lazy { profileRepository.getProfile()?.id!! }
 
-    /**
-     * 启动聊天服务模块
-     */
-    suspend fun start(userId: String, scope: CoroutineScope) {
-        // 申请Wi-Fi锁，后台通信保活
-        wifiLockManager.acquireKeepAlive()
-        // 启动TCP服务
-        val port = socketServer.start()
-        // 注册NSD服务
-        startNsdRegistration(userId, port, scope)
-        // 开始搜索NSD设备
-        startNsdDiscovery(userId, scope)
-        // 启动消息接收服务
-        messageReceiver.start()
-
-        Log.d(TAG, "Wi-Fi Lan 聊天模块已启动")
+    override fun start() {
+        scope.launch {
+            runCatching {
+                // 申请Wi-Fi锁，后台通信保活
+                wifiLockManager.acquireKeepAlive()
+                // 启动TCP服务
+                val port = socketServer.start()
+                // 注册NSD服务
+                startNsdRegistration(userId, port, scope)
+                // 开始搜索NSD设备
+                startNsdDiscovery(userId, scope)
+                // 启动消息接收服务
+                messageReceiver.start()
+            }.onSuccess {
+                Log.d(TAG, "Wi-Fi Lan 聊天模块已启动")
+            }.onFailure {
+                Log.e(TAG, "Wi-Fi Lan 聊天模块启动失败", it)
+            }
+        }
     }
 
-    fun stop() {
-        // 关闭所有连接
-        connectionManager.closeAll()
-        // 停止TCP服务
-        socketServer.stop()
-        // 释放Wi-Fi锁
-        wifiLockManager.releaseKeepAlive()
-
-        Log.d(TAG, "Wi-Fi Lan 聊天模块已停止")
+    override fun stop() {
+        runCatching {
+            // 关闭所有连接
+            connectionManager.closeAll()
+            // 停止TCP服务
+            socketServer.stop()
+            // 释放Wi-Fi锁
+            wifiLockManager.releaseKeepAlive()
+        }.onSuccess {
+            Log.d(TAG, "Wi-Fi Lan 聊天模块已停止")
+        }
     }
 
     /**

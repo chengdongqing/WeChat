@@ -147,7 +147,7 @@ class PacketWriter(outputStream: OutputStream) {
  * Packet 读取器
  *
  * 基于 BufferedInputStream（256KB）预读，减少 read syscall。
- * 每次 [read] 阻塞直到读完一个完整 Packet；PING/PONG 的 body 为空数组。
+ * 每次 [read] 阻塞直到读完一个完整 Packet
  * 包长度超出 [TransferConfig.MAX_PACKET_LENGTH] 时抛出异常，防止异常数据撑爆内存。
  */
 class PacketReader(inputStream: InputStream) {

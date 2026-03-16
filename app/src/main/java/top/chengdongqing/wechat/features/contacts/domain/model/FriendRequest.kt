@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
-import top.chengdongqing.wechat.data.database.entity.RequestStatus
+import top.chengdongqing.wechat.data.model.FriendRequestStatus
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 data class FriendRequest(
@@ -11,7 +11,7 @@ data class FriendRequest(
     val peerAvatarPath: String?,
     val greetingMessage: String,
     val remark: String?,
-    val status: RequestStatus,
+    val status: FriendRequestStatus,
     val direction: RequestDirection,
     val timestamp: Long
 )

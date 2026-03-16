@@ -9,11 +9,11 @@ import top.chengdongqing.wechat.features.chat.data.repository.ChatSessionReposit
 import top.chengdongqing.wechat.features.chat.data.repository.MessageRepositoryImpl
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
-import top.chengdongqing.wechat.features.contacts.data.repository.ContactP2PRepositoryImpl
+import top.chengdongqing.wechat.features.contacts.data.repository.AddFriendRepositoryImpl
 import top.chengdongqing.wechat.features.contacts.data.repository.ContactRepositoryImpl
 import top.chengdongqing.wechat.features.contacts.data.repository.FriendRequestRepositoryImpl
 import top.chengdongqing.wechat.features.contacts.data.repository.RadarDiscoveryRepositoryImpl
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscoveryRepository
@@ -48,9 +48,9 @@ interface RepositoryModule {
 
     @Binds
     @Singleton
-    fun bindContactP2PRepository(
-        impl: ContactP2PRepositoryImpl
-    ): ContactP2PRepository
+    fun bindAddFriendRepository(
+        impl: AddFriendRepositoryImpl
+    ): AddFriendRepository
 
     @Binds
     @Singleton

@@ -42,7 +42,7 @@ import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
-import top.chengdongqing.wechat.data.notification.NotificationHelper
+import top.chengdongqing.wechat.data.network.service.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.features.chat.data.mapper.toMediaItem
@@ -58,7 +58,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.message.MultiMessageAct
 import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.MessageToolbarManager
 import top.chengdongqing.wechat.features.chat.ui.session.util.AudioPlaybackManager
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
@@ -74,7 +74,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
     private val chatSettingsRepository: ChatSettingsRepository,
     private val contactRepository: ContactRepository,
-    private val contactP2PRepository: ContactP2PRepository,
+    private val addFriendRepository: AddFriendRepository,
     private val publicFileManager: PublicFileManager,
     private val soundTipPlayer: SoundTipPlayer,
     private val notificationHelper: NotificationHelper,
@@ -227,6 +227,7 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private val audioPlaybackManager = AudioPlaybackManager(
         context = context,
+        scope = viewModelScope,
         soundTipPlayer = soundTipPlayer,
         onPlayingStateChanged = { _playingMessageId.value = it },
         onMessagePlayed = { markAsPlayed(it) }
@@ -502,7 +503,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                     nickname = state.title,
                     avatarPath = state.peerAvatar
                 )
-                contactP2PRepository.setContactToCache(
+                addFriendRepository.setContactToCache(
                     contactId = chatId,
                     contact = contact
                 )

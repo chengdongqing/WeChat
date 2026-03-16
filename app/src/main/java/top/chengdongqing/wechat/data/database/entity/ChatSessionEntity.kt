@@ -21,13 +21,12 @@ data class ChatSessionEntity(
     val lastMessageRecalled: Boolean = false,   // 最后一条消息是否撤回了
     val lastMessageFromMe: Boolean = true,   // 最后一条消息是否是我发送的
 
-    val unreadCount: Int = 0,           // 未读消息数
-
     val isSending: Boolean = false,     // 是否发送中
     val isPinned: Boolean = false,      // 是否置顶
     val isMuted: Boolean = false,       // 是否免打扰
     val isHidden: Boolean = false,      // 是否隐藏
 
+    val unreadCount: Int = 0,           // 未读消息数
     val draftMessage: String? = null,   // 草稿消息
     val backgroundPath: String? = null, // 聊天背景
 

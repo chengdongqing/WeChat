@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.data.mapper.toContact
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -28,7 +28,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 class ContactDetailViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
     private val contactRepository: ContactRepository,
-    private val contactP2PRepository: ContactP2PRepository,
+    private val addFriendRepository: AddFriendRepository,
     profileRepository: ProfileRepository
 ) : ViewModel() {
 
@@ -60,7 +60,7 @@ class ContactDetailViewModel @AssistedInject constructor(
 
             else -> {
                 // 陌生人（从缓存）
-                contactP2PRepository.getContactFromCache(contactId)
+                addFriendRepository.getContactFromCache(contactId)
             }
         }
 

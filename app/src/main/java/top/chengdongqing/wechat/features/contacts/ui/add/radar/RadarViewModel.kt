@@ -13,14 +13,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.network.model.RadarBeacon
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscoveryRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 @HiltViewModel
 class RadarScanViewModel @Inject constructor(
     private val radarRepository: RadarDiscoveryRepository,
-    private val contactP2PRepository: ContactP2PRepository,
+    private val addFriendRepository: AddFriendRepository,
     profileRepository: ProfileRepository
 ) : ViewModel() {
 
@@ -67,7 +67,7 @@ class RadarScanViewModel @Inject constructor(
             _loadingUserId.value = user.id
             _error.value = null
 
-            val contact = contactP2PRepository.fetchPeerContactViaBle(user.id)
+            val contact = addFriendRepository.fetchPeerContactViaBle(user.id)
             if (contact != null) {
                 _navigateToContact.value = contact
             } else {

@@ -5,8 +5,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
-import top.chengdongqing.wechat.data.database.entity.RequestDirection
-import top.chengdongqing.wechat.data.database.entity.RequestStatus
+import top.chengdongqing.wechat.data.model.FriendRequestStatus
 
 @Dao
 interface FriendRequestDao : BaseDao<FriendRequestEntity> {
@@ -20,45 +19,45 @@ interface FriendRequestDao : BaseDao<FriendRequestEntity> {
     @Query(
         """
         SELECT * FROM friend_requests 
-        WHERE peerId = :peerId 
-        AND direction = :direction 
+        WHERE userId = :peerId 
+        AND isFromMe = :isFromMe 
         ORDER BY createdAt DESC 
         LIMIT 1
     """
     )
     suspend fun getByPeerId(
         peerId: String,
-        direction: RequestDirection
+        isFromMe: Boolean
     ): FriendRequestEntity?
 
-    @Query("SELECT COUNT(*) FROM friend_requests WHERE direction = :direction AND status = :status")
+    @Query("SELECT COUNT(*) FROM friend_requests WHERE isFromMe = :isFromMe AND status = :status")
     fun getPendingCount(
-        direction: RequestDirection = RequestDirection.Incoming,
-        status: RequestStatus = RequestStatus.Pending
+        isFromMe: Boolean = false,
+        status: FriendRequestStatus = FriendRequestStatus.Pending
     ): Flow<Int>
 
     @Query(
         """
         SELECT COUNT(*) FROM friend_requests 
-        WHERE direction = :direction 
+        WHERE isFromMe = :isFromMe 
         AND status = :status 
         AND isRead = 0
     """
     )
     fun observeUnreadCount(
-        direction: RequestDirection = RequestDirection.Incoming,
-        status: RequestStatus = RequestStatus.Pending
+        isFromMe: Boolean = false,
+        status: FriendRequestStatus = FriendRequestStatus.Pending
     ): Flow<Int>
 
     @Query(
         """
         UPDATE friend_requests 
         SET isRead = 1, updatedAt = :now 
-        WHERE direction = :direction
+        WHERE isFromMe = :isFromMe
     """
     )
     suspend fun markAllIncomingAsRead(
-        direction: RequestDirection = RequestDirection.Incoming,
+        isFromMe: Boolean = false,
         now: Long = System.currentTimeMillis()
     )
 

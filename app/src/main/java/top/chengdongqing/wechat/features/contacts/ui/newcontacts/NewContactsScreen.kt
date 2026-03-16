@@ -47,7 +47,7 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.data.database.entity.RequestDirection
-import top.chengdongqing.wechat.data.database.entity.RequestStatus
+import top.chengdongqing.wechat.data.model.FriendRequestStatus
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 import kotlin.time.Duration.Companion.days
 
@@ -295,7 +295,7 @@ private fun RequestStatusHandler(
     onActionClick: () -> Unit
 ) {
     when (request.status) {
-        RequestStatus.Pending -> {
+        FriendRequestStatus.Pending -> {
             if (request.direction == RequestDirection.Incoming) {
                 WeButton(
                     text = stringResource(R.string.action_view),
@@ -308,9 +308,9 @@ private fun RequestStatusHandler(
             }
         }
 
-        RequestStatus.Accepted -> StatusText(stringResource(R.string.new_contacts_status_accepted))
-        RequestStatus.Rejected -> StatusText(stringResource(R.string.new_contacts_status_rejected))
-        RequestStatus.Expired -> StatusText(stringResource(R.string.new_contacts_status_expired))
+        FriendRequestStatus.Accepted -> StatusText(stringResource(R.string.new_contacts_status_accepted))
+        FriendRequestStatus.Rejected -> StatusText(stringResource(R.string.new_contacts_status_rejected))
+        FriendRequestStatus.Expired -> StatusText(stringResource(R.string.new_contacts_status_expired))
     }
 }
 

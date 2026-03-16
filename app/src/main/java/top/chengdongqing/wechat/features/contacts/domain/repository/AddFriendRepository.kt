@@ -4,20 +4,15 @@ import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.NfcContactEvent
 
-interface ContactP2PRepository {
+interface AddFriendRepository {
 
     /**
      * 处理扫描到的二维码
-     *
-     * @param qrContent 二维码内容
-     * @return 联系人信息
      */
     suspend fun handleScannedQRCode(qrContent: String): Result<Contact>
 
     /**
      * 生成我的二维码内容
-     *
-     * @return Base64 编码的二维码数据
      */
     suspend fun generateMyQRCode(): String
 

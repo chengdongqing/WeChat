@@ -96,6 +96,7 @@
     <string name="contact_notification_auto_added_title">新的朋友</string>
     <string name="contact_notification_auto_added_content">你已添加了%1$s，现在可以开始聊天了</string>
     <string name="contact_notification_request_accepted">对方已同意你的好友申请</string>
+    <string name="contact_notification_request_rejected">对方拒绝了你的好友申请</string>
 
     <string name="contact_blocked_hint">已添加至黑名单，你将不再收到对方的消息</string>
 </resources>

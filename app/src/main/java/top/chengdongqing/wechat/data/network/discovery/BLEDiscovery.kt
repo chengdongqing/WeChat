@@ -29,7 +29,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
-import top.chengdongqing.wechat.data.network.service.modules.BLEModule
+import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendModule
 import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -89,7 +89,7 @@ class BLEDiscovery @Inject constructor(
                 }
 
                 val filter = ScanFilter.Builder()
-                    .setServiceUuid(ParcelUuid(BLEModule.SERVICE_UUID))
+                    .setServiceUuid(ParcelUuid(BLEAddFriendModule.SERVICE_UUID))
                     .build()
 
                 val settings = ScanSettings.Builder()
@@ -105,7 +105,7 @@ class BLEDiscovery @Inject constructor(
                         Log.d(TAG, "扫描到设备: ${result.device.address}")
 
                         val serviceData = result.scanRecord?.getServiceData(
-                            ParcelUuid(BLEModule.SERVICE_UUID)
+                            ParcelUuid(BLEAddFriendModule.SERVICE_UUID)
                         )
 
                         if (serviceData != null) {
@@ -198,7 +198,7 @@ class BLEDiscovery @Inject constructor(
                     delay(50)
                 }
 
-                Log.d(TAG, "✅ 分片写入完成，共 $chunkIndex 片")
+                Log.d(TAG, "分片写入完成，共 $chunkIndex 片")
                 true
             }
         } catch (e: Exception) {
@@ -301,7 +301,7 @@ class BLEDiscovery @Inject constructor(
                     if (status == BluetoothGatt.GATT_SUCCESS) {
                         Log.d(TAG, "服务发现成功")
 
-                        val service = gatt.getService(BLEModule.SERVICE_UUID)
+                        val service = gatt.getService(BLEAddFriendModule.SERVICE_UUID)
                         if (service != null) {
                             Log.d(TAG, "找到目标服务")
                             continuation.resume(gatt)
@@ -361,7 +361,7 @@ class BLEDiscovery @Inject constructor(
                                     json.decodeFromString<UserProfileBeacon>(jsonString)
                                 jsonReceived = true
 
-                                Log.d(TAG, "✅ JSON 接收完成: ${receivedData.size()} 字节")
+                                Log.d(TAG, "JSON 接收完成: ${receivedData.size()} 字节")
 
                                 Log.d(TAG, "等待接收头像")
                                 receivedData.reset()  // 清空缓冲区，准备接收头像
@@ -377,7 +377,7 @@ class BLEDiscovery @Inject constructor(
                         if (receivedData.size() >= expectedSize) {
                             val avatarBytes = receivedData.toByteArray()
 
-                            Log.d(TAG, "✅ 头像接收完成: ${avatarBytes.size} 字节")
+                            Log.d(TAG, "头像接收完成: ${avatarBytes.size} 字节")
 
                             // 返回 JSON + 头像
                             readContinuation?.let { cont ->
@@ -408,8 +408,8 @@ class BLEDiscovery @Inject constructor(
     suspend fun readProfile(gatt: BluetoothGatt): Pair<UserProfileBeacon, ByteArray?>? {
         return suspendCancellableCoroutine { continuation ->
 
-            val service = gatt.getService(BLEModule.SERVICE_UUID)
-            val characteristic = service?.getCharacteristic(BLEModule.CHARACTERISTIC_UUID)
+            val service = gatt.getService(BLEAddFriendModule.SERVICE_UUID)
+            val characteristic = service?.getCharacteristic(BLEAddFriendModule.CHARACTERISTIC_UUID)
 
             if (characteristic == null) {
                 Log.e(TAG, "未找到特征")
@@ -430,7 +430,7 @@ class BLEDiscovery @Inject constructor(
             }
 
             // 写入 Descriptor 以订阅
-            val descriptor = characteristic.getDescriptor(BLEModule.DESCRIPTOR_UUID)
+            val descriptor = characteristic.getDescriptor(BLEAddFriendModule.DESCRIPTOR_UUID)
             if (descriptor != null) {
                 val result = writeDescriptorCompat(
                     gatt,
@@ -438,7 +438,7 @@ class BLEDiscovery @Inject constructor(
                 )
 
                 if (result) {
-                    Log.d(TAG, "✅ 已订阅 Notification，等待数据...")
+                    Log.d(TAG, "已订阅 Notification，等待数据...")
                 } else {
                     Log.e(TAG, "写入 Descriptor 失败")
                     continuation.resume(null)

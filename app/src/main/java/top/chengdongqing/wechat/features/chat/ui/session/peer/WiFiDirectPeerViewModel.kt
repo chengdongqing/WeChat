@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.network.connection.wifi.WiFiDirectConnector
-import top.chengdongqing.wechat.data.network.service.modules.WiFiDirectChatModule
+import top.chengdongqing.wechat.data.network.service.chat.WiFiDirectChatModule
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDeviceUiState
 import top.chengdongqing.wechat.features.chat.domain.model.WiFiDirectRole

@@ -62,8 +62,6 @@ class MessageReceiver @Inject constructor(
         const val DISK_WRITE_BUFFER = 256 * 1024
     }
 
-    val incomingMessageFlow = messageDispatcher.incomingMessageFlow
-
     private val mediaStates = mutableMapOf<String, MediaReceiveState>()
 
     /**

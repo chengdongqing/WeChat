@@ -47,7 +47,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.data.network.service.NetworkService
+import top.chengdongqing.wechat.data.network.service.P2PService
 import top.chengdongqing.wechat.data.network.service.createNetworkServiceIntent
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -124,7 +124,7 @@ fun RequestAddFriendPermission(
                 onRevoked = onRevoked,
                 onGranted = {
                     // 启动蓝牙服务
-                    val intent = context.createNetworkServiceIntent(NetworkService.ACTION_RETRY_BLE)
+                    val intent = context.createNetworkServiceIntent(P2PService.ACTION_RETRY_BLE)
                     context.startService(intent)
                 }
             ) {

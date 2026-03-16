@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.notification
+package top.chengdongqing.wechat.data.network.service.notification
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -25,29 +25,39 @@ import javax.inject.Singleton
 class NotificationHelper @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
-
     companion object {
         // 通知渠道
+        const val P2P_CHANNEL_ID = "p2p_service_channel"
         const val MESSAGE_CHANNEL_ID = "message_channel"
         const val CALL_CHANNEL_ID = "call_channel"
 
         // 通知 ID
+        const val P2P_NOTIFICATION_ID = 1001
         const val FRIEND_REQUEST_NOTIFICATION_ID = 2001
         const val CALL_NOTIFICATION_ID = 2002
     }
 
-    private val notificationManager =
+    private val notificationManager by lazy {
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-    init {
-        createNotificationChannels()
     }
 
     /**
      * 创建通知渠道
      */
-    private fun createNotificationChannels() {
+    fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+
+        /**
+         * 创建前台服务通知渠道
+         */
+        val p2pChannel = NotificationChannel(
+            P2P_CHANNEL_ID,
+            "${R.string.app_name} 通信服务",
+            NotificationManager.IMPORTANCE_NONE
+        ).apply {
+            description = "保证消息收发、加好友等功能的运行"
+            setShowBadge(false)
+        }
 
         // 消息通知通道
         val messageChannel = NotificationChannel(
@@ -73,6 +83,7 @@ class NotificationHelper @Inject constructor(
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC  // 锁屏也显示
         }
 
+        notificationManager.createNotificationChannel(p2pChannel)
         notificationManager.createNotificationChannel(messageChannel)
         notificationManager.createNotificationChannel(callChannel)
     }
@@ -80,7 +91,7 @@ class NotificationHelper @Inject constructor(
     /**
      * 显示好友请求通知
      */
-    fun showFriendRequestNotification(
+    fun showFriendNotification(
         title: String,
         content: String,
         notificationId: Int = FRIEND_REQUEST_NOTIFICATION_ID

@@ -506,48 +506,46 @@ class WebRTCManager @Inject constructor(
      * 注意：[eglBase] 不在此处释放，跨通话复用。
      */
     fun release() {
-        // 1. 先停掉采集器，防止它继续往 Source 送帧
-        try {
+        runCatching {
+            // 先停掉采集器，防止它继续往 Source 送帧
             videoCapturer?.stopCapture()
-        } catch (e: Exception) {
-            Log.e(TAG, "stopCapture failed", e)
+
+            // 移除渲染器绑定
+            localVideoTrack?.removeSink(localRenderer)
+            _remoteVideoTrack.value?.removeSink(remoteRenderer)
+
+            // 释放轨道 (Track)
+            localVideoTrack?.dispose()
+            localVideoTrack = null
+            localAudioTrack?.dispose()
+            localAudioTrack = null
+
+            // 释放源 (Source)
+            videoSource?.dispose()
+            videoSource = null
+            audioSource?.dispose()
+            audioSource = null
+
+            // 释放辅助工具
+            surfaceTextureHelper?.dispose()
+            surfaceTextureHelper = null
+
+            // 释放采集器
+            videoCapturer?.dispose()
+            videoCapturer = null
+
+            // 关闭连接
+            peerConnection?.close()
+            peerConnection?.dispose()
+            peerConnection = null
+
+            // 销毁 Factory
+            factory?.dispose()
+            factory = null
+
+            // 清理远端轨道状态
+            _remoteVideoTrack.value = null
         }
-
-        // 2. 移除渲染器绑定
-        localVideoTrack?.removeSink(localRenderer)
-        _remoteVideoTrack.value?.removeSink(remoteRenderer)
-
-        // 3. 释放轨道 (Track)
-        localVideoTrack?.dispose()
-        localVideoTrack = null
-        localAudioTrack?.dispose()
-        localAudioTrack = null
-
-        // 4. 释放源 (Source)
-        videoSource?.dispose()
-        videoSource = null
-        audioSource?.dispose()
-        audioSource = null
-
-        // 5. 释放辅助工具
-        surfaceTextureHelper?.dispose()
-        surfaceTextureHelper = null
-
-        // 6. 释放采集器
-        videoCapturer?.dispose()
-        videoCapturer = null
-
-        // 7. 关闭连接
-        peerConnection?.close()
-        peerConnection?.dispose()
-        peerConnection = null
-
-        // 8. 销毁 Factory
-        factory?.dispose()
-        factory = null
-
-        // 9. 清理远端轨道状态
-        _remoteVideoTrack.value = null
     }
 
     // ==================== PeerConnection 回调 ====================

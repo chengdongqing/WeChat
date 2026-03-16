@@ -16,7 +16,7 @@ import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.NfcAddState
 import top.chengdongqing.wechat.features.contacts.domain.model.NfcConnectionState
 import top.chengdongqing.wechat.features.contacts.domain.model.NfcContactEvent
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
@@ -30,7 +30,7 @@ data class NfcAddContactUiState(
 
 @HiltViewModel
 class NfcAddContactViewModel @Inject constructor(
-    private val contactP2PRepository: ContactP2PRepository,
+    private val addFriendRepository: AddFriendRepository,
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
@@ -83,7 +83,7 @@ class NfcAddContactViewModel @Inject constructor(
 
             _uiState.update { it.copy(connectionState = NfcConnectionState.Connecting) }
 
-            val peerContact = contactP2PRepository.fetchPeerContactViaBle(peerUserIdFromNfc)
+            val peerContact = addFriendRepository.fetchPeerContactViaBle(peerUserIdFromNfc)
             if (peerContact != null) {
                 _uiState.update {
                     it.copy(
@@ -92,7 +92,7 @@ class NfcAddContactViewModel @Inject constructor(
                     )
                 }
             } else {
-                Log.e(TAG, "❌ BLE 拉取失败")
+                Log.e(TAG, "BLE 拉取失败")
                 _uiState.update {
                     it.copy(connectionState = NfcConnectionState.Failed("连接失败，请重新碰一碰"))
                 }
@@ -131,7 +131,7 @@ class NfcAddContactViewModel @Inject constructor(
 
     private fun observeNfcEvents() {
         viewModelScope.launch {
-            contactP2PRepository.nfcEvents.collect { event ->
+            addFriendRepository.nfcEvents.collect { event ->
                 when (event) {
                     is NfcContactEvent.PeerRequest -> handleIncomingRequest(event)
                     is NfcContactEvent.PeerResponse -> handleIncomingResponse(event)
@@ -171,7 +171,7 @@ class NfcAddContactViewModel @Inject constructor(
     private suspend fun handleISentFirst() {
         _uiState.update { it.copy(addState = NfcAddState.WaitingForPeer) }
 
-        val sent = contactP2PRepository.sendNfcAddRequest(
+        val sent = addFriendRepository.sendNfcAddRequest(
             peerUserId = peerUserId,
             sessionId = sessionRequestId
         )
@@ -193,12 +193,12 @@ class NfcAddContactViewModel @Inject constructor(
         _uiState.update { it.copy(addState = NfcAddState.Exchanging) }
         timeoutJob?.cancel()
 
-        if (!contactP2PRepository.saveNfcContact(peerRequest)) {
+        if (!addFriendRepository.saveNfcContact(peerRequest)) {
             _uiState.update { it.copy(addState = NfcAddState.Error("保存联系人失败")) }
             return
         }
 
-        contactP2PRepository.sendNfcAddResponse(peerUserId, peerRequest.requestId)
+        addFriendRepository.sendNfcAddResponse(peerUserId, peerRequest.requestId)
         _uiState.update { it.copy(addState = NfcAddState.Success) }
     }
 
@@ -215,12 +215,12 @@ class NfcAddContactViewModel @Inject constructor(
                     _uiState.update { it.copy(addState = NfcAddState.Exchanging) }
                     timeoutJob?.cancel()
 
-                    if (!contactP2PRepository.saveNfcContact(event)) {
+                    if (!addFriendRepository.saveNfcContact(event)) {
                         _uiState.update { it.copy(addState = NfcAddState.Error("保存联系人失败")) }
                         return@launch
                     }
 
-                    contactP2PRepository.sendNfcAddResponse(peerUserId, event.requestId)
+                    addFriendRepository.sendNfcAddResponse(peerUserId, event.requestId)
                     _uiState.update { it.copy(addState = NfcAddState.Success) }
                 }
             }
@@ -238,7 +238,7 @@ class NfcAddContactViewModel @Inject constructor(
 
             is NfcAddState.Success -> {
                 viewModelScope.launch {
-                    contactP2PRepository.sendNfcAddResponse(peerUserId, event.requestId)
+                    addFriendRepository.sendNfcAddResponse(peerUserId, event.requestId)
                 }
             }
 
@@ -261,7 +261,7 @@ class NfcAddContactViewModel @Inject constructor(
             _uiState.update { it.copy(addState = NfcAddState.Exchanging) }
             timeoutJob?.cancel()
 
-            val saved = contactP2PRepository.saveNfcContact(event)
+            val saved = addFriendRepository.saveNfcContact(event)
             _uiState.update {
                 it.copy(
                     addState = if (saved) NfcAddState.Success
@@ -275,7 +275,7 @@ class NfcAddContactViewModel @Inject constructor(
 
     private suspend fun getMyUserId(): String? {
         return profileRepository.observeProfile().firstOrNull()?.id
-            .also { if (it == null) Log.e(TAG, "❌ 获取 myProfile 失败") }
+            .also { if (it == null) Log.e(TAG, "获取 myProfile 失败") }
     }
 
     /**

@@ -45,14 +45,14 @@ class BtSocketServer @Inject constructor(
      * 创建 RFCOMM 服务 socket 并在后台启动 accept 循环
      */
     @SuppressLint("MissingPermission")
-    suspend fun start() = withContext(Dispatchers.IO) {
-        try {
-            val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE)
-                    as BluetoothManager).adapter
+    fun start() {
+        runCatching {
+            val adapter =
+                (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
             serverSocket = adapter.listenUsingRfcommWithServiceRecord(SERVICE_NAME, RFCOMM_UUID)
             scope.launch { acceptLoop() }
-        } catch (e: Exception) {
-            Log.e(TAG, "RFCOMM 服务启动失败", e)
+        }.onFailure {
+            Log.e(TAG, "RFCOMM 服务启动失败", it)
         }
     }
 
@@ -70,10 +70,10 @@ class BtSocketServer @Inject constructor(
     private fun acceptLoop() {
         val socket = serverSocket ?: return
         while (true) {
-            try {
+            runCatching {
                 val clientSocket = socket.accept()
                 scope.launch { handleClient(clientSocket) }
-            } catch (_: Exception) {
+            }.onFailure {
                 Log.e(TAG, "接受连接异常，服务已停止")
                 break
             }

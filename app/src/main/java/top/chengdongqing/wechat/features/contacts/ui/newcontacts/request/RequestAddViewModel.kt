@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactP2PRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 
 data class RequestAddUiState(
@@ -30,7 +30,7 @@ data class RequestAddUiState(
 class RequestAddViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
     private val friendRequestRepository: FriendRequestRepository,
-    private val contactP2PRepository: ContactP2PRepository
+    private val addFriendRepository: AddFriendRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -49,7 +49,7 @@ class RequestAddViewModel @AssistedInject constructor(
     }
 
     private fun loadContact() {
-        val contact = contactP2PRepository.getContactFromCache(contactId)
+        val contact = addFriendRepository.getContactFromCache(contactId)
         _uiState.update { it.copy(contact = contact) }
     }
 

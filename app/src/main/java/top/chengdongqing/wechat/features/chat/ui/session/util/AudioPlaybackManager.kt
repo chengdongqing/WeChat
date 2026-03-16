@@ -2,9 +2,6 @@ package top.chengdongqing.wechat.features.chat.ui.session.util
 
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -19,13 +16,13 @@ import top.chengdongqing.wechat.features.chat.ui.session.input.voice.AudioFocusM
  */
 class AudioPlaybackManager(
     context: Context,
+    private val scope: CoroutineScope,
     private val soundTipPlayer: SoundTipPlayer,
     private val onPlayingStateChanged: (String?) -> Unit,
     private val onMessagePlayed: (String) -> Unit
 ) {
     private val audioFocusManager = AudioFocusManager(context)
     private val voicePlayer = VoicePlayer(context)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private var currentPlayingId: String? = null
 
@@ -57,7 +54,6 @@ class AudioPlaybackManager(
 
     fun release() {
         stop()
-        scope.cancel()
     }
 
     private fun startPlaying(

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.data.notification.NotificationHelper
+import top.chengdongqing.wechat.data.network.service.notification.NotificationHelper
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import javax.inject.Inject

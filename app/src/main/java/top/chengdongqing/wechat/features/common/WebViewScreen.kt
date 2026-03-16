@@ -115,7 +115,8 @@ fun WebViewScreen(
 
 @Composable
 private fun WebViewTopBar(
-    title: String, onBack: () -> Unit
+    title: String,
+    onBack: () -> Unit
 ) {
     WeTopBar(
         title = title.ifEmpty { "加载中..." },

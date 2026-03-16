@@ -28,7 +28,6 @@ interface MediaFileDao {
     )
     suspend fun release(localPath: String)
 
-    /** 批量 release */
     @Query(
         """
         UPDATE media_files
@@ -38,11 +37,9 @@ interface MediaFileDao {
     )
     suspend fun releaseAll(paths: Collection<String>)
 
-    /** 查询所有引用计数归零的路径，供调用方删除文件 */
     @Query("SELECT localPath FROM media_files WHERE refCount <= 0")
     suspend fun getUnreferencedPaths(): List<String>
 
-    /** 清理引用计数归零的记录 */
     @Query("DELETE FROM media_files WHERE refCount <= 0")
     suspend fun deleteUnreferenced()
 }

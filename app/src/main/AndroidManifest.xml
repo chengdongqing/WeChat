@@ -168,7 +168,7 @@
 
         <!-- 前台网络服务 -->
         <service
-            android:name=".data.network.service.NetworkService"
+            android:name=".data.network.service.P2PService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice|dataSync" />
 

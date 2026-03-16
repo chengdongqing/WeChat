@@ -1,9 +1,8 @@
 package top.chengdongqing.wechat.data.database
 
 import androidx.room.TypeConverter
-import top.chengdongqing.wechat.data.database.entity.RequestDirection
-import top.chengdongqing.wechat.data.database.entity.RequestStatus
 import top.chengdongqing.wechat.data.model.ContactAddSource
+import top.chengdongqing.wechat.data.model.FriendRequestStatus
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
@@ -12,16 +11,10 @@ import top.chengdongqing.wechat.features.me.domain.model.Gender
 class DatabaseConverters {
 
     @TypeConverter
-    fun fromRequestStatus(value: RequestStatus): String = value.name
+    fun fromRequestStatus(value: FriendRequestStatus): String = value.name
 
     @TypeConverter
-    fun toRequestStatus(value: String): RequestStatus = RequestStatus.valueOf(value)
-
-    @TypeConverter
-    fun fromRequestDirection(value: RequestDirection): String = value.name
-
-    @TypeConverter
-    fun toRequestDirection(value: String): RequestDirection = RequestDirection.valueOf(value)
+    fun toRequestStatus(value: String): FriendRequestStatus = FriendRequestStatus.valueOf(value)
 
     @TypeConverter
     fun fromGender(value: Gender): String = value.name
