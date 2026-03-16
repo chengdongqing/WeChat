@@ -293,19 +293,17 @@ class ChatSessionViewModel @AssistedInject constructor(
         viewModelScope.launch {
             sessionFlow
                 .combine(chatSettingsRepository.chatBackground) { session, globalBackground ->
-                    Pair(session, globalBackground)
+                    session to globalBackground
                 }
                 .collect { (session, globalBackground) ->
-                    session?.let { s ->
-                        _uiState.update {
-                            it.copy(
-                                peerAvatar = s.contactAvatar,
-                                backgroundPath = s.backgroundPath ?: globalBackground,
-                                isMuted = s.isMuted,
-                                isOnline = s.isOnline,
-                                draftMessage = s.draftMessage
-                            )
-                        }
+                    _uiState.update { current ->
+                        current.copy(
+                            peerAvatar = session?.contactAvatar ?: current.peerAvatar,
+                            isMuted = session?.isMuted ?: current.isMuted,
+                            isOnline = session?.isOnline ?: current.isOnline,
+                            draftMessage = session?.draftMessage ?: current.draftMessage,
+                            backgroundPath = session?.backgroundPath ?: globalBackground
+                        )
                     }
                 }
         }
