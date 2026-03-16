@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.data.network.model.NotificationId
 import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.data.network.service.notification.NotificationHelper
 import top.chengdongqing.wechat.features.call.manager.CallAudioManager
@@ -162,7 +163,7 @@ class CallModule @Inject constructor(
      * 清除通知
      */
     private fun dismissNotification() {
-        notificationHelper.cancelNotification(NotificationHelper.CALL_NOTIFICATION_ID)
+        notificationHelper.cancelNotification(NotificationId.Call.id)
     }
 
     /**

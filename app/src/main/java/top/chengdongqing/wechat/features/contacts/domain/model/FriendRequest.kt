@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
-import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.model.FriendRequestStatus
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
@@ -12,7 +11,7 @@ data class FriendRequest(
     val greetingMessage: String,
     val remark: String?,
     val status: FriendRequestStatus,
-    val direction: RequestDirection,
+    val isFromMe: Boolean,
     val timestamp: Long
 )
 

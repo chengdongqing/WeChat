@@ -12,7 +12,7 @@ fun FriendRequestEntity.toDomain(): FriendRequest {
         greetingMessage = greetingMessage,
         remark = remark,
         status = status,
-        direction = isFromMe,
+        isFromMe = isFromMe,
         timestamp = audit.createdAt
     )
 }

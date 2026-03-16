@@ -42,7 +42,7 @@ class HomeViewModel @Inject constructor(
     )
 
     /**
-     * 启动后台网络服务
+     * 启动前台服务
      */
     init {
         val intent = context.createNetworkServiceIntent(P2PService.ACTION_START_SERVICE)

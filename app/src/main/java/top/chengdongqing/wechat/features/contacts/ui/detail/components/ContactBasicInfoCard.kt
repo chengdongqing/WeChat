@@ -77,7 +77,10 @@ private fun ContactAvatar(avatarUrl: Any?) {
     if (dialogVisible) {
         Dialog(
             onDismissRequest = close,
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
         ) {
             ZoomableAsyncImage(
                 model = avatarUrl,
@@ -97,10 +100,22 @@ private fun ContactBasicInfo(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        NameWithGender(
-            name = contact.displayName,
-            gender = contact.gender
-        )
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = contact.displayName,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = WeTheme.colorScheme.textPrimary
+            )
+
+            contact.gender?.let {
+                Spacer(modifier = Modifier.width(4.dp))
+                GenderIcon(it)
+            }
+        }
 
         if (!contact.isSelf) {
             InfoText(
@@ -116,30 +131,6 @@ private fun ContactBasicInfo(
             label = stringResource(R.string.contact_label_wechat_id),
             value = contact.id
         )
-    }
-}
-
-@Composable
-private fun NameWithGender(
-    name: String,
-    gender: Gender?,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = name,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = WeTheme.colorScheme.textPrimary
-        )
-
-        if (gender != null) {
-            Spacer(modifier = Modifier.width(4.dp))
-            GenderIcon(gender)
-        }
     }
 }
 

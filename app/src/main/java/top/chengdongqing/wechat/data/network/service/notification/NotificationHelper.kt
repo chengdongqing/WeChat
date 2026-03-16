@@ -14,6 +14,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.data.network.model.NotificationChannelConfig
+import top.chengdongqing.wechat.data.network.model.NotificationId
 import top.chengdongqing.wechat.features.call.ui.CallActivity
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,67 +27,47 @@ import javax.inject.Singleton
 class NotificationHelper @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
-    companion object {
-        // 通知渠道
-        const val P2P_CHANNEL_ID = "p2p_service_channel"
-        const val MESSAGE_CHANNEL_ID = "message_channel"
-        const val CALL_CHANNEL_ID = "call_channel"
-
-        // 通知 ID
-        const val P2P_NOTIFICATION_ID = 1001
-        const val FRIEND_REQUEST_NOTIFICATION_ID = 2001
-        const val CALL_NOTIFICATION_ID = 2002
-    }
-
     private val notificationManager by lazy {
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
+
+    init {
+        createNotificationChannels()
     }
 
     /**
      * 创建通知渠道
      */
-    fun createNotificationChannels() {
+    private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
 
-        /**
-         * 创建前台服务通知渠道
-         */
-        val p2pChannel = NotificationChannel(
-            P2P_CHANNEL_ID,
-            "${R.string.app_name} 通信服务",
-            NotificationManager.IMPORTANCE_NONE
-        ).apply {
-            description = "保证消息收发、加好友等功能的运行"
-            setShowBadge(false)
-        }
-
         // 消息通知通道
-        val messageChannel = NotificationChannel(
-            MESSAGE_CHANNEL_ID,
-            "新消息",
-            NotificationManager.IMPORTANCE_HIGH
+        NotificationChannel(
+            NotificationChannelConfig.Message.id,
+            NotificationChannelConfig.Message.title,
+            NotificationChannelConfig.Message.importance
         ).apply {
             setSound(null, null)
             enableVibration(false)
-            description = "收到新消息时使用的通知类别"
+            description = NotificationChannelConfig.Message.description
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC // 锁屏也显示
+        }.also {
+            notificationManager.createNotificationChannel(it)
         }
 
         // 通话通知渠道
-        val callChannel = NotificationChannel(
-            CALL_CHANNEL_ID,
-            "音视频通话邀请通知",
-            NotificationManager.IMPORTANCE_HIGH
+        NotificationChannel(
+            NotificationChannelConfig.Call.id,
+            NotificationChannelConfig.Call.title,
+            NotificationChannelConfig.Call.importance
         ).apply {
             setSound(null, null)
             enableVibration(false)
-            description = "收到音视频通话邀请时使用的通知类别"
+            description = NotificationChannelConfig.Call.description
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC  // 锁屏也显示
+        }.also {
+            notificationManager.createNotificationChannel(it)
         }
-
-        notificationManager.createNotificationChannel(p2pChannel)
-        notificationManager.createNotificationChannel(messageChannel)
-        notificationManager.createNotificationChannel(callChannel)
     }
 
     /**
@@ -94,22 +76,20 @@ class NotificationHelper @Inject constructor(
     fun showFriendNotification(
         title: String,
         content: String,
-        notificationId: Int = FRIEND_REQUEST_NOTIFICATION_ID
+        notificationId: Int = NotificationId.FriendRequest.id
     ) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             data = "wechat://contacts/new_friends".toUri()
             setPackage(context.packageName)
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         }
-
         val pendingIntent = PendingIntent.getActivity(
             context,
             notificationId,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        val notification = NotificationCompat.Builder(context, MESSAGE_CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Message.id)
             .setSmallIcon(R.drawable.img_logo)
             .setContentTitle(title)
             .setContentText(content)
@@ -145,9 +125,8 @@ class NotificationHelper @Inject constructor(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
         // 构建通知
-        val notification = NotificationCompat.Builder(context, MESSAGE_CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Message.id)
             .setSmallIcon(R.drawable.img_logo) // app logo
             .setLargeIcon(avatarBitmap) // 头像
             .setSound(null)
@@ -174,7 +153,7 @@ class NotificationHelper @Inject constructor(
     fun showIncomingNotification(
         title: String,
         text: String,
-        notificationId: Int = CALL_NOTIFICATION_ID
+        notificationId: Int = NotificationId.Call.id
     ) {
         val pendingIntent = PendingIntent.getActivity(
             context,
@@ -185,8 +164,7 @@ class NotificationHelper @Inject constructor(
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        val notification = NotificationCompat.Builder(context, CALL_CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Call.id)
             .setSmallIcon(R.drawable.img_logo)
             .setSound(null)
             .setVibrate(null)
@@ -205,15 +183,17 @@ class NotificationHelper @Inject constructor(
     /**
      * 显示通话进行中通知（呼出中 / 连接中 / 通话中），点击可返回通话界面
      */
-    fun showOngoingNotification(text: String) {
+    fun showOngoingNotification(
+        text: String,
+        notificationId: Int = NotificationId.Call.id
+    ) {
         val intent = PendingIntent.getActivity(
             context,
-            CALL_NOTIFICATION_ID,
+            notificationId,
             Intent(context, CallActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        val notification = NotificationCompat.Builder(context, CALL_CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Call.id)
             .setSmallIcon(R.drawable.img_logo)
             .setSound(null)
             .setVibrate(null)
@@ -222,7 +202,7 @@ class NotificationHelper @Inject constructor(
             .setOngoing(true)
             .build()
 
-        notificationManager.notify(CALL_NOTIFICATION_ID, notification)
+        notificationManager.notify(notificationId, notification)
     }
 
     /**

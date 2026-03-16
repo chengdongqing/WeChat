@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.designsystem.components.contact
+package top.chengdongqing.wechat.core.designsystem.components.indexer
 
 import android.view.MotionEvent
 import androidx.compose.foundation.background

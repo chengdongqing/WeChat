@@ -7,6 +7,7 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -47,18 +48,33 @@ class NotificationModule @Inject constructor(
         const val TAG = "NotificationModule"
     }
 
+    private var observerFriendJob: Job? = null
+    private var observerMessageJob: Job? = null
+
     override fun start() {
         runCatching {
             // 监听加好友事件
-            scope.launch { observeFriendEvents() }
+            observerFriendJob = scope.launch {
+                observeFriendEvents()
+            }
             // 监听新消息
-            scope.launch { observeIncomingMessages() }
+            observerMessageJob = scope.launch {
+                observeIncomingMessages()
+            }
         }.onSuccess {
             Log.d(TAG, "通知模块已启动")
         }
     }
 
-    override fun stop() {}
+    override fun stop() {
+        runCatching {
+            // 取消订阅状态
+            observerFriendJob?.cancel()
+            observerMessageJob?.cancel()
+        }.onSuccess {
+            Log.d(TAG, "通知模块已停止")
+        }
+    }
 
     /**
      * 监听加好友相关事件

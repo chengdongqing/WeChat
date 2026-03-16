@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.data.network.model.NotificationId
 import top.chengdongqing.wechat.data.network.service.notification.NotificationHelper
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
@@ -67,7 +68,7 @@ class NewContactsViewModel @Inject constructor(
         }
 
         // 清除通知
-        notificationHelper.cancelNotification(NotificationHelper.FRIEND_REQUEST_NOTIFICATION_ID)
+        notificationHelper.cancelNotification(NotificationId.FriendRequest.id)
     }
 
     fun onSearchQueryChange(newQuery: String) {

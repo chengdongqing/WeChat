@@ -31,10 +31,10 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
-import top.chengdongqing.wechat.core.designsystem.components.contact.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme

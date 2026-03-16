@@ -23,13 +23,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.contact.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeContextMenu
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.rememberContextMenuState
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weContextMenu
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme

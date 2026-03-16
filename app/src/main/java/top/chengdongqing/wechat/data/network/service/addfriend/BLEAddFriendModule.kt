@@ -364,7 +364,7 @@ class BLEAddFriendModule @Inject constructor(
             message: FriendProtocol.FriendRequest,
             binaryData: ByteArray?
         ) {
-            friendRequestRepository.handleIncomingRequest(message.toDomain(binaryData))
+//            friendRequestRepository.handleIncomingRequest(message.toDomain(binaryData))
             _friendEvents.emit(
                 FriendEvent.FriendRequest(
                     nickname = message.nickname,
@@ -388,7 +388,7 @@ class BLEAddFriendModule @Inject constructor(
             message: FriendProtocol.ProfileResponse,
             binaryData: ByteArray?
         ) {
-            friendRequestRepository.handleFullProfileResponse(message.toDomain(binaryData))
+//            friendRequestRepository.handleFullProfileResponse(message.toDomain(binaryData))
             Log.d(TAG, "收到完整资料响应")
         }
 

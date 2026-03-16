@@ -3,22 +3,17 @@ package top.chengdongqing.wechat.features.contacts.data.repository
 import android.util.Base64
 import android.util.Log
 import androidx.collection.LruCache
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.ImageExt
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
 import top.chengdongqing.wechat.data.network.messaging.BLEMessageSender
 import top.chengdongqing.wechat.data.network.model.DiscoveryBeacon
-import top.chengdongqing.wechat.data.network.model.FriendEvent
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
-import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendModule
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.NfcContactEvent
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
@@ -32,12 +27,10 @@ import javax.inject.Singleton
 @Singleton
 class AddFriendRepositoryImpl @Inject constructor(
     private val bleDiscovery: BLEDiscovery,
-    private val bleAddFriendModule: BLEAddFriendModule,
     private val transmitter: BLEMessageSender,
     private val profileRepository: ProfileRepository,
     private val contactRepository: ContactRepository,
-    private val imageExt: ImageExt,
-    @param:IoScope private val scope: CoroutineScope
+    private val imageExt: ImageExt
 ) : AddFriendRepository {
 
     private companion object {
@@ -52,42 +45,6 @@ class AddFriendRepositoryImpl @Inject constructor(
 
     private val _nfcEvents = MutableSharedFlow<NfcContactEvent>(extraBufferCapacity = 16)
     override val nfcEvents: Flow<NfcContactEvent> = _nfcEvents.asSharedFlow()
-
-    init {
-        observeBleNfcEvents()
-    }
-
-    private fun observeBleNfcEvents() {
-        scope.launch {
-            bleAddFriendModule.friendEvents.collect { event ->
-                when (event) {
-                    is FriendEvent.NfcPeerAddRequest -> {
-                        val contact =
-                            buildContact(event.message.userId, event.message, event.avatarBytes)
-                        _nfcEvents.emit(
-                            NfcContactEvent.PeerRequest(
-                                event.message.requestId,
-                                contact
-                            )
-                        )
-                    }
-
-                    is FriendEvent.NfcPeerAddResponse -> {
-                        val contact =
-                            buildContact(event.message.userId, event.message, event.avatarBytes)
-                        _nfcEvents.emit(
-                            NfcContactEvent.PeerResponse(
-                                event.message.requestId,
-                                contact
-                            )
-                        )
-                    }
-
-                    else -> Unit
-                }
-            }
-        }
-    }
 
     // ==================== 二维码 ====================
 
@@ -220,28 +177,6 @@ class AddFriendRepositoryImpl @Inject constructor(
                 Log.e(TAG, "保存联系人失败: ${e.message}", e)
             }.isSuccess
         }
-
-    // ==================== 私有工具 ====================
-
-    private fun buildContact(
-        userId: String,
-        message: FriendProtocol.ProfileResponse,
-        avatarBytes: ByteArray?
-    ): Contact {
-        val avatarPath = avatarBytes?.let {
-            imageExt.saveAvatarBytes(userId, it, isThumbnail = false)
-        }
-        return Contact(
-            id = userId,
-            nickname = message.nickname,
-            avatarPath = avatarPath,
-            signature = message.signature,
-            gender = message.gender,
-            publicKey = message.publicKey
-        ).also {
-            contactCache.put(it.id, it)
-        }
-    }
 
     private fun parseProfile(profile: UserProfileBeacon, avatarBytes: ByteArray?): Contact {
         val avatarPath = avatarBytes?.let {

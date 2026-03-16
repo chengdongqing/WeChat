@@ -46,7 +46,6 @@ import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchB
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.data.database.entity.RequestDirection
 import top.chengdongqing.wechat.data.model.FriendRequestStatus
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 import kotlin.time.Duration.Companion.days
@@ -200,7 +199,7 @@ private fun FriendRequestItem(
     onClick: () -> Unit,
 ) {
     val contextMenuState = rememberContextMenuState()
-    val isOutgoing = request.direction.isOutgoing
+    val isOutgoing = request.isFromMe
     val resources = LocalResources.current
 
     Column(
@@ -296,7 +295,7 @@ private fun RequestStatusHandler(
 ) {
     when (request.status) {
         FriendRequestStatus.Pending -> {
-            if (request.direction == RequestDirection.Incoming) {
+            if (!request.isFromMe) {
                 WeButton(
                     text = stringResource(R.string.action_view),
                     type = ButtonType.Plain,

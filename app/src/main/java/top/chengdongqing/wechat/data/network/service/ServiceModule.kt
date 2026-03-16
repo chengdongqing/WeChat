@@ -1,5 +1,8 @@
 package top.chengdongqing.wechat.data.network.service
 
+/**
+ * 子服务模块共有方法定义
+ */
 interface ServiceModule {
 
     /**

@@ -26,7 +26,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun MomentPhotosSection(onClick: () -> Unit) {
+fun MomentPhotoSection(onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -44,8 +44,8 @@ fun MomentPhotosSection(onClick: () -> Unit) {
                 modifier = Modifier.width(80.dp)
             )
 
-            // 照片预览网格
-            MomentPhotoGrid()
+            // 图片列表
+            MomentPhotoRow()
         }
 
         Icon(
@@ -60,7 +60,7 @@ fun MomentPhotosSection(onClick: () -> Unit) {
 }
 
 @Composable
-private fun MomentPhotoGrid() {
+private fun MomentPhotoRow() {
     val photoResIds = remember {
         listOf(R.drawable.img_avatar, R.drawable.img_splash, R.drawable.img_radar_bg)
     }

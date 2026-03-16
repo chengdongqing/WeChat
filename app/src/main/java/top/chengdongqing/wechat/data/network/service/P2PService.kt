@@ -1,8 +1,11 @@
 package top.chengdongqing.wechat.data.network.service
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -14,6 +17,8 @@ import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.avatar.AvatarServer
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.network.model.NotificationChannelConfig
+import top.chengdongqing.wechat.data.network.model.NotificationId
 import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendModule
 import top.chengdongqing.wechat.data.network.service.call.CallModule
 import top.chengdongqing.wechat.data.network.service.chat.BluetoothChatModule
@@ -26,13 +31,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class P2PService : Service() {
-    companion object {
-        private const val TAG = "P2PService"
-
-        const val ACTION_START_SERVICE = "action_start_service" // 登录成功后调用
-        const val ACTION_STOP_SERVICE = "action_stop_service"   // 退出登录调用
-        const val ACTION_RETRY_BLE = "action_retry_ble"         // 权限授予后调用
-    }
 
     @Inject
     lateinit var bleAddFriendModule: BLEAddFriendModule
@@ -68,11 +66,19 @@ class P2PService : Service() {
     @IoScope
     lateinit var scope: CoroutineScope
 
+    companion object {
+        private const val TAG = "P2PService"
+
+        const val ACTION_START_SERVICE = "action_start_service"
+        const val ACTION_STOP_SERVICE = "action_stop_service"
+        const val ACTION_RETRY_BLE = "action_retry_ble"
+    }
+
     override fun onCreate() {
         super.onCreate()
 
-        // 创建通知渠道
-        notificationHelper.createNotificationChannels()
+        // 创建前台服务通知渠道
+        createNotificationChannel()
         // 显示前台服务通知
         showForegroundNotification()
     }
@@ -154,17 +160,36 @@ class P2PService : Service() {
     }
 
     /**
+     * 创建前台服务通知渠道
+     */
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel(
+                NotificationChannelConfig.P2P.id,
+                NotificationChannelConfig.P2P.title,
+                NotificationChannelConfig.P2P.importance
+            ).apply {
+                description = NotificationChannelConfig.P2P.description
+            }.also {
+                (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).apply {
+                    createNotificationChannel(it)
+                }
+            }
+        }
+    }
+
+    /**
      * 显示前台服务通知
      */
     private fun showForegroundNotification() {
-        val notification = NotificationCompat.Builder(this, NotificationHelper.P2P_CHANNEL_ID)
+        val notification = NotificationCompat.Builder(this, NotificationChannelConfig.P2P.id)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("服务运行中")
             .setSmallIcon(R.drawable.img_logo)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .build()
-        startForeground(NotificationHelper.P2P_NOTIFICATION_ID, notification)
+        startForeground(NotificationId.P2P.id, notification)
     }
 
     override fun onDestroy() {

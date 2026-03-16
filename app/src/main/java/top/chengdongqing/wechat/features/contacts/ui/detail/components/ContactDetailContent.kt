@@ -39,13 +39,13 @@ fun ContactDetailContent(
 
         // 朋友圈
         if (contact.isFriend || contact.isSelf) {
-            MomentPhotosSection {
+            MomentPhotoSection {
                 onAction(ContactAction.ViewMoments)
             }
         }
 
         // 操作按钮
-        ActionButtonsSection(
+        ActionButtonSection(
             contact,
             onAction = onAction
         )
@@ -86,6 +86,7 @@ private fun BasicInfoSection(
     Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
         // 头像和基本信息
         ContactBasicInfoCard(contact = contact)
+
         Spacer(modifier = Modifier.height(12.dp))
 
         if (!contact.isSelf) {

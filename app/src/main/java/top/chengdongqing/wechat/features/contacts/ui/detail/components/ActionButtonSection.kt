@@ -36,7 +36,7 @@ import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
  * 包含发消息和音视频通话按钮
  */
 @Composable
-fun ActionButtonsSection(
+fun ActionButtonSection(
     contact: Contact,
     onAction: (ContactAction) -> Unit
 ) {
@@ -45,14 +45,14 @@ fun ActionButtonsSection(
     Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
         when {
             contact.isSelf || contact.isFriend -> {
-                ContactActionButton(
+                ActionButton(
                     icon = R.drawable.ic_message_outlined,
                     text = stringResource(R.string.contact_action_send_message),
                     onClick = { onAction(ContactAction.SendMessage) }
                 )
                 if (contact.isFriend && !contact.isBlocked) {
                     WeDivider()
-                    ContactActionButton(
+                    ActionButton(
                         icon = R.drawable.ic_voice_video_outlined,
                         text = stringResource(R.string.contact_action_voice_video_call),
                         onClick = {
@@ -69,7 +69,7 @@ fun ActionButtonsSection(
             }
 
             else -> {
-                ContactActionButton(
+                ActionButton(
                     text = stringResource(R.string.contact_action_add_to_contacts),
                     onClick = { onAction(ContactAction.AddToContacts) }
                 )
@@ -82,7 +82,7 @@ fun ActionButtonsSection(
  * 联系人操作按钮
  */
 @Composable
-private fun ContactActionButton(
+private fun ActionButton(
     @DrawableRes icon: Int? = null,
     text: String,
     onClick: () -> Unit

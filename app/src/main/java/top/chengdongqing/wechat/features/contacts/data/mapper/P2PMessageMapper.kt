@@ -25,17 +25,6 @@ fun FriendProtocol.FriendResponse.toDomain(): FriendRequestResponse {
     )
 }
 
-fun FriendProtocol.AutoAddResponse.toDomain(avatarData: ByteArray?): FriendProfileResponse {
-    return FriendProfileResponse(
-        userId = userId,
-        nickname = nickname,
-        signature = signature,
-        gender = gender,
-        avatarData = avatarData,
-        publicKey = publicKey
-    )
-}
-
 fun FriendProtocol.ProfileResponse.toDomain(avatarData: ByteArray?): FriendProfileResponse {
     return FriendProfileResponse(
         userId = userId,

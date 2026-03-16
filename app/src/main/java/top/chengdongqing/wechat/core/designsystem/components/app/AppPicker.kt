@@ -41,9 +41,9 @@ import top.chengdongqing.wechat.core.designsystem.components.app.model.toResult
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
-import top.chengdongqing.wechat.core.designsystem.components.contact.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -71,21 +71,24 @@ fun AppPicker(
                 val selectedApps = uiState.selectedApps.toResult().toTypedArray()
                 onSelect(selectedApps)
             }
-        }
+        },
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(WeTheme.colorScheme.background)
-                .padding(innerPadding)
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 state = listState,
-                modifier = Modifier.overscroll(overscrollEffect),
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .overscroll(overscrollEffect),
                 overscrollEffect = overscrollEffect
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(16.dp)
+                            .background(WeTheme.colorScheme.surface)
+                    )
                 }
 
                 when {
@@ -99,24 +102,6 @@ fun AppPicker(
                                 contentAlignment = Alignment.Center
                             ) {
                                 WeLoading()
-                            }
-                        }
-                    }
-
-                    uiState.groups.isEmpty() -> {
-                        // 空状态
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "暂无应用程序",
-                                    color = WeTheme.colorScheme.textSecondary,
-                                    fontSize = 14.sp
-                                )
                             }
                         }
                     }
