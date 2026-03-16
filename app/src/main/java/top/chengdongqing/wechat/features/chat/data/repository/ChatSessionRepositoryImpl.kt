@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
-import top.chengdongqing.wechat.core.util.deleteLocalFiles
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.getOrPutAsync
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
@@ -25,7 +25,8 @@ class ChatSessionRepositoryImpl @Inject constructor(
     private val chatSessionDao: ChatSessionDao,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
-    private val fileReferenceManager: FileReferenceManager
+    private val fileReferenceManager: FileReferenceManager,
+    private val privateFileManager: PrivateFileManager
 ) : ChatSessionRepository {
 
     // 会话缓存
@@ -131,7 +132,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
         // 批量删除可能存在的本地文件
         val toDelete = fileReferenceManager.releaseAll(localPaths)
-        deleteLocalFiles(toDelete)
+        privateFileManager.deleteFiles(toDelete)
 
         // 从缓存清除
         sessionCache.remove(sessionId)
@@ -149,7 +150,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
         // 批量删除本地文件
         val toDelete = fileReferenceManager.releaseAll(localPaths)
-        deleteLocalFiles(toDelete)
+        privateFileManager.deleteFiles(toDelete)
 
         // 清空会话缓存
         sessionCache.evictAll()

@@ -43,6 +43,8 @@ class ProfileRepositoryImpl @Inject constructor(
     // 内存快照
     override fun getProfile(): UserProfile? = profileState.value
 
+    override fun requireProfile(): UserProfile = getProfile() ?: throw Exception("未找到个人资料")
+
     override suspend fun saveProfile(profile: UserProfile) {
         dataStore.edit { preferences ->
             preferences[PROFILE_KEY] = profile.toJson()

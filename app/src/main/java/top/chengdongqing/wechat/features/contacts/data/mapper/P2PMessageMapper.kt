@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.features.contacts.data.mapper
 
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
 import top.chengdongqing.wechat.data.network.model.FriendRequestResult
-import top.chengdongqing.wechat.features.contacts.domain.model.FriendProfileResponse
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequestResponse
 import top.chengdongqing.wechat.features.contacts.domain.model.IncomingFriendRequest
 
@@ -22,16 +21,5 @@ fun FriendProtocol.FriendResponse.toDomain(): FriendRequestResponse {
     return FriendRequestResponse(
         requestId = requestId,
         accepted = result == FriendRequestResult.Accepted
-    )
-}
-
-fun FriendProtocol.ProfileResponse.toDomain(avatarData: ByteArray?): FriendProfileResponse {
-    return FriendProfileResponse(
-        userId = userId,
-        nickname = nickname,
-        signature = signature,
-        gender = gender,
-        avatarData = avatarData,
-        publicKey = publicKey
     )
 }

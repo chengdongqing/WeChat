@@ -33,26 +33,12 @@ object PacketType {
     const val SIGNALING: Byte = 0x08     // WebRTC 信令 (JSON)
     const val PROFILE_REQUEST: Byte = 0x09  // 拉取对方完整资料 (Request)，body 通常包含请求参数或为空
     const val PROFILE_RESPONSE: Byte = 0x0A // 资料响应 (Response)，body 为 UserProfile JSON
-    const val FRIEND_REQUEST: Byte = 0x0B   // 申请加好友，body 为包含招呼语、公钥、资料版本号的 JSON
-    const val FRIEND_RESPONSE: Byte = 0x0C  // 响应好友申请，body 为包含结果（同意/拒绝）、自身公钥、资料版本号的 JSON
 
     /** 始终明文传输的类型，不做加密 */
     val PLAINTEXT_TYPES = setOf(
         HANDSHAKE,
         PING,
-        PONG,
-        PROFILE_REQUEST,
-        PROFILE_RESPONSE,
-        FRIEND_REQUEST,
-        FRIEND_RESPONSE
-    )
-
-    /** 加好友相关类型 */
-    val ADD_FRIEND_TYPES = setOf(
-        PROFILE_REQUEST,
-        PROFILE_RESPONSE,
-        FRIEND_REQUEST,
-        FRIEND_RESPONSE
+        PONG
     )
 
     /** 判断该类型是否携带加密标志 */

@@ -23,12 +23,14 @@ fun DiscoveryScreen() {
     ) {
         WeMenuListItem(
             label = stringResource(R.string.discover_menu_moments),
-            icon = R.drawable.ic_moments_outlined_colorful
+            icon = R.drawable.ic_moments_outlined_colorful,
+            onClick = {}
         )
         WeMenuListItem(
             label = stringResource(R.string.discover_menu_search),
             icon = R.drawable.ic_search_logo_outlined,
-            iconColor = Danger
+            iconColor = Danger,
+            onClick = {}
         )
     }
 }

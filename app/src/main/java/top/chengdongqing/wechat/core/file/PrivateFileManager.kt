@@ -1,9 +1,14 @@
 package top.chengdongqing.wechat.core.file
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.core.util.generateFileName
@@ -13,6 +18,7 @@ import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,6 +34,10 @@ import javax.inject.Singleton
 class PrivateFileManager @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
+    private companion object {
+        const val TAG = "PrivateFileManager"
+    }
+
     /**
      * 头像目录
      */
@@ -70,27 +80,24 @@ class PrivateFileManager @Inject constructor(
     /**
      * 根据目录名获取 File
      */
-    private fun getDirectory(dirName: String): File {
-        return when (dirName) {
-            "avatars" -> avatarDir
-            "images" -> imagesDir
-            "videos" -> videosDir
-            "recordings" -> recordingsDir
-            "files" -> filesDir
-            else -> filesDir
-        }
+    private fun getDirectory(dirName: String): File = when (dirName) {
+        "avatars" -> avatarDir
+        "images" -> imagesDir
+        "videos" -> videosDir
+        "recordings" -> recordingsDir
+        else -> filesDir
     }
 
     /**
      * 保存头像文件
      *
-     * @param sourceUri 源图片URI
      * @param userId 用户ID
+     * @param sourceUri 源图片URI
      * @return 保存后的文件绝对路径
      */
-    suspend fun saveAvatar(sourceUri: Uri, userId: String): Result<String> =
+    suspend fun saveAvatar(userId: String, sourceUri: Uri): Result<String> =
         withContext(Dispatchers.IO) {
-            try {
+            runCatching {
                 val fileName = "${userId}_${System.currentTimeMillis()}.jpg"
                 val targetFile = File(avatarDir, fileName)
 
@@ -98,13 +105,46 @@ class PrivateFileManager @Inject constructor(
                     FileOutputStream(targetFile).use { output ->
                         input.copyTo(output)
                     }
-                } ?: return@withContext Result.failure(Exception("无法打开图片文件"))
+                } ?: throw IOException("文件打开失败")
 
-                Result.success(targetFile.absolutePath)
-            } catch (e: Exception) {
-                Result.failure(e)
+                targetFile.absolutePath
+            }.onFailure {
+                Log.e(TAG, "保存头像失败", it)
             }
         }
+
+    /**
+     * 将头像字节数据保存为文件
+     *
+     * @param userId 用户ID，用于生成唯一文件名
+     * @param sourceBytes 图片字节数据
+     * @param isThumbnail 是否为缩略图，影响文件命名
+     * @return 保存后的文件绝对路径
+     */
+    suspend fun saveAvatar(
+        userId: String,
+        sourceBytes: ByteArray,
+        isThumbnail: Boolean = true
+    ): Result<String> = withContext(Dispatchers.IO) {
+        runCatching {
+            val bitmap = BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size)
+                ?: throw IOException("图片解析失败")
+
+            val suffix = if (isThumbnail) "_thumb" else ""
+            val fileName = "${userId}${suffix}_${System.currentTimeMillis()}.jpg"
+            val targetFile = File(avatarDir, fileName)
+
+            targetFile.outputStream().use { output ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, output)
+            }.also {
+                bitmap.recycle()
+            }
+
+            targetFile.absolutePath
+        }.onFailure {
+            Log.e(TAG, "保存头像失败", it)
+        }
+    }
 
     /**
      * 保存媒体文件
@@ -121,17 +161,13 @@ class PrivateFileManager @Inject constructor(
         sourceFile: File,
         extension: String? = null
     ): Result<String> = withContext(Dispatchers.IO) {
-        try {
-            if (!sourceFile.exists()) {
-                return@withContext Result.failure(IllegalStateException("源文件不存在"))
-            }
+        runCatching {
+            if (!sourceFile.exists()) throw IllegalArgumentException("源文件不存在")
 
             val config = messageType.getFileConfig()
             val targetDir = getDirectory(config.dirName)
-
             val finalExtension = extension?.trimStart('.') // 优先使用传入的后缀名
                 ?: sourceFile.extension // 通过文件名获取
-
             val fileName = generateFileName(config.prefix, finalExtension)
             val targetFile = File(targetDir, fileName)
 
@@ -142,9 +178,9 @@ class PrivateFileManager @Inject constructor(
                 }
             }
 
-            Result.success(targetFile.absolutePath)
-        } catch (e: Exception) {
-            Result.failure(e)
+            targetFile.absolutePath
+        }.onFailure {
+            Log.e(TAG, "保存文件失败", it)
         }
     }
 
@@ -161,14 +197,13 @@ class PrivateFileManager @Inject constructor(
         sourceUri: Uri,
         extension: String? = null
     ): Result<String> = withContext(Dispatchers.IO) {
-        try {
+        runCatching {
             val config = messageType.getFileConfig()
             val targetDir = getDirectory(config.dirName)
 
             val finalExtension = extension?.trimStart('.') // 优先使用传入的后缀名
                 ?: context.getFileMetadata(sourceUri)?.filename.extractExtension() // 通过contentResolver查询后缀名
                 ?: config.extension // 最后使用默认的
-
             val fileName = generateFileName(config.prefix, finalExtension)
             val targetFile = File(targetDir, fileName)
 
@@ -176,44 +211,37 @@ class PrivateFileManager @Inject constructor(
                 FileOutputStream(targetFile).use { output ->
                     input.copyTo(output)
                 }
-            } ?: return@withContext Result.failure(Exception("无法打开源文件"))
+            } ?: throw IOException("无法打开源文件")
 
-            Result.success(targetFile.absolutePath)
-        } catch (e: Exception) {
-            Result.failure(e)
+            targetFile.absolutePath
+        }.onFailure {
+            Log.e(TAG, "保存文件失败", it)
         }
     }
 
     /**
      * 删除文件
      */
-    suspend fun deleteFile(filePath: String): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            try {
-                val file = File(filePath)
-                if (file.exists()) {
-                    file.delete()
-                }
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+    suspend fun deleteFile(filePath: String): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            File(filePath).takeIf { it.exists() }?.delete()
+            Unit
         }
+    }
 
     /**
      * 批量删除文件
      */
-    suspend fun deleteFiles(filePaths: List<String>): Result<Unit> =
-        withContext(Dispatchers.IO) {
-            try {
-                filePaths.forEach { path ->
+    suspend fun deleteFiles(filePaths: List<String>): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            filePaths.map { path ->
+                async {
                     File(path).takeIf { it.exists() }?.delete()
                 }
-                Result.success(Unit)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
+            }.awaitAll()
+            Unit
         }
+    }
 
     /**
      * 清理所有文件
@@ -226,10 +254,9 @@ class PrivateFileManager @Inject constructor(
     /**
      * 获取目录大小（字节）
      */
-    suspend fun getDirectorySize(messageType: MessageType): Long =
-        withContext(Dispatchers.IO) {
-            val config = messageType.getFileConfig()
-            val dir = getDirectory(config.dirName)
-            dir.walk().filter { it.isFile }.sumOf { it.length() }
-        }
+    suspend fun getDirectorySize(messageType: MessageType): Long = withContext(Dispatchers.IO) {
+        val config = messageType.getFileConfig()
+        val dir = getDirectory(config.dirName)
+        dir.walk().filter { it.isFile }.sumOf { it.length() }
+    }
 }

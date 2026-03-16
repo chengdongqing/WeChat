@@ -1,6 +1,9 @@
 package top.chengdongqing.wechat.data.model
 
 enum class PermissionResult {
+    /**
+     * 检查通过
+     */
     Allowed,
 
     /**

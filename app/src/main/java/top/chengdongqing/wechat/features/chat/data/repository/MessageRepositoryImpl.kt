@@ -13,8 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.core.util.deleteLocalFile
-import top.chengdongqing.wechat.core.util.deleteLocalFiles
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.WeDatabase
@@ -53,6 +52,7 @@ class MessageRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val fileReferenceManager: FileReferenceManager,
+    private val privateFileManager: PrivateFileManager,
     private val transferManager: TransferManager,
     private val notificationHelper: NotificationHelper,
     private val notificationSettingsRepository: NotificationSettingsRepository,
@@ -200,7 +200,7 @@ class MessageRepositoryImpl @Inject constructor(
         // 删除关联的媒体文件
         message?.localPath?.let { path ->
             val toDelete = fileReferenceManager.release(path)
-            toDelete?.let { deleteLocalFile(it) }
+            toDelete?.let { privateFileManager.deleteFile(it) }
         }
 
         Unit
@@ -239,7 +239,7 @@ class MessageRepositoryImpl @Inject constructor(
         // 删除可能存在的媒体文件
         message.localPath?.let { path ->
             val toDelete = fileReferenceManager.release(path)
-            toDelete?.let { deleteLocalFile(it) }
+            toDelete?.let { privateFileManager.deleteFile(it) }
         }
 
         // 给对方发送撤回申请
@@ -269,7 +269,7 @@ class MessageRepositoryImpl @Inject constructor(
 
             // 批量删除可能存在的本地文件
             val toDelete = fileReferenceManager.releaseAll(localPaths)
-            deleteLocalFiles(toDelete)
+            privateFileManager.deleteFiles(toDelete)
 
             Unit
         }

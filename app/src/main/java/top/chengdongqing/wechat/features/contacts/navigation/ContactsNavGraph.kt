@@ -90,7 +90,12 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
         )
     }
     composable(ContactsRoute.NFC.route) {
-        NfcAddContactScreen(onBack = onBack)
+        NfcAddContactScreen(
+            onBack = onBack,
+            onNavigateToContact = { id ->
+                navController.navigate(ContactsRoute.Detail.createRoute(id))
+            }
+        )
     }
     composable(ContactsRoute.RadarScan.route) {
         RadarScanScreen(

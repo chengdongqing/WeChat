@@ -67,7 +67,7 @@ class RadarScanViewModel @Inject constructor(
             _loadingUserId.value = user.id
             _error.value = null
 
-            val contact = addFriendRepository.fetchPeerContactViaBle(user.id)
+            val contact = addFriendRepository.fetchProfile(user.id)
             if (contact != null) {
                 _navigateToContact.value = contact
             } else {

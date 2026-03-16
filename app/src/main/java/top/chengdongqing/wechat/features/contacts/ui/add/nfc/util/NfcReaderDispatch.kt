@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.nfc
+package top.chengdongqing.wechat.features.contacts.ui.add.nfc.util
 
 import android.app.Activity
 import android.nfc.NfcAdapter
@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import top.chengdongqing.wechat.core.nfc.NfcHceService
 import top.chengdongqing.wechat.core.util.toHexByte
 
 private const val TAG = "NfcReader"
@@ -96,7 +97,7 @@ private fun readUserIdFromTag(tag: Tag): String? {
         isoDep.timeout = 5_000 // ms，避免长时间阻塞
 
         // 构造 SELECT AID 指令
-        val apdu = buildSelectApdu(NfcHceService.AID)
+        val apdu = buildSelectApdu(NfcHceService.Companion.AID)
         val response = isoDep.transceive(apdu)
         Log.d(TAG, "响应原始数据: ${response.toHexString()}")
 

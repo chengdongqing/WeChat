@@ -2,16 +2,13 @@ package top.chengdongqing.wechat.features.contacts.data.repository
 
 import android.util.Log
 import androidx.room.withTransaction
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.core.util.ImageExt
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.util.toBytes
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
@@ -28,8 +25,8 @@ import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequestResp
 import top.chengdongqing.wechat.features.contacts.domain.model.IncomingFriendRequest
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
-import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import java.io.File
 import javax.inject.Inject
 
 class FriendRequestRepositoryImpl @Inject constructor(
@@ -38,18 +35,14 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private val contactRepository: ContactRepository,
     private val profileRepository: ProfileRepository,
     private val transmitter: BLEMessageSender,
-    private val imageExt: ImageExt,
-    @param:IoScope private val scope: CoroutineScope
+    private val privateFileManager: PrivateFileManager
 ) : FriendRequestRepository {
 
     private companion object {
-        const val TAG = "FriendRequest"
-        const val PROFILE_SEND_DELAY = 2000L
+        const val TAG = "FriendRequestRepository"
     }
 
-    // ==================== 查询 ====================
-
-    override fun observeAllRequest(): Flow<List<FriendRequest>> =
+    override fun observeAllRequests(): Flow<List<FriendRequest>> =
         friendRequestDao.observeAll().map { it.toDomain() }
 
     override fun getPendingCount(): Flow<Int> = friendRequestDao.getPendingCount()
@@ -60,8 +53,6 @@ class FriendRequestRepositoryImpl @Inject constructor(
 
     override suspend fun deleteRequest(requestId: String) = friendRequestDao.deleteById(requestId)
 
-    // ==================== 发送申请 ====================
-
     override suspend fun sendFriendRequest(
         targetContact: Contact,
         greetingMessage: String,
@@ -69,8 +60,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
         note: String?
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val myProfile = requireProfile()
-            val avatarBytes = myProfile.avatarPath?.let { imageExt.generateThumbnailBytes(it) }
+            val myProfile = profileRepository.requireProfile()
+            val avatarBytes = myProfile.avatarPath?.let {
+                File(it).toBytes()
+            }
             val requestId = randomUUID()
 
             transmitter.sendMessage(
@@ -90,8 +83,6 @@ class FriendRequestRepositoryImpl @Inject constructor(
             saveOutgoingRequest(requestId, targetContact, greetingMessage, remark, note)
         }
     }
-
-    // ==================== 处理申请 ====================
 
     override suspend fun acceptFriendRequest(
         requestId: String,
@@ -113,7 +104,6 @@ class FriendRequestRepositoryImpl @Inject constructor(
 
             addContactFromRequest(request, remark, note)
             friendRequestDao.update(requestId) { it.copy(status = FriendRequestStatus.Accepted) }
-            scheduleProfileSend(request.userId)
         }
     }
 
@@ -123,7 +113,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 if (contactRepository.exists(request.peerUserId)) {
                     handleAlreadyFriend(
                         request.peerUserId, request.peerNickname,
-                        request.avatarData, request.requestId
+                        request.avatarData
                     )
                 } else {
                     saveIncomingRequest(
@@ -131,28 +121,43 @@ class FriendRequestRepositoryImpl @Inject constructor(
                         request.peerPublicKey, request.greetingMessage, request.avatarData
                     )
                 }
-            }.onFailure { Log.e(TAG, "处理申请失败", it) }
+            }.onFailure {
+                Log.e(TAG, "处理申请失败", it)
+            }
         }
 
     override suspend fun handleRequestResponse(response: FriendRequestResponse) =
         withContext(Dispatchers.IO) {
             runCatching {
-                val request = friendRequestDao.getById(response.requestId) ?: return@runCatching
-                if (response.accepted) handleAccepted(request) else handleRejected(response.requestId)
-            }.onFailure { Log.e(TAG, "处理响应失败", it) }
+                val request = friendRequestDao.getById(response.requestId)
+                    ?: throw Exception("未查询到对应的好友请求，requestId=${response.requestId}")
+
+                if (response.accepted) {
+                    handleAccepted(request)
+                } else {
+                    handleRejected(response.requestId)
+                }
+            }.onFailure {
+                Log.e(TAG, "处理响应失败", it)
+            }
         }
 
-    override suspend fun handleAutoAddResponse(response: FriendProfileResponse) =
+    override suspend fun handleAutoAdd(response: FriendProfileResponse) =
         withContext(Dispatchers.IO) {
             runCatching {
-                if (contactRepository.exists(response.userId)) return@runCatching
+                if (contactRepository.exists(response.userId)) {
+                    throw Exception("联系人已存在, userId=${response.userId}")
+                }
 
                 val originalRequest = friendRequestDao.getByPeerId(
                     peerId = response.userId,
                     isFromMe = true
                 )
                 val avatarPath = response.avatarData?.let {
-                    imageExt.saveAvatarBytes(response.userId, it, isThumbnail = true)
+                    privateFileManager.saveAvatar(
+                        userId = response.userId,
+                        sourceBytes = it
+                    ).getOrNull()
                 }
 
                 contactRepository.createContact(
@@ -168,35 +173,21 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     )
                 )
 
-                originalRequest?.let { friendRequestDao.deleteById(it.id) }
+                originalRequest?.let {
+                    friendRequestDao.deleteById(it.id)
+                }
 
                 Unit
-            }.onFailure { Log.e(TAG, "处理自动添加失败", it) }
-        }
-
-    override suspend fun handleFullProfileResponse(response: FriendProfileResponse) =
-        withContext(Dispatchers.IO) {
-            val avatarPath = response.avatarData?.let {
-                imageExt.saveAvatarBytes(response.userId, it, isThumbnail = false)
-            }
-            contactRepository.updateContact(response.userId) { contact ->
-                contact.copy(
-                    avatarPath = avatarPath ?: contact.avatarPath,
-                    signature = response.signature,
-                    gender = response.gender
-                )
+            }.onFailure {
+                Log.e(TAG, "处理自动添加失败", it)
             }
         }
-
-    // ==================== 私有逻辑 ====================
 
     private suspend fun handleAlreadyFriend(
         peerUserId: String,
         peerNickname: String,
-        avatarData: ByteArray?,
-        requestId: String
+        avatarData: ByteArray?
     ) {
-        sendAutoAddResponse(peerUserId, requestId)
         updateContactInfo(peerUserId, peerNickname, avatarData)
     }
 
@@ -205,69 +196,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
             addContactFromRequest(request)
             friendRequestDao.update(request.id) { it.copy(status = FriendRequestStatus.Accepted) }
         }
-        scheduleProfileSend(request.userId)
     }
 
     private suspend fun handleRejected(requestId: String) {
         friendRequestDao.update(requestId) { it.copy(status = FriendRequestStatus.Rejected) }
-    }
-
-    /**
-     * 统一的"携带我的资料发送消息"模板，消除 sendAutoAddResponse / sendFullProfile 重复
-     */
-    private suspend fun sendMyProfile(
-        targetUserId: String,
-        logTag: String,
-        isThumbnail: Boolean,
-        buildMessage: (profile: UserProfile, avatarBytes: ByteArray?) -> FriendProtocol
-    ) {
-        runCatching {
-            val myProfile = requireProfile()
-            val avatarBytes = myProfile.avatarPath?.let {
-                if (isThumbnail) imageExt.generateThumbnailBytes(it)
-                else imageExt.generateFullAvatarBytes(it)
-            }
-            transmitter.sendMessage(targetUserId, buildMessage(myProfile, avatarBytes), avatarBytes)
-        }.onFailure { Log.e(TAG, "$logTag 发送失败: ${it.message}", it) }
-    }
-
-    private suspend fun sendAutoAddResponse(targetUserId: String, requestId: String) =
-        sendMyProfile(targetUserId, "AutoAddResponse", isThumbnail = true) { profile, avatarBytes ->
-            FriendProtocol.ProfileResponse(
-                requestId = requestId,
-                userId = profile.id,
-                nickname = profile.nickname,
-                signature = profile.signature,
-                gender = profile.gender,
-                avatarSize = avatarBytes?.size ?: 0,
-                publicKey = profile.publicKey,
-                timestamp = System.currentTimeMillis()
-            )
-        }
-
-    private suspend fun sendFullProfile(targetUserId: String) =
-        sendMyProfile(
-            targetUserId,
-            "FullProfileResponse",
-            isThumbnail = false
-        ) { profile, avatarBytes ->
-            FriendProtocol.ProfileResponse(
-                requestId = randomUUID(),
-                userId = profile.id,
-                nickname = profile.nickname,
-                signature = profile.signature,
-                gender = profile.gender,
-                avatarSize = avatarBytes?.size ?: 0,
-                publicKey = profile.publicKey,
-                timestamp = System.currentTimeMillis()
-            )
-        }
-
-    private fun scheduleProfileSend(targetUserId: String) {
-        scope.launch {
-            delay(PROFILE_SEND_DELAY)
-            sendFullProfile(targetUserId)
-        }
     }
 
     private suspend fun updateContactInfo(
@@ -275,10 +207,18 @@ class FriendRequestRepositoryImpl @Inject constructor(
         nickname: String,
         avatarBytes: ByteArray?
     ) {
-        val avatarPath =
-            avatarBytes?.let { imageExt.saveAvatarBytes(userId, it, isThumbnail = true) }
+        val avatarPath = avatarBytes?.let {
+            privateFileManager.saveAvatar(
+                userId = userId,
+                sourceBytes = it
+            ).getOrNull()
+        }
+
         contactRepository.updateContact(userId) { contact ->
-            contact.copy(nickname = nickname, avatarPath = avatarPath ?: contact.avatarPath)
+            contact.copy(
+                nickname = nickname,
+                avatarPath = avatarPath ?: contact.avatarPath
+            )
         }
     }
 
@@ -314,8 +254,13 @@ class FriendRequestRepositoryImpl @Inject constructor(
         greetingMessage: String,
         avatarData: ByteArray?
     ) {
-        val avatarPath =
-            avatarData?.let { imageExt.saveAvatarBytes(peerUserId, it, isThumbnail = true) }
+        val avatarPath = avatarData?.let {
+            privateFileManager.saveAvatar(
+                userId = peerUserId,
+                sourceBytes = it
+            ).getOrNull()
+        }
+
         friendRequestDao.insert(
             FriendRequestEntity(
                 id = requestId,
@@ -348,7 +293,4 @@ class FriendRequestRepositoryImpl @Inject constructor(
             )
         )
     }
-
-    private fun requireProfile() =
-        profileRepository.getProfile() ?: throw Exception("未找到个人资料")
 }

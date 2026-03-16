@@ -85,9 +85,10 @@ private class BackgroundSelectorState(
     val tempUri: MutableState<Uri?>
 ) {
     suspend fun takePicture() {
-        val uri = context.createImageUri()
-        tempUri.value = uri
-        cameraLauncher.launch(uri)
+        context.createImageUri().let { uri ->
+            tempUri.value = uri
+            cameraLauncher.launch(uri)
+        }
     }
 
     fun pickVisualMedia() {

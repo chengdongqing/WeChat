@@ -75,25 +75,29 @@ fun MeScreen(
         WeMenuListItem(
             label = stringResource(R.string.me_menu_service),
             icon = R.drawable.ic_pay_logo_outlined,
-            iconColor = Color(0xFF07C160)
+            iconColor = Color(0xFF07C160),
+            onClick = {}
         )
         Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
             WeMenuListItem(
                 label = stringResource(R.string.me_menu_favorites),
                 icon = R.drawable.ic_favorites_outlined_colorful,
-                iconColor = Color.Unspecified
+                iconColor = Color.Unspecified,
+                onClick = {}
             )
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             WeMenuListItem(
                 label = stringResource(R.string.me_menu_moments),
                 icon = R.drawable.ic_album_outlined,
-                iconColor = Color(0xFF2782D7)
+                iconColor = Color(0xFF2782D7),
+                onClick = {}
             )
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             WeMenuListItem(
                 label = stringResource(R.string.me_menu_stickers),
                 icon = R.drawable.ic_emoji_outlined,
-                iconColor = Color(0xFFF9C018)
+                iconColor = Color(0xFFF9C018),
+                onClick = {}
             )
         }
         WeMenuListItem(

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.call.model.HangupReason
-import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
+import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
 import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
 
 /**
@@ -16,6 +16,7 @@ sealed class ChatProtocol {
     abstract val messageId: String
     abstract val senderId: String
     abstract val signature: String
+    abstract val timestamp: Long
 
     /**
      * 签名时序列化的内容，子类各自实现
@@ -31,10 +32,10 @@ sealed class ChatProtocol {
         override val messageId: String,
         override val senderId: String,
         override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
         val receiverId: String,
         val messageType: MessageType,
-        val content: String,
-        val timestamp: Long
+        val content: String
     ) : ChatProtocol() {
         override fun signingPayload() =
             "$messageId|$senderId|$receiverId|$messageType|$content|$timestamp"
@@ -47,11 +48,11 @@ sealed class ChatProtocol {
         override val messageId: String,
         override val senderId: String,
         override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
         val receiverId: String,
         val status: String,
         val duration: Long,
-        val callType: CallType,
-        val timestamp: Long
+        val callType: CallType
     ) : ChatProtocol() {
         override fun signingPayload() =
             "$messageId|$senderId|$receiverId|$status|$duration|$callType|$timestamp"
@@ -68,13 +69,13 @@ sealed class ChatProtocol {
         override val messageId: String,
         override val senderId: String,
         override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
         val receiverId: String,
         val messageType: MessageType,
         val content: String,
         val fileSize: Long,
         val checksum: String? = null,
-        val mediaDuration: Long? = null,
-        val timestamp: Long
+        val mediaDuration: Long? = null
     ) : ChatProtocol() {
         override fun signingPayload() =
             "$messageId|$senderId|$receiverId|$messageType|$content|$fileSize|$checksum|$mediaDuration|$timestamp"
@@ -88,22 +89,27 @@ sealed class ChatProtocol {
         override val messageId: String, // 被引用的原消息 ID
         override val senderId: String,
         override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
         val receiverId: String,
-        val receiptType: ReceiptType,
-        val timestamp: Long = System.currentTimeMillis()
+        val receiptType: ReceiptType
     ) : ChatProtocol() {
         override fun signingPayload() =
             "$messageId|$senderId|$receiverId|$receiptType|$timestamp"
     }
 
+    /**
+     * 好友个人资料响应
+     */
     @Serializable
-    data class FriendResponse(
+    data class ProfileResponse(
         override val messageId: String = "",
         override val senderId: String,
-        override val signature: String = "",
-        val profile: UserProfileBeacon
+        override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
+        val profile: ProfileBeacon
     ) : ChatProtocol() {
-        override fun signingPayload(): String = ""
+        override fun signingPayload(): String =
+            "$messageId|$senderId|$profile|$timestamp"
     }
 
     /**
@@ -120,11 +126,12 @@ sealed class ChatProtocol {
             override val messageId: String,
             override val senderId: String,
             override val signature: String,
+            override val timestamp: Long = System.currentTimeMillis(),
             val callType: CallType,
             val sdp: String
         ) : Signaling() {
             override fun signingPayload() =
-                "$messageId|$senderId|$callType|$sdp"
+                "$messageId|$senderId|$callType|$sdp|$timestamp"
         }
 
         /**
@@ -135,11 +142,12 @@ sealed class ChatProtocol {
             override val messageId: String,
             override val senderId: String,
             override val signature: String,
+            override val timestamp: Long = System.currentTimeMillis(),
             val callType: CallType,
             val sdp: String
         ) : Signaling() {
             override fun signingPayload() =
-                "$messageId|$senderId|$callType|$sdp"
+                "$messageId|$senderId|$callType|$sdp|$timestamp"
         }
 
         /**
@@ -154,12 +162,13 @@ sealed class ChatProtocol {
             override val messageId: String,
             override val senderId: String,
             override val signature: String,
+            override val timestamp: Long = System.currentTimeMillis(),
             val candidate: String,
             val sdpMid: String?,
             val sdpMLineIndex: Int
         ) : Signaling() {
             override fun signingPayload() =
-                "$messageId|$senderId|$candidate|$sdpMid|$sdpMLineIndex"
+                "$messageId|$senderId|$candidate|$sdpMid|$sdpMLineIndex|$timestamp"
         }
 
         /**
@@ -170,11 +179,12 @@ sealed class ChatProtocol {
             override val messageId: String,
             override val senderId: String,
             override val signature: String,
+            override val timestamp: Long = System.currentTimeMillis(),
             val reason: HangupReason,
             val duration: Long
         ) : Signaling() {
             override fun signingPayload() =
-                "$messageId|$senderId|$reason|$duration"
+                "$messageId|$senderId|$reason|$duration|$timestamp"
         }
 
         /**
@@ -185,9 +195,10 @@ sealed class ChatProtocol {
             override val messageId: String,
             override val senderId: String,
             override val signature: String,
+            override val timestamp: Long = System.currentTimeMillis(),
         ) : Signaling() {
             override fun signingPayload() =
-                "$messageId|$senderId"
+                "$messageId|$senderId|$timestamp"
         }
 
         /**
@@ -198,12 +209,13 @@ sealed class ChatProtocol {
             override val messageId: String,
             override val senderId: String,
             override val signature: String,
+            override val timestamp: Long = System.currentTimeMillis(),
             val isVideoOn: Boolean = true,
             val isMicOn: Boolean = true,
             val isSpeakerOn: Boolean = true
         ) : Signaling() {
             override fun signingPayload() =
-                "$messageId|$senderId|$isVideoOn|$isMicOn|$isSpeakerOn"
+                "$messageId|$senderId|$isVideoOn|$isMicOn|$isSpeakerOn|$timestamp"
         }
 
         /**
@@ -214,10 +226,11 @@ sealed class ChatProtocol {
             override val messageId: String,
             override val senderId: String,
             override val signature: String,
+            override val timestamp: Long = System.currentTimeMillis(),
             val ringtone: RingtoneSound
         ) : Signaling() {
             override fun signingPayload() =
-                "$messageId|$senderId|$ringtone"
+                "$messageId|$senderId|$ringtone|$timestamp"
         }
     }
 
@@ -234,9 +247,9 @@ sealed class ChatProtocol {
         override val messageId: String = "",
         override val senderId: String,
         override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
         val e2ePublicKey: String? = null,
-        val e2ePublicKeyAck: String? = null,
-        val timestamp: Long = System.currentTimeMillis()
+        val e2ePublicKeyAck: String? = null
     ) : ChatProtocol() {
         override fun signingPayload() =
             "$messageId|$senderId|$e2ePublicKey|$e2ePublicKeyAck|$timestamp"

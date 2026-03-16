@@ -30,7 +30,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendModule
-import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
+import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -49,7 +49,7 @@ class BLEDiscovery @Inject constructor(
     private var bluetoothLeScanner: BluetoothLeScanner? = null
     private var bluetoothGatt: BluetoothGatt? = null
 
-    private var readContinuation: CancellableContinuation<Pair<UserProfileBeacon, ByteArray>?>? =
+    private var readContinuation: CancellableContinuation<Pair<ProfileBeacon, ByteArray>?>? =
         null
     private var writeContinuation: CancellableContinuation<Boolean>? = null
 
@@ -57,7 +57,7 @@ class BLEDiscovery @Inject constructor(
 
     // 解析状态
     private var jsonReceived = false
-    private var profileTransfer: UserProfileBeacon? = null
+    private var profileTransfer: ProfileBeacon? = null
 
     companion object {
         private const val TAG = "BLEDiscovery"
@@ -358,7 +358,7 @@ class BLEDiscovery @Inject constructor(
 
                                 // 解析成功
                                 profileTransfer =
-                                    json.decodeFromString<UserProfileBeacon>(jsonString)
+                                    json.decodeFromString<ProfileBeacon>(jsonString)
                                 jsonReceived = true
 
                                 Log.d(TAG, "JSON 接收完成: ${receivedData.size()} 字节")
@@ -405,7 +405,7 @@ class BLEDiscovery @Inject constructor(
      * 返回 Pair<JSON, 头像字节数组>
      */
     @SuppressLint("MissingPermission")
-    suspend fun readProfile(gatt: BluetoothGatt): Pair<UserProfileBeacon, ByteArray?>? {
+    suspend fun readProfile(gatt: BluetoothGatt): Pair<ProfileBeacon, ByteArray?>? {
         return suspendCancellableCoroutine { continuation ->
 
             val service = gatt.getService(BLEAddFriendModule.SERVICE_UUID)

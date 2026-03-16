@@ -21,8 +21,9 @@ import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
 import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.data.network.signature.PacketSigner
+import top.chengdongqing.wechat.data.security.LocalIdentity
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
-import top.chengdongqing.wechat.features.me.data.model.UserProfileBeacon
+import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.BufferedOutputStream
 import java.io.File
@@ -51,6 +52,7 @@ class MessageReceiver @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val avatarServer: AvatarServer,
     private val packetSigner: PacketSigner,
+    private val localIdentity: LocalIdentity,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
@@ -135,7 +137,6 @@ class MessageReceiver @Inject constructor(
         val protocol = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
 
         when {
-            packet.type in PacketType.ADD_FRIEND_TYPES -> Unit // 加好友相关不判断
             protocol is ChatProtocol.MessageReceipt -> Unit // 回执消息不判断
             // 判断是否处理此消息（拉黑、不是好友、签名校验等）
             !canProcessMessage(userId, protocol) -> return
@@ -254,7 +255,6 @@ class MessageReceiver @Inject constructor(
                     )
                     state.tempFile.delete()
                     mediaStates.remove(userId)
-                    // TODO 通知发送端重传
                     return@withContext
                 }
             }
@@ -268,7 +268,7 @@ class MessageReceiver @Inject constructor(
      */
     private suspend fun sendProfile(userId: String) {
         val profile = profileRepository.getProfile() ?: return
-        val beacon = UserProfileBeacon(
+        val beacon = ProfileBeacon(
             userId = profile.id,
             nickname = profile.nickname,
             gender = profile.gender,
@@ -276,13 +276,18 @@ class MessageReceiver @Inject constructor(
             avatarUrl = avatarServer.avatarUrl,
             publicKey = profile.publicKey
         )
-        val protocol = ChatProtocol.FriendResponse(
+        val protocol = ChatProtocol.ProfileResponse(
             senderId = profile.id,
-            profile = beacon
+            profile = beacon,
+            signature = ""
         )
+        val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
+
         val packet = Packet(
             type = PacketType.PROFILE_RESPONSE,
-            body = json.encodeToString<ChatProtocol>(protocol).toByteArray(Charsets.UTF_8)
+            body = json.encodeToString<ChatProtocol>(
+                protocol.copy(signature = signature)
+            ).toByteArray(Charsets.UTF_8)
         )
 
         transport.send(userId, packet)

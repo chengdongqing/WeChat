@@ -124,18 +124,18 @@ class ChatInfoViewModel @AssistedInject constructor(
     fun updateBackground(uri: Uri?) {
         viewModelScope.launch {
             try {
+                val oldPath = uiState.value.backgroundPath
                 // 保存新背景
-                val backgroundPath = uri?.let { uri ->
+                val newPath = uri?.let { uri ->
                     privateFileManager.saveMedia(
                         messageType = MessageType.Image,
                         sourceUri = uri
                     ).getOrThrow()
                 }
+                // 更新数据
+                chatSessionRepository.updateBackground(chatId, newPath)
                 // 删除旧背景
-                uiState.value.backgroundPath?.let {
-                    privateFileManager.deleteFile(it)
-                }
-                chatSessionRepository.updateBackground(chatId, backgroundPath)
+                oldPath?.let { privateFileManager.deleteFile(it) }
 
                 context.showToast(if (uri == null) "背景清除成功" else "背景设置成功")
             } catch (e: Exception) {

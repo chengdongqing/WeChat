@@ -11,3 +11,10 @@ fun ByteArray.toHexString(): String = joinToString(" ") {
  * 将单个 Byte 转为两位十六进制字符串
  */
 fun Byte.toHexByte(): String = "%02X".format(this)
+
+/**
+ * 按指定大小分块
+ */
+fun ByteArray.chunked(size: Int): List<ByteArray> = (indices step size).map { i ->
+    copyOfRange(i, minOf(i + size, this.size))
+}

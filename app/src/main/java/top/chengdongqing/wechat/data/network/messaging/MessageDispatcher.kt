@@ -45,6 +45,7 @@ class MessageDispatcher @Inject constructor(
         replay = 0, // 不缓存历史消息，订阅者只收到订阅后的新消息
         extraBufferCapacity = 64 // 突发消息不阻塞发送方协程
     )
+
     /**
      * 新消息流，供上层发送通知等
      */
@@ -60,8 +61,8 @@ class MessageDispatcher @Inject constructor(
                 is ChatProtocol.CallMessage -> handleCallMessage(protocol)
                 is ChatProtocol.MessageReceipt -> handleReceipt(protocol)
                 is ChatProtocol.Signaling -> handleSignaling(protocol)
-                is ChatProtocol.FriendResponse -> handleFriendResponse(protocol)
-                else -> {}
+                is ChatProtocol.ProfileResponse -> updateContactProfile(protocol)
+                else -> Unit
             }
         }.onFailure {
             Log.e(TAG, "分发失败: ${protocol::class.simpleName}", it)
@@ -168,29 +169,38 @@ class MessageDispatcher @Inject constructor(
         signalingManager.onSignalingReceived(protocol)
     }
 
-    private suspend fun handleFriendResponse(protocol: ChatProtocol.FriendResponse) {
-        val profile = protocol.profile
+    /**
+     * 更新联系人资料
+     */
+    private suspend fun updateContactProfile(protocol: ChatProtocol.ProfileResponse) {
+        val newProfile = protocol.profile
+        val userId = newProfile.userId
 
-        // 下载头像
-        val avatarPath = profile.avatarUrl?.let {
-            val tempFile = File.createTempFile("IMG_", ".jpg")
-            val targetFile = downloadAvatar(it, tempFile).onFailure { e ->
-                Log.w(TAG, "头像下载失败", e)
-            }.getOrNull()
-            targetFile?.let {
-                privateFileManager.saveAvatar(targetFile.toUri(), profile.userId).getOrNull()
+        // 查询旧头像
+        val oldAvatarPath = contactRepository.getContact(userId)?.avatarPath
+
+        // 下载新头像
+        val newAvatarPath = newProfile.avatarUrl?.let { url ->
+            val file = File.createTempFile("IMG_", ".jpg")
+            downloadAvatar(url, file).getOrNull()?.let {
+                privateFileManager.saveAvatar(userId, file.toUri()).getOrNull()
             }
         }
 
-        // 更新信息
-        contactRepository.updateContact(profile.userId) { contact ->
+        // 更新联系人资料
+        contactRepository.updateContact(newProfile.userId) { contact ->
             contact.copy(
-                avatarPath = avatarPath ?: contact.avatarPath,
-                nickname = profile.nickname,
-                signature = profile.signature,
-                gender = profile.gender,
+                avatarPath = newAvatarPath ?: contact.avatarPath,
+                nickname = newProfile.nickname,
+                signature = newProfile.signature,
+                gender = newProfile.gender,
                 version = System.currentTimeMillis() // 更新版本号
             )
+        }
+
+        // 删除旧文件
+        if (newAvatarPath != null && oldAvatarPath != null) {
+            privateFileManager.deleteFile(oldAvatarPath)
         }
     }
 

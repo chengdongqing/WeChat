@@ -56,7 +56,11 @@ class PeerHandshakeHandler @Inject constructor(
     fun acceptHandshake(reader: PacketReader, writer: PacketWriter): String? = runCatching {
         val packet = reader.read()
         if (packet.type != HANDSHAKE) return null
-        val hs = json.decodeFromString<ChatProtocol.Handshake>(String(packet.body, Charsets.UTF_8))
+
+        val hs = json.decodeFromString<ChatProtocol.Handshake>(
+            String(packet.body, Charsets.UTF_8)
+        )
+
         hs.e2ePublicKey?.let { peerKey ->
             val myKey = e2e.acceptHandshake(hs.senderId, peerKey)
             val ack = ChatProtocol.Handshake(

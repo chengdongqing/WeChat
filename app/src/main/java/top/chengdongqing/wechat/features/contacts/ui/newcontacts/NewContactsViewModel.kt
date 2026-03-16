@@ -31,7 +31,7 @@ class NewContactsViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
 
     val uiState: StateFlow<NewContactsUiState> = combine(
-        friendRequestRepository.observeAllRequest(),
+        friendRequestRepository.observeAllRequests(),
         friendRequestRepository.getPendingCount(),
         _searchQuery
     ) { requests, count, query ->

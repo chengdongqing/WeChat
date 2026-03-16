@@ -126,8 +126,7 @@ fun WeImageCropper(
 
                     scope.launch {
                         val bitmap = bitmap.asAndroidBitmap().crop(state)
-                        val resultUri = context.createImageUri(bitmap)
-                        onConfirm(resultUri)
+                        onConfirm(context.createImageUri(bitmap))
                     }
                 }
             }

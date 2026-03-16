@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.nfc
+package top.chengdongqing.wechat.features.contacts.ui.add.nfc.util
 
 import android.nfc.NfcAdapter
 import android.nfc.NfcManager
@@ -15,10 +15,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 
 /**
  * NFC 可用性状态。
- *
- * 检测链：无芯片 → 未开启 → 可用。
- * HCE 能力（被扫描模式）不在这里判断：只要 NFC 已开启，HCE 硬件在
- * Android 4.4+ 的主流设备上均支持，运行时通过 setPreferredService() 保障路由即可。
  */
 sealed class NfcAvailability {
     /** 设备无 NFC 芯片 */
@@ -35,7 +31,6 @@ sealed class NfcAvailability {
  * 检测并订阅 NFC 可用性。
  *
  * 每次回到前台（onResume）重新检测，确保用户从系统设置开关 NFC 后立即生效。
- * NFC 权限（android.permission.NFC）是 normal permission，无需运行时申请。
  */
 @Composable
 fun rememberNfcAvailability(): NfcAvailability {

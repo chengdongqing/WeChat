@@ -12,7 +12,7 @@ interface FriendRequestRepository {
     /**
      * 获取所有好友申请
      */
-    fun observeAllRequest(): Flow<List<FriendRequest>>
+    fun observeAllRequests(): Flow<List<FriendRequest>>
 
     /**
      * 获取待处理数量
@@ -64,12 +64,7 @@ interface FriendRequestRepository {
     suspend fun handleRequestResponse(response: FriendRequestResponse): Result<Unit>
 
     /**
-     * 处理自动添加回复
+     * 处理自动添加（对方没有把我删掉，我主动加回）
      */
-    suspend fun handleAutoAddResponse(response: FriendProfileResponse): Result<Unit>
-
-    /**
-     * 处理完整资料响应
-     */
-    suspend fun handleFullProfileResponse(response: FriendProfileResponse)
+    suspend fun handleAutoAdd(response: FriendProfileResponse): Result<Unit>
 }

@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeResult
+import top.chengdongqing.wechat.features.contacts.domain.model.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -168,15 +168,14 @@ class ProfileViewModel @Inject constructor(
      */
     private suspend fun updateAvatar(uri: Uri) {
         val profile = _uiState.value.profile ?: throw Exception("资料未加载")
-
-        // 删除旧头像
-        profile.avatarPath?.let { privateFileManager.deleteFile(it) }
+        val oldPath = profile.avatarPath
 
         // 保存新头像
-        val newPath = privateFileManager.saveAvatar(uri, profile.id).getOrThrow()
-
+        val newPath = privateFileManager.saveAvatar(profile.id, uri).getOrThrow()
         // 更新资料
         profileRepository.updateProfile(avatarPath = newPath)
+        // 删除旧头像
+        oldPath?.let { privateFileManager.deleteFile(it) }
     }
 
     /**

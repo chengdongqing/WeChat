@@ -2,19 +2,16 @@ package top.chengdongqing.wechat.features.contacts.ui.add.nfc
 
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,35 +25,43 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.nfc.HcePreferredService
-import top.chengdongqing.wechat.core.nfc.NfcAvailability
-import top.chengdongqing.wechat.core.nfc.NfcReaderDispatch
-import top.chengdongqing.wechat.core.nfc.rememberNfcAvailability
-import top.chengdongqing.wechat.features.contacts.domain.model.NfcConnectionState
-import top.chengdongqing.wechat.features.contacts.ui.add.nfc.components.NfcConnected
-import top.chengdongqing.wechat.features.contacts.ui.add.nfc.components.NfcConnecting
-import top.chengdongqing.wechat.features.contacts.ui.add.nfc.components.NfcFailed
 import top.chengdongqing.wechat.features.contacts.ui.add.nfc.components.NfcModeSwitch
 import top.chengdongqing.wechat.features.contacts.ui.add.nfc.components.NfcUnavailable
 import top.chengdongqing.wechat.features.contacts.ui.add.nfc.components.NfcWaiting
+import top.chengdongqing.wechat.features.contacts.ui.add.nfc.util.HcePreferredService
+import top.chengdongqing.wechat.features.contacts.ui.add.nfc.util.NfcAvailability
+import top.chengdongqing.wechat.features.contacts.ui.add.nfc.util.NfcReaderDispatch
+import top.chengdongqing.wechat.features.contacts.ui.add.nfc.util.rememberNfcAvailability
 
 @Composable
 fun NfcAddContactScreen(
+    onBack: () -> Unit,
+    onNavigateToContact: (id: String) -> Unit,
     viewModel: NfcAddContactViewModel = hiltViewModel(),
-    onBack: () -> Unit
 ) {
     val context = LocalContext.current
     val nfcAvailability = rememberNfcAvailability()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var isReaderMode by remember { mutableStateOf(true) }
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // 启用读卡器和前台优先注册
     if (nfcAvailability == NfcAvailability.Enabled) {
         HcePreferredService()
         NfcReaderDispatch(isReaderMode) { userId ->
-            viewModel.onNfcDetected(userId)
+            viewModel.handleNfcDetected(userId) {
+                onNavigateToContact(userId)
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
         }
     }
 
@@ -68,6 +73,7 @@ fun NfcAddContactScreen(
                 containerColor = Color.Unspecified
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Box(
@@ -96,24 +102,20 @@ fun NfcAddContactScreen(
 
                 NfcAvailability.Enabled ->
                     NfcMainContent(
-                        uiState = uiState,
                         isReaderMode = isReaderMode,
-                        onModeChange = { isReaderMode = it },
-                        onAddFriend = viewModel::onAddFriend,
-                        onRetry = viewModel::onRetry
+                        onModeChange = { isReaderMode = it }
                     )
             }
         }
     }
+
+    LoadingDialog(uiState.isLoading)
 }
 
 @Composable
 private fun NfcMainContent(
-    uiState: NfcAddContactUiState,
     isReaderMode: Boolean,
     onModeChange: (Boolean) -> Unit,
-    onAddFriend: () -> Unit,
-    onRetry: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -131,35 +133,7 @@ private fun NfcMainContent(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            AnimatedContent(
-                targetState = uiState,
-                transitionSpec = {
-                    (fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.94f))
-                        .togetherWith(fadeOut(tween(200)))
-                },
-                label = "nfc_state"
-            ) { state ->
-                when (state.connectionState) {
-                    is NfcConnectionState.Waiting ->
-                        NfcWaiting(isReaderMode)
-
-                    is NfcConnectionState.Connecting ->
-                        NfcConnecting()
-
-                    is NfcConnectionState.Connected ->
-                        NfcConnected(
-                            contact = state.profile!!,
-                            addState = state.addState,
-                            onAddFriend = onAddFriend
-                        )
-
-                    is NfcConnectionState.Failed ->
-                        NfcFailed(
-                            reason = state.connectionState.reason,
-                            onRetry = onRetry
-                        )
-                }
-            }
+            NfcWaiting(isReaderMode)
         }
     }
 }

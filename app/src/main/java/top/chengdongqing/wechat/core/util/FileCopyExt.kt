@@ -2,15 +2,15 @@ package top.chengdongqing.wechat.core.util
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.util.Size
+import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -30,28 +30,21 @@ suspend fun Context.loadMediaThumbnail(
     isVideo: Boolean = false,
     size: Size = Size(200, 200)
 ): Any? {
-    /**
-     * Android 10 以下的图片直接返回原图 Uri
-     */
+    // Android 10 以下的图片直接返回原图 Uri
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && !isVideo) {
         return uri
     }
 
     return withContext(Dispatchers.IO) {
-        try {
+        runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                /**
-                 * API 29+ 使用系统缩略图加载
-                 * 系统会自动处理缓存
-                 */
+                // API 29+ 使用系统缩略图加载
                 contentResolver.loadThumbnail(uri, size, null)
             } else {
-                /**
-                 * API 29 以下手动提取视频首帧
-                 */
+                // API 29 以下手动提取视频首帧
                 loadVideoThumbnail(uri)
             }
-        } catch (_: IOException) {
+        }.getOrElse {
             if (!isVideo) uri else loadVideoThumbnail(uri)
         }
     }
@@ -62,15 +55,11 @@ suspend fun Context.loadMediaThumbnail(
  *
  * 用于低版本系统
  */
-fun Context.loadVideoThumbnail(uri: Uri): Bitmap? {
-    return MediaMetadataRetriever().use { retriever ->
-        try {
-            retriever.setDataSource(this, uri)
-            retriever.getFrameAtTime(1, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-        } catch (_: Exception) {
-            null
-        }
-    }
+fun Context.loadVideoThumbnail(uri: Uri): Bitmap? = MediaMetadataRetriever().use { retriever ->
+    runCatching {
+        retriever.setDataSource(this, uri)
+        retriever.getFrameAtTime(1, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+    }.getOrNull()
 }
 
 /**
@@ -87,7 +76,7 @@ suspend fun Context.copyUriToPrivateDir(
     uri: Uri,
     subDir: String
 ): String? = withContext(Dispatchers.IO) {
-    try {
+    runCatching {
         val dir = File(filesDir, subDir).also { it.mkdirs() }
         val fileName = "${randomUUID()}_${getFileName(uri)}"
         val destFile = File(dir, fileName)
@@ -96,13 +85,10 @@ suspend fun Context.copyUriToPrivateDir(
             FileOutputStream(destFile).use { output ->
                 input.copyTo(output, 64 * 1024)
             }
-        } ?: return@withContext null
+        } ?: throw IOException("文件打开失败")
 
         destFile.absolutePath
-    } catch (e: Exception) {
-        Log.e("FileCopy", "复制文件失败", e)
-        null
-    }
+    }.getOrNull()
 }
 
 /**
@@ -115,11 +101,13 @@ suspend fun Context.copyUriToPrivateDir(
 suspend fun Context.copyAssetToPrivateDir(
     assetName: String
 ): String? = withContext(Dispatchers.IO) {
-    try {
+    runCatching {
         val destFile = File(filesDir, assetName).also {
             it.parentFile?.mkdirs()
         }
-        if (destFile.exists()) return@withContext destFile.absolutePath
+        if (destFile.exists()) {
+            return@runCatching destFile.absolutePath
+        }
 
         assets.open(assetName).use { input ->
             FileOutputStream(destFile).use { output ->
@@ -128,10 +116,7 @@ suspend fun Context.copyAssetToPrivateDir(
         }
 
         destFile.absolutePath
-    } catch (e: Exception) {
-        Log.e("FileCopy", "复制文件失败", e)
-        null
-    }
+    }.getOrNull()
 }
 
 /**
@@ -155,27 +140,36 @@ suspend fun Context.createImageUri(
 }
 
 /**
- * 批量删除本地文件
+ * 生成头像缩略图
+ *
+ * 返回图片二进制数据
  */
-suspend fun deleteLocalFiles(paths: List<String>) = withContext(Dispatchers.IO) {
-    paths.map { path ->
-        async {
-            deleteLocalFile(path)
-        }
-    }.awaitAll()
-}
+fun File.toBytes(
+    targetSize: Int = 80,
+    maxSizeKB: Int = 5,
+    quality: Int = 70
+): ByteArray? = runCatching {
+    if (!exists()) return null
 
-/**
- * 删除单个本地文件
- */
-suspend fun deleteLocalFile(path: String?) = withContext(Dispatchers.IO) {
-    deleteFile(path)
-}
+    // 生成 Bitmap
+    val bitmap = BitmapFactory.decodeFile(path) ?: return null
 
-private fun deleteFile(path: String?) {
-    path?.let {
-        File(it).takeIf { file ->
-            file.exists()
-        }?.delete()
+    // 缩放到目标尺寸
+    val thumbnail = bitmap.scale(targetSize, targetSize)
+
+    // 压缩到指定大小
+    val outputStream = ByteArrayOutputStream()
+    var currentQuality = quality
+    do {
+        outputStream.reset()
+        thumbnail.compress(Bitmap.CompressFormat.JPEG, currentQuality, outputStream)
+        currentQuality -= 10
+    } while (outputStream.size() > maxSizeKB * 1024 && currentQuality > 10)
+
+    // 转 byte array
+    outputStream.toByteArray().also {
+        // 回收资源
+        bitmap.recycle()
+        thumbnail.recycle()
     }
-}
+}.getOrNull()

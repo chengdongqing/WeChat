@@ -75,7 +75,7 @@ class ProfileSetupViewModel @Inject constructor(
 
                 // 保存头像文件
                 val avatarPath = current.avatarUri?.let { uri ->
-                    privateFileManager.saveAvatar(uri, userId).getOrThrow()
+                    privateFileManager.saveAvatar(userId, uri).getOrThrow()
                 }
 
                 // 创建用户资料
