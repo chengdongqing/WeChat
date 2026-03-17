@@ -90,7 +90,6 @@ class P2PService : Service() {
                  */
                 ACTION_START_SERVICE -> {
                     if (!hasStarted) {
-                        stopAll()
                         startAll()
                     }
                 }
@@ -117,6 +116,9 @@ class P2PService : Service() {
      * 启动所有服务
      */
     private fun startAll() {
+        // 监听连接模式切换，启动对应聊天模块
+        observerJob = scope.launch { observeConnectionMode() }
+
         // 启动加好友模块
         bleAddFriendModule.start()
         // 启动通话模块（视频/语音通话）
@@ -125,8 +127,6 @@ class P2PService : Service() {
         avatarServer.start()
         // 启动通知服务
         notificationModule.start()
-        // 监听连接模式切换，启动对应聊天模块
-        observerJob = scope.launch { observeConnectionMode() }
 
         hasStarted = true
     }
@@ -135,13 +135,14 @@ class P2PService : Service() {
      * 停止所有服务
      */
     private fun stopAll() {
+        wifiLanChatModule.stop()
+        wifiDirectChatModule.stop()
+        bluetoothChatModule.stop()
+
         bleAddFriendModule.stop()
         callModule.stop()
         avatarServer.stop()
         notificationModule.stop()
-        wifiLanChatModule.stop()
-        wifiDirectChatModule.stop()
-        bluetoothChatModule.stop()
         observerJob?.cancel()
 
         hasStarted = false

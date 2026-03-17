@@ -10,8 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.network.config.TransferConfig.PING_INTERVAL
-import top.chengdongqing.wechat.data.network.config.TransferConfig.PONG_TIMEOUT
+import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
@@ -110,12 +109,12 @@ abstract class ConnectionManager(
         conn.heartbeatJob = scope.launch {
             try {
                 while (conn.isActive) {
-                    delay(PING_INTERVAL)
+                    delay(TransferConfig.PING_INTERVAL)
                     if (conn.activeTransferCount.get() > 0) continue
 
                     val lastSeen = conn.lastPongTime.get()
                     val elapsed = System.currentTimeMillis() - lastSeen
-                    if (elapsed > PONG_TIMEOUT) {
+                    if (elapsed > TransferConfig.PONG_TIMEOUT) {
                         throw ConnectionException(
                             "Pong 超时 (${elapsed}ms)",
                             SendError.ConnectionFailed

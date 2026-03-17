@@ -55,9 +55,9 @@ class WiFiLanChatModule @Inject constructor(
                 // 启动TCP服务
                 val port = socketServer.start()
                 // 注册NSD服务
-                startNsdRegistration(userId, port, scope)
+                startNsdRegistration(userId, port)
                 // 开始搜索NSD设备
-                startNsdDiscovery(userId, scope)
+                startNsdDiscovery(userId)
                 // 启动消息接收服务
                 messageReceiver.start()
             }.onSuccess {
@@ -88,7 +88,7 @@ class WiFiLanChatModule @Inject constructor(
      *
      * 将本机服务广播到局域网，其他设备发现后通过 TXT 属性的 userId 识别身份。
      */
-    private fun startNsdRegistration(userId: String, port: Int, scope: CoroutineScope) {
+    private fun startNsdRegistration(userId: String, port: Int) {
         nsdRegistrationJob = scope.launch {
             nsdDiscovery.registerService(userId, port).collect { state ->
                 when (state) {
@@ -110,7 +110,7 @@ class WiFiLanChatModule @Inject constructor(
      *
      * 持续监听局域网内设备上下线事件。
      */
-    private fun startNsdDiscovery(userId: String, scope: CoroutineScope) {
+    private fun startNsdDiscovery(userId: String) {
         nsdDiscoveryJob = scope.launch {
             nsdDiscovery.discoverServices(userId).collect { event ->
                 when (event) {

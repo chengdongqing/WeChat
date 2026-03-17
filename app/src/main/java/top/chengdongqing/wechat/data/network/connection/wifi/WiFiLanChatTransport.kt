@@ -43,7 +43,7 @@ class WiFiLanChatTransport @Inject constructor(
             userId = userId,
             host = info.lanIpAddress!!,
             port = info.lanPort!!,
-            myUserId = myUserId,
+            myUserId = myUserId
         ).isSuccess
     }
 

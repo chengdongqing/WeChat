@@ -21,6 +21,7 @@ import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketServer
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
+import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,6 +35,7 @@ class WiFiDirectChatModule @Inject constructor(
     private val connectionManager: TcpConnectionManager,
     private val activeSessionManager: ActiveSessionManager,
     private val messageReceiver: MessageReceiver,
+    private val profileRepository: ProfileRepository,
     @param:ApplicationContext private val context: Context,
     @param:IoScope private val scope: CoroutineScope
 ) : ServiceModule {
@@ -49,7 +51,8 @@ class WiFiDirectChatModule @Inject constructor(
         p2pManager.initialize(context, Looper.getMainLooper(), null)
     }
     private var connectionReceiver: BroadcastReceiver? = null
-    private var myUserId: String? = null
+
+    private val myUserId: String by lazy { profileRepository.requireUserId() }
 
     override fun start() {
         scope.launch {
@@ -153,14 +156,12 @@ class WiFiDirectChatModule @Inject constructor(
      * 主动连接 Group Owner
      */
     private suspend fun connectToGroupOwner(goUserId: String, goIp: String) {
-        myUserId?.let {
-            socketClient.connect(
-                userId = goUserId,
-                host = goIp,
-                port = PORT,
-                myUserId = it
-            )
-        }
+        socketClient.connect(
+            userId = goUserId,
+            host = goIp,
+            port = PORT,
+            myUserId = myUserId
+        )
     }
 
     private fun unregisterConnectionReceiver() {
