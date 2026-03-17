@@ -15,14 +15,10 @@ interface MediaFileDao {
     @Query("UPDATE media_files SET refCount = refCount + 1 WHERE localPath = :localPath")
     suspend fun increment(localPath: String)
 
-    /**
-     * 引用计数 -1，返回更新后的计数
-     * 若计数已为 0 则不更新（防止负数）
-     */
     @Query(
         """
         UPDATE media_files
-        SET refCount = refCount - 1
+        SET refCount = MAX(0, refCount - 1)
         WHERE localPath = :localPath AND refCount > 0
     """
     )
@@ -31,11 +27,11 @@ interface MediaFileDao {
     @Query(
         """
         UPDATE media_files
-        SET refCount = refCount - 1
-        WHERE localPath IN (:paths) AND refCount > 0
+        SET refCount = MAX(0, refCount - :count)
+        WHERE localPath = :path
     """
     )
-    suspend fun releaseAll(paths: Collection<String>)
+    suspend fun release(path: String, count: Int)
 
     @Query("SELECT localPath FROM media_files WHERE refCount <= 0")
     suspend fun getUnreferencedPaths(): List<String>

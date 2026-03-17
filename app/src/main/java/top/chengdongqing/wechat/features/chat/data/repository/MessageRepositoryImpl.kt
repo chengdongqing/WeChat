@@ -107,7 +107,7 @@ class MessageRepositoryImpl @Inject constructor(
         )
 
         database.withTransaction {
-            // 保存到数据库
+            // 保存消息
             messageDao.insert(entity)
             // 注册文件引用
             fileReferenceManager.retain(entity.localPath)
@@ -334,6 +334,8 @@ class MessageRepositoryImpl @Inject constructor(
             database.withTransaction {
                 // 保存消息
                 messageDao.insert(entity)
+                // 注册文件引用
+                fileReferenceManager.retain(entity.localPath)
                 // 更新会话
                 chatSessionUpdater.update(entity)
             }

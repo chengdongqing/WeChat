@@ -45,14 +45,17 @@ class FileReferenceManager @Inject constructor(
 
     /**
      * 批量释放文件引用，返回所有需要物理删除的路径
-     * 批量场景下一次 SQL 搞定，性能友好
      */
     suspend fun releaseAll(paths: Collection<String?>): List<String> {
-        val validPaths = paths.filterNotNull().distinct()
-        if (validPaths.isEmpty()) return emptyList()
+        val countByPath = paths.filterNotNull()
+            .groupingBy { it }
+            .eachCount()
+        if (countByPath.isEmpty()) return emptyList()
 
         return database.withTransaction {
-            mediaFileDao.releaseAll(validPaths)
+            countByPath.forEach { (path, count) ->
+                mediaFileDao.release(path, count)
+            }
             val unreferenced = mediaFileDao.getUnreferencedPaths()
             if (unreferenced.isNotEmpty()) {
                 mediaFileDao.deleteUnreferenced()

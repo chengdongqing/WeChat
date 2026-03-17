@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.di.ProfileDataStore
+import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -19,6 +20,7 @@ import javax.inject.Inject
 
 class ProfileRepositoryImpl @Inject constructor(
     private val json: Json,
+    private val chatSessionDao: ChatSessionDao,
     @param:IoScope private val scope: CoroutineScope,
     @param:ProfileDataStore private val dataStore: DataStore<Preferences>
 ) : ProfileRepository {
@@ -59,17 +61,22 @@ class ProfileRepositoryImpl @Inject constructor(
         signature: String?,
         avatarPath: String?
     ) {
-        val currentProfile = getProfile()
-            ?: throw IllegalStateException("Profile not found")
-
-        val updatedProfile = currentProfile.copyWithUpdate(
-            userName = nickname,
+        val updatedProfile = requireProfile().copyWithUpdate(
+            nickname = nickname,
             gender = gender,
             signature = signature,
             avatarPath = avatarPath,
         )
 
         saveProfile(updatedProfile)
+
+        // 更新和自己的会话
+        chatSessionDao.update(updatedProfile.id) { entity ->
+            entity.copy(
+                contactName = updatedProfile.nickname,
+                contactAvatar = updatedProfile.avatarPath
+            )
+        }
     }
 
     override suspend fun hasProfile(): Boolean {

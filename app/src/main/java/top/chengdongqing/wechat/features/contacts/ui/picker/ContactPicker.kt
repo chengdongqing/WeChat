@@ -38,7 +38,6 @@ import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetInd
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.showToast
@@ -79,7 +78,7 @@ fun ContactPicker(
             ) {
                 item {
                     Column(
-                        modifier = Modifier.background(White)
+                        modifier = Modifier.background(WeTheme.colorScheme.surface)
                     ) {
                         GroupChatEntry()
                         WeDivider()
@@ -189,7 +188,7 @@ private fun GroupChatEntry() {
         modifier = Modifier
             .height(60.dp)
             .fillMaxWidth()
-            .background(White)
+            .background(WeTheme.colorScheme.surface)
             .clickable {}
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically

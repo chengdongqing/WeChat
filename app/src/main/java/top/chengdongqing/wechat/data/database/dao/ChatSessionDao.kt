@@ -82,6 +82,7 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
         UPDATE chat_sessions 
         SET lastMessage = NULL,
             lastMessageId = NULL,
+            lastMessageType = NULL,
             unreadCount = 0,
             updatedAt = :now 
         WHERE id = :sessionId

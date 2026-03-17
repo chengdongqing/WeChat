@@ -15,11 +15,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.chat.ui.session.message.MultiMessageAction
 
 @Composable
@@ -35,7 +34,7 @@ fun MultiSelectBottomBar(
     Row(
         modifier = Modifier
             .height(76.dp)
-            .background(White)
+            .background(WeTheme.colorScheme.surface)
             .navigationBarsPadding(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceAround
@@ -70,7 +69,7 @@ private fun RowScope.ActionButton(
         Icon(
             painter = painterResource(action.icon),
             contentDescription = stringResource(action.labelRes),
-            tint = Color.Black.copy(alpha = if (enabled) 1f else 0.4f),
+            tint = WeTheme.colorScheme.textPrimary.copy(alpha = if (enabled) 1f else 0.4f),
             modifier = Modifier.size(24.dp)
         )
     }

@@ -36,13 +36,13 @@ data class UserProfile(
      * 创建更新后的资料副本
      */
     fun copyWithUpdate(
-        userName: String? = null,
+        nickname: String? = null,
         gender: Gender? = null,
         signature: String? = null,
         avatarPath: String? = null
     ): UserProfile {
         return copy(
-            nickname = userName ?: this.nickname,
+            nickname = nickname ?: this.nickname,
             gender = gender ?: this.gender,
             signature = signature ?: this.signature,
             avatarPath = avatarPath ?: this.avatarPath,

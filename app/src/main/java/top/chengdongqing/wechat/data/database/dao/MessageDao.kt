@@ -39,7 +39,7 @@ interface MessageDao : BaseDao<MessageEntity> {
 
     @Query(
         """
-      SELECT DISTINCT localPath FROM messages 
+      SELECT localPath FROM messages 
       WHERE id IN (:ids) 
       AND localPath IS NOT NULL
     """

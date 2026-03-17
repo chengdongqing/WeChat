@@ -16,7 +16,6 @@ import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.avatar.AvatarServer
 import top.chengdongqing.wechat.data.network.model.RadarBeacon
 import top.chengdongqing.wechat.features.contacts.data.network.RadarDiscoveryService.Companion.BEACON_TIMEOUT_MS
-import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.net.DatagramPacket
 import java.net.InetAddress
@@ -51,7 +50,6 @@ class RadarDiscoveryService @Inject constructor(
     private val _discoveredBeacons = MutableStateFlow<Map<String, RadarBeacon>>(emptyMap())
     val discoveredBeacons = _discoveredBeacons.asStateFlow()
 
-    private val myProfile: UserProfile by lazy { profileRepository.requireProfile() }
     private val wifiManager by lazy { context.getSystemService(Context.WIFI_SERVICE) as WifiManager }
 
     /**
@@ -114,9 +112,10 @@ class RadarDiscoveryService @Inject constructor(
 
                 val payload = String(packet.data, 0, packet.length, Charsets.UTF_8)
                 val beacon = json.decodeFromString<RadarBeacon>(payload)
+                val myUserId = profileRepository.requireUserId()
 
                 // 忽略自己广播的包
-                if (beacon.userId == myProfile.id) continue
+                if (beacon.userId == myUserId) continue
 
                 _discoveredBeacons.update {
                     it + (beacon.userId to beacon.copy(
@@ -136,6 +135,7 @@ class RadarDiscoveryService @Inject constructor(
      */
     private suspend fun beaconLoop() = withContext(Dispatchers.IO) {
         val avatarUrl = avatarServer.avatarUrl ?: return@withContext
+        val myProfile = profileRepository.requireProfile()
 
         val payload = json.encodeToString(
             RadarBeacon(
