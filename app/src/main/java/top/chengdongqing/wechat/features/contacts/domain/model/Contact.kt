@@ -22,7 +22,7 @@ data class Contact(
     val isBlocked: Boolean = false,
     val addedAt: Long? = null,
     val publicKey: String? = null,
-    val version: Long = System.currentTimeMillis()
+    val version: Long = 0
 ) {
     val displayName: String
         get() = remarkName ?: nickname
