@@ -83,12 +83,13 @@ class ChatSessionUpdater @Inject constructor(
             }
         } else {
             // 创建新会话
-            val (contactName, contactAvatar) = resolveContactInfo(message, isSelfSession)
+            val contactId = if (message.isFromMe) message.receiverId else message.senderId
+            val (contactName, contactAvatar) = resolveContactInfo(contactId, isSelfSession)
 
             chatSessionDao.insert(
                 ChatSessionEntity(
                     id = message.sessionId,
-                    contactId = message.senderId,
+                    contactId = contactId,
                     contactName = contactName,
                     contactAvatar = contactAvatar,
                     lastMessageId = message.id,
@@ -110,7 +111,7 @@ class ChatSessionUpdater @Inject constructor(
      * 普通会话：优先用备注名，无备注则用昵称；发件人是自己时取收件人信息，反之取发件人信息
      */
     private suspend fun resolveContactInfo(
-        entity: MessageEntity,
+        contactId: String,
         isSelfSession: Boolean,
     ): Pair<String, String?> {
         return when {
@@ -121,13 +122,7 @@ class ChatSessionUpdater @Inject constructor(
 
             // 去数据库查询联系人信息
             else -> {
-                val contactId = if (entity.senderId == currentProfile?.id) {
-                    entity.receiverId
-                } else {
-                    entity.senderId
-                }
                 val contact = contactRepository.getContact(contactId)
-
                 Pair(contact?.displayName ?: "", contact?.avatarPath)
             }
         }

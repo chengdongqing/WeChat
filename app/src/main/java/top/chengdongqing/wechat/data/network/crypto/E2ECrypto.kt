@@ -33,11 +33,6 @@ class E2ECrypto @Inject constructor() {
         private const val GCM_TAG_LENGTH = 128
         private const val SESSION_KEY_LENGTH = 32
 
-        // Cipher 按线程复用，避免并发冲突
-        private val tlsCipher = ThreadLocal.withInitial {
-            Cipher.getInstance(AES_TRANSFORMATION)
-        }
-
         private val secureRandom = SecureRandom()
     }
 
@@ -62,11 +57,11 @@ class E2ECrypto @Inject constructor() {
                 generateSecret()
             }
 
-            return hkdf(sharedSecret, SESSION_KEY_LENGTH)
+            return hkdf(sharedSecret)
         }
 
         // HKDF-SHA256 简化实现（单轮 expand，输出 ≤ 32B 时足够）
-        private fun hkdf(ikm: ByteArray, length: Int): ByteArray {
+        private fun hkdf(ikm: ByteArray, length: Int = SESSION_KEY_LENGTH): ByteArray {
             val prk = hmacSha256(key = ByteArray(32), data = ikm)       // Extract
             return hmacSha256(key = prk, data = byteArrayOf(0x01))      // Expand
                 .copyOf(length)
@@ -99,15 +94,14 @@ class E2ECrypto @Inject constructor() {
      */
     fun encrypt(plaintext: ByteArray, sessionKey: ByteArray): ByteArray {
         val iv = ByteArray(GCM_IV_LENGTH).also { secureRandom.nextBytes(it) }
-        val ciphertext = tlsCipher.get()!!.run {
-            init(
-                Cipher.ENCRYPT_MODE,
-                SecretKeySpec(sessionKey, "AES"),
-                GCMParameterSpec(GCM_TAG_LENGTH, iv)
-            )
-            doFinal(plaintext)
-        }
-        return iv + ciphertext
+        val cipher = Cipher.getInstance(AES_TRANSFORMATION)
+
+        cipher.init(
+            Cipher.ENCRYPT_MODE,
+            SecretKeySpec(sessionKey, "AES"),
+            GCMParameterSpec(GCM_TAG_LENGTH, iv)
+        )
+        return iv + cipher.doFinal(plaintext)
     }
 
     /**
@@ -115,13 +109,13 @@ class E2ECrypto @Inject constructor() {
      */
     fun decrypt(data: ByteArray, sessionKey: ByteArray): ByteArray {
         require(data.size > GCM_IV_LENGTH) { "数据过短，不是合法的加密包" }
-        return tlsCipher.get()!!.run {
-            init(
-                Cipher.DECRYPT_MODE,
-                SecretKeySpec(sessionKey, "AES"),
-                GCMParameterSpec(GCM_TAG_LENGTH, data.copyOf(GCM_IV_LENGTH))
-            )
-            doFinal(data.copyOfRange(GCM_IV_LENGTH, data.size))
-        }
+        val cipher = Cipher.getInstance(AES_TRANSFORMATION)
+
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            SecretKeySpec(sessionKey, "AES"),
+            GCMParameterSpec(GCM_TAG_LENGTH, data.copyOf(GCM_IV_LENGTH))
+        )
+        return cipher.doFinal(data.copyOfRange(GCM_IV_LENGTH, data.size))
     }
 }
