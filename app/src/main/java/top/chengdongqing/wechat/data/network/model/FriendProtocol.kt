@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.data.network.model
 
 import kotlinx.serialization.Serializable
+import top.chengdongqing.wechat.data.model.ContactAddSource
 
 /**
  * 加好友消息协议
@@ -19,6 +20,7 @@ sealed class FriendProtocol {
         val publicKey: String,
         val greeting: String,
         val avatarSize: Int,
+        val source: ContactAddSource,
         val timestamp: Long
     ) : FriendProtocol()
 

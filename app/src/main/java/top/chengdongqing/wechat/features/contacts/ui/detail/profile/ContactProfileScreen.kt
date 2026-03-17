@@ -11,6 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -34,6 +35,7 @@ fun ContactProfileScreen(
         factory.create(contactId)
     }
 ) {
+    val resources = LocalResources.current
     val contact = viewModel.contact.collectAsState().value ?: return
 
     Scaffold(
@@ -128,13 +130,18 @@ fun ContactProfileScreen(
                             showArrow = false
                         )
                     }
-                    contact.source?.let {
-                        WeSettingItem(
-                            label = stringResource(R.string.contact_profile_source),
-                            trailing = { WeSettingValue(it.getDescription(contact.isFromMe)) },
-                            showArrow = false
-                        )
-                    }
+                    WeSettingItem(
+                        label = stringResource(R.string.contact_profile_source),
+                        trailing = {
+                            WeSettingValue(
+                                contact.source.getDescription(
+                                    resources,
+                                    contact.isFromMe
+                                )
+                            )
+                        },
+                        showArrow = false
+                    )
                     contact.addedAt?.let {
                         WeSettingItem(
                             label = stringResource(R.string.contact_profile_added_at),

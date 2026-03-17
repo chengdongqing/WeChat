@@ -86,6 +86,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     publicKey = myProfile.publicKey,
                     greeting = greeting,
                     avatarSize = avatarBytes?.size ?: 0,
+                    source = targetContact.source,
                     timestamp = System.currentTimeMillis()
                 ),
                 avatarBytes
@@ -93,7 +94,14 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 if (!it) throw Exception("无法连接到对方设备")
             }
 
-            saveOutgoingRequest(requestId, targetContact, greeting, remark, note)
+            saveOutgoingRequest(
+                requestId = requestId,
+                targetContact = targetContact,
+                greeting = greeting,
+                remark = remark,
+                note = note,
+                source = targetContact.source
+            )
         }
     }
 
@@ -118,22 +126,25 @@ class FriendRequestRepositoryImpl @Inject constructor(
             }
 
             addContactFromRequest(request, remark, note)
-            friendRequestDao.update(requestId) { it.copy(status = FriendRequestStatus.Accepted) }
+
+            friendRequestDao.update(requestId) {
+                it.copy(status = FriendRequestStatus.Accepted)
+            }
         }
     }
 
     override suspend fun handleIncomingRequest(request: IncomingFriendRequest) =
         withContext(Dispatchers.IO) {
             runCatching {
-                if (contactRepository.exists(request.userId)) {
-                    handleAlreadyFriend(
-                        request.userId, request.nickname,
-                        request.avatarData
-                    )
-                } else {
+                if (!contactRepository.exists(request.userId)) {
                     saveIncomingRequest(
-                        request.requestId, request.userId, request.nickname,
-                        request.publicKey, request.greeting, request.avatarData
+                        requestId = request.requestId,
+                        userId = request.userId,
+                        nickname = request.nickname,
+                        publicKey = request.publicKey,
+                        greeting = request.greeting,
+                        avatarData = request.avatarData,
+                        source = request.source
                     )
                 }
             }.onFailure {
@@ -198,42 +209,19 @@ class FriendRequestRepositoryImpl @Inject constructor(
             }
         }
 
-    private suspend fun handleAlreadyFriend(
-        peerUserId: String,
-        peerNickname: String,
-        avatarData: ByteArray?
-    ) {
-        updateContactInfo(peerUserId, peerNickname, avatarData)
-    }
-
     private suspend fun handleAccepted(request: FriendRequestEntity) {
         database.withTransaction {
             addContactFromRequest(request)
-            friendRequestDao.update(request.id) { it.copy(status = FriendRequestStatus.Accepted) }
+
+            friendRequestDao.update(request.id) {
+                it.copy(status = FriendRequestStatus.Accepted)
+            }
         }
     }
 
     private suspend fun handleRejected(requestId: String) {
-        friendRequestDao.update(requestId) { it.copy(status = FriendRequestStatus.Rejected) }
-    }
-
-    private suspend fun updateContactInfo(
-        userId: String,
-        nickname: String,
-        avatarBytes: ByteArray?
-    ) {
-        val avatarPath = avatarBytes?.let {
-            privateFileManager.saveAvatar(
-                userId = userId,
-                sourceBytes = it
-            ).getOrNull()
-        }
-
-        contactRepository.updateContact(userId) { contact ->
-            contact.copy(
-                nickname = nickname,
-                avatarPath = avatarPath ?: contact.avatarPath
-            )
+        friendRequestDao.update(requestId) {
+            it.copy(status = FriendRequestStatus.Rejected)
         }
     }
 
@@ -242,7 +230,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
         targetContact: Contact,
         greeting: String,
         remark: String?,
-        note: String?
+        note: String?,
+        source: ContactAddSource
     ) {
         friendRequestDao.insert(
             FriendRequestEntity(
@@ -256,22 +245,24 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 note = note,
                 status = FriendRequestStatus.Pending,
                 isFromMe = true,
-                isRead = true
+                isRead = true,
+                source = source
             )
         )
     }
 
     private suspend fun saveIncomingRequest(
         requestId: String,
-        peerUserId: String,
-        peerNickname: String,
-        peerPublicKey: String,
+        userId: String,
+        nickname: String,
+        publicKey: String,
         greeting: String,
-        avatarData: ByteArray?
+        avatarData: ByteArray?,
+        source: ContactAddSource
     ) {
         val avatarPath = avatarData?.let {
             privateFileManager.saveAvatar(
-                userId = peerUserId,
+                userId = userId,
                 sourceBytes = it
             ).getOrNull()
         }
@@ -279,14 +270,15 @@ class FriendRequestRepositoryImpl @Inject constructor(
         friendRequestDao.insert(
             FriendRequestEntity(
                 id = requestId,
-                userId = peerUserId,
-                nickname = peerNickname,
+                userId = userId,
+                nickname = nickname,
                 avatarPath = avatarPath,
-                publicKey = peerPublicKey,
+                publicKey = publicKey,
                 greeting = greeting,
                 status = FriendRequestStatus.Pending,
                 isFromMe = false,
-                isRead = false
+                isRead = false,
+                source = source
             )
         )
     }
@@ -303,7 +295,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 avatarPath = request.avatarPath,
                 remarkName = remark ?: request.remark,
                 note = note ?: request.note,
-                source = ContactAddSource.QRCode,
+                source = request.source,
+                isFromMe = request.isFromMe,
                 publicKey = request.publicKey
             )
         )

@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.network.service.addfriend
 import android.bluetooth.BluetoothDevice
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -65,38 +66,45 @@ class BLEAddFriendModule @Inject constructor(
      */
     private val messageBuffers = ConcurrentHashMap<String, IncomingBuffer>()
 
-    override fun start() {
-        val userId = profileRepository.requireUserId()
-        val userIdHash = userId.toMD5Bytes().copyOf(BLEConfig.USER_ID_HASH_LENGTH)
-        server.start(userIdHash)
-        observeServerEvents()
+    private var observerJob: Job? = null
 
-        Log.d(TAG, "加好友模块已启动")
+    override fun start() {
+        runCatching {
+            val userId = profileRepository.requireUserId()
+            val userIdHash = userId.toMD5Bytes().copyOf(BLEConfig.USER_ID_HASH_LENGTH)
+            server.start(userIdHash)
+            observeServerEvents()
+        }.onSuccess {
+            Log.d(TAG, "加好友模块已启动")
+        }.onFailure {
+            Log.d(TAG, "加好友模块启动失败", it)
+        }
     }
 
     override fun stop() {
-        server.stop()
-        messageBuffers.clear()
-
-        Log.d(TAG, "加好友模块已停止")
+        runCatching {
+            server.stop()
+            messageBuffers.clear()
+            observerJob?.cancel()
+        }.onSuccess {
+            Log.d(TAG, "加好友模块已停止")
+        }
     }
 
     private fun observeServerEvents() {
-        // Reassemble incoming BlePacket chunks into complete FriendProtocol messages
-        scope.launch {
-            server.packets.collect { event -> handleIncomingPacket(event) }
-        }
-
-        // A remote client subscribed to notifications → push our profile to them
-        scope.launch {
-            server.subscriptions.collect { device -> sendProfileToDevice(device) }
-        }
-
-        // Remote client disconnected → discard its incomplete buffer
-        scope.launch {
-            server.disconnections.collect { device ->
-                messageBuffers.remove(device.address)?.let {
-                    Log.d(TAG, "已清除设备缓冲: ${device.address}")
+        observerJob = scope.launch {
+            // Reassemble incoming BlePacket chunks into complete FriendProtocol messages
+            launch {
+                server.packets.collect { event -> handleIncomingPacket(event) }
+            }
+            // A remote client subscribed to notifications → push our profile to them
+            launch {
+                server.subscriptions.collect { device -> sendProfileToDevice(device) }
+            }
+            // Remote client disconnected → discard its incomplete buffer
+            launch {
+                server.disconnections.collect { device ->
+                    messageBuffers.remove(device.address)
                 }
             }
         }
@@ -123,11 +131,12 @@ class BLEAddFriendModule @Inject constructor(
         val jsonText = String(buffer.jsonBuffer.toByteArray(), Charsets.UTF_8)
         val message = runCatching {
             json.decodeFromString<FriendProtocol>(jsonText)
-        }.getOrNull() ?: run {
-            Log.e(TAG, "FriendProtocol 解析失败")
-            return
+        }.onFailure {
+            Log.e(TAG, "FriendProtocol 解析失败", it)
+        }.getOrNull() ?: return
+        val binary = buffer.binaryBuffer.toByteArray().takeIf {
+            it.isNotEmpty()
         }
-        val binary = buffer.binaryBuffer.toByteArray().takeIf { it.isNotEmpty() }
 
         when (message) {
             is FriendProtocol.FriendRequest -> handleFriendRequest(message, binary)

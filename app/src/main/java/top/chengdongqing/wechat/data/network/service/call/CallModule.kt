@@ -51,7 +51,7 @@ class CallModule @Inject constructor(
         }.onSuccess {
             Log.d(TAG, "通话模块已启动")
         }.onFailure {
-            Log.e(TAG, "通话模块已启动", it)
+            Log.e(TAG, "通话模块启动失败", it)
         }
     }
 

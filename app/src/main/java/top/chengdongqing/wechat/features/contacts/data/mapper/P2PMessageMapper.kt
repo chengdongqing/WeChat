@@ -13,6 +13,7 @@ fun FriendProtocol.FriendRequest.toDomain(avatarData: ByteArray?): IncomingFrien
         publicKey = publicKey,
         greeting = greeting,
         avatarData = avatarData,
+        source = source,
         timestamp = timestamp
     )
 }

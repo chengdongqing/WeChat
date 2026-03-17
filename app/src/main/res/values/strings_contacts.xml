@@ -110,4 +110,13 @@
     <string name="contact_notification_request_rejected">对方拒绝了你的好友申请</string>
 
     <string name="contact_blocked_hint">已添加至黑名单，你将不再收到对方的消息</string>
+
+    <string name="add_source_search">搜索账号</string>
+    <string name="add_source_qrcode">扫一扫</string>
+    <string name="add_source_tap">碰一碰</string>
+    <string name="add_source_radar">雷达扫描</string>
+    <string name="add_source_group">群聊</string>
+    <string name="add_source_card">名片分享</string>
+    <string name="add_source_desc_from_me">通过%s添加</string>
+    <string name="add_source_desc_from_other">对方通过%s添加</string>
 </resources>

@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.domain.repository
 
+import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 interface AddFriendRepository {
@@ -27,6 +28,5 @@ interface AddFriendRepository {
     /**
      * 通过 BLE 拉取对方资料
      */
-    suspend fun fetchProfile(userId: String): Contact?
-
+    suspend fun fetchProfile(userId: String, source: ContactAddSource): Contact?
 }

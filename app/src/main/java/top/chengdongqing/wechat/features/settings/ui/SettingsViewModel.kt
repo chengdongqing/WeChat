@@ -26,7 +26,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             _logoutResult.emit(logout())
 
-            // 停止所有后台服务
+            // 停止所有服务
             runCatching {
                 val intent = context.createNetworkServiceIntent(P2PService.ACTION_STOP_SERVICE)
                 context.startService(intent)

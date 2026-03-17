@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.toMD5Hex
+import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.data.network.ble.BLEConnectionManager
 import top.chengdongqing.wechat.data.network.model.DiscoveryBeacon
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
@@ -45,8 +46,8 @@ class AddFriendRepositoryImpl @Inject constructor(
                 val (profileTransfer, avatarBytes) = bleConnectionManager.readProfile(beacon.userIdHashHex)
                     ?: throw Exception("获取资料失败")
 
-                parseProfile(profileTransfer, avatarBytes).also {
-                    contactCache.put(it.id, it)
+                parseProfile(profileTransfer, avatarBytes).also { contact ->
+                    contactCache.put(contact.id, contact.copy(source = ContactAddSource.QRCode))
                 }
             }
         }
@@ -81,7 +82,7 @@ class AddFriendRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun fetchProfile(userId: String): Contact? =
+    override suspend fun fetchProfile(userId: String, source: ContactAddSource): Contact? =
         withContext(Dispatchers.IO) {
             runCatching {
                 val md5 = userId.toMD5Hex()
@@ -90,7 +91,7 @@ class AddFriendRepositoryImpl @Inject constructor(
                     ?: throw Exception("readProfile 返回 null")
 
                 parseProfile(transfer, avatarBytes).also { contact ->
-                    contactCache.put(contact.id, contact)
+                    contactCache.put(contact.id, contact.copy(source = source))
                 }
             }.onFailure { e ->
                 Log.w(TAG, "获取对方的个人资料失败：userId=$userId, message=${e.message}")

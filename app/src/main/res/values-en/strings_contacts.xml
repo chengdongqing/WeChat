@@ -5,7 +5,7 @@
     <string name="contacts_menu_official_accounts">Official Accounts</string>
 
     <string name="contacts_action_edit_profile">Edit friend profile</string>
-    <string name="contacts_count">%d friends</string>
+    <string name="contacts_count">%d friend(s)</string>
 
     <string name="contact_avatar_description">Avatar</string>
     <string name="contact_label_nickname">Name: </string>
@@ -110,4 +110,13 @@
     <string name="contact_notification_request_rejected">Your friend request has been rejected</string>
 
     <string name="contact_blocked_hint">This person is now blocked from sending you messages</string>
+
+    <string name="add_source_search">Account Search</string>
+    <string name="add_source_qrcode">QR Code</string>
+    <string name="add_source_tap">Tap to Add</string>
+    <string name="add_source_radar">Nearby Radar</string>
+    <string name="add_source_group">Group Chat</string>
+    <string name="add_source_card">Business Card</string>
+    <string name="add_source_desc_from_me">Added via %s</string>
+    <string name="add_source_desc_from_other">Added you via %s</string>
 </resources>

@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.data.model.FriendRequestStatus
 
 @Entity(tableName = "friend_requests")
@@ -22,6 +23,7 @@ data class FriendRequestEntity(
     val status: FriendRequestStatus,    // 状态
     val isFromMe: Boolean = false,      // 是否我发出的
     val isRead: Boolean = false,        // 是否已读
+    val source: ContactAddSource, // 添加方式
 
     @Embedded
     val audit: EntityAudit = EntityAudit()

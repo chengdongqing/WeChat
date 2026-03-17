@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.data.network.model.RadarBeacon
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
@@ -71,7 +72,7 @@ class RadarScanViewModel @Inject constructor(
             _loadingUserId.value = user.id
             _error.value = null
 
-            val contact = addFriendRepository.fetchProfile(user.id)
+            val contact = addFriendRepository.fetchProfile(user.id, ContactAddSource.Radar)
             if (contact != null) {
                 _navigateToContact.value = contact
             } else {

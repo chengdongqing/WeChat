@@ -34,6 +34,8 @@ fun Contact.toEntity(): ContactEntity = ContactEntity(
     remarkName = remarkName,
     note = note,
     isBlocked = isBlocked,
+    source = source,
+    isFromMe = isFromMe,
     publicKey = publicKey,
     version = version
 )

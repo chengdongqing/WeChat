@@ -74,6 +74,8 @@ class P2PService : Service() {
         const val ACTION_RETRY_BLE = "action_retry_ble"
     }
 
+    var hasStarted: Boolean = false
+
     override fun onCreate() {
         super.onCreate()
 
@@ -89,11 +91,19 @@ class P2PService : Service() {
                 /**
                  * 服务启动入口
                  */
-                ACTION_START_SERVICE -> startAll()
+                ACTION_START_SERVICE -> {
+                    if (!hasStarted) {
+                        stopAll()
+                        startAll()
+                    }
+                }
                 /**
                  * 在获取蓝牙权限后重启蓝牙模块
                  */
-                ACTION_RETRY_BLE -> bleAddFriendModule.start()
+                ACTION_RETRY_BLE -> {
+                    bleAddFriendModule.stop()
+                    bleAddFriendModule.start()
+                }
                 /**
                  * 服务停止入口
                  */
@@ -118,6 +128,8 @@ class P2PService : Service() {
         notificationModule.start()
         // 监听连接模式切换，启动对应聊天模块
         scope.launch { observeConnectionMode() }
+
+        hasStarted = true
     }
 
     /**
@@ -131,6 +143,8 @@ class P2PService : Service() {
         wifiLanChatModule.stop()
         wifiDirectChatModule.stop()
         bluetoothChatModule.stop()
+
+        hasStarted = false
     }
 
     /**

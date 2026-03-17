@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
+import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.data.model.FriendRequestStatus
 import top.chengdongqing.wechat.features.me.domain.model.Gender
 
@@ -60,7 +61,8 @@ data class IncomingFriendRequest(
     val publicKey: String,
     val greeting: String,
     val avatarData: ByteArray?,
-    val timestamp: Long
+    val timestamp: Long,
+    val source: ContactAddSource
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -1,15 +1,25 @@
 package top.chengdongqing.wechat.data.model
 
-enum class ContactAddSource(val label: String) {
-    Search("搜索账号"),
-    QRCode("扫一扫"),
-    Tap("碰一碰"),
-    Radar("雷达扫描"),
-    Group("群聊"),
-    Card("名片分享");
+import android.content.res.Resources
+import androidx.annotation.StringRes
+import top.chengdongqing.wechat.R
 
-    fun getDescription(isFromMe: Boolean): String = when (isFromMe) {
-        true -> "通过${label}添加"
-        false -> "对方通过${label}添加"
+enum class ContactAddSource(
+    @get:StringRes val labelRes: Int
+) {
+    Search(R.string.add_source_search),
+    QRCode(R.string.add_source_qrcode),
+    Tap(R.string.add_source_tap),
+    Radar(R.string.add_source_radar),
+    Group(R.string.add_source_group),
+    Card(R.string.add_source_card);
+
+    fun getDescription(resources: Resources, isFromMe: Boolean): String {
+        val label = resources.getString(labelRes)
+
+        return when (isFromMe) {
+            true -> resources.getString(R.string.add_source_desc_from_me, label)
+            false -> resources.getString(R.string.add_source_desc_from_other, label)
+        }
     }
 }
