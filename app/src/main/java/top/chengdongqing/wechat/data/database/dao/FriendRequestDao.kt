@@ -61,6 +61,20 @@ interface FriendRequestDao : BaseDao<FriendRequestEntity> {
         now: Long = System.currentTimeMillis()
     )
 
+    @Query(
+        """
+        UPDATE friend_requests 
+        SET status = :expiredStatus 
+        WHERE status = :pendingStatus 
+        AND createdAt < :beforeTime
+    """
+    )
+    suspend fun markExpired(
+        beforeTime: Long,
+        expiredStatus: FriendRequestStatus,
+        pendingStatus: FriendRequestStatus
+    )
+
     @Transaction
     suspend fun update(
         requestId: String,

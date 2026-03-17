@@ -40,8 +40,8 @@ class NewContactsViewModel @Inject constructor(
             requests
         } else {
             requests.filter {
-                it.peerNickname.contains(query, ignoreCase = true) ||
-                        it.peerUserId.contains(query, ignoreCase = true)
+                it.nickname.contains(query, ignoreCase = true) ||
+                        it.userId.contains(query, ignoreCase = true)
             }
         }
 
@@ -59,6 +59,16 @@ class NewContactsViewModel @Inject constructor(
 
     init {
         clearUnreadState()
+        checkAndMarkExpired()
+    }
+
+    /**
+     * 检查及标记过期
+     */
+    private fun checkAndMarkExpired() {
+        viewModelScope.launch {
+            friendRequestRepository.checkAndMarkExpired()
+        }
     }
 
     private fun clearUnreadState() {
@@ -71,7 +81,7 @@ class NewContactsViewModel @Inject constructor(
         notificationHelper.cancelNotification(NotificationId.FriendRequest.id)
     }
 
-    fun onSearchQueryChange(newQuery: String) {
+    fun updateQuery(newQuery: String) {
         _searchQuery.value = newQuery
     }
 

@@ -43,16 +43,20 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 enum class FriendActionType(@get:StringRes val titleRes: Int) {
     Apply(R.string.contact_action_apply),
-    Verify(R.string.contact_action_verify)
+    Verify(R.string.contact_action_verify);
+
+    val isApply: Boolean get() = this == Apply
 }
 
 @Composable
-internal fun ContactHandleBase(
+fun ContactHandleBase(
     type: FriendActionType,
-    greetingText: String = "",
+    greeting: String = "",
     onGreetingChange: (String) -> Unit = {},
-    remarkText: String = "",
+    remark: String = "",
     onRemarkChange: (String) -> Unit = {},
+    note: String,
+    onNoteChange: (String) -> Unit = {},
     isLoading: Boolean = false,
     onBack: () -> Unit,
     onComplete: () -> Unit
@@ -81,40 +85,27 @@ internal fun ContactHandleBase(
                         .verticalScroll(rememberScrollState())
                 ) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    if (type == FriendActionType.Apply) {
-                        ListItem(stringResource(R.string.contact_label_greeting)) {
-                            BasicTextField(
-                                value = greetingText,
-                                onValueChange = onGreetingChange,
-                                maxLines = 3,
-                                textStyle = TextStyle(
-                                    fontSize = 16.sp,
-                                    color = WeTheme.colorScheme.textPrimary
-                                ),
-                                cursorBrush = SolidColor(WeTheme.colorScheme.primary),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-                    ListItem(stringResource(R.string.contact_label_remark)) {
-                        BasicTextField(
-                            value = remarkText,
-                            onValueChange = onRemarkChange,
-                            singleLine = true,
-                            textStyle = TextStyle(
-                                fontSize = 16.sp,
-                                color = WeTheme.colorScheme.textPrimary
-                            ),
-                            cursorBrush = SolidColor(WeTheme.colorScheme.primary),
-                            modifier = Modifier.fillMaxWidth()
+                    if (type.isApply) {
+                        FieldItem(
+                            label = stringResource(R.string.contact_label_greeting),
+                            value = greeting,
+                            onValueChange = onGreetingChange,
+                            singleLine = false
                         )
                     }
+                    FieldItem(
+                        label = stringResource(R.string.contact_label_remark),
+                        value = remark,
+                        onValueChange = onRemarkChange
+                    )
                     ListItem(stringResource(R.string.contact_label_tag)) {
                         LinkedRow(stringResource(R.string.contact_action_add_tag)) {}
                     }
-                    ListItem(stringResource(R.string.contact_label_note)) {
-                        LinkedRow(stringResource(R.string.contact_action_add_note)) {}
-                    }
+                    FieldItem(
+                        label = stringResource(R.string.contact_label_note),
+                        value = note,
+                        onValueChange = onNoteChange
+                    )
                     ListItem(stringResource(R.string.contact_label_permission)) {
                         LinkedRow(stringResource(R.string.contact_action_set_permission)) {}
                     }
@@ -127,7 +118,7 @@ internal fun ContactHandleBase(
 
             // 确认按钮
             ConfirmButton(
-                text = if (type == FriendActionType.Apply) {
+                text = if (type.isApply) {
                     stringResource(R.string.action_send)
                 } else {
                     stringResource(R.string.action_done)
@@ -138,6 +129,28 @@ internal fun ContactHandleBase(
     }
 
     LoadingDialog(isLoading)
+}
+
+@Composable
+private fun FieldItem(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    singleLine: Boolean = true
+) {
+    ListItem(label) {
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = singleLine,
+            textStyle = TextStyle(
+                fontSize = 16.sp,
+                color = WeTheme.colorScheme.textPrimary
+            ),
+            cursorBrush = SolidColor(WeTheme.colorScheme.primary),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 @Composable

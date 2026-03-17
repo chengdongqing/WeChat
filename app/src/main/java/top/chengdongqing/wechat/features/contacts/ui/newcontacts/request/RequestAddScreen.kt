@@ -47,10 +47,12 @@ fun RequestAddScreen(
 
     ContactHandleBase(
         type = FriendActionType.Apply,
-        greetingText = uiState.greetingMessage,
+        greeting = uiState.greeting,
         onGreetingChange = viewModel::updateGreeting,
-        remarkText = uiState.remark,
+        remark = uiState.remark,
         onRemarkChange = viewModel::updateRemark,
+        note = uiState.note,
+        onNoteChange = viewModel::updateNote,
         isLoading = uiState.isLoading,
         onBack = onBack,
         onComplete = viewModel::sendRequest

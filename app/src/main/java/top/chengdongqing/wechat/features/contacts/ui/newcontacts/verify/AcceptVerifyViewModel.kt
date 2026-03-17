@@ -51,7 +51,7 @@ class AcceptVerifyViewModel @AssistedInject constructor(
                     _uiState.update {
                         it.copy(
                             request = request.toDomain(),
-                            remark = request.greetingMessage.removePrefix("我是").trim(),
+                            remark = request.greeting.removePrefix("我是").trim(),
                             note = request.note ?: ""
                         )
                     }

@@ -47,8 +47,10 @@ fun AcceptVerifyScreen(
 
     ContactHandleBase(
         type = FriendActionType.Verify,
-        remarkText = uiState.remark,
+        remark = uiState.remark,
         onRemarkChange = viewModel::updateRemark,
+        note = uiState.note,
+        onNoteChange = viewModel::updateNote,
         isLoading = uiState.isLoading,
         onBack = onBack,
         onComplete = viewModel::accept

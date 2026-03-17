@@ -30,6 +30,11 @@ interface FriendRequestRepository {
     suspend fun markAllIncomingAsRead()
 
     /**
+     * 检查并标记过期的请求
+     */
+    suspend fun checkAndMarkExpired(expireDays: Int = 3)
+
+    /**
      * 删除申请记录
      */
     suspend fun deleteRequest(requestId: String)
@@ -39,7 +44,7 @@ interface FriendRequestRepository {
      */
     suspend fun sendFriendRequest(
         targetContact: Contact,
-        greetingMessage: String,
+        greeting: String,
         remark: String? = null,
         note: String? = null
     ): Result<Unit>

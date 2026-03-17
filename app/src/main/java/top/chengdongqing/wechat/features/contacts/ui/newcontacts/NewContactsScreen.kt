@@ -97,7 +97,7 @@ fun NewContactsScreen(
                         value = uiState.searchQuery,
                         placeholder = stringResource(R.string.new_contacts_search_placeholder),
                         backgroundColor = WeTheme.colorScheme.surface,
-                        onChange = { viewModel.onSearchQueryChange(it) }
+                        onChange = { viewModel.updateQuery(it) }
                     )
                 }
             }
@@ -119,7 +119,7 @@ fun NewContactsScreen(
                     title = resources.getString(R.string.new_contacts_section_recent),
                     list = recent,
                     viewModel = viewModel,
-                    onItemClick = { onNavigateToVerify(it) }
+                    onVerify = { onNavigateToVerify(it) }
                 )
             }
             // 三天前
@@ -128,7 +128,7 @@ fun NewContactsScreen(
                     title = resources.getString(R.string.new_contacts_section_older),
                     list = older,
                     viewModel = viewModel,
-                    onItemClick = { onNavigateToVerify(it) }
+                    onVerify = { onNavigateToVerify(it) }
                 )
             }
         }
@@ -161,7 +161,7 @@ private fun LazyListScope.renderRequestSection(
     title: String,
     list: List<FriendRequest>,
     viewModel: NewContactsViewModel,
-    onItemClick: (String) -> Unit,
+    onVerify: (String) -> Unit
 ) {
     if (list.isNotEmpty()) {
         item { SectionTitle(title) }
@@ -173,7 +173,7 @@ private fun LazyListScope.renderRequestSection(
                 request = request,
                 viewModel = viewModel,
                 showDivider = index < list.lastIndex,
-                onClick = { onItemClick(request.id) }
+                onVerify = { onVerify(request.id) }
             )
         }
     }
@@ -196,7 +196,7 @@ private fun FriendRequestItem(
     request: FriendRequest,
     viewModel: NewContactsViewModel,
     showDivider: Boolean = true,
-    onClick: () -> Unit,
+    onVerify: () -> Unit
 ) {
     val contextMenuState = rememberContextMenuState()
     val isOutgoing = request.isFromMe
@@ -221,21 +221,23 @@ private fun FriendRequestItem(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // 头像组件
-            RequestAvatar(request.peerAvatarPath)
+            RequestAvatar(request.avatarPath)
             // 信息主体 (昵称 & 留言)
             RequestContent(
-                nickname = request.peerNickname,
-                message = (if (isOutgoing) {
-                    stringResource(R.string.new_contacts_outgoing_prefix)
-                } else {
-                    ""
-                }) + request.greetingMessage,
+                nickname = request.nickname,
+                message = request.greeting.takeIf { it.isNotBlank() }?.let {
+                    (if (isOutgoing) {
+                        stringResource(R.string.new_contacts_outgoing_prefix)
+                    } else {
+                        ""
+                    }) + request.greeting
+                },
                 modifier = Modifier.weight(1f)
             )
             // 状态处理器 (按钮或文字)
             RequestStatusHandler(
                 request = request,
-                onActionClick = onClick
+                onVerify = onVerify
             )
         }
 
@@ -264,7 +266,7 @@ private fun RequestAvatar(url: String?) {
 @Composable
 private fun RequestContent(
     nickname: String,
-    message: String,
+    message: String?,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -275,10 +277,10 @@ private fun RequestContent(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        if (message.isNotEmpty()) {
+        message?.let {
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = message,
+                text = it,
                 color = WeTheme.colorScheme.textSecondary,
                 fontSize = 14.sp,
                 maxLines = 1,
@@ -291,7 +293,7 @@ private fun RequestContent(
 @Composable
 private fun RequestStatusHandler(
     request: FriendRequest,
-    onActionClick: () -> Unit
+    onVerify: () -> Unit
 ) {
     when (request.status) {
         FriendRequestStatus.Pending -> {
@@ -300,7 +302,7 @@ private fun RequestStatusHandler(
                     text = stringResource(R.string.action_view),
                     type = ButtonType.Plain,
                     size = ButtonSize.Small,
-                    onClick = onActionClick
+                    onClick = onVerify
                 )
             } else {
                 StatusText(stringResource(R.string.new_contacts_status_pending))

@@ -15,11 +15,11 @@ data class FriendRequestEntity(
     val avatarPath: String?,            // 对方的头像路径
     val publicKey: String?,             // 对方的公钥
 
-    val greetingMessage: String,        // 打招呼内容
+    val greeting: String,               // 打招呼内容
     val remark: String? = null,         // 备注
     val note: String? = null,           // 备忘
 
-    val status: FriendRequestStatus,          // 状态
+    val status: FriendRequestStatus,    // 状态
     val isFromMe: Boolean = false,      // 是否我发出的
     val isRead: Boolean = false,        // 是否已读
 

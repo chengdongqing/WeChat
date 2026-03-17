@@ -496,18 +496,17 @@ class ChatSessionViewModel @AssistedInject constructor(
     // region 联系人缓存
 
     fun prepareRequestAddFriend() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.value.let { state ->
-                val contact = Contact(
-                    id = state.peerId!!,
-                    nickname = state.title,
-                    avatarPath = state.peerAvatar
-                )
-                addFriendRepository.setContactToCache(
-                    contactId = chatId,
-                    contact = contact
-                )
-            }
+        _uiState.value.let { state ->
+            val contact = Contact(
+                id = state.peerId!!,
+                nickname = state.title,
+                avatarPath = state.peerAvatar
+            )
+
+            addFriendRepository.setContactToCache(
+                contactId = chatId,
+                contact = contact
+            )
         }
     }
 

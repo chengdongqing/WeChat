@@ -8,10 +8,10 @@ import top.chengdongqing.wechat.features.contacts.domain.model.IncomingFriendReq
 fun FriendProtocol.FriendRequest.toDomain(avatarData: ByteArray?): IncomingFriendRequest {
     return IncomingFriendRequest(
         requestId = requestId,
-        peerUserId = userId,
-        peerNickname = nickname,
-        peerPublicKey = publicKey,
-        greetingMessage = greeting,
+        userId = userId,
+        nickname = nickname,
+        publicKey = publicKey,
+        greeting = greeting,
         avatarData = avatarData,
         timestamp = timestamp
     )

@@ -28,6 +28,7 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.FriendReques
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.File
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.days
 
 class FriendRequestRepositoryImpl @Inject constructor(
     private val database: WeDatabase,
@@ -51,11 +52,21 @@ class FriendRequestRepositoryImpl @Inject constructor(
 
     override suspend fun markAllIncomingAsRead() = friendRequestDao.markAllIncomingAsRead()
 
+    override suspend fun checkAndMarkExpired(expireDays: Int) {
+        val expireThreshold = System.currentTimeMillis() - expireDays.days.inWholeMilliseconds
+
+        friendRequestDao.markExpired(
+            beforeTime = expireThreshold,
+            expiredStatus = FriendRequestStatus.Expired,
+            pendingStatus = FriendRequestStatus.Pending
+        )
+    }
+
     override suspend fun deleteRequest(requestId: String) = friendRequestDao.deleteById(requestId)
 
     override suspend fun sendFriendRequest(
         targetContact: Contact,
-        greetingMessage: String,
+        greeting: String,
         remark: String?,
         note: String?
     ): Result<Unit> = withContext(Dispatchers.IO) {
@@ -73,14 +84,16 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     userId = myProfile.id,
                     nickname = myProfile.nickname,
                     publicKey = myProfile.publicKey,
-                    greeting = greetingMessage,
+                    greeting = greeting,
                     avatarSize = avatarBytes?.size ?: 0,
                     timestamp = System.currentTimeMillis()
                 ),
                 avatarBytes
-            ).also { if (!it) throw Exception("无法连接到对方设备") }
+            ).also {
+                if (!it) throw Exception("无法连接到对方设备")
+            }
 
-            saveOutgoingRequest(requestId, targetContact, greetingMessage, remark, note)
+            saveOutgoingRequest(requestId, targetContact, greeting, remark, note)
         }
     }
 
@@ -100,7 +113,9 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     result = FriendRequestResult.Accepted,
                     timestamp = System.currentTimeMillis()
                 )
-            ).also { if (!it) throw Exception("无法连接到对方设备") }
+            ).also {
+                if (!it) throw Exception("无法连接到对方设备")
+            }
 
             addContactFromRequest(request, remark, note)
             friendRequestDao.update(requestId) { it.copy(status = FriendRequestStatus.Accepted) }
@@ -110,15 +125,15 @@ class FriendRequestRepositoryImpl @Inject constructor(
     override suspend fun handleIncomingRequest(request: IncomingFriendRequest) =
         withContext(Dispatchers.IO) {
             runCatching {
-                if (contactRepository.exists(request.peerUserId)) {
+                if (contactRepository.exists(request.userId)) {
                     handleAlreadyFriend(
-                        request.peerUserId, request.peerNickname,
+                        request.userId, request.nickname,
                         request.avatarData
                     )
                 } else {
                     saveIncomingRequest(
-                        request.requestId, request.peerUserId, request.peerNickname,
-                        request.peerPublicKey, request.greetingMessage, request.avatarData
+                        request.requestId, request.userId, request.nickname,
+                        request.publicKey, request.greeting, request.avatarData
                     )
                 }
             }.onFailure {
@@ -225,7 +240,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private suspend fun saveOutgoingRequest(
         requestId: String,
         targetContact: Contact,
-        greetingMessage: String,
+        greeting: String,
         remark: String?,
         note: String?
     ) {
@@ -236,7 +251,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 nickname = targetContact.nickname,
                 avatarPath = targetContact.avatarPath,
                 publicKey = targetContact.publicKey,
-                greetingMessage = greetingMessage,
+                greeting = greeting,
                 remark = remark,
                 note = note,
                 status = FriendRequestStatus.Pending,
@@ -251,7 +266,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         peerUserId: String,
         peerNickname: String,
         peerPublicKey: String,
-        greetingMessage: String,
+        greeting: String,
         avatarData: ByteArray?
     ) {
         val avatarPath = avatarData?.let {
@@ -268,7 +283,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 nickname = peerNickname,
                 avatarPath = avatarPath,
                 publicKey = peerPublicKey,
-                greetingMessage = greetingMessage,
+                greeting = greeting,
                 status = FriendRequestStatus.Pending,
                 isFromMe = false,
                 isRead = false

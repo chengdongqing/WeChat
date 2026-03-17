@@ -5,10 +5,10 @@ import top.chengdongqing.wechat.features.me.domain.model.Gender
 
 data class FriendRequest(
     val id: String,
-    val peerUserId: String,
-    val peerNickname: String,
-    val peerAvatarPath: String?,
-    val greetingMessage: String,
+    val userId: String,
+    val nickname: String,
+    val avatarPath: String?,
+    val greeting: String,
     val remark: String?,
     val status: FriendRequestStatus,
     val isFromMe: Boolean,
@@ -55,10 +55,10 @@ data class FriendRequestResponse(
 
 data class IncomingFriendRequest(
     val requestId: String,
-    val peerUserId: String,
-    val peerNickname: String,
-    val peerPublicKey: String,
-    val greetingMessage: String,
+    val userId: String,
+    val nickname: String,
+    val publicKey: String,
+    val greeting: String,
     val avatarData: ByteArray?,
     val timestamp: Long
 ) {
@@ -70,9 +70,9 @@ data class IncomingFriendRequest(
 
         if (timestamp != other.timestamp) return false
         if (requestId != other.requestId) return false
-        if (peerUserId != other.peerUserId) return false
-        if (peerNickname != other.peerNickname) return false
-        if (greetingMessage != other.greetingMessage) return false
+        if (userId != other.userId) return false
+        if (nickname != other.nickname) return false
+        if (greeting != other.greeting) return false
         if (!avatarData.contentEquals(other.avatarData)) return false
 
         return true
@@ -81,9 +81,9 @@ data class IncomingFriendRequest(
     override fun hashCode(): Int {
         var result = timestamp.hashCode()
         result = 31 * result + requestId.hashCode()
-        result = 31 * result + peerUserId.hashCode()
-        result = 31 * result + peerNickname.hashCode()
-        result = 31 * result + greetingMessage.hashCode()
+        result = 31 * result + userId.hashCode()
+        result = 31 * result + nickname.hashCode()
+        result = 31 * result + greeting.hashCode()
         result = 31 * result + (avatarData?.contentHashCode() ?: 0)
         return result
     }

@@ -18,7 +18,7 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.FriendReques
 
 data class RequestAddUiState(
     val contact: Contact? = null,
-    val greetingMessage: String = "我是",
+    val greeting: String = "我是",
     val remark: String = "",
     val tags: List<String> = emptyList(),
     val note: String = "",
@@ -54,7 +54,7 @@ class RequestAddViewModel @AssistedInject constructor(
     }
 
     fun updateGreeting(text: String) {
-        _uiState.update { it.copy(greetingMessage = text) }
+        _uiState.update { it.copy(greeting = text) }
     }
 
     fun updateRemark(text: String) {
@@ -70,16 +70,11 @@ class RequestAddViewModel @AssistedInject constructor(
             val state = _uiState.value
             val contact = state.contact ?: return@launch
 
-            if (state.greetingMessage.isBlank()) {
-                _eventFlow.emit(SendEvent.Error("请输入打招呼内容"))
-                return@launch
-            }
-
             _uiState.update { it.copy(isLoading = true) }
 
             friendRequestRepository.sendFriendRequest(
                 targetContact = contact,
-                greetingMessage = state.greetingMessage,
+                greeting = state.greeting,
                 remark = state.remark.takeIf { it.isNotBlank() },
                 note = state.note.takeIf { it.isNotBlank() }
             ).fold(

@@ -6,10 +6,10 @@ import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 fun FriendRequestEntity.toDomain(): FriendRequest {
     return FriendRequest(
         id = id,
-        peerUserId = userId,
-        peerNickname = nickname,
-        peerAvatarPath = avatarPath,
-        greetingMessage = greetingMessage,
+        userId = userId,
+        nickname = nickname,
+        avatarPath = avatarPath,
+        greeting = greeting,
         remark = remark,
         status = status,
         isFromMe = isFromMe,
