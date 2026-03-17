@@ -4,9 +4,10 @@ import android.bluetooth.BluetoothDevice
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
@@ -21,9 +22,11 @@ import top.chengdongqing.wechat.data.network.model.FriendEvent
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
 import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
+import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.data.model.toBeacon
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.PrivacySettingsRepository
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -44,19 +47,21 @@ import javax.inject.Singleton
  */
 @Singleton
 class BLEAddFriendModule @Inject constructor(
+    private val json: Json,
     private val server: BLEServer,
     private val profileRepository: ProfileRepository,
+    private val contactRepository: ContactRepository,
     private val friendRequestRepository: FriendRequestRepository,
-    private val json: Json,
-    @param:IoScope private val scope: CoroutineScope,
+    private val privacySettingsRepository: PrivacySettingsRepository,
+    @param:IoScope private val scope: CoroutineScope
 ) : ServiceModule {
 
     companion object {
         private const val TAG = "BLEAddFriendModule"
     }
 
-    private val _friendEvents = MutableSharedFlow<FriendEvent>(extraBufferCapacity = 8)
-    val friendEvents: SharedFlow<FriendEvent> = _friendEvents.asSharedFlow()
+    private val _friendEvents = MutableSharedFlow<FriendEvent>()
+    val friendEvents: Flow<FriendEvent> = _friendEvents.asSharedFlow()
 
     /**
      * Per-device reassembly buffers keyed by MAC address.
@@ -149,7 +154,14 @@ class BLEAddFriendModule @Inject constructor(
         binary: ByteArray?,
     ) {
         friendRequestRepository.handleIncomingRequest(message.toDomain(binary))
-        _friendEvents.emit(FriendEvent.FriendRequest(message.nickname, message.greeting))
+
+        // 查询该用户是否已是好友
+        val exists = contactRepository.exists(message.userId)
+
+        // 发送通知的情况：1.开启了好友验证 2.不在通讯录
+        if (!exists && friendVerifyEnabled()) {
+            _friendEvents.emit(FriendEvent.FriendRequest(message.nickname, message.greeting))
+        }
     }
 
     private suspend fun handleFriendResponse(message: FriendProtocol.FriendResponse) {
@@ -191,6 +203,9 @@ class BLEAddFriendModule @Inject constructor(
                 maxSizeKB = BLEConfig.AVATAR_MAX_SIZE_KB,
             )
         }
+
+    private suspend fun friendVerifyEnabled(): Boolean =
+        privacySettingsRepository.friendVerifyEnabled.first()
 }
 
 /**

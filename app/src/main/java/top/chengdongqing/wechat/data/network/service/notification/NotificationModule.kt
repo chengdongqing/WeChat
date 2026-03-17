@@ -9,6 +9,7 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.di.IoScope
@@ -25,6 +26,7 @@ import top.chengdongqing.wechat.features.chat.data.mapper.toMessageType
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationDisplay
 import top.chengdongqing.wechat.features.settings.domain.model.NotificationSound
 import top.chengdongqing.wechat.features.settings.domain.model.toUri
@@ -35,6 +37,7 @@ import javax.inject.Inject
 class NotificationModule @Inject constructor(
     private val messageDispatcher: MessageDispatcher,
     private val addFriendModule: BLEAddFriendModule,
+    private val friendRequestRepository: FriendRequestRepository,
     private val notificationHelper: NotificationHelper,
     private val vibratorHelper: VibratorHelper,
     private val contactRepository: ContactRepository,
@@ -80,7 +83,10 @@ class NotificationModule @Inject constructor(
      * 监听加好友相关事件
      */
     private suspend fun observeFriendEvents() {
-        addFriendModule.friendEvents.collect { event ->
+        merge(
+            addFriendModule.friendEvents,
+            friendRequestRepository.friendEvents
+        ).collect { event ->
             handleFriendNotification(event)
         }
     }

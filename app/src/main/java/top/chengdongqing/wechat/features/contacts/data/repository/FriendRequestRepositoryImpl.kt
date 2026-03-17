@@ -3,7 +3,11 @@ package top.chengdongqing.wechat.features.contacts.data.repository
 import android.util.Log
 import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
@@ -15,6 +19,7 @@ import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
 import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.data.model.FriendRequestStatus
 import top.chengdongqing.wechat.data.network.ble.BLEConnectionManager
+import top.chengdongqing.wechat.data.network.model.FriendEvent
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
 import top.chengdongqing.wechat.data.network.model.FriendRequestResult
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
@@ -26,6 +31,7 @@ import top.chengdongqing.wechat.features.contacts.domain.model.IncomingFriendReq
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.settings.domain.repository.PrivacySettingsRepository
 import java.io.File
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
@@ -36,12 +42,16 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private val contactRepository: ContactRepository,
     private val profileRepository: ProfileRepository,
     private val privateFileManager: PrivateFileManager,
-    private val bleConnectionManager: BLEConnectionManager
+    private val bleConnectionManager: BLEConnectionManager,
+    private val privacySettingsRepository: PrivacySettingsRepository
 ) : FriendRequestRepository {
 
     private companion object {
         const val TAG = "FriendRequestRepository"
     }
+
+    private val _friendEvents = MutableSharedFlow<FriendEvent>()
+    override val friendEvents: Flow<FriendEvent> = _friendEvents.asSharedFlow()
 
     override fun observeAllRequests(): Flow<List<FriendRequest>> =
         friendRequestDao.observeAll().map { it.toDomain() }
@@ -90,8 +100,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     timestamp = System.currentTimeMillis()
                 ),
                 avatarBytes
-            ).also {
-                if (!it) throw Exception("无法连接到对方设备")
+            ).onFailure {
+                throw Exception("无法连接到对方设备")
             }
 
             saveOutgoingRequest(
@@ -121,8 +131,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     result = FriendRequestResult.Accepted,
                     timestamp = System.currentTimeMillis()
                 )
-            ).also {
-                if (!it) throw Exception("无法连接到对方设备")
+            ).onFailure {
+                throw Exception("无法连接到对方设备")
             }
 
             addContactFromRequest(request, remark, note)
@@ -130,22 +140,35 @@ class FriendRequestRepositoryImpl @Inject constructor(
             friendRequestDao.update(requestId) {
                 it.copy(status = FriendRequestStatus.Accepted)
             }
+
+            // 发送加好友成功通知
+            _friendEvents.emit(FriendEvent.Added(request.nickname))
         }
     }
 
     override suspend fun handleIncomingRequest(request: IncomingFriendRequest) =
         withContext(Dispatchers.IO) {
             runCatching {
-                if (!contactRepository.exists(request.userId)) {
-                    saveIncomingRequest(
-                        requestId = request.requestId,
-                        userId = request.userId,
-                        nickname = request.nickname,
-                        publicKey = request.publicKey,
-                        greeting = request.greeting,
-                        avatarData = request.avatarData,
-                        source = request.source
-                    )
+                // 如果已是好友不再处理
+                if (contactRepository.exists(request.userId)) {
+                    return@runCatching
+                }
+
+                // 保存申请记录
+                saveIncomingRequest(
+                    requestId = request.requestId,
+                    userId = request.userId,
+                    nickname = request.nickname,
+                    publicKey = request.publicKey,
+                    greeting = request.greeting,
+                    avatarData = request.avatarData,
+                    source = request.source,
+                )
+
+                // 不需要验证时直接通过
+                if (!friendVerifyEnabled()) {
+                    delay(1000)
+                    acceptFriendRequest(request.requestId)
                 }
             }.onFailure {
                 Log.e(TAG, "处理申请失败", it)
@@ -216,6 +239,9 @@ class FriendRequestRepositoryImpl @Inject constructor(
             friendRequestDao.update(request.id) {
                 it.copy(status = FriendRequestStatus.Accepted)
             }
+
+            // 发送加好友成功通知
+            _friendEvents.emit(FriendEvent.Added(request.nickname))
         }
     }
 
@@ -301,4 +327,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
             )
         )
     }
+
+    private suspend fun friendVerifyEnabled(): Boolean =
+        privacySettingsRepository.friendVerifyEnabled.first()
 }

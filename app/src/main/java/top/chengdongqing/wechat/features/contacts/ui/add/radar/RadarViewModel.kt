@@ -30,7 +30,7 @@ class RadarScanViewModel @Inject constructor(
 ) : ViewModel() {
 
     val radarUsers = radarRepository.nearbyUsers
-        .map { beacons -> beacons.toRadarUsers() }
+        .map { it.toRadarUsers() }
         .distinctUntilChanged()
         .stateIn(
             scope = viewModelScope,

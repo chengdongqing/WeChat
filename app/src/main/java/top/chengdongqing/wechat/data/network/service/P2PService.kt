@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.di.IoScope
@@ -24,7 +25,6 @@ import top.chengdongqing.wechat.data.network.service.call.CallModule
 import top.chengdongqing.wechat.data.network.service.chat.BluetoothChatModule
 import top.chengdongqing.wechat.data.network.service.chat.WiFiDirectChatModule
 import top.chengdongqing.wechat.data.network.service.chat.WiFiLanChatModule
-import top.chengdongqing.wechat.data.network.service.notification.NotificationHelper
 import top.chengdongqing.wechat.data.network.service.notification.NotificationModule
 import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 import javax.inject.Inject
@@ -58,9 +58,6 @@ class P2PService : Service() {
 
     @Inject
     lateinit var connectionSettingsRepository: ConnectionSettingsRepository
-
-    @Inject
-    lateinit var notificationHelper: NotificationHelper
 
     @Inject
     @IoScope
@@ -114,6 +111,8 @@ class P2PService : Service() {
         return START_STICKY // 被系统杀死后自动重启，保持消息收发能力
     }
 
+    private var observerJob: Job? = null
+
     /**
      * 启动所有服务
      */
@@ -127,7 +126,7 @@ class P2PService : Service() {
         // 启动通知服务
         notificationModule.start()
         // 监听连接模式切换，启动对应聊天模块
-        scope.launch { observeConnectionMode() }
+        observerJob = scope.launch { observeConnectionMode() }
 
         hasStarted = true
     }
@@ -143,6 +142,7 @@ class P2PService : Service() {
         wifiLanChatModule.stop()
         wifiDirectChatModule.stop()
         bluetoothChatModule.stop()
+        observerJob?.cancel()
 
         hasStarted = false
     }

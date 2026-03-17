@@ -46,20 +46,27 @@ class BLEConnectionManager @Inject constructor(
         targetUserId: String,
         message: FriendProtocol,
         binary: ByteArray? = null,
-    ): Boolean {
-        val conn = openConnection(targetUserId) ?: return false
-        return try {
+    ): Result<Unit> {
+        val conn = openConnection(targetUserId) ?: return Result.failure(Exception("设备连接失败"))
+
+        return runCatching {
             val jsonBytes = json.encodeToString<FriendProtocol>(message).toByteArray(Charsets.UTF_8)
-            if (!conn.sendChunked(BLEPacketType.JSON, jsonBytes)) return false
+            if (!conn.sendChunked(BLEPacketType.JSON, jsonBytes)) {
+                throw Exception("发送失败")
+            }
 
             if (binary != null) {
                 // Brief pause between phases to allow the remote side to process the JSON
                 delay(BLEConfig.CLOSE_DELAY_MS / 4)
-                if (!conn.sendChunked(BLEPacketType.BINARY, binary)) return false
+                if (!conn.sendChunked(BLEPacketType.BINARY, binary)) {
+                    throw Exception("发送失败")
+                }
             }
 
-            conn.sendPacket(BLEPacket.end())
-        } finally {
+            if (!conn.sendPacket(BLEPacket.end())) {
+                throw Exception("发送失败")
+            }
+        }.also {
             delay(BLEConfig.CLOSE_DELAY_MS)
             conn.close()
         }
@@ -72,25 +79,24 @@ class BLEConnectionManager @Inject constructor(
      * @param targetUserIdHash full MD5 hex string of the target userId
      * @return a pair of (ProfileBeacon, avatarBytes?), or null on failure / timeout.
      */
-    suspend fun readProfile(targetUserIdHash: String): Pair<ProfileBeacon, ByteArray?>? {
+    suspend fun readProfile(targetUserIdHash: String): Result<Pair<ProfileBeacon, ByteArray?>> {
         val device = bleClient.scanForDevice(targetUserIdHash) ?: run {
-            Log.w(TAG, "未找到目标设备")
-            return null
+            return Result.failure(Exception("未找到目标设备"))
         }
-        val conn = openConnectionToDevice(device) ?: return null
+        val conn = openConnectionToDevice(device) ?: run {
+            return Result.failure(Exception("设备连接失败"))
+        }
 
-        return try {
+        return runCatching {
             if (!conn.subscribeToNotifications()) {
-                Log.w(TAG, "订阅 Notification 失败")
-                return null
+                throw Exception("订阅 Notification 失败")
             }
             withTimeoutOrNull(BLEConfig.READ_TIMEOUT_MS) {
                 conn.receiveProfileBeacon(json)
             } ?: run {
-                Log.w(TAG, "读取资料超时")
-                null
+                throw Exception("读取资料超时")
             }
-        } finally {
+        }.also {
             conn.close()
         }
     }

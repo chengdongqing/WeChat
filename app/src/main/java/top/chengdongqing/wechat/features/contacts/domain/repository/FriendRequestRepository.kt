@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.features.contacts.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import top.chengdongqing.wechat.data.network.model.FriendEvent
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendProfileResponse
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
@@ -8,6 +9,8 @@ import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequestResp
 import top.chengdongqing.wechat.features.contacts.domain.model.IncomingFriendRequest
 
 interface FriendRequestRepository {
+
+    val friendEvents: Flow<FriendEvent>
 
     /**
      * 获取所有好友申请

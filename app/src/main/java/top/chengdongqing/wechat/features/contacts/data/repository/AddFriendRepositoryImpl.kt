@@ -44,7 +44,7 @@ class AddFriendRepositoryImpl @Inject constructor(
                 }
 
                 val (profileTransfer, avatarBytes) = bleConnectionManager.readProfile(beacon.userIdHashHex)
-                    ?: throw Exception("获取资料失败")
+                    .getOrThrow()
 
                 parseProfile(profileTransfer, avatarBytes).also { contact ->
                     contactCache.put(contact.id, contact.copy(source = ContactAddSource.QRCode))
@@ -88,7 +88,7 @@ class AddFriendRepositoryImpl @Inject constructor(
                 val md5 = userId.toMD5Hex()
 
                 val (transfer, avatarBytes) = bleConnectionManager.readProfile(md5)
-                    ?: throw Exception("readProfile 返回 null")
+                    .getOrThrow()
 
                 parseProfile(transfer, avatarBytes).also { contact ->
                     contactCache.put(contact.id, contact.copy(source = source))

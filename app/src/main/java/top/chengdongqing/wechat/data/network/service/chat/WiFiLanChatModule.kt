@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.data.network.service.chat
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
@@ -43,6 +44,9 @@ class WiFiLanChatModule @Inject constructor(
 
     private val userId: String by lazy { profileRepository.requireUserId() }
 
+    private var nsdRegistrationJob: Job? = null
+    private var nsdDiscoveryJob: Job? = null
+
     override fun start() {
         scope.launch {
             runCatching {
@@ -66,6 +70,8 @@ class WiFiLanChatModule @Inject constructor(
 
     override fun stop() {
         runCatching {
+            nsdRegistrationJob?.cancel()
+            nsdDiscoveryJob?.cancel()
             // 关闭所有连接
             connectionManager.closeAll()
             // 停止TCP服务
@@ -83,7 +89,7 @@ class WiFiLanChatModule @Inject constructor(
      * 将本机服务广播到局域网，其他设备发现后通过 TXT 属性的 userId 识别身份。
      */
     private fun startNsdRegistration(userId: String, port: Int, scope: CoroutineScope) {
-        scope.launch {
+        nsdRegistrationJob = scope.launch {
             nsdDiscovery.registerService(userId, port).collect { state ->
                 when (state) {
                     is ServiceRegistrationState.Registered ->
@@ -105,7 +111,7 @@ class WiFiLanChatModule @Inject constructor(
      * 持续监听局域网内设备上下线事件。
      */
     private fun startNsdDiscovery(userId: String, scope: CoroutineScope) {
-        scope.launch {
+        nsdDiscoveryJob = scope.launch {
             nsdDiscovery.discoverServices(userId).collect { event ->
                 when (event) {
                     is DiscoveryEvent.DeviceFound -> handleDeviceFound(event.device, userId)

@@ -30,14 +30,14 @@ data class ConnectionInfoEntity(
 ) {
     fun mergeWith(existing: ConnectionInfoEntity): ConnectionInfoEntity {
         return this.copy(
-            lanIpAddress = this.lanIpAddress ?: existing.lanIpAddress,
-            lanPort = this.lanPort ?: existing.lanPort,
-            lanServiceName = this.lanServiceName ?: existing.lanServiceName,
-            p2pMacAddress = this.p2pMacAddress ?: existing.p2pMacAddress,
-            p2pDeviceName = this.p2pDeviceName ?: existing.p2pDeviceName,
-            bluetoothAddress = this.bluetoothAddress ?: existing.bluetoothAddress,
-            bluetoothName = this.bluetoothName ?: existing.bluetoothName,
-            audit = this.audit.copy(
+            lanIpAddress = lanIpAddress ?: existing.lanIpAddress,
+            lanPort = lanPort ?: existing.lanPort,
+            lanServiceName = lanServiceName ?: existing.lanServiceName,
+            p2pMacAddress = p2pMacAddress ?: existing.p2pMacAddress,
+            p2pDeviceName = p2pDeviceName ?: existing.p2pDeviceName,
+            bluetoothAddress = bluetoothAddress ?: existing.bluetoothAddress,
+            bluetoothName = bluetoothName ?: existing.bluetoothName,
+            audit = audit.copy(
                 createdAt = existing.audit.createdAt,
                 updatedAt = System.currentTimeMillis()
             )
