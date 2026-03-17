@@ -2,11 +2,9 @@ package top.chengdongqing.wechat.features.contacts.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.network.model.FriendEvent
+import top.chengdongqing.wechat.data.network.model.FriendProtocol
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.model.FriendProfileResponse
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
-import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequestResponse
-import top.chengdongqing.wechat.features.contacts.domain.model.IncomingFriendRequest
 
 interface FriendRequestRepository {
 
@@ -64,15 +62,13 @@ interface FriendRequestRepository {
     /**
      * 处理收到的好友申请
      */
-    suspend fun handleIncomingRequest(request: IncomingFriendRequest): Result<Unit>
+    suspend fun handleIncomingRequest(
+        request: FriendProtocol.FriendRequest,
+        avatarData: ByteArray?
+    ): Result<Unit>
 
     /**
      * 处理申请响应
      */
-    suspend fun handleRequestResponse(response: FriendRequestResponse): Result<Unit>
-
-    /**
-     * 处理自动添加（对方没有把我删掉，我主动加回）
-     */
-    suspend fun handleAutoAdd(response: FriendProfileResponse): Result<Unit>
+    suspend fun handleRequestResponse(response: FriendProtocol.FriendResponse): Result<Unit>
 }

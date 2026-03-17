@@ -21,7 +21,6 @@ import top.chengdongqing.wechat.data.network.ble.ServerPacketEvent
 import top.chengdongqing.wechat.data.network.model.FriendEvent
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
 import top.chengdongqing.wechat.data.network.service.ServiceModule
-import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.data.model.toBeacon
@@ -153,7 +152,7 @@ class BLEAddFriendModule @Inject constructor(
         message: FriendProtocol.FriendRequest,
         binary: ByteArray?,
     ) {
-        friendRequestRepository.handleIncomingRequest(message.toDomain(binary))
+        friendRequestRepository.handleIncomingRequest(message, binary)
 
         // 查询该用户是否已是好友
         val exists = contactRepository.exists(message.userId)
@@ -165,7 +164,9 @@ class BLEAddFriendModule @Inject constructor(
     }
 
     private suspend fun handleFriendResponse(message: FriendProtocol.FriendResponse) {
-        friendRequestRepository.handleRequestResponse(message.toDomain())
+        friendRequestRepository.handleRequestResponse(message)
+
+        // 发送通知
         _friendEvents.emit(FriendEvent.FriendResponse(message.result))
     }
 

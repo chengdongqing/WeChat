@@ -13,22 +13,8 @@ interface FriendRequestDao : BaseDao<FriendRequestEntity> {
     @Query("SELECT * FROM friend_requests ORDER BY createdAt DESC")
     fun observeAll(): Flow<List<FriendRequestEntity>>
 
-    @Query("SELECT * FROM friend_requests WHERE id = :requestId")
-    suspend fun getById(requestId: String): FriendRequestEntity?
-
-    @Query(
-        """
-        SELECT * FROM friend_requests 
-        WHERE userId = :peerId 
-        AND isFromMe = :isFromMe 
-        ORDER BY createdAt DESC 
-        LIMIT 1
-    """
-    )
-    suspend fun getByPeerId(
-        peerId: String,
-        isFromMe: Boolean
-    ): FriendRequestEntity?
+    @Query("SELECT * FROM friend_requests WHERE id = :id")
+    suspend fun getById(id: String): FriendRequestEntity?
 
     @Query("SELECT COUNT(*) FROM friend_requests WHERE isFromMe = :isFromMe AND status = :status")
     fun getPendingCount(

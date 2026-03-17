@@ -24,10 +24,7 @@ import top.chengdongqing.wechat.data.network.model.FriendProtocol
 import top.chengdongqing.wechat.data.network.model.FriendRequestResult
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.contacts.domain.model.FriendProfileResponse
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
-import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequestResponse
-import top.chengdongqing.wechat.features.contacts.domain.model.IncomingFriendRequest
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -81,12 +78,26 @@ class FriendRequestRepositoryImpl @Inject constructor(
         note: String?
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
+            // 获取我的个人资料
             val myProfile = profileRepository.requireProfile()
             val avatarBytes = myProfile.avatarPath?.let {
                 File(it).toBytes()
             }
+
+            // 生成请求ID
             val requestId = randomUUID()
 
+            // 保存申请记录
+            saveOutgoingRequest(
+                requestId = requestId,
+                targetContact = targetContact,
+                greeting = greeting,
+                remark = remark,
+                note = note,
+                source = targetContact.source
+            )
+
+            // 发送请求
             bleConnectionManager.sendMessage(
                 targetUserId = targetContact.id,
                 message = FriendProtocol.FriendRequest(
@@ -101,17 +112,13 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 ),
                 avatarBytes
             ).onFailure {
+                // 失败后删除申请记录
+                friendRequestDao.deleteById(requestId)
+
                 throw Exception("无法连接到对方设备")
             }
 
-            saveOutgoingRequest(
-                requestId = requestId,
-                targetContact = targetContact,
-                greeting = greeting,
-                remark = remark,
-                note = note,
-                source = targetContact.source
-            )
+            Unit
         }
     }
 
@@ -124,19 +131,13 @@ class FriendRequestRepositoryImpl @Inject constructor(
             val request = friendRequestDao.getById(requestId) ?: throw Exception("申请不存在")
             if (request.status != FriendRequestStatus.Pending) throw Exception("申请已处理")
 
-            bleConnectionManager.sendMessage(
-                targetUserId = request.userId,
-                message = FriendProtocol.FriendResponse(
-                    requestId = requestId,
-                    result = FriendRequestResult.Accepted,
-                    timestamp = System.currentTimeMillis()
-                )
-            ).onFailure {
-                throw Exception("无法连接到对方设备")
-            }
+            // 发送接受申请的响应
+            sendAcceptedResponse(request.userId, requestId)
 
+            // 添加对方到通讯录
             addContactFromRequest(request, remark, note)
 
+            // 更新请求状态
             friendRequestDao.update(requestId) {
                 it.copy(status = FriendRequestStatus.Accepted)
             }
@@ -146,14 +147,15 @@ class FriendRequestRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun handleIncomingRequest(request: IncomingFriendRequest) =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                // 如果已是好友不再处理
-                if (contactRepository.exists(request.userId)) {
-                    return@runCatching
-                }
-
+    override suspend fun handleIncomingRequest(
+        request: FriendProtocol.FriendRequest,
+        avatarData: ByteArray?
+    ) = withContext(Dispatchers.IO) {
+        runCatching {
+            // 如果在通讯录存在，则直接同意（对方删了我，但我没有删除对方，对方再重新加我的情况）
+            if (contactRepository.exists(request.userId)) {
+                sendAcceptedResponse(request.userId, request.requestId)
+            } else {
                 // 保存申请记录
                 saveIncomingRequest(
                     requestId = request.requestId,
@@ -161,8 +163,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     nickname = request.nickname,
                     publicKey = request.publicKey,
                     greeting = request.greeting,
-                    avatarData = request.avatarData,
-                    source = request.source,
+                    avatarData = avatarData,
+                    source = request.source
                 )
 
                 // 不需要验证时直接通过
@@ -170,65 +172,41 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     delay(1000)
                     acceptFriendRequest(request.requestId)
                 }
-            }.onFailure {
-                Log.e(TAG, "处理申请失败", it)
             }
+        }.onFailure {
+            Log.e(TAG, "处理申请失败", it)
         }
+    }
 
-    override suspend fun handleRequestResponse(response: FriendRequestResponse) =
+    /**
+     * 发送接受申请响应
+     */
+    private suspend fun sendAcceptedResponse(userId: String, requestId: String) {
+        bleConnectionManager.sendMessage(
+            targetUserId = userId,
+            message = FriendProtocol.FriendResponse(
+                requestId = requestId,
+                result = FriendRequestResult.Accepted,
+                timestamp = System.currentTimeMillis()
+            )
+        ).onFailure {
+            throw Exception("无法连接到对方设备")
+        }
+    }
+
+    override suspend fun handleRequestResponse(response: FriendProtocol.FriendResponse) =
         withContext(Dispatchers.IO) {
             runCatching {
                 val request = friendRequestDao.getById(response.requestId)
                     ?: throw Exception("未查询到对应的好友请求，requestId=${response.requestId}")
 
-                if (response.accepted) {
+                if (response.result == FriendRequestResult.Accepted) {
                     handleAccepted(request)
                 } else {
                     handleRejected(response.requestId)
                 }
             }.onFailure {
                 Log.e(TAG, "处理响应失败", it)
-            }
-        }
-
-    override suspend fun handleAutoAdd(response: FriendProfileResponse) =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                if (contactRepository.exists(response.userId)) {
-                    throw Exception("联系人已存在, userId=${response.userId}")
-                }
-
-                val originalRequest = friendRequestDao.getByPeerId(
-                    peerId = response.userId,
-                    isFromMe = true
-                )
-                val avatarPath = response.avatarData?.let {
-                    privateFileManager.saveAvatar(
-                        userId = response.userId,
-                        sourceBytes = it
-                    ).getOrNull()
-                }
-
-                contactRepository.createContact(
-                    Contact(
-                        id = response.userId,
-                        nickname = response.nickname,
-                        avatarPath = avatarPath,
-                        signature = response.signature,
-                        gender = response.gender,
-                        remarkName = originalRequest?.remark,
-                        note = originalRequest?.note,
-                        publicKey = response.publicKey
-                    )
-                )
-
-                originalRequest?.let {
-                    friendRequestDao.deleteById(it.id)
-                }
-
-                Unit
-            }.onFailure {
-                Log.e(TAG, "处理自动添加失败", it)
             }
         }
 
@@ -286,6 +264,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         avatarData: ByteArray?,
         source: ContactAddSource
     ) {
+        // 保存头像
         val avatarPath = avatarData?.let {
             privateFileManager.saveAvatar(
                 userId = userId,
@@ -293,6 +272,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
             ).getOrNull()
         }
 
+        // 保存请求记录
         friendRequestDao.insert(
             FriendRequestEntity(
                 id = requestId,
@@ -309,6 +289,9 @@ class FriendRequestRepositoryImpl @Inject constructor(
         )
     }
 
+    /**
+     * 根据请求记录创建联系人
+     */
     private suspend fun addContactFromRequest(
         request: FriendRequestEntity,
         remark: String? = null,
@@ -328,6 +311,9 @@ class FriendRequestRepositoryImpl @Inject constructor(
         )
     }
 
+    /**
+     * 是否开启好友验证
+     */
     private suspend fun friendVerifyEnabled(): Boolean =
         privacySettingsRepository.friendVerifyEnabled.first()
 }
