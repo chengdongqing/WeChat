@@ -13,6 +13,7 @@ import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
+import top.chengdongqing.wechat.data.network.avatar.AvatarServer
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
@@ -24,6 +25,7 @@ import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.data.security.LocalIdentity
+import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.File
 import java.io.FileInputStream
@@ -46,6 +48,7 @@ class MessageSender @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val packetSigner: PacketSigner,
     private val localIdentity: LocalIdentity,
+    private val avatarServer: AvatarServer,
     private val json: Json
 ) {
     private companion object {
@@ -166,6 +169,37 @@ class MessageSender @Inject constructor(
             .onFailure {
                 Log.w(TAG, "回执发送失败: $receiverId")
             }
+    }
+
+    /**
+     * 发送个人资料给对方
+     */
+    suspend fun sendProfile(userId: String) {
+        val profile = profileRepository.requireProfile()
+
+        val beacon = ProfileBeacon(
+            userId = profile.id,
+            nickname = profile.nickname,
+            gender = profile.gender,
+            signature = profile.signature,
+            avatarUrl = avatarServer.avatarUrl,
+            publicKey = profile.publicKey
+        )
+        val protocol = ChatProtocol.ProfileResponse(
+            senderId = profile.id,
+            profile = beacon,
+            signature = ""
+        )
+        val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
+
+        val packet = Packet(
+            type = PacketType.PROFILE_RESPONSE,
+            body = json.encodeToString<ChatProtocol>(
+                protocol.copy(signature = signature)
+            ).toByteArray(Charsets.UTF_8)
+        )
+
+        transport.send(userId, packet)
     }
 
     /**

@@ -10,8 +10,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
-import top.chengdongqing.wechat.data.model.PermissionResult
-import top.chengdongqing.wechat.data.network.avatar.AvatarServer
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
@@ -19,15 +17,10 @@ import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
-import top.chengdongqing.wechat.data.network.model.ReceiptType
-import top.chengdongqing.wechat.data.network.signature.PacketSigner
-import top.chengdongqing.wechat.data.security.LocalIdentity
-import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
-import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,13 +39,9 @@ import javax.inject.Singleton
 @Singleton
 class MessageReceiver @Inject constructor(
     private val transport: ChatTransportManager,
-    private val messageSender: MessageSender,
     private val messageDispatcher: MessageDispatcher,
-    private val contactRepository: ContactRepository,
-    private val profileRepository: ProfileRepository,
-    private val avatarServer: AvatarServer,
-    private val packetSigner: PacketSigner,
-    private val localIdentity: LocalIdentity,
+    private val permissionChecker: MessagePermissionChecker,
+    private val messageSender: MessageSender,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
@@ -64,7 +53,7 @@ class MessageReceiver @Inject constructor(
         const val DISK_WRITE_BUFFER = 256 * 1024
     }
 
-    private val mediaStates = mutableMapOf<String, MediaReceiveState>()
+    private val mediaStates = ConcurrentHashMap<String, MediaReceiveState>()
 
     /**
      * 启动监听，订阅新连接并自动开始消费
@@ -115,7 +104,7 @@ class MessageReceiver @Inject constructor(
             when (packet.type) {
                 PacketType.FILE_META -> handleFileMeta(userId, packet.body)
                 PacketType.FILE_CHUNK -> handleFileChunk(userId, packet.body)
-                PacketType.PROFILE_REQUEST -> sendProfile(userId)
+                PacketType.PROFILE_REQUEST -> messageSender.sendProfile(userId)
                 else -> {
                     if (packet.body.isNotEmpty()) {
                         handleJsonPacket(userId, packet)
@@ -139,56 +128,10 @@ class MessageReceiver @Inject constructor(
         when {
             protocol is ChatProtocol.MessageReceipt -> Unit // 回执消息不判断
             // 判断是否处理此消息（拉黑、不是好友、签名校验等）
-            !canProcessMessage(userId, protocol) -> return
+            !permissionChecker.checkAndReply(userId, protocol) -> return
         }
 
         messageDispatcher.dispatch(protocol)
-    }
-
-    /**
-     * 校验发送者权限：非好友或被拉黑则发送拒收回执 并返回 false
-     */
-    private suspend fun canProcessMessage(userId: String, packet: ChatProtocol): Boolean {
-        val messageId = packet.messageId
-
-        return when (checkMessagePermission(userId, packet)) {
-            PermissionResult.Blocked -> {
-                messageSender.sendReceipt(messageId, userId, ReceiptType.Blocked)
-                false
-            }
-
-            PermissionResult.NotFriend -> {
-                messageSender.sendReceipt(messageId, userId, ReceiptType.NotFriend)
-                false
-            }
-
-            PermissionResult.InvalidSignature -> {
-                messageSender.sendReceipt(messageId, userId, ReceiptType.InvalidSignature)
-                false
-            }
-
-            else -> true
-        }
-    }
-
-    private suspend fun checkMessagePermission(
-        userId: String,
-        packet: ChatProtocol
-    ): PermissionResult {
-        val contact = contactRepository.getContact(userId)
-
-        return when {
-            // 非好友
-            contact == null -> PermissionResult.NotFriend
-            // 被拉黑
-            contact.isBlocked -> PermissionResult.Blocked
-            // 验签失败
-            contact.publicKey == null || !packetSigner.verify(packet, contact.publicKey) -> {
-                PermissionResult.InvalidSignature
-            }
-
-            else -> PermissionResult.Allowed
-        }
     }
 
     /**
@@ -205,7 +148,7 @@ class MessageReceiver @Inject constructor(
         )
 
         // 拦截非好友/已拉黑
-        if (!canProcessMessage(metadata.senderId, metadata)) return
+        if (!permissionChecker.checkAndReply(metadata.senderId, metadata)) return
 
         withContext(Dispatchers.IO) {
             val tempFile = File(context.cacheDir, "recv_${metadata.messageId}.tmp")
@@ -262,37 +205,6 @@ class MessageReceiver @Inject constructor(
             messageDispatcher.dispatch(state.metadata, state.tempFile)
             mediaStates.remove(userId)
         }
-
-    /**
-     * 发送个人资料给对方
-     */
-    private suspend fun sendProfile(userId: String) {
-        val profile = profileRepository.requireProfile()
-
-        val beacon = ProfileBeacon(
-            userId = profile.id,
-            nickname = profile.nickname,
-            gender = profile.gender,
-            signature = profile.signature,
-            avatarUrl = avatarServer.avatarUrl,
-            publicKey = profile.publicKey
-        )
-        val protocol = ChatProtocol.ProfileResponse(
-            senderId = profile.id,
-            profile = beacon,
-            signature = ""
-        )
-        val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
-
-        val packet = Packet(
-            type = PacketType.PROFILE_RESPONSE,
-            body = json.encodeToString<ChatProtocol>(
-                protocol.copy(signature = signature)
-            ).toByteArray(Charsets.UTF_8)
-        )
-
-        transport.send(userId, packet)
-    }
 
     /**
      * 清理未完成的媒体接收状态，关闭流并删除临时文件

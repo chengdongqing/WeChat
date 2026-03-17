@@ -51,6 +51,12 @@ class PrivateFileManager @Inject constructor(
         get() = ensureDir("images")
 
     /**
+     * 表情目录
+     */
+    private val stickersDir: File
+        get() = ensureDir("stickers")
+
+    /**
      * 视频目录
      */
     private val videosDir: File
@@ -83,6 +89,7 @@ class PrivateFileManager @Inject constructor(
     private fun getDirectory(dirName: String): File = when (dirName) {
         "avatars" -> avatarDir
         "images" -> imagesDir
+        "stickers" -> stickersDir
         "videos" -> videosDir
         "recordings" -> recordingsDir
         else -> filesDir

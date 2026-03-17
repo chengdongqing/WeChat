@@ -1,13 +1,11 @@
 package top.chengdongqing.wechat.data.network.messaging
 
 import android.util.Log
-import androidx.core.net.toUri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.file.PrivateFileManager
-import top.chengdongqing.wechat.core.util.downloadAvatar
 import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageType
@@ -61,7 +59,7 @@ class MessageDispatcher @Inject constructor(
                 is ChatProtocol.CallMessage -> handleCallMessage(protocol)
                 is ChatProtocol.MessageReceipt -> handleReceipt(protocol)
                 is ChatProtocol.Signaling -> handleSignaling(protocol)
-                is ChatProtocol.ProfileResponse -> updateContactProfile(protocol)
+                is ChatProtocol.ProfileResponse -> contactRepository.syncContactProfile(protocol)
                 else -> Unit
             }
         }.onFailure {
@@ -167,41 +165,6 @@ class MessageDispatcher @Inject constructor(
      */
     private suspend fun handleSignaling(protocol: ChatProtocol.Signaling) {
         signalingManager.onSignalingReceived(protocol)
-    }
-
-    /**
-     * 更新联系人资料
-     */
-    private suspend fun updateContactProfile(protocol: ChatProtocol.ProfileResponse) {
-        val newProfile = protocol.profile
-        val userId = newProfile.userId
-
-        // 查询旧头像
-        val oldAvatarPath = contactRepository.getContact(userId)?.avatarPath
-
-        // 下载新头像
-        val newAvatarPath = newProfile.avatarUrl?.let { url ->
-            val file = File.createTempFile("IMG_", ".jpg")
-            downloadAvatar(url, file).getOrNull()?.let {
-                privateFileManager.saveAvatar(userId, file.toUri()).getOrNull()
-            }
-        }
-
-        // 更新联系人资料
-        contactRepository.updateContact(newProfile.userId) { contact ->
-            contact.copy(
-                avatarPath = newAvatarPath ?: contact.avatarPath,
-                nickname = newProfile.nickname,
-                signature = newProfile.signature,
-                gender = newProfile.gender,
-                version = System.currentTimeMillis() // 更新版本号
-            )
-        }
-
-        // 删除旧文件
-        if (newAvatarPath != null && oldAvatarPath != null) {
-            privateFileManager.deleteFile(oldAvatarPath)
-        }
     }
 
     /**

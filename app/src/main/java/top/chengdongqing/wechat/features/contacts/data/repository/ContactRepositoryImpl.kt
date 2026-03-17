@@ -1,21 +1,26 @@
 package top.chengdongqing.wechat.features.contacts.data.repository
 
 import android.util.LruCache
+import androidx.core.net.toUri
 import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.util.downloadAvatar
 import top.chengdongqing.wechat.core.util.getOrPutAsync
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
+import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.data.mapper.toEntity
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
+import java.io.File
 import javax.inject.Inject
 
 class ContactRepositoryImpl @Inject constructor(
@@ -25,6 +30,7 @@ class ContactRepositoryImpl @Inject constructor(
     private val chatSessionRepository: ChatSessionRepository,
     private val connectionInfoDao: ConnectionInfoDao,
     private val packetSigner: PacketSigner,
+    private val privateFileManager: PrivateFileManager
 ) : ContactRepository {
 
     // 联系人缓存
@@ -67,6 +73,38 @@ class ContactRepositoryImpl @Inject constructor(
                     contactAvatar = contact.avatarPath
                 )
             }
+        }
+    }
+
+    override suspend fun syncContactProfile(protocol: ChatProtocol.ProfileResponse) {
+        val newProfile = protocol.profile
+        val userId = newProfile.userId
+
+        // 查询旧头像
+        val oldAvatarPath = getContact(userId)?.avatarPath
+
+        // 下载新头像
+        val newAvatarPath = newProfile.avatarUrl?.let { url ->
+            val file = File.createTempFile("IMG_", ".jpg")
+            downloadAvatar(url, file).getOrNull()?.let {
+                privateFileManager.saveAvatar(userId, file.toUri()).getOrNull()
+            }
+        }
+
+        // 更新联系人资料
+        updateContact(newProfile.userId) { contact ->
+            contact.copy(
+                avatarPath = newAvatarPath ?: contact.avatarPath,
+                nickname = newProfile.nickname,
+                signature = newProfile.signature,
+                gender = newProfile.gender,
+                version = System.currentTimeMillis() // 更新版本号
+            )
+        }
+
+        // 删除旧文件
+        if (newAvatarPath != null && oldAvatarPath != null) {
+            privateFileManager.deleteFile(oldAvatarPath)
         }
     }
 

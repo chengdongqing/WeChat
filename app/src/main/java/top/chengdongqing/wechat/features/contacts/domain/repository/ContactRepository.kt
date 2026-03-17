@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.features.contacts.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
+import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 interface ContactRepository {
@@ -35,6 +36,11 @@ interface ContactRepository {
      * 更新联系人
      */
     suspend fun updateContact(contactId: String, updateBlock: (ContactEntity) -> ContactEntity)
+
+    /**
+     * 同步联系人资料
+     */
+    suspend fun syncContactProfile(protocol: ChatProtocol.ProfileResponse)
 
     /**
      * 删除联系人

@@ -29,10 +29,7 @@ enum class MessageType {
      * 是否允许转发
      */
     val isForwardable: Boolean
-        get() = when (this) {
-            VoiceCall, VideoCall -> false
-            else -> true
-        }
+        get() = !isCallMessage
 
     /**
      * 是否需要解析json来获取文件名
