@@ -30,8 +30,11 @@ import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeIn
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.rememberBluetoothEnabled
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.core.util.rememberWifiConnected
+import top.chengdongqing.wechat.core.designsystem.util.rememberWifiConnected
+import top.chengdongqing.wechat.core.designsystem.util.rememberWifiEnabled
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 import top.chengdongqing.wechat.features.settings.domain.model.AppLanguage
 
@@ -42,7 +45,6 @@ fun ChatListScreen(
 ) {
     val chats by viewModel.chats.collectAsStateWithLifecycle()
 
-    val isWifiConnected = rememberWifiConnected()
     val contextMenuState = rememberContextMenuState(
         itemWidthDp = when (LocalAppLanguage.current) {
             AppLanguage.English -> 160.dp
@@ -63,14 +65,7 @@ fun ChatListScreen(
     }
 
     Column {
-        if (!isWifiConnected) {
-            WeInformationBar(
-                type = InformationBarType.TipsWeak,
-                message = stringResource(R.string.msg_network_unavailable),
-                shape = RectangleShape
-            )
-            WeDivider()
-        }
+        ConnectionErrorBar(viewModel)
 
         LazyColumn(
             modifier = Modifier
@@ -109,6 +104,26 @@ fun ChatListScreen(
     }
 
     ChatContextMenuHandler(contextMenuState, chats, viewModel)
+}
+
+@Composable
+private fun ConnectionErrorBar(viewModel: ChatListViewModel) {
+    val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
+
+    val errorMessage = when (connectionMode) {
+        ConnectionMode.WiFiLan -> stringResource(R.string.msg_wifi_disconnected).takeUnless { rememberWifiConnected() }
+        ConnectionMode.WiFiDirect -> stringResource(R.string.msg_wifi_disabled).takeUnless { rememberWifiEnabled() }
+        ConnectionMode.Bluetooth -> stringResource(R.string.msg_bluetooth_disabled).takeUnless { rememberBluetoothEnabled() }
+    }
+
+    if (errorMessage != null) {
+        WeInformationBar(
+            type = InformationBarType.TipsWeak,
+            message = errorMessage,
+            shape = RectangleShape
+        )
+        WeDivider()
+    }
 }
 
 @Composable

@@ -21,7 +21,10 @@
     <string name="action_exit">退出</string>
     <string name="action_view">查看</string>
 
-    <string name="msg_network_unavailable">当前无法连接网络，可检查网络设置是否正常。</string>
+    <string name="msg_wifi_disabled">Wi-Fi 未开启，请前往设置开启 Wi-Fi。</string>
+    <string name="msg_wifi_disconnected">Wi-Fi 未连接，请连接后重试。</string>
+    <string name="msg_bluetooth_disabled">蓝牙未开启，请前往设置开启蓝牙。</string>
+
     <string name="msg_processing">处理中…</string>
     <string name="msg_save_success">保存成功</string>
     <string name="msg_save_failed">保存失败</string>
