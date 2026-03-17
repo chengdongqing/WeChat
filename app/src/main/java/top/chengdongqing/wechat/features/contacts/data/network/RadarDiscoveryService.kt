@@ -51,8 +51,7 @@ class RadarDiscoveryService @Inject constructor(
     private val _discoveredBeacons = MutableStateFlow<Map<String, RadarBeacon>>(emptyMap())
     val discoveredBeacons = _discoveredBeacons.asStateFlow()
 
-    private val myProfile: UserProfile? by lazy { profileRepository.getProfile() }
-
+    private val myProfile: UserProfile by lazy { profileRepository.requireProfile() }
     private val wifiManager by lazy { context.getSystemService(Context.WIFI_SERVICE) as WifiManager }
 
     /**
@@ -117,7 +116,7 @@ class RadarDiscoveryService @Inject constructor(
                 val beacon = json.decodeFromString<RadarBeacon>(payload)
 
                 // 忽略自己广播的包
-                if (beacon.userId == myProfile?.id) continue
+                if (beacon.userId == myProfile.id) continue
 
                 _discoveredBeacons.update {
                     it + (beacon.userId to beacon.copy(
@@ -136,13 +135,12 @@ class RadarDiscoveryService @Inject constructor(
      * 定期向多播组广播自己的 Beacon，让局域网内其他设备感知到本机的存在。
      */
     private suspend fun beaconLoop() = withContext(Dispatchers.IO) {
-        val profile = myProfile ?: return@withContext
         val avatarUrl = avatarServer.avatarUrl ?: return@withContext
 
         val payload = json.encodeToString(
             RadarBeacon(
-                userId = profile.id,
-                nickname = profile.nickname,
+                userId = myProfile.id,
+                nickname = myProfile.nickname,
                 avatarUrl = avatarUrl
             )
         ).toByteArray(Charsets.UTF_8)

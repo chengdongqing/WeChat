@@ -1,8 +1,8 @@
-package top.chengdongqing.wechat.data.network.model
+package top.chengdongqing.wechat.data.network.ble
 
 import java.nio.ByteBuffer
 
-object BlePacketType {
+object BLEPacketType {
     const val JSON: Byte = 0x01       // JSON 消息头
     const val BINARY: Byte = 0x02     // 二进制数据（头像等）
     const val END: Byte = 0x03        // 传输结束标记
@@ -16,23 +16,23 @@ object BlePacketType {
  * └──────┴──────────┴────────────┘
  * BLE MTU 通常 ≤ 512B，length 用 2 字节够用
  */
-data class BlePacket(
+data class BLEPacket(
     val type: Byte,
     val body: ByteArray = EMPTY_BODY
 ) {
     companion object {
         val EMPTY_BODY = ByteArray(0)
 
-        fun json(data: ByteArray) = BlePacket(BlePacketType.JSON, data)
-        fun binary(data: ByteArray) = BlePacket(BlePacketType.BINARY, data)
-        fun end() = BlePacket(BlePacketType.END)
+        fun json(data: ByteArray) = BLEPacket(BLEPacketType.JSON, data)
+        fun binary(data: ByteArray) = BLEPacket(BLEPacketType.BINARY, data)
+        fun end() = BLEPacket(BLEPacketType.END)
 
-        fun fromBytes(bytes: ByteArray): BlePacket {
+        fun fromBytes(bytes: ByteArray): BLEPacket {
             require(bytes.size >= 3) { "无效包长度: ${bytes.size}" }
             val type = bytes[0]
             val length = ByteBuffer.wrap(bytes, 1, 2).short.toInt() and 0xFFFF
             val body = if (length > 0) bytes.copyOfRange(3, 3 + length) else ByteArray(0)
-            return BlePacket(type, body)
+            return BLEPacket(type, body)
         }
     }
 
@@ -46,7 +46,7 @@ data class BlePacket(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is BlePacket) return false
+        if (other !is BLEPacket) return false
         return type == other.type && body.contentEquals(other.body)
     }
 

@@ -19,8 +19,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.file.PublicFileManager
+import top.chengdongqing.wechat.core.qrcode.QRCodeResult
 import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.features.contacts.domain.model.QRCodeResult
 import top.chengdongqing.wechat.features.contacts.domain.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.features.me.domain.model.UserProfile
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -88,14 +88,12 @@ class ProfileViewModel @Inject constructor(
      */
     fun generateQRCode() {
         viewModelScope.launch {
-            qrCodeUseCase.generateMyQRCode().fold(
-                onSuccess = { qrCode ->
+            qrCodeUseCase.generateMyQRCode()
+                .onSuccess { qrCode ->
                     _uiState.update { it.copy(qrCode = qrCode) }
-                },
-                onFailure = { e ->
-                    _eventFlow.emit(ProfileUiEvent.ShowError("生成二维码失败: ${e.message}"))
+                }.onFailure {
+                    _eventFlow.emit(ProfileUiEvent.ShowError("生成二维码失败: ${it.message}"))
                 }
-            )
         }
     }
 

@@ -4,7 +4,6 @@ import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.runBlocking
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
@@ -17,6 +16,8 @@ class NfcHceService : HostApduService() {
     @Inject
     lateinit var profileRepository: ProfileRepository
 
+    private val myUserId: String by lazy { profileRepository.requireUserId() }
+
     companion object {
         val AID = byteArrayOf(
             0xF0.toByte(), 0x57, 0x65, 0x43,
@@ -24,7 +25,6 @@ class NfcHceService : HostApduService() {
         )
         private val SELECT_APDU_HEADER = byteArrayOf(0x00, 0xA4.toByte(), 0x04, 0x00)
         private val SUCCESS_SW = byteArrayOf(0x90.toByte(), 0x00)
-        private val FAILURE_SW = byteArrayOf(0x6F, 0x00)
     }
 
     override fun processCommandApdu(commandApdu: ByteArray, extras: Bundle?): ByteArray {
@@ -33,21 +33,13 @@ class NfcHceService : HostApduService() {
             return byteArrayOf(0x00, 0x00)
         }
 
-        val userId = getUserIdBlocking()
-
-        if (userId == null) {
-            Log.e("NfcHce", "userId 为 null")
-            return FAILURE_SW
-        }
-
-        val bytes = userId.toByteArray(Charsets.UTF_8)
+        val bytes = myUserId.toByteArray(Charsets.UTF_8)
         val response = byteArrayOf(bytes.size.toByte()) + bytes + SUCCESS_SW
-        Log.d("NfcHce", "返回: ${response.toHexString()}")
         return response
     }
 
     override fun onDeactivated(reason: Int) {
-        Log.d("NfcHce", "🔵 onDeactivated: $reason")
+        Log.d("NfcHce", "onDeactivated: $reason")
     }
 
     private fun isSelectAidApdu(apdu: ByteArray): Boolean {
@@ -62,14 +54,5 @@ class NfcHceService : HostApduService() {
             SELECT_APDU_HEADER.size + 1 + aidLen
         )
         return apduAid.contentEquals(AID)
-    }
-
-    private fun getUserIdBlocking(): String? = try {
-        runBlocking {
-            profileRepository.getProfile()?.id
-        }
-    } catch (e: Exception) {
-        Log.e("NfcHce", "获取 userId 异常: ${e.message}", e)
-        null
     }
 }

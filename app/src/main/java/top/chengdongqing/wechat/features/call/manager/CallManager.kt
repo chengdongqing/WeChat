@@ -89,7 +89,7 @@ class CallManager @Inject constructor(
 
     private var timeoutJob: Job? = null
     private var timerJob: Job? = null
-    private val userId: String by lazy { profileRepository.getProfile()?.id!! }
+    private val userId: String by lazy { profileRepository.requireUserId() }
     private var isInitialized = false
 
     /** 是否为发起方，影响通话记录的写入方式 */

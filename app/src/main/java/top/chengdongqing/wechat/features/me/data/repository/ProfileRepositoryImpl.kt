@@ -45,6 +45,8 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override fun requireProfile(): UserProfile = getProfile() ?: throw Exception("未找到个人资料")
 
+    override fun requireUserId(): String = requireProfile().id
+
     override suspend fun saveProfile(profile: UserProfile) {
         dataStore.edit { preferences ->
             preferences[PROFILE_KEY] = profile.toJson()

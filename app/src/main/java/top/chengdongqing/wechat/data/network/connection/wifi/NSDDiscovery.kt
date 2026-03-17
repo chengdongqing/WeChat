@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network.discovery
+package top.chengdongqing.wechat.data.network.connection.wifi
 
 import android.content.Context
 import android.net.nsd.NsdManager
@@ -12,7 +12,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery.Companion.RESOLVE_MAX_RETRIES
+import top.chengdongqing.wechat.data.network.connection.wifi.NSDDiscovery.Companion.RESOLVE_MAX_RETRIES
 import java.net.Inet4Address
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean

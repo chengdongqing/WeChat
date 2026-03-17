@@ -52,7 +52,7 @@ class MessageSender @Inject constructor(
         const val TAG = "MessageSender"
     }
 
-    private val myUserId: String? by lazy { profileRepository.getProfile()?.id }
+    private val myUserId: String by lazy { profileRepository.requireUserId() }
 
     /**
      * 发送文本消息
@@ -148,7 +148,7 @@ class MessageSender @Inject constructor(
     suspend fun sendReceipt(messageId: String, receiverId: String, type: ReceiptType) {
         val protocol = ChatProtocol.MessageReceipt(
             messageId = messageId,
-            senderId = myUserId ?: return,
+            senderId = myUserId,
             receiverId = receiverId,
             receiptType = type,
             signature = "",

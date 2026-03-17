@@ -1,4 +1,6 @@
-package top.chengdongqing.wechat.features.contacts.domain.model
+package top.chengdongqing.wechat.core.qrcode
+
+import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 /**
  * 二维码处理结果

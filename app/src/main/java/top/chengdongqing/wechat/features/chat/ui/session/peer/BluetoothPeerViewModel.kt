@@ -21,6 +21,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 @HiltViewModel
+@SuppressLint("MissingPermission")
 class BluetoothPeerViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val bluetoothBondManager: BtBondManager,
@@ -30,13 +31,12 @@ class BluetoothPeerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PeerDeviceUiState())
     override val uiState = _uiState.asStateFlow()
 
+    private val myUserId: String by lazy { profileRepository.requireUserId() }
     private val bluetoothAdapter by lazy {
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
     }
-
     private var scanCallback: ScanCallback? = null
 
-    @SuppressLint("MissingPermission")
     override fun startScan() {
         loadPairedDevices()
 
@@ -50,7 +50,6 @@ class BluetoothPeerViewModel @Inject constructor(
             .build()
 
         scanCallback = object : ScanCallback() {
-            @SuppressLint("MissingPermission")
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 val device = result.device
                 addNearbyDevice(
@@ -89,7 +88,6 @@ class BluetoothPeerViewModel @Inject constructor(
         val btDevice = (device as? PeerDevice.Bluetooth)?.device ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(connectingDeviceId = device.id, error = null) }
-            val myUserId = profileRepository.getProfile()?.id ?: return@launch
 
             runCatching {
                 bluetoothBondManager.bondAndConnect(
@@ -117,7 +115,6 @@ class BluetoothPeerViewModel @Inject constructor(
         }
     }
 
-    @SuppressLint("MissingPermission")
     fun onClassicDeviceFound(device: BluetoothDevice, rssi: Int) {
         addNearbyDevice(
             PeerDevice.Bluetooth(
@@ -134,7 +131,6 @@ class BluetoothPeerViewModel @Inject constructor(
         _uiState.update { it.copy(isScanning = false) }
     }
 
-    @SuppressLint("MissingPermission")
     private fun loadPairedDevices() {
         val bonded = bluetoothAdapter.bondedDevices?.map { device ->
             PeerDevice.Bluetooth(

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.model
+package top.chengdongqing.wechat.core.qrcode
 
 /**
  * 二维码格式定义
@@ -11,7 +11,7 @@ object QRCodeFormat {
      * 格式: https://wechat.local/add/(base64)
      */
     fun generateAddFriendQRCode(beaconBase64: String): String {
-        return "https://$APP_DOMAIN/add/$beaconBase64"
+        return "https://$APP_DOMAIN/u/$beaconBase64"
     }
 
     /**
@@ -20,14 +20,14 @@ object QRCodeFormat {
     fun parseQRCode(content: String): QRCodeType {
         return when {
             // 添加好友二维码
-            content.startsWith("https://$APP_DOMAIN/add/") -> {
-                val base64 = content.removePrefix("https://$APP_DOMAIN/add/")
+            content.startsWith("https://$APP_DOMAIN/u/") -> {
+                val base64 = content.removePrefix("https://$APP_DOMAIN/u/")
                 QRCodeType.AddFriend(base64)
             }
 
             //加入群聊二维码
-            content.startsWith("https://$APP_DOMAIN/group/") -> {
-                val groupId = content.removePrefix("https://$APP_DOMAIN/group/")
+            content.startsWith("https://$APP_DOMAIN/g/") -> {
+                val groupId = content.removePrefix("https://$APP_DOMAIN/g/")
                 QRCodeType.JoinGroup(groupId)
             }
 
@@ -44,27 +44,3 @@ object QRCodeFormat {
     }
 }
 
-/**
- * 二维码类型
- */
-sealed class QRCodeType {
-    /**
-     * 添加好友
-     */
-    data class AddFriend(val beaconBase64: String) : QRCodeType()
-
-    /**
-     * 加入群聊
-     */
-    data class JoinGroup(val groupId: String) : QRCodeType()
-
-    /**
-     * 网页链接
-     */
-    data class WebUrl(val url: String) : QRCodeType()
-
-    /**
-     * 普通文本
-     */
-    data class PlainText(val text: String) : QRCodeType()
-}

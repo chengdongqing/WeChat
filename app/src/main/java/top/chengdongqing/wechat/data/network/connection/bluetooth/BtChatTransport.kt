@@ -20,8 +20,7 @@ class BtChatTransport @Inject constructor(
     private val profileRepository: ProfileRepository
 ) : BaseChatTransport(connectionManager) {
 
-    private val myUserId
-        get() = profileRepository.getProfile()?.id ?: error("用户信息为空")
+    private val myUserId: String by lazy { profileRepository.requireUserId() }
 
     override suspend fun send(userId: String, packet: Packet) = ensureConnected(userId, packet) {
         connectionManager.send(userId, packet)

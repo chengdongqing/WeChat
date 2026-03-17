@@ -2,9 +2,9 @@ package top.chengdongqing.wechat.features.contacts.domain.usecase
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.data.model.QRCodeFormat
-import top.chengdongqing.wechat.data.model.QRCodeType
-import top.chengdongqing.wechat.features.contacts.domain.model.QRCodeResult
+import top.chengdongqing.wechat.core.qrcode.QRCodeFormat
+import top.chengdongqing.wechat.core.qrcode.QRCodeResult
+import top.chengdongqing.wechat.core.qrcode.QRCodeType
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import javax.inject.Inject
 import javax.inject.Singleton

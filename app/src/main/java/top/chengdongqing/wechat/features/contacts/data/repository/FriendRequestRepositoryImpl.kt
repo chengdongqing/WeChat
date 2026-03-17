@@ -14,7 +14,7 @@ import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
 import top.chengdongqing.wechat.data.model.ContactAddSource
 import top.chengdongqing.wechat.data.model.FriendRequestStatus
-import top.chengdongqing.wechat.data.network.messaging.BLEMessageSender
+import top.chengdongqing.wechat.data.network.ble.BLEConnectionManager
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
 import top.chengdongqing.wechat.data.network.model.FriendRequestResult
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
@@ -34,8 +34,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private val friendRequestDao: FriendRequestDao,
     private val contactRepository: ContactRepository,
     private val profileRepository: ProfileRepository,
-    private val transmitter: BLEMessageSender,
-    private val privateFileManager: PrivateFileManager
+    private val privateFileManager: PrivateFileManager,
+    private val bleConnectionManager: BLEConnectionManager
 ) : FriendRequestRepository {
 
     private companion object {
@@ -66,9 +66,9 @@ class FriendRequestRepositoryImpl @Inject constructor(
             }
             val requestId = randomUUID()
 
-            transmitter.sendMessage(
-                targetContact.id,
-                FriendProtocol.FriendRequest(
+            bleConnectionManager.sendMessage(
+                targetUserId = targetContact.id,
+                message = FriendProtocol.FriendRequest(
                     requestId = requestId,
                     userId = myProfile.id,
                     nickname = myProfile.nickname,
@@ -93,9 +93,9 @@ class FriendRequestRepositoryImpl @Inject constructor(
             val request = friendRequestDao.getById(requestId) ?: throw Exception("申请不存在")
             if (request.status != FriendRequestStatus.Pending) throw Exception("申请已处理")
 
-            transmitter.sendMessage(
-                request.userId,
-                FriendProtocol.FriendResponse(
+            bleConnectionManager.sendMessage(
+                targetUserId = request.userId,
+                message = FriendProtocol.FriendResponse(
                     requestId = requestId,
                     result = FriendRequestResult.Accepted,
                     timestamp = System.currentTimeMillis()

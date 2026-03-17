@@ -16,6 +16,7 @@ interface ProfileRepository {
      */
     fun getProfile(): UserProfile?
     fun requireProfile(): UserProfile
+    fun requireUserId(): String
 
     /**
      * 保存用户资料

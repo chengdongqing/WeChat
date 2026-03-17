@@ -64,6 +64,8 @@ class MessageRepositoryImpl @Inject constructor(
         private const val TAG = "MessageRepository"
     }
 
+    private val myUserId: String by lazy { profileRepository.requireUserId() }
+
     override fun observeMessages(sessionId: String, limit: Int): Flow<List<ChatMessage>> {
         return messageDao.observeBySessionId(sessionId, limit).map { list ->
             list.map { it.toDomain(json) }
@@ -85,10 +87,8 @@ class MessageRepositoryImpl @Inject constructor(
         messageId: String?,
         content: MessageContent
     ): Result<Unit> = runCatching {
-        val myProfile = profileRepository.getProfile()
-            ?: throw Exception("未找到个人资料")
         val finalMessageId = messageId ?: randomUUID()
-        val isSelf = receiverId == myProfile.id
+        val isSelf = receiverId == myUserId
         val isCall = content is MessageContent.Call
         val shouldSkipSend = isSelf || isCall // 如果是给自己发的，或者是通话记录，直接设置为发送成功，不走发送逻辑
 
@@ -96,7 +96,7 @@ class MessageRepositoryImpl @Inject constructor(
         val entity = content.toEntity(
             messageId = finalMessageId,
             sessionId = sessionId,
-            senderId = myProfile.id,
+            senderId = myUserId,
             receiverId = receiverId,
             timestamp = System.currentTimeMillis(),
             json = json

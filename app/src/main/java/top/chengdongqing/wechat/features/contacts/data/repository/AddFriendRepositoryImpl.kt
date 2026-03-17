@@ -7,7 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.toMD5Hex
-import top.chengdongqing.wechat.data.network.discovery.BLEDiscovery
+import top.chengdongqing.wechat.data.network.ble.BLEConnectionManager
 import top.chengdongqing.wechat.data.network.model.DiscoveryBeacon
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
@@ -18,9 +18,9 @@ import javax.inject.Singleton
 
 @Singleton
 class AddFriendRepositoryImpl @Inject constructor(
-    private val bleDiscovery: BLEDiscovery,
     private val profileRepository: ProfileRepository,
-    private val privateFileManager: PrivateFileManager
+    private val privateFileManager: PrivateFileManager,
+    private val bleConnectionManager: BLEConnectionManager
 ) : AddFriendRepository {
 
     private companion object {
@@ -38,17 +38,12 @@ class AddFriendRepositoryImpl @Inject constructor(
                 }
 
                 val myUserId = profileRepository.requireProfile().id
-                if (beacon.userId == myUserId.toMD5Hex()) {
+                if (beacon.userIdHashHex == myUserId.toMD5Hex()) {
                     throw Exception("不能添加自己为好友")
                 }
 
-                val gatt = bleDiscovery.scanAndConnect(beacon.userId)
-                    ?: throw Exception("未找到对方设备")
-                val (profileTransfer, avatarBytes) = bleDiscovery.readProfile(gatt) ?: let {
-                    bleDiscovery.close()
-                    throw Exception("获取资料失败")
-                }
-                bleDiscovery.close()
+                val (profileTransfer, avatarBytes) = bleConnectionManager.readProfile(beacon.userIdHashHex)
+                    ?: throw Exception("获取资料失败")
 
                 parseProfile(profileTransfer, avatarBytes).also {
                     contactCache.put(it.id, it)
@@ -57,8 +52,8 @@ class AddFriendRepositoryImpl @Inject constructor(
         }
 
     override suspend fun generateMyQRCode(): String = withContext(Dispatchers.IO) {
-        val userId = profileRepository.requireProfile().id
-        val beaconBytes = DiscoveryBeacon.toByteArray(DiscoveryBeacon.create(userId))
+        val userId = profileRepository.requireUserId()
+        val beaconBytes = DiscoveryBeacon.create(userId).toByteArray()
         Base64.encodeToString(beaconBytes, Base64.NO_WRAP)
     }
 
@@ -91,10 +86,7 @@ class AddFriendRepositoryImpl @Inject constructor(
             runCatching {
                 val md5 = userId.toMD5Hex()
 
-                val gatt = bleDiscovery.scanAndConnect(md5)
-                    ?: throw Exception("scanAndConnect 返回 null")
-
-                val (transfer, avatarBytes) = bleDiscovery.readProfile(gatt)
+                val (transfer, avatarBytes) = bleConnectionManager.readProfile(md5)
                     ?: throw Exception("readProfile 返回 null")
 
                 parseProfile(transfer, avatarBytes).also { contact ->
@@ -102,8 +94,6 @@ class AddFriendRepositoryImpl @Inject constructor(
                 }
             }.onFailure { e ->
                 Log.w(TAG, "获取对方的个人资料失败：userId=$userId, message=${e.message}")
-            }.also {
-                bleDiscovery.close()
             }.getOrNull()
         }
 }

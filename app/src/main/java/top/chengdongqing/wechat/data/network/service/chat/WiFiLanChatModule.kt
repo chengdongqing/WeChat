@@ -6,13 +6,13 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
+import top.chengdongqing.wechat.data.network.connection.wifi.DiscoveredDevice
+import top.chengdongqing.wechat.data.network.connection.wifi.DiscoveryEvent
+import top.chengdongqing.wechat.data.network.connection.wifi.NSDDiscovery
+import top.chengdongqing.wechat.data.network.connection.wifi.ServiceRegistrationState
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketServer
-import top.chengdongqing.wechat.data.network.discovery.DiscoveredDevice
-import top.chengdongqing.wechat.data.network.discovery.DiscoveryEvent
-import top.chengdongqing.wechat.data.network.discovery.NSDDiscovery
-import top.chengdongqing.wechat.data.network.discovery.ServiceRegistrationState
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
@@ -41,7 +41,7 @@ class WiFiLanChatModule @Inject constructor(
         const val TAG = "WiFiLanChatModule"
     }
 
-    private val userId: String by lazy { profileRepository.getProfile()?.id!! }
+    private val userId: String by lazy { profileRepository.requireUserId() }
 
     override fun start() {
         scope.launch {

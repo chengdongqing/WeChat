@@ -267,7 +267,8 @@ class MessageReceiver @Inject constructor(
      * 发送个人资料给对方
      */
     private suspend fun sendProfile(userId: String) {
-        val profile = profileRepository.getProfile() ?: return
+        val profile = profileRepository.requireProfile()
+
         val beacon = ProfileBeacon(
             userId = profile.id,
             nickname = profile.nickname,

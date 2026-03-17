@@ -99,7 +99,7 @@ private fun ChatPreview(
 ) {
     val resources = LocalResources.current
     val avatarPath by produceState<Any?>(R.drawable.img_logo) {
-        value = viewModel.profileRepository.getProfile()?.avatarPath
+        value = viewModel.profileRepository.requireProfile().avatarPath
     }
 
     val messages = remember {

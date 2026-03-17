@@ -56,7 +56,7 @@ class QRCodeState(
     private fun generateQrMatrix(content: String): BitMatrix {
         val hints = mutableMapOf<EncodeHintType, Any>(
             EncodeHintType.CHARACTER_SET to "UTF-8",
-            EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.M,
+            EncodeHintType.ERROR_CORRECTION to ErrorCorrectionLevel.Q,
             EncodeHintType.MARGIN to 0
         )
 

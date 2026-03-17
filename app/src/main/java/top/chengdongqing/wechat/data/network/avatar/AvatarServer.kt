@@ -45,7 +45,7 @@ class AvatarServer @Inject constructor(
                         val client = socket.accept()
 
                         launch {
-                            profileRepository.getProfile()?.avatarPath?.let {
+                            profileRepository.requireProfile().avatarPath?.let {
                                 handleRequest(client, it)
                             }
                         }

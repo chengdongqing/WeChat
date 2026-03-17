@@ -127,8 +127,8 @@ abstract class ConnectionManager(
 
                     runCatching {
                         // 携带个人资料版本号
-                        val profileVersion = profileRepository.getProfile()?.updatedAt
-                        conn.writer.write(Packet.ping(profileVersion ?: 0))
+                        val profileVersion = profileRepository.requireProfile().updatedAt
+                        conn.writer.write(Packet.ping(profileVersion))
                     }.onFailure {
                         throw ConnectionException(
                             "Ping 失败",
