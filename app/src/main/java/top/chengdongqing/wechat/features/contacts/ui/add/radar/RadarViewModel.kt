@@ -1,8 +1,10 @@
 package top.chengdongqing.wechat.features.contacts.ui.add.radar
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,6 +13,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.network.model.RadarBeacon
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
@@ -19,9 +22,10 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 @HiltViewModel
 class RadarScanViewModel @Inject constructor(
+    profileRepository: ProfileRepository,
     private val radarRepository: RadarDiscoveryRepository,
     private val addFriendRepository: AddFriendRepository,
-    profileRepository: ProfileRepository
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val radarUsers = radarRepository.nearbyUsers
@@ -71,7 +75,7 @@ class RadarScanViewModel @Inject constructor(
             if (contact != null) {
                 _navigateToContact.value = contact
             } else {
-                _error.value = "获取 ${user.nickname} 的资料失败，请重试"
+                _error.value = context.getString(R.string.add_contact_fetch_profile_failed)
             }
 
             _loadingUserId.value = null

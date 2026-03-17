@@ -208,8 +208,6 @@ class ProfileViewModel @Inject constructor(
         _uiState.update { it.copy(error = null) }
     }
 
-    // ========== 辅助方法 ==========
-
     private fun setLoading(isLoading: Boolean) {
         _uiState.update { it.copy(isLoading = isLoading) }
     }

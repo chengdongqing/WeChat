@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,7 +54,7 @@ fun NfcWaiting(isReaderMode: Boolean) {
         PulsingNfcIcon()
         Spacer(Modifier.height(52.dp))
         Text(
-            text = "将手机和对方手机背靠背",
+            text = stringResource(R.string.nfc_tap_instruction),
             fontSize = 20.sp,
             fontWeight = FontWeight.SemiBold,
             color = WeTheme.colorScheme.textPrimary,
@@ -73,9 +74,9 @@ fun NfcWaiting(isReaderMode: Boolean) {
         ) { isReaderMode ->
             Text(
                 text = buildString {
-                    append("碰触后将自动拉取对方信息\n")
+                    appendLine(stringResource(R.string.nfc_tap_instruction))
                     if (!isReaderMode) {
-                        append("部分手机需要手动设置 NFC 为 HCE 卡模拟模式")
+                        append(stringResource(R.string.nfc_tap_hint))
                     }
                 },
                 fontSize = 14.sp,

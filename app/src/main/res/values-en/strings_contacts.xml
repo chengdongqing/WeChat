@@ -11,7 +11,6 @@
     <string name="contact_label_nickname">Name: </string>
     <string name="contact_label_wechat_id">WeChat ID: </string>
     <string name="contact_profile_title">Profile</string>
-    <string name="contact_profile_label_signature">Signature</string>
     <string name="contact_profile_label_note">Note</string>
     <string name="contact_moments_title">Moments</string>
     <string name="contact_action_send_message">Send Message</string>
@@ -63,6 +62,18 @@
     <string name="add_contact_option_face_to_face_title">Join Private Group</string>
     <string name="add_contact_option_face_to_face_desc">Join a group with friends nearby</string>
     <string name="add_contact_option_face_to_face_desc_full">Join a group chat with friends nearby by \n entering the required four digits</string>
+    <string name="add_contact_fetch_profile_failed">Failed to fetch the other person\'s profile</string>
+
+    <string name="nfc_not_supported_title">NFC Not Supported</string>
+    <string name="nfc_not_supported_description">Your device doesn\'t have an NFC chip and can\'t use Tap to Add.\nYou can still add friends by scanning a QR code.</string>
+    <string name="nfc_disabled_title">NFC Is Turned Off</string>
+    <string name="nfc_disabled_description">Please enable NFC in your system settings, then come back to use Tap to Add.</string>
+    <string name="nfc_action_go_to_settings">Enable NFC</string>
+    <string name="nfc_tap_instruction">Hold your phone back-to-back with your friend\'s phone</string>
+    <string name="nfc_tap_hint">Profile will be fetched automatically after tapping</string>
+    <string name="nfc_hce_hint">Some devices require NFC to be set to HCE card emulation mode manually</string>
+    <string name="nfc_mode_scan">Scan</string>
+    <string name="nfc_mode_be_scanned">Be Scanned</string>
 
     <string name="contact_action_apply">Add Friend</string>
     <string name="contact_action_verify">Accept Friend Request</string>

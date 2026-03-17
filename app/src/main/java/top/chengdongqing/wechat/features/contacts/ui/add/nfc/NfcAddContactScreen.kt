@@ -84,17 +84,17 @@ fun NfcAddContactScreen(
             when (nfcAvailability) {
                 NfcAvailability.NotSupported ->
                     NfcUnavailable(
-                        title = "设备不支持 NFC",
-                        description = "你的手机没有 NFC 芯片，无法使用碰一碰功能。\n可以使用扫一扫来添加好友。",
-                        actionLabel = "返回",
+                        title = stringResource(R.string.nfc_not_supported_title),
+                        description = stringResource(R.string.nfc_not_supported_description),
+                        actionLabel = stringResource(R.string.action_back),
                         onAction = onBack
                     )
 
                 NfcAvailability.Disabled ->
                     NfcUnavailable(
-                        title = "NFC 未开启",
-                        description = "请前往系统设置开启 NFC 功能后，再回来使用碰一碰。",
-                        actionLabel = "前往开启 NFC",
+                        title = stringResource(R.string.nfc_disabled_title),
+                        description = stringResource(R.string.nfc_disabled_description),
+                        actionLabel = stringResource(R.string.nfc_action_go_to_settings),
                         onAction = {
                             context.startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
                         }

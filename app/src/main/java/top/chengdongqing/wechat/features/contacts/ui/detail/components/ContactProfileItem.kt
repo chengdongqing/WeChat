@@ -34,15 +34,15 @@ fun ContactProfileItem(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(enabled = contact.isFriend, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        ProfileTitleRow()
+        ProfileTitleRow(contact)
 
         if (contact.signature?.isNotBlank().isTrue()) {
             ProfileInfoRow(
-                label = stringResource(R.string.contact_profile_label_signature),
+                label = stringResource(R.string.contact_profile_signature),
                 value = contact.signature ?: ""
             )
         }
@@ -56,9 +56,9 @@ fun ContactProfileItem(
 }
 
 @Composable
-private fun ProfileTitleRow(modifier: Modifier = Modifier) {
+private fun ProfileTitleRow(contact: Contact) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -69,14 +69,16 @@ private fun ProfileTitleRow(modifier: Modifier = Modifier) {
             fontWeight = FontWeight.Medium,
             color = WeTheme.colorScheme.textPrimary
         )
-        Icon(
-            painter = painterResource(R.drawable.ic_right_outlined),
-            contentDescription = null,
-            tint = Color.DarkGray,
-            modifier = Modifier
-                .size(24.dp)
-                .offset(x = 8.dp)
-        )
+        if (contact.isFriend) {
+            Icon(
+                painter = painterResource(R.drawable.ic_right_outlined),
+                contentDescription = null,
+                tint = Color.DarkGray,
+                modifier = Modifier
+                    .size(24.dp)
+                    .offset(x = 8.dp)
+            )
+        }
     }
 }
 

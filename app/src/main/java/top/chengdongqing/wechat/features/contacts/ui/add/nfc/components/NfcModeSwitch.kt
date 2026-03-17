@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
@@ -25,13 +28,21 @@ fun NfcModeSwitch(
     onModeChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val resources = LocalResources.current
+    val modes = remember {
+        listOf(
+            true to resources.getString(R.string.nfc_mode_scan),
+            false to resources.getString(R.string.nfc_mode_be_scanned)
+        )
+    }
+
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .background(WeTheme.colorScheme.surface)
             .padding(4.dp)
     ) {
-        listOf(true to "去扫描", false to "被扫描").forEach { (mode, label) ->
+        modes.forEach { (mode, label) ->
             val selected = isReaderMode == mode
             AnimatedContent(targetState = selected) { selected ->
                 Box(

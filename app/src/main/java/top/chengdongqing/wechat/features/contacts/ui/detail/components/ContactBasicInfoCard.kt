@@ -50,25 +50,27 @@ fun ContactBasicInfoCard(
             .padding(16.dp),
         verticalAlignment = if (contact.isSelf) Alignment.CenterVertically else Alignment.Top
     ) {
-        ContactAvatar(contact.avatarPath)
+        ContactAvatar(contact)
         Spacer(modifier = Modifier.width(16.dp))
         ContactBasicInfo(contact)
     }
 }
 
 @Composable
-private fun ContactAvatar(avatarUrl: Any?) {
+private fun ContactAvatar(contact: Contact) {
     var dialogVisible by remember { mutableStateOf(false) }
     val close = { dialogVisible = false }
 
     AsyncImage(
-        model = avatarUrl,
+        model = contact.avatarPath,
         contentDescription = stringResource(R.string.contact_avatar_description),
         error = painterResource(R.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(64.dp)
             .clip(RoundedCornerShape(6.dp))
-            .weClickable { dialogVisible = true }
+            .weClickable(enabled = contact.isFriend || contact.isSelf) {
+                dialogVisible = true
+            }
     )
 
     /**
@@ -83,7 +85,7 @@ private fun ContactAvatar(avatarUrl: Any?) {
             )
         ) {
             ZoomableAsyncImage(
-                model = avatarUrl,
+                model = contact.avatarPath,
                 contentDescription = stringResource(R.string.me_profile_avatar),
                 modifier = Modifier
                     .fillMaxSize()

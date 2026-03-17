@@ -83,7 +83,9 @@ private fun BasicInfoSection(
     contact: Contact,
     onProfileClick: () -> Unit
 ) {
-    Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
+    Column(
+        modifier = Modifier.background(WeTheme.colorScheme.surface)
+    ) {
         // 头像和基本信息
         ContactBasicInfoCard(contact = contact)
 
