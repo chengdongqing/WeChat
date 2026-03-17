@@ -12,6 +12,10 @@ import kotlinx.coroutines.SupervisorJob
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
+annotation class MainScope // 处理 UI 相关任务
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
 annotation class DefaultScope // 处理 CPU 密集型任务（加解密、复杂逻辑）
 
 @Qualifier
@@ -21,6 +25,12 @@ annotation class IoScope // 处理 I/O 任务（BLE、数据库、文件）
 @Module
 @InstallIn(SingletonComponent::class)
 object CoroutineScopeModule {
+
+    @Provides
+    @Singleton
+    @MainScope
+    fun provideMainScope(): CoroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     @Provides
     @Singleton

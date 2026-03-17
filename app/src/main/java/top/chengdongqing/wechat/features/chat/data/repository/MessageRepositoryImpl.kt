@@ -64,7 +64,8 @@ class MessageRepositoryImpl @Inject constructor(
         private const val TAG = "MessageRepository"
     }
 
-    private val myUserId: String by lazy { profileRepository.requireUserId() }
+    private val myUserId: String
+        get() = profileRepository.requireUserId()
 
     override fun observeMessages(sessionId: String, limit: Int): Flow<List<ChatMessage>> {
         return messageDao.observeBySessionId(sessionId, limit).map { list ->

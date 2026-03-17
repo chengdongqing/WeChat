@@ -42,29 +42,31 @@ class WiFiLanChatModule @Inject constructor(
         const val TAG = "WiFiLanChatModule"
     }
 
-    private val userId: String by lazy { profileRepository.requireUserId() }
+    private val myUserId: String
+        get() = profileRepository.requireUserId()
 
     private var nsdRegistrationJob: Job? = null
     private var nsdDiscoveryJob: Job? = null
 
     override fun start() {
-        scope.launch {
-            runCatching {
-                // 申请Wi-Fi锁，后台通信保活
-                wifiLockManager.acquireKeepAlive()
+        runCatching {
+            // 申请Wi-Fi锁，后台通信保活
+            wifiLockManager.acquireKeepAlive()
+
+            scope.launch {
                 // 启动TCP服务
                 val port = socketServer.start()
                 // 注册NSD服务
-                startNsdRegistration(userId, port)
+                startNsdRegistration(port)
                 // 开始搜索NSD设备
-                startNsdDiscovery(userId)
+                startNsdDiscovery()
                 // 启动消息接收服务
                 messageReceiver.start()
-            }.onSuccess {
-                Log.d(TAG, "Wi-Fi Lan 聊天模块已启动")
-            }.onFailure {
-                Log.e(TAG, "Wi-Fi Lan 聊天模块启动失败", it)
             }
+        }.onSuccess {
+            Log.d(TAG, "Wi-Fi Lan 聊天模块已启动")
+        }.onFailure {
+            Log.e(TAG, "Wi-Fi Lan 聊天模块启动失败", it)
         }
     }
 
@@ -88,9 +90,9 @@ class WiFiLanChatModule @Inject constructor(
      *
      * 将本机服务广播到局域网，其他设备发现后通过 TXT 属性的 userId 识别身份。
      */
-    private fun startNsdRegistration(userId: String, port: Int) {
+    private fun startNsdRegistration(port: Int) {
         nsdRegistrationJob = scope.launch {
-            nsdDiscovery.registerService(userId, port).collect { state ->
+            nsdDiscovery.registerService(myUserId, port).collect { state ->
                 when (state) {
                     is ServiceRegistrationState.Registered ->
                         Log.d(TAG, "NSD 注册成功，端口: $port")
@@ -110,11 +112,11 @@ class WiFiLanChatModule @Inject constructor(
      *
      * 持续监听局域网内设备上下线事件。
      */
-    private fun startNsdDiscovery(userId: String) {
+    private fun startNsdDiscovery() {
         nsdDiscoveryJob = scope.launch {
-            nsdDiscovery.discoverServices(userId).collect { event ->
+            nsdDiscovery.discoverServices(myUserId).collect { event ->
                 when (event) {
-                    is DiscoveryEvent.DeviceFound -> handleDeviceFound(event.device, userId)
+                    is DiscoveryEvent.DeviceFound -> handleDeviceFound(event.device, myUserId)
                     is DiscoveryEvent.DeviceLost -> handleDeviceLost(event.serviceName)
                 }
             }

@@ -52,7 +52,8 @@ class MessageSender @Inject constructor(
         const val TAG = "MessageSender"
     }
 
-    private val myUserId: String by lazy { profileRepository.requireUserId() }
+    private val myUserId: String
+        get() = profileRepository.requireUserId()
 
     /**
      * 发送文本消息

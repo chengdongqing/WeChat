@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.features.call.manager
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +14,7 @@ import org.webrtc.IceCandidate
 import org.webrtc.PeerConnection
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
-import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.di.MainScope
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.model.SendError
@@ -76,7 +77,7 @@ class CallManager @Inject constructor(
     private val localIdentity: LocalIdentity,
     private val profileRepository: ProfileRepository,
     private val notificationRepository: NotificationSettingsRepository,
-    @param:IoScope private val scope: CoroutineScope
+    @param:MainScope private val scope: CoroutineScope
 ) {
     private companion object {
         const val TAG = "CallManager"
@@ -87,13 +88,18 @@ class CallManager @Inject constructor(
     private val _state = MutableStateFlow(CallUiState())
     val state = _state.asStateFlow()
 
+    private val myUserId: String
+        get() = profileRepository.requireUserId()
+
     private var timeoutJob: Job? = null
     private var timerJob: Job? = null
-    private val userId: String by lazy { profileRepository.requireUserId() }
     private var isInitialized = false
 
     /** 是否为发起方，影响通话记录的写入方式 */
     private var isOutgoing = false
+
+    // 有序信令队列
+    private val signalingChannel = Channel<ChatProtocol.Signaling>(capacity = 64)
 
     // ==================== 初始化 ====================
 
@@ -107,18 +113,17 @@ class CallManager @Inject constructor(
         isInitialized = true
 
         scope.launch {
-            signalingManager.incomingSignaling.collect { message ->
-                launch {
-                    when (message) {
-                        is ChatProtocol.Signaling.IceCandidate -> handleRemoteIce(message)
-                        is ChatProtocol.Signaling.Offer -> handleOffer(message)
-                        is ChatProtocol.Signaling.Answer -> handleAnswer(message)
-                        is ChatProtocol.Signaling.Hangup -> handleHangup(message)
-                        is ChatProtocol.Signaling.Busy -> handleBusy(message)
-                        is ChatProtocol.Signaling.MediaState -> handleMediaState(message)
-                        is ChatProtocol.Signaling.RingtoneInfo -> handleRingtoneInfo(message)
-                    }
+            signalingManager.incomingSignaling.collect { msg ->
+                when (msg) {
+                    is ChatProtocol.Signaling.IceCandidate -> launch { handleRemoteIce(msg) }
+                    else -> signalingChannel.send(msg)
                 }
+            }
+        }
+        // 顺序消费有序信令
+        scope.launch {
+            for (msg in signalingChannel) {
+                handleIncomingSignaling(msg)
             }
         }
         scope.launch { webRTCManager.iceConnectionState.collect { handleIceStateChange(it) } }
@@ -152,7 +157,7 @@ class CallManager @Inject constructor(
 
         scope.launch {
             runCatching {
-                ensureConnected(peerId, userId)
+                ensureConnected(peerId, myUserId)
             }.onFailure {
                 endCall(HangupReason.Offline)
                 return@launch
@@ -166,7 +171,7 @@ class CallManager @Inject constructor(
                 val offer = webRTCManager.createOffer()
                 val packet = ChatProtocol.Signaling.Offer(
                     messageId = callId,
-                    senderId = userId,
+                    senderId = myUserId,
                     callType = callType,
                     sdp = offer.description,
                     signature = ""
@@ -229,7 +234,7 @@ class CallManager @Inject constructor(
                 val answer = webRTCManager.createAnswer()
                 val packet = ChatProtocol.Signaling.Answer(
                     messageId = _state.value.callId,
-                    senderId = userId,
+                    senderId = myUserId,
                     callType = _state.value.callType,
                     sdp = answer.description,
                     signature = ""
@@ -278,7 +283,7 @@ class CallManager @Inject constructor(
             runCatching {
                 val packet = ChatProtocol.Signaling.Hangup(
                     messageId = state.callId,
-                    senderId = userId,
+                    senderId = myUserId,
                     reason = reason,
                     duration = state.duration,
                     signature = ""
@@ -336,7 +341,7 @@ class CallManager @Inject constructor(
             runCatching {
                 val packet = ChatProtocol.Signaling.MediaState(
                     messageId = current.callId,
-                    senderId = userId,
+                    senderId = myUserId,
                     isVideoOn = current.isVideoOn,
                     isMicOn = current.isMicOn,
                     isSpeakerOn = current.isSpeakerOn,
@@ -373,6 +378,18 @@ class CallManager @Inject constructor(
 
     // ==================== 信令处理 ====================
 
+    private suspend fun handleIncomingSignaling(message: ChatProtocol.Signaling) {
+        when (message) {
+            is ChatProtocol.Signaling.Offer -> handleOffer(message)
+            is ChatProtocol.Signaling.Answer -> handleAnswer(message)
+            is ChatProtocol.Signaling.Hangup -> handleHangup(message)
+            is ChatProtocol.Signaling.Busy -> handleBusy(message)
+            is ChatProtocol.Signaling.MediaState -> handleMediaState(message)
+            is ChatProtocol.Signaling.RingtoneInfo -> handleRingtoneInfo(message)
+            else -> {}
+        }
+    }
+
     /**
      * 处理来电 Offer
      *
@@ -385,7 +402,7 @@ class CallManager @Inject constructor(
             runCatching {
                 val packet = ChatProtocol.Signaling.Busy(
                     messageId = offer.messageId,
-                    senderId = userId,
+                    senderId = myUserId,
                     signature = ""
                 )
                 val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
@@ -429,7 +446,7 @@ class CallManager @Inject constructor(
         runCatching {
             val packet = ChatProtocol.Signaling.RingtoneInfo(
                 messageId = offer.messageId,
-                senderId = userId,
+                senderId = myUserId,
                 ringtone = if (ringtoneAudibleEnabled()) {
                     myRingtone()
                 } else {
@@ -516,6 +533,7 @@ class CallManager @Inject constructor(
             PeerConnection.IceConnectionState.COMPLETED -> {
                 if (_state.value.callState == CallState.Connecting) {
                     _state.update { it.copy(callState = CallState.Connected) }
+                    cancelTimeout()
                     startTimer()
                 }
             }
@@ -543,7 +561,7 @@ class CallManager @Inject constructor(
             runCatching {
                 val packet = ChatProtocol.Signaling.IceCandidate(
                     messageId = current.callId,
-                    senderId = userId,
+                    senderId = myUserId,
                     candidate = candidate.sdp,
                     sdpMid = candidate.sdpMid,
                     sdpMLineIndex = candidate.sdpMLineIndex,
@@ -655,7 +673,7 @@ class CallManager @Inject constructor(
             val packet = ChatProtocol.CallMessage(
                 messageId = snapshot.callId,
                 senderId = snapshot.peerId,
-                receiverId = userId,
+                receiverId = myUserId,
                 status = status.name,
                 duration = duration ?: snapshot.duration,
                 callType = snapshot.callType,

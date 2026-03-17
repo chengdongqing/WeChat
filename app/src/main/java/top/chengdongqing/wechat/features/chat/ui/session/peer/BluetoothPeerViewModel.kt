@@ -31,7 +31,8 @@ class BluetoothPeerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PeerDeviceUiState())
     override val uiState = _uiState.asStateFlow()
 
-    private val myUserId: String by lazy { profileRepository.requireUserId() }
+    private val myUserId: String
+        get() = profileRepository.requireUserId()
     private val bluetoothAdapter by lazy {
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
     }

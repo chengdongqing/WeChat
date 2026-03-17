@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.di.IoScope
@@ -161,6 +162,8 @@ class P2PService : Service() {
                     wifiLanChatModule.stop()
                     wifiDirectChatModule.stop()
                     bluetoothChatModule.stop()
+
+                    delay(1000)
 
                     // 启动当前聊天模块
                     when (mode) {

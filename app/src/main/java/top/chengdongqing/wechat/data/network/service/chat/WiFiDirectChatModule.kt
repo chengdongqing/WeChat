@@ -52,20 +52,21 @@ class WiFiDirectChatModule @Inject constructor(
     }
     private var connectionReceiver: BroadcastReceiver? = null
 
-    private val myUserId: String by lazy { profileRepository.requireUserId() }
+    private val myUserId: String
+        get() = profileRepository.requireUserId()
 
     override fun start() {
-        scope.launch {
-            runCatching {
+        runCatching {
+            scope.launch {
                 removeGroup()
                 socketServer.start(PORT)
                 messageReceiver.start()
-                observeConnectionState()
-            }.onSuccess {
-                Log.d(TAG, "WiFi Direct 聊天模块已启动")
-            }.onFailure {
-                Log.e(TAG, "WiFi Direct 聊天模块启动失败", it)
             }
+            observeConnectionState()
+        }.onSuccess {
+            Log.d(TAG, "WiFi Direct 聊天模块已启动")
+        }.onFailure {
+            Log.e(TAG, "WiFi Direct 聊天模块启动失败", it)
         }
     }
 

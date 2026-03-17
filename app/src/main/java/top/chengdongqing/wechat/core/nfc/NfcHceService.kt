@@ -16,7 +16,8 @@ class NfcHceService : HostApduService() {
     @Inject
     lateinit var profileRepository: ProfileRepository
 
-    private val myUserId: String by lazy { profileRepository.requireUserId() }
+    private val myUserId: String
+        get() = profileRepository.requireUserId()
 
     companion object {
         val AID = byteArrayOf(

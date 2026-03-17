@@ -20,7 +20,8 @@ class BtChatTransport @Inject constructor(
     private val profileRepository: ProfileRepository
 ) : BaseChatTransport(connectionManager) {
 
-    private val myUserId: String by lazy { profileRepository.requireUserId() }
+    private val myUserId: String
+        get() = profileRepository.requireUserId()
 
     override suspend fun send(userId: String, packet: Packet) = ensureConnected(userId, packet) {
         connectionManager.send(userId, packet)
