@@ -18,6 +18,7 @@ data class ChatSessionUiState(
     val myId: String? = null,
     val myAvatar: String? = null,
     val isSelf: Boolean = false,
+    val isFullscreenLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMoreMessages: Boolean = true,
     val backgroundPath: String? = null,
@@ -117,4 +118,9 @@ sealed class MessageUiEvent {
      * 调起通话
      */
     data class LaunchCall(val callType: CallType) : MessageUiEvent()
+
+    /**
+     * 跳转到联系人详情
+     */
+    data class NavigateToContact(val contactId: String) : MessageUiEvent()
 }

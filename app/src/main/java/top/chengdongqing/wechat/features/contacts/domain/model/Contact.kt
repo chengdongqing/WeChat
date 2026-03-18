@@ -17,7 +17,7 @@ data class Contact(
     val signature: String? = null,
     val note: String? = null,
     val relation: ContactRelation = ContactRelation.NotFriend,
-    val source: ContactAddSource = ContactAddSource.QRCode,
+    val source: ContactAddSource? = ContactAddSource.QRCode,
     val isFromMe: Boolean = true,
     val isBlocked: Boolean = false,
     val addedAt: Long? = null,

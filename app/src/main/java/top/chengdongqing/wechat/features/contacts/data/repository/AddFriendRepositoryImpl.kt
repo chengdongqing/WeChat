@@ -60,10 +60,6 @@ class AddFriendRepositoryImpl @Inject constructor(
 
     override fun getContactFromCache(contactId: String): Contact? = contactCache[contactId]
 
-    override fun setContactToCache(contactId: String, contact: Contact) {
-        contactCache.put(contactId, contact)
-    }
-
     private suspend fun parseProfile(profile: ProfileBeacon, avatarBytes: ByteArray?): Contact {
         val avatarPath = avatarBytes?.let {
             privateFileManager.saveAvatar(
@@ -82,12 +78,11 @@ class AddFriendRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun fetchProfile(userId: String, source: ContactAddSource): Contact? =
+    override suspend fun fetchProfile(userId: String, source: ContactAddSource?): Contact? =
         withContext(Dispatchers.IO) {
             runCatching {
-                val md5 = userId.toMD5Hex()
-
-                val (transfer, avatarBytes) = bleConnectionManager.readProfile(md5)
+                val userIdHash = userId.toMD5Hex()
+                val (transfer, avatarBytes) = bleConnectionManager.readProfile(userIdHash)
                     .getOrThrow()
 
                 parseProfile(transfer, avatarBytes).also { contact ->

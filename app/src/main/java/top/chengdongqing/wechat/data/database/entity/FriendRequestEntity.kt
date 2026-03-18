@@ -23,7 +23,7 @@ data class FriendRequestEntity(
     val status: FriendRequestStatus,    // 状态
     val isFromMe: Boolean = false,      // 是否我发出的
     val isRead: Boolean = false,        // 是否已读
-    val source: ContactAddSource, // 添加方式
+    val source: ContactAddSource?, // 添加方式
 
     @Embedded
     val audit: EntityAudit = EntityAudit()

@@ -130,18 +130,20 @@ fun ContactProfileScreen(
                             showArrow = false
                         )
                     }
-                    WeSettingItem(
-                        label = stringResource(R.string.contact_profile_source),
-                        trailing = {
-                            WeSettingValue(
-                                contact.source.getDescription(
-                                    resources,
-                                    contact.isFromMe
+                    contact.source?.let {
+                        WeSettingItem(
+                            label = stringResource(R.string.contact_profile_source),
+                            trailing = {
+                                WeSettingValue(
+                                    it.getDescription(
+                                        resources,
+                                        contact.isFromMe
+                                    )
                                 )
-                            )
-                        },
-                        showArrow = false
-                    )
+                            },
+                            showArrow = false
+                        )
+                    }
                     contact.addedAt?.let {
                         WeSettingItem(
                             label = stringResource(R.string.contact_profile_added_at),

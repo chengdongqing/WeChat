@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.data.network.messaging
 
+import android.util.Log
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import top.chengdongqing.wechat.data.model.PermissionResult
@@ -17,6 +18,10 @@ class MessagePermissionChecker @Inject constructor(
     private val packetSigner: PacketSigner,
     private val messageSender: MessageSender
 ) {
+
+    private companion object {
+        const val TAG = "MessagePermissionChecker"
+    }
 
     /**
      * 检查权限并回复给对方
@@ -57,6 +62,7 @@ class MessagePermissionChecker @Inject constructor(
             contact.isBlocked -> PermissionResult.Blocked
             // 验签失败
             contact.publicKey == null || !packetSigner.verify(protocol, contact.publicKey) -> {
+                Log.w(TAG, "签名验证失败, userId: $userId")
                 PermissionResult.InvalidSignature
             }
 

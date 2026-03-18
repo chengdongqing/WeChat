@@ -235,7 +235,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         greeting: String,
         remark: String?,
         note: String?,
-        source: ContactAddSource
+        source: ContactAddSource?
     ) {
         friendRequestDao.insert(
             FriendRequestEntity(
@@ -262,7 +262,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         publicKey: String,
         greeting: String,
         avatarData: ByteArray?,
-        source: ContactAddSource
+        source: ContactAddSource?
     ) {
         // 保存头像
         val avatarPath = avatarData?.let {

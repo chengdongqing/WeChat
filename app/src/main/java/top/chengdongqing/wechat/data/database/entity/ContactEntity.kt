@@ -19,7 +19,7 @@ data class ContactEntity(
     val remarkName: String? = null,       // 备注名
     val note: String? = null,             // 备忘
     val isBlocked: Boolean = false,       // 是否拉黑
-    val source: ContactAddSource = ContactAddSource.QRCode, // 添加方式
+    val source: ContactAddSource?,        // 添加方式
     val isFromMe: Boolean = true,         // 是否我主动添加
     val publicKey: String? = null,        // 证明身份的公钥
     val version: Long,                    // 版本号，用于比对资料是否需要更新

@@ -21,12 +21,7 @@ interface AddFriendRepository {
     fun getContactFromCache(contactId: String): Contact?
 
     /**
-     * 保存联系人信息到缓存备用
-     */
-    fun setContactToCache(contactId: String, contact: Contact)
-
-    /**
      * 通过 BLE 拉取对方资料
      */
-    suspend fun fetchProfile(userId: String, source: ContactAddSource): Contact?
+    suspend fun fetchProfile(userId: String, source: ContactAddSource? = null): Contact?
 }

@@ -34,8 +34,6 @@ import top.chengdongqing.wechat.core.designsystem.components.location.model.Loca
 import top.chengdongqing.wechat.core.designsystem.components.location.preview.previewLocation
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.preview.previewMedias
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastState
 import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.showToast
@@ -57,14 +55,12 @@ import top.chengdongqing.wechat.features.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.features.chat.ui.session.message.MultiMessageAction
 import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.MessageToolbarManager
 import top.chengdongqing.wechat.features.chat.ui.session.util.AudioPlaybackManager
-import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 import java.io.File
-import kotlin.time.Duration
 
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
@@ -449,25 +445,48 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun handleMessageClick(message: ChatMessage) {
         when (message.content) {
             is MessageContent.Image,
-            is MessageContent.Video -> openMediaPreview(message)
+            is MessageContent.Video -> {
+                openMediaPreview(message)
+            }
 
-            is MessageContent.Voice ->
+            is MessageContent.Voice -> {
                 toggleVoicePlay(message.id, message.content.localPath)
-
-            is MessageContent.File -> viewModelScope.launch {
-                _uiEvent.emit(MessageUiEvent.PreviewFile(message.id))
             }
 
-            is MessageContent.Music -> viewModelScope.launch {
-                val trackName = message.content.music.name
-                _uiEvent.emit(MessageUiEvent.PreviewMusic(message.id, trackName))
+            is MessageContent.File -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(MessageUiEvent.PreviewFile(message.id))
+                }
             }
 
-            is MessageContent.Call -> viewModelScope.launch {
-                _uiEvent.emit(MessageUiEvent.LaunchCall(message.content.type))
+            is MessageContent.Music -> {
+                viewModelScope.launch {
+                    val trackName = message.content.music.name
+                    _uiEvent.emit(MessageUiEvent.PreviewMusic(message.id, trackName))
+                }
             }
 
-            is MessageContent.Location -> openLocationPreview(message.content)
+            is MessageContent.Call -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(MessageUiEvent.LaunchCall(message.content.type))
+                }
+            }
+
+            is MessageContent.Location -> {
+                openLocationPreview(message.content)
+            }
+
+            is MessageContent.ContactCard -> {
+                viewModelScope.launch {
+                    val userId = message.content.userId
+                    prepareRequestAddFriend(
+                        userId = userId,
+                        fromContactCard = true
+                    ).onSuccess {
+                        _uiEvent.emit(MessageUiEvent.NavigateToContact(userId))
+                    }
+                }
+            }
 
             else -> {}
         }
@@ -493,20 +512,31 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     // endregion
 
-    // region 联系人缓存
+    // region 跳转联系人
 
-    fun prepareRequestAddFriend() {
-        _uiState.value.let { state ->
-            val contact = Contact(
-                id = state.peerId!!,
-                nickname = state.title,
-                avatarPath = state.peerAvatar
-            )
+    suspend fun prepareRequestAddFriend(
+        userId: String = chatId,
+        fromContactCard: Boolean = false
+    ): Result<Unit> {
+        // 是自己或好友：直接跳转到联系人详情
+        if (fromContactCard && (userId == _uiState.value.myId || contactRepository.exists(userId))) {
+            return Result.success(Unit)
+        }
 
-            addFriendRepository.setContactToCache(
-                contactId = chatId,
-                contact = contact
-            )
+        _uiState.update {
+            it.copy(isFullscreenLoading = true)
+        }
+
+        return runCatching {
+            addFriendRepository.fetchProfile(userId) ?: run {
+                context.showToast(context.getString(R.string.add_contact_fetch_profile_failed))
+                throw Exception()
+            }
+            Unit
+        }.also {
+            _uiState.update {
+                it.copy(isFullscreenLoading = false)
+            }
         }
     }
 
@@ -557,7 +587,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         exitSelectMode()
     }
 
-    fun saveSelectedMessageFiles(toast: ToastState) {
+    fun saveSelectedMessageFiles() {
         val ids = _uiState.value.selectedMessageIds
         exitSelectMode()
 
@@ -575,12 +605,9 @@ class ChatSessionViewModel @AssistedInject constructor(
                 return@launch
             }
 
-            toast.show(
-                "处理中...",
-                ToastIcon.Loading,
-                duration = Duration.INFINITE,
-                mask = true
-            )
+            _uiState.update {
+                it.copy(isFullscreenLoading = true)
+            }
 
             // 并发保存所有文件，等待全部完成
             val results = contents.map { content ->
@@ -600,7 +627,10 @@ class ChatSessionViewModel @AssistedInject constructor(
             val successCount = results.count { it != null }
             val failCount = results.size - successCount
 
-            toast.hide()
+            _uiState.update {
+                it.copy(isFullscreenLoading = false)
+            }
+
             context.showToast(
                 when {
                     failCount == 0 -> "已保存 $successCount 个文件"

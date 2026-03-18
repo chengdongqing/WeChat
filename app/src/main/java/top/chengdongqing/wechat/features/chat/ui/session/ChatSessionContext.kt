@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.features.chat.ui.session.message.ChatSessionUiState
 
 /**
@@ -36,6 +38,7 @@ fun rememberChatSessionContext(
     onNavigateToRequestAddFriend: () -> Unit,
     onNavigateToWebView: (url: String) -> Unit
 ): ChatSessionContext {
+    val scope = rememberCoroutineScope()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
 
     return remember(playingMessageId, uiState.isSelf) {
@@ -46,8 +49,11 @@ fun rememberChatSessionContext(
             onVoiceStop = viewModel::stopVoice,
             onRetrySend = { viewModel.retrySend(it) },
             onNavigateToRequestAddFriend = {
-                viewModel.prepareRequestAddFriend()
-                onNavigateToRequestAddFriend()
+                scope.launch {
+                    viewModel.prepareRequestAddFriend().onSuccess {
+                        onNavigateToRequestAddFriend()
+                    }
+                }
             },
             onNavigateToContact = onNavigateToContact,
             onNavigateToWebView = onNavigateToWebView,

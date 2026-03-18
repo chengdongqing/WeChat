@@ -29,8 +29,8 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
+import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
@@ -106,7 +106,6 @@ fun ChatSessionScreen(
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
     val dialog = rememberDialogState()
-    val toast = rememberToastState()
 
     /**
      * 键盘和数据更新时的自动滚动
@@ -194,7 +193,7 @@ fun ChatSessionScreen(
                         title = resources.getString(R.string.msg_confirm_save),
                         okText = R.string.action_save
                     ) {
-                        viewModel.saveSelectedMessageFiles(toast)
+                        viewModel.saveSelectedMessageFiles()
                     }
                 }
 
@@ -215,6 +214,10 @@ fun ChatSessionScreen(
 
                 is MessageUiEvent.LaunchCall -> {
                     launchCall(event.callType)
+                }
+
+                is MessageUiEvent.NavigateToContact -> {
+                    onNavigateToContact(event.contactId)
                 }
 
                 else -> {}
@@ -329,4 +332,6 @@ fun ChatSessionScreen(
             )
         }
     }
+
+    LoadingDialog(uiState.isFullscreenLoading)
 }
