@@ -8,18 +8,13 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
 import top.chengdongqing.wechat.core.designsystem.components.location.picker.rememberPickLocationLauncher
-import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.deleteFileByUri
-import top.chengdongqing.wechat.core.util.getFileConfig
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 
-/**
- * 位置处理器
- *
- * 封装位置相关的所有操作
- */
 class LocationHandler(
+    private val privateFileManager: PrivateFileManager,
     private val onSendMessage: (MessageContent) -> Unit
 ) {
     /**
@@ -29,10 +24,10 @@ class LocationHandler(
         val uri = location.staticMapUri ?: return
 
         // 拷贝到私有目录
-        val localPath = context.copyUriToPrivateDir(
-            uri = uri,
-            subDir = MessageType.Location.getFileConfig().dirName
-        ) ?: return
+        val localPath = privateFileManager.saveMedia(
+            messageType = MessageType.Location,
+            sourceUri = uri
+        ).getOrThrow()
 
         // 清除临时文件
         context.deleteFileByUri(uri)
@@ -50,10 +45,11 @@ class LocationHandler(
 
 @Composable
 fun rememberLocationHandler(
+    viewModel: HandlerViewModel,
     onSendMessage: (MessageContent) -> Unit
 ): LocationHandler {
     return remember(onSendMessage) {
-        LocationHandler(onSendMessage)
+        LocationHandler(viewModel.privateFileManager, onSendMessage)
     }
 }
 

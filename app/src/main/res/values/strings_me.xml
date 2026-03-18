@@ -19,13 +19,12 @@
 
     <string name="me_edit_name">更改名字</string>
     <string name="me_edit_name_hint">好名字可以让你的朋友更容记住你。</string>
-
+    <string name="me_edit_bio">个性签名</string>
     <string name="me_edit_gender">设置性别</string>
     <string name="gender_male">男</string>
     <string name="gender_female">女</string>
     <string name="gender_male_pronoun">他</string>
     <string name="gender_female_pronoun">她</string>
-
     <string name="me_edit_id_hint">由于无中心服务器，为确保当前的设备的唯一性，微信号暂不支持修改。</string>
 
     <string name="me_qrcode_hint">扫一扫上面的二维码图案，加我为朋友。</string>

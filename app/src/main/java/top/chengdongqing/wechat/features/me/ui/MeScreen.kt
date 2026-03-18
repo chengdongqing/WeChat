@@ -127,6 +127,7 @@ fun UserInfoSection(
         AsyncImage(
             model = profile?.avatarPath,
             contentDescription = "头像",
+            error = painterResource(R.drawable.img_avatar_placeholder),
             modifier = Modifier
                 .size(64.dp)
                 .clip(RoundedCornerShape(6.dp))

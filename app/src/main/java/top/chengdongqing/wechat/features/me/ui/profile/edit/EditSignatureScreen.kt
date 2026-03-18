@@ -41,7 +41,7 @@ fun EditSignatureScreen(
     Scaffold(
         topBar = {
             WeTopBar(
-                title = stringResource(R.string.me_profile_bio),
+                title = stringResource(R.string.me_edit_bio),
                 onBack = onBack
             ) {
                 WeButton(

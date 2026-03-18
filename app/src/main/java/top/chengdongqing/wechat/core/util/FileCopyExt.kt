@@ -13,7 +13,6 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 
 /**
  * 加载媒体缩略图
@@ -59,35 +58,6 @@ fun Context.loadVideoThumbnail(uri: Uri): Bitmap? = MediaMetadataRetriever().use
     runCatching {
         retriever.setDataSource(this, uri)
         retriever.getFrameAtTime(1, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-    }.getOrNull()
-}
-
-/**
- * 复制 Uri 到私有目录
- *
- * 将 content:// Uri 复制到应用私有目录，返回绝对路径
- * 用于消息发送前持久化媒体文件
- *
- * @param uri 源 Uri
- * @param subDir 子目录名（如 "images", "videos"）
- * @return 文件绝对路径，失败返回 null
- */
-suspend fun Context.copyUriToPrivateDir(
-    uri: Uri,
-    subDir: String
-): String? = withContext(Dispatchers.IO) {
-    runCatching {
-        val dir = File(filesDir, subDir).also { it.mkdirs() }
-        val fileName = "${randomUUID()}_${getFileName(uri)}"
-        val destFile = File(dir, fileName)
-
-        contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(destFile).use { output ->
-                input.copyTo(output, 64 * 1024)
-            }
-        } ?: throw IOException("文件打开失败")
-
-        destFile.absolutePath
     }.getOrNull()
 }
 

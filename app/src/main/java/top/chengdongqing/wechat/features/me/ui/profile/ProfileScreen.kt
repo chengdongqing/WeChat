@@ -198,6 +198,7 @@ private fun AvatarContent(avatarPath: String?) {
     AsyncImage(
         model = avatarPath,
         contentDescription = "头像",
+        error = painterResource(R.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(32.dp)
             .clip(RoundedCornerShape(4.dp)),

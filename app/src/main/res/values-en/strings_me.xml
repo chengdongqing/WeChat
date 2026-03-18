@@ -19,13 +19,12 @@
 
     <string name="me_edit_name">Edit Name</string>
     <string name="me_edit_name_hint">Pick a name friends will remember.</string>
-
+    <string name="me_edit_bio">What\'s Up</string>
     <string name="me_edit_gender">Set Gender</string>
     <string name="gender_male">Male</string>
     <string name="gender_female">Female</string>
     <string name="gender_male_pronoun">Him</string>
     <string name="gender_female_pronoun">Her</string>
-
     <string name="me_edit_id_hint">As there is no central server, the WeChat ID cannot be changed to ensure device uniqueness.</string>
 
     <string name="me_qrcode_hint">Scan the QR code to add me as friend.</string>

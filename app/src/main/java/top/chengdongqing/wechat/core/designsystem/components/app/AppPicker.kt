@@ -82,15 +82,6 @@ fun AppPicker(
                     .overscroll(overscrollEffect),
                 overscrollEffect = overscrollEffect
             ) {
-                item {
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(16.dp)
-                            .background(WeTheme.colorScheme.surface)
-                    )
-                }
-
                 when {
                     uiState.isLoading -> {
                         // 加载中
@@ -107,6 +98,15 @@ fun AppPicker(
                     }
 
                     else -> {
+                        item {
+                            Spacer(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(16.dp)
+                                    .background(WeTheme.colorScheme.surface)
+                            )
+                        }
+
                         // apk分组列表
                         uiState.groups.forEach { (initial, contacts) ->
                             item(

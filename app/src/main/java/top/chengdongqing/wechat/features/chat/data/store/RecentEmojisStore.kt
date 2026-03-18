@@ -30,8 +30,7 @@ class RecentEmojisStore @Inject constructor(
             .let { prefs ->
                 prefs[KEY]
                     ?.let {
-                        runCatching { json.decodeFromString<List<String>>(it) }
-                            .getOrDefault(emptyList())
+                        runCatching { json.decodeFromString<List<String>>(it) }.getOrNull()
                     }
                     ?: emptyList()
             }
@@ -44,11 +43,8 @@ class RecentEmojisStore @Inject constructor(
         context.recentEmojisDataStore.edit { prefs ->
             val current = prefs[KEY]
                 ?.let {
-                    runCatching { json.decodeFromString<List<String>>(it) }.getOrDefault(
-                        emptyList()
-                    )
-                }
-                ?: emptyList()
+                    runCatching { json.decodeFromString<List<String>>(it) }.getOrNull()
+                } ?: emptyList()
 
             val updated = (listOf(emojiKey) + current.filter { it != emojiKey })
                 .take(MAX_COUNT)

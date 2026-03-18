@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -15,6 +15,7 @@ import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
 import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.input.handler.HandlerViewModel
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberActionHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberFileHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberFileLauncher
@@ -35,21 +36,20 @@ fun rememberInputBarActions(
     onSendMessage: (MessageContent) -> Unit,
     onLaunchCall: (CallType) -> Unit
 ): InputBarActions {
-    val context = LocalContext.current
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val state by controller.state.collectAsStateWithLifecycle()
     val dialog = rememberDialogState()
 
     // --- handlers ---
+    val handlerViewModel: HandlerViewModel = hiltViewModel()
     val mediaHandler = rememberMediaHandler(
-        context = context,
-        scope = scope,
+        viewModel = handlerViewModel,
         onSendMessage = onSendMessage,
-        onModeSwitch = controller::dismissAll
+        onModeChange = controller::dismissAll
     )
-    val locationHandler = rememberLocationHandler(onSendMessage)
-    val fileHandler = rememberFileHandler(onSendMessage)
+    val locationHandler = rememberLocationHandler(handlerViewModel, onSendMessage)
+    val fileHandler = rememberFileHandler(handlerViewModel, onSendMessage)
 
     // --- launchers ---
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)

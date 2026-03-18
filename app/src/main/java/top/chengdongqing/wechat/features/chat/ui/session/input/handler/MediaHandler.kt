@@ -8,15 +8,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.designsystem.components.media.picker.rememberPickMediasLauncher
-import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.deleteFileByUri
-import top.chengdongqing.wechat.core.util.getFileConfig
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
@@ -29,8 +30,9 @@ import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 class MediaHandler(
     private val context: Context,
     private val scope: CoroutineScope,
-    private val onSendMessage: (MessageContent) -> Unit,
-    private val onModeSwitch: () -> Unit
+    private val privateFileManager: PrivateFileManager,
+    private val onModeChange: () -> Unit,
+    private val onSendMessage: (MessageContent) -> Unit
 ) {
     /**
      * 将媒体 Uri 处理并发送
@@ -42,10 +44,10 @@ class MediaHandler(
         val messageType = if (isImage) MessageType.Image else MessageType.Video
 
         // 拷贝到私有目录持久化保存
-        val localPath = context.copyUriToPrivateDir(
-            uri = uri,
-            subDir = messageType.getFileConfig().dirName
-        ) ?: return
+        val localPath = privateFileManager.saveMedia(
+            messageType = messageType,
+            sourceUri = uri
+        ).getOrThrow()
 
         // 清除临时文件
         if (isFromCapture) {
@@ -78,7 +80,7 @@ class MediaHandler(
     }
 
     fun handleMediaSelection(uris: List<Uri>) {
-        onModeSwitch()
+        onModeChange()
         scope.launch {
             uris.forEachIndexed { index, uri ->
                 processAndSend(uri)
@@ -96,13 +98,21 @@ class MediaHandler(
 
 @Composable
 fun rememberMediaHandler(
-    context: Context,
-    scope: CoroutineScope,
-    onSendMessage: (MessageContent) -> Unit,
-    onModeSwitch: () -> Unit
+    viewModel: HandlerViewModel,
+    onModeChange: () -> Unit,
+    onSendMessage: (MessageContent) -> Unit
 ): MediaHandler {
-    return remember(context, scope) {
-        MediaHandler(context, scope, onSendMessage, onModeSwitch)
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    return remember {
+        MediaHandler(
+            context = context,
+            scope = scope,
+            privateFileManager = viewModel.privateFileManager,
+            onModeChange = onModeChange,
+            onSendMessage = onSendMessage
+        )
     }
 }
 

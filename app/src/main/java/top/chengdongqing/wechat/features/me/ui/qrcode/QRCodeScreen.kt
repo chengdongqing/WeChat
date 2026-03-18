@@ -122,8 +122,8 @@ fun QRCodeScreen(
         // 准备生成图片所需的资源
         val context = LocalContext.current
         val density = LocalDensity.current
-        val avatarBitmap =
-            rememberAvatarBitmap(profile.avatarPath) ?: return@RequestAddFriendPermission
+        val avatarBitmap = rememberAvatarBitmap(profile.avatarPath)
+            ?: return@RequestAddFriendPermission
         val textMeasurer = rememberTextMeasurer()
 
         val cardRenderer = remember(profile, qrCodeState, avatarBitmap) {

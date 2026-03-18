@@ -12,18 +12,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.app.model.AppResult
 import top.chengdongqing.wechat.core.designsystem.components.app.rememberPickAppLauncher
-import top.chengdongqing.wechat.core.util.copyUriToPrivateDir
-import top.chengdongqing.wechat.core.util.getFileConfig
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactResult
 import top.chengdongqing.wechat.features.contacts.ui.picker.rememberPickContactLauncher
+import java.io.File
 
 /**
  * 文件处理器
  */
 class FileHandler(
+    private val privateFileManager: PrivateFileManager,
     private val onSendMessage: (MessageContent) -> Unit
 ) {
     /**
@@ -35,10 +36,10 @@ class FileHandler(
             val metadata = context.getFileMetadata(uri) ?: return
 
             // 拷贝到私有目录
-            val localPath = context.copyUriToPrivateDir(
-                uri = uri,
-                subDir = MessageType.File.getFileConfig().dirName
-            ) ?: return
+            val localPath = privateFileManager.saveMedia(
+                messageType = MessageType.File,
+                sourceUri = uri
+            ).getOrThrow()
 
             // 构建消息内容
             val content = MessageContent.File(
@@ -75,12 +76,18 @@ class FileHandler(
         }
     }
 
-    fun handleContactSelection(contact: ContactResult) {
+    suspend fun handleContactSelection(contact: ContactResult) {
+        // 拷贝到私有目录
+        val localPath = privateFileManager.saveMedia(
+            messageType = MessageType.ContactCard,
+            sourceFile = File(contact.avatarPath)
+        ).getOrThrow()
+
         // 构建消息内容
         val content = MessageContent.ContactCard(
             userId = contact.id,
             nickname = contact.nickname,
-            avatarPath = contact.avatarPath
+            avatarPath = localPath
         )
 
         // 发送
@@ -89,9 +96,12 @@ class FileHandler(
 }
 
 @Composable
-fun rememberFileHandler(onSendMessage: (MessageContent) -> Unit): FileHandler {
+fun rememberFileHandler(
+    viewModel: HandlerViewModel,
+    onSendMessage: (MessageContent) -> Unit,
+): FileHandler {
     return remember(onSendMessage) {
-        FileHandler(onSendMessage)
+        FileHandler(viewModel.privateFileManager, onSendMessage)
     }
 }
 
@@ -117,7 +127,9 @@ fun rememberFileLauncher(
     }
 
     val pickContact = rememberPickContactLauncher { contacts ->
-        fileHandler.handleContactSelection(contacts.first())
+        scope.launch {
+            fileHandler.handleContactSelection(contacts.first())
+        }
     }
 
     return remember(pickFileLauncher) {

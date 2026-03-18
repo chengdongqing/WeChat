@@ -79,16 +79,6 @@ fun ContactPicker(
                 modifier = Modifier.overscroll(overscrollEffect),
                 overscrollEffect = overscrollEffect
             ) {
-                item {
-                    Column(
-                        modifier = Modifier.background(WeTheme.colorScheme.surface)
-                    ) {
-                        GroupChatEntry()
-                        WeDivider()
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                }
-
                 when {
                     uiState.isLoading -> {
                         // 加载中
@@ -104,25 +94,17 @@ fun ContactPicker(
                         }
                     }
 
-                    groups.isEmpty() -> {
-                        // 空状态
+                    else -> {
                         item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(200.dp),
-                                contentAlignment = Alignment.Center
+                            Column(
+                                modifier = Modifier.background(WeTheme.colorScheme.surface)
                             ) {
-                                Text(
-                                    text = "暂无联系人",
-                                    color = WeTheme.colorScheme.textSecondary,
-                                    fontSize = 14.sp
-                                )
+                                GroupChatEntry()
+                                WeDivider()
+                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
-                    }
 
-                    else -> {
                         // 联系人分组列表
                         groups.forEach { (initial, contacts) ->
                             item(
@@ -191,7 +173,6 @@ private fun GroupChatEntry() {
         modifier = Modifier
             .height(60.dp)
             .fillMaxWidth()
-            .background(WeTheme.colorScheme.surface)
             .clickable {}
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically

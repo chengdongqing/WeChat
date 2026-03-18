@@ -32,8 +32,6 @@ class AppPickerViewModel @Inject constructor(
 
     private fun loadApps() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
             runCatching { appRepository.loadInstalledApks() }
                 .onSuccess { apks ->
                     val groups = apks.groupByInitial()
