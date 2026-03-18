@@ -18,12 +18,18 @@ class FileReferenceManager @Inject constructor(
      * 注册文件引用（消息插入时调用）
      * 若文件已存在则引用计数 +1
      */
-    suspend fun retain(localPath: String?) {
+    suspend fun retain(localPath: String?, checksum: String) {
         localPath ?: return
         // 先尝试插入（已存在则忽略），再 +1
         // 两步合起来等价于 upsert
         database.withTransaction {
-            mediaFileDao.insertIfAbsent(MediaFileEntity(localPath = localPath, refCount = 0))
+            mediaFileDao.insertIfAbsent(
+                MediaFileEntity(
+                    localPath = localPath,
+                    refCount = 0,
+                    checksum = checksum
+                )
+            )
             mediaFileDao.increment(localPath)
         }
     }

@@ -6,10 +6,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.util.extractExtension
-import top.chengdongqing.wechat.core.util.toMD5Hex
+import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
+import top.chengdongqing.wechat.data.database.dao.MediaFileDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.SendError
@@ -27,6 +28,7 @@ import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
 import top.chengdongqing.wechat.data.security.LocalIdentity
+import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import java.io.File
@@ -51,6 +53,8 @@ class MessageSender @Inject constructor(
     private val packetSigner: PacketSigner,
     private val localIdentity: LocalIdentity,
     private val avatarServer: AvatarServer,
+    private val mediaFileDao: MediaFileDao,
+    private val fileReferenceManager: FileReferenceManager,
     private val json: Json
 ) {
     private companion object {
@@ -103,7 +107,25 @@ class MessageSender @Inject constructor(
         // 获取文件大小
         val fileSize = file.length()
         // 计算哈希值
-        val checksum = file.toMD5Hex()
+        val checksum = file.toSHA256Hex()
+
+        // 判断是否已存在该文件，存在直接删除新的文件，并更新已存在文件的引用
+        val existingFile = mediaFileDao.getByChecksum(checksum)
+        val targetFile = if (existingFile != null) {
+            // 更新原文件引用次数
+            fileReferenceManager.retain(existingFile.localPath, checksum)
+            // 更新消息的文件地址为之前存在的文件地址
+            messageDao.update(message.id) { message ->
+                message.copy(localPath = existingFile.localPath)
+            }
+            // 删除当前的文件
+            file.takeIf { it.exists() }?.delete()
+            File(existingFile.localPath)
+        } else {
+            // 注册新的文件引用
+            fileReferenceManager.retain(file.absolutePath, checksum)
+            file
+        }
 
         // 构建消息元数据
         val metadata = ChatProtocol.MediaMessage(
@@ -132,7 +154,7 @@ class MessageSender @Inject constructor(
                     )
                 )
                 // 分片分送文件；FILE_CHUNK writeNoFlush，由 buffer 自动 flush 减少 syscall
-                streamFileChunks(file, fileSize, message.id) { chunk ->
+                streamFileChunks(targetFile, fileSize, message.id) { chunk ->
                     writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
                 }
             }.getOrThrow()

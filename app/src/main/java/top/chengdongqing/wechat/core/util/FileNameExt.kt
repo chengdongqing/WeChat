@@ -17,12 +17,12 @@ data class FileConfig(
 fun MessageType.getFileConfig(): FileConfig {
     return when (this) {
         MessageType.Image,
+        MessageType.Sticker,
         MessageType.Location,
         MessageType.ContactCard -> FileConfig("images", "IMG", "jpg")
 
         MessageType.Video -> FileConfig("videos", "VID", "mp4")
         MessageType.Voice -> FileConfig("recordings", "RCD", "m4a")
-        MessageType.Sticker -> FileConfig("stickers", "IMG", "jpg")
         else -> FileConfig("files", "FILE", "bin")
     }
 }

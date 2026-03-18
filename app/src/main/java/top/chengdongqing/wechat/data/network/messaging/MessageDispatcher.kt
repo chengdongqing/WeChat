@@ -5,12 +5,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.data.database.dao.MediaFileDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.ReceiptType
+import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
@@ -29,7 +31,9 @@ class MessageDispatcher @Inject constructor(
     private val messageRepository: MessageRepository,
     private val privateFileManager: PrivateFileManager,
     private val signalingManager: SignalingManager,
-    private val contactRepository: ContactRepository
+    private val contactRepository: ContactRepository,
+    private val mediaFileDao: MediaFileDao,
+    private val fileReferenceManager: FileReferenceManager
 ) {
     private companion object {
         const val TAG = "MessageDispatcher"
@@ -214,15 +218,28 @@ class MessageDispatcher @Inject constructor(
         protocol: ChatProtocol.MediaMessage,
         tempFile: File
     ): MessageEntity {
-        val localPath = privateFileManager.saveMedia(
-            messageType = protocol.messageType,
-            sourceFile = tempFile,
-            extension = protocol.extension
-        ).also {
-            tempFile.delete()
-        }.onFailure {
-            throw Exception("保存媒体文件失败: ${protocol.messageId}", it)
-        }.getOrThrow()
+        // 判断是否已存在该文件，存在直接删除新的文件，并更新已存在文件的引用
+        val existingFile = mediaFileDao.getByChecksum(protocol.checksum)
+        val localPath = if (existingFile != null) {
+            // 更新原文件引用次数
+            fileReferenceManager.retain(existingFile.localPath, protocol.checksum)
+            existingFile.localPath
+        } else {
+            // 保存文件
+            val newPath = privateFileManager.saveMedia(
+                messageType = protocol.messageType,
+                sourceFile = tempFile,
+                extension = protocol.extension
+            ).onFailure {
+                throw Exception("保存媒体文件失败: ${protocol.messageId}", it)
+            }.getOrThrow()
+            // 注册新的文件引用
+            fileReferenceManager.retain(newPath, protocol.checksum)
+            newPath
+        }
+
+        // 删除临时文件
+        tempFile.takeIf { it.exists() }?.delete()
 
         return MessageEntity(
             id = protocol.messageId,

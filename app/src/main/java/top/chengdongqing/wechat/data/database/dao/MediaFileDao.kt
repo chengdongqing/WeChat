@@ -9,6 +9,9 @@ import top.chengdongqing.wechat.data.database.entity.MediaFileEntity
 @Dao
 interface MediaFileDao {
 
+    @Query("select * from media_files where checksum = :checksum limit 1")
+    suspend fun getByChecksum(checksum: String): MediaFileEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIfAbsent(entity: MediaFileEntity)
 

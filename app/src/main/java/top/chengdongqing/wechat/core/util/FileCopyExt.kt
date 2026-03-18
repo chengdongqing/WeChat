@@ -62,30 +62,21 @@ fun Context.loadVideoThumbnail(uri: Uri): Bitmap? = MediaMetadataRetriever().use
 }
 
 /**
- * 复制 Asset 文件到私有目录
- * 若已存在则不重新创建
- *
- * @param assetName Asset 文件名
- * @return 文件绝对路径，失败返回 null
+ * 复制表情文件到临时文件
  */
-suspend fun Context.copyAssetToPrivateDir(
+suspend fun Context.copyStickerToUri(
     assetName: String
-): String? = withContext(Dispatchers.IO) {
+): Uri? = withContext(Dispatchers.IO) {
     runCatching {
-        val destFile = File(filesDir, assetName).also {
-            it.parentFile?.mkdirs()
-        }
-        if (destFile.exists()) {
-            return@runCatching destFile.absolutePath
-        }
+        val tempFile = File.createTempFile("Sticker_", ".gif")
 
         assets.open(assetName).use { input ->
-            FileOutputStream(destFile).use { output ->
+            FileOutputStream(tempFile).use { output ->
                 input.copyTo(output)
             }
         }
 
-        destFile.absolutePath
+        getFileProviderUri(tempFile)
     }.getOrNull()
 }
 

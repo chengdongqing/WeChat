@@ -49,7 +49,7 @@ class MediaHandler(
             sourceUri = uri
         ).getOrThrow()
 
-        // 清除临时文件
+        // 清理临时文件
         if (isFromCapture) {
             context.deleteFileByUri(uri)
         }

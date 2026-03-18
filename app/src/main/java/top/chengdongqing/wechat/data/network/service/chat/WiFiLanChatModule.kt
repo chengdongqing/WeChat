@@ -45,21 +45,20 @@ class WiFiLanChatModule @Inject constructor(
     private val myUserId: String
         get() = profileRepository.requireUserId()
 
-    private var nsdRegistrationJob: Job? = null
-    private var nsdDiscoveryJob: Job? = null
+    private var observeJob: Job? = null
 
     override fun start() {
         runCatching {
             // 申请Wi-Fi锁，后台通信保活
             wifiLockManager.acquireKeepAlive()
 
-            scope.launch {
+            observeJob = scope.launch {
                 // 启动TCP服务
                 val port = socketServer.start()
                 // 注册NSD服务
-                startNsdRegistration(port)
+                launch { startNsdRegistration(port) }
                 // 开始搜索NSD设备
-                startNsdDiscovery()
+                launch { startNsdDiscovery() }
                 // 启动消息接收服务
                 messageReceiver.start()
             }
@@ -72,8 +71,7 @@ class WiFiLanChatModule @Inject constructor(
 
     override fun stop() {
         runCatching {
-            nsdRegistrationJob?.cancel()
-            nsdDiscoveryJob?.cancel()
+            observeJob?.cancel()
             // 关闭所有连接
             connectionManager.closeAll()
             // 停止TCP服务
@@ -90,19 +88,17 @@ class WiFiLanChatModule @Inject constructor(
      *
      * 将本机服务广播到局域网，其他设备发现后通过 TXT 属性的 userId 识别身份。
      */
-    private fun startNsdRegistration(port: Int) {
-        nsdRegistrationJob = scope.launch {
-            nsdDiscovery.registerService(myUserId, port).collect { state ->
-                when (state) {
-                    is ServiceRegistrationState.Registered ->
-                        Log.d(TAG, "NSD 注册成功，端口: $port")
+    private suspend fun startNsdRegistration(port: Int) {
+        nsdDiscovery.registerService(myUserId, port).collect { state ->
+            when (state) {
+                is ServiceRegistrationState.Registered ->
+                    Log.d(TAG, "NSD 注册成功，端口: $port")
 
-                    is ServiceRegistrationState.Failed ->
-                        Log.e(TAG, "NSD 注册失败: errorCode=${state.errorCode}")
+                is ServiceRegistrationState.Failed ->
+                    Log.e(TAG, "NSD 注册失败: errorCode=${state.errorCode}")
 
-                    is ServiceRegistrationState.Unregistered ->
-                        Log.d(TAG, "NSD 已注销")
-                }
+                is ServiceRegistrationState.Unregistered ->
+                    Log.d(TAG, "NSD 已注销")
             }
         }
     }
@@ -112,13 +108,11 @@ class WiFiLanChatModule @Inject constructor(
      *
      * 持续监听局域网内设备上下线事件。
      */
-    private fun startNsdDiscovery() {
-        nsdDiscoveryJob = scope.launch {
-            nsdDiscovery.discoverServices(myUserId).collect { event ->
-                when (event) {
-                    is DiscoveryEvent.DeviceFound -> handleDeviceFound(event.device, myUserId)
-                    is DiscoveryEvent.DeviceLost -> handleDeviceLost(event.serviceName)
-                }
+    private suspend fun startNsdDiscovery() {
+        nsdDiscovery.discoverServices(myUserId).collect { event ->
+            when (event) {
+                is DiscoveryEvent.DeviceFound -> handleDeviceFound(event.device, myUserId)
+                is DiscoveryEvent.DeviceLost -> handleDeviceLost(event.serviceName)
             }
         }
     }

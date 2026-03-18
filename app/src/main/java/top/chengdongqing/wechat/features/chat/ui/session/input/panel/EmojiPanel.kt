@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import coil3.decode.StaticImageDecoder
 import coil3.request.ImageRequest
@@ -57,9 +58,12 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.repeatingClickable
 import top.chengdongqing.wechat.core.util.asAssetPath
-import top.chengdongqing.wechat.core.util.copyAssetToPrivateDir
+import top.chengdongqing.wechat.core.util.copyStickerToUri
+import top.chengdongqing.wechat.core.util.deleteFileByUri
+import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.theme.ChatTheme
+import top.chengdongqing.wechat.features.chat.ui.session.input.handler.HandlerViewModel
 
 /**
  * 表情面板
@@ -356,7 +360,8 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
 @Composable
 private fun StickerItem(
     sticker: Sticker,
-    onSelect: (MessageContent.Sticker) -> Unit
+    onSelect: (MessageContent.Sticker) -> Unit,
+    viewModel: HandlerViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -379,10 +384,17 @@ private fun StickerItem(
             .clip(RoundedCornerShape(4.dp))
             .clickable {
                 scope.launch {
-                    // 拷贝到私有目录，已存在则不再次拷贝
-                    val localPath = context.copyAssetToPrivateDir(
+                    // 获取表情URI
+                    val uri = context.copyStickerToUri(
                         assetName = sticker.localPath
                     ) ?: return@launch
+                    // 拷贝到私有目录持久化保存
+                    val localPath = viewModel.privateFileManager.saveMedia(
+                        messageType = MessageType.Sticker,
+                        sourceUri = uri
+                    ).getOrThrow()
+                    // 清理临时文件
+                    context.deleteFileByUri(uri)
 
                     onSelect(MessageContent.Sticker(localPath))
                 }

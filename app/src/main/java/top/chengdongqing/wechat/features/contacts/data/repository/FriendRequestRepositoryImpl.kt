@@ -13,6 +13,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.core.util.toBytes
+import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
@@ -251,7 +252,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
     ) {
         // 注册文件引用
         targetContact.avatarPath?.let {
-            fileReferenceManager.retain(it)
+            fileReferenceManager.retain(
+                localPath = it,
+                checksum = File(it).toSHA256Hex()
+            )
         }
         friendRequestDao.insert(
             FriendRequestEntity(
@@ -289,7 +293,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
         }
         // 注册文件引用
         avatarPath?.let {
-            fileReferenceManager.retain(it)
+            fileReferenceManager.retain(
+                localPath = it,
+                checksum = File(it).toSHA256Hex()
+            )
         }
 
         // 保存请求记录
@@ -319,7 +326,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
     ) {
         // 注册文件引用
         request.avatarPath?.let {
-            fileReferenceManager.retain(it)
+            fileReferenceManager.retain(
+                localPath = it,
+                checksum = File(it).toSHA256Hex()
+            )
         }
 
         contactRepository.createContact(

@@ -29,7 +29,7 @@ class LocationHandler(
             sourceUri = uri
         ).getOrThrow()
 
-        // 清除临时文件
+        // 清理临时文件
         context.deleteFileByUri(uri)
 
         val content = MessageContent.Location(

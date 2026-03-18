@@ -85,7 +85,7 @@ class PublicFileManager @Inject constructor(
         filename: String? = null
     ): Uri? = withContext(Dispatchers.IO) {
         runCatching {
-            if (!sourceFile.exists()) error("源文件不存在: ${sourceFile.path}")
+            if (!sourceFile.exists()) error("源文件不存在: ${sourceFile.absolutePath}")
             val config = resolveConfig(messageType, filename, sourceFile = sourceFile)
             writeToMediaStore(config, sourceFile = sourceFile)
         }.onFailure { Log.e(TAG, "saveMedia(File) 失败", it) }

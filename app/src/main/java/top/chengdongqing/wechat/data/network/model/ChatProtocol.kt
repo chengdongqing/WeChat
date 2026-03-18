@@ -75,7 +75,7 @@ sealed class ChatProtocol {
         val content: String,
         val extension: String?,
         val fileSize: Long,
-        val checksum: String? = null,
+        val checksum: String,
         val mediaDuration: Long? = null
     ) : ChatProtocol() {
         override fun signingPayload() =

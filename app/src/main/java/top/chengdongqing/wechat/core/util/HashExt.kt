@@ -7,11 +7,11 @@ import java.io.FileInputStream
 import java.security.MessageDigest
 
 /**
- * 字节数组转 MD5 十六进制
+ * 字节数组转十六进制字符串
  *
- * 性能优于 joinToString + String.format
+ * 性能优于 joinToString + String.format（查表法，避免格式化开销）
  */
-fun ByteArray.toMD5Hex(): String {
+fun ByteArray.toHexString(): String {
     val hexChars = "0123456789abcdef"
     val result = StringBuilder(size * 2)
     forEach { byte ->
@@ -34,26 +34,26 @@ fun String.toMD5Bytes(): ByteArray {
  * 字符串转 MD5 十六进制
  */
 fun String.toMD5Hex(): String {
-    return toMD5Bytes().toMD5Hex()
+    return toMD5Bytes().toHexString()
 }
 
 /**
- * 流式计算文件 MD5 十六进制
+ * 流式计算文件 SHA-256 十六进制
  */
-suspend fun File.toMD5Hex(): String = withContext(Dispatchers.IO) {
+suspend fun File.toSHA256Hex(): String = withContext(Dispatchers.IO) {
     if (!exists() || !isFile) return@withContext ""
 
-    val digest = MessageDigest.getInstance("MD5")
-    val buffer = ByteArray(8192)
+    val digest = MessageDigest.getInstance("SHA-256")
+    val buffer = ByteArray(64 * 1024)
 
     try {
-        FileInputStream(this@toMD5Hex).use { fis ->
+        FileInputStream(this@toSHA256Hex).use { fis ->
             var bytesRead: Int
             while (fis.read(buffer).also { bytesRead = it } != -1) {
                 digest.update(buffer, 0, bytesRead)
             }
         }
-        digest.digest().toMD5Hex()
+        digest.digest().toHexString()
     } catch (e: Exception) {
         e.printStackTrace()
         ""

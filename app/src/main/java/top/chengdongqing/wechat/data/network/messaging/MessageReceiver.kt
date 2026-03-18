@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.core.util.toMD5Hex
+import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
@@ -189,17 +189,15 @@ class MessageReceiver @Inject constructor(
 
             // MD5 校验
             val expectedChecksum = state.metadata.checksum
-            if (!expectedChecksum.isNullOrEmpty()) {
-                val actualChecksum = state.tempFile.toMD5Hex()
-                if (actualChecksum != expectedChecksum) {
-                    Log.e(
-                        TAG,
-                        "MD5 校验失败 [${state.metadata.messageId}]: 期望=$expectedChecksum, 实际=$actualChecksum"
-                    )
-                    state.tempFile.delete()
-                    mediaStates.remove(userId)
-                    return@withContext
-                }
+            val actualChecksum = state.tempFile.toSHA256Hex()
+            if (actualChecksum != expectedChecksum) {
+                Log.e(
+                    TAG,
+                    "文件哈希值校验失败 [${state.metadata.messageId}]: 期望=$expectedChecksum, 实际=$actualChecksum"
+                )
+                state.tempFile.delete()
+                mediaStates.remove(userId)
+                return@withContext
             }
 
             messageDispatcher.dispatch(state.metadata, state.tempFile)
