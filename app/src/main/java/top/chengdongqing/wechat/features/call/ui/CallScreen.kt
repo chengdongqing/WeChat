@@ -42,7 +42,6 @@ import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.features.call.manager.WebRTCManager
 import top.chengdongqing.wechat.features.call.model.CallState
 import top.chengdongqing.wechat.features.call.model.CallUiState
 import top.chengdongqing.wechat.features.call.ui.components.CallBackground
@@ -84,7 +83,6 @@ fun CallScreen(viewModel: CallViewModel, onDismiss: () -> Unit) {
     ) {
         FullScreenLayer(uiState, viewModel)
 
-        // 控件层：显示/隐藏带动画
         AnimatedVisibility(
             visible = uiState.isControlsVisible,
             enter = fadeIn() + expandVertically(),
@@ -103,19 +101,19 @@ fun CallScreen(viewModel: CallViewModel, onDismiss: () -> Unit) {
 /**
  * 全屏背景层
  *
- * 视频通话中显示远端（或本端）画面；非视频或对方关闭摄像头时显示模糊背景。
+ * 视频通话中显示远端（或本端）画面；非视频或对方关闭摄像头时显示背景。
  */
 @Composable
 private fun FullScreenLayer(uiState: CallUiState, viewModel: CallViewModel) {
     when {
-        uiState.showRemoteVideo -> WebRtcVideoView(
+        uiState.showRemoteVideo -> WebRTCVideoView(
             eglContext = viewModel.eglContext,
             onRendererReady = viewModel::bindRemoteRenderer,
             // 交换后显示本地画面，前置摄像头需镜像
             isMirror = uiState.isVideoSwapped && uiState.isFrontCamera
         )
 
-        uiState.showFullScreenLocalPreview -> WebRtcVideoView(
+        uiState.showFullScreenLocalPreview -> WebRTCVideoView(
             eglContext = viewModel.eglContext,
             onRendererReady = viewModel::bindLocalRenderer,
             isMirror = uiState.isFrontCamera
@@ -125,7 +123,9 @@ private fun FullScreenLayer(uiState: CallUiState, viewModel: CallViewModel) {
     }
 }
 
-/** 控件层：顶栏 + 中间用户信息 + 底部操作栏 */
+/**
+ * 控件层：顶栏 + 中间用户信息 + 底部操作栏
+ */
 @Composable
 private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
     val context = LocalContext.current
@@ -166,8 +166,7 @@ private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
 /**
  * 画中画小窗（本端预览）
  *
- * 可拖拽；松手时吸附到左右边缘（弹簧动画）。
- * Y 轴限制在状态栏以下，防止被系统栏遮挡。
+ * 可拖拽，松手时吸附到左右边缘
  */
 @Composable
 private fun FloatingPipWindow(uiState: CallUiState, viewModel: CallViewModel) {
@@ -222,7 +221,7 @@ private fun FloatingPipWindow(uiState: CallUiState, viewModel: CallViewModel) {
             }
             .weClickable { viewModel.actions.onSwapVideo() }
     ) {
-        WebRtcVideoView(
+        WebRTCVideoView(
             eglContext = viewModel.eglContext,
             onRendererReady = viewModel::bindLocalRenderer,
             // 未交换时小窗显示本端，前置摄像头需镜像
@@ -232,25 +231,11 @@ private fun FloatingPipWindow(uiState: CallUiState, viewModel: CallViewModel) {
     }
 }
 
-// 画中画小窗尺寸
-private val PIP_WIDTH = 110.dp
-private val PIP_HEIGHT = 160.dp
-private val PIP_MARGIN = 16.dp
-private val STATUS_BAR_HEIGHT = 48.dp
-
 /**
  * WebRTC 视频渲染组件
- *
- * 基于 [SurfaceViewRenderer]，通过 [AndroidView] 嵌入 Compose。
- * 初始化完成后回调 [onRendererReady]，将 renderer 注册到 WebRTC 视频轨道。
- *
- * @param eglContext      共享 EGL 上下文，与 [WebRTCManager.eglBase] 保持一致
- * @param onRendererReady renderer 就绪回调，在此绑定视频轨道
- * @param isMirror        是否镜像（前置摄像头本端预览需开启）
- * @param isOverlay       是否置顶层（小窗需开启，防止被全屏 SurfaceView 遮挡）
  */
 @Composable
-fun WebRtcVideoView(
+private fun WebRTCVideoView(
     eglContext: EglBase.Context,
     onRendererReady: (SurfaceViewRenderer) -> Unit,
     isMirror: Boolean = false,
@@ -272,3 +257,9 @@ fun WebRtcVideoView(
         onRelease = { it.release() }
     )
 }
+
+// 画中画小窗尺寸
+private val PIP_WIDTH = 110.dp
+private val PIP_HEIGHT = 160.dp
+private val PIP_MARGIN = 16.dp
+private val STATUS_BAR_HEIGHT = 48.dp

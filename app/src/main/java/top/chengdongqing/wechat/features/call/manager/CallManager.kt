@@ -24,7 +24,6 @@ import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
-import top.chengdongqing.wechat.data.network.service.call.CallModule
 import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.data.security.LocalIdentity
 import top.chengdongqing.wechat.features.call.model.CallState
@@ -42,25 +41,19 @@ import top.chengdongqing.wechat.features.settings.domain.repository.Notification
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
+/*
+ * 通话超时场景
+ */
+private enum class TimeoutScenario {
+    /* 等待对方接听 */
+    Ringing,
+
+    /* 等待 ICE 建立连接 */
+    Connecting
+}
+
+/*
  * 通话管理器
- *
- * 完整调用链路：
- *
- * 【发起通话】
- * 用户点击 → CallViewModel.startCall()
- *   → ensureConnected → WebRTC createOffer → SignalingManager.send(Offer)
- *   → 等待对方 Answer → ICE 连接建立 → CallState.Connected
- *
- * 【收到来电】
- * TCP Packet(SIGNALING) → MessageReceiver → MessageDispatcher
- *   → SignalingManager.onSignalingReceived() → handleOffer()
- *   → CallState.Incoming → CallModule 启动 CallActivity + 铃声 + 通知
- *   → 用户接听 → accept() → createAnswer → ICE 连接建立 → CallState.Connected
- *
- * 【通话结束】
- * hangup/decline/cancel/timeout/ICE 失败 → endCall()
- *   → 写通话记录 → delay(3s) → 重置状态为 Idle
  */
 @Singleton
 class CallManager @Inject constructor(
@@ -81,32 +74,26 @@ class CallManager @Inject constructor(
 ) {
     private companion object {
         const val TAG = "CallManager"
-        const val RING_TIMEOUT_MS = 30_000L  // 无应答超时，30s 后自动挂断
-        const val CONNECT_TIMEOUT_MS = 15_000L // 连接中持续15s自动挂断
+
+        /* 无应答超时：30s 后自动挂断 */
+        const val RING_TIMEOUT_MS = 30_000L
+
+        /* ICE 连接超时：15s 后自动挂断 */
+        const val CONNECT_TIMEOUT_MS = 15_000L
     }
 
     private val _state = MutableStateFlow(CallUiState())
     val state = _state.asStateFlow()
 
-    private val myUserId: String
-        get() = profileRepository.requireUserId()
-
-    private var timeoutJob: Job? = null
-    private var timerJob: Job? = null
+    private var isOutgoing = false // 是否为发起方
     private var isInitialized = false
+    private var timeoutJob: Job? = null
+    private var durationTimerJob: Job? = null
+    private val myUserId: String get() = profileRepository.requireUserId()
+    private val signalingChannel = Channel<ChatProtocol.Signaling>(capacity = 64) // 信令队列，保证有序消费
 
-    /** 是否为发起方，影响通话记录的写入方式 */
-    private var isOutgoing = false
-
-    // 有序信令队列
-    private val signalingChannel = Channel<ChatProtocol.Signaling>(capacity = 64)
-
-    // ==================== 初始化 ====================
-
-    /**
-     * 初始化 CallManager，幂等（重复调用无效）
-     *
-     * 订阅信令流、ICE 状态流和本端候选流，三个订阅贯穿整个通话生命周期。
+    /*
+     * 初始化，只执行一次
      */
     fun init() {
         if (isInitialized) return
@@ -115,12 +102,15 @@ class CallManager @Inject constructor(
         scope.launch {
             signalingManager.incomingSignaling.collect { msg ->
                 when (msg) {
+                    /*
+                     * ICE 候选无需保序，直接并发处理；
+                     * 其余信令入队，由下方协程顺序消费
+                     */
                     is ChatProtocol.Signaling.IceCandidate -> launch { handleRemoteIce(msg) }
                     else -> signalingChannel.send(msg)
                 }
             }
         }
-        // 顺序消费有序信令
         scope.launch {
             for (msg in signalingChannel) {
                 handleIncomingSignaling(msg)
@@ -130,32 +120,28 @@ class CallManager @Inject constructor(
         scope.launch { webRTCManager.localIceCandidates.collect { sendIceCandidate(it) } }
     }
 
-    // ==================== 发起通话 ====================
-
-    /**
+    /*
      * 发起通话
-     *
-     * 当前有通话进行中时忽略。
-     * 流程：ensureConnected → WebRTC 初始化 → createOffer → 发送 Offer → 启动超时计时
      */
-    fun startCall(peerId: String, peerName: String, peerAvatar: String?, callType: CallType) {
+    fun startCall(peerId: String, callType: CallType) {
         if (!_state.value.callState.isTerminal) return
 
         isOutgoing = true
-        val callId = randomUUID()
-
-        _state.value = CallUiState(
-            callState = CallState.Outgoing,
-            callType = callType,
-            callId = callId,
-            peerId = peerId,
-            peerName = peerName,
-            peerAvatar = peerAvatar,
-            isOutgoing = true,
-            isSpeakerOn = callType.isVideoCall
-        )
 
         scope.launch {
+            val callId = randomUUID()
+            val contact = contactRepository.getContact(peerId)
+            _state.value = CallUiState(
+                callState = CallState.Outgoing,
+                callType = callType,
+                callId = callId,
+                peerId = peerId,
+                peerName = contact?.displayName ?: "",
+                peerAvatar = contact?.avatarPath,
+                isOutgoing = true,
+                isSpeakerOn = callType.isVideoCall
+            )
+
             runCatching {
                 ensureConnected(peerId, myUserId)
             }.onFailure {
@@ -169,20 +155,18 @@ class CallManager @Inject constructor(
                 webRTCManager.startLocalMedia(callType)
 
                 val offer = webRTCManager.createOffer()
-                val packet = ChatProtocol.Signaling.Offer(
-                    messageId = callId,
-                    senderId = myUserId,
-                    callType = callType,
-                    sdp = offer.description,
-                    signature = ""
-                )
-                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
-
-                signalingManager.send(
+                sendSignaling(
                     targetUserId = peerId,
-                    message = packet.copy(signature = signature)
+                    packet = ChatProtocol.Signaling.Offer(
+                        messageId = callId,
+                        senderId = myUserId,
+                        callType = callType,
+                        sdp = offer.description,
+                        signature = ""
+                    )
                 )
-                startTimeout()
+
+                startTimeout(TimeoutScenario.Ringing)
             }.onFailure {
                 Log.e(TAG, "发起通话失败", it)
                 endCall(HangupReason.Error)
@@ -190,22 +174,18 @@ class CallManager @Inject constructor(
         }
     }
 
-    /**
+    /*
      * 确保与目标用户有可用连接
+     * 仅 WiFiLan 模式下生效
      */
     private suspend fun ensureConnected(targetUserId: String, myUserId: String) {
         if (transport.isConnected(targetUserId)) return
         if (transport.mode.value != ConnectionMode.WiFiLan) return
 
-        // 从数据库查询连接信息
         val info = connectionInfoDao.getById(targetUserId)
+        val ip = info?.lanIpAddress ?: return
+        val port = info.lanPort ?: return
 
-        // 获取IP和端口
-        val (ip, port) = takeIf { info?.lanIpAddress != null && info.lanPort != null }?.let {
-            Pair(info?.lanIpAddress!!, info.lanPort!!)
-        } ?: return
-
-        // 尝试连接
         socketClient.connect(
             userId = targetUserId,
             host = ip,
@@ -216,34 +196,26 @@ class CallManager @Inject constructor(
         }
     }
 
-    // ==================== 接听 / 拒接 / 取消 / 挂断 ====================
-
-    /**
+    /*
      * 接听来电
-     *
-     * 取消超时计时，切换为 Connecting，发送 Answer。
      */
     fun accept() {
         if (_state.value.callState != CallState.Incoming) return
         cancelTimeout()
         _state.update { it.copy(callState = CallState.Connecting) }
 
-
         scope.launch {
             runCatching {
                 val answer = webRTCManager.createAnswer()
-                val packet = ChatProtocol.Signaling.Answer(
-                    messageId = _state.value.callId,
-                    senderId = myUserId,
-                    callType = _state.value.callType,
-                    sdp = answer.description,
-                    signature = ""
-                )
-                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
-
-                signalingManager.send(
+                sendSignaling(
                     targetUserId = _state.value.peerId,
-                    message = packet.copy(signature = signature)
+                    packet = ChatProtocol.Signaling.Answer(
+                        messageId = _state.value.callId,
+                        senderId = myUserId,
+                        callType = _state.value.callType,
+                        sdp = answer.description,
+                        signature = ""
+                    )
                 )
             }.onFailure {
                 Log.e(TAG, "接听失败", it)
@@ -252,14 +224,18 @@ class CallManager @Inject constructor(
         }
     }
 
-    /** 拒接来电，发送 Hangup(Declined) 给对方 */
+    /*
+     * 拒接来电
+     */
     fun decline() {
         if (_state.value.callState != CallState.Incoming) return
         sendHangup(HangupReason.Declined)
         endCall(HangupReason.Declined)
     }
 
-    /** 取消去电（对方未接听时），发送 Hangup(Cancelled) 给对方 */
+    /*
+     * 取消去电（对方未接听时）
+     */
     fun cancel() {
         val s = _state.value.callState
         if (s != CallState.Outgoing && s != CallState.Connecting) return
@@ -267,7 +243,9 @@ class CallManager @Inject constructor(
         endCall(HangupReason.Cancelled)
     }
 
-    /** 主动挂断通话，发送 Hangup(Normal) 给对方 */
+    /*
+     * 挂断通话
+     */
     fun hangup() {
         val state = _state.value
         if (state.callState == CallState.Idle || state.callState == CallState.Ended) return
@@ -275,49 +253,61 @@ class CallManager @Inject constructor(
         endCall(HangupReason.Normal, isFromMe = true)
     }
 
-    /** 发送挂断信令给对方 */
+    /*
+     * 签名并发送信令，统一处理签名+发送逻辑
+     */
+    private suspend fun sendSignaling(
+        targetUserId: String,
+        packet: ChatProtocol.Signaling
+    ) {
+        val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+        signalingManager.send(
+            targetUserId = targetUserId,
+            message = packet.withSignature(signature)
+        )
+    }
+
+    /*
+     * 发送挂断信令给对方
+     */
     private fun sendHangup(reason: HangupReason) {
         val state = _state.value
-
         scope.launch {
             runCatching {
-                val packet = ChatProtocol.Signaling.Hangup(
-                    messageId = state.callId,
-                    senderId = myUserId,
-                    reason = reason,
-                    duration = state.duration,
-                    signature = ""
-                )
-                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
-
-                signalingManager.send(
+                sendSignaling(
                     targetUserId = state.peerId,
-                    message = packet.copy(signature = signature)
+                    packet = ChatProtocol.Signaling.Hangup(
+                        messageId = state.callId,
+                        senderId = myUserId,
+                        reason = reason,
+                        duration = state.duration,
+                        signature = ""
+                    )
                 )
             }
         }
     }
 
-    // ==================== 通话中控制 ====================
-
-    /** 切换麦克风静音并同步媒体状态给对方 */
+    /*
+     * 开关麦克风
+     */
     fun toggleMic() {
         webRTCManager.toggleMute()
         _state.update { it.copy(isMicOn = !it.isMicOn) }
         sendMediaState()
     }
 
-    /** 切换免提并同步媒体状态给对方 */
+    /*
+     * 开关免提
+     */
     fun toggleSpeaker() {
         callAudioManager.toggleSpeaker()
         _state.update { it.copy(isSpeakerOn = !it.isSpeakerOn) }
         sendMediaState()
     }
 
-    /**
+    /*
      * 切换摄像头开关并同步媒体状态
-     *
-     * 视频轨道未创建时（如权限延迟）先启动采集再开启；否则直接切换轨道 enabled 状态。
      */
     fun toggleVideo() {
         val current = _state.value
@@ -333,40 +323,49 @@ class CallManager @Inject constructor(
         }
     }
 
-    /** 将本端媒体状态（视频/麦克风/免提）同步给对方 */
+    /*
+     * 将本端媒体状态（视频/麦克风/免提）同步给对方
+     */
     private fun sendMediaState() {
         val current = _state.value
         if (current.callState == CallState.Idle || current.callState == CallState.Ended) return
+
         scope.launch {
             runCatching {
-                val packet = ChatProtocol.Signaling.MediaState(
-                    messageId = current.callId,
-                    senderId = myUserId,
-                    isVideoOn = current.isVideoOn,
-                    isMicOn = current.isMicOn,
-                    isSpeakerOn = current.isSpeakerOn,
-                    signature = ""
-                )
-                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
-
-                signalingManager.send(
+                sendSignaling(
                     targetUserId = current.peerId,
-                    message = packet.copy(signature = signature)
+                    packet = ChatProtocol.Signaling.MediaState(
+                        messageId = current.callId,
+                        senderId = myUserId,
+                        isVideoOn = current.isVideoOn,
+                        isMicOn = current.isMicOn,
+                        isSpeakerOn = current.isSpeakerOn,
+                        signature = ""
+                    )
                 )
             }
         }
     }
 
+    /*
+     * 切换前/后摄像头
+     */
     fun switchCamera() {
         webRTCManager.switchCamera()
         _state.update { it.copy(isFrontCamera = !it.isFrontCamera) }
     }
 
+    /*
+     * 切换主视频为对方/我方
+     */
     fun swapVideo() {
         webRTCManager.swapRenderers()
         _state.update { it.copy(isVideoSwapped = !it.isVideoSwapped) }
     }
 
+    /*
+     * 进入/退出沉浸式
+     */
     fun toggleControlsVisibility() {
         _state.update { it.copy(isControlsVisible = !it.isControlsVisible) }
     }
@@ -376,8 +375,9 @@ class CallManager @Inject constructor(
     fun restartVideoCapture() = webRTCManager.restartVideoCapture()
     val eglBase get() = webRTCManager.eglBase
 
-    // ==================== 信令处理 ====================
-
+    /*
+     * 分发收到的信令消息
+     */
     private suspend fun handleIncomingSignaling(message: ChatProtocol.Signaling) {
         when (message) {
             is ChatProtocol.Signaling.Offer -> handleOffer(message)
@@ -390,26 +390,21 @@ class CallManager @Inject constructor(
         }
     }
 
-    /**
-     * 处理来电 Offer
-     *
-     * 忙线时直接回复 Busy。
-     * 否则：查联系人信息 → 初始化 WebRTC → 设置远端 SDP → 更新状态为 Incoming。
-     * [CallModule] 监听到 Incoming 后自动启动 CallActivity + 铃声 + 通知。
+    /*
+     * 处理来电 Offer：
+     * - 若当前正在通话则回复 Busy；
+     * - 否则初始化 WebRTC、更新 UI、启动振铃倒计时
      */
     private suspend fun handleOffer(offer: ChatProtocol.Signaling.Offer) {
         if (!_state.value.callState.isTerminal) {
             runCatching {
-                val packet = ChatProtocol.Signaling.Busy(
-                    messageId = offer.messageId,
-                    senderId = myUserId,
-                    signature = ""
-                )
-                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
-
-                signalingManager.send(
+                sendSignaling(
                     targetUserId = offer.senderId,
-                    message = packet.copy(signature = signature)
+                    packet = ChatProtocol.Signaling.Busy(
+                        messageId = offer.messageId,
+                        senderId = myUserId,
+                        signature = ""
+                    )
                 )
             }
             return
@@ -417,85 +412,83 @@ class CallManager @Inject constructor(
 
         isOutgoing = false
 
-        val contact = contactRepository.getContact(offer.senderId)
-
         webRTCManager.initialize()
         webRTCManager.createPeerConnection()
         webRTCManager.setRemoteDescription(
-            SessionDescription(
-                SessionDescription.Type.OFFER,
-                offer.sdp
-            )
+            SessionDescription(SessionDescription.Type.OFFER, offer.sdp)
         )
         webRTCManager.startLocalMedia(offer.callType)
 
+        val contact = contactRepository.getContact(offer.senderId)
         _state.value = CallUiState(
             callState = CallState.Incoming,
             callType = offer.callType,
             callId = offer.messageId,
             peerId = offer.senderId,
-            peerName = contact?.displayName ?: offer.senderId,
+            peerName = contact?.displayName ?: "",
             peerAvatar = contact?.avatarPath,
             isOutgoing = false,
             isSpeakerOn = offer.callType.isVideoCall
         )
 
-        startTimeout()
+        startTimeout(TimeoutScenario.Ringing)
 
-        // 告知对方我的铃声设置
+        /* 告知对方我的铃声设置 */
         runCatching {
-            val packet = ChatProtocol.Signaling.RingtoneInfo(
-                messageId = offer.messageId,
-                senderId = myUserId,
-                ringtone = if (ringtoneAudibleEnabled()) {
-                    myRingtone()
-                } else {
-                    RingtoneSound.Default
-                },
-                signature = ""
-            )
-            val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
-
-            signalingManager.send(
+            sendSignaling(
                 targetUserId = offer.senderId,
-                message = packet.copy(signature = signature)
+                packet = ChatProtocol.Signaling.RingtoneInfo(
+                    messageId = offer.messageId,
+                    senderId = myUserId,
+                    ringtone = if (ringtoneAudibleEnabled()) myRingtone() else RingtoneSound.Default,
+                    signature = ""
+                )
             )
         }
     }
 
-    /** 收到 Answer，设置远端 SDP，切换为 Connecting 等待 ICE 建立 */
+    /*
+     * 收到 Answer：设置远端 SDP，切换为 Connecting 并启动 ICE 连接超时
+     */
     private suspend fun handleAnswer(answer: ChatProtocol.Signaling.Answer) {
         if (_state.value.callId != answer.messageId || _state.value.callState != CallState.Outgoing) return
 
         cancelTimeout()
         _state.update { it.copy(callState = CallState.Connecting) }
-        startTimeout(CONNECT_TIMEOUT_MS)   // 15s ICE 连接超时
+        startTimeout(TimeoutScenario.Connecting)
 
         webRTCManager.setRemoteDescription(
-            SessionDescription(
-                SessionDescription.Type.ANSWER,
-                answer.sdp
-            )
+            SessionDescription(SessionDescription.Type.ANSWER, answer.sdp)
         )
     }
 
-    /** 添加对方的 ICE 候选 */
+    /*
+     * 添加对方的 ICE 候选
+     */
     private fun handleRemoteIce(ice: ChatProtocol.Signaling.IceCandidate) {
         if (_state.value.callId != ice.messageId) return
         webRTCManager.addIceCandidate(IceCandidate(ice.sdpMid, ice.sdpMLineIndex, ice.candidate))
     }
 
+    /*
+     * 处理对方挂断
+     */
     private fun handleHangup(hangup: ChatProtocol.Signaling.Hangup) {
         if (_state.value.callId != hangup.messageId) return
-        endCall(hangup.reason, duration = hangup.duration)
+        endCall(reason = hangup.reason, duration = hangup.duration)
     }
 
+    /*
+     * 处理通话繁忙
+     */
     private fun handleBusy(busy: ChatProtocol.Signaling.Busy) {
         if (_state.value.callId != busy.messageId) return
-        endCall(HangupReason.Busy)
+        endCall(reason = HangupReason.Busy)
     }
 
-    /** 更新对方的媒体状态（视频/麦克风/免提） */
+    /*
+     * 更新对方的媒体状态（视频/麦克风/免提）
+     */
     private fun handleMediaState(state: ChatProtocol.Signaling.MediaState) {
         if (_state.value.callId != state.messageId) return
         _state.update {
@@ -507,34 +500,32 @@ class CallManager @Inject constructor(
         }
     }
 
+    /*
+     * 获取对方的铃声设置，发起方据此播放对应铃声
+     */
     private fun handleRingtoneInfo(info: ChatProtocol.Signaling.RingtoneInfo) {
         if (_state.value.callId != info.messageId) return
         if (_state.value.callState != CallState.Outgoing) return
 
         scope.launch {
-            callAudioManager.startRingtone(
-                isIncoming = false,
-                ringtone = info.ringtone
-            )
+            callAudioManager.startRingtone(isIncoming = false, ringtone = info.ringtone)
         }
     }
 
-    // ==================== ICE ====================
-
-    /**
-     * 处理 ICE 连接状态变化
-     *
-     * CONNECTED/COMPLETED → 切换为 Connected，启动通话计时
-     * DISCONNECTED/FAILED → 通话中断，结束通话
+    /*
+     * 处理 ICE 连接状态变化：
+     * - CONNECTED/COMPLETED：通话正式建立，启动计时
+     * - DISCONNECTED：等待信令层处理，不主动挂断
+     * - FAILED：直接结束通话
      */
     private fun handleIceStateChange(iceState: PeerConnection.IceConnectionState) {
         when (iceState) {
             PeerConnection.IceConnectionState.CONNECTED,
             PeerConnection.IceConnectionState.COMPLETED -> {
                 if (_state.value.callState == CallState.Connecting) {
-                    _state.update { it.copy(callState = CallState.Connected) }
                     cancelTimeout()
-                    startTimer()
+                    _state.update { it.copy(callState = CallState.Connected) }
+                    startDurationTimer()
                 }
             }
 
@@ -553,57 +544,62 @@ class CallManager @Inject constructor(
         }
     }
 
-    /** 将本端 ICE 候选发送给对方 */
+    /*
+     * 将 ICE 候选发送给对方
+     */
     private fun sendIceCandidate(candidate: IceCandidate) {
         val current = _state.value
         if (current.callState == CallState.Idle || current.callState == CallState.Ended) return
+
         scope.launch {
             runCatching {
-                val packet = ChatProtocol.Signaling.IceCandidate(
-                    messageId = current.callId,
-                    senderId = myUserId,
-                    candidate = candidate.sdp,
-                    sdpMid = candidate.sdpMid,
-                    sdpMLineIndex = candidate.sdpMLineIndex,
-                    signature = ""
-                )
-                val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
-
-                signalingManager.send(
+                sendSignaling(
                     targetUserId = current.peerId,
-                    message = packet.copy(signature = signature)
+                    packet = ChatProtocol.Signaling.IceCandidate(
+                        messageId = current.callId,
+                        senderId = myUserId,
+                        candidate = candidate.sdp,
+                        sdpMid = candidate.sdpMid,
+                        sdpMLineIndex = candidate.sdpMLineIndex,
+                        signature = ""
+                    )
                 )
             }
         }
     }
 
-    // ==================== 超时 & 计时 ====================
-
-    /** 启动无应答超时，30s 后自动发 Hangup(Timeout) 并结束通话 */
-    private fun startTimeout(timeout: Long = RING_TIMEOUT_MS) {
+    /*
+     * 启动超时自动挂断：
+     * - Ringing：等待对方接听，超时视为无应答
+     * - Connecting：等待 ICE 建立，超时视为连接错误
+     */
+    private fun startTimeout(scenario: TimeoutScenario) {
         timeoutJob?.cancel()
         timeoutJob = scope.launch {
-            delay(timeout)
-
-            val reason = if (timeout == RING_TIMEOUT_MS) {
-                HangupReason.Timeout
-            } else {
-                HangupReason.Error
+            val (timeout, reason) = when (scenario) {
+                TimeoutScenario.Ringing -> RING_TIMEOUT_MS to HangupReason.Timeout
+                TimeoutScenario.Connecting -> CONNECT_TIMEOUT_MS to HangupReason.Error
             }
+            delay(timeout)
             sendHangup(reason)
             endCall(reason)
         }
     }
 
+    /*
+     * 取消超时计时器
+     */
     private fun cancelTimeout() {
         timeoutJob?.cancel()
         timeoutJob = null
     }
 
-    /** 通话接通后启动秒级计时，每秒更新 duration */
-    private fun startTimer() {
-        timerJob?.cancel()
-        timerJob = scope.launch {
+    /*
+     * 开始通话计时，每秒更新 duration
+     */
+    private fun startDurationTimer() {
+        durationTimerJob?.cancel()
+        durationTimerJob = scope.launch {
             var seconds = 0L
             while (true) {
                 delay(1000)
@@ -612,24 +608,23 @@ class CallManager @Inject constructor(
         }
     }
 
-    // ==================== 结束通话 ====================
+    /*
+    * 结束时长计时器
+    */
+    private fun stopDurationTimer() {
+        durationTimerJob?.cancel()
+        durationTimerJob = null
+    }
 
-    /**
-     * 结束通话
-     *
-     * 1. 取消超时和计时
-     * 2. 更新状态为 Ended，释放 WebRTC 资源
-     * 3. 写通话记录（发起方走 MessageRepository，接收方走 MessageDispatcher）
-     * 4. 延迟 3s 重置状态为 Idle（给 UI 展示结果的时间）
+    /*
+     * 结束通话：取消计时、更新状态、释放 WebRTC 资源、保存通话记录
      */
     private fun endCall(reason: HangupReason, isFromMe: Boolean = false, duration: Long? = null) {
-        if (_state.value.callState.isTerminal) {
-            return
-        }
+        if (_state.value.callState.isTerminal) return
 
-        // 取消计时器
         cancelTimeout()
-        // 更新通话状态
+        stopDurationTimer()
+
         val snapshot = _state.value
         _state.update {
             it.copy(
@@ -637,20 +632,15 @@ class CallManager @Inject constructor(
                 hangupResult = HangupResult(reason, isFromMe)
             )
         }
-        // 释放 WebRTC 相关资源
         webRTCManager.release()
 
         scope.launch {
-            // 保存通话记录
             saveCallRecord(snapshot, reason, duration)
         }
     }
 
-    /**
+    /*
      * 写通话记录
-     *
-     * 发起方：通过 [MessageRepository] 发送通话消息（走正常发消息流程）
-     * 接收方：通过 [MessageDispatcher] 直接入库（对方的通话记录由对方发，我方本地生成）
      */
     private suspend fun saveCallRecord(
         snapshot: CallUiState,
@@ -658,6 +648,8 @@ class CallManager @Inject constructor(
         duration: Long? = null
     ) {
         val status = reason.toCallStatus()
+        val actualDuration = duration ?: snapshot.duration
+
         if (isOutgoing) {
             messageRepository.sendMessage(
                 sessionId = snapshot.peerId,
@@ -666,24 +658,28 @@ class CallManager @Inject constructor(
                 content = MessageContent.Call(
                     type = snapshot.callType,
                     status = status,
-                    duration = duration ?: snapshot.duration
+                    duration = actualDuration
                 )
             )
         } else {
-            val packet = ChatProtocol.CallMessage(
-                messageId = snapshot.callId,
-                senderId = snapshot.peerId,
-                receiverId = myUserId,
-                status = status.name,
-                duration = duration ?: snapshot.duration,
-                callType = snapshot.callType,
-                timestamp = System.currentTimeMillis(),
-                signature = ""
+            messageDispatcher.dispatch(
+                ChatProtocol.CallMessage(
+                    messageId = snapshot.callId,
+                    senderId = snapshot.peerId,
+                    receiverId = myUserId,
+                    status = status.name,
+                    duration = actualDuration,
+                    callType = snapshot.callType,
+                    timestamp = System.currentTimeMillis(),
+                    signature = ""
+                )
             )
-            messageDispatcher.dispatch(packet)
         }
     }
 
+    /*
+     * 重置状态（通话结束后 UI 关闭时调用）
+     */
     fun reset() {
         if (_state.value.callState.isTerminal) {
             _state.value = CallUiState()
@@ -697,8 +693,7 @@ class CallManager @Inject constructor(
         notificationRepository.ringtoneAudibleEnabled.first()
 }
 
-/** 将挂断原因映射为通话记录状态 */
-fun HangupReason.toCallStatus() = when (this) {
+private fun HangupReason.toCallStatus() = when (this) {
     HangupReason.Normal -> CallStatus.Finished
     HangupReason.Declined -> CallStatus.Declined
     HangupReason.Cancelled -> CallStatus.Cancelled
@@ -707,3 +702,14 @@ fun HangupReason.toCallStatus() = when (this) {
     HangupReason.Offline,
     HangupReason.Error -> CallStatus.Failed
 }
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : ChatProtocol.Signaling> T.withSignature(signature: String): T = when (this) {
+    is ChatProtocol.Signaling.Offer -> copy(signature = signature)
+    is ChatProtocol.Signaling.Answer -> copy(signature = signature)
+    is ChatProtocol.Signaling.IceCandidate -> copy(signature = signature)
+    is ChatProtocol.Signaling.Hangup -> copy(signature = signature)
+    is ChatProtocol.Signaling.Busy -> copy(signature = signature)
+    is ChatProtocol.Signaling.MediaState -> copy(signature = signature)
+    is ChatProtocol.Signaling.RingtoneInfo -> copy(signature = signature)
+} as T
