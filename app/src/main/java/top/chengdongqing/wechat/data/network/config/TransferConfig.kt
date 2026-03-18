@@ -66,6 +66,7 @@ object TransferConfig {
      * 且在 WiFi 抖动时可能导致写阻塞时间过长。
      */
     const val FILE_CHUNK_SIZE = 256 * 1024          // 256KB
+    const val FILE_CHUNK_SIZE_BT = 64 * 1024        // 64KB
 
     // ==================== Packet 协议 ====================
 
@@ -96,4 +97,5 @@ object TransferConfig {
      * 降低日志噪音和 UI 刷新频率。
      */
     const val PROGRESS_REPORT_INTERVAL = 1024 * 1024L   // 1MB
+    const val PROGRESS_REPORT_INTERVAL_BT = 1024 * 64L  // 64KB (蓝牙模式下)
 }

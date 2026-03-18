@@ -95,12 +95,11 @@ object DataStoreModule {
     @Singleton
     fun provideAllDataStores(
         @ProfileDataStore profile: DataStore<Preferences>,
-        @DisplaySettingsDataStore display: DataStore<Preferences>,
         @ChatSettingsDataStore chat: DataStore<Preferences>,
         @NotificationSettingsDataStore notification: DataStore<Preferences>,
         @PrivacySettingsDataStore privacy: DataStore<Preferences>,
         @ConnectionSettingsDataStore connection: DataStore<Preferences>
     ): Set<DataStore<Preferences>> = setOf(
-        profile, display, chat, notification, privacy, connection
+        profile, chat, notification, privacy, connection
     )
 }

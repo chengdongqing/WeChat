@@ -129,7 +129,7 @@
     <string name="chat_settings_earpiece">Switch to ear speaker</string>
     <string name="chat_settings_send_button">Show \"Send\" Button</string>
     <string name="chat_settings_e2e">End-to-End Encryption</string>
-    <string name="chat_settings_e2e_desc">Once either party enables this, an encrypted connection is established automatically.</string>
+    <string name="chat_settings_e2e_desc">Your messages are encrypted end-to-end and visible only to you and the recipient.</string>
 
     <string name="chat_history_title">Chat History</string>
     <string name="chat_history_import_title">Import &amp; Export</string>

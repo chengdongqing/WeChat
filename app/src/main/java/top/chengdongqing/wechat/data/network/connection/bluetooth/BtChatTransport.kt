@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.data.network.connection.bluetooth
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.network.connection.BaseChatTransport
+import top.chengdongqing.wechat.data.network.connection.AbstractChatTransport
 import top.chengdongqing.wechat.data.network.connection.ConnectionRequiredEvent
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
@@ -18,7 +18,7 @@ class BtChatTransport @Inject constructor(
     override val connectionManager: BtConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val profileRepository: ProfileRepository
-) : BaseChatTransport(connectionManager) {
+) : AbstractChatTransport(connectionManager) {
 
     private val myUserId: String
         get() = profileRepository.requireUserId()

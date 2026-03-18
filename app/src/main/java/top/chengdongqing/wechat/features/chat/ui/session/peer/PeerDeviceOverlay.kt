@@ -66,7 +66,7 @@ fun PeerDeviceOverlay(
                 onConnected = onConnected,
                 onClose = onClose,
             )
-            item { Spacer(modifier = Modifier.height(120.dp)) }
+            item { Spacer(modifier = Modifier.height(40.dp)) }
         }
     }
 }

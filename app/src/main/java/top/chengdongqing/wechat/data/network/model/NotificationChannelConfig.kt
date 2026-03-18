@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.data.network.model
 
 import android.app.NotificationManager
-import top.chengdongqing.wechat.R
 
 /**
  * 通知渠道
@@ -14,7 +13,7 @@ enum class NotificationChannelConfig(
 ) {
     P2P(
         id = "p2p_service",
-        title = "${R.string.app_name} 通信服务",
+        title = "基础通信服务",
         description = "保证消息收发、加好友等功能的运行",
         importance = NotificationManager.IMPORTANCE_NONE
     ),

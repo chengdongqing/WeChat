@@ -26,7 +26,7 @@ import kotlin.coroutines.cancellation.CancellationException
  *
  * 提供连接池维护、收发消息、心跳等通用能力。
  */
-abstract class ConnectionManager(
+abstract class AbstractConnectionManager(
     protected open val e2e: E2ESessionManager,
     protected open val connectionInfoDao: ConnectionInfoDao,
     protected open val profileRepository: ProfileRepository,
@@ -38,22 +38,37 @@ abstract class ConnectionManager(
     private val _connectionEvents = MutableSharedFlow<ConnectionEvent>(extraBufferCapacity = 8)
     val connectionEvents = _connectionEvents.asSharedFlow()
 
+    /**
+     * 是否已连接
+     */
     fun isConnected(userId: String) = connections[userId]?.isActive == true
 
+    /**
+     * 获取指定连接
+     */
     fun requireConnection(userId: String) =
         connections[userId] ?: throw ConnectionException(
             "未找到连接: $userId",
             SendError.ConnectionFailed
         )
 
+    /**
+     * 注册连接
+     */
     open suspend fun register(conn: PeerConnection) {
         connections[conn.userId]?.close()
         connections[conn.userId] = conn
         connectionInfoDao.markOnline(conn.userId, conn.lastPongTime.get())
     }
 
+    /**
+     * 关闭指定连接
+     */
     fun close(userId: String) = connections.remove(userId)?.close()
 
+    /**
+     * 关闭所有连接
+     */
     fun closeAll() {
         connections.values.forEach { it.close() }
         connections.clear()
@@ -61,6 +76,9 @@ abstract class ConnectionManager(
 
     suspend fun emitEvent(event: ConnectionEvent) = _connectionEvents.emit(event)
 
+    /**
+     * 发送文本消息
+     */
     suspend fun send(userId: String, packet: Packet): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val conn = requireConnection(userId)
@@ -73,6 +91,9 @@ abstract class ConnectionManager(
         }
     }
 
+    /**
+     * 发送文件消息
+     */
     suspend fun sendAtomicTransfer(
         userId: String,
         block: suspend (EncryptingPacketWriter) -> Unit
@@ -97,13 +118,23 @@ abstract class ConnectionManager(
         }
     }
 
+    /**
+     * 断开连接
+     */
     suspend fun disconnect(userId: String) = withContext(Dispatchers.IO) {
+        // 关闭连接
         close(userId)
+        // 移除加密会话
         e2e.removeSession(userId)
+        // 标记离线
         connectionInfoDao.markOffline(userId)
+        // 推送事件
         emitEvent(ConnectionEvent.Disconnected(userId, "主动断开"))
     }
 
+    /**
+     * 开始心跳机制
+     */
     fun startHeartbeat(conn: PeerConnection) {
         conn.lastPongTime.set(System.currentTimeMillis())
         conn.heartbeatJob = scope.launch {
@@ -139,12 +170,13 @@ abstract class ConnectionManager(
                 Log.w(tag, "心跳异常，断开: ${conn.userId}")
                 // 断开连接
                 disconnect(conn.userId)
-                // 标记离线
-                connectionInfoDao.markOffline(conn.userId)
             }
         }
     }
 
+    /**
+     * 开始接收消息
+     */
     fun startReceiving(conn: PeerConnection, onHandshake: ((Packet) -> Unit)? = null) {
         scope.launch {
             try {

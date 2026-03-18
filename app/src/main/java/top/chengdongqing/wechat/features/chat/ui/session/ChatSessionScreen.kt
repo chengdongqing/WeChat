@@ -70,13 +70,16 @@ fun ChatSessionScreen(
     val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
     val showPeerOverlay = remember { mutableStateOf(false) }
 
-    LaunchedEffect(connectionRequired, connectionMode) {
-        connectionRequired?.let {
-            showPeerOverlay.value = true
+    LaunchedEffect(connectionRequired, connectionMode, uiState.isSelf) {
+        if (uiState.isSelf) return@LaunchedEffect
+
+        val shouldShow = when {
+            connectionRequired != null -> true
+            connectionMode != ConnectionMode.WiFiLan && !viewModel.isConnected() -> true
+            else -> false
         }
 
-        // Wi-Fi direct模式下，如果没有连接，自动显示弹窗
-        if (connectionMode == ConnectionMode.WiFiDirect && !viewModel.isConnected() && !uiState.isSelf) {
+        if (shouldShow) {
             showPeerOverlay.value = true
         }
     }

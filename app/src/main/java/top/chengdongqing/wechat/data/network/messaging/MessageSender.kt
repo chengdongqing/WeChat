@@ -17,6 +17,7 @@ import top.chengdongqing.wechat.data.network.avatar.AvatarServer
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
+import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
@@ -211,7 +212,7 @@ class MessageSender @Inject constructor(
         messageId: String,
         crossinline onChunk: (ByteArray) -> Unit
     ) = withContext(Dispatchers.IO) {
-        val buffer = ByteArray(TransferConfig.FILE_CHUNK_SIZE)
+        val buffer = ByteArray(fileChunkSize)
         var totalSent = 0L
         var lastReportedAt = 0L
 
@@ -228,7 +229,7 @@ class MessageSender @Inject constructor(
 
                 onChunk(buffer.copyOf(bytesRead))
                 totalSent += bytesRead
-                if (fileSize > 0 && totalSent - lastReportedAt >= TransferConfig.PROGRESS_REPORT_INTERVAL) {
+                if (fileSize > 0 && totalSent - lastReportedAt >= progressInterval) {
                     lastReportedAt = totalSent
                     updateProgress(messageId, totalSent)
                 }
@@ -311,4 +312,16 @@ class MessageSender @Inject constructor(
      */
     private fun serializeMediaMeta(meta: ChatProtocol.MediaMessage): ByteArray =
         json.encodeToString(meta).toByteArray(Charsets.UTF_8)
+
+    private val progressInterval: Long
+        get() = when (transport.mode.value) {
+            ConnectionMode.Bluetooth -> TransferConfig.PROGRESS_REPORT_INTERVAL_BT
+            else -> TransferConfig.PROGRESS_REPORT_INTERVAL
+        }
+
+    private val fileChunkSize: Int
+        get() = when (transport.mode.value) {
+            ConnectionMode.Bluetooth -> TransferConfig.FILE_CHUNK_SIZE_BT
+            else -> TransferConfig.FILE_CHUNK_SIZE
+        }
 }

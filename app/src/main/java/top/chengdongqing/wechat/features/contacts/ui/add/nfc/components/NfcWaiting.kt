@@ -67,16 +67,14 @@ fun NfcWaiting(isReaderMode: Boolean) {
                 (fadeIn(animationSpec = tween(220, delayMillis = 90)) +
                         scaleIn(initialScale = 0.92f, animationSpec = tween(220, delayMillis = 90)))
                     .togetherWith(fadeOut(animationSpec = tween(90)))
-                    .using(
-                        SizeTransform(clip = false)
-                    )
+                    .using(SizeTransform(clip = false))
             }
         ) { isReaderMode ->
             Text(
                 text = buildString {
-                    appendLine(stringResource(R.string.nfc_tap_instruction))
+                    appendLine(stringResource(R.string.nfc_tap_hint))
                     if (!isReaderMode) {
-                        append(stringResource(R.string.nfc_tap_hint))
+                        append(stringResource(R.string.nfc_hce_hint))
                     }
                 },
                 fontSize = 14.sp,

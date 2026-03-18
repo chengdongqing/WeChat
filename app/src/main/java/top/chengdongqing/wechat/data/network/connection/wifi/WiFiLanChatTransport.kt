@@ -4,7 +4,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.network.connection.BaseChatTransport
+import top.chengdongqing.wechat.data.network.connection.AbstractChatTransport
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
@@ -19,7 +19,7 @@ class WiFiLanChatTransport @Inject constructor(
     override val connectionManager: TcpConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val profileRepository: ProfileRepository
-) : BaseChatTransport(connectionManager) {
+) : AbstractChatTransport(connectionManager) {
 
     private val myUserId: String
         get() = profileRepository.requireUserId()

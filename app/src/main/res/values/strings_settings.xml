@@ -129,7 +129,7 @@
     <string name="chat_settings_earpiece">使用听筒播放语音消息</string>
     <string name="chat_settings_send_button">使用独立的发送按钮</string>
     <string name="chat_settings_e2e">端到端加密</string>
-    <string name="chat_settings_e2e_desc">只要一方开启，双方将自动建立加密连接。</string>
+    <string name="chat_settings_e2e_desc">消息经端到端加密，仅收发双方可读取。</string>
 
     <string name="chat_history_title">聊天记录管理</string>
     <string name="chat_history_import_title">导入与导出</string>
