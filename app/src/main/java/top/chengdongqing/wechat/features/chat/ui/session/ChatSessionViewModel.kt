@@ -641,7 +641,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun forwardSelectedMessages(targetChatIds: Set<String>) {
+    fun forwardMessages(targetChatIds: Set<String>) {
         val ids = _uiState.value.selectedMessageIds
         if (ids.isEmpty()) return
 

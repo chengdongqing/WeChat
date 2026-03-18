@@ -76,6 +76,9 @@ class FileHandler(
         }
     }
 
+    /**
+     * 处理名片选择结果
+     */
     suspend fun handleContactSelection(contact: ContactResult) {
         // 拷贝到私有目录
         val localPath = privateFileManager.saveMedia(

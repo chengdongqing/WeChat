@@ -163,8 +163,10 @@ fun ChatSessionScreen(
     }
 
     val pickContact = rememberPickContactLauncher { contacts ->
-        dialog.show("确定转发给选定的${contacts.size}位联系人吗？") {
-            viewModel.forwardSelectedMessages(contacts.map { it.id }.toSet())
+        dialog.show(
+            title = resources.getString(R.string.msg_confirm_forward, contacts.size)
+        ) {
+            viewModel.forwardMessages(contacts.map { it.id }.toSet())
         }
     }
 

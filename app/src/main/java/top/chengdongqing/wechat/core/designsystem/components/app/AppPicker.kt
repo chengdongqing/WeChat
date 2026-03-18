@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,6 +60,7 @@ fun AppPicker(
     onSelect: (chatIds: Array<AppResult>) -> Unit,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
@@ -129,7 +131,12 @@ fun AppPicker(
                                     Row(
                                         modifier = Modifier.weClickable {
                                             if (uiState.selectedCount >= count && !isSelected) {
-                                                context.showToast("你最多只能选择${count}个")
+                                                context.showToast(
+                                                    resources.getString(
+                                                        R.string.msg_max_select_limit,
+                                                        count
+                                                    )
+                                                )
                                                 return@weClickable
                                             }
                                             viewModel.toggleSelection(apk)

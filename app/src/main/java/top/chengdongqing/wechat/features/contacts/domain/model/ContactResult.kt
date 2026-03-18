@@ -17,3 +17,9 @@ fun List<ContactItem>.toResult() = map { contact ->
         avatarPath = contact.avatarPath!!
     )
 }
+
+fun Contact.toResult() = ContactResult(
+    id = id,
+    nickname = nickname,
+    avatarPath = avatarPath!!
+)

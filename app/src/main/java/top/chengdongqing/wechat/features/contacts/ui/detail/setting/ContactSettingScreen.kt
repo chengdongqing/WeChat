@@ -28,6 +28,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewModel
 import top.chengdongqing.wechat.features.contacts.ui.detail.NavigationEvent
+import top.chengdongqing.wechat.features.contacts.ui.picker.rememberPickContactLauncher
 
 @Composable
 fun ContactSettingScreen(
@@ -48,6 +49,17 @@ fun ContactSettingScreen(
                 is NavigationEvent.ContactDeleted -> onDelete()
                 else -> {}
             }
+        }
+    }
+
+    val dialog = rememberDialogState()
+    val resources = LocalResources.current
+    val pickContact = rememberPickContactLauncher { contacts ->
+        dialog.show(
+            title = resources.getString(R.string.msg_confirm_send),
+            okText = R.string.action_send
+        ) {
+            viewModel.sendContactCard(contacts.first().id)
         }
     }
 
@@ -84,7 +96,9 @@ fun ContactSettingScreen(
                 WeSettingGroup {
                     WeSettingItem(
                         label = stringResource(R.string.contact_settings_recommend),
-                        onClick = {}
+                        onClick = {
+                            pickContact(1)
+                        }
                     )
                     WeSettingItem(
                         label = stringResource(R.string.contact_settings_add_to_desktop),

@@ -21,15 +21,16 @@
     <string name="action_exit">Exit</string>
     <string name="action_view">Review</string>
 
-    <string name="msg_wifi_disabled">Wi-Fi is off. Please enable it in Settings.</string>
-    <string name="msg_wifi_disconnected">Wi-Fi is not connected. Please connect and try again.</string>
-    <string name="msg_bluetooth_disabled">Bluetooth is off. Please enable it in Settings.</string>
+    <string name="msg_wifi_disabled">Wi-Fi is off.</string>
+    <string name="msg_wifi_disconnected">Wi-Fi is not connected.</string>
+    <string name="msg_bluetooth_disabled">Bluetooth is off.</string>
 
     <string name="msg_processing">Processing…</string>
     <string name="msg_save_success">Save Successes</string>
     <string name="msg_save_failed">Save Failed</string>
     <string name="msg_process_failed">Process Failed</string>
     <string name="msg_copied">Copied</string>
+    <string name="msg_max_select_limit">You can select up to %1$d items</string>
 
     <string name="map_amap">Amap</string>
     <string name="map_baidu">Baidu Maps</string>

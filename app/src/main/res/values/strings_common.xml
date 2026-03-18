@@ -21,15 +21,16 @@
     <string name="action_exit">退出</string>
     <string name="action_view">查看</string>
 
-    <string name="msg_wifi_disabled">Wi-Fi 未开启，请前往设置开启 Wi-Fi。</string>
-    <string name="msg_wifi_disconnected">Wi-Fi 未连接，请连接后重试。</string>
-    <string name="msg_bluetooth_disabled">蓝牙未开启，请前往设置开启蓝牙。</string>
+    <string name="msg_wifi_disabled">Wi-Fi 未开启</string>
+    <string name="msg_wifi_disconnected">Wi-Fi 未连接</string>
+    <string name="msg_bluetooth_disabled">蓝牙未开启</string>
 
     <string name="msg_processing">处理中…</string>
     <string name="msg_save_success">保存成功</string>
     <string name="msg_save_failed">保存失败</string>
     <string name="msg_process_failed">操作失败</string>
     <string name="msg_copied">已复制</string>
+    <string name="msg_max_select_limit">你最多只能选择%1$d个</string>
 
     <string name="map_amap">高德地图</string>
     <string name="map_baidu">百度地图</string>

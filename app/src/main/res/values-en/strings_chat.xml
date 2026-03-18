@@ -78,6 +78,7 @@
 
     <string name="msg_confirm_delete">Delete?</string>
     <string name="msg_confirm_save">Save?</string>
+    <string name="msg_confirm_send">Send？</string>
     <string name="msg_confirm_forward">Forward to %d selected contacts?</string>
     <string name="msg_empty_message_title">Notice</string>
     <string name="msg_empty_message_content">Cannot send an empty message</string>
@@ -105,6 +106,8 @@
     <string name="message_file_not_found">File not found or has been cleared</string>
     <string name="music_select_title">Select Music</string>
     <string name="app_select_title">Select App</string>
+    <string name="contact_select_title">Select Contact</string>
+    <string name="group_chat_select_title">Select Group Chat</string>
     <string name="location_search_placeholder">Search location</string>
     <string name="location_tab_nearby">Nearby</string>
     <string name="location_tab_all">All</string>

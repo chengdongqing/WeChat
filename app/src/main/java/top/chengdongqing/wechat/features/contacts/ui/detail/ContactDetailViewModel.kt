@@ -1,11 +1,13 @@
 package top.chengdongqing.wechat.features.contacts.ui.detail
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,9 +18,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
+import top.chengdongqing.wechat.features.chat.ui.session.input.handler.FileHandler
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
+import top.chengdongqing.wechat.features.contacts.domain.model.toResult
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.me.data.mapper.toContact
@@ -29,7 +36,10 @@ class ContactDetailViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
     private val contactRepository: ContactRepository,
     private val addFriendRepository: AddFriendRepository,
-    profileRepository: ProfileRepository
+    private val messageRepository: MessageRepository,
+    private val privateFileManager: PrivateFileManager,
+    profileRepository: ProfileRepository,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     @AssistedFactory
@@ -133,6 +143,29 @@ class ContactDetailViewModel @AssistedInject constructor(
                 _navigationEvent.emit(NavigationEvent.ContactDeleted)
             } catch (_: Exception) {
                 _uiState.update { it.copy(error = "删除联系人失败") }
+            }
+        }
+    }
+
+    /**
+     * 发送联系人名片消息
+     */
+    fun sendContactCard(targetContactId: String) {
+        val handler = FileHandler(privateFileManager) {
+            viewModelScope.launch {
+                messageRepository.sendMessage(
+                    sessionId = targetContactId,
+                    receiverId = targetContactId,
+                    content = it
+                ).onSuccess {
+                    context.showToast("已发送")
+                }
+            }
+        }
+
+        contact.value?.let {
+            viewModelScope.launch {
+                handler.handleContactSelection(it.toResult())
             }
         }
     }

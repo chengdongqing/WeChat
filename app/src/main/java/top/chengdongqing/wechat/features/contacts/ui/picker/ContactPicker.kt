@@ -23,11 +23,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
@@ -52,6 +55,7 @@ fun ContactPicker(
     onSelect: (contacts: Array<ContactResult>) -> Unit
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBounceOverscrollEffect()
@@ -127,7 +131,12 @@ fun ContactPicker(
                                     Row(
                                         modifier = Modifier.weClickable {
                                             if (uiState.selectedCount >= count && !isSelected) {
-                                                context.showToast("你最多只能选择${count}个")
+                                                context.showToast(
+                                                    resources.getString(
+                                                        R.string.msg_max_select_limit,
+                                                        count
+                                                    )
+                                                )
                                                 return@weClickable
                                             }
                                             viewModel.toggleSelection(contact)
@@ -178,7 +187,7 @@ private fun GroupChatEntry() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "选择群聊",
+            text = stringResource(R.string.group_chat_select_title),
             fontSize = 15.sp,
             color = WeTheme.colorScheme.textPrimary
         )
@@ -194,10 +203,13 @@ private fun TopBar(
     val isEnabled = uiState.selectedCount > 0
     val buttonText = run {
         val suffix = if (isEnabled) "(${uiState.selectedCount})" else ""
-        "完成$suffix"
+        "${stringResource(R.string.action_done)}$suffix"
     }
 
-    WeTopBar(title = "选择联系人", onBack = onBack) {
+    WeTopBar(
+        title = stringResource(R.string.contact_select_title),
+        onBack = onBack
+    ) {
         WeButton(
             text = buttonText,
             size = ButtonSize.Small,
