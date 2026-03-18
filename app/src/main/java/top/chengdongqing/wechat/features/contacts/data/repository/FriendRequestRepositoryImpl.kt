@@ -22,6 +22,7 @@ import top.chengdongqing.wechat.data.network.ble.BLEConnectionManager
 import top.chengdongqing.wechat.data.network.model.FriendEvent
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
 import top.chengdongqing.wechat.data.network.model.FriendRequestResult
+import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
@@ -40,6 +41,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val privateFileManager: PrivateFileManager,
     private val bleConnectionManager: BLEConnectionManager,
+    private val fileReferenceManager: FileReferenceManager,
     private val privacySettingsRepository: PrivacySettingsRepository
 ) : FriendRequestRepository {
 
@@ -69,7 +71,17 @@ class FriendRequestRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun deleteRequest(requestId: String) = friendRequestDao.deleteById(requestId)
+    override suspend fun deleteRequest(requestId: String) {
+        // 查询请求详情
+        val request = friendRequestDao.getById(requestId) ?: return
+
+        // 删除请求
+        friendRequestDao.deleteById(requestId)
+
+        // 删除头像文件
+        val toDelete = fileReferenceManager.release(request.avatarPath)
+        toDelete?.let { privateFileManager.deleteFile(it) }
+    }
 
     override suspend fun sendFriendRequest(
         targetContact: Contact,
@@ -237,6 +249,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
         note: String?,
         source: ContactAddSource?
     ) {
+        // 注册文件引用
+        targetContact.avatarPath?.let {
+            fileReferenceManager.retain(it)
+        }
         friendRequestDao.insert(
             FriendRequestEntity(
                 id = requestId,
@@ -271,6 +287,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 sourceBytes = it
             ).getOrNull()
         }
+        // 注册文件引用
+        avatarPath?.let {
+            fileReferenceManager.retain(it)
+        }
 
         // 保存请求记录
         friendRequestDao.insert(
@@ -297,6 +317,11 @@ class FriendRequestRepositoryImpl @Inject constructor(
         remark: String? = null,
         note: String? = null
     ) {
+        // 注册文件引用
+        request.avatarPath?.let {
+            fileReferenceManager.retain(it)
+        }
+
         contactRepository.createContact(
             Contact(
                 id = request.userId,

@@ -15,6 +15,7 @@ import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.signature.PacketSigner
+import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.features.contacts.data.mapper.toEntity
@@ -30,7 +31,8 @@ class ContactRepositoryImpl @Inject constructor(
     private val chatSessionRepository: ChatSessionRepository,
     private val connectionInfoDao: ConnectionInfoDao,
     private val packetSigner: PacketSigner,
-    private val privateFileManager: PrivateFileManager
+    private val privateFileManager: PrivateFileManager,
+    private val fileReferenceManager: FileReferenceManager
 ) : ContactRepository {
 
     // 联系人缓存
@@ -104,11 +106,14 @@ class ContactRepositoryImpl @Inject constructor(
 
         // 删除旧文件
         if (newAvatarPath != null && oldAvatarPath != null) {
-            privateFileManager.deleteFile(oldAvatarPath)
+            val toDelete = fileReferenceManager.release(oldAvatarPath)
+            toDelete?.let { privateFileManager.deleteFile(it) }
         }
     }
 
     override suspend fun deleteContact(userId: String) {
+        val contact = contactDao.getById(userId) ?: return
+
         database.withTransaction {
             // 删除会话的所有信息、所有消息记录、所有会话文件
             chatSessionRepository.deleteSession(userId)
@@ -120,6 +125,9 @@ class ContactRepositoryImpl @Inject constructor(
             // 使公钥缓存失效
             packetSigner.invalidateCache(userId)
         }
+
+        val toDelete = fileReferenceManager.release(contact.avatarPath)
+        toDelete?.let { privateFileManager.deleteFile(it) }
 
         contactCache.remove(userId)
     }
