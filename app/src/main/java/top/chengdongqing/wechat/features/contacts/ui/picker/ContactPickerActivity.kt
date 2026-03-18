@@ -16,6 +16,7 @@ import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactResult
 
 @AndroidEntryPoint
 class ContactPickerActivity : ComponentActivity() {
@@ -27,10 +28,9 @@ class ContactPickerActivity : ComponentActivity() {
 
         setContent {
             WeTheme {
-                ContactPicker(count, onCancel = ::finish) { chatIds, isGroupChat ->
+                ContactPicker(count, onCancel = ::finish) { contacts ->
                     val intent = Intent().apply {
-                        putExtra(EXTRA_CHAT_IDS, ArrayList(chatIds))
-                        putExtra(EXTRA_IS_GROUP_CHAT, isGroupChat)
+                        putExtra(EXTRA_CONTACTS, contacts)
                     }
                     setResult(RESULT_OK, intent)
                     finish()
@@ -55,8 +55,7 @@ class ContactPickerActivity : ComponentActivity() {
     }
 
     companion object {
-        const val EXTRA_CHAT_IDS = "extra_chat_ids"
-        const val EXTRA_IS_GROUP_CHAT = "extra_is_group_chat"
+        const val EXTRA_CONTACTS = "extra_contacts"
         const val EXTRA_PICK_COUNT = "extra_pick_count"
 
         fun newIntent(context: Context) = Intent(context, ContactPickerActivity::class.java)
@@ -64,20 +63,22 @@ class ContactPickerActivity : ComponentActivity() {
 }
 
 @Composable
-fun rememberPickContactLauncher(onResult: (chatIds: Set<String>, isGroupChat: Boolean) -> Unit): (count: Int) -> Unit {
+fun rememberPickContactLauncher(onResult: (chatIds: Array<ContactResult>) -> Unit): (count: Int) -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            val chatIds =
-                data?.getStringArrayListExtra(ContactPickerActivity.EXTRA_CHAT_IDS)
-            val isGroupChat =
-                data?.getBooleanExtra(ContactPickerActivity.EXTRA_IS_GROUP_CHAT, false) ?: false
-
-            if (chatIds != null) {
-                onResult(chatIds.toSet(), isGroupChat)
+            result.data?.apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    getParcelableArrayExtra(
+                        ContactPickerActivity.EXTRA_CONTACTS,
+                        ContactResult::class.java
+                    )
+                } else {
+                    @Suppress("DEPRECATION", "UNCHECKED_CAST")
+                    (getParcelableArrayExtra(ContactPickerActivity.EXTRA_CONTACTS) as? Array<ContactResult>)
+                }?.let(onResult)
             }
         }
     }

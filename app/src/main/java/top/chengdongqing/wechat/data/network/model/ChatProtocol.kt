@@ -73,6 +73,7 @@ sealed class ChatProtocol {
         val receiverId: String,
         val messageType: MessageType,
         val content: String,
+        val extension: String?,
         val fileSize: Long,
         val checksum: String? = null,
         val mediaDuration: Long? = null

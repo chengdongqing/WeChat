@@ -61,7 +61,6 @@ fun rememberInputBarActions(
         mediaLaunchers = mediaLaunchers,
         locationLauncher = locationLauncher,
         fileLauncher = fileLauncher,
-        onSendMessage = onSendMessage,
         onLaunchCall = onLaunchCall,
         onSelectMusic = controller::toggleMusic
     )

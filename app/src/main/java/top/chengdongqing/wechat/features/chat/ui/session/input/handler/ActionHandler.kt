@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
@@ -16,9 +15,7 @@ import top.chengdongqing.wechat.core.designsystem.util.CallOptions
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.util.createImageUri
 import top.chengdongqing.wechat.core.util.createVideoUri
-import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.features.call.model.CallType
-import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
 
@@ -32,7 +29,7 @@ class ActionHandler(
     private val onLocation: () -> Unit,
     private val onFile: () -> Unit,
     private val onApk: () -> Unit,
-    private val onCard: () -> Unit,
+    private val onContactCard: () -> Unit,
     private val onFavorite: () -> Unit,
     private val onVoiceInput: () -> Unit,
     private val onMusic: () -> Unit
@@ -45,7 +42,7 @@ class ActionHandler(
             MoreAction.VideoCall -> onVideoCall()
             MoreAction.Location -> onLocation()
             MoreAction.File -> onFile()
-            MoreAction.Card -> onCard()
+            MoreAction.ContactCard -> onContactCard()
             MoreAction.Favorite -> onFavorite()
             MoreAction.Voice -> onVoiceInput()
             MoreAction.App -> onApk()
@@ -63,12 +60,10 @@ fun rememberActionHandler(
     mediaLaunchers: MediaLaunchers,
     locationLauncher: LocationLauncher,
     fileLauncher: FileLauncher,
-    onSendMessage: (MessageContent) -> Unit,
     onLaunchCall: (CallType) -> Unit,
     onSelectMusic: () -> Unit
 ): ActionHandler {
     val context = LocalContext.current
-    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val actionSheet = rememberActionSheetState()
     val chatContext = LocalChatSessionContext.current
@@ -153,14 +148,7 @@ fun rememberActionHandler(
             onFile = fileLauncher.pickFile,
             onApk = fileLauncher.pickApk,
             onMusic = onSelectMusic,
-            onCard = {
-                val content = MessageContent.ContactCard(
-                    userId = randomUUID(),
-                    name = resources.getString(R.string.chat_file_transfer),
-                    avatar = ""
-                )
-                onSendMessage(content)
-            },
+            onContactCard = fileLauncher.pickContact,
             onFavorite = {},
             onVoiceInput = {}
         )

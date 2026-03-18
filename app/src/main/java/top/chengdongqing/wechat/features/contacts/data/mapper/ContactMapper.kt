@@ -45,7 +45,8 @@ fun List<ContactEntity>.toDomain(): List<Contact> = map { it.toDomain() }
 
 fun Contact.toListItem(): ContactItem = ContactItem(
     id = id,
-    name = displayName,
+    displayName = displayName,
+    nickname = nickname,
     note = note,
     avatarPath = avatarPath,
     isSelf = isSelf,

@@ -30,15 +30,6 @@ enum class MessageType {
      */
     val isForwardable: Boolean
         get() = !isCallMessage
-
-    /**
-     * 是否需要解析json来获取文件名
-     */
-    val isFileNameInJson: Boolean
-        get() = when (this) {
-            Image, Video, File -> true
-            else -> false
-        }
 }
 
 /**

@@ -29,7 +29,6 @@
     <string name="chat_call_voice">Voice Call</string>
     <string name="chat_location_send">Send Location</string>
     <string name="chat_location_share">Real-time Location</string>
-    <string name="chat_file_transfer">File Transfer</string>
 
     <string name="sticker_title">Sticker</string>
     <string name="sticker_custom_title">Custom Sticker</string>

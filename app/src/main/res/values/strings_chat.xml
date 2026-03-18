@@ -29,7 +29,6 @@
     <string name="chat_call_voice">语音通话</string>
     <string name="chat_location_send">发送位置</string>
     <string name="chat_location_share">共享实时位置</string>
-    <string name="chat_file_transfer">文件传输助手</string>
 
     <string name="sticker_title">表情</string>
     <string name="sticker_custom_title">动图</string>

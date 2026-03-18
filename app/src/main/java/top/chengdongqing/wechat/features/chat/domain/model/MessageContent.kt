@@ -135,8 +135,8 @@ sealed class MessageContent(
      */
     data class ContactCard(
         val userId: String,
-        val name: String,
-        val avatar: String
+        val nickname: String,
+        val avatarPath: String
     ) : MessageContent(isSameBackground = true)
 
     /**

@@ -17,6 +17,8 @@ import top.chengdongqing.wechat.core.util.getFileConfig
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactResult
+import top.chengdongqing.wechat.features.contacts.ui.picker.rememberPickContactLauncher
 
 /**
  * 文件处理器
@@ -72,6 +74,18 @@ class FileHandler(
             if (index < apps.lastIndex) delay(50)
         }
     }
+
+    fun handleContactSelection(contact: ContactResult) {
+        // 构建消息内容
+        val content = MessageContent.ContactCard(
+            userId = contact.id,
+            nickname = contact.nickname,
+            avatarPath = contact.avatarPath
+        )
+
+        // 发送
+        onSendMessage(content)
+    }
 }
 
 @Composable
@@ -102,15 +116,21 @@ fun rememberFileLauncher(
         }
     }
 
+    val pickContact = rememberPickContactLauncher { contacts ->
+        fileHandler.handleContactSelection(contacts.first())
+    }
+
     return remember(pickFileLauncher) {
         FileLauncher(
             pickFile = { pickFileLauncher.launch("*/*") },
-            pickApk = { pickApk(9) }
+            pickApk = { pickApk(9) },
+            pickContact = { pickContact(1) }
         )
     }
 }
 
 data class FileLauncher(
     val pickFile: () -> Unit,
-    val pickApk: () -> Unit
+    val pickApk: () -> Unit,
+    val pickContact: () -> Unit
 )

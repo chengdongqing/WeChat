@@ -4,9 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.file.PrivateFileManager
-import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.model.SendError
@@ -14,7 +12,6 @@ import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.features.call.manager.SignalingManager
-import top.chengdongqing.wechat.features.chat.data.mapper.MediaContent
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
@@ -32,8 +29,7 @@ class MessageDispatcher @Inject constructor(
     private val messageRepository: MessageRepository,
     private val privateFileManager: PrivateFileManager,
     private val signalingManager: SignalingManager,
-    private val contactRepository: ContactRepository,
-    private val json: Json
+    private val contactRepository: ContactRepository
 ) {
     private companion object {
         const val TAG = "MessageDispatcher"
@@ -218,22 +214,15 @@ class MessageDispatcher @Inject constructor(
         protocol: ChatProtocol.MediaMessage,
         tempFile: File
     ): MessageEntity {
-        val filename = if (protocol.messageType.isFileNameInJson) {
-            json.decodeFromString<MediaContent>(protocol.content).filename
-        } else {
-            protocol.content
-        }
-
         val localPath = privateFileManager.saveMedia(
             messageType = protocol.messageType,
             sourceFile = tempFile,
-            extension = filename.extractExtension()
+            extension = protocol.extension
         ).also {
             tempFile.delete()
-        }.getOrElse {
-            Log.e(TAG, "保存媒体文件失败: ${protocol.messageId}", it)
-            protocol.content
-        }
+        }.onFailure {
+            throw Exception("保存媒体文件失败: ${protocol.messageId}", it)
+        }.getOrThrow()
 
         return MessageEntity(
             id = protocol.messageId,

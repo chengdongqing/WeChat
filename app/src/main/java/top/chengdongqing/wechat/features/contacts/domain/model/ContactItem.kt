@@ -8,7 +8,8 @@ import androidx.compose.runtime.Immutable
 @Immutable
 data class ContactItem(
     val id: String,
-    val name: String,
+    val displayName: String,
+    val nickname: String,
     val note: String? = null,
     val avatarPath: String? = null,
     val isSelf: Boolean = false,

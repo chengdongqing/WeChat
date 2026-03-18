@@ -130,7 +130,6 @@ class MessageRepositoryImpl @Inject constructor(
         try {
             when (entity.contentType) {
                 MessageType.Text,
-                MessageType.ContactCard,
                 MessageType.Music -> messageSender.sendTextMessage(entity)
 
                 else -> {
@@ -156,7 +155,6 @@ class MessageRepositoryImpl @Inject constructor(
             // 重新发送
             when (entity.contentType) {
                 MessageType.Text,
-                MessageType.ContactCard,
                 MessageType.Music -> messageSender.sendTextMessage(entity)
 
                 else -> {

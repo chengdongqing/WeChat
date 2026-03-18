@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
@@ -112,6 +113,7 @@ class MessageSender @Inject constructor(
             signature = "",
             messageType = message.contentType,
             content = message.content,
+            extension = message.localPath?.extractExtension(),
             fileSize = fileSize,
             checksum = checksum,
             mediaDuration = message.mediaDuration,

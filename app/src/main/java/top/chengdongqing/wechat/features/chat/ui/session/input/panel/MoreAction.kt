@@ -18,7 +18,7 @@ enum class MoreAction(
     Transfer(R.string.chat_action_transfer, R.drawable.ic_transfer_filled),
     Favorite(R.string.chat_action_favorite, R.drawable.ic_favorites_filled),
     Voice(R.string.chat_action_voice, R.drawable.ic_mic2_filled),
-    Card(R.string.chat_action_card, R.drawable.ic_person_filled),
+    ContactCard(R.string.chat_action_card, R.drawable.ic_person_filled),
     File(R.string.chat_action_file, R.drawable.ic_folder_filled),
     App(R.string.chat_action_app, R.drawable.ic_apk_filled),
     Music(R.string.chat_action_music, R.drawable.ic_music_filled);

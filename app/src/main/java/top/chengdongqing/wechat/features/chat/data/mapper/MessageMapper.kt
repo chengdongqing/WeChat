@@ -44,7 +44,7 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             }.getOrElse { MediaContent() }
 
             MessageContent.Image(
-                localPath = localPath ?: "",
+                localPath = localPath!!,
                 mimeType = data.mimeType,
                 filename = data.filename,
                 width = data.width,
@@ -84,7 +84,7 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
 
         MessageType.Sticker ->
             MessageContent.Sticker(
-                localPath = localPath ?: ""
+                localPath = localPath!!
             )
 
         MessageType.Location -> {
@@ -104,21 +104,19 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
         MessageType.ContactCard -> {
             val cardInfo = runCatching {
                 Json.decodeFromString<ContactCardContent>(content)
-            }.getOrNull()
+            }.getOrElse { ContactCardContent() }
+
             MessageContent.ContactCard(
-                userId = cardInfo?.userId ?: "",
-                name = cardInfo?.name ?: "",
-                avatar = cardInfo?.avatar ?: ""
+                userId = cardInfo.userId,
+                nickname = cardInfo.nickname,
+                avatarPath = localPath ?: ""
             )
         }
 
         MessageType.Favorite -> {
-            val favoriteInfo = runCatching {
-                Json.decodeFromString<FavoriteContent>(content)
-            }.getOrNull()
             MessageContent.Favorite(
-                title = favoriteInfo?.title ?: "",
-                source = favoriteInfo?.source ?: "",
+                title = "",
+                source = "",
                 previewPath = localPath
             )
         }
@@ -251,20 +249,15 @@ fun MessageContent.toEntity(
                 contentValue = json.encodeToString(
                     ContactCardContent(
                         userId = content.userId,
-                        name = content.name,
-                        avatar = content.avatar
+                        nickname = content.nickname
                     )
-                )
+                ),
+                localPath = content.avatarPath
             )
 
         is MessageContent.Favorite ->
             base(
-                contentValue = json.encodeToString(
-                    FavoriteContent(
-                        title = content.title,
-                        source = content.source
-                    )
-                ),
+                contentValue = "",
                 localPath = content.previewPath
             )
 
@@ -352,13 +345,6 @@ data class LocationContent(
 
 @Serializable
 data class ContactCardContent(
-    val userId: String,
-    val name: String,
-    val avatar: String
-)
-
-@Serializable
-data class FavoriteContent(
-    val title: String,
-    val source: String
+    val userId: String = "",
+    val nickname: String = ""
 )

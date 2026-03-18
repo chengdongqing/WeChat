@@ -27,7 +27,7 @@ fun ContactCardContent(content: MessageContent.ContactCard) {
     Column(modifier = Modifier.padding(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
-                model = R.drawable.img_avatar_placeholder,
+                model = content.avatarPath,
                 contentDescription = null,
                 modifier = Modifier
                     .size(42.dp)
@@ -35,7 +35,7 @@ fun ContactCardContent(content: MessageContent.ContactCard) {
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = content.name,
+                text = content.nickname,
                 fontSize = 16.sp,
                 color = WeTheme.colorScheme.textPrimary
             )

@@ -41,13 +41,15 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.features.contacts.domain.model.ContactResult
+import top.chengdongqing.wechat.features.contacts.domain.model.toResult
 
 @Composable
 fun ContactPicker(
     count: Int,
     onCancel: () -> Unit,
     viewModel: ContactPickerViewModel = hiltViewModel(),
-    onSelect: (chatIds: Set<String>, isGroupChat: Boolean) -> Unit,
+    onSelect: (contacts: Array<ContactResult>) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -61,7 +63,8 @@ fun ContactPicker(
     Scaffold(
         topBar = {
             TopBar(uiState, onBack = onCancel) {
-                onSelect(uiState.selectedIds, false)
+                val selectedContacts = uiState.selectedContacts.toResult().toTypedArray()
+                onSelect(selectedContacts)
             }
         }
     ) { innerPadding ->
@@ -134,7 +137,7 @@ fun ContactPicker(
                                 key = { _, contact -> contact.id },
                                 contentType = { _, _ -> "ContactItem" }
                             ) { index, contact ->
-                                val isSelected = viewModel.isSelected(contact.id)
+                                val isSelected = viewModel.isSelected(contact)
 
                                 Column(
                                     modifier = Modifier.background(WeTheme.colorScheme.surface)
@@ -145,7 +148,7 @@ fun ContactPicker(
                                                 context.showToast("你最多只能选择${count}个")
                                                 return@weClickable
                                             }
-                                            viewModel.toggleSelection(contact.id)
+                                            viewModel.toggleSelection(contact)
                                         },
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {

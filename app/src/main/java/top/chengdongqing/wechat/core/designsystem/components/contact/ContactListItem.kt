@@ -50,7 +50,7 @@ fun ContactListItem(
         Spacer(modifier = Modifier.width(12.dp))
         Column {
             Text(
-                text = contact.name,
+                text = contact.displayName,
                 color = WeTheme.colorScheme.textPrimary,
                 fontSize = 16.sp,
                 maxLines = 1,
