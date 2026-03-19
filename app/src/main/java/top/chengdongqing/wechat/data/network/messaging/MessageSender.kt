@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.data.database.WeDatabase
@@ -20,6 +21,7 @@ import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
@@ -55,6 +57,7 @@ class MessageSender @Inject constructor(
     private val avatarServer: AvatarServer,
     private val mediaFileDao: MediaFileDao,
     private val fileReferenceManager: FileReferenceManager,
+    private val privateFileManager: PrivateFileManager,
     private val json: Json
 ) {
     private companion object {
@@ -100,67 +103,22 @@ class MessageSender @Inject constructor(
 
     /**
      * 发送媒体消息
-     *
-     * 流程：算 MD5 → 确保连接 → WiFi Lock → 原子发送（META + CHUNK）
      */
     suspend fun sendMediaMessage(message: MessageEntity, file: File): Result<Unit> = runCatching {
-        // 获取文件大小
-        val fileSize = file.length()
-        // 计算哈希值
-        val checksum = file.toSHA256Hex()
+        val targetFile = resolveTargetFile(message, file)
+        val metadata = buildSignedMetadata(message, targetFile)
 
-        // 判断是否已存在该文件，存在直接删除新的文件，并更新已存在文件的引用
-        val existingFile = mediaFileDao.getByChecksum(checksum)
-        val targetFile = if (existingFile != null) {
-            // 更新原文件引用次数
-            fileReferenceManager.retain(existingFile.localPath, checksum)
-            // 更新消息的文件地址为之前存在的文件地址
-            messageDao.update(message.id) { message ->
-                message.copy(localPath = existingFile.localPath)
-            }
-            // 删除当前的文件
-            file.takeIf { it.exists() }?.delete()
-            File(existingFile.localPath)
-        } else {
-            // 注册新的文件引用
-            fileReferenceManager.retain(file.absolutePath, checksum)
-            file
-        }
-
-        // 构建消息元数据
-        val metadata = ChatProtocol.MediaMessage(
-            messageId = message.id,
-            senderId = message.senderId,
-            receiverId = message.receiverId,
-            signature = "",
-            messageType = message.contentType,
-            content = message.content,
-            extension = message.localPath?.extractExtension(),
-            fileSize = fileSize,
-            checksum = checksum,
-            mediaDuration = message.mediaDuration,
-            timestamp = message.timestamp
-        )
-        val signature = packetSigner.sign(metadata, localIdentity.getPrivateKey())
-
-        // 获取 Wi-Fi 锁，避免在后台传输时被系统限制性能
         wifiLockManager.withTransferLock {
             transport.sendAtomicTransfer(message.receiverId) { writer ->
-                // 发送消息元数据；FILE_META 立即 flush，让接收端尽快进入接收状态
-                writer.write(
-                    Packet(
-                        type = PacketType.FILE_META,
-                        body = serializeMediaMeta(metadata.copy(signature = signature))
-                    )
-                )
-                // 分片分送文件；FILE_CHUNK writeNoFlush，由 buffer 自动 flush 减少 syscall
-                streamFileChunks(targetFile, fileSize, message.id) { chunk ->
-                    writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
-                }
+                sendFileMeta(writer, metadata)
+                sendFileChunks(writer, targetFile, message.id)
+            }.onFailure {
+                // 失败后回滚引用计数
+                val toDelete = fileReferenceManager.release(file.absolutePath)
+                toDelete?.let { privateFileManager.deleteFile(it) }
             }.getOrThrow()
         }
 
-        // 更新消息的发送状态
         updateStatus(
             messageId = message.id,
             sessionId = message.receiverId,
@@ -169,6 +127,72 @@ class MessageSender @Inject constructor(
     }.onFailure { e ->
         handleSendError(message.id, message.receiverId, e)
         throw e
+    }
+
+    /**
+     * 文件去重：checksum 已存在则复用原文件，否则注册新文件
+     * 返回实际用于传输的目标文件
+     */
+    private suspend fun resolveTargetFile(message: MessageEntity, file: File): File {
+        val checksum = file.toSHA256Hex()
+        val existingFile = mediaFileDao.getByChecksum(checksum)
+
+        return if (existingFile != null) {
+            fileReferenceManager.retain(existingFile.localPath, checksum)
+            messageDao.update(message.id) { it.copy(localPath = existingFile.localPath) }
+            privateFileManager.deleteFile(file.absolutePath)
+            File(existingFile.localPath)
+        } else {
+            fileReferenceManager.retain(file.absolutePath, checksum)
+            file
+        }
+    }
+
+    /**
+     * 构建已签名的媒体消息元数据
+     */
+    private suspend fun buildSignedMetadata(
+        message: MessageEntity,
+        targetFile: File
+    ): ChatProtocol.MediaMessage {
+        val checksum = targetFile.toSHA256Hex()
+        val unsigned = ChatProtocol.MediaMessage(
+            messageId = message.id,
+            senderId = message.senderId,
+            receiverId = message.receiverId,
+            signature = "",
+            messageType = message.contentType,
+            content = message.content,
+            extension = message.localPath?.extractExtension(),
+            fileSize = targetFile.length(),
+            checksum = checksum,
+            mediaDuration = message.mediaDuration,
+            timestamp = message.timestamp
+        )
+        val signature = packetSigner.sign(unsigned, localIdentity.getPrivateKey())
+        return unsigned.copy(signature = signature)
+    }
+
+    private fun sendFileMeta(
+        writer: EncryptingPacketWriter,
+        metadata: ChatProtocol.MediaMessage
+    ) {
+        writer.write(
+            Packet(
+                type = PacketType.FILE_META,
+                body = serializeMediaMeta(metadata)
+            )
+        )
+    }
+
+    private suspend fun sendFileChunks(
+        writer: EncryptingPacketWriter,
+        file: File,
+        messageId: String
+    ) {
+        streamFileChunks(file, file.length(), messageId) { chunk ->
+            writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
+        }
     }
 
     /**
@@ -319,6 +343,7 @@ class MessageSender @Inject constructor(
                 session.copy(isSending = false)
             }
         }
+
         // 标记为离线
         if (error !is CancellationException) {
             connectionInfoDao.markOffline(receiverId)

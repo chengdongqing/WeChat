@@ -74,15 +74,13 @@ class WiFiDirectChatModule @Inject constructor(
      * 停止模块，释放所有资源
      */
     override fun stop() {
-        scope.launch {
-            runCatching {
-                removeGroup()
-                unregisterConnectionReceiver()
-                connectionManager.closeAll()
-                socketServer.stop()
-            }.onSuccess {
-                Log.d(TAG, "WiFi Direct 聊天模块已停止")
-            }
+        runCatching {
+            scope.launch { removeGroup() }
+            unregisterConnectionReceiver()
+            connectionManager.closeAll()
+            socketServer.stop()
+        }.onSuccess {
+            Log.d(TAG, "WiFi Direct 聊天模块已停止")
         }
     }
 

@@ -24,7 +24,7 @@ class TransferManager @Inject constructor() {
      * 检查是否已取消
      */
     fun isCancelled(messageId: String): Boolean {
-        return cancelledTransfers[messageId] == true
+        return cancelledTransfers.containsKey(messageId)
     }
 
     /**

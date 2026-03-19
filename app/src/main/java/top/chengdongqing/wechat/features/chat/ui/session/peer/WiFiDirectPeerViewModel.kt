@@ -23,7 +23,7 @@ import javax.inject.Inject
 class WiFiDirectPeerViewModel @Inject constructor(
     private val wifiDirectConnector: WiFiDirectConnector,
     private val wifiDirectChatModule: WiFiDirectChatModule,
-    @param:ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context
 ) : PeerDeviceViewModel() {
 
     private val _uiState = MutableStateFlow(PeerDeviceUiState())
@@ -132,5 +132,14 @@ class WiFiDirectPeerViewModel @Inject constructor(
             )
         }
         _uiState.update { it.copy(nearbyDevices = peers, isScanning = false) }
+    }
+
+    override fun reset() {
+        _uiState.value = PeerDeviceUiState()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopScan()
     }
 }

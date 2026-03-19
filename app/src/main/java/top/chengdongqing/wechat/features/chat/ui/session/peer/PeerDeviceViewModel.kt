@@ -16,4 +16,6 @@ abstract class PeerDeviceViewModel : ViewModel() {
     abstract fun connectDevice(device: PeerDevice, userId: String, onSuccess: () -> Unit)
 
     abstract fun addNearbyDevice(device: PeerDevice)
+
+    abstract fun reset()
 }

@@ -147,7 +147,7 @@ class MessageReceiver @Inject constructor(
             String(body, Charsets.UTF_8)
         )
 
-        // 拦截非好友/已拉黑
+        // 拦截非好友/已拉黑/签名校验等
         if (!permissionChecker.checkAndReply(metadata.senderId, metadata)) return
 
         withContext(Dispatchers.IO) {

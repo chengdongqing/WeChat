@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.features.chat.ui.session.peer
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -20,6 +21,7 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.LaunchedUpdateEffect
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDeviceUiState
@@ -39,25 +41,31 @@ fun PeerDeviceOverlay(
     onConnected: () -> Unit,
     onClose: () -> Unit,
 ) {
+    val viewModel: PeerDeviceViewModel = when (mode) {
+        ConnectionMode.Bluetooth -> hiltViewModel<BluetoothPeerViewModel>()
+        ConnectionMode.WiFiDirect -> hiltViewModel<WiFiDirectPeerViewModel>()
+        else -> return
+    }
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedUpdateEffect(visible) {
+        if (!visible) {
+            viewModel.reset()
+        }
+    }
+
     WePopup(
         visible = visible,
         padding = PaddingValues(vertical = 16.dp),
         title = when (mode) {
             ConnectionMode.Bluetooth -> stringResource(R.string.conn_title_select_bluetooth_device)
             ConnectionMode.WiFiDirect -> stringResource(R.string.conn_title_select_wifi_direct_device)
-            else -> return
         },
         onClose = onClose
     ) {
-        val viewModel: PeerDeviceViewModel = when (mode) {
-            ConnectionMode.Bluetooth -> hiltViewModel<BluetoothPeerViewModel>()
-            ConnectionMode.WiFiDirect -> hiltViewModel<WiFiDirectPeerViewModel>()
-        }
-        val state by viewModel.uiState.collectAsStateWithLifecycle()
-
         PeerScanEffect(mode, viewModel)
 
-        LazyColumn {
+        LazyColumn(modifier = Modifier.heightIn(min = 300.dp)) {
             peerDeviceListContent(
                 mode = mode,
                 state = state,

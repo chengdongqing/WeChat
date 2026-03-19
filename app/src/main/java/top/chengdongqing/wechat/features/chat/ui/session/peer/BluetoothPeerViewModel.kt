@@ -144,6 +144,10 @@ class BluetoothPeerViewModel @Inject constructor(
         _uiState.update { it.copy(pairedDevices = bonded) }
     }
 
+    override fun reset() {
+        _uiState.value = PeerDeviceUiState()
+    }
+
     override fun onCleared() {
         super.onCleared()
         stopScan()

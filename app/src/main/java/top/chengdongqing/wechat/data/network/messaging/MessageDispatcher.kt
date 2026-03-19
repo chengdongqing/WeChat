@@ -210,36 +210,12 @@ class MessageDispatcher @Inject constructor(
 
     /**
      * 构建媒体消息实体
-     *
-     * 文件名来源：部分类型（如文件）的文件名嵌在 content JSON 里，其余类型直接用 content 作为文件名。
-     * 持久化成功后删除临时文件；失败时降级用 content 作为 localPath 并保留临时文件供排查。
      */
     private suspend fun createMediaEntity(
         protocol: ChatProtocol.MediaMessage,
         tempFile: File
     ): MessageEntity {
-        // 判断是否已存在该文件，存在直接删除新的文件，并更新已存在文件的引用
-        val existingFile = mediaFileDao.getByChecksum(protocol.checksum)
-        val localPath = if (existingFile != null) {
-            // 更新原文件引用次数
-            fileReferenceManager.retain(existingFile.localPath, protocol.checksum)
-            existingFile.localPath
-        } else {
-            // 保存文件
-            val newPath = privateFileManager.saveMedia(
-                messageType = protocol.messageType,
-                sourceFile = tempFile,
-                extension = protocol.extension
-            ).onFailure {
-                throw Exception("保存媒体文件失败: ${protocol.messageId}", it)
-            }.getOrThrow()
-            // 注册新的文件引用
-            fileReferenceManager.retain(newPath, protocol.checksum)
-            newPath
-        }
-
-        // 删除临时文件
-        tempFile.takeIf { it.exists() }?.delete()
+        val localPath = resolveLocalPath(protocol, tempFile).getOrThrow()
 
         return MessageEntity(
             id = protocol.messageId,
@@ -255,5 +231,30 @@ class MessageDispatcher @Inject constructor(
             sendStatus = SendStatus.Delivered,
             isFromMe = false
         )
+    }
+
+    /**
+     * 解析本地文件路径：复用已存在文件或持久化临时文件
+     */
+    private suspend fun resolveLocalPath(
+        protocol: ChatProtocol.MediaMessage,
+        tempFile: File
+    ): Result<String> = runCatching {
+        val existingFile = mediaFileDao.getByChecksum(protocol.checksum)
+
+        if (existingFile != null) {
+            fileReferenceManager.retain(existingFile.localPath, protocol.checksum)
+            existingFile.localPath
+        } else {
+            val newPath = privateFileManager.saveMedia(
+                messageType = protocol.messageType,
+                sourceFile = tempFile,
+                extension = protocol.extension
+            ).getOrThrow()
+            fileReferenceManager.retain(newPath, protocol.checksum)
+            newPath
+        }
+    }.also {
+        tempFile.takeIf { it.exists() }?.delete()
     }
 }
