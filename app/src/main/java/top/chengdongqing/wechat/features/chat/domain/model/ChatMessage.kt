@@ -19,7 +19,7 @@ data class ChatMessage(
     val sendStatus: MessageSendStatus = MessageSendStatus.Success
 ) {
     val isSending: Boolean
-        get() = sendStatus is MessageSendStatus.Sending
+        get() = sendStatus is MessageSendStatus.Sending || sendStatus is MessageSendStatus.Receiving || sendStatus is MessageSendStatus.Paused
 
     /**
      * 消息已发出但尚未收到送达回执。
@@ -39,7 +39,12 @@ data class ChatMessage(
      * 当前上传/发送进度，范围 0.0 ~ 1.0。
      */
     val sendProgress: Float
-        get() = (sendStatus as? MessageSendStatus.Sending)?.progress ?: 0f
+        get() = when (sendStatus) {
+            is MessageSendStatus.Sending -> sendStatus.progress
+            is MessageSendStatus.Receiving -> sendStatus.progress
+            is MessageSendStatus.Paused -> sendStatus.progress
+            else -> 0f
+        }
 
     /**
      * 发送失败的具体原因，仅 [MessageSendStatus.Failed] 状态下非空。

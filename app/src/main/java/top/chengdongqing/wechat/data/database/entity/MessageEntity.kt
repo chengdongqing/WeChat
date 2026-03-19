@@ -40,3 +40,6 @@ data class MessageEntity(
     @Embedded
     val audit: EntityAudit = EntityAudit()
 )
+
+val MessageEntity.peerId: String
+    get() = if (isFromMe) receiverId else senderId

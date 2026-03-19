@@ -21,7 +21,9 @@ data class ChatSessionContext(
     val onNavigateToRequestAddFriend: () -> Unit,
     val onNavigateToContact: (isPeer: Boolean) -> Unit,
     val onNavigateToWebView: (url: String) -> Unit,
-    val onStopTransfer: (messageId: String) -> Unit,
+    val onCancelTransfer: (messageId: String) -> Unit,
+    val onPauseTransfer: (messageId: String) -> Unit,
+    val onResumeTransfer: (messageId: String) -> Unit,
     val onReeditMessage: (text: String) -> Unit
 )
 
@@ -57,7 +59,9 @@ fun rememberChatSessionContext(
             },
             onNavigateToContact = onNavigateToContact,
             onNavigateToWebView = onNavigateToWebView,
-            onStopTransfer = viewModel::stopTransfer,
+            onCancelTransfer = viewModel::cancelTransfer,
+            onPauseTransfer = viewModel::pauseTransfer,
+            onResumeTransfer = viewModel::resumeTransfer,
             onReeditMessage = viewModel::reeditMessage
         )
     }

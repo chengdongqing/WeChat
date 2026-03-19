@@ -83,12 +83,16 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
         SET lastMessage = NULL,
             lastMessageId = NULL,
             lastMessageType = NULL,
+            isSending = 0,
             unreadCount = 0,
             updatedAt = :now 
         WHERE id = :sessionId
     """
     )
     suspend fun clearLastMessage(sessionId: String, now: Long = System.currentTimeMillis())
+
+    @Query("UPDATE chat_sessions SET isSending = 0 WHERE isSending = 1")
+    suspend fun resetAllSendingSessions()
 
     @Query(
         """

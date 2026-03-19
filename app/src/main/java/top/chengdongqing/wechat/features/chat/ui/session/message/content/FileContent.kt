@@ -36,7 +36,12 @@ import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 fun FileContent(message: ChatMessage) {
     val context = LocalContext.current
     val content = message.content as MessageContent.File
-    val chatContext = LocalChatSessionContext.current
+
+    val icon = if (message.isSending) {
+        R.drawable.ic_file_placeholder_filled
+    } else {
+        R.drawable.ic_file_filled
+    }
 
     Row(
         modifier = Modifier.padding(10.dp),
@@ -61,30 +66,36 @@ fun FileContent(message: ChatMessage) {
 
         Box(contentAlignment = Alignment.Center) {
             Image(
-                painter = painterResource(if (message.isSending) R.drawable.ic_file_placeholder_filled else R.drawable.ic_file_filled),
+                painter = painterResource(icon),
                 contentDescription = null,
                 modifier = Modifier.size(48.dp)
             )
 
             if (message.isSending) {
-                ControlWithProgress(message) {
-                    chatContext?.onStopTransfer(message.id)
-                }
+                ControlWithProgress(message)
             }
         }
     }
 }
 
 @Composable
-fun ControlWithProgress(message: ChatMessage, onClick: () -> Unit) {
-    val icon = if (message.sendStatus is MessageSendStatus.Paused)
-        R.drawable.ic_play_filled else R.drawable.ic_pause_filled
+fun ControlWithProgress(message: ChatMessage) {
+    val chatContext = LocalChatSessionContext.current
+    val isPaused = message.sendStatus is MessageSendStatus.Paused
+
+    val icon = if (isPaused) R.drawable.ic_play_filled else R.drawable.ic_pause_filled
 
     Box(
         modifier = Modifier
             .size(26.dp)
             .clip(CircleShape)
-            .clickable(onClick = onClick),
+            .clickable {
+                if (isPaused) {
+                    chatContext?.onResumeTransfer(message.id)
+                } else {
+                    chatContext?.onPauseTransfer(message.id)
+                }
+            },
         contentAlignment = Alignment.Center
     ) {
         WeCircleProgress(

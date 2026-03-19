@@ -8,7 +8,9 @@ enum class SendStatus {
     Sent,           // 已发送
     Delivered,      // 已送达
     Read,           // 已读
-    Failed          // 发送失败
+    Failed,         // 发送失败
+    Receiving,      // 接收中
+    Paused          // 传输暂停
 }
 
 enum class SendError(

@@ -31,8 +31,12 @@ object PacketType {
     const val PONG: Byte = 0x06          // 心跳响应
     const val HANDSHAKE: Byte = 0x07     // 握手包 (JSON)，连接建立后的第一个包
     const val SIGNALING: Byte = 0x08     // WebRTC 信令 (JSON)
-    const val PROFILE_REQUEST: Byte = 0x09  // 拉取对方完整资料 (Request)，body 通常包含请求参数或为空
-    const val PROFILE_RESPONSE: Byte = 0x0A // 资料响应 (Response)，body 为 UserProfile JSON
+    const val PROFILE_REQUEST: Byte = 0x09  // 拉取对方完整资料
+    const val PROFILE_RESPONSE: Byte = 0x0A // 资料响应
+    const val FILE_META_ACK: Byte = 0x0B   // 文件元数据应答
+    const val FILE_CANCEL: Byte = 0x0C     // 取消文件传输
+    const val FILE_PAUSE: Byte = 0x0D      // 暂停文件传输
+    const val FILE_RESUME: Byte = 0x0E     // 继续文件传输
 
     /** 始终明文传输的类型，不做加密 */
     val PLAINTEXT_TYPES = setOf(

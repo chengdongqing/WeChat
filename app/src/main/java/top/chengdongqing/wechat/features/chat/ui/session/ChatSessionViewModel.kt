@@ -428,8 +428,22 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun stopTransfer(messageId: String) {
-        viewModelScope.launch { messageRepository.stopTransfer(messageId) }
+    fun pauseTransfer(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.pauseTransfer(messageId)
+        }
+    }
+
+    fun resumeTransfer(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.resumeTransfer(messageId)
+        }
+    }
+
+    fun cancelTransfer(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.cancelTransfer(messageId)
+        }
     }
 
     fun reeditMessage(text: String) {

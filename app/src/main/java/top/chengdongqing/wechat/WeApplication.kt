@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.clearAllCache
+import top.chengdongqing.wechat.data.network.transfer.TransferRecoveryManager
 
 @HiltAndroidApp
 class WeApplication : Application() {
@@ -14,6 +15,9 @@ class WeApplication : Application() {
     @Inject
     @IoScope
     lateinit var scope: CoroutineScope
+
+    @Inject
+    lateinit var transferRecoveryManager: TransferRecoveryManager
 
     override fun onCreate() {
         super.onCreate()
@@ -24,5 +28,11 @@ class WeApplication : Application() {
         scope.launch {
             clearAllCache()
         }
+
+        /**
+         * 恢复未完成的传输的状态
+         * 清理过期的分片文件等
+         */
+        transferRecoveryManager.recover()
     }
 }

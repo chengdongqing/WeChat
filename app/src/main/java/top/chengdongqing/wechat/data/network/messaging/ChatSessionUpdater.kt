@@ -9,6 +9,7 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
+import top.chengdongqing.wechat.data.database.entity.peerId
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
 import top.chengdongqing.wechat.features.call.model.CallStatus
@@ -83,13 +84,12 @@ class ChatSessionUpdater @Inject constructor(
             }
         } else {
             // 创建新会话
-            val contactId = if (message.isFromMe) message.receiverId else message.senderId
-            val (contactName, contactAvatar) = resolveContactInfo(contactId, isSelfSession)
+            val (contactName, contactAvatar) = resolveContactInfo(message.peerId, isSelfSession)
 
             chatSessionDao.insert(
                 ChatSessionEntity(
                     id = message.sessionId,
-                    contactId = contactId,
+                    contactId = message.peerId,
                     contactName = contactName,
                     contactAvatar = contactAvatar,
                     lastMessageId = message.id,

@@ -75,7 +75,7 @@ fun MediaContent(message: ChatMessage) {
                     message = message,
                     durationText = content.duration.milliseconds.format(),
                     onActionClick = {
-                        chatContext?.onStopTransfer(message.id)
+                        chatContext?.onCancelTransfer(message.id)
                     }
                 )
             }

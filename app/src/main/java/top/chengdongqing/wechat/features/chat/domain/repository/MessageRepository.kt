@@ -41,9 +41,19 @@ interface MessageRepository {
     suspend fun retrySend(messageId: String): Result<Unit>
 
     /**
-     * 停止文件传输
+     * 暂停文件传输（发送或接收）
      */
-    fun stopTransfer(messageId: String)
+    fun pauseTransfer(messageId: String)
+
+    /**
+     * 恢复文件传输
+     */
+    fun resumeTransfer(messageId: String)
+
+    /**
+     * 取消文件传输，清理相关资源
+     */
+    fun cancelTransfer(messageId: String)
 
     /**
      * 标记已读

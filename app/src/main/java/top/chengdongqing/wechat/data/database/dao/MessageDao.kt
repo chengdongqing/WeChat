@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
+import top.chengdongqing.wechat.data.model.SendStatus
 
 @Dao
 interface MessageDao : BaseDao<MessageEntity> {
@@ -24,6 +25,12 @@ interface MessageDao : BaseDao<MessageEntity> {
 
     @Query("SELECT * FROM messages WHERE id IN (:ids) ORDER BY timestamp ASC")
     suspend fun getByIds(ids: Set<String>): List<MessageEntity>
+
+    @Query("UPDATE messages SET sendStatus = :targetStatus WHERE sendStatus in (:currentStatus)")
+    suspend fun resetAllSendingMessages(
+        targetStatus: SendStatus = SendStatus.Paused,
+        currentStatus: Array<SendStatus> = arrayOf(SendStatus.Sending, SendStatus.Receiving)
+    )
 
     @Query("SELECT COUNT(*) FROM messages WHERE sessionId = :sessionId AND isFromMe = 0 AND isRead = 0")
     suspend fun getUnreadCountBySessionId(sessionId: String): Int

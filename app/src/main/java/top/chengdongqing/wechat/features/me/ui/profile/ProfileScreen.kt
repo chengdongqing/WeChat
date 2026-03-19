@@ -27,6 +27,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
@@ -125,7 +126,7 @@ private fun ProfileContent(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // 基本信息组
-        Column {
+        WeSettingGroup {
             // 头像
             WeSettingItem(
                 label = stringResource(R.string.me_profile_avatar),

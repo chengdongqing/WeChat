@@ -33,7 +33,7 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
 
         MessageType.Voice ->
             MessageContent.Voice(
-                localPath = localPath!!,
+                localPath = localPath ?: "",
                 duration = mediaDuration ?: 0,
                 isPlayed = isPlayed
             )
@@ -44,7 +44,7 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             }.getOrElse { MediaContent() }
 
             MessageContent.Image(
-                localPath = localPath!!,
+                localPath = localPath ?: "",
                 mimeType = data.mimeType,
                 filename = data.filename,
                 width = data.width,
@@ -75,7 +75,7 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             }.getOrElse { FileContent() }
 
             MessageContent.File(
-                localPath = localPath!!,
+                localPath = localPath ?: "",
                 filename = data.filename,
                 mimeType = data.mimeType,
                 size = fileSize ?: 0,
@@ -302,17 +302,16 @@ fun MessageContent.getLocalPath(): String? = when (this) {
 }
 
 fun SendStatus.toDomain(entity: MessageEntity): MessageSendStatus {
+    val progress = entity.fileSize?.let { fileSize ->
+        val total = fileSize.coerceAtLeast(1L)
+        val sent = entity.sentBytes.coerceAtMost(total)
+        sent.toFloat() / total.toFloat()
+    } ?: 0f
+
     return when (this) {
-        SendStatus.Sending -> {
-            val progress = entity.fileSize?.let { fileSize ->
-                val total = fileSize.coerceAtLeast(1L)
-                val sent = entity.sentBytes.coerceAtMost(total)
-                sent.toFloat() / total.toFloat()
-            } ?: 0f
-
-            MessageSendStatus.Sending(progress)
-        }
-
+        SendStatus.Sending -> MessageSendStatus.Sending(progress)
+        SendStatus.Receiving -> MessageSendStatus.Receiving(progress)
+        SendStatus.Paused -> MessageSendStatus.Paused(progress)
         SendStatus.Sent -> MessageSendStatus.Sent
         SendStatus.Delivered,
         SendStatus.Read -> MessageSendStatus.Success
