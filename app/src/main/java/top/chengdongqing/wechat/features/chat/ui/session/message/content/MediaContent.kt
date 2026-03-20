@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.features.chat.ui.session.message.content
 
 import android.util.Size
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +37,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.util.format
@@ -50,7 +54,6 @@ import kotlin.time.Duration.Companion.milliseconds
 fun MediaContent(message: ChatMessage) {
     val targetWidth = rememberScreenFractionWidth()
     val content = message.content as MessageContent.Media
-    val chatContext = LocalChatSessionContext.current
 
     Box(
         modifier = Modifier
@@ -65,7 +68,7 @@ fun MediaContent(message: ChatMessage) {
         when (content) {
             is MessageContent.Image -> {
                 // 发送的进度
-                if (message.isSending) {
+                if (message.isProgressing) {
                     SendingOverlay(message.sendProgress)
                 }
             }
@@ -73,10 +76,7 @@ fun MediaContent(message: ChatMessage) {
             is MessageContent.Video -> {
                 VideoOverlay(
                     message = message,
-                    durationText = content.duration.milliseconds.format(),
-                    onActionClick = {
-                        chatContext?.onCancelTransfer(message.id)
-                    }
+                    durationText = content.duration.milliseconds.format()
                 )
             }
         }
@@ -87,15 +87,28 @@ fun MediaContent(message: ChatMessage) {
 private fun ThumbnailImage(localPath: String, isVideo: Boolean) {
     val context = LocalContext.current
     val thumbnail by produceState<Any?>(initialValue = null, localPath) {
-        value = context.loadMediaThumbnail(File(localPath).toUri(), isVideo, Size(1200, 1200))
+        value = if (localPath.isNotBlank()) {
+            context.loadMediaThumbnail(File(localPath).toUri(), isVideo, Size(1200, 1200))
+        } else {
+            null
+        }
     }
+    val hasError = remember { mutableStateOf(false) }
 
     AsyncImage(
         model = thumbnail,
         contentDescription = null,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                if (localPath.isBlank() || hasError.value) {
+                    WeTheme.colorScheme.surface.copy(alpha = 0.2f)
+                } else {
+                    Color.Unspecified
+                }
+            ),
         contentScale = ContentScale.Crop,
-        alpha = if (thumbnail == null) 0f else 1f
+        onError = { hasError.value = true }
     )
 }
 
@@ -111,16 +124,26 @@ private fun SendingOverlay(progress: Float) {
 @Composable
 private fun BoxScope.VideoOverlay(
     message: ChatMessage,
-    durationText: String,
-    onActionClick: () -> Unit
+    durationText: String
 ) {
+    val chatContext = LocalChatSessionContext.current
+    val isPaused = message.sendStatus is MessageSendStatus.Paused
+
+    val icon = if (isPaused) R.drawable.ic_play_filled else R.drawable.ic_pause_filled
+
     // 进度显示层
-    if (message.isSending) {
+    if (message.isProgressing) {
         Box(
             modifier = Modifier
                 .size(39.dp)
                 .clip(CircleShape)
-                .clickable { onActionClick() },
+                .clickable {
+                    if (isPaused) {
+                        chatContext?.onResumeTransfer(message.id)
+                    } else {
+                        chatContext?.onPauseTransfer(message.id)
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             WeCircleProgress(
@@ -131,9 +154,12 @@ private fun BoxScope.VideoOverlay(
                 indicatorColor = White,
                 formatter = null
             )
-            val icon = if (message.sendStatus is MessageSendStatus.Paused)
-                R.drawable.ic_play_filled else R.drawable.ic_pause_filled
-            Icon(painterResource(icon), null, tint = Color.White, modifier = Modifier.size(20.dp))
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(20.dp)
+            )
         }
     } else {
         Icon(

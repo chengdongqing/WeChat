@@ -357,10 +357,10 @@ class MessageReceiver @Inject constructor(
             )
         }
 
-        if (state.receivedBytes < state.metadata.fileSize) return@withContext
-
-        // 全部分片到齐 → 合并 → 校验 → 分发
-        onLargeFileComplete(userId, state)
+        if (state.receivedBytes >= state.metadata.fileSize) {
+            // 全部分片到齐 → 合并 → 校验 → 分发
+            onLargeFileComplete(userId, state)
+        }
     }
 
     /**

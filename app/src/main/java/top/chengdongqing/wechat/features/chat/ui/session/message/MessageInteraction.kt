@@ -43,10 +43,11 @@ enum class MessageAction(
 ) {
     Copy(R.drawable.ic_copy_filled, R.string.message_action_copy),
     Delete(R.drawable.ic_delete_filled, R.string.message_action_delete),
+    Cancel(R.drawable.ic_recall_outlined, R.string.message_action_cancel),
+    Recall(R.drawable.ic_recall_outlined, R.string.message_action_recall),
     Forward(R.drawable.ic_forward_filled, R.string.message_action_forward),
     Favorite(R.drawable.ic_favorites_filled, R.string.message_action_favorite),
     Remind(R.drawable.ic_bell_filled, R.string.message_action_remind),
-    Recall(R.drawable.ic_recall_outlined, R.string.message_action_recall),
     MultiSelect(R.drawable.ic_multi_select_outlined, R.string.message_action_multi_select),
     SpeakerMode(R.drawable.ic_speaker_filled, R.string.message_action_speaker),
     EarpieceMode(R.drawable.ic_ear_filled, R.string.message_action_earpiece),

@@ -54,6 +54,7 @@
 
     <string name="message_action_copy">Copy</string>
     <string name="message_action_delete">Delete</string>
+    <string name="message_action_cancel">Cancel</string>
     <string name="message_action_forward">Forward</string>
     <string name="message_action_favorite">Favorite</string>
     <string name="message_action_remind">Reminder</string>

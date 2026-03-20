@@ -37,7 +37,7 @@ fun FileContent(message: ChatMessage) {
     val context = LocalContext.current
     val content = message.content as MessageContent.File
 
-    val icon = if (message.isSending) {
+    val icon = if (message.isProgressing) {
         R.drawable.ic_file_placeholder_filled
     } else {
         R.drawable.ic_file_filled
@@ -71,7 +71,7 @@ fun FileContent(message: ChatMessage) {
                 modifier = Modifier.size(48.dp)
             )
 
-            if (message.isSending) {
+            if (message.isProgressing) {
                 ControlWithProgress(message)
             }
         }
@@ -108,8 +108,8 @@ fun ControlWithProgress(message: ChatMessage) {
         )
 
         Icon(
-            painterResource(icon),
-            null,
+            painter = painterResource(icon),
+            contentDescription = null,
             tint = Color.Gray,
             modifier = Modifier.size(14.dp)
         )

@@ -112,6 +112,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         scope = viewModelScope,
         uiEvent = _uiEvent,
         onRecallMessage = ::recallMessage,
+        onCancelMessage = ::cancelTransfer,
         onToggleSpeaker = ::toggleSpeaker,
         onSaveFile = ::saveFile,
         onMultiSelect = ::enterSelectMode
@@ -161,7 +162,14 @@ class ChatSessionViewModel @AssistedInject constructor(
      */
     private val mediaState = messages
         .map { list ->
-            list.map { it.id to (it.content is MessageContent.Media) }
+            list.map {
+                val content = it.content
+                Triple(
+                    it.id,
+                    content is MessageContent.Media,
+                    (content as? MessageContent.Media)?.localPath
+                )
+            }
         }
         .distinctUntilChanged()
         .map {
@@ -461,14 +469,16 @@ class ChatSessionViewModel @AssistedInject constructor(
     // region 消息点击
 
     fun handleMessageClick(message: ChatMessage) {
-        when (message.content) {
+        when (val content = message.content) {
             is MessageContent.Image,
             is MessageContent.Video -> {
-                openMediaPreview(message)
+                if (content.localPath.isNotBlank()) {
+                    openMediaPreview(message)
+                }
             }
 
             is MessageContent.Voice -> {
-                toggleVoicePlay(message.id, message.content.localPath)
+                toggleVoicePlay(message.id, content.localPath)
             }
 
             is MessageContent.File -> {
@@ -479,24 +489,24 @@ class ChatSessionViewModel @AssistedInject constructor(
 
             is MessageContent.Music -> {
                 viewModelScope.launch {
-                    val trackName = message.content.music.name
+                    val trackName = content.music.name
                     _uiEvent.emit(MessageUiEvent.PreviewMusic(message.id, trackName))
                 }
             }
 
             is MessageContent.Call -> {
                 viewModelScope.launch {
-                    _uiEvent.emit(MessageUiEvent.LaunchCall(message.content.type))
+                    _uiEvent.emit(MessageUiEvent.LaunchCall(content.type))
                 }
             }
 
             is MessageContent.Location -> {
-                openLocationPreview(message.content)
+                openLocationPreview(content)
             }
 
             is MessageContent.ContactCard -> {
                 viewModelScope.launch {
-                    val userId = message.content.userId
+                    val userId = content.userId
                     prepareRequestAddFriend(
                         userId = userId,
                         fromContactCard = true

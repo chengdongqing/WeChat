@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
@@ -71,8 +70,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
 
             // 根据错误类型添加可点击链接
             val (actionLabel, actionAnnotation) = when {
-                !message.isRecalled && (error?.canRetry.isTrue()
-                        || message.isSent) -> {
+                !message.isRecalled && message.isFromMe && (error?.canRetry == true || message.isSent) -> {
                     val label = if (error == SendError.Cancelled) {
                         resources.getString(R.string.chat_action_resend)
                     } else {

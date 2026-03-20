@@ -18,16 +18,11 @@ data class ChatMessage(
     val timestamp: Long = System.currentTimeMillis(),
     val sendStatus: MessageSendStatus = MessageSendStatus.Success
 ) {
-    val isSending: Boolean
+    val isProgressing: Boolean
         get() = sendStatus is MessageSendStatus.Sending || sendStatus is MessageSendStatus.Receiving || sendStatus is MessageSendStatus.Paused
 
     /**
      * 消息已发出但尚未收到送达回执。
-     *
-     * 发出后 15 秒内视为正常网络延迟，不做任何提示；
-     * 超过 15 秒仍未收到回执则将此标志置为 true，UI 层可据此展示"未送达"提示。
-     * 一旦收到回执，[sendStatus] 会从 [MessageSendStatus.Sent] 跳转为
-     * [MessageSendStatus.Success]，此属性随之变为 false。
      */
     val isSent: Boolean
         get() = sendStatus is MessageSendStatus.Sent && !timestamp.isWithinSeconds(15)

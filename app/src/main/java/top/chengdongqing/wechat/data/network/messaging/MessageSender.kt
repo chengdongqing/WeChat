@@ -154,8 +154,8 @@ class MessageSender @Inject constructor(
                 )
                 sendFileChunks(writer, file, message.id)
             }.onFailure {
-                val toDelete = fileReferenceManager.release(file.absolutePath)
-                toDelete?.let { privateFileManager.deleteFile(it) }
+                // 失败后回滚引用计数
+                fileReferenceManager.release(file.absolutePath)
             }.getOrThrow()
         }
     }
@@ -211,8 +211,7 @@ class MessageSender @Inject constructor(
                 }
             }.onFailure {
                 // 失败后回滚引用计数
-                val toDelete = fileReferenceManager.release(file.absolutePath)
-                toDelete?.let { privateFileManager.deleteFile(it) }
+                fileReferenceManager.release(file.absolutePath)
             }.getOrThrow()
         }
     }

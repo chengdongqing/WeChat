@@ -188,7 +188,7 @@ private fun Avatar(model: Any?, isPeer: Boolean) {
 @Composable
 private fun StatusIndicator(message: ChatMessage) {
     when {
-        message.isSending -> {
+        message.isProgressing -> {
             if (message.content.showLoading) {
                 WeLoading()
             }

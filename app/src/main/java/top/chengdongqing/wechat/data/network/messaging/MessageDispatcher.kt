@@ -126,9 +126,21 @@ class MessageDispatcher @Inject constructor(
      * 在 FILE_META 协商阶段调用，让 UI 能看到正在接收的文件及进度。
      */
     suspend fun createReceivingMessage(metadata: ChatProtocol.MediaMessage) = runCatching {
-        if (messageDao.exists(metadata.messageId)) return@runCatching
+        val existingMessage = messageDao.getById(metadata.messageId)
+        if (existingMessage != null) {
+            // 发送失败的文件可以重试
+            if (existingMessage.sendStatus == SendStatus.Failed) {
+                messageDao.update(
+                    existingMessage.copy(
+                        sendStatus = SendStatus.Receiving,
+                        sentBytes = 0
+                    )
+                )
+            }
+            return@runCatching
+        }
 
-        val entity = MessageEntity(
+        val message = MessageEntity(
             id = metadata.messageId,
             sessionId = metadata.senderId,
             senderId = metadata.senderId,
@@ -144,11 +156,9 @@ class MessageDispatcher @Inject constructor(
         )
 
         database.withTransaction {
-            messageDao.insert(entity)
-            chatSessionUpdater.update(entity)
+            messageDao.insert(message)
+            chatSessionUpdater.update(message)
         }
-
-        // 不发送送达回执、不调用 sendAck、不推送通知流（正在接收中的文件不需要通知）
     }.onFailure {
         Log.e(TAG, "创建接收消息失败: ${metadata.messageId}", it)
     }

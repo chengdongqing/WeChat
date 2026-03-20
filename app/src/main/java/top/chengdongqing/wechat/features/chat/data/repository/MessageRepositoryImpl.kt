@@ -145,8 +145,7 @@ class MessageRepositoryImpl @Inject constructor(
 
     override suspend fun retrySend(messageId: String): Result<Unit> {
         return runCatching {
-            val message = messageDao.getById(messageId)
-                ?: throw Exception("消息不存在")
+            val message = messageDao.getById(messageId) ?: throw IllegalStateException("消息不存在")
 
             // 重置为发送中
             messageDao.update(messageId) { session ->
@@ -197,9 +196,7 @@ class MessageRepositoryImpl @Inject constructor(
                 transferManager.setResumed(messageId)
             } else {
                 // 重新走发送流程
-                scope.launch {
-                    restartSend(message)
-                }
+                restartSend(message)
             }
         }
 
@@ -212,14 +209,16 @@ class MessageRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 重启发送流程
+     * 重新走发送流程
      */
-    private suspend fun restartSend(message: MessageEntity) {
-        try {
-            val file = File(message.localPath ?: throw Exception("文件路径为空"))
-            messageSender.sendMediaMessage(message, file)
-        } catch (e: Exception) {
-            Log.w(TAG, "恢复发送失败: ${message.id}, ${e.message}")
+    private fun restartSend(message: MessageEntity) {
+        scope.launch {
+            try {
+                val file = File(message.localPath ?: throw Exception("文件路径为空"))
+                messageSender.sendMediaMessage(message, file)
+            } catch (e: Exception) {
+                Log.w(TAG, "恢复发送失败: ${message.id}, ${e.message}")
+            }
         }
     }
 

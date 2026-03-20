@@ -32,6 +32,7 @@ class MessageToolbarManager(
     private val scope: CoroutineScope,
     private val uiEvent: MutableSharedFlow<MessageUiEvent>,
     private val onRecallMessage: (String) -> Unit,
+    private val onCancelMessage: (String) -> Unit,
     private val onToggleSpeaker: () -> Unit,
     private val onSaveFile: (ChatMessage) -> Unit,
     private val onMultiSelect: (String) -> Unit
@@ -120,12 +121,12 @@ class MessageToolbarManager(
             }
 
             MessageAction.Recall -> onRecallMessage(message.id)
+            MessageAction.Cancel -> onCancelMessage(message.id)
 
             MessageAction.SpeakerMode,
             MessageAction.EarpieceMode -> onToggleSpeaker()
 
             MessageAction.Download -> onSaveFile(message)
-
             MessageAction.MultiSelect -> onMultiSelect(message.id)
 
             else -> {}
@@ -211,7 +212,11 @@ class MessageToolbarManager(
                     add(MessageAction.Forward)
                     add(MessageAction.Favorite)
                     add(MessageAction.Quote)
-                    add(deleteOrRecall)
+                    if (message.isProgressing) {
+                        add(MessageAction.Cancel)
+                    } else {
+                        add(deleteOrRecall)
+                    }
                     add(MessageAction.MultiSelect)
                     add(MessageAction.Remind)
                     add(MessageAction.Download)
