@@ -47,8 +47,6 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.data.network.service.P2PService
-import top.chengdongqing.wechat.data.network.service.createNetworkServiceIntent
 
 @OptIn(ExperimentalPermissionsApi::class)
 @SuppressLint("MissingPermission")
@@ -121,12 +119,7 @@ fun RequestAddFriendPermission(
             // 开关都开了，才进入权限检查包装器
             PermissionWrapper(
                 permissions = permissions,
-                onRevoked = onRevoked,
-                onGranted = {
-                    // 启动蓝牙服务
-                    val intent = context.createNetworkServiceIntent(P2PService.ACTION_RETRY_BLE)
-                    context.startService(intent)
-                }
+                onRevoked = onRevoked
             ) {
                 Box(
                     modifier = Modifier

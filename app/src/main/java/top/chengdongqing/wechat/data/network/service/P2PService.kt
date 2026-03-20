@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -17,6 +16,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.avatar.AvatarServer
+import top.chengdongqing.wechat.data.network.ble.BluetoothStateMonitor
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.model.NotificationChannelConfig
@@ -61,6 +61,9 @@ class P2PService : Service() {
     lateinit var connectionSettingsRepository: ConnectionSettingsRepository
 
     @Inject
+    lateinit var bluetoothStateMonitor: BluetoothStateMonitor
+
+    @Inject
     @IoScope
     lateinit var scope: CoroutineScope
 
@@ -69,7 +72,6 @@ class P2PService : Service() {
 
         const val ACTION_START_SERVICE = "action_start_service"
         const val ACTION_STOP_SERVICE = "action_stop_service"
-        const val ACTION_RETRY_BLE = "action_retry_ble"
     }
 
     var hasStarted: Boolean = false
@@ -81,34 +83,20 @@ class P2PService : Service() {
         createNotificationChannel()
         // 显示前台服务通知
         showForegroundNotification()
+        // 开始监听蓝牙开关 + 权限变化
+        bluetoothStateMonitor.start()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         scope.launch {
             when (intent?.action) {
-                /**
-                 * 服务启动入口
-                 */
-                ACTION_START_SERVICE -> {
-                    if (!hasStarted) {
-                        startAll()
-                    }
-                }
-                /**
-                 * 在获取蓝牙权限后重启蓝牙模块
-                 */
-                ACTION_RETRY_BLE -> {
-                    bleAddFriendModule.stop()
-                    bleAddFriendModule.start()
-                }
-                /**
-                 * 服务停止入口
-                 */
+                ACTION_START_SERVICE -> if (!hasStarted) startAll()
                 ACTION_STOP_SERVICE -> stopAll()
             }
         }
 
-        return START_STICKY // 被系统杀死后自动重启，保持消息收发能力
+        // 被系统杀死后自动重启，保持消息收发能力
+        return START_STICKY
     }
 
     private var observerJob: Job? = null
@@ -117,11 +105,13 @@ class P2PService : Service() {
      * 启动所有服务
      */
     private fun startAll() {
-        // 监听连接模式切换，启动对应聊天模块
-        observerJob = scope.launch { observeConnectionMode() }
+        observerJob = scope.launch {
+            // 动态切换连接模式
+            launch { observeConnectionMode() }
+            // 动态启动蓝牙加好友服务
+            launch { observeBluetoothState() }
+        }
 
-        // 启动加好友模块
-        bleAddFriendModule.start()
         // 启动通话模块（视频/语音通话）
         callModule.start()
         // 启动头像服务
@@ -147,6 +137,19 @@ class P2PService : Service() {
         observerJob?.cancel()
 
         hasStarted = false
+    }
+
+    /**
+     * 监听蓝牙可用状态（开关 + 权限），自动启停 BLE 加好友模块
+     */
+    private suspend fun observeBluetoothState() {
+        bluetoothStateMonitor.isAvailable.collect { available ->
+            if (available) {
+                bleAddFriendModule.start()
+            } else {
+                bleAddFriendModule.stop()
+            }
+        }
     }
 
     /**
@@ -181,17 +184,15 @@ class P2PService : Service() {
      * 创建前台服务通知渠道
      */
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel(
-                NotificationChannelConfig.P2P.id,
-                NotificationChannelConfig.P2P.title,
-                NotificationChannelConfig.P2P.importance
-            ).apply {
-                description = NotificationChannelConfig.P2P.description
-            }.also {
-                (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).apply {
-                    createNotificationChannel(it)
-                }
+        NotificationChannel(
+            NotificationChannelConfig.P2P.id,
+            NotificationChannelConfig.P2P.title,
+            NotificationChannelConfig.P2P.importance
+        ).apply {
+            description = NotificationChannelConfig.P2P.description
+        }.also {
+            (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).apply {
+                createNotificationChannel(it)
             }
         }
     }
@@ -212,7 +213,7 @@ class P2PService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-
+        bluetoothStateMonitor.stop()
         stopAll()
     }
 
