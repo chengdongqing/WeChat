@@ -67,7 +67,7 @@ class TcpSocketClient @Inject constructor(
 
             conn
         }.onFailure { e ->
-            Log.e(TAG, "连接失败: $userId", e)
+            Log.w(TAG, "连接失败: $userId, ${e.message}")
             connectionManager.emitEvent(ConnectionEvent.Disconnected(userId, e.message))
         }
     }

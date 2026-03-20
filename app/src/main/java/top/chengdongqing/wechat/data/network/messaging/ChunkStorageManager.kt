@@ -24,10 +24,8 @@ import javax.inject.Singleton
  * ```
  * cache/transfers/
  *   └── {messageId}/
- *       ├── meta.json       // 序列化的 MediaMessage 元数据
- *       ├── chunk_0000
- *       ├── chunk_0001
- *       └── ...
+ *       ├── meta.json
+ *       └── data.tmp
  * ```
  */
 @Singleton

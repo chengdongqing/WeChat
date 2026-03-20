@@ -9,7 +9,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.connection.PeerHandshakeHandler
@@ -45,6 +47,7 @@ class BtSocketClient @Inject constructor(
                 userId = userId,
                 reader = PacketReader(socket.inputStream),
                 writer = PacketWriter(socket.outputStream),
+                maxConcurrentTransfers = Semaphore(TransferConfig.CONCURRENT_TRANSFERS_BT),
                 isActiveProvider = { socket.isConnected },
                 closeAction = { socket.close() },
             )

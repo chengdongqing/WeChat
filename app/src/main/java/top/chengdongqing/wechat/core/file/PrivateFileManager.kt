@@ -24,11 +24,6 @@ import javax.inject.Singleton
 
 /**
  * 应用私有文件管理器
- *
- * 职责：
- * - 管理应用私有目录的文件存储
- * - 提供统一的文件保存、删除、清理接口
- * - 自动处理文件格式检测和命名
  */
 @Singleton
 class PrivateFileManager @Inject constructor(
@@ -155,8 +150,6 @@ class PrivateFileManager @Inject constructor(
 
     /**
      * 保存媒体文件
-     *
-     * 自动检测图片格式，使用正确的扩展名
      *
      * @param messageType 消息类型
      * @param sourceFile 源文件

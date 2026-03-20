@@ -6,7 +6,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
-import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.peerId
@@ -20,9 +19,6 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 
 /**
  * 会话状态更新器
- *
- * 每条消息入库后调用，负责维护 ChatSession 的最新消息预览和未读计数。
- * 会话不存在时自动创建，联系人信息从 [ContactDao] / [ProfileRepository] 获取。
  */
 @Singleton
 class ChatSessionUpdater @Inject constructor(

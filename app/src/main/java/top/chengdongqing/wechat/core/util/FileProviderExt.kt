@@ -26,10 +26,7 @@ suspend fun Context.deleteFileByUri(uri: Uri) = withContext(Dispatchers.IO) {
 }
 
 /**
- * 创建一个临时的空媒体文件 Uri（用于相机/录像）
- *
- * @param isVideo 是否为视频（false 为图片）
- * @return FileProvider Uri
+ * 创建一个临时的空媒体文件 Uri（用于拍照/录像等）
  */
 private suspend fun Context.createMediaUri(isVideo: Boolean = false): Uri =
     withContext(Dispatchers.IO) {

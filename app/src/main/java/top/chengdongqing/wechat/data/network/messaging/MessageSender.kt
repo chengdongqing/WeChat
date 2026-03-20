@@ -66,9 +66,7 @@ class MessageSender @Inject constructor(
 ) {
     private companion object {
         const val TAG = "MessageSender"
-
-        /** 等待对方 ACK 的超时时间 */
-        const val ACK_TIMEOUT_MS = 10_000L
+        const val ACK_TIMEOUT_MS = 10_000L // 发大文件时等待回执的超时时间
     }
 
     private val myUserId: String
@@ -117,10 +115,8 @@ class MessageSender @Inject constructor(
         val metadata = buildSignedMetadata(message, targetFile, checksum)
 
         if (targetFile.length() < TransferConfig.CHUNK_TRANSFER_THRESHOLD) {
-            Log.d(TAG, "开始小文件直传")
             sendSmallFile(message, metadata, targetFile)
         } else {
-            Log.d(TAG, "开始大文件分片传输")
             sendLargeFile(message, metadata, targetFile)
         }
 
@@ -135,9 +131,32 @@ class MessageSender @Inject constructor(
     }
 
     /**
+     * 构建已签名的媒体消息元数据
+     */
+    private fun buildSignedMetadata(
+        message: MessageEntity,
+        targetFile: File,
+        checksum: String
+    ): ChatProtocol.MediaMessage {
+        val unsigned = ChatProtocol.MediaMessage(
+            messageId = message.id,
+            senderId = message.senderId,
+            receiverId = message.receiverId,
+            signature = "",
+            messageType = message.contentType,
+            content = message.content,
+            extension = message.localPath?.extractExtension(),
+            fileSize = targetFile.length(),
+            checksum = checksum,
+            mediaDuration = message.mediaDuration,
+            timestamp = message.timestamp
+        )
+        val signature = packetSigner.sign(unsigned, localIdentity.getPrivateKey())
+        return unsigned.copy(signature = signature)
+    }
+
+    /**
      * 小文件直传
-     *
-     * FILE_META + FILE_CHUNK 在一次原子传输中发完，不等 ACK，不分片存储
      */
     private suspend fun sendSmallFile(
         message: MessageEntity,
@@ -146,12 +165,14 @@ class MessageSender @Inject constructor(
     ) {
         wifiLockManager.withTransferLock {
             transport.sendAtomicTransfer(message.receiverId) { writer ->
+                // 发送文件元数据
                 writer.write(
                     Packet(
                         type = PacketType.FILE_META,
                         body = serializeChatProtocol(metadata)
                     )
                 )
+                // 发送文件内容
                 sendFileChunks(writer, file, message.id)
             }.onFailure {
                 // 失败后回滚引用计数
@@ -175,7 +196,7 @@ class MessageSender @Inject constructor(
         )
         transport.send(message.receiverId, metaPacket).getOrThrow()
 
-        // 等待对方 ACK
+        // 等待对方的回执
         val ack = fileAckRegistry.awaitAck(message.id, ACK_TIMEOUT_MS)
 
         // 根据 ACK 状态决定后续操作
@@ -206,8 +227,8 @@ class MessageSender @Inject constructor(
     ) {
         wifiLockManager.withTransferLock {
             transport.sendAtomicTransfer(receiverId) { writer ->
-                streamFileChunks(file, file.length(), messageId, offset) { chunk ->
-                    writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
+                streamFileChunks(file, file.length(), messageId, offset) { encodedChunk ->
+                    writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, encodedChunk))
                 }
             }.onFailure {
                 // 失败后回滚引用计数
@@ -216,30 +237,19 @@ class MessageSender @Inject constructor(
         }
     }
 
-    /**
-     * 发送取消传输通知给对方
-     */
-    suspend fun sendFileCancel(receiverId: String, messageId: String): Result<Unit> {
-        return sendTransferControl(receiverId, messageId, PacketType.FILE_CANCEL, "取消")
-    }
+    // -------------------------------------------------------------------------
+    // 传输控制
+    // -------------------------------------------------------------------------
 
-    /**
-     * 发送暂停传输通知给对方
-     */
-    suspend fun sendFilePause(receiverId: String, messageId: String): Result<Unit> {
-        return sendTransferControl(receiverId, messageId, PacketType.FILE_PAUSE, "暂停")
-    }
+    suspend fun sendFileCancel(receiverId: String, messageId: String): Result<Unit> =
+        sendTransferControl(receiverId, messageId, PacketType.FILE_CANCEL, "取消")
 
-    /**
-     * 发送恢复传输通知给对方
-     */
-    suspend fun sendFileResume(receiverId: String, messageId: String): Result<Unit> {
-        return sendTransferControl(receiverId, messageId, PacketType.FILE_RESUME, "恢复")
-    }
+    suspend fun sendFilePause(receiverId: String, messageId: String): Result<Unit> =
+        sendTransferControl(receiverId, messageId, PacketType.FILE_PAUSE, "暂停")
 
-    /**
-     * 发送传输控制包
-     */
+    suspend fun sendFileResume(receiverId: String, messageId: String): Result<Unit> =
+        sendTransferControl(receiverId, messageId, PacketType.FILE_RESUME, "恢复")
+
     private suspend fun sendTransferControl(
         receiverId: String,
         messageId: String,
@@ -250,64 +260,14 @@ class MessageSender @Inject constructor(
             mapOf("messageId" to messageId)
         ).toByteArray(Charsets.UTF_8)
 
-        val packet = Packet(type = type, body = body)
-
-        return transport.send(receiverId, packet)
-            .onFailure {
-                Log.w(TAG, "发送${label}通知失败: $receiverId")
-            }
+        return transport.send(receiverId, Packet(type = type, body = body))
+            .onFailure { Log.w(TAG, "发送${label}通知失败: $receiverId") }
     }
 
-    /**
-     * 文件去重：checksum 已存在则复用原文件，否则注册新文件
-     * 返回实际用于传输的目标文件
-     */
-    private suspend fun resolveTargetFile(
-        message: MessageEntity,
-        file: File,
-        checksum: String
-    ): File {
-        val existingFile = mediaFileDao.getByChecksum(checksum)
+    // -------------------------------------------------------------------------
+    // 回执 / 个人资料
+    // -------------------------------------------------------------------------
 
-        return if (existingFile != null) {
-            fileReferenceManager.retain(existingFile.localPath, checksum)
-            messageDao.update(message.id) { it.copy(localPath = existingFile.localPath) }
-            privateFileManager.deleteFile(file.absolutePath)
-            File(existingFile.localPath)
-        } else {
-            fileReferenceManager.retain(file.absolutePath, checksum)
-            file
-        }
-    }
-
-    /**
-     * 构建已签名的媒体消息元数据
-     */
-    private fun buildSignedMetadata(
-        message: MessageEntity,
-        targetFile: File,
-        checksum: String
-    ): ChatProtocol.MediaMessage {
-        val unsigned = ChatProtocol.MediaMessage(
-            messageId = message.id,
-            senderId = message.senderId,
-            receiverId = message.receiverId,
-            signature = "",
-            messageType = message.contentType,
-            content = message.content,
-            extension = message.localPath?.extractExtension(),
-            fileSize = targetFile.length(),
-            checksum = checksum,
-            mediaDuration = message.mediaDuration,
-            timestamp = message.timestamp
-        )
-        val signature = packetSigner.sign(unsigned, localIdentity.getPrivateKey())
-        return unsigned.copy(signature = signature)
-    }
-
-    /**
-     * 发送回执消息
-     */
     suspend fun sendReceipt(messageId: String, receiverId: String, type: ReceiptType) {
         val protocol = ChatProtocol.MessageReceipt(
             messageId = messageId,
@@ -319,20 +279,14 @@ class MessageSender @Inject constructor(
         )
         val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
 
-        val packet = Packet(
-            PacketType.RECEIPT,
-            serializeChatProtocol(protocol.copy(signature = signature))
-        )
-
-        transport.send(receiverId, packet)
-            .onFailure {
-                Log.w(TAG, "回执发送失败: $receiverId")
-            }
+        transport.send(
+            receiverId,
+            Packet(PacketType.RECEIPT, serializeChatProtocol(protocol.copy(signature = signature)))
+        ).onFailure {
+            Log.w(TAG, "回执发送失败: $receiverId")
+        }
     }
 
-    /**
-     * 发送个人资料给对方
-     */
     suspend fun sendProfile(userId: String) {
         val profile = profileRepository.requireProfile()
 
@@ -351,15 +305,20 @@ class MessageSender @Inject constructor(
         )
         val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
 
-        val packet = Packet(
-            type = PacketType.PROFILE_RESPONSE,
-            body = json.encodeToString<ChatProtocol>(
-                protocol.copy(signature = signature)
-            ).toByteArray(Charsets.UTF_8)
+        transport.send(
+            userId,
+            Packet(
+                type = PacketType.PROFILE_RESPONSE,
+                body = json.encodeToString<ChatProtocol>(
+                    protocol.copy(signature = signature)
+                ).toByteArray(Charsets.UTF_8)
+            )
         )
-
-        transport.send(userId, packet)
     }
+
+    // -------------------------------------------------------------------------
+    // 内部工具
+    // -------------------------------------------------------------------------
 
     private suspend fun sendFileChunks(
         writer: EncryptingPacketWriter,
@@ -367,33 +326,30 @@ class MessageSender @Inject constructor(
         messageId: String,
         offset: Long = 0
     ) {
-        streamFileChunks(file, file.length(), messageId, offset) { chunk ->
-            writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, chunk))
+        streamFileChunks(file, file.length(), messageId, offset) { encodedChunk ->
+            writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, encodedChunk))
         }
     }
 
     /**
-     * 流式读文件，按 chunk 回调
+     * 流式读文件，将每个分片通过 [FileChunkCodec.encode] 打包后回调
      */
     private suspend inline fun streamFileChunks(
         file: File,
         fileSize: Long,
         messageId: String,
         offset: Long = 0,
-        crossinline onChunk: (ByteArray) -> Unit
+        crossinline onChunk: suspend (ByteArray) -> Unit
     ) = withContext(Dispatchers.IO) {
         FileChannel.open(file.toPath(), StandardOpenOption.READ).use { channel ->
-            // 断点续传：跳过已传输的字节
-            if (offset > 0) {
-                channel.position(offset)
-            }
+            if (offset > 0) channel.position(offset)
 
             val buffer = ByteBuffer.allocate(fileChunkSize)
             var totalSent = offset
             var lastReportedAt = offset
 
             while (true) {
-                // 检测暂停：如果已暂停则挂起，直到恢复或取消
+                // 检测暂停
                 transferManager.awaitIfPaused(messageId)
 
                 // 检测取消
@@ -402,17 +358,13 @@ class MessageSender @Inject constructor(
                     throw CancellationException("已取消发送")
                 }
 
-                // 直接读取到 ByteBuffer
                 buffer.clear()
                 val bytesRead = channel.read(buffer)
                 if (bytesRead <= 0) break
 
-                // 只拷贝实际读取到的长度
                 buffer.flip()
-                val chunk = ByteArray(buffer.remaining())
-                buffer.get(chunk)
-
-                onChunk(chunk)
+                val rawChunk = ByteArray(buffer.remaining()).also { buffer.get(it) }
+                onChunk(FileChunkCodec.encode(messageId, rawChunk))
 
                 totalSent += bytesRead
                 if (fileSize > 0 && totalSent - lastReportedAt >= progressInterval) {
@@ -421,7 +373,6 @@ class MessageSender @Inject constructor(
                 }
             }
 
-            // 最后一次进度更新
             if (totalSent > lastReportedAt) {
                 updateProgress(messageId, totalSent)
             }
@@ -462,18 +413,14 @@ class MessageSender @Inject constructor(
         receiverId: String,
         error: Throwable
     ) {
-        val failReason = if (error is ConnectionException) {
-            error.failReason
-        } else {
-            if (error is CancellationException) {
-                SendError.Cancelled
-            } else {
-                SendError.Unknown
-            }
+        val failReason = when (error) {
+            is ConnectionException -> error.failReason
+            is CancellationException -> SendError.Cancelled
+            else -> SendError.Unknown
         }
 
         database.withTransaction {
-            // 更新状态
+            // 更新消息状态
             messageDao.update(messageId) { message ->
                 message.copy(
                     sendStatus = SendStatus.Failed,
@@ -489,6 +436,32 @@ class MessageSender @Inject constructor(
         // 标记为离线
         if (error !is CancellationException) {
             connectionInfoDao.markOffline(receiverId)
+        }
+    }
+
+    /**
+     * 文件去重：checksum 已存在则复用原文件，否则注册新文件
+     * 返回实际用于传输的目标文件
+     */
+    private suspend fun resolveTargetFile(
+        message: MessageEntity,
+        file: File,
+        checksum: String
+    ): File {
+        val existingFile = mediaFileDao.getByChecksum(checksum)
+
+        return if (existingFile != null) {
+            if (existingFile.localPath == file.absolutePath) {
+                return file
+            }
+
+            fileReferenceManager.retain(existingFile.localPath, checksum)
+            messageDao.update(message.id) { it.copy(localPath = existingFile.localPath) }
+            privateFileManager.deleteFile(file.absolutePath)
+            File(existingFile.localPath)
+        } else {
+            fileReferenceManager.retain(file.absolutePath, checksum)
+            file
         }
     }
 

@@ -30,9 +30,9 @@ fun MessageType.getFileConfig(): FileConfig {
 /**
  * 生成文件名
  *
- * @param prefix 文件前缀（如 IMG, VID）
- * @param extension 文件扩展名（会自动去除前导点）
- * @param timestamp 时间戳（默认当前时间）
+ * @param prefix 文件前缀
+ * @param extension 文件扩展名
+ * @param timestamp 时间戳
  */
 fun generateFileName(
     prefix: String,

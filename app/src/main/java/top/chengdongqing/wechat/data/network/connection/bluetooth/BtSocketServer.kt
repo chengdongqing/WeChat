@@ -12,8 +12,10 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.connection.PeerHandshakeHandler
@@ -100,6 +102,7 @@ class BtSocketServer @Inject constructor(
                 reader = reader,
                 writer = writer,
                 isActiveProvider = { socket.isConnected },
+                maxConcurrentTransfers = Semaphore(TransferConfig.CONCURRENT_TRANSFERS_BT),
                 closeAction = { socket.close() },
             )
 

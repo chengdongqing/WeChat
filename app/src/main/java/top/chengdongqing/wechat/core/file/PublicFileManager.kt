@@ -23,13 +23,6 @@ import javax.inject.Singleton
 
 /**
  * 系统 MediaStore 文件管理器
- *
- * 职责：
- * - 根据 MessageType 自动路由到对应 MediaStore 集合
- * - 图片/视频 → 相册（Pictures/Movies）
- * - 音频 → 音乐库（Music）
- * - 其他文件 → 下载目录（Downloads）
- * - 管理 IS_PENDING 状态，确保写入原子性
  */
 @Singleton
 class PublicFileManager @Inject constructor(
@@ -47,12 +40,6 @@ class PublicFileManager @Inject constructor(
 
     /**
      * 保存媒体文件到 MediaStore（从 Uri）
-     *
-     * 根据 [messageType] 自动选择目标集合和目录：
-     * - Image  → MediaStore.Images  / Pictures/<AppName>
-     * - Video  → MediaStore.Video   / Movies/<AppName>
-     * - Voice  → MediaStore.Voice   / Music/<AppName>
-     * - File   → MediaStore.Downloads / Downloads/<AppName>
      *
      * @param messageType 消息类型，决定写入哪个 MediaStore 集合
      * @param sourceUri   源文件 Uri（content:// 或 file://）
@@ -92,10 +79,6 @@ class PublicFileManager @Inject constructor(
             .getOrNull()
     }
 
-    // ----------------------------------------------------------------
-    // 核心写入逻辑
-    // ----------------------------------------------------------------
-
     /**
      * 向 MediaStore 写入文件（IS_PENDING 保护）
      *
@@ -128,10 +111,6 @@ class PublicFileManager @Inject constructor(
             null
         }
     }
-
-    // ----------------------------------------------------------------
-    // 配置解析
-    // ----------------------------------------------------------------
 
     /**
      * 根据 MessageType 解析 MediaStore 写入配置
@@ -214,10 +193,6 @@ class PublicFileManager @Inject constructor(
         }
     }
 
-    // ----------------------------------------------------------------
-    // ContentValues 构建
-    // ----------------------------------------------------------------
-
     /**
      * 通用 ContentValues（图片/视频/音频）
      */
@@ -259,10 +234,6 @@ class PublicFileManager @Inject constructor(
             put(MediaStore.MediaColumns.DATA, "${targetDir.absolutePath}/$displayName")
         }
     }
-
-    // ----------------------------------------------------------------
-    // 工具方法
-    // ----------------------------------------------------------------
 
     private fun getDownloadsCollectionUri(): Uri =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

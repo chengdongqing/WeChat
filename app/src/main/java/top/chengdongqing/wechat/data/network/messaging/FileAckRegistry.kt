@@ -10,11 +10,6 @@ import javax.inject.Singleton
 
 /**
  * 文件元数据 ACK 等待注册表
- *
- * 发送方发出 FILE_META 后，通过 [awaitAck] 挂起等待接收方回复；
- * 本机 MessageReceiver 收到 FILE_META_ACK 包后，调用 [complete] 唤醒等待协程。
- *
- * 内部使用 CompletableDeferred 实现挂起/恢复桥接。
  */
 @Singleton
 class FileAckRegistry @Inject constructor() {
@@ -46,8 +41,6 @@ class FileAckRegistry @Inject constructor() {
 
     /**
      * 完成指定 messageId 的等待，唤醒发送方协程
-     *
-     * 由 MessageReceiver 在收到 FILE_META_ACK 包时调用
      */
     fun complete(messageId: String, ack: FileMetaAck) {
         val deferred = pending[messageId]

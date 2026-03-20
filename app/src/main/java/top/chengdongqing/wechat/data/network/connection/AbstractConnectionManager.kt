@@ -7,6 +7,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.model.SendError
@@ -23,8 +24,6 @@ import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 连接管理器基类
- *
- * 提供连接池维护、收发消息、心跳等通用能力。
  */
 abstract class AbstractConnectionManager(
     protected open val e2e: E2ESessionManager,
@@ -77,12 +76,17 @@ abstract class AbstractConnectionManager(
     suspend fun emitEvent(event: ConnectionEvent) = _connectionEvents.emit(event)
 
     /**
-     * 发送文本消息
+     * 发送单个 Packet（控制包、文本消息等）。
+     *
+     * 通过 [PeerConnection.writeMutex] 保证写操作原子，不会与并发的文件分片交织。
      */
     suspend fun send(userId: String, packet: Packet): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val conn = requireConnection(userId)
-            conn.writer.write(e2e.encryptPacket(userId, packet))
+            val encrypted = e2e.encryptPacket(userId, packet)
+            conn.writeMutex.withLock {
+                conn.writer.write(encrypted)
+            }
             // 有消息往来，重置空闲计时
             conn.lastPongTime.set(System.currentTimeMillis())
         }.onFailure {
@@ -92,21 +96,40 @@ abstract class AbstractConnectionManager(
     }
 
     /**
-     * 发送文件消息
+     * 并发文件传输入口。
+     *
+     * - 通过 [PeerConnection.maxConcurrentTransfers] 限制同一连接的并发传输上限。
+     *   超出上限的协程会挂起等待，直到有槽位释放。
+     * - [block] 内部通过 [EncryptingPacketWriter] 写入分片；写入时自动持有
+     *   [PeerConnection.writeMutex]，保证字节不与其他并发传输交织。
+     * - 最终 flush 同样在锁内完成，确保缓冲区数据完整地提交到 Socket。
+     *
+     * @param userId 目标用户
+     * @param block  传输逻辑，通过传入的 [EncryptingPacketWriter] 写包
      */
     suspend fun sendAtomicTransfer(
         userId: String,
         block: suspend (EncryptingPacketWriter) -> Unit
     ): Result<Unit> = withContext(Dispatchers.IO) {
         val conn = requireConnection(userId)
-        conn.transferMutex.lock()
+
+        // 获取并发槽位（超限则挂起等待）
+        conn.maxConcurrentTransfers.acquire()
         conn.incrementTransferCount()
+
         try {
-            block(EncryptingPacketWriter(conn.writer, userId, e2e))
-            conn.writer.flush()
+            // writeMutex 注入 writer，每次 writeNoFlush 内部自动加锁
+            val writer = EncryptingPacketWriter(conn.writer, userId, e2e, conn.writeMutex)
+            block(writer)
+
+            // 本次传输完毕后 flush，在锁内保证原子提交
+            conn.writeMutex.withLock {
+                conn.writer.flush()
+            }
+
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(tag, "原子传输失败: $userId", e)
+            Log.e(tag, "文件传输失败: $userId", e)
             // 非用户主动取消才需要断开连接
             if (e !is CancellationException) {
                 disconnect(userId)
@@ -114,7 +137,7 @@ abstract class AbstractConnectionManager(
             Result.failure(e)
         } finally {
             conn.decrementTransferCount()
-            conn.transferMutex.unlock()
+            conn.maxConcurrentTransfers.release()   // 无论成败都释放槽位
         }
     }
 
@@ -141,6 +164,7 @@ abstract class AbstractConnectionManager(
             try {
                 while (conn.isActive) {
                     delay(TransferConfig.PING_INTERVAL)
+                    // 有文件传输时跳过心跳发送，但仍检测超时
                     if (conn.activeTransferCount.get() > 0) continue
 
                     val lastSeen = conn.lastPongTime.get()
@@ -156,14 +180,13 @@ abstract class AbstractConnectionManager(
                     }
 
                     runCatching {
-                        // 携带个人资料版本号
                         val profileVersion = profileRepository.requireProfile().updatedAt
-                        conn.writer.write(Packet.ping(profileVersion))
+                        // Ping 也走 writeMutex，避免和传输分片交织
+                        conn.writeMutex.withLock {
+                            conn.writer.write(Packet.ping(profileVersion))
+                        }
                     }.onFailure {
-                        throw ConnectionException(
-                            "Ping 失败",
-                            SendError.ConnectionFailed
-                        )
+                        throw ConnectionException("Ping 失败", SendError.ConnectionFailed)
                     }
                 }
             } catch (_: Exception) {
@@ -187,8 +210,10 @@ abstract class AbstractConnectionManager(
                     when (packet.type) {
                         PacketType.PING -> {
                             // 回应心跳
-                            conn.writer.write(Packet.pong())
-                            // 检查对方的资料是否需要更新
+                            conn.writeMutex.withLock {
+                                conn.writer.write(Packet.pong())
+                            }
+                            // 检查对方的个人资料是否需要更新
                             checkProfileVersion(userId, packet)
                         }
 
@@ -216,7 +241,7 @@ abstract class AbstractConnectionManager(
 
         val contact = contactRepository.getContact(userId) ?: return
         if (remoteProfileVersion > contact.version) {
-            // 发送拉取个人资料请求
+            // 发送拉取对方个人资料请求
             send(
                 userId = userId,
                 packet = Packet(PacketType.PROFILE_REQUEST)

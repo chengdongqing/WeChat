@@ -75,4 +75,10 @@ object TransferConfig {
      */
     const val PROGRESS_REPORT_INTERVAL = 1024 * 1024L   // 1MB
     const val PROGRESS_REPORT_INTERVAL_BT = 1024 * 64L  // 64KB (蓝牙模式下)
+
+    /**
+     * 文件并发传输数量限制
+     */
+    const val CONCURRENT_TRANSFERS = 3
+    const val CONCURRENT_TRANSFERS_BT = 1
 }

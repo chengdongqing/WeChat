@@ -85,7 +85,7 @@ class MessageReceiver @Inject constructor(
     }
 
     /**
-     * 监听数据
+     * 开始监听数据
      */
     private fun startListening(conn: PeerConnection) {
         val userId = conn.userId
@@ -98,7 +98,8 @@ class MessageReceiver @Inject constructor(
             } catch (e: Exception) {
                 Log.e(TAG, "消费异常: $userId", e)
             } finally {
-                cleanupReceiveContext(userId)
+                // 连接断开时清理该用户所有未完成的接收上下文
+                cleanupReceiveContextsByUser(userId)
                 Log.w(TAG, "连接已关闭: $userId")
             }
         }
@@ -111,7 +112,7 @@ class MessageReceiver @Inject constructor(
         try {
             when (packet.type) {
                 PacketType.FILE_META -> handleFileMeta(userId, packet.body)
-                PacketType.FILE_CHUNK -> handleFileChunk(userId, packet.body)
+                PacketType.FILE_CHUNK -> handleFileChunk(packet.body)
 
                 PacketType.FILE_META_ACK -> handleFileMetaAck(packet.body)
                 PacketType.FILE_CANCEL -> handleFileCancel(packet.body)
@@ -130,9 +131,6 @@ class MessageReceiver @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "处理 Packet 失败 (userId=$userId, type=${packet.type})", e)
-            if (packet.type == PacketType.FILE_CHUNK) {
-                cleanupReceiveContext(userId)
-            }
         }
     }
 
@@ -143,11 +141,13 @@ class MessageReceiver @Inject constructor(
         val protocol = json.decodeFromString<ChatProtocol>(String(packet.body, Charsets.UTF_8))
 
         when {
-            protocol is ChatProtocol.MessageReceipt -> Unit // 回执消息不判断
-            // 判断是否处理此消息（拉黑、不是好友、签名校验等）
+            // 回执消息不判断
+            protocol is ChatProtocol.MessageReceipt -> Unit
+            // 权限校验
             !permissionChecker.checkAndReply(userId, protocol) -> return
         }
 
+        // 将消息分发下去
         messageDispatcher.dispatch(protocol)
     }
 
@@ -155,18 +155,22 @@ class MessageReceiver @Inject constructor(
      * 处理文件元数据包
      */
     private suspend fun handleFileMeta(userId: String, body: ByteArray) {
-        // 清理该用户上一个未完成的传输状态
-        cleanupReceiveContext(userId)
-
         val metadata = json.decodeFromString<ChatProtocol.MediaMessage>(
             String(body, Charsets.UTF_8)
         )
+
+        // 同一 messageId 重传时，清理旧上下文（正常流程不会触发）
+        receiveContexts.remove(metadata.messageId)?.let { stale ->
+            Log.w(TAG, "收到重复 FILE_META，清理旧上下文: ${metadata.messageId}")
+            if (!stale.isLargeFile) stale.cleanup() else stale.state.closeSession()
+        }
 
         // 权限校验
         if (!permissionChecker.checkAndReply(metadata.senderId, metadata)) {
             return
         }
 
+        // 达到指定阈值时走大文件分片传输，否则走小文件直传
         if (metadata.fileSize < TransferConfig.CHUNK_TRANSFER_THRESHOLD) {
             handleSmallFileMeta(userId, metadata)
         } else {
@@ -175,43 +179,33 @@ class MessageReceiver @Inject constructor(
     }
 
     /**
-     * 小文件：不发 ACK，直接准备接收
-     *
-     * 创建临时文件 + BufferedOutputStream，等 FILE_CHUNK 追加写入。
+     * 小文件：不发 ACK，创建临时文件 + BufferedOutputStream 等待 CHUNK 追加
      */
-    private suspend fun handleSmallFileMeta(userId: String, metadata: ChatProtocol.MediaMessage) =
-        withContext(Dispatchers.IO) {
-            val tempFile = File(context.cacheDir, "recv_${metadata.messageId}.tmp")
-            val outputStream = BufferedOutputStream(FileOutputStream(tempFile), DISK_WRITE_BUFFER)
+    private suspend fun handleSmallFileMeta(
+        userId: String,
+        metadata: ChatProtocol.MediaMessage
+    ) = withContext(Dispatchers.IO) {
+        val tempFile = File(context.cacheDir, "recv_${metadata.messageId}.tmp")
+        val outputStream = BufferedOutputStream(FileOutputStream(tempFile), DISK_WRITE_BUFFER)
 
-            receiveContexts[userId] = ReceiveContext(
-                state = MediaReceiveState(metadata = metadata),
-                isLargeFile = false,
-                tempFile = tempFile,
-                outputStream = outputStream
-            )
-
-            Log.d(TAG, "开始接收小文件: messageId=${metadata.messageId}, 大小=${metadata.fileSize}")
-        }
+        receiveContexts[metadata.messageId] = ReceiveContext(
+            userId = userId,
+            state = ReceiveState(metadata = metadata),
+            isLargeFile = false,
+            tempFile = tempFile,
+            outputStream = outputStream
+        )
+    }
 
     /**
-     * 大文件：走协商流程
-     *
-     * 1. checksum 查重 → 已存在则直接入库，回 AlreadyExists
-     * 2. 查分片目录 → 有未完成的分片则回 ResumeFrom(offset)
-     * 3. 初始化分片目录，回 ReadyToReceive
-     * 4. 创建 Receiving 状态的消息占位（UI 展示进度）
+     * 大文件：走协商流程（秒传 / 断点续传 / 全新传输）
      */
     private suspend fun handleLargeFileMeta(userId: String, metadata: ChatProtocol.MediaMessage) {
-        // 哈希查重，已存在则直接成功
+        // 判断是否可以秒传
         val existingFile = mediaFileDao.getByChecksum(metadata.checksum)
         if (existingFile != null) {
-            Log.d(TAG, "文件已存在，跳过传输: ${metadata.messageId}")
             fileReferenceManager.retain(existingFile.localPath, metadata.checksum)
-
-            // 直接分发
             messageDispatcher.dispatchExistingMedia(metadata, existingFile.localPath)
-
             sendFileMetaAck(userId, metadata.messageId, FileAckStatus.AlreadyExists)
             return
         }
@@ -221,21 +215,13 @@ class MessageReceiver @Inject constructor(
         val receivedBytes = existingMessage?.sentBytes ?: 0L
         val hasPendingFile = chunkStorageManager.hasPendingTransfer(metadata.messageId)
 
+        // 判断是否可以断点续传
         if (receivedBytes > 0 && hasPendingFile && receivedBytes < metadata.fileSize) {
-            Log.d(
-                TAG,
-                "断点续传: ${metadata.messageId}, 已接收=$receivedBytes/${metadata.fileSize}"
-            )
-
-            // 打开已有文件的写入会话，定位到续传位置
-            val writeSession = chunkStorageManager.resumeTransfer(
-                metadata.messageId,
-                receivedBytes
-            )
-
+            val writeSession = chunkStorageManager.resumeTransfer(metadata.messageId, receivedBytes)
             if (writeSession != null) {
-                receiveContexts[userId] = ReceiveContext(
-                    state = MediaReceiveState(
+                receiveContexts[metadata.messageId] = ReceiveContext(
+                    userId = userId,
+                    state = ReceiveState(
                         metadata = metadata,
                         receivedBytes = receivedBytes,
                         lastReportedAt = receivedBytes,
@@ -249,25 +235,19 @@ class MessageReceiver @Inject constructor(
                 return
             }
 
-            // 打开失败，当作全新传输
             Log.w(TAG, "恢复写入会话失败，重新开始: ${metadata.messageId}")
             chunkStorageManager.cleanup(metadata.messageId)
         }
 
-        // 全新传输：预分配文件 + 打开写入会话
+        // 走全新传输
         val writeSession = chunkStorageManager.initTransfer(metadata)
-
-        receiveContexts[userId] = ReceiveContext(
-            state = MediaReceiveState(
-                metadata = metadata,
-                writeSession = writeSession
-            ),
+        receiveContexts[metadata.messageId] = ReceiveContext(
+            userId = userId,
+            state = ReceiveState(metadata = metadata, writeSession = writeSession),
             isLargeFile = true
         )
 
         messageDispatcher.createReceivingMessage(metadata)
-
-        Log.d(TAG, "开始接收大文件: messageId=${metadata.messageId}, 大小=${metadata.fileSize}")
 
         sendFileMetaAck(userId, metadata.messageId, FileAckStatus.ReadyToReceive)
     }
@@ -275,18 +255,25 @@ class MessageReceiver @Inject constructor(
     /**
      * 处理文件分片包
      *
-     * 每个分片写入独立文件，全部到齐后合并->校验->分发
+     * 不同文件的分片可以在同一连接上并发到达，各自路由到独立上下文，互不干扰
      */
-    private suspend fun handleFileChunk(userId: String, chunkData: ByteArray) {
-        val ctx = receiveContexts[userId] ?: run {
-            Log.w(TAG, "收到 FILE_CHUNK 但无对应 FILE_META (userId=$userId)")
+    private suspend fun handleFileChunk(body: ByteArray) {
+        val (messageId, chunkData) = try {
+            FileChunkCodec.decode(body)
+        } catch (e: IllegalArgumentException) {
+            Log.e(TAG, "FILE_CHUNK body 格式非法，丢弃", e)
+            return
+        }
+
+        val ctx = receiveContexts[messageId] ?: run {
+            Log.w(TAG, "收到 FILE_CHUNK 但无对应 FILE_META (messageId=$messageId)")
             return
         }
 
         if (ctx.isLargeFile) {
-            handleLargeFileChunk(userId, ctx, chunkData)
+            handleLargeFileChunk(messageId, ctx, chunkData)
         } else {
-            handleSmallFileChunk(userId, ctx, chunkData)
+            handleSmallFileChunk(messageId, ctx, chunkData)
         }
     }
 
@@ -294,7 +281,7 @@ class MessageReceiver @Inject constructor(
      * 小文件分片：追加写入同一个临时文件
      */
     private suspend fun handleSmallFileChunk(
-        userId: String,
+        messageId: String,
         ctx: ReceiveContext,
         chunkData: ByteArray
     ) = withContext(Dispatchers.IO) {
@@ -312,32 +299,32 @@ class MessageReceiver @Inject constructor(
 
         val tempFile = ctx.tempFile ?: return@withContext
 
-        // SHA256 校验
+        // 哈希值校验
         val actualChecksum = tempFile.toSHA256Hex()
         if (actualChecksum != state.metadata.checksum) {
             Log.e(
                 TAG,
-                "小文件校验失败 [${state.metadata.messageId}]: 期望=${state.metadata.checksum}, 实际=$actualChecksum"
+                "小文件校验失败 [$messageId]: 期望=${state.metadata.checksum}, 实际=$actualChecksum"
             )
             tempFile.delete()
-            receiveContexts.remove(userId)
+            receiveContexts.remove(messageId)
             return@withContext
         }
 
-        Log.d(TAG, "小文件接收完成: ${state.metadata}")
-
-        // 校验通过
+        // 校验通过，分发下去
         messageDispatcher.dispatch(state.metadata, tempFile)
-        receiveContexts.remove(userId)
+        receiveContexts.remove(messageId)
+
+        Log.d(TAG, "小文件接收完成: ${state.metadata}")
     }
 
     /**
      * 大文件分片：通过 WriteSession 直接 seek 写入预分配文件
      *
-     * 整个传输过程复用同一个 FileChannel 句柄，不反复开关。
+     * 整个传输过程复用同一个 FileChannel 句柄
      */
     private suspend fun handleLargeFileChunk(
-        userId: String,
+        messageId: String,
         ctx: ReceiveContext,
         chunkData: ByteArray
     ) = withContext(Dispatchers.IO) {
@@ -348,29 +335,23 @@ class MessageReceiver @Inject constructor(
         session.writeAtOffset(state.receivedBytes, chunkData)
         state.receivedBytes += chunkData.size
 
-        // 进度上报（节流）
+        // 进度上报
         if (state.receivedBytes - state.lastReportedAt >= progressInterval) {
             state.lastReportedAt = state.receivedBytes
-            messageDispatcher.updateReceiveProgress(
-                state.metadata.messageId,
-                state.receivedBytes
-            )
+            messageDispatcher.updateReceiveProgress(messageId, state.receivedBytes)
         }
 
         if (state.receivedBytes >= state.metadata.fileSize) {
             // 全部分片到齐 → 合并 → 校验 → 分发
-            onLargeFileComplete(userId, state)
+            onLargeFileComplete(messageId, state)
         }
     }
 
     /**
      * 大文件接收完成
-     *
-     * 关闭 WriteSession → SHA256 校验 → 分发 → 发送达回执
      */
-    private suspend fun onLargeFileComplete(userId: String, state: MediaReceiveState) {
+    private suspend fun onLargeFileComplete(messageId: String, state: ReceiveState) {
         val metadata = state.metadata
-        val messageId = metadata.messageId
 
         try {
             // 刷盘 + 关闭 FileChannel
@@ -390,16 +371,20 @@ class MessageReceiver @Inject constructor(
                     "大文件校验失败 [$messageId]: 期望=${metadata.checksum}, 实际=$actualChecksum"
                 )
                 chunkStorageManager.cleanup(messageId)
-                receiveContexts.remove(userId)
+                receiveContexts.remove(messageId)
+                messageDao.update(messageId) {
+                    it.copy(
+                        sendStatus = SendStatus.Failed,
+                        failReason = SendError.Unknown
+                    )
+                }
                 return
             }
 
-            // 分发（更新 Receiving → Delivered，持久化文件）
+            // 校验通过，分发下去
             messageDispatcher.dispatch(metadata, dataFile)
-
-            // 清理分片目录
             chunkStorageManager.cleanup(messageId)
-            receiveContexts.remove(userId)
+            receiveContexts.remove(messageId)
 
             // 发送送达回执
             scope.launch {
@@ -414,7 +399,7 @@ class MessageReceiver @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "大文件处理失败: $messageId", e)
             state.closeSession()
-            receiveContexts.remove(userId)
+            receiveContexts.remove(messageId)
         }
     }
 
@@ -423,7 +408,6 @@ class MessageReceiver @Inject constructor(
      */
     private fun handleFileMetaAck(body: ByteArray) {
         val ack = json.decodeFromString<FileMetaAck>(String(body, Charsets.UTF_8))
-        Log.d(TAG, "收到 FILE_META_ACK: messageId=${ack.messageId}, status=${ack.status}")
         fileAckRegistry.complete(ack.messageId, ack)
     }
 
@@ -440,12 +424,7 @@ class MessageReceiver @Inject constructor(
             transferManager.setCancelled(messageId)
         } else {
             // 清理接收状态
-            receiveContexts.entries
-                .find { it.value.state.metadata.messageId == messageId }
-                ?.let { entry ->
-                    entry.value.cleanup()
-                    receiveContexts.remove(entry.key)
-                }
+            receiveContexts.remove(messageId)?.cleanup()
             // 清理文件分片
             chunkStorageManager.cleanup(messageId)
         }
@@ -496,7 +475,7 @@ class MessageReceiver @Inject constructor(
                 transferManager.setResumed(messageId)
             } else {
                 transferManager.remove(messageId)
-                // 重启发送协程
+                // 重启发送协程（一般在app重启后）
                 scope.launch {
                     val file = File(message.localPath ?: return@launch)
                     messageSender.sendMediaMessage(message, file)
@@ -511,18 +490,6 @@ class MessageReceiver @Inject constructor(
         Log.d(TAG, "传输已恢复: $messageId")
     }
 
-    /**
-     * 从传输控制包的 body 中解析 messageId
-     */
-    private fun parseMessageId(body: ByteArray): String? {
-        return try {
-            val map = json.decodeFromString<Map<String, String>>(String(body, Charsets.UTF_8))
-            map["messageId"]
-        } catch (e: Exception) {
-            Log.e(TAG, "解析 messageId 失败", e)
-            null
-        }
-    }
 
     /**
      * 发送文件元数据 ACK 给对方
@@ -541,30 +508,46 @@ class MessageReceiver @Inject constructor(
             receivedBytes = receivedBytes
         )
 
-        val packet = Packet(
-            type = PacketType.FILE_META_ACK,
-            body = json.encodeToString(ack).toByteArray(Charsets.UTF_8)
-        )
-
-        transport.send(receiverId, packet)
-            .onFailure {
-                Log.e(TAG, "发送 FILE_META_ACK 失败：$receiverId", it)
-            }
+        transport.send(
+            receiverId,
+            Packet(
+                type = PacketType.FILE_META_ACK,
+                body = json.encodeToString(ack).toByteArray(Charsets.UTF_8)
+            )
+        ).onFailure {
+            Log.e(TAG, "发送 FILE_META_ACK 失败：$receiverId", it)
+        }
     }
 
     /**
-     * 清理未完成的媒体接收状态，关闭流并删除临时文件
+     * 清理指定用户的所有未完成接收上下文
      */
-    private fun cleanupReceiveContext(userId: String) {
-        receiveContexts.remove(userId)?.let { ctx ->
+    private fun cleanupReceiveContextsByUser(userId: String) {
+        val iterator = receiveContexts.entries.iterator()
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            if (entry.value.userId != userId) continue
+
+            val ctx = entry.value
+            iterator.remove()
+
             if (!ctx.isLargeFile) {
                 // 小文件：清理临时文件
                 ctx.cleanup()
             } else {
-                // 大文件：只关 FileChannel，保留数据文件用于断点续传
+                // 大文件：保留数据文件，用于断点续传
                 ctx.state.closeSession()
             }
-            Log.w(TAG, "已清理接收上下文: messageId=${ctx.state.metadata.messageId}")
+        }
+    }
+
+    private fun parseMessageId(body: ByteArray): String? {
+        return try {
+            val map = json.decodeFromString<Map<String, String>>(String(body, Charsets.UTF_8))
+            map["messageId"]
+        } catch (e: Exception) {
+            Log.e(TAG, "解析 messageId 失败", e)
+            null
         }
     }
 
@@ -573,24 +556,4 @@ class MessageReceiver @Inject constructor(
             ConnectionMode.Bluetooth -> TransferConfig.PROGRESS_REPORT_INTERVAL_BT
             else -> TransferConfig.PROGRESS_REPORT_INTERVAL
         }
-}
-
-/**
- * 媒体接收状态
- */
-private data class ReceiveContext(
-    val state: MediaReceiveState,
-    val isLargeFile: Boolean,
-    /** 小文件用：临时文件 */
-    val tempFile: File? = null,
-    /** 小文件用：写入流 */
-    val outputStream: BufferedOutputStream? = null
-) {
-    fun cleanup() {
-        // 小文件：关闭流 + 删除临时文件
-        runCatching { outputStream?.close() }
-        runCatching { tempFile?.delete() }
-        // 大文件：关闭 FileChannel
-        state.closeSession()
-    }
 }

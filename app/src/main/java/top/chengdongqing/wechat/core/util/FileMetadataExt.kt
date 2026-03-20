@@ -158,17 +158,3 @@ private fun Context.getCorrectedDimensions(
         width to height
     }
 }
-
-/**
- * 获取文件名（从 Uri）
- */
-fun Context.getFileName(uri: Uri): String {
-    var name = "FILE_${System.currentTimeMillis()}"
-    contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-        val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-        if (cursor.moveToFirst() && index >= 0) {
-            name = cursor.getString(index) ?: name
-        }
-    }
-    return name
-}
