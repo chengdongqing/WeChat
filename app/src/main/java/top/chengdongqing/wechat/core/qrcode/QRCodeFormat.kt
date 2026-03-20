@@ -8,7 +8,7 @@ object QRCodeFormat {
 
     /**
      * 生成添加好友的二维码内容
-     * 格式: https://wechat.local/add/(base64)
+     * 格式: https://wechat.local/u/(base64)
      */
     fun generateAddFriendQRCode(beaconBase64: String): String {
         return "https://$APP_DOMAIN/u/$beaconBase64"

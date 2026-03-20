@@ -33,16 +33,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Business logic for the "Add Friend via BLE" feature.
- *
- * All BLE mechanics are delegated to [BLEServer] (server role) and
- * [top.chengdongqing.wechat.data.network.ble.BLEConnectionManager] (client role).
- *
- * Responsibilities of this class:
- *  1. Start / stop advertising (delegate to [BLEServer])
- *  2. Push own profile to a newly-subscribed remote client
- *  3. Reassemble multi-chunk incoming messages per device
- *  4. Decode [FriendProtocol] and emit [FriendEvent]s
+ * 基于 BLE 蓝牙的加好友模块
  */
 @Singleton
 class BLEAddFriendModule @Inject constructor(
@@ -63,10 +54,10 @@ class BLEAddFriendModule @Inject constructor(
     val friendEvents: Flow<FriendEvent> = _friendEvents.asSharedFlow()
 
     /**
-     * Per-device reassembly buffers keyed by MAC address.
+     * 各设备的分片重组缓冲区，以 MAC 地址为 key。
      *
-     * A device that connects and sends packets but never sends END will accumulate
-     * data here until it disconnects (cleaned up via [BLEServer.disconnections]).
+     * 若设备连接后持续发包但始终未发 END，数据将一直积压在此，
+     * 直到设备断开连接时由 [BLEServer.disconnections] 触发清理。
      */
     private val messageBuffers = ConcurrentHashMap<String, IncomingBuffer>()
 
@@ -97,15 +88,15 @@ class BLEAddFriendModule @Inject constructor(
 
     private fun observeServerEvents() {
         observerJob = scope.launch {
-            // Reassemble incoming BlePacket chunks into complete FriendProtocol messages
+            // 将收到的 BLEPacket 分片重组为完整的 FriendProtocol 消息
             launch {
                 server.packets.collect { event -> handleIncomingPacket(event) }
             }
-            // A remote client subscribed to notifications → push our profile to them
+            // 远端客户端订阅通知时，主动推送本机资料
             launch {
                 server.subscriptions.collect { device -> sendProfileToDevice(device) }
             }
-            // Remote client disconnected → discard its incomplete buffer
+            // 远端客户端断开连接时，丢弃其未完成的缓冲区
             launch {
                 server.disconnections.collect { device ->
                     messageBuffers.remove(device.address)
@@ -126,7 +117,6 @@ class BLEAddFriendModule @Inject constructor(
                 messageBuffers.remove(device.address)
                 processCompleteMessage(buffer)
             }
-
             else -> Log.w(TAG, "未知 packet type: ${packet.type}")
         }
     }
@@ -138,9 +128,8 @@ class BLEAddFriendModule @Inject constructor(
         }.onFailure {
             Log.e(TAG, "FriendProtocol 解析失败", it)
         }.getOrNull() ?: return
-        val binary = buffer.binaryBuffer.toByteArray().takeIf {
-            it.isNotEmpty()
-        }
+
+        val binary = buffer.binaryBuffer.toByteArray().takeIf { it.isNotEmpty() }
 
         when (message) {
             is FriendProtocol.FriendRequest -> handleFriendRequest(message, binary)
@@ -154,10 +143,10 @@ class BLEAddFriendModule @Inject constructor(
     ) {
         friendRequestRepository.handleIncomingRequest(message, binary)
 
-        // 查询该用户是否已是好友
+        // 判断对方是否已在通讯录中
         val exists = contactRepository.exists(message.userId)
 
-        // 发送通知的情况：1.开启了好友验证 2.不在通讯录
+        // 满足以下两个条件时推送通知：1. 开启了好友验证；2. 对方不在通讯录
         if (!exists && friendVerifyEnabled()) {
             _friendEvents.emit(FriendEvent.FriendRequest(message.nickname, message.greeting))
         }
@@ -165,8 +154,6 @@ class BLEAddFriendModule @Inject constructor(
 
     private suspend fun handleFriendResponse(message: FriendProtocol.FriendResponse) {
         friendRequestRepository.handleRequestResponse(message)
-
-        // 发送通知
         _friendEvents.emit(FriendEvent.FriendResponse(message.result))
     }
 
@@ -179,15 +166,15 @@ class BLEAddFriendModule @Inject constructor(
                 val jsonBytes = json.encodeToString(profile.toBeacon(avatarBytes))
                     .toByteArray(Charsets.UTF_8)
 
-                // JSON chunks
+                // 发送 JSON 分片
                 jsonBytes.forEachPacket(BLEPacketType.JSON) { packet ->
                     server.sendPacket(device, packet)
                 }
-                // Binary (avatar) chunks
+                // 发送头像二进制分片
                 avatarBytes?.forEachPacket(BLEPacketType.BINARY) { packet ->
                     server.sendPacket(device, packet)
                 }
-                // Signal end of transfer
+                // 发送结束标志
                 server.sendPacket(device, BLEPacket.end())
 
                 Log.d(TAG, "资料已推送: ${device.address}")
@@ -210,8 +197,8 @@ class BLEAddFriendModule @Inject constructor(
 }
 
 /**
- * Iterates over [BLEConfig.MAX_PACKET_BODY]-byte chunks of this [ByteArray], wrapping each
- * in a [BLEPacket] of [type] and invoking [action] for each.
+ * 将 [ByteArray] 按 [BLEConfig.MAX_PACKET_BODY] 大小分片，
+ * 每片封装为指定 [type] 的 [BLEPacket] 后通过 [action] 回调。
  */
 private inline fun ByteArray.forEachPacket(
     type: Byte,
@@ -226,8 +213,8 @@ private inline fun ByteArray.forEachPacket(
 }
 
 /**
- * Holds per-device JSON and binary reassembly buffers.
- * Discarded when the device sends END or disconnects.
+ * 单个设备的消息重组缓冲区，分别存储 JSON 和二进制数据。
+ * 设备发送 END 包或断开连接时丢弃。
  */
 private class IncomingBuffer {
     val jsonBuffer = ByteArrayOutputStream()
