@@ -30,9 +30,9 @@ fun SplashScreen(
         delay(500)
 
         when (startupState) {
-            is StartupState.ReadyForHome -> onNavigateToHome()
-            is StartupState.NeedSetup -> onNavigateToWelcome()
-            else -> {}
+            StartupState.ReadyForHome -> onNavigateToHome()
+            StartupState.NeedSetup -> onNavigateToWelcome()
+            else -> Unit
         }
     }
 

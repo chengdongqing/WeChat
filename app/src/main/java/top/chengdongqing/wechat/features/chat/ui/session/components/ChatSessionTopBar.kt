@@ -134,7 +134,7 @@ private fun ChatSessionTitle(
                     tint = WeTheme.colorScheme.textSecondary
                 )
             }
-            if (!uiState.isSelf) {
+            if (uiState.isSelf == false) {
                 // 加密锁图标
                 if (isE2EActive) {
                     Icon(

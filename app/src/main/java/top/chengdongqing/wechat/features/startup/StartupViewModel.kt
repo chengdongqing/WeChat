@@ -11,15 +11,10 @@ import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepos
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 import javax.inject.Inject
 
-sealed class StartupState {
-    /** 检查中 */
-    object Checking : StartupState()
-
-    /** 需要查看欢迎页和设置资料 */
-    object NeedSetup : StartupState()
-
-    /** 已设置资料，准备进入主页 */
-    object ReadyForHome : StartupState()
+enum class StartupState {
+    Checking, // 检查中
+    NeedSetup, // 需要设置资料
+    ReadyForHome // 已设置资料，准备进入主页
 }
 
 @HiltViewModel
@@ -28,7 +23,7 @@ class StartupViewModel @Inject constructor(
     private val chatSessionRepository: ChatSessionRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow<StartupState>(StartupState.Checking)
+    private val _state = MutableStateFlow(StartupState.Checking)
     val state: StateFlow<StartupState> = _state.asStateFlow()
 
     init {
@@ -40,16 +35,18 @@ class StartupViewModel @Inject constructor(
      */
     private fun checkStartupState() {
         viewModelScope.launch {
-            try {
+            runCatching {
+                // 数据库预热
                 chatSessionRepository.preload()
-                val hasProfile = profileRepository.hasProfile()
+                // 判断是否有个人资料
+                val hasSetup = profileRepository.getProfile() != null
 
-                _state.value = if (hasProfile) {
+                _state.value = if (hasSetup) {
                     StartupState.ReadyForHome
                 } else {
                     StartupState.NeedSetup
                 }
-            } catch (_: Exception) {
+            }.onFailure {
                 // 出错时默认进入欢迎页
                 _state.value = StartupState.NeedSetup
             }

@@ -17,7 +17,7 @@ data class ChatSessionUiState(
     val peerAvatar: String? = null,
     val myId: String? = null,
     val myAvatar: String? = null,
-    val isSelf: Boolean = false,
+    val isSelf: Boolean? = null,
     val isFullscreenLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
     val hasMoreMessages: Boolean = true,

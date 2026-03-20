@@ -71,7 +71,7 @@ fun ChatSessionScreen(
     val showPeerOverlay = remember { mutableStateOf(false) }
 
     LaunchedEffect(connectionRequired, connectionMode, uiState.isSelf) {
-        if (uiState.isSelf) return@LaunchedEffect
+        if (uiState.isSelf == null || uiState.isSelf == true) return@LaunchedEffect
 
         val shouldShow = when {
             connectionRequired != null -> true

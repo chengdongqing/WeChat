@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
@@ -29,20 +30,17 @@ class ProfileRepositoryImpl @Inject constructor(
         val PROFILE_KEY = stringPreferencesKey("current_profile")
     }
 
-    private val profileState = dataStore.data
-        .map { preferences ->
-            preferences[PROFILE_KEY]?.toProfile()
-        }
+    val profileFlow = dataStore.data.map { it[PROFILE_KEY] }
+
+    private val profileState = profileFlow.map { it?.toProfile() }
         .stateIn(
             scope = scope,
             started = SharingStarted.Eagerly, // App 启动就加载并保持最新
             initialValue = null
         )
 
-    // 实时流
     override fun observeProfile(): Flow<UserProfile?> = profileState
 
-    // 内存快照
     override fun getProfile(): UserProfile? = profileState.value
 
     override fun requireProfile(): UserProfile = getProfile() ?: throw Exception("未找到个人资料")
@@ -50,9 +48,7 @@ class ProfileRepositoryImpl @Inject constructor(
     override fun requireUserId(): String = requireProfile().id
 
     override suspend fun saveProfile(profile: UserProfile) {
-        dataStore.edit { preferences ->
-            preferences[PROFILE_KEY] = profile.toJson()
-        }
+        dataStore.edit { it[PROFILE_KEY] = profile.toJson() }
     }
 
     override suspend fun updateProfile(
@@ -71,8 +67,8 @@ class ProfileRepositoryImpl @Inject constructor(
         saveProfile(updatedProfile)
 
         // 更新和自己的会话
-        chatSessionDao.update(updatedProfile.id) { entity ->
-            entity.copy(
+        chatSessionDao.update(updatedProfile.id) {
+            it.copy(
                 contactName = updatedProfile.nickname,
                 contactAvatar = updatedProfile.avatarPath
             )
@@ -80,7 +76,7 @@ class ProfileRepositoryImpl @Inject constructor(
     }
 
     override suspend fun hasProfile(): Boolean {
-        return getProfile() != null
+        return profileFlow.first() != null
     }
 
     private fun String.toProfile(): UserProfile? = runCatching {

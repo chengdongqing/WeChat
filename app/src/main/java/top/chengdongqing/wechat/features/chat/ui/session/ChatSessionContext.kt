@@ -46,7 +46,7 @@ fun rememberChatSessionContext(
     return remember(playingMessageId, uiState.isSelf) {
         ChatSessionContext(
             title = uiState.title,
-            isSelf = uiState.isSelf,
+            isSelf = uiState.isSelf == true,
             playingMessageId = playingMessageId,
             onVoiceStop = viewModel::stopVoice,
             onRetrySend = { viewModel.retrySend(it) },
