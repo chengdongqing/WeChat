@@ -5,12 +5,15 @@ import top.chengdongqing.wechat.R
 
 enum class SendStatus {
     Sending,        // 发送中
+    Receiving,      // 接收中
+    Paused,         // 传输暂停
     Sent,           // 已发送
     Delivered,      // 已送达
     Read,           // 已读
-    Failed,         // 发送失败
-    Receiving,      // 接收中
-    Paused          // 传输暂停
+    Failed;         // 发送失败
+
+    val isProgressing: Boolean
+        get() = this in setOf(Sending, Receiving, Paused)
 }
 
 enum class SendError(

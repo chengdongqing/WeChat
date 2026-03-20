@@ -23,7 +23,7 @@ enum class MessageType {
      * 是否为通话消息
      */
     val isCallMessage: Boolean
-        get() = this == VideoCall || this == VoiceCall
+        get() = this in setOf(VideoCall, VoiceCall)
 
     /**
      * 是否允许转发

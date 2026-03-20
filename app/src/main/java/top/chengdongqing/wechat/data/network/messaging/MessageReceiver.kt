@@ -433,17 +433,20 @@ class MessageReceiver @Inject constructor(
     private suspend fun handleFileCancel(body: ByteArray) {
         val messageId = parseMessageId(body) ?: return
         val message = messageDao.getById(messageId) ?: return
+        if (!message.sendStatus.isProgressing) return
 
         if (message.isFromMe) {
+            // 标记取消，将自动停止发送
             transferManager.setCancelled(messageId)
-            fileAckRegistry.cancel(messageId)
         } else {
+            // 清理接收状态
             receiveContexts.entries
                 .find { it.value.state.metadata.messageId == messageId }
                 ?.let { entry ->
                     entry.value.cleanup()
                     receiveContexts.remove(entry.key)
                 }
+            // 清理文件分片
             chunkStorageManager.cleanup(messageId)
         }
 
@@ -454,6 +457,8 @@ class MessageReceiver @Inject constructor(
                 failReason = SendError.Cancelled
             )
         }
+
+        Log.d(TAG, "传输已取消: $messageId")
     }
 
     /**
@@ -462,15 +467,18 @@ class MessageReceiver @Inject constructor(
     private suspend fun handleFilePause(body: ByteArray) {
         val messageId = parseMessageId(body) ?: return
         val message = messageDao.getById(messageId) ?: return
+        if (!message.sendStatus.isProgressing) return
 
         if (message.isFromMe) {
-            // 本机是发送方，对方（接收方）请求暂停 → 暂停发送循环
+            // 标记暂停，发送文件的循环将会挂起，直到继续或取消
             transferManager.setPaused(messageId)
         }
 
+        // 更新消息状态
         messageDao.update(messageId) {
             it.copy(sendStatus = SendStatus.Paused)
         }
+
         Log.d(TAG, "传输已暂停: $messageId")
     }
 
@@ -480,28 +488,25 @@ class MessageReceiver @Inject constructor(
     private suspend fun handleFileResume(body: ByteArray) {
         val messageId = parseMessageId(body) ?: return
         val message = messageDao.getById(messageId) ?: return
+        if (message.sendStatus != SendStatus.Paused) return
 
         if (message.isFromMe) {
-            messageDao.update(messageId) {
-                it.copy(sendStatus = SendStatus.Sending)
-            }
-
             if (transferManager.hasActiveTransfer(messageId)) {
                 // 协程还在，正常唤醒
                 transferManager.setResumed(messageId)
             } else {
-                // 重启发送协程
                 transferManager.remove(messageId)
+                // 重启发送协程
                 scope.launch {
                     val file = File(message.localPath ?: return@launch)
                     messageSender.sendMediaMessage(message, file)
                 }
             }
-        } else {
-            messageDao.update(messageId) {
-                it.copy(sendStatus = SendStatus.Receiving)
-            }
         }
+
+        // 更新消息状态
+        val newStatus = if (message.isFromMe) SendStatus.Sending else SendStatus.Receiving
+        messageDao.update(messageId) { it.copy(sendStatus = newStatus) }
 
         Log.d(TAG, "传输已恢复: $messageId")
     }

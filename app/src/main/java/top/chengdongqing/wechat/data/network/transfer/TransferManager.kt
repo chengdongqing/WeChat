@@ -25,8 +25,6 @@ class TransferManager @Inject constructor() {
 
     /**
      * 标记为已取消
-     *
-     * 如果当前正暂停，取消暂停锁使挂起协程立即恢复
      */
     fun setCancelled(messageId: String) {
         states[messageId] = TransferState.Cancelled
@@ -35,8 +33,6 @@ class TransferManager @Inject constructor() {
 
     /**
      * 标记为已暂停
-     *
-     * 创建一个 CompletableDeferred, 发送循环调用 awaitIfPaused 时会挂起
      */
     fun setPaused(messageId: String) {
         states[messageId] = TransferState.Paused
@@ -45,8 +41,6 @@ class TransferManager @Inject constructor() {
 
     /**
      * 标记为已恢复
-     *
-     * complete 暂停锁，唤醒挂起的发送协程
      */
     fun setResumed(messageId: String) {
         states[messageId] = TransferState.Active
@@ -60,19 +54,12 @@ class TransferManager @Inject constructor() {
         states[messageId] == TransferState.Cancelled
 
     /**
-     * 是否有活跃的传输协程（内存中有状态记录）
-     *
-     * 用于判断 resumeTransfer 时是否需要重新启动发送：
-     * - true：有协程在跑（或暂停中），setResumed 可以唤醒它
-     * - false：没有协程（app 重启后），需要重新启动发送流程
+     * 是否有活跃的传输协程
      */
-    fun hasActiveTransfer(messageId: String): Boolean =
-        states.containsKey(messageId)
+    fun hasActiveTransfer(messageId: String): Boolean = states.containsKey(messageId)
 
     /**
-     * 如果当前处于暂停状态，挂起直到恢复或取消
-     *
-     * 发送循环每发完一个 chunk 后调用此方法
+     * 如果当前处于暂停状态
      */
     suspend fun awaitIfPaused(messageId: String) {
         pauseLocks[messageId]?.await()

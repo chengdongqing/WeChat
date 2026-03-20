@@ -10,5 +10,5 @@ enum class CallState {
      * 是否可以通话
      */
     val isTerminal: Boolean
-        get() = this == Idle || this == Ended
+        get() = this in setOf(Idle, Ended)
 }

@@ -64,12 +64,4 @@ class FileAckRegistry @Inject constructor() {
     fun cancel(messageId: String) {
         pending.remove(messageId)?.cancel()
     }
-
-    /**
-     * 清理所有等待
-     */
-    fun cancelAll() {
-        pending.forEach { (_, deferred) -> deferred.cancel() }
-        pending.clear()
-    }
 }

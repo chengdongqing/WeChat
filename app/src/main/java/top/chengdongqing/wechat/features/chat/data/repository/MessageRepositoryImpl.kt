@@ -97,7 +97,7 @@ class MessageRepositoryImpl @Inject constructor(
         val shouldSkipSend = isSelf || isCall // 如果是给自己发的，或者是通话记录，直接设置为发送成功，不走发送逻辑
 
         // 构建消息实体
-        val entity = content.toEntity(
+        val message = content.toEntity(
             messageId = finalMessageId,
             sessionId = sessionId,
             senderId = myUserId,
@@ -111,15 +111,15 @@ class MessageRepositoryImpl @Inject constructor(
 
         database.withTransaction {
             // 保存消息
-            messageDao.insert(entity)
+            messageDao.insert(message)
             // 更新会话
-            chatSessionUpdater.update(entity, !shouldSkipSend)
+            chatSessionUpdater.update(message, !shouldSkipSend)
         }
 
         if (!shouldSkipSend) {
             // 切入后台作用域执行网络发送
             scope.launch {
-                sendMessageAsync(entity)
+                sendMessageAsync(message)
             }
         }
     }
@@ -127,25 +127,25 @@ class MessageRepositoryImpl @Inject constructor(
     /**
      * 异步发送消息
      */
-    private suspend fun sendMessageAsync(entity: MessageEntity) {
+    private suspend fun sendMessageAsync(message: MessageEntity) {
         try {
-            when (entity.contentType) {
+            when (message.contentType) {
                 MessageType.Text,
-                MessageType.Music -> messageSender.sendTextMessage(entity)
+                MessageType.Music -> messageSender.sendTextMessage(message)
 
                 else -> {
-                    val file = File(entity.localPath ?: throw Exception("文件路径为空"))
-                    messageSender.sendMediaMessage(entity, file)
+                    val file = File(message.localPath ?: throw Exception("文件路径为空"))
+                    messageSender.sendMediaMessage(message, file)
                 }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "发送失败: ${entity.id}, ${e.message}")
+            Log.w(TAG, "发送失败: ${message.id}, ${e.message}")
         }
     }
 
     override suspend fun retrySend(messageId: String): Result<Unit> {
         return runCatching {
-            val entity = messageDao.getById(messageId)
+            val message = messageDao.getById(messageId)
                 ?: throw Exception("消息不存在")
 
             // 重置为发送中
@@ -157,78 +157,85 @@ class MessageRepositoryImpl @Inject constructor(
             transferManager.remove(messageId)
 
             // 重新发送
-            when (entity.contentType) {
+            when (message.contentType) {
                 MessageType.Text,
-                MessageType.Music -> messageSender.sendTextMessage(entity)
+                MessageType.Music -> messageSender.sendTextMessage(message)
 
                 else -> {
-                    val file = File(entity.localPath ?: throw Exception("文件路径为空"))
-                    messageSender.sendMediaMessage(entity, file)
+                    val file = File(message.localPath ?: throw Exception("文件路径为空"))
+                    messageSender.sendMediaMessage(message, file)
                 }
             }
         }
     }
 
-    override suspend fun pauseTransfer(messageId: String) {
-        transferManager.setPaused(messageId)
-        val entity = messageDao.getById(messageId) ?: return
+    override suspend fun pauseTransfer(messageId: String): Result<Unit> = runCatching {
+        val message = messageDao.getById(messageId) ?: throw IllegalStateException("消息不存在")
+        if (!message.sendStatus.isProgressing) throw IllegalStateException("非法操作")
+
+        if (message.isFromMe) {
+            transferManager.setPaused(messageId)
+        }
 
         // 通知对方暂停
-        messageSender.sendFilePause(entity.peerId, messageId)
-
-        // 更新本地状态
-        messageDao.update(messageId) { message ->
-            message.copy(sendStatus = SendStatus.Paused)
+        return messageSender.sendFilePause(message.peerId, messageId).onSuccess {
+            // 更新消息状态
+            messageDao.update(messageId) { it.copy(sendStatus = SendStatus.Paused) }
         }
     }
 
     /**
      * 恢复文件传输
      */
-    override suspend fun resumeTransfer(messageId: String) {
-        val entity = messageDao.getById(messageId) ?: return
+    override suspend fun resumeTransfer(messageId: String): Result<Unit> = runCatching {
+        val message = messageDao.getById(messageId) ?: throw IllegalStateException("消息不存在")
+        if (message.sendStatus != SendStatus.Paused) throw IllegalStateException("非法操作")
 
-        if (entity.isFromMe) {
+        if (message.isFromMe) {
             if (transferManager.hasActiveTransfer(messageId)) {
                 // 唤醒挂起的发送协程
                 transferManager.setResumed(messageId)
             } else {
-                // 在独立协程中重新发送
+                // 重新走发送流程
                 scope.launch {
-                    restartSend(entity)
+                    restartSend(message)
                 }
             }
         }
 
-        // 更新消息状态
-        val newStatus = if (entity.isFromMe) SendStatus.Sending else SendStatus.Receiving
-        messageDao.update(messageId) { it.copy(sendStatus = newStatus) }
         // 通知对方切换状态
-        messageSender.sendFileResume(entity.peerId, messageId)
+        return messageSender.sendFileResume(message.peerId, messageId).onSuccess {
+            // 更新消息状态
+            val newStatus = if (message.isFromMe) SendStatus.Sending else SendStatus.Receiving
+            messageDao.update(messageId) { it.copy(sendStatus = newStatus) }
+        }
     }
 
     /**
      * 重启发送流程
      */
-    private suspend fun restartSend(entity: MessageEntity) {
+    private suspend fun restartSend(message: MessageEntity) {
         try {
-            val file = File(entity.localPath ?: throw Exception("文件路径为空"))
-            messageSender.sendMediaMessage(entity, file)
+            val file = File(message.localPath ?: throw Exception("文件路径为空"))
+            messageSender.sendMediaMessage(message, file)
         } catch (e: Exception) {
-            Log.w(TAG, "恢复发送失败: ${entity.id}, ${e.message}")
+            Log.w(TAG, "恢复发送失败: ${message.id}, ${e.message}")
         }
     }
 
-    override suspend fun cancelTransfer(messageId: String) {
-        // 标记取消
-        transferManager.setCancelled(messageId)
+    override suspend fun cancelTransfer(messageId: String): Result<Unit> = runCatching {
+        val message = messageDao.getById(messageId) ?: throw IllegalStateException("消息不存在")
+        if (!message.sendStatus.isProgressing) throw IllegalStateException("非法操作")
 
-        val entity = messageDao.getById(messageId) ?: return
+        if (message.isFromMe) {
+            // 标记取消，将自动停止发送
+            transferManager.setCancelled(messageId)
+        } else {
+            // 清理文件分片
+            chunkStorageManager.cleanup(messageId)
+        }
 
-        // 通知对方取消
-        messageSender.sendFileCancel(entity.peerId, messageId)
-
-        // 更新本地状态
+        // 更新消息状态为失败
         messageDao.update(messageId) { message ->
             message.copy(
                 sendStatus = SendStatus.Failed,
@@ -236,8 +243,8 @@ class MessageRepositoryImpl @Inject constructor(
             )
         }
 
-        // 清理本地分片
-        chunkStorageManager.cleanup(messageId)
+        // 通知对方取消
+        return messageSender.sendFileCancel(message.peerId, messageId)
     }
 
     override suspend fun markAllAsRead(sessionId: String) {
@@ -362,8 +369,8 @@ class MessageRepositoryImpl @Inject constructor(
         // 为每个目标会话并行转发
         targetChatIds.map { targetChatId ->
             async {
-                messages.forEach { entity ->
-                    val content = entity.toDomain(json).content
+                messages.forEach { message ->
+                    val content = message.toDomain(json).content
                     sendMessage(
                         sessionId = targetChatId,
                         receiverId = targetChatId,
@@ -404,30 +411,30 @@ class MessageRepositoryImpl @Inject constructor(
                 return
             }
 
-            val entity = entityBuilder()
+            val message = entityBuilder()
             database.withTransaction {
                 // 保存消息
-                messageDao.insert(entity)
+                messageDao.insert(message)
                 // 更新会话
-                chatSessionUpdater.update(entity)
+                chatSessionUpdater.update(message)
             }
             // 发送送达回执
             sendAck(protocol)
 
             // 满足指定条件就推送到消息流以触发消息通知
-            if (shouldNotify(entity, protocol.senderId)) {
-                onNotifyRequired(entity.toDomain(json))
+            if (shouldNotify(message, protocol.senderId)) {
+                onNotifyRequired(message.toDomain(json))
             }
         } catch (e: Exception) {
             Log.e(TAG, "处理消息失败: ${protocol.messageId}", e)
         }
     }
 
-    private suspend fun shouldNotify(entity: MessageEntity, senderId: String): Boolean {
-        if (entity.isFromMe) return false // 给自己发的
+    private suspend fun shouldNotify(message: MessageEntity, senderId: String): Boolean {
+        if (message.isFromMe) return false // 给自己发的
         if (!msgNotificationEnabled()) return false // 未开启消息通知
-        if (entity.contentType.isCallMessage) return false  // 通话消息
-        if (activeSessionManager.isActive(entity.sessionId)) return false // 当前在消息所在的会话页
+        if (message.contentType.isCallMessage) return false  // 通话消息
+        if (activeSessionManager.isActive(message.sessionId)) return false // 当前在消息所在的会话页
         if (chatSessionRepository.isSessionMuted(senderId)) return false // 开启免打扰
         return true
     }

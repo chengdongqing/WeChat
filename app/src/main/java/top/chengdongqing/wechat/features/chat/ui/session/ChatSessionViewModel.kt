@@ -430,13 +430,17 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     fun pauseTransfer(messageId: String) {
         viewModelScope.launch {
-            messageRepository.pauseTransfer(messageId)
+            messageRepository.pauseTransfer(messageId).onFailure {
+                context.showToast(context.getString(R.string.msg_process_failed))
+            }
         }
     }
 
     fun resumeTransfer(messageId: String) {
         viewModelScope.launch {
-            messageRepository.resumeTransfer(messageId)
+            messageRepository.resumeTransfer(messageId).onFailure {
+                context.showToast(context.getString(R.string.msg_process_failed))
+            }
         }
     }
 

@@ -44,7 +44,7 @@ object TransferConfig {
     /**
      * 分片传输阈值（字节），大于此值才走协商+分片流程，否则直传
      */
-    const val CHUNK_TRANSFER_THRESHOLD = 10 * 1024 * 1024  // 10MB
+    const val CHUNK_TRANSFER_THRESHOLD = 4 * 1024 * 1024  // 4MB
 
     /**
      * 单个 Packet 最大长度

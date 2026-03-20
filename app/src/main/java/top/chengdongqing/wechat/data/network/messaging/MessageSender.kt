@@ -220,22 +220,22 @@ class MessageSender @Inject constructor(
     /**
      * 发送取消传输通知给对方
      */
-    suspend fun sendFileCancel(receiverId: String, messageId: String) {
-        sendTransferControl(receiverId, messageId, PacketType.FILE_CANCEL, "取消")
+    suspend fun sendFileCancel(receiverId: String, messageId: String): Result<Unit> {
+        return sendTransferControl(receiverId, messageId, PacketType.FILE_CANCEL, "取消")
     }
 
     /**
      * 发送暂停传输通知给对方
      */
-    suspend fun sendFilePause(receiverId: String, messageId: String) {
-        sendTransferControl(receiverId, messageId, PacketType.FILE_PAUSE, "暂停")
+    suspend fun sendFilePause(receiverId: String, messageId: String): Result<Unit> {
+        return sendTransferControl(receiverId, messageId, PacketType.FILE_PAUSE, "暂停")
     }
 
     /**
      * 发送恢复传输通知给对方
      */
-    suspend fun sendFileResume(receiverId: String, messageId: String) {
-        sendTransferControl(receiverId, messageId, PacketType.FILE_RESUME, "恢复")
+    suspend fun sendFileResume(receiverId: String, messageId: String): Result<Unit> {
+        return sendTransferControl(receiverId, messageId, PacketType.FILE_RESUME, "恢复")
     }
 
     /**
@@ -246,14 +246,14 @@ class MessageSender @Inject constructor(
         messageId: String,
         type: Byte,
         label: String
-    ) {
+    ): Result<Unit> {
         val body = json.encodeToString(
             mapOf("messageId" to messageId)
         ).toByteArray(Charsets.UTF_8)
 
         val packet = Packet(type = type, body = body)
 
-        transport.send(receiverId, packet)
+        return transport.send(receiverId, packet)
             .onFailure {
                 Log.w(TAG, "发送${label}通知失败: $receiverId")
             }
