@@ -6,8 +6,8 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.core.util.clearAllCache
-import top.chengdongqing.wechat.data.network.transfer.TransferRecoveryManager
+import top.chengdongqing.wechat.core.util.clearAllCaches
+import top.chengdongqing.wechat.data.network.transfer.TransferSanitizer
 
 @HiltAndroidApp
 class WeApplication : Application() {
@@ -17,7 +17,7 @@ class WeApplication : Application() {
     lateinit var scope: CoroutineScope
 
     @Inject
-    lateinit var transferRecoveryManager: TransferRecoveryManager
+    lateinit var transferSanitizer: TransferSanitizer
 
     override fun onCreate() {
         super.onCreate()
@@ -26,13 +26,13 @@ class WeApplication : Application() {
          * 自动清理之前产生的缓存
          */
         scope.launch {
-            clearAllCache()
+            clearAllCaches()
         }
 
         /**
-         * 恢复未完成的传输的状态
+         * 将所有发送中的消息状态更新为暂停，方便手动恢复发送
          * 清理过期的分片文件等
          */
-        transferRecoveryManager.recover()
+        transferSanitizer.sanitize()
     }
 }

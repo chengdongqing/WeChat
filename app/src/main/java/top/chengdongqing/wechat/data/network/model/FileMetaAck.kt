@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 /**
  * 文件元数据应答状态
  */
-@Serializable
 enum class FileAckStatus {
     /** 准备接收，从头传输 */
     ReadyToReceive,
@@ -19,11 +18,6 @@ enum class FileAckStatus {
 
 /**
  * 文件元数据应答包
- *
- * 接收方收到 FILE_META 后，根据本地状态回复此包：
- * - [FileAckStatus.AlreadyExists]：本地已有该 checksum 的文件，发送方可跳过传输
- * - [FileAckStatus.ResumeFrom]：本地有未完成的分片，发送方从 [receivedBytes] 处续传
- * - [FileAckStatus.ReadyToReceive]：本地无缓存，发送方从头传输
  */
 @Serializable
 data class FileMetaAck(

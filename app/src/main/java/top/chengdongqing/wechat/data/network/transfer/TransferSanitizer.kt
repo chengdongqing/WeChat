@@ -9,17 +9,15 @@ import top.chengdongqing.wechat.data.network.messaging.ChunkStorageManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * 传输恢复管理器
- */
 @Singleton
-class TransferRecoveryManager @Inject constructor(
+class TransferSanitizer @Inject constructor(
     private val messageDao: MessageDao,
     private val chatSessionDao: ChatSessionDao,
     private val chunkStorageManager: ChunkStorageManager,
     @param:IoScope private val scope: CoroutineScope
 ) {
-    fun recover() {
+
+    fun sanitize() {
         scope.launch {
             launch { markSendingAsPaused() }
             launch { cleanupStaleChunks() }

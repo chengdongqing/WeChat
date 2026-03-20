@@ -19,14 +19,16 @@ fun Context.showToast(text: String) {
 }
 
 /**
- * 清除所有缓存
+ * 清理所有缓存
  */
-fun Context.clearAllCache() {
+fun Context.clearAllCaches() {
+    val protectedDirs = listOf("transfers") // 不清理的目录
+
     try {
         // 清理内部缓存 (/data/user/0/包名/cache)
-        deleteDirContent(cacheDir)
+        deleteDirContent(cacheDir, protectedDirs)
         // 清理外部缓存 (/sdcard/Android/data/包名/cache)
-        deleteDirContent(externalCacheDir)
+        deleteDirContent(externalCacheDir, protectedDirs)
     } catch (e: Exception) {
         e.printStackTrace()
     }
@@ -35,15 +37,16 @@ fun Context.clearAllCache() {
 /**
  * 删除目录下的内容
  */
-private fun deleteDirContent(dir: File?): Boolean {
-    return dir != null && if (dir.exists() && dir.isDirectory) {
-        dir.listFiles()?.forEach { child ->
+private fun deleteDirContent(dir: File?, excludeNames: List<String>): Boolean {
+    if (dir == null || !dir.exists() || !dir.isDirectory) return false
+
+    dir.listFiles()?.forEach { child ->
+        // 检查当前文件/文件夹名称是否在排除列表中
+        if (child.name !in excludeNames) {
             child.deleteRecursively()
         }
-        true
-    } else {
-        false
     }
+    return true
 }
 
 /**
@@ -79,8 +82,8 @@ fun Context.getVersionName(): String {
  */
 fun Context.navigateToAppSettings(isNotification: Boolean = false) {
     val intent = Intent().apply {
-        // 处理 Android 8.0+ 的通知设置跳转
-        if (isNotification && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        // 处理通知设置跳转
+        if (isNotification) {
             action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
             putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
         }

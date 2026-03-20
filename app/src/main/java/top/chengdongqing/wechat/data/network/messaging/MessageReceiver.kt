@@ -60,29 +60,6 @@ class MessageReceiver @Inject constructor(
         const val DISK_WRITE_BUFFER = 256 * 1024
     }
 
-    /**
-     * 媒体接收状态
-     *
-     * 小文件和大文件共用同一个 MediaReceiveState，
-     * 通过 [isLargeFile] 区分走哪条路径。
-     */
-    private data class ReceiveContext(
-        val state: MediaReceiveState,
-        val isLargeFile: Boolean,
-        /** 小文件用：临时文件 */
-        val tempFile: File? = null,
-        /** 小文件用：写入流 */
-        val outputStream: BufferedOutputStream? = null
-    ) {
-        fun cleanup() {
-            // 小文件：关闭流 + 删除临时文件
-            runCatching { outputStream?.close() }
-            runCatching { tempFile?.delete() }
-            // 大文件：关闭 FileChannel
-            state.closeSession()
-        }
-    }
-
     private val receiveContexts = ConcurrentHashMap<String, ReceiveContext>()
 
     private val myUserId: String
@@ -226,7 +203,7 @@ class MessageReceiver @Inject constructor(
      * 4. 创建 Receiving 状态的消息占位（UI 展示进度）
      */
     private suspend fun handleLargeFileMeta(userId: String, metadata: ChatProtocol.MediaMessage) {
-        // 哈希查重
+        // 哈希查重，已存在则直接成功
         val existingFile = mediaFileDao.getByChecksum(metadata.checksum)
         if (existingFile != null) {
             Log.d(TAG, "文件已存在，跳过传输: ${metadata.messageId}")
@@ -267,14 +244,7 @@ class MessageReceiver @Inject constructor(
                     isLargeFile = true
                 )
 
-                // 更新进度 + 状态恢复为 Receiving
-                messageDao.update(metadata.messageId) {
-                    it.copy(
-                        sendStatus = SendStatus.Receiving,
-                        sentBytes = receivedBytes
-                    )
-                }
-
+                messageDispatcher.updateReceiveProgress(metadata.messageId, receivedBytes)
                 sendFileMetaAck(userId, metadata.messageId, FileAckStatus.ResumeFrom, receivedBytes)
                 return
             }
@@ -512,9 +482,20 @@ class MessageReceiver @Inject constructor(
         val message = messageDao.getById(messageId) ?: return
 
         if (message.isFromMe) {
-            transferManager.setResumed(messageId)
             messageDao.update(messageId) {
                 it.copy(sendStatus = SendStatus.Sending)
+            }
+
+            if (transferManager.hasActiveTransfer(messageId)) {
+                // 协程还在，正常唤醒
+                transferManager.setResumed(messageId)
+            } else {
+                // 重启发送协程
+                transferManager.remove(messageId)
+                scope.launch {
+                    val file = File(message.localPath ?: return@launch)
+                    messageSender.sendMediaMessage(message, file)
+                }
             }
         } else {
             messageDao.update(messageId) {
@@ -587,4 +568,24 @@ class MessageReceiver @Inject constructor(
             ConnectionMode.Bluetooth -> TransferConfig.PROGRESS_REPORT_INTERVAL_BT
             else -> TransferConfig.PROGRESS_REPORT_INTERVAL
         }
+}
+
+/**
+ * 媒体接收状态
+ */
+private data class ReceiveContext(
+    val state: MediaReceiveState,
+    val isLargeFile: Boolean,
+    /** 小文件用：临时文件 */
+    val tempFile: File? = null,
+    /** 小文件用：写入流 */
+    val outputStream: BufferedOutputStream? = null
+) {
+    fun cleanup() {
+        // 小文件：关闭流 + 删除临时文件
+        runCatching { outputStream?.close() }
+        runCatching { tempFile?.delete() }
+        // 大文件：关闭 FileChannel
+        state.closeSession()
+    }
 }

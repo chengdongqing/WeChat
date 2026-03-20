@@ -112,8 +112,9 @@ class MessageSender @Inject constructor(
      * 发送媒体消息
      */
     suspend fun sendMediaMessage(message: MessageEntity, file: File): Result<Unit> = runCatching {
-        val targetFile = resolveTargetFile(message, file)
-        val metadata = buildSignedMetadata(message, targetFile)
+        val checksum = file.toSHA256Hex()
+        val targetFile = resolveTargetFile(message, file, checksum)
+        val metadata = buildSignedMetadata(message, targetFile, checksum)
 
         if (targetFile.length() < TransferConfig.CHUNK_TRANSFER_THRESHOLD) {
             Log.d(TAG, "开始小文件直传")
@@ -262,8 +263,11 @@ class MessageSender @Inject constructor(
      * 文件去重：checksum 已存在则复用原文件，否则注册新文件
      * 返回实际用于传输的目标文件
      */
-    private suspend fun resolveTargetFile(message: MessageEntity, file: File): File {
-        val checksum = file.toSHA256Hex()
+    private suspend fun resolveTargetFile(
+        message: MessageEntity,
+        file: File,
+        checksum: String
+    ): File {
         val existingFile = mediaFileDao.getByChecksum(checksum)
 
         return if (existingFile != null) {
@@ -280,11 +284,11 @@ class MessageSender @Inject constructor(
     /**
      * 构建已签名的媒体消息元数据
      */
-    private suspend fun buildSignedMetadata(
+    private fun buildSignedMetadata(
         message: MessageEntity,
-        targetFile: File
+        targetFile: File,
+        checksum: String
     ): ChatProtocol.MediaMessage {
-        val checksum = targetFile.toSHA256Hex()
         val unsigned = ChatProtocol.MediaMessage(
             messageId = message.id,
             senderId = message.senderId,

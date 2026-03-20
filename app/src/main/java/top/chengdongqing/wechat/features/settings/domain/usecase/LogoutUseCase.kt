@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
-import top.chengdongqing.wechat.core.util.clearAllCache
+import top.chengdongqing.wechat.core.util.clearAllCaches
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
@@ -50,7 +50,7 @@ class LogoutUseCase @Inject constructor(
             privateFileManager.clearAll()
 
             // 清除所有缓存
-            context.clearAllCache()
+            context.clearAllCaches()
 
             // 删除密钥
             localIdentity.clearIdentity()

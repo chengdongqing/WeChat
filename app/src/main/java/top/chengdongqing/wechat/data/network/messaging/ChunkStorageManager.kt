@@ -39,7 +39,7 @@ class ChunkStorageManager @Inject constructor(
         const val TAG = "ChunkStorageManager"
         const val TRANSFERS_DIR = "transfers"
         const val META_FILE = "meta.json"
-        const val DATA_FILE = "data"
+        const val DATA_FILE = "data.tmp"
     }
 
     private val transfersRoot: File

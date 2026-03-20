@@ -169,93 +169,75 @@ class MessageRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun pauseTransfer(messageId: String) {
+    override suspend fun pauseTransfer(messageId: String) {
         transferManager.setPaused(messageId)
-        scope.launch {
-            val entity = messageDao.getById(messageId) ?: return@launch
+        val entity = messageDao.getById(messageId) ?: return
 
-            // 通知对方暂停
-            messageSender.sendFilePause(entity.peerId, messageId)
+        // 通知对方暂停
+        messageSender.sendFilePause(entity.peerId, messageId)
 
-            // 更新本地状态
-            messageDao.update(messageId) { message ->
-                message.copy(sendStatus = SendStatus.Paused)
-            }
+        // 更新本地状态
+        messageDao.update(messageId) { message ->
+            message.copy(sendStatus = SendStatus.Paused)
         }
     }
 
     /**
      * 恢复文件传输
      */
-    override fun resumeTransfer(messageId: String) {
-        scope.launch {
-            val entity = messageDao.getById(messageId) ?: return@launch
+    override suspend fun resumeTransfer(messageId: String) {
+        val entity = messageDao.getById(messageId) ?: return
 
-            if (entity.isFromMe) {
-                // 发送方恢复
-                if (transferManager.hasActiveTransfer(messageId)) {
-                    // 场景 1：有活跃协程 → 唤醒 + 通知对方
-                    transferManager.setResumed(messageId)
-                    messageSender.sendFileResume(entity.peerId, messageId)
-                    messageDao.update(messageId) { it.copy(sendStatus = SendStatus.Sending) }
-                } else {
-                    // 场景 2：无活跃协程（重启后）→ 先更新状态，再启动发送
-                    messageDao.update(messageId) { it.copy(sendStatus = SendStatus.Sending) }
-                    transferManager.remove(messageId)
-
-                    // 在独立协程中发送，不阻塞当前流程
-                    scope.launch {
-                        restartSend(entity)
-                    }
-                }
+        if (entity.isFromMe) {
+            if (transferManager.hasActiveTransfer(messageId)) {
+                // 唤醒挂起的发送协程
+                transferManager.setResumed(messageId)
             } else {
-                // 接收方恢复：通知对方继续发送
-                messageSender.sendFileResume(entity.peerId, messageId)
-                messageDao.update(messageId) { it.copy(sendStatus = SendStatus.Receiving) }
+                // 在独立协程中重新发送
+                scope.launch {
+                    restartSend(entity)
+                }
             }
         }
+
+        // 更新消息状态
+        val newStatus = if (entity.isFromMe) SendStatus.Sending else SendStatus.Receiving
+        messageDao.update(messageId) { it.copy(sendStatus = newStatus) }
+        // 通知对方切换状态
+        messageSender.sendFileResume(entity.peerId, messageId)
     }
 
     /**
-     * 重启后重新启动发送流程
+     * 重启发送流程
      */
     private suspend fun restartSend(entity: MessageEntity) {
         try {
-            when (entity.contentType) {
-                MessageType.Text,
-                MessageType.Music -> messageSender.sendTextMessage(entity)
-
-                else -> {
-                    val file = File(entity.localPath ?: throw Exception("文件路径为空"))
-                    messageSender.sendMediaMessage(entity, file)
-                }
-            }
+            val file = File(entity.localPath ?: throw Exception("文件路径为空"))
+            messageSender.sendMediaMessage(entity, file)
         } catch (e: Exception) {
             Log.w(TAG, "恢复发送失败: ${entity.id}, ${e.message}")
         }
     }
 
-    override fun cancelTransfer(messageId: String) {
+    override suspend fun cancelTransfer(messageId: String) {
         // 标记取消
         transferManager.setCancelled(messageId)
 
-        scope.launch {
-            val entity = messageDao.getById(messageId) ?: return@launch
+        val entity = messageDao.getById(messageId) ?: return
 
-            // 通知对方取消
-            messageSender.sendFileCancel(entity.peerId, messageId)
+        // 通知对方取消
+        messageSender.sendFileCancel(entity.peerId, messageId)
 
-            // 更新本地状态
-            messageDao.update(messageId) { message ->
-                message.copy(
-                    sendStatus = SendStatus.Failed,
-                    failReason = SendError.Cancelled
-                )
-            }
-
-            // 清理本地分片
-            chunkStorageManager.cleanup(messageId)
+        // 更新本地状态
+        messageDao.update(messageId) { message ->
+            message.copy(
+                sendStatus = SendStatus.Failed,
+                failReason = SendError.Cancelled
+            )
         }
+
+        // 清理本地分片
+        chunkStorageManager.cleanup(messageId)
     }
 
     override suspend fun markAllAsRead(sessionId: String) {

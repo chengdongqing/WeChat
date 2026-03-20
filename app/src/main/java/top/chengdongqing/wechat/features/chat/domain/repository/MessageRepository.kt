@@ -43,17 +43,17 @@ interface MessageRepository {
     /**
      * 暂停文件传输（发送或接收）
      */
-    fun pauseTransfer(messageId: String)
+    suspend fun pauseTransfer(messageId: String)
 
     /**
      * 恢复文件传输
      */
-    fun resumeTransfer(messageId: String)
+    suspend fun resumeTransfer(messageId: String)
 
     /**
      * 取消文件传输，清理相关资源
      */
-    fun cancelTransfer(messageId: String)
+    suspend fun cancelTransfer(messageId: String)
 
     /**
      * 标记已读

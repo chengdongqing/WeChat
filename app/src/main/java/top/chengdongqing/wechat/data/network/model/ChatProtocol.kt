@@ -60,9 +60,6 @@ sealed class ChatProtocol {
 
     /**
      * 媒体消息（图片、语音、视频、文件等）
-     *
-     * 通过 FILE_META + FILE_CHUNK 分片传输，此协议包作为元数据随 FILE_META 发送。
-     * checksum 为文件 MD5，接收端校验通过后再入库。
      */
     @Serializable
     data class MediaMessage(
