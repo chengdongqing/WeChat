@@ -70,7 +70,8 @@ class ChunkStorageManager @Inject constructor(
             StandardOpenOption.WRITE,
             StandardOpenOption.READ
         )
-        // 预分配空间
+
+        // 预分配空间（防止磁盘碎片）
         channel.position(metadata.fileSize - 1)
         channel.write(ByteBuffer.wrap(byteArrayOf(0)))
         channel.position(0)
@@ -125,6 +126,26 @@ class ChunkStorageManager @Inject constructor(
         if (dir.exists()) {
             dir.deleteRecursively()
             Log.d(TAG, "传输目录已清理: $messageId")
+        }
+    }
+
+    /**
+     * 批量清理消息传输目录
+     */
+    suspend fun cleanupBatch(messageIds: List<String>) = withContext(Dispatchers.IO) {
+        messageIds.forEach { id ->
+            getTransferDir(id).deleteRecursively()
+        }
+        Log.d(TAG, "批量清理完成，共计: ${messageIds.size} 项")
+    }
+
+    /**
+     * 清空所有传输缓存
+     */
+    suspend fun clearAllTransfers() = withContext(Dispatchers.IO) {
+        if (transfersRoot.exists()) {
+            val success = transfersRoot.deleteRecursively()
+            Log.d(TAG, "所有传输缓存已清空: $success")
         }
     }
 

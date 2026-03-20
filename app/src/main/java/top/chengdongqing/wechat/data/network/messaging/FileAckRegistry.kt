@@ -31,7 +31,7 @@ class FileAckRegistry @Inject constructor() {
      * @param messageId 消息 ID
      * @param timeoutMs 超时时间（毫秒），超时抛出 TimeoutCancellationException
      */
-    suspend fun awaitAck(messageId: String, timeoutMs: Long = 30_000L): FileMetaAck {
+    suspend fun awaitAck(messageId: String, timeoutMs: Long): FileMetaAck {
         val deferred = CompletableDeferred<FileMetaAck>()
         pending[messageId] = deferred
 

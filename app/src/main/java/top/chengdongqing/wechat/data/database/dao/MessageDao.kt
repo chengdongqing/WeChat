@@ -46,6 +46,15 @@ interface MessageDao : BaseDao<MessageEntity> {
 
     @Query(
         """
+        SELECT id FROM messages 
+        WHERE sessionId = :sessionId 
+        AND (localPath IS NOT NULL OR fileSize > 0)
+    """
+    )
+    suspend fun getTransferRelatedIdsBySessionId(sessionId: String): List<String>
+
+    @Query(
+        """
       SELECT localPath FROM messages 
       WHERE id IN (:ids) 
       AND localPath IS NOT NULL

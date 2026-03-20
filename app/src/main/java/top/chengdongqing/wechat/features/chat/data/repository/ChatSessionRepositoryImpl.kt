@@ -13,6 +13,7 @@ import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
+import top.chengdongqing.wechat.data.network.messaging.ChunkStorageManager
 import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.features.chat.data.mapper.toEntity
@@ -26,6 +27,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
     private val fileReferenceManager: FileReferenceManager,
+    private val chunkStorageManager: ChunkStorageManager,
     private val privateFileManager: PrivateFileManager
 ) : ChatSessionRepository {
 
@@ -119,6 +121,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
     override suspend fun deleteSession(sessionId: String, shouldHide: Boolean) {
         // 查询当前会话所有的媒体文件，方便统一删除
         val localPaths = messageDao.getLocalPathsBySessionId(sessionId)
+        val messageIds = messageDao.getTransferRelatedIdsBySessionId(sessionId)
 
         // 删除会话，不真正删除这条记录，目的是保留 置顶/免到扰 等设置
         // 执行：清空消息+隐藏会话
@@ -130,9 +133,12 @@ class ChatSessionRepositoryImpl @Inject constructor(
             messageDao.deleteBySessionId(sessionId)
         }
 
-        // 批量删除可能存在的本地文件
+        // 清理可能存在的本地文件
         val toDelete = fileReferenceManager.releaseAll(localPaths)
         privateFileManager.deleteFiles(toDelete)
+
+        // 清理可能存在的文件分片
+        chunkStorageManager.cleanupBatch(messageIds)
 
         // 从缓存清除
         sessionCache.remove(sessionId)
@@ -148,9 +154,12 @@ class ChatSessionRepositoryImpl @Inject constructor(
             messageDao.deleteAll()
         }
 
-        // 批量删除本地文件
+        // 清理可能存在的本地文件
         val toDelete = fileReferenceManager.releaseAll(localPaths)
         privateFileManager.deleteFiles(toDelete)
+
+        // 清理可能存在的文件分片
+        chunkStorageManager.clearAllTransfers()
 
         // 清空会话缓存
         sessionCache.evictAll()

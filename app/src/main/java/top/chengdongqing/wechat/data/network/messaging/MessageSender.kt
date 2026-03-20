@@ -68,7 +68,7 @@ class MessageSender @Inject constructor(
         const val TAG = "MessageSender"
 
         /** 等待对方 ACK 的超时时间 */
-        const val ACK_TIMEOUT_MS = 30_000L
+        const val ACK_TIMEOUT_MS = 10_000L
     }
 
     private val myUserId: String
