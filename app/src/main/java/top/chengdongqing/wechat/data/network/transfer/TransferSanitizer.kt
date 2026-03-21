@@ -29,7 +29,9 @@ class TransferSanitizer @Inject constructor(
      */
     private suspend fun markSendingAsPaused() {
         // 将所有发送中的消息设为暂停
-        messageDao.resetAllSendingMessages()
+        messageDao.pauseOngoingTransfers()
+        // 将所有完全没有发送出去的消息设为失败
+        messageDao.failUnstartedMessages()
         // 将所有发送中的会话设为默认
         chatSessionDao.resetAllSendingSessions()
     }

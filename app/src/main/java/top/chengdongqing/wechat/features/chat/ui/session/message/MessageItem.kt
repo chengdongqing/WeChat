@@ -34,6 +34,7 @@ import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
+import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
 
 /**
@@ -188,7 +189,7 @@ private fun Avatar(model: Any?, isPeer: Boolean) {
 @Composable
 private fun StatusIndicator(message: ChatMessage) {
     when {
-        message.isProgressing -> {
+        message.sendStatus is MessageSendStatus.Sending -> {
             if (message.content.showLoading) {
                 WeLoading()
             }

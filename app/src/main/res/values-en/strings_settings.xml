@@ -119,11 +119,11 @@
     <string name="connection_title">Connection</string>
     <string name="connection_hint">About Connection Modes</string>
     <string name="connection_wifi_lan">Wi-Fi LAN</string>
-    <string name="connection_wifi_lan_desc">High-speed transfer on the same Wi-Fi, ideal for large files and stable calls.</string>
-    <string name="connection_wifi_direct">Wi-Fi Direct (P2P)</string>
-    <string name="connection_wifi_direct_desc">Direct device-to-device connection without a router, great for offline environments.</string>
+    <string name="connection_wifi_lan_desc">Communicate over the same Wi-Fi network. Stable, convenient, and supports calls.</string>
+    <string name="connection_wifi_direct">Wi-Fi Direct</string>
+    <string name="connection_wifi_direct_desc">Fully offline peer-to-peer connection. Best for outdoors without internet or large file transfers.</string>
     <string name="connection_bluetooth">Bluetooth</string>
-    <string name="connection_bluetooth_desc">Low-power discovery of nearby devices, suitable for short-range messaging.</string>
+    <string name="connection_bluetooth_desc">Low power consumption but slower speeds. Ideal for short-range messaging.</string>
 
     <string name="chat_settings_background">Background</string>
     <string name="chat_settings_earpiece">Switch to ear speaker</string>

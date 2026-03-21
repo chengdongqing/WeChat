@@ -2,12 +2,14 @@ package top.chengdongqing.wechat.core.util
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
 import java.io.File
+import java.io.FileOutputStream
 
 /**
  * 获取 FileProvider Uri
@@ -48,6 +50,26 @@ suspend fun Context.createImageUri(): Uri =
  */
 suspend fun Context.createVideoUri(): Uri =
     createMediaUri(isVideo = true)
+
+/**
+ * 从 Bitmap 创建临时 Uri
+ *
+ * @param bitmap 位图
+ * @param quality 压缩质量（0-100）
+ * @return FileProvider Uri
+ */
+suspend fun Context.createImageUri(
+    bitmap: Bitmap,
+    quality: Int = 90
+): Uri = withContext(Dispatchers.IO) {
+    val tempFile = File.createTempFile("IMG_", ".jpg")
+
+    FileOutputStream(tempFile).use { outputStream ->
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+    }
+
+    getFileProviderUri(tempFile)
+}
 
 /**
  * 分享 Uri

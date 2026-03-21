@@ -35,8 +35,11 @@ fun ChatBubble(
     content: @Composable () -> Unit,
 ) {
     val colors = ChatTheme.colorScheme
-    val bubbleColor =
-        if (isFromMe && !isSameBackground) colors.bubbleOutgoing else colors.bubbleIncoming
+    val bubbleColor = if (isFromMe && !isSameBackground) {
+        colors.bubbleOutgoing
+    } else {
+        colors.bubbleIncoming
+    }
     val maxBubbleWidth = rememberMaxBubbleWidth(isSelectMode, isFailed)
 
     WeBadge(

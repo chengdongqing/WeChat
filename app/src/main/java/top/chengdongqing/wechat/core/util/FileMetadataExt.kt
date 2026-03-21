@@ -1,11 +1,14 @@
 package top.chengdongqing.wechat.core.util
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import android.provider.OpenableColumns
 import android.util.Log
+import android.util.Size
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -157,4 +160,51 @@ private fun Context.getCorrectedDimensions(
     } catch (_: Exception) {
         width to height
     }
+}
+
+/**
+ * 加载媒体缩略图
+ *
+ * 兼容图片和视频，自动选择最优方案
+ *
+ * @param uri 媒体 Uri
+ * @param isVideo 是否为视频
+ * @param size 缩略图大小
+ * @return Uri（低版本图片）或 Bitmap，失败返回 null
+ */
+suspend fun Context.loadMediaThumbnail(
+    uri: Uri,
+    isVideo: Boolean = false,
+    size: Size = Size(200, 200)
+): Any? {
+    // 低版本直接返回原图 Uri
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && !isVideo) {
+        return uri
+    }
+
+    return withContext(Dispatchers.IO) {
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // API 29+ 使用系统缩略图加载
+                contentResolver.loadThumbnail(uri, size, null)
+            } else {
+                // API 29 以下手动提取视频首帧
+                loadVideoThumbnail(uri)
+            }
+        }.getOrElse {
+            if (!isVideo) uri else loadVideoThumbnail(uri)
+        }
+    }
+}
+
+/**
+ * 提取视频首帧
+ *
+ * 用于低版本系统
+ */
+fun Context.loadVideoThumbnail(uri: Uri): Bitmap? = MediaMetadataRetriever().use { retriever ->
+    runCatching {
+        retriever.setDataSource(this, uri)
+        retriever.getFrameAtTime(1, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+    }.getOrNull()
 }

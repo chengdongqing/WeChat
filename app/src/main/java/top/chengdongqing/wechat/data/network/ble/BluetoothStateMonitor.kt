@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,8 +33,6 @@ class BluetoothStateMonitor @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
     companion object {
-        private const val TAG = "BluetoothStateMonitor"
-
         /**
          * Android 12（S）起必须持有 BLUETOOTH_CONNECT 权限才能操作蓝牙。
          * 旧版本只需 BLUETOOTH 权限，安装即授予，无需运行时检查。
@@ -69,13 +66,9 @@ class BluetoothStateMonitor @Inject constructor(
      */
     private val bluetoothStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action != BluetoothAdapter.ACTION_STATE_CHANGED) return
-
-            val state = intent.getIntExtra(
-                BluetoothAdapter.EXTRA_STATE,
-                BluetoothAdapter.ERROR
-            )
-            Log.d(TAG, "蓝牙状态变更: $state")
+            if (intent.action != BluetoothAdapter.ACTION_STATE_CHANGED) {
+                return
+            }
             refresh()
         }
     }
@@ -86,7 +79,6 @@ class BluetoothStateMonitor @Inject constructor(
     private val permissionOpsListener = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         AppOpsManager.OnOpChangedListener { op, _ ->
             if (op == BLUETOOTH_CONNECT_OP) {
-                Log.d(TAG, "蓝牙权限变更: $op")
                 refresh()
             }
         }
@@ -113,8 +105,6 @@ class BluetoothStateMonitor @Inject constructor(
 
         // 立即刷新一次，确保初始状态准确
         refresh()
-
-        Log.d(TAG, "蓝牙状态监听已启动，当前可用: ${_isAvailable.value}")
     }
 
     /**
@@ -130,8 +120,6 @@ class BluetoothStateMonitor @Inject constructor(
                 }
             }
         }
-
-        Log.d(TAG, "蓝牙状态监听已停止")
     }
 
     /**
@@ -139,7 +127,6 @@ class BluetoothStateMonitor @Inject constructor(
      */
     fun refresh() {
         _isAvailable.value = checkAvailability()
-        Log.d(TAG, "蓝牙可用状态刷新: ${_isAvailable.value}")
     }
 
     /**
@@ -152,7 +139,6 @@ class BluetoothStateMonitor @Inject constructor(
             REQUIRED_PERMISSION
         ) == PackageManager.PERMISSION_GRANTED
 
-        Log.d(TAG, "蓝牙检查 → 开关=$isOn, 权限=$hasPermission")
         return isOn && hasPermission
     }
 }

@@ -43,49 +43,47 @@ fun WeBadge(
     Box(modifier = modifier) {
         holder?.invoke()
 
-        if (!visible) {
-            return
-        }
-
-        val density = LocalDensity.current
-        var localWidth by remember {
-            mutableStateOf(0.dp)
-        }
-
-        val finalOffset = offset ?: run {
-            val offsetX = when (alignment) {
-                Alignment.TopEnd, Alignment.BottomEnd -> localWidth / 2
-                Alignment.TopCenter, Alignment.BottomCenter, Alignment.Center -> 0.dp
-                Alignment.CenterStart -> -(localWidth + gap)
-                Alignment.CenterEnd -> localWidth + gap
-                else -> -localWidth / 2
+        if (visible) {
+            val density = LocalDensity.current
+            var localWidth by remember {
+                mutableStateOf(0.dp)
             }
-            val offsetY = when (alignment) {
-                Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd -> size / 2
-                Alignment.CenterEnd, Alignment.CenterStart, Alignment.Center -> 0.dp
-                else -> -size / 2
-            }
-            DpOffset(offsetX, offsetY)
-        }
 
-        Box(
-            modifier = Modifier
-                .align(alignment)
-                .widthIn(size)
-                .height(size)
-                .onSizeChanged { size ->
-                    with(density) {
-                        localWidth = size.width.toDp()
-                    }
+            val finalOffset = offset ?: run {
+                val offsetX = when (alignment) {
+                    Alignment.TopEnd, Alignment.BottomEnd -> localWidth / 2
+                    Alignment.TopCenter, Alignment.BottomCenter, Alignment.Center -> 0.dp
+                    Alignment.CenterStart -> -(localWidth + gap)
+                    Alignment.CenterEnd -> localWidth + gap
+                    else -> -localWidth / 2
                 }
-                .offset(x = finalOffset.x, y = finalOffset.y)
-                .clip(if (localWidth > size) RoundedCornerShape(20.dp) else CircleShape)
-                .background(containerColor)
-                .padding(horizontal = if (localWidth > size && content != null) 6.dp else 0.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            content?.let {
-                Text(text = content, color = contentColor, fontSize = 12.sp)
+                val offsetY = when (alignment) {
+                    Alignment.BottomStart, Alignment.BottomCenter, Alignment.BottomEnd -> size / 2
+                    Alignment.CenterEnd, Alignment.CenterStart, Alignment.Center -> 0.dp
+                    else -> -size / 2
+                }
+                DpOffset(offsetX, offsetY)
+            }
+
+            Box(
+                modifier = Modifier
+                    .align(alignment)
+                    .widthIn(size)
+                    .height(size)
+                    .onSizeChanged { size ->
+                        with(density) {
+                            localWidth = size.width.toDp()
+                        }
+                    }
+                    .offset(x = finalOffset.x, y = finalOffset.y)
+                    .clip(if (localWidth > size) RoundedCornerShape(20.dp) else CircleShape)
+                    .background(containerColor)
+                    .padding(horizontal = if (localWidth > size && content != null) 6.dp else 0.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                content?.let {
+                    Text(text = content, color = contentColor, fontSize = 12.sp)
+                }
             }
         }
     }
