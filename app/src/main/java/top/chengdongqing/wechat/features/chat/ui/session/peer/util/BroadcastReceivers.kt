@@ -22,10 +22,10 @@ fun buildBluetoothReceiver(
 ): BroadcastReceiver {
     onStartDiscoverable()
     return object : BroadcastReceiver() {
-        @SuppressLint("MissingPermission")
         override fun onReceive(context: Context, intent: Intent) {
             when (intent.action) {
                 BluetoothDevice.ACTION_FOUND -> {
+                    // 设备详情
                     val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         intent.getParcelableExtra(
                             BluetoothDevice.EXTRA_DEVICE,
@@ -35,7 +35,10 @@ fun buildBluetoothReceiver(
                         @Suppress("DEPRECATION")
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
                     } ?: return
+                    // 信号强度
                     val rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, 0).toInt()
+
+                    // 触发回调
                     viewModel.onClassicDeviceFound(device, rssi)
                 }
 

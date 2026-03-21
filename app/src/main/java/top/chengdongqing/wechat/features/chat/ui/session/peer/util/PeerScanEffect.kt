@@ -59,7 +59,7 @@ fun PeerScanEffect(
             context,
             receiver,
             filter,
-            ContextCompat.RECEIVER_NOT_EXPORTED
+            ContextCompat.RECEIVER_EXPORTED
         )
 
         onDispose {
@@ -97,8 +97,8 @@ private fun buildReceiver(
 
 private fun buildIntentFilter(mode: ConnectionMode): IntentFilter = when (mode) {
     ConnectionMode.Bluetooth -> IntentFilter().apply {
-        addAction(BluetoothDevice.ACTION_FOUND)             // 发现新设备
-        addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED) // 扫描结束
+        addAction(BluetoothDevice.ACTION_FOUND)                 // 发现新设备
+        addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)   // 扫描结束
     }
 
     ConnectionMode.WiFiDirect -> IntentFilter(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION)

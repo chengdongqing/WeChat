@@ -3,9 +3,6 @@ package top.chengdongqing.wechat.features.chat.ui.session.peer
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanResult
-import android.bluetooth.le.ScanSettings
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,49 +33,24 @@ class BluetoothPeerViewModel @Inject constructor(
     private val bluetoothAdapter by lazy {
         (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
     }
-    private var scanCallback: ScanCallback? = null
 
     override fun startScan() {
+        // 加载已配对的设备
         loadPairedDevices()
 
-        val scanner = bluetoothAdapter.bluetoothLeScanner ?: run {
-            _uiState.update { it.copy(isScanning = false, error = "蓝牙扫描不可用") }
-            return
+        // 如果正在扫描，先停止
+        if (bluetoothAdapter.isDiscovering) {
+            bluetoothAdapter.cancelDiscovery()
         }
 
-        val settings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-            .build()
+        // 启动经典蓝牙扫描
+        bluetoothAdapter.startDiscovery()
 
-        scanCallback = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
-                val device = result.device
-                addNearbyDevice(
-                    PeerDevice.Bluetooth(
-                        id = device.address,
-                        name = device.name ?: device.address,
-                        isPaired = device.bondState == BluetoothDevice.BOND_BONDED,
-                        signalStrength = result.rssi,
-                        device = device
-                    )
-                )
-            }
-
-            override fun onScanFailed(errorCode: Int) {
-                _uiState.update { it.copy(isScanning = false, error = "扫描失败: $errorCode") }
-            }
-        }
-
-        scanner.startScan(emptyList(), settings, scanCallback!!)
         _uiState.update { it.copy(isScanning = true, error = null) }
     }
 
     @SuppressLint("MissingPermission")
     override fun stopScan() {
-        scanCallback?.let {
-            bluetoothAdapter.bluetoothLeScanner?.stopScan(it)
-            scanCallback = null
-        }
         if (bluetoothAdapter.isDiscovering) {
             bluetoothAdapter.cancelDiscovery()
         }
@@ -117,6 +89,9 @@ class BluetoothPeerViewModel @Inject constructor(
     }
 
     fun onClassicDeviceFound(device: BluetoothDevice, rssi: Int) {
+        // 过滤没有名字的
+        if (device.name == null) return
+
         addNearbyDevice(
             PeerDevice.Bluetooth(
                 id = device.address,
