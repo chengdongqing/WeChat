@@ -113,7 +113,7 @@
 
     <string name="add_source_search">搜索账号</string>
     <string name="add_source_qrcode">扫一扫</string>
-    <string name="add_source_tap">碰一碰</string>
+    <string name="add_source_bump">碰一碰</string>
     <string name="add_source_radar">雷达扫描</string>
     <string name="add_source_group">群聊</string>
     <string name="add_source_card">名片分享</string>

@@ -1,74 +1,115 @@
 [versions]
+# 构建工具与插件
 agp = "9.1.0"
-kotlin = "2.3.10"
+kotlin = "2.3.20"
 ksp = "2.3.4"
+
+# 核心基础库
 coreKtx = "1.17.0"
-junit = "4.13.2"
-junitVersion = "1.3.0"
-espressoCore = "3.7.0"
-lifecycleRuntimeKtx = "2.10.0"
-activityCompose = "1.12.4"
-composeBom = "2026.02.01"
-materialIconsExtended = "1.7.8"
-annotations = "26.1.0"
-desugarJdkLibs = "2.1.5"
-accompanistPermissions = "0.37.3"
-hilt = "2.59.2"
-hiltNavigationCompose = "1.3.0"
-webrtc = "137.7151.05"
+lifecycle = "2.10.0"
+activity = "1.12.4"
+navigation = "2.9.7"
 datastore = "1.2.0"
-room = "2.8.4"
-kotlinxSerialization = "1.10.0"
-navigationCompose = "2.9.7"
+desugar = "2.1.5"
+
+# Compose 相关版本
+composeBom = "2026.02.01"
+materialIcons = "1.7.8"
+accompanist = "0.37.3"
+
+# 依赖注入
+hilt = "2.59.2"
+hiltNavigation = "1.3.0"
+
+# 媒体与相机
 coil = "3.4.0"
 coilZoomable = "0.18.0"
 camera = "1.5.3"
+
+# 业务逻辑与数据
+room = "2.8.4"
+serialization = "1.10.0"
+webrtc = "144.7559.01"
 mlkit = "17.3.0"
 zxing = "3.5.4"
 pinyin = "0.4.0"
 
+# 测试与辅助工具
+junit = "4.13.2"
+junitExt = "1.3.0"
+espresso = "3.7.0"
+annotations = "26.1.0"
+
 [libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+# 核心支持库
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
+# JetBrains 注解库
 annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" } # 支持viewmodel
-androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
-androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
-androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
-androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
-androidx-compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
-android-desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
+# Java 8+ API 脱糖支持（用于低版本系统兼容）
+desugar-jdk = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
+# 本地简单键值对存储
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+
+# 生命周期与导航
+lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
+lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigation" }
+
+# Jetpack Compose UI 组件
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+compose-ui = { group = "androidx.compose.ui", name = "ui" }
+compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+# 自适应导航组件（如折叠屏/平板适配）
+compose-material3-adaptive = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
+# 完整的 Material 设计图标扩展库
+compose-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIcons" }
+
+# 依赖注入 (Hilt)
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
-androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" } # Compose 集成 (用于 hiltViewModel())
-webrtc = { module = "io.github.webrtc-sdk:android", version.ref = "webrtc" }
-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
-androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigation" }
+
+# 数据库 (Room)
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+# 图片加载与网络媒体
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coil" }
+# Coil 图片缩放组件
 coil-zoomable = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "coilZoomable" }
-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" } # 简化相机调用
-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera" } # 相机生命周期管理
-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera" } # 相机视图容器
-mlkit-barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkit" } # 二维码识别（基于机器学习）
-zxing = { module = "com.google.zxing:core", version.ref = "zxing" } # 二维码生成
-pinyin = { module = "com.github.houbb:pinyin", version.ref = "pinyin" } # 汉字转拼音
+webrtc = { module = "io.github.webrtc-sdk:android", version.ref = "webrtc" }
+
+# 相机与扫码
+camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" }
+camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera" }
+camera-view = { module = "androidx.camera:camera-view", version.ref = "camera" }
+# Google ML Kit 二维码/条码识别
+mlkit-barcode = { module = "com.google.mlkit:barcode-scanning", version.ref = "mlkit" }
+# ZXing 核心库（主要用于生成二维码）
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+
+# 其他功能库
+# Kotlin 序列化 (JSON 解析等)
+serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+# 汉字转拼音
+pinyin = { module = "com.github.houbb:pinyin", version.ref = "pinyin" }
+# Accompanist 权限管理工具
+permissions-accompanist = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
+
+# 测试相关
+test-junit = { group = "junit", name = "junit", version.ref = "junit" }
+test-junit-ext = { group = "androidx.test.ext", name = "junit", version.ref = "junitExt" }
+test-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -79,6 +120,19 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 room = { id = "androidx.room", version.ref = "room" }
 
 [bundles]
-room = ["room-runtime", "room-ktx", "room-compiler"]
+# 常用的 Compose UI 核心包
+compose = [
+    "compose-ui",
+    "compose-ui-graphics",
+    "compose-ui-tooling-preview",
+    "compose-material3",
+    "compose-activity",
+    "lifecycle-runtime",
+    "lifecycle-viewmodel-compose"
+]
+# Room 运行时包
+room = ["room-runtime", "room-ktx"]
+# Coil 图片加载全家桶
 coil = ["coil-compose", "coil-gif", "coil-network", "coil-video"]
+# CameraX 核心包
 camera = ["camera-camera2", "camera-lifecycle", "camera-view"]

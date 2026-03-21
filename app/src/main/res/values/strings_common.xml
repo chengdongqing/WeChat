@@ -60,4 +60,7 @@
     <string name="scan_tool_flash">闪光灯</string>
     <string name="scan_tool_album">相册</string>
     <string name="scan_recognize_failed">识别失败</string>
+
+    <string name="nfc_hce_description">微信碰一碰</string>
+    <string name="nfc_hce_aid_description">微信碰一碰加好友</string>
 </resources>

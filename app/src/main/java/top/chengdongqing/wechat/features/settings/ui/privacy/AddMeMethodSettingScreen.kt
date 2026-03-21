@@ -41,7 +41,7 @@ fun AddMeMethodSettingScreen(onBack: () -> Unit) {
                     WeSwitch(checked = true)
                 }
                 WeSettingItem(
-                    label = stringResource(R.string.privacy_add_method_tap),
+                    label = stringResource(R.string.privacy_add_method_bump),
                     showArrow = false
                 ) {
                     WeSwitch(checked = true)

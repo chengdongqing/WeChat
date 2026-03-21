@@ -55,7 +55,7 @@
     <string name="add_contact_my_wechat_id">My WeChat ID: %s</string>
     <string name="add_contact_option_scan_title">Scan</string>
     <string name="add_contact_option_scan_desc">Scan contact\'s QR code</string>
-    <string name="add_contact_option_nfc_title">Tap</string>
+    <string name="add_contact_option_nfc_title">Bump</string>
     <string name="add_contact_option_nfc_desc">Add friends via NFC</string>
     <string name="add_contact_option_radar_title">Radar</string>
     <string name="add_contact_option_radar_desc">Quick add friends in your vicinity</string>
@@ -113,7 +113,7 @@
 
     <string name="add_source_search">Account Search</string>
     <string name="add_source_qrcode">QR Code</string>
-    <string name="add_source_tap">Tap to Add</string>
+    <string name="add_source_bump">Bump to Add</string>
     <string name="add_source_radar">Nearby Radar</string>
     <string name="add_source_group">Group Chat</string>
     <string name="add_source_card">Business Card</string>

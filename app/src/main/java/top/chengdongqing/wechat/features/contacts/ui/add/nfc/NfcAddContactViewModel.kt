@@ -27,7 +27,7 @@ class NfcAddContactViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch {
-            addFriendRepository.fetchProfile(userId, ContactAddSource.Tap)?.let {
+            addFriendRepository.fetchProfile(userId, ContactAddSource.Bump)?.let {
                 onNavigateToContact()
 
                 _uiState.update { it.copy(isLoading = false) }

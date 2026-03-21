@@ -89,7 +89,7 @@
 
     <string name="privacy_add_method_group">Find Me by Searching</string>
     <string name="privacy_add_method_qrcode">QR Code</string>
-    <string name="privacy_add_method_tap">Tap</string>
+    <string name="privacy_add_method_bump">Bump</string>
     <string name="privacy_add_method_radar">Radar</string>
     <string name="privacy_add_method_card">Contact Card</string>
     <string name="privacy_add_method_other">Others</string>
@@ -110,7 +110,7 @@
     <string name="permission_camera">Camera</string>
     <string name="permission_camera_desc">Used to take photos, videos, make calls and scan QR codes.</string>
     <string name="permission_nfc">NFC</string>
-    <string name="permission_nfc_desc">Used to quickly connect or exchange contacts via tap.</string>
+    <string name="permission_nfc_desc">Used to quickly connect or exchange contacts via Bump.</string>
     <string name="permission_bluetooth">Bluetooth</string>
     <string name="permission_bluetooth_desc">Used to find and connect with nearby friends without internet.</string>
     <string name="permission_wifi">Wi-Fi</string>

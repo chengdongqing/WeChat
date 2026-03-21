@@ -89,7 +89,7 @@
 
     <string name="privacy_add_method_group">可通过以下方式添加我为好友</string>
     <string name="privacy_add_method_qrcode">二维码</string>
-    <string name="privacy_add_method_tap">碰一碰</string>
+    <string name="privacy_add_method_bump">碰一碰</string>
     <string name="privacy_add_method_radar">雷达</string>
     <string name="privacy_add_method_card">名片</string>
     <string name="privacy_add_method_other">其他</string>

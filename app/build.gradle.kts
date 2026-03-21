@@ -30,7 +30,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -56,44 +58,62 @@ configurations.all {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.material.icons.extended)
-    implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
-    implementation(libs.bundles.room)
-    implementation(libs.bundles.coil)
-    implementation(libs.coil.zoomable)
-    implementation(libs.kotlinx.serialization.json)
+    // 核心库
+    implementation(libs.core.ktx)
     implementation(libs.annotations)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.accompanist.permissions)
-    implementation(libs.hilt.android)
-    implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.webrtc)
     implementation(libs.datastore.preferences)
-    implementation(libs.bundles.camera)
-    implementation(libs.mlkit.barcode.scanning)
-    implementation(libs.zxing)
+    implementation(libs.serialization.json)
     implementation(libs.pinyin)
-    implementation(files("${rootProject.projectDir}/libs/AMap3DMap_11.1.060_AMapSearch_9.7.4_AMapLocation_11.1.060_20251229.aar"))
 
+    // 生命周期与导航
+    implementation(libs.lifecycle.runtime)
+    implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.navigation.compose)
+
+    // Compose 核心 UI
+    implementation(platform(libs.compose.bom))
+    implementation(libs.bundles.compose)
+    implementation(libs.compose.icons.extended)
+    implementation(libs.compose.material3.adaptive)
+
+    // 权限管理
+    implementation(libs.permissions.accompanist)
+
+    // 依赖注入 (Hilt)
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
+
+    //数据库 (Room)
+    implementation(libs.bundles.room)
     ksp(libs.room.compiler)
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // 图片加载与多媒体
+    implementation(libs.bundles.coil)
+    implementation(libs.coil.zoomable)
 
-    coreLibraryDesugaring(libs.android.desugarJdkLibs)
+    // 相机与扫码
+    implementation(libs.bundles.camera)
+    implementation(libs.mlkit.barcode)
+    implementation(libs.zxing.core)
+
+    // 实时通话
+    implementation(libs.webrtc)
+
+    // 地图
+    implementation(files("${rootProject.projectDir}/libs/AMap3DMap_11.1.060_AMapSearch_9.7.4_AMapLocation_11.1.060_20251229.aar"))
+
+    // 测试相关
+    testImplementation(libs.test.junit)
+    androidTestImplementation(libs.test.junit.ext)
+    androidTestImplementation(libs.test.espresso)
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+
+    // 调试工具
+    debugImplementation(libs.compose.ui.tooling)
+    debugImplementation(libs.compose.ui.test.manifest)
+
+    // Java 8+ 脱糖支持
+    coreLibraryDesugaring(libs.desugar.jdk)
 }

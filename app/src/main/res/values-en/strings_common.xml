@@ -60,4 +60,7 @@
     <string name="scan_tool_flash">Flash</string>
     <string name="scan_tool_album">Album</string>
     <string name="scan_recognize_failed">Recognition failed</string>
+
+    <string name="nfc_hce_description">WeChat Bump</string>
+    <string name="nfc_hce_aid_description">Add friends via WeChat Bump</string>
 </resources>

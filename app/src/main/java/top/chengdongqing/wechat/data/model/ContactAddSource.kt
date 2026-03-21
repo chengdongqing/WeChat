@@ -9,7 +9,7 @@ enum class ContactAddSource(
 ) {
     Search(R.string.add_source_search),
     QRCode(R.string.add_source_qrcode),
-    Tap(R.string.add_source_tap),
+    Bump(R.string.add_source_bump),
     Radar(R.string.add_source_radar),
     Group(R.string.add_source_group),
     Card(R.string.add_source_card);

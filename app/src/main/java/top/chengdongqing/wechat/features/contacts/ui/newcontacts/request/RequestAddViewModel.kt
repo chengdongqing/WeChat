@@ -18,7 +18,7 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.FriendReques
 
 data class RequestAddUiState(
     val contact: Contact? = null,
-    val greeting: String = "我是",
+    val greeting: String = "",
     val remark: String = "",
     val tags: List<String> = emptyList(),
     val note: String = "",
