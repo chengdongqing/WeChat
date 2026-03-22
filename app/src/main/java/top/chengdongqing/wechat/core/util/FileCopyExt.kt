@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.annotation.AnyRes
 import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -12,21 +13,38 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * 复制表情文件到临时文件
+ * 将 Assets 文件复制到指定文件
  */
-suspend fun Context.copyStickerToUri(
-    assetName: String
+suspend fun Context.copyAssetToUri(
+    assetName: String,
+    targetFile: File
 ): Uri? = withContext(Dispatchers.IO) {
     runCatching {
-        val tempFile = File.createTempFile("Sticker_", ".gif")
-
         assets.open(assetName).use { input ->
-            FileOutputStream(tempFile).use { output ->
+            FileOutputStream(targetFile).use { output ->
                 input.copyTo(output)
             }
         }
 
-        getFileProviderUri(tempFile)
+        getFileProviderUri(targetFile)
+    }.getOrNull()
+}
+
+/**
+ * 将 Resource 资源文件复制到指定文件
+ */
+suspend fun Context.copyResourceToUri(
+    @AnyRes resId: Int,
+    targetFile: File
+): Uri? = withContext(Dispatchers.IO) {
+    runCatching {
+        resources.openRawResource(resId).use { input ->
+            FileOutputStream(targetFile).use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        getFileProviderUri(targetFile)
     }.getOrNull()
 }
 

@@ -63,4 +63,6 @@
 
     <string name="nfc_hce_description">微信碰一碰</string>
     <string name="nfc_hce_aid_description">微信碰一碰加好友</string>
+
+    <string name="donate_description">%s 是一个完全免费且开源的尝试。如果你喜欢这个项目，还请多多支持作者，谢谢！</string>
 </resources>

@@ -15,7 +15,6 @@ import top.chengdongqing.wechat.features.call.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
 import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.input.handler.HandlerViewModel
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberActionHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberFileHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberFileLauncher
@@ -42,14 +41,14 @@ fun rememberInputBarActions(
     val dialog = rememberDialogState()
 
     // --- handlers ---
-    val handlerViewModel: HandlerViewModel = hiltViewModel()
+    val inputBarViewModel: InputBarViewModel = hiltViewModel()
     val mediaHandler = rememberMediaHandler(
-        viewModel = handlerViewModel,
+        viewModel = inputBarViewModel,
         onSendMessage = onSendMessage,
         onModeChange = controller::dismissAll
     )
-    val locationHandler = rememberLocationHandler(handlerViewModel, onSendMessage)
-    val fileHandler = rememberFileHandler(handlerViewModel, onSendMessage)
+    val locationHandler = rememberLocationHandler(inputBarViewModel, onSendMessage)
+    val fileHandler = rememberFileHandler(inputBarViewModel, onSendMessage)
 
     // --- launchers ---
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)
@@ -61,8 +60,10 @@ fun rememberInputBarActions(
         mediaLaunchers = mediaLaunchers,
         locationLauncher = locationLauncher,
         fileLauncher = fileLauncher,
+        viewModel = inputBarViewModel,
         onLaunchCall = onLaunchCall,
-        onSelectMusic = controller::toggleMusic
+        onSelectMusic = controller::toggleMusic,
+        onSendMessage = onSendMessage
     )
 
     return remember(controller, actionHandler) {

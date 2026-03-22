@@ -12,6 +12,7 @@ import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.deleteFileByUri
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarViewModel
 
 class LocationHandler(
     private val privateFileManager: PrivateFileManager,
@@ -45,7 +46,7 @@ class LocationHandler(
 
 @Composable
 fun rememberLocationHandler(
-    viewModel: HandlerViewModel,
+    viewModel: InputBarViewModel,
     onSendMessage: (MessageContent) -> Unit
 ): LocationHandler {
     return remember(onSendMessage) {

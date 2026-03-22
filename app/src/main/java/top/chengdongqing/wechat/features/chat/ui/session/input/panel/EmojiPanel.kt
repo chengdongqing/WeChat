@@ -58,12 +58,13 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.repeatingClickable
 import top.chengdongqing.wechat.core.util.asAssetPath
-import top.chengdongqing.wechat.core.util.copyStickerToUri
+import top.chengdongqing.wechat.core.util.copyAssetToUri
 import top.chengdongqing.wechat.core.util.deleteFileByUri
 import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.theme.ChatTheme
-import top.chengdongqing.wechat.features.chat.ui.session.input.handler.HandlerViewModel
+import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarViewModel
+import java.io.File
 
 /**
  * 表情面板
@@ -361,7 +362,7 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
 private fun StickerItem(
     sticker: Sticker,
     onSelect: (MessageContent.Sticker) -> Unit,
-    viewModel: HandlerViewModel = hiltViewModel()
+    viewModel: InputBarViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -384,9 +385,11 @@ private fun StickerItem(
             .clip(RoundedCornerShape(4.dp))
             .clickable {
                 scope.launch {
+                    val tempFile = File.createTempFile("Sticker_", ".gif")
                     // 获取表情URI
-                    val uri = context.copyStickerToUri(
-                        assetName = sticker.localPath
+                    val uri = context.copyAssetToUri(
+                        assetName = sticker.localPath,
+                        targetFile = tempFile
                     ) ?: return@launch
                     // 拷贝到私有目录持久化保存
                     val localPath = viewModel.privateFileManager.saveMedia(
