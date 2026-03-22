@@ -2,18 +2,14 @@ package top.chengdongqing.wechat.core.location.util
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.location.Location
-import android.os.Build
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
-import com.amap.api.maps.model.BitmapDescriptor
-import com.amap.api.maps.model.BitmapDescriptorFactory
-import com.amap.api.maps.model.LatLng
-import com.amap.api.services.core.LatLonPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.MapType
 import top.chengdongqing.wechat.core.util.showToast
 
@@ -21,14 +17,10 @@ import top.chengdongqing.wechat.core.util.showToast
  * 调用外部地图应用进行导航
  *
  * @param mapType 指定打开的地图类型
- * @param location 目的地经纬度
+ * @param location 目的地坐标
  * @param name 目的地名称描述
  */
-fun Context.navigateToLocation(
-    mapType: MapType,
-    location: LatLng,
-    name: String
-) {
+fun Context.navigateToLocation(mapType: MapType, location: GeoPoint, name: String) {
     runCatching {
         val uri = mapType.buildUri(location.latitude, location.longitude, name)
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
@@ -36,66 +28,43 @@ fun Context.navigateToLocation(
         }
         startActivity(intent)
     }.onFailure {
-        showToast("未安装${mapType.appName}地图")
+        showToast("未安装${getString(mapType.labelRes)}地图")
     }
 }
 
 /**
- * 将指定的图片资源转为地图支持的bitmap
- * 支持指定宽高、旋转角度
+ * 将指定图片资源渲染为 Bitmap
+ *
+ * @param iconId Drawable 资源 ID
+ * @param width 目标宽度，null 时使用原始宽度
+ * @param height 目标高度，null 时使用原始高度
+ * @param rotationAngle 旋转角度，null 时不旋转
  */
-suspend fun createBitmapDescriptor(
+suspend fun createIconBitmap(
     context: Context,
     @DrawableRes iconId: Int,
     width: Int? = null,
     height: Int? = null,
     rotationAngle: Float? = null
-): BitmapDescriptor? = withContext(Dispatchers.IO) {
+): Bitmap? = withContext(Dispatchers.IO) {
     val drawable = ContextCompat.getDrawable(context, iconId) ?: return@withContext null
-    val originalWidth = width ?: drawable.intrinsicWidth
-    val originalHeight = height ?: drawable.intrinsicHeight
-    val bitmap = createBitmap(originalWidth, originalHeight)
+    val w = width ?: drawable.intrinsicWidth
+    val h = height ?: drawable.intrinsicHeight
+    val bitmap = createBitmap(w, h)
     val canvas = Canvas(bitmap)
-
-    // 旋转
-    rotationAngle?.let {
-        val pivotX = originalWidth / 2f
-        val pivotY = originalHeight / 2f
-        canvas.save() // 保存画布当前的状态
-        canvas.rotate(it, pivotX, pivotY) // 应用旋转
-    }
-
-    drawable.setBounds(0, 0, originalWidth, originalHeight)
+    rotationAngle?.let { canvas.save(); canvas.rotate(it, w / 2f, h / 2f) }
+    drawable.setBounds(0, 0, w, h)
     drawable.draw(canvas)
-
-    // 如果旋转了画布，现在恢复到之前保存的状态
-    rotationAngle?.let {
-        canvas.restore()
-    }
-
-    BitmapDescriptorFactory.fromBitmap(bitmap)
+    rotationAngle?.let { canvas.restore() }
+    bitmap
 }
-
-// 判断位置是否加载完成
-fun Location.isLoaded() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-    this.isComplete
-} else {
-    this.latitude != 0.0 && this.longitude != 0.0
-}
-
-fun LatLonPoint.toLatLng() = LatLng(latitude, longitude)
-fun LatLng.toLatLonPoint() = LatLonPoint(latitude, longitude)
-fun Location.toLatLng() = LatLng(latitude, longitude)
 
 /**
  * 格式化距离
  *
  * @param meters 米数
+ * @param decimals 公里时保留小数位数，默认 1 位
  */
 fun formatDistance(meters: Int, decimals: Int = 1): String {
-    return if (meters >= 1000) {
-        "%.${decimals}fkm".format(meters / 1000f)
-    } else {
-        "${meters}m"
-    }
+    return if (meters >= 1000) "%.${decimals}fkm".format(meters / 1000f) else "${meters}m"
 }

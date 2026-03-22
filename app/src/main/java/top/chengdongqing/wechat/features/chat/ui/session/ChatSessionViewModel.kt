@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.amap.api.maps.model.LatLng
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -31,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.file.PublicFileManager
+import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.previewLocation
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
@@ -445,7 +445,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private fun openLocationPreview(content: MessageContent.Location) {
         context.previewLocation(
             LocationPreviewInfo(
-                coordinate = LatLng(content.latitude, content.longitude),
+                coordinate = GeoPoint(content.latitude, content.longitude),
                 address = content.address,
                 name = content.poiName
             )

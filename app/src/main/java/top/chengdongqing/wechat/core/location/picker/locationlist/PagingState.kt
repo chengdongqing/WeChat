@@ -18,6 +18,7 @@ interface PagingState<T> {
     fun endRefresh(dataList: List<T>)
     fun startLoadMore(): Int
     fun endLoadMore(dataList: List<T>)
+    fun cancelLoad()
 }
 
 class PagingStateImpl<T>(
@@ -37,9 +38,7 @@ class PagingStateImpl<T>(
     override fun endRefresh(dataList: List<T>) {
         this.dataList = dataList
         isAllLoaded = dataList.size < pageSize
-        if (!isAllLoaded) {
-            pageNumber++
-        }
+        if (!isAllLoaded) pageNumber++
         isLoading = false
     }
 
@@ -50,11 +49,13 @@ class PagingStateImpl<T>(
 
     override fun endLoadMore(dataList: List<T>) {
         this.dataList += dataList.also {
-            if (it.isNotEmpty()) {
-                pageNumber++
-            }
+            if (it.isNotEmpty()) pageNumber++
             isAllLoaded = it.size < pageSize
         }
+        isLoading = false
+    }
+
+    override fun cancelLoad() {
         isLoading = false
     }
 }

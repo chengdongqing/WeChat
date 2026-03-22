@@ -34,8 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.amap.api.maps.CameraUpdateFactory
-import com.amap.api.maps.model.MarkerOptions
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
@@ -43,41 +41,30 @@ import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.core.location.AMap
+import top.chengdongqing.wechat.core.location.WeMap
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.model.MapType
-import top.chengdongqing.wechat.core.location.rememberAMapState
-import top.chengdongqing.wechat.core.location.util.createBitmapDescriptor
+import top.chengdongqing.wechat.core.location.rememberMapController
+import top.chengdongqing.wechat.core.location.util.createIconBitmap
 import top.chengdongqing.wechat.core.location.util.navigateToLocation
 
 @Composable
 fun WeLocationPreview(location: LocationPreviewInfo, onBack: () -> Unit) {
     val context = LocalContext.current
-    val state = rememberAMapState()
-    val map = state.map
+    val mapController = rememberMapController()
 
-    LaunchedEffect(state) {
-        // 设置地图视野
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(location.coordinate, location.zoomLevel))
-
-        // 添加定位标记
-        val marker = MarkerOptions().apply {
-            position(location.coordinate)
-            icon(
-                createBitmapDescriptor(
-                    context,
-                    R.drawable.ic_location_marker,
-                    120,
-                    120
-                )
-            )
-        }
-        map.addMarker(marker)
+    LaunchedEffect(mapController) {
+        mapController.moveTo(location.coordinate, location.zoomLevel)
+        val icon = createIconBitmap(context, R.drawable.ic_location_marker, 120, 120)
+        mapController.addMarker(location.coordinate, icon)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f)) {
-            AMap(modifier = Modifier.fillMaxSize(), state)
+            WeMap(
+                modifier = Modifier.fillMaxSize(),
+                controller = mapController
+            )
             TopBar(onBack)
         }
         BottomBar(location)
@@ -113,13 +100,15 @@ private fun TopBar(onBack: () -> Unit) {
 private fun BottomBar(location: LocationPreviewInfo) {
     val context = LocalContext.current
     val actionSheet = rememberActionSheetState()
-    val mapOptions = remember {
-        listOf(
-            ActionSheetItem(R.string.map_amap),
-            ActionSheetItem(R.string.map_baidu),
-            ActionSheetItem(R.string.map_tencent),
-            ActionSheetItem(R.string.map_google),
-        )
+    val installedTypes = remember(context) {
+        MapType.entries.filter { mapType ->
+            runCatching {
+                context.packageManager.getPackageInfo(mapType.packageName, 0)
+            }.isSuccess
+        }
+    }
+    val mapOptions = remember(installedTypes) {
+        installedTypes.map { ActionSheetItem(it.labelRes) }
     }
 
     Row(
@@ -154,7 +143,7 @@ private fun BottomBar(location: LocationPreviewInfo) {
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(WeTheme.colorScheme.background)
-                    .clickable {
+                    .clickable(enabled = mapOptions.isNotEmpty()) {
                         actionSheet.show(mapOptions) { index ->
                             context.navigateToLocation(
                                 MapType.ofIndex(index)!!,

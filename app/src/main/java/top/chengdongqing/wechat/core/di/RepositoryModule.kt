@@ -5,6 +5,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
+import top.chengdongqing.wechat.core.location.repository.LocationRepository
+import top.chengdongqing.wechat.core.location.repository.LocationRepositoryImpl
 import top.chengdongqing.wechat.features.chat.data.repository.ChatSessionRepositoryImpl
 import top.chengdongqing.wechat.features.chat.data.repository.MessageRepositoryImpl
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
@@ -105,4 +107,10 @@ interface RepositoryModule {
     fun bindConnectionModeSettingsRepository(
         impl: ConnectionSettingsRepositoryImpl
     ): ConnectionSettingsRepository
+
+    @Binds
+    @Singleton
+    fun bindLocationRepository(
+        impl: LocationRepositoryImpl
+    ): LocationRepository
 }

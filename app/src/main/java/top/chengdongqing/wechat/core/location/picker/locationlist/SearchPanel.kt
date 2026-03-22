@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
-import com.amap.api.maps.CameraUpdateFactory
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,41 +59,34 @@ fun SearchPanel(state: LocationPickerState) {
             value = keyword,
             modifier = Modifier.padding(16.dp),
             focused = true,
-            onFocusChange = {
-                if (!it) {
-                    state.isSearchMode = false
-                }
-            }
+            onFocusChange = { if (!it) state.isSearchMode = false }
         ) {
             keywordFlow.value = it
         }
         TypeTabRow(type) { type = it }
 
         LocationList(
-            listState,
-            paging,
-            state.selectedIndexOfSearch,
-            onSelect = {
-                // 保存选择的位置索引
-                state.selectedIndexOfSearch = it
-                // 移动地图中心点到选中的位置
-                val latLng = paging.dataList[it].coordinate
-                state.map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
-                // 选择位置后展开地图
+            listState = listState,
+            pagingState = paging,
+            selectedIndex = state.selectedIndexOfSearch,
+            onSelect = { index ->
+                state.selectedIndexOfSearch = index
+                val latLng = paging.dataList[index].coordinate
+                state.mapController.moveTo(latLng)
                 state.isListExpanded = false
             }
         ) {
-            if (!paging.isAllLoaded && !state.paging.isLoading) {
+            if (!paging.isAllLoaded && !paging.isLoading) {
                 val pageNum = paging.startLoadMore()
                 state.search(
                     location = if (type == 0) state.currentLatLng else null,
                     keyword = keyword,
                     pageNum = pageNum
-                ).apply {
-                    val filteredList = this.filter { item ->
-                        paging.dataList.none { it.name == item.name }
-                    }
-                    paging.endLoadMore(filteredList)
+                ).onSuccess { items ->
+                    val existing = paging.dataList.mapTo(HashSet()) { it.name }
+                    paging.endLoadMore(items.filter { it.name !in existing })
+                }.onFailure {
+                    paging.cancelLoad()
                 }
             }
         }
@@ -119,12 +111,9 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
                 val active = index == type
                 Text(
                     text = item,
-                    color = if (active) WeTheme.colorScheme.primary
-                    else WeTheme.colorScheme.textPrimary,
+                    color = if (active) WeTheme.colorScheme.primary else WeTheme.colorScheme.textPrimary,
                     modifier = Modifier
-                        .onSizeChanged {
-                            itemWidths[index] = with(density) { it.width.toDp() }
-                        }
+                        .onSizeChanged { itemWidths[index] = with(density) { it.width.toDp() } }
                         .weClickable { onChange(index) }
                         .padding(vertical = 3.dp)
                 )
@@ -133,20 +122,12 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
 
         val targetOffsetX = remember(type, itemWidths.toList()) {
             var offset = 0.dp
-            for (i in 0 until type) {
-                offset += itemWidths[i] + 16.dp
-            }
+            for (i in 0 until type) offset += itemWidths[i] + 16.dp
             offset
         }
-
-        val animatedOffsetX by animateDpAsState(
-            targetValue = targetOffsetX,
-            label = "TabIndicator"
-        )
-
-        val indicatorWidth = itemWidths.getOrElse(type) { 0.dp }
+        val animatedOffsetX by animateDpAsState(targetValue = targetOffsetX, label = "TabIndicator")
         val animatedWidth by animateDpAsState(
-            targetValue = indicatorWidth,
+            targetValue = itemWidths.getOrElse(type) { 0.dp },
             label = "TabIndicatorWidth"
         )
 
@@ -157,7 +138,6 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
             thickness = 2.dp,
             color = WeTheme.colorScheme.primary
         )
-
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -172,16 +152,14 @@ private fun SearchingEffect(
     keyword: String,
     type: Int
 ) {
-    val currentKeyword by rememberUpdatedState(newValue = keyword)
-    val currentType by rememberUpdatedState(newValue = type)
+    val currentKeyword by rememberUpdatedState(keyword)
+    val currentType by rememberUpdatedState(type)
 
     LaunchedEffect(keywordFlow) {
         keywordFlow
             .debounce(300)
             .filter { it.isNotBlank() }
-            .collect {
-                refresh(state, paging, listState, it, currentType)
-            }
+            .collect { refresh(state, paging, listState, it, currentType) }
     }
     LaunchedUpdateEffect(currentType) {
         refresh(state, paging, listState, currentKeyword, currentType)
@@ -196,18 +174,19 @@ private suspend fun refresh(
     type: Int
 ) {
     state.selectedIndexOfSearch = null
-
-    if (keyword.isNotBlank()) {
-        paging.startRefresh()
-        state.search(
-            location = if (type == 0) state.currentLatLng else null,
-            keyword = keyword
-        ).apply {
-            paging.endRefresh(this)
-        }
-        listState.scrollToItem(0)
-    } else {
+    if (keyword.isBlank()) {
         paging.dataList = emptyList()
+        return
+    }
+    paging.startRefresh()
+    state.search(
+        location = if (type == 0) state.currentLatLng else null,
+        keyword = keyword
+    ).onSuccess { items ->
+        paging.endRefresh(items)
+        listState.scrollToItem(0)
+    }.onFailure {
+        paging.cancelLoad()
     }
 }
 
@@ -217,13 +196,9 @@ private fun KeyboardEffect(state: LocationPickerState) {
     val keyboardHeight = rememberKeyboardHeight()
 
     LaunchedUpdateEffect(keyboardHeight) {
-        if (keyboardHeight > 0.dp) {
-            state.isListExpanded = true
-        }
+        if (keyboardHeight > 0.dp) state.isListExpanded = true
     }
     LaunchedUpdateEffect(state.isListExpanded) {
-        if (!state.isListExpanded) {
-            keyboardController?.hide()
-        }
+        if (!state.isListExpanded) keyboardController?.hide()
     }
 }

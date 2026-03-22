@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.core.location.picker
 
+import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.Image
@@ -36,47 +37,55 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.amap.api.maps.model.BitmapDescriptor
-import com.amap.api.maps.model.MarkerOptions
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.core.location.AMap
 import top.chengdongqing.wechat.core.location.LocationControl
+import top.chengdongqing.wechat.core.location.WeMap
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.picker.locationlist.SearchableLocationList
-import top.chengdongqing.wechat.core.location.rememberAMapState
-import top.chengdongqing.wechat.core.location.util.createBitmapDescriptor
+import top.chengdongqing.wechat.core.location.rememberMapController
+import top.chengdongqing.wechat.core.location.repository.LocationRepository
+import top.chengdongqing.wechat.core.location.util.createIconBitmap
 import top.chengdongqing.wechat.core.util.createImageUri
 
 @Composable
 fun WeLocationPicker(
+    locationRepository: LocationRepository,
     onCancel: () -> Unit,
     onConfirm: (LocationInfo) -> Unit
 ) {
-    val mapState = rememberAMapState()
+    val mapController = rememberMapController()
     val listState = rememberLazyListState()
-    val state = rememberLocationPickerState(mapState.map, listState)
+    val pickerState = rememberLocationPickerState(mapController, locationRepository, listState)
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
 
-    /**
-     * 处理位置回调
-     */
-    val handleConfirm = {
+    val onConfirmClick = {
         scope.launch {
             isLoading = true
-            // 获取地图快照
-            mapState.takeSnapshot(state.isSearchMode)?.let { bitmap ->
-                // 保存到缓存并获取uri
-                val snapshot = context.createImageUri(bitmap)
-                val location = state.selectedLocation!!.copy(staticMapUri = snapshot)
-                onConfirm(location)
+            try {
+                // 非搜索模式：先临时添加 Marker 再截图，截图后立即移除
+                val markerHandle = if (!pickerState.isSearchMode) {
+                    val icon = createIconBitmap(context, R.drawable.ic_location_marker, 160, 160)
+                    pickerState.mapCenterLatLng?.let { mapController.addMarker(it, icon) }
+                } else null
+
+                val bitmap = mapController.takeSnapshot()
+                markerHandle?.remove()
+
+                bitmap?.let {
+                    val snapshot = context.createImageUri(it)
+                    val location = pickerState.selectedLocation!!.copy(staticMapUri = snapshot)
+                    onConfirm(location)
+                }
+            } finally {
+                // 无论截图成功与否，都重置加载状态
                 isLoading = false
             }
         }
@@ -85,21 +94,21 @@ fun WeLocationPicker(
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(1f)) {
-            AMap(state = mapState) { map ->
-                LocationControl(map) {
-                    state.mapCenterLatLng = it
+            WeMap(controller = mapController) { controller ->
+                LocationControl(controller) { point ->
+                    pickerState.mapCenterLatLng = point
                 }
             }
             TopBar(
-                hasSelected = state.selectedLocation != null,
+                hasSelected = pickerState.selectedLocation != null,
                 isLoading = isLoading,
                 onCancel = onCancel,
-                onConfirm = handleConfirm
+                onConfirm = onConfirmClick
             )
-            LocationMarker(state)
+            LocationMarker(pickerState)
         }
         Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
-            SearchableLocationList(state, listState)
+            SearchableLocationList(pickerState, listState)
         }
     }
 }
@@ -107,13 +116,9 @@ fun WeLocationPicker(
 @Composable
 private fun BoxScope.LocationMarker(state: LocationPickerState) {
     val context = LocalContext.current
-    val locationIcon by produceState<BitmapDescriptor?>(null) {
-        value = createBitmapDescriptor(
-            context,
-            R.drawable.ic_location_marker,
-            160,
-            160
-        )
+    // 搜索模式下才需要图标 Bitmap（普通模式用 Image composable overlay 代替）
+    val locationIcon by produceState<Bitmap?>(null) {
+        value = createIconBitmap(context, R.drawable.ic_location_marker, 160, 160)
     }
 
     if (!state.isSearchMode) {
@@ -133,16 +138,12 @@ private fun BoxScope.LocationMarker(state: LocationPickerState) {
                 .offset(y = (-25).dp + offsetY.value.dp)
         )
     } else if (state.selectedLocation != null) {
+        // 搜索模式：通过 MapController 添加真实 Marker，切换/消失时自动移除
         DisposableEffect(state.selectedLocation, locationIcon) {
-            val markerOptions = MarkerOptions().apply {
-                position(state.selectedLocation?.coordinate)
-                icon(locationIcon)
+            val handle = state.selectedLocation?.coordinate?.let { coord ->
+                state.mapController.addMarker(coord, locationIcon)
             }
-            val marker = state.map.addMarker(markerOptions)
-
-            onDispose {
-                marker?.remove()
-            }
+            onDispose { handle?.remove() }
         }
     }
 }

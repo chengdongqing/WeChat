@@ -28,7 +28,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.amap.api.maps.CameraUpdateFactory
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -41,10 +40,7 @@ fun SearchableLocationList(state: LocationPickerState, listState: LazyListState)
         label = "LocationListHeightAnimation"
     )
     val nestedScrollConnection = remember(state) {
-        LocationListNestedScrollConnection(
-            state,
-            animatedHeightFraction
-        )
+        LocationListNestedScrollConnection(state, animatedHeightFraction)
     }
 
     Column(
@@ -55,35 +51,30 @@ fun SearchableLocationList(state: LocationPickerState, listState: LazyListState)
             .background(WeTheme.colorScheme.surface)
             .nestedScroll(nestedScrollConnection)
     ) {
-        if (state.isListExpanded) {
-            TopArrow(state)
-        }
+        if (state.isListExpanded) TopArrow(state)
 
         if (state.isSearchMode) {
             SearchPanel(state)
         } else {
             SearchInput(state)
             LocationList(
-                listState,
-                state.paging,
-                state.selectedIndex,
-                onSelect = {
-                    // 保存选择的位置索引
-                    state.selectedIndex = it
-                    // 移动地图中心点到选中的位置
-                    val latLng = state.paging.dataList[it].coordinate
-                    state.map.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
+                listState = listState,
+                pagingState = state.paging,
+                selectedIndex = state.selectedIndex,
+                onSelect = { index ->
+                    state.selectedIndex = index
+                    val point = state.paging.dataList[index].coordinate
+                    state.mapController.moveTo(point)
                 }
             ) {
                 if (!state.paging.isAllLoaded && !state.paging.isLoading) {
                     val pageNum = state.paging.startLoadMore()
                     state.search(state.mapCenterLatLng, pageNum = pageNum)
-                        .apply {
-                            val filteredList = this.filter { item ->
-                                state.paging.dataList.none { it.name == item.name }
-                            }
-                            state.paging.endLoadMore(filteredList)
+                        .onSuccess { items ->
+                            val existing = state.paging.dataList.mapTo(HashSet()) { it.name }
+                            state.paging.endLoadMore(items.filter { it.name !in existing })
                         }
+                        .onFailure { state.paging.cancelLoad() }
                 }
             }
         }
@@ -125,24 +116,18 @@ private fun SearchInput(state: LocationPickerState) {
         modifier = Modifier.padding(16.dp),
         placeholder = stringResource(R.string.location_search_placeholder),
         disabled = true,
-        onClick = {
-            state.isSearchMode = true
-        }
+        onClick = { state.isSearchMode = true }
     ) {}
 }
 
 private class LocationListNestedScrollConnection(
     private val state: LocationPickerState,
-    private val heightFraction: State<Float>,
+    private val heightFraction: State<Float>
 ) : NestedScrollConnection {
-    override fun onPreScroll(
-        available: Offset,
-        source: NestedScrollSource
-    ): Offset {
-        if (available.y < 0 && !state.isListExpanded) {
-            state.isListExpanded = true
-        }
-        return if (heightFraction.value == 0.7f) Offset.Zero else available
+    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        if (available.y < 0 && !state.isListExpanded) state.isListExpanded = true
+        // 动画已完成展开时才消费滚动
+        return if (heightFraction.value >= 0.7f) Offset.Zero else available
     }
 
     override fun onPostScroll(
@@ -150,9 +135,7 @@ private class LocationListNestedScrollConnection(
         available: Offset,
         source: NestedScrollSource
     ): Offset {
-        if (available.y > 0 && state.isListExpanded) {
-            state.isListExpanded = false
-        }
+        if (available.y > 0 && state.isListExpanded) state.isListExpanded = false
         return Offset.Zero
     }
 }

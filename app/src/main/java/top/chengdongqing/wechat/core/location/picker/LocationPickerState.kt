@@ -13,105 +13,69 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import com.amap.api.maps.AMap
-import com.amap.api.maps.CameraUpdateFactory
-import com.amap.api.maps.model.LatLng
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.location.map.MapController
+import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.picker.locationlist.PagingState
 import top.chengdongqing.wechat.core.location.picker.locationlist.PagingStateImpl
 import top.chengdongqing.wechat.core.location.repository.LocationRepository
-import top.chengdongqing.wechat.core.location.repository.LocationRepositoryImpl
-import top.chengdongqing.wechat.core.location.util.isLoaded
-import top.chengdongqing.wechat.core.location.util.toLatLng
 
 @Stable
 interface LocationPickerState {
-    /**
-     * 地图实例
-     */
-    val map: AMap
-
-    /**
-     * 当前设备坐标
-     */
-    val currentLatLng: LatLng?
-
-    /**
-     * 地图中心点坐标
-     */
-    var mapCenterLatLng: LatLng?
-
-    /**
-     * 是否是搜索模式
-     */
+    val mapController: MapController
+    val currentLatLng: GeoPoint?
+    var mapCenterLatLng: GeoPoint?
     var isSearchMode: Boolean
-
-    /**
-     * 是否展开列表
-     */
     var isListExpanded: Boolean
-
-    /**
-     * 分页信息
-     */
     val paging: PagingState<LocationInfo>
-
-    /**
-     * 选中的位置索引
-     */
     var selectedIndex: Int
-
-    /**
-     * 搜索模式下的分页信息
-     */
     val pagingOfSearch: PagingState<LocationInfo>
-
-    /**
-     * 搜索模式下选中的位置索引
-     */
     var selectedIndexOfSearch: Int?
 
     /**
-     * 当前选中的位置信息
+     * 当前选中的位置，普通模式取 [paging]，搜索模式取 [pagingOfSearch]
      */
     val selectedLocation: LocationInfo?
 
     /**
-     * 搜索位置
+     * 搜索 POI
+     *
+     * @return [Result.success] 含结果列表；[Result.failure] 表示请求失败
      */
     suspend fun search(
-        location: LatLng?,
+        location: GeoPoint?,
         keyword: String = "",
         pageNum: Int = 1,
         pageSize: Int = 10
-    ): List<LocationInfo>
+    ): Result<List<LocationInfo>>
 }
 
 @Composable
-fun rememberLocationPickerState(map: AMap, listState: LazyListState): LocationPickerState {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val locationRepository = remember { LocationRepositoryImpl(context) }
+fun rememberLocationPickerState(
+    mapController: MapController,
+    locationRepository: LocationRepository,
+    listState: LazyListState
+): LocationPickerState {
+    val scope = rememberCoroutineScope()
     val currentLocation = locationRepository.currentLocation.collectAsState(initial = null)
 
     val state = remember {
         LocationPickerStateImpl(
-            map,
+            mapController,
             locationRepository,
-            coroutineScope,
+            scope,
             currentLocation,
             listState
         )
     }
 
-    // 恢复上次缓存的位置信息
+    // 恢复上次缓存的坐标，快速还原地图位置
     LaunchedEffect(currentLocation.value) {
         currentLocation.value?.let {
             if (state.mapCenterLatLng == null) {
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 16f))
+                mapController.moveTo(it)
                 state.mapCenterLatLng = it
             }
         }
@@ -121,148 +85,117 @@ fun rememberLocationPickerState(map: AMap, listState: LazyListState): LocationPi
 }
 
 private class LocationPickerStateImpl(
-    override val map: AMap,
+    override val mapController: MapController,
     private val locationRepository: LocationRepository,
-    private val coroutineScope: CoroutineScope,
-    private val _currentLatLng: State<LatLng?>,
+    private val scope: CoroutineScope,
+    private val _currentLatLng: State<GeoPoint?>,
     private val listState: LazyListState
 ) : LocationPickerState {
-    override var currentLatLng: LatLng?
+
+    // getter 读缓存 flow，setter 只负责持久化到 DataStore
+    override var currentLatLng: GeoPoint?
         get() = _currentLatLng.value
         set(value) {
             value?.let {
-                coroutineScope.launch {
-                    // 缓存到datastore，方便再次进入时快速获取定位
+                scope.launch {
                     locationRepository.saveCurrentLocation(it)
                 }
             }
         }
-    override var mapCenterLatLng: LatLng?
+
+    override var mapCenterLatLng: GeoPoint?
         get() = _mapCenterLatLng
         set(value) {
             _mapCenterLatLng = value
+            if (isSearchMode) isSearchMode = false
+            if (value == null) return
 
-            // 退出搜索模式
-            if (isSearchMode) {
-                isSearchMode = false
-            }
-            if (value != null) {
-                // 重置选中项
-                selectedIndex = 0
-                // 准备刷新
-                paging.startRefresh()
-                coroutineScope.launch {
-                    // 获取地图中心点的位置信息，转为列表是方便和之后附近的位置列表合并
-                    val centerLocationList = locationToAddress(value)?.let { listOf(it) }
-                        ?: emptyList()
-                    // 搜索附近位置信息
-                    search(value).apply {
-                        paging.endRefresh(centerLocationList + this)
-                    }
-                    // 滚动到第一项
-                    listState.scrollToItem(0)
-                }
+            selectedIndex = 0
+            paging.startRefresh()
+            scope.launch {
+                val centerItem = reverseGeocodeToItem(value)?.let { listOf(it) } ?: emptyList()
+                val nearby = search(value).getOrElse { emptyList() }
+                paging.endRefresh(centerItem + nearby)
+                listState.scrollToItem(0)
             }
         }
+
     override var isSearchMode: Boolean
         get() = _isSearchMode
         set(value) {
             _isSearchMode = value
             isListExpanded = value
-
             if (!value) {
-                // 重置搜索结果
+                // 退出搜索：清空搜索结果，恢复地图视野到普通模式中心点
                 pagingOfSearch.dataList = emptyList()
-                // 恢复地图视野
-                mapCenterLatLng?.let {
-                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 16f))
-                }
+                _mapCenterLatLng?.let { mapController.moveTo(it) }
             }
         }
+
     override var isListExpanded by mutableStateOf(false)
     override val paging = PagingStateImpl<LocationInfo>(initialLoading = true)
     override var selectedIndex by mutableIntStateOf(0)
     override val pagingOfSearch = PagingStateImpl<LocationInfo>()
     override var selectedIndexOfSearch by mutableStateOf<Int?>(null)
+
     override val selectedLocation: LocationInfo?
-        get() {
-            return if (!isSearchMode) {
-                paging.dataList.getOrNull(selectedIndex)
-            } else {
-                selectedIndexOfSearch?.let { pagingOfSearch.dataList.getOrNull(it) }
-            }
+        get() = if (!isSearchMode) {
+            paging.dataList.getOrNull(selectedIndex)
+        } else {
+            selectedIndexOfSearch?.let { pagingOfSearch.dataList.getOrNull(it) }
         }
 
-    private var _mapCenterLatLng by mutableStateOf<LatLng?>(null)
+    private var _mapCenterLatLng by mutableStateOf<GeoPoint?>(null)
     private var _isSearchMode by mutableStateOf(false)
 
     override suspend fun search(
-        location: LatLng?,
+        location: GeoPoint?,
         keyword: String,
         pageNum: Int,
         pageSize: Int
-    ): List<LocationInfo> {
-        if (location == null && keyword.isBlank()) {
-            return emptyList()
-        }
-
-        return locationRepository.search(
-            location,
-            keyword,
-            pageNum,
-            pageSize,
-            currentLatLng
-        )
+    ): Result<List<LocationInfo>> {
+        if (location == null && keyword.isBlank()) return Result.success(emptyList())
+        return locationRepository.search(location, keyword, pageNum, pageSize, currentLatLng)
     }
 
     init {
-        setMapClickAndDragListener()
-        setLocationChangeListener()
+        setupMapListeners()
     }
 
-    private suspend fun locationToAddress(latLng: LatLng): LocationInfo? {
-        return locationRepository.locationToAddress(latLng)?.let {
-            val address = it.formatAddress
-            val startIndex = address.lastIndexOf(it.district)
-            val name = address.slice(startIndex..address.lastIndex)
-            LocationInfo(
-                name = name,
-                address = address,
-                coordinate = latLng
-            )
+    /**
+     * 将坐标逆解析为 LocationInfo（作为列表第一项展示在附近搜索结果之前）
+     */
+    private suspend fun reverseGeocodeToItem(point: GeoPoint): LocationInfo? {
+        return locationRepository.locationToAddress(point)?.let { info ->
+            val startIndex = info.formattedAddress.lastIndexOf(info.district).coerceAtLeast(0)
+            val name = info.formattedAddress.substring(startIndex)
+            LocationInfo(name = name, address = info.formattedAddress, coordinate = point)
         }
     }
 
-    // 监听地图点击或拖拽事件
-    private fun setMapClickAndDragListener() {
-        map.setOnMapClickListener {
-            map.animateCamera(CameraUpdateFactory.newLatLng(it))
-            mapCenterLatLng = it
+    private fun setupMapListeners() {
+        mapController.setOnMapClickListener { point ->
+            mapController.moveTo(point)
+            mapCenterLatLng = point
         }
-        map.setOnPOIClickListener {
-            map.animateCamera(CameraUpdateFactory.newLatLng(it.coordinate))
-            mapCenterLatLng = it.coordinate
+        mapController.setOnPoiClickListener { point ->
+            mapController.moveTo(point)
+            mapCenterLatLng = point
         }
-        map.setOnMapTouchListener {
-            if (it.action == MotionEvent.ACTION_UP && !isSearchMode) {
-                mapCenterLatLng = map.cameraPosition.target
+        mapController.setOnTouchListener { event ->
+            // 拖拽松手时，将地图当前中心点作为新选点
+            if (event.action == MotionEvent.ACTION_UP && !isSearchMode) {
+                mapController.cameraCenter?.let { mapCenterLatLng = it }
             }
         }
-    }
-
-    // 监听当前位置变化
-    private fun setLocationChangeListener() {
-        map.setOnMyLocationChangeListener { location ->
-            if (location.isLoaded()) {
-                location.toLatLng().let {
-                    // 只有在当前位置为空且非搜索模式时才将地图视野移至当前位置
-                    if (currentLatLng == null && !isSearchMode) {
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 16f))
-                        mapCenterLatLng = it
-                    }
-                    currentLatLng = it
-                }
+        mapController.setOnLocationChangeListener { point ->
+            // 首次获得定位：移动地图并触发附近搜索
+            if (currentLatLng == null && !isSearchMode) {
+                mapController.moveTo(point)
+                mapCenterLatLng = point
             }
+            // 每次定位更新都持久化，方便下次快速恢复
+            currentLatLng = point
         }
     }
 }
