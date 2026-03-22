@@ -15,7 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketServer
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
@@ -32,7 +32,7 @@ import javax.inject.Singleton
 class WiFiDirectChatModule @Inject constructor(
     private val socketServer: TcpSocketServer,
     private val socketClient: TcpSocketClient,
-    private val connectionManager: TcpConnectionManager,
+    private val connectionManager: ConnectionManager,
     private val activeSessionManager: ActiveSessionManager,
     private val messageReceiver: MessageReceiver,
     private val profileRepository: ProfileRepository,

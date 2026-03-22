@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.connection.PeerHandshakeHandler
 import top.chengdongqing.wechat.data.network.model.PacketReader
@@ -28,7 +29,7 @@ import java.util.UUID
  */
 @Singleton
 class BtSocketServer @Inject constructor(
-    private val connectionManager: BtConnectionManager,
+    private val connectionManager: ConnectionManager,
     private val handshakeHandler: PeerHandshakeHandler,
     private val btBondManager: BtBondManager,
     @param:ApplicationContext private val context: Context,

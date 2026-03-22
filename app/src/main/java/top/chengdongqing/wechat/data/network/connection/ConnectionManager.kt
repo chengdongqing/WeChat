@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.data.network.connection
 
 import android.util.Log
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -9,6 +11,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.network.config.TransferConfig
@@ -23,15 +26,20 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * 连接管理器基类
+ * 连接管理器
  */
-abstract class AbstractConnectionManager(
-    protected open val e2e: E2ESessionManager,
-    protected open val connectionInfoDao: ConnectionInfoDao,
-    protected open val profileRepository: ProfileRepository,
-    protected open val contactRepository: ContactRepository,
-    protected open val scope: CoroutineScope
+@Singleton
+class ConnectionManager @Inject constructor(
+    private val e2e: E2ESessionManager,
+    private val connectionInfoDao: ConnectionInfoDao,
+    private val profileRepository: ProfileRepository,
+    private val contactRepository: ContactRepository,
+    @param:IoScope private val scope: CoroutineScope
 ) {
+    private companion object {
+        const val TAG = "ConnectionManager"
+    }
+
     val connections = ConcurrentHashMap<String, PeerConnection>()
 
     private val _connectionEvents = MutableSharedFlow<ConnectionEvent>(extraBufferCapacity = 8)
@@ -54,7 +62,7 @@ abstract class AbstractConnectionManager(
     /**
      * 注册连接
      */
-    open suspend fun register(conn: PeerConnection) {
+    suspend fun register(conn: PeerConnection) {
         connections[conn.userId]?.close()
         connections[conn.userId] = conn
         connectionInfoDao.markOnline(conn.userId, conn.lastPongTime.get())
@@ -90,13 +98,13 @@ abstract class AbstractConnectionManager(
             // 有消息往来，重置空闲计时
             conn.lastPongTime.set(System.currentTimeMillis())
         }.onFailure {
-            Log.e(tag, "发送失败: $userId", it)
+            Log.e(TAG, "发送失败: $userId", it)
             disconnect(userId)
         }
     }
 
     /**
-     * 并发文件传输入口。
+     * 文件传输入口
      *
      * - 通过 [PeerConnection.maxConcurrentTransfers] 限制同一连接的并发传输上限。
      *   超出上限的协程会挂起等待，直到有槽位释放。
@@ -129,7 +137,7 @@ abstract class AbstractConnectionManager(
 
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e(tag, "文件传输失败: $userId", e)
+            Log.e(TAG, "文件传输失败: $userId", e)
             // 非用户主动取消才需要断开连接
             if (e !is CancellationException) {
                 disconnect(userId)
@@ -190,7 +198,7 @@ abstract class AbstractConnectionManager(
                     }
                 }
             } catch (_: Exception) {
-                Log.w(tag, "心跳异常，断开: ${conn.userId}")
+                Log.w(TAG, "心跳异常，断开: ${conn.userId}")
                 // 断开连接
                 disconnect(conn.userId)
             }
@@ -223,7 +231,7 @@ abstract class AbstractConnectionManager(
                     }
                 }
             } catch (_: Exception) {
-                Log.w(tag, "接收异常: ${conn.userId}")
+                Log.w(TAG, "接收异常: ${conn.userId}")
             } finally {
                 disconnect(conn.userId)
             }
@@ -248,6 +256,4 @@ abstract class AbstractConnectionManager(
             )
         }
     }
-
-    protected abstract val tag: String
 }

@@ -8,7 +8,7 @@ import top.chengdongqing.wechat.data.network.model.Packet
  * ChatTransport 基类
  */
 abstract class AbstractChatTransport(
-    protected open val connectionManager: AbstractConnectionManager,
+    protected open val connectionManager: ConnectionManager
 ) : ChatTransport {
 
     override val connectionEvents

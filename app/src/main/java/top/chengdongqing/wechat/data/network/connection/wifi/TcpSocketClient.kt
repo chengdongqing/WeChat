@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.connection.PeerHandshakeHandler
 import top.chengdongqing.wechat.data.network.model.PacketReader
@@ -21,7 +22,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class TcpSocketClient @Inject constructor(
-    private val connectionManager: TcpConnectionManager,
+    private val connectionManager: ConnectionManager,
     private val handshakeHandler: PeerHandshakeHandler
 ) {
     private companion object {

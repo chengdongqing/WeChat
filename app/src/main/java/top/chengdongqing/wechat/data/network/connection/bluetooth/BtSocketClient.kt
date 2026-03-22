@@ -13,6 +13,7 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
 import top.chengdongqing.wechat.data.network.connection.PeerHandshakeHandler
 import top.chengdongqing.wechat.data.network.model.PacketReader
@@ -23,7 +24,7 @@ import top.chengdongqing.wechat.data.network.model.PacketWriter
  */
 @Singleton
 class BtSocketClient @Inject constructor(
-    private val connectionManager: BtConnectionManager,
+    private val connectionManager: ConnectionManager,
     private val handshakeHandler: PeerHandshakeHandler,
     @param:ApplicationContext private val context: Context
 ) {

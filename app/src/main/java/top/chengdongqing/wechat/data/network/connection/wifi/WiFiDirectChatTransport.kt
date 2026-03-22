@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.data.network.connection.wifi
 
 import top.chengdongqing.wechat.data.network.connection.AbstractChatTransport
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionRequiredEvent
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
@@ -12,7 +13,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class WiFiDirectChatTransport @Inject constructor(
-    override val connectionManager: TcpConnectionManager
+    override val connectionManager: ConnectionManager
 ) : AbstractChatTransport(connectionManager) {
 
     override suspend fun send(userId: String, packet: Packet) = ensureConnected(userId, packet) {

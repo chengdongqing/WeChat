@@ -7,11 +7,11 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.wifi.DiscoveredDevice
 import top.chengdongqing.wechat.data.network.connection.wifi.DiscoveryEvent
 import top.chengdongqing.wechat.data.network.connection.wifi.NSDDiscovery
 import top.chengdongqing.wechat.data.network.connection.wifi.ServiceRegistrationState
-import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketServer
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
@@ -30,7 +30,7 @@ class WiFiLanChatModule @Inject constructor(
     private val nsdDiscovery: NSDDiscovery,
     private val socketServer: TcpSocketServer,
     private val socketClient: TcpSocketClient,
-    private val connectionManager: TcpConnectionManager,
+    private val connectionManager: ConnectionManager,
     private val wifiLockManager: WifiLockManager,
     private val messageReceiver: MessageReceiver,
     private val connectionInfoDao: ConnectionInfoDao,

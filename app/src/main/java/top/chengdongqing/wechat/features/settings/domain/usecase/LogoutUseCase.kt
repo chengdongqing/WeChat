@@ -15,14 +15,14 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.clearAllCaches
 import top.chengdongqing.wechat.data.database.WeDatabase
-import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.security.LocalIdentity
 
 class LogoutUseCase @Inject constructor(
     private val database: WeDatabase,
     private val dataStoreManager: DataStoreManager,
-    private val connectionManager: TcpConnectionManager,
+    private val connectionManager: ConnectionManager,
     private val e2eSessionManager: E2ESessionManager,
     private val privateFileManager: PrivateFileManager,
     private val localIdentity: LocalIdentity,

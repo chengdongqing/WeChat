@@ -6,6 +6,7 @@ import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.network.connection.AbstractChatTransport
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
+import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
@@ -16,7 +17,7 @@ import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
 @Singleton
 class WiFiLanChatTransport @Inject constructor(
     private val socketClient: TcpSocketClient,
-    override val connectionManager: TcpConnectionManager,
+    override val connectionManager: ConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val profileRepository: ProfileRepository
 ) : AbstractChatTransport(connectionManager) {

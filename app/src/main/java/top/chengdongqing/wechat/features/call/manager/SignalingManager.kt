@@ -5,8 +5,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
-import top.chengdongqing.wechat.data.network.connection.wifi.TcpConnectionManager
-import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
@@ -15,11 +13,6 @@ import javax.inject.Singleton
 
 /**
  * WebRTC 信令管理器
- *
- * 负责信令的发送和接收路由：
- * - 发送：将 [ChatProtocol.Signaling] 序列化后通过 [TcpConnectionManager] 发出
- * - 接收：由 [MessageDispatcher] 调用
- *   [onSignalingReceived]，推入 [incomingSignaling] 供 [CallManager] 订阅
  */
 @Singleton
 class SignalingManager @Inject constructor(
