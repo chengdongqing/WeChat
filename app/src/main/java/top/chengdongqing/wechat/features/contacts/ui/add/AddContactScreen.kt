@@ -36,19 +36,19 @@ import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
-import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.QrDotStyle
-import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.WeQRCode
-import top.chengdongqing.wechat.core.designsystem.components.qrcode.generator.rememberQRCodeState
-import top.chengdongqing.wechat.core.designsystem.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
+import top.chengdongqing.wechat.core.qrcode.generator.QrDotStyle
+import top.chengdongqing.wechat.core.qrcode.generator.WeQRCode
+import top.chengdongqing.wechat.core.qrcode.generator.rememberQRCodeState
+import top.chengdongqing.wechat.core.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.features.contacts.domain.model.AddContactOption
-import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
-import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
+import top.chengdongqing.wechat.features.profile.ui.profile.HandleProfileNavigationEvents
+import top.chengdongqing.wechat.features.profile.ui.profile.ProfileViewModel
 
 @Composable
 fun AddContactScreen(

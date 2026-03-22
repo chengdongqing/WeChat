@@ -11,14 +11,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.model.ContactAddSource
+import top.chengdongqing.wechat.core.model.FriendRequestStatus
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.core.util.toBytes
 import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
-import top.chengdongqing.wechat.data.model.ContactAddSource
-import top.chengdongqing.wechat.data.model.FriendRequestStatus
 import top.chengdongqing.wechat.data.network.ble.BLEConnectionManager
 import top.chengdongqing.wechat.data.network.model.FriendEvent
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
@@ -29,7 +29,7 @@ import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.FriendRequest
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.PrivacySettingsRepository
 import java.io.File
 import javax.inject.Inject

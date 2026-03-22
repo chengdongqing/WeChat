@@ -17,8 +17,8 @@ import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRep
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscoveryRepository
-import top.chengdongqing.wechat.features.me.data.repository.ProfileRepositoryImpl
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.data.repository.ProfileRepositoryImpl
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.data.repository.ChatSettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.data.repository.ConnectionSettingsRepositoryImpl
 import top.chengdongqing.wechat.features.settings.data.repository.DisplaySettingsRepositoryImpl

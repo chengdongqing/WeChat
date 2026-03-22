@@ -21,14 +21,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.components.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBarIcon
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import top.chengdongqing.wechat.features.home.model.HomeTab
 import top.chengdongqing.wechat.features.home.model.QuickAction
-import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
+import top.chengdongqing.wechat.features.profile.ui.profile.ProfileViewModel
 
 @Composable
 fun HomeTopBarWrapper(

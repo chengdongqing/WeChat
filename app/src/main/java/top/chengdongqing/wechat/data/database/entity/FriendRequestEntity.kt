@@ -3,8 +3,8 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import top.chengdongqing.wechat.data.model.ContactAddSource
-import top.chengdongqing.wechat.data.model.FriendRequestStatus
+import top.chengdongqing.wechat.core.model.ContactAddSource
+import top.chengdongqing.wechat.core.model.FriendRequestStatus
 
 @Entity(tableName = "friend_requests")
 data class FriendRequestEntity(

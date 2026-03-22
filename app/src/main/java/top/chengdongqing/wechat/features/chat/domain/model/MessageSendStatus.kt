@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
-import top.chengdongqing.wechat.data.model.SendError
+import top.chengdongqing.wechat.core.model.SendError
 
 /**
  * 消息发送状态

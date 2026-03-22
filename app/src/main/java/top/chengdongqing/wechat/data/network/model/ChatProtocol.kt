@@ -1,10 +1,10 @@
 package top.chengdongqing.wechat.data.network.model
 
 import kotlinx.serialization.Serializable
-import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.features.call.model.CallType
-import top.chengdongqing.wechat.features.call.model.HangupReason
-import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
+import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.HangupReason
+import top.chengdongqing.wechat.features.profile.data.model.ProfileBeacon
 import top.chengdongqing.wechat.features.settings.domain.model.RingtoneSound
 
 /**

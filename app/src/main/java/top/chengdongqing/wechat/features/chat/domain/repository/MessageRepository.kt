@@ -1,9 +1,9 @@
 package top.chengdongqing.wechat.features.chat.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import top.chengdongqing.wechat.core.model.SendError
+import top.chengdongqing.wechat.core.model.SendStatus
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent

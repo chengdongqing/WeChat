@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
-import top.chengdongqing.wechat.features.call.model.CallStatus
-import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallStatus
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 
 /**
  * 消息内容的类型体系，每种子类对应一种消息形态。

@@ -6,7 +6,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
-import top.chengdongqing.wechat.data.network.transfer.WifiLockManager.Companion.TRANSFER_WAKE_LOCK_TIMEOUT_MS
+import top.chengdongqing.wechat.data.network.transfer.WiFiLockManager.Companion.TRANSFER_WAKE_LOCK_TIMEOUT_MS
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,11 +21,11 @@ import javax.inject.Singleton
  * [withTransferLock] 内部会自动 acquire/release KeepAlive，调用方无需手动管理。
  */
 @Singleton
-class WifiLockManager @Inject constructor(
+class WiFiLockManager @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
     private companion object {
-        const val TAG = "WifiLockManager"
+        const val TAG = "WiFiLockManager"
         const val TRANSFER_WAKE_LOCK_TIMEOUT_MS = 30 * 60 * 1000L  // 最长持锁 30 分钟
     }
 

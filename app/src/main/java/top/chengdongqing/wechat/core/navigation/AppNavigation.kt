@@ -20,8 +20,8 @@ import top.chengdongqing.wechat.features.common.WebViewScreen
 import top.chengdongqing.wechat.features.contacts.navigation.contactsNavGraph
 import top.chengdongqing.wechat.features.home.theme.HomeTheme
 import top.chengdongqing.wechat.features.home.ui.HomeScreen
-import top.chengdongqing.wechat.features.me.navigation.meNavGraph
-import top.chengdongqing.wechat.features.me.ui.setup.ProfileSetupScreen
+import top.chengdongqing.wechat.features.profile.navigation.meNavGraph
+import top.chengdongqing.wechat.features.profile.ui.setup.ProfileSetupScreen
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
 import top.chengdongqing.wechat.features.settings.navigation.settingsNavGraph
 import top.chengdongqing.wechat.features.startup.SplashScreen

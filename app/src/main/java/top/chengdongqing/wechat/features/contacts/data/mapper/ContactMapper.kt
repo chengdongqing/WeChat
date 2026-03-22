@@ -7,7 +7,7 @@ import top.chengdongqing.wechat.data.database.entity.ContactEntity
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactItem
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
-import top.chengdongqing.wechat.features.me.domain.model.UserProfile
+import top.chengdongqing.wechat.features.profile.domain.model.UserProfile
 
 fun ContactEntity.toDomain(): Contact = Contact(
     id = id,

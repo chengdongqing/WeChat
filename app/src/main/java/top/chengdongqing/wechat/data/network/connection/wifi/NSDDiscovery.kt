@@ -12,7 +12,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import top.chengdongqing.wechat.data.network.connection.wifi.NSDDiscovery.Companion.RESOLVE_MAX_RETRIES
+import top.chengdongqing.wechat.data.network.connection.wifi.NsdDiscovery.Companion.RESOLVE_MAX_RETRIES
 import java.net.Inet4Address
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
@@ -32,11 +32,11 @@ import javax.inject.Singleton
  * 必须通过 resolve 或 ServiceInfoCallback 拿最新的 host 和 port。
  */
 @Singleton
-class NSDDiscovery @Inject constructor(
+class NsdDiscovery @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
     private companion object {
-        const val TAG = "NSDDiscovery"
+        const val TAG = "NsdDiscovery"
         const val SERVICE_TYPE = "_wechat._tcp."
         const val SERVICE_NAME_PREFIX = "WeChat_"
         const val ATTR_KEY_USER_ID = "userId"

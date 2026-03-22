@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.data.network.model
 
 import kotlinx.serialization.Serializable
-import top.chengdongqing.wechat.data.model.ContactAddSource
+import top.chengdongqing.wechat.core.model.ContactAddSource
 
 /**
  * 加好友消息协议

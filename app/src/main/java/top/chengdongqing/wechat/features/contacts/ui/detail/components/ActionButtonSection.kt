@@ -27,7 +27,7 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.remembe
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.CallOptions
-import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactAction
 

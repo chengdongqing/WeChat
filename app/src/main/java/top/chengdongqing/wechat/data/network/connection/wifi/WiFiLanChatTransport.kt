@@ -2,14 +2,14 @@ package top.chengdongqing.wechat.data.network.connection.wifi
 
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.network.connection.AbstractChatTransport
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
 import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 
 /**
  * Wi-Fi LAN 传输层

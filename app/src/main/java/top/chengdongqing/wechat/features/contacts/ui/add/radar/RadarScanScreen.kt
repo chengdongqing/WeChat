@@ -52,7 +52,7 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.features.me.domain.model.UserProfile
+import top.chengdongqing.wechat.features.profile.domain.model.UserProfile
 import kotlin.math.cos
 import kotlin.math.sin
 

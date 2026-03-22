@@ -1,8 +1,8 @@
 package top.chengdongqing.wechat.features.chat.data.mapper
 
 import androidx.core.net.toUri
-import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
-import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaType
+import top.chengdongqing.wechat.core.media.model.MediaItem
+import top.chengdongqing.wechat.core.media.model.MediaType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import java.io.File
 

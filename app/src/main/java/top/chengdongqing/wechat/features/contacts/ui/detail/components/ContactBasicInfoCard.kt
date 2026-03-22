@@ -36,7 +36,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
-import top.chengdongqing.wechat.features.me.domain.model.Gender
+import top.chengdongqing.wechat.features.profile.domain.model.Gender
 
 @Composable
 fun ContactBasicInfoCard(

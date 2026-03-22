@@ -15,9 +15,9 @@ import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.profile.ContactProfileScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.profile.edit.EditContactProfileScreen
 import top.chengdongqing.wechat.features.contacts.ui.detail.setting.ContactSettingScreen
-import top.chengdongqing.wechat.features.contacts.ui.newcontacts.NewContactsScreen
-import top.chengdongqing.wechat.features.contacts.ui.newcontacts.request.RequestAddScreen
-import top.chengdongqing.wechat.features.contacts.ui.newcontacts.verify.AcceptVerifyScreen
+import top.chengdongqing.wechat.features.contacts.ui.friendrequest.NewContactsScreen
+import top.chengdongqing.wechat.features.contacts.ui.friendrequest.request.RequestAddScreen
+import top.chengdongqing.wechat.features.contacts.ui.friendrequest.verify.AcceptVerifyScreen
 
 sealed class ContactsRoute(val route: String) {
     object AddContact : ContactsRoute("contacts/add")

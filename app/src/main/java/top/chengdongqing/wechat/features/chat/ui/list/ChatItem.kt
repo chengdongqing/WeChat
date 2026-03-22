@@ -41,9 +41,9 @@ import top.chengdongqing.wechat.core.designsystem.util.RichTextMode
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.designsystem.util.parseRichText
 import top.chengdongqing.wechat.core.designsystem.util.rememberEmojiInlineContent
+import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.model.toPreviewText
 import top.chengdongqing.wechat.core.util.toChatDisplayTime
-import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.data.model.toPreviewText
 import top.chengdongqing.wechat.features.chat.domain.model.ChatSession
 
 @Composable

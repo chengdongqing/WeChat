@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.data.model.ContactAddSource
+import top.chengdongqing.wechat.core.model.ContactAddSource
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import javax.inject.Inject
 

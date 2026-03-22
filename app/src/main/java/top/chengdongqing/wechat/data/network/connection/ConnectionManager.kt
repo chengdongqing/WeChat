@@ -12,15 +12,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.model.SendError
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.cancellation.CancellationException

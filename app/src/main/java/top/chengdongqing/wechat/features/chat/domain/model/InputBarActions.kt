@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
-import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
 
 /**

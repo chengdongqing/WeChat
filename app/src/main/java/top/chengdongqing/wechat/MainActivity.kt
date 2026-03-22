@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.AppNavigation
+import top.chengdongqing.wechat.data.network.service.P2PService
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -25,14 +26,14 @@ class MainActivity : AppCompatActivity() {
 
         // 处理冷启动通知
         handleIntent(intent)
+        // 启动前台服务
+        initP2PService()
 
         setContent {
             val navController = rememberNavController()
             val route by navRoute
 
-            /**
-             * 响应路由事件
-             */
+            // 响应路由事件
             LaunchedEffect(route) {
                 route?.let {
                     navController.navigate(it) {
@@ -48,10 +49,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // App已启动后收到通知
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
+        // App已启动后收到通知
         handleIntent(intent)
     }
 
@@ -60,6 +60,11 @@ class MainActivity : AppCompatActivity() {
         if (route != null) {
             navRoute.value = route
         }
+    }
+
+    private fun initP2PService() {
+        val intent = Intent(this, P2PService::class.java)
+        startForegroundService(intent)
     }
 
     companion object {

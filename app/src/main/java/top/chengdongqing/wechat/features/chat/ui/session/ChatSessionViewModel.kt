@@ -30,12 +30,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationPreviewInfo
-import top.chengdongqing.wechat.core.designsystem.components.location.preview.previewLocation
-import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
-import top.chengdongqing.wechat.core.designsystem.components.media.preview.previewMedias
 import top.chengdongqing.wechat.core.file.PublicFileManager
+import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
+import top.chengdongqing.wechat.core.location.preview.previewLocation
 import top.chengdongqing.wechat.core.media.SoundTipPlayer
+import top.chengdongqing.wechat.core.media.model.MediaItem
+import top.chengdongqing.wechat.core.media.preview.previewMedias
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
@@ -58,7 +58,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.message.toolbar.Message
 import top.chengdongqing.wechat.features.chat.ui.session.util.AudioPlaybackManager
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.ConnectionSettingsRepository
 import java.io.File

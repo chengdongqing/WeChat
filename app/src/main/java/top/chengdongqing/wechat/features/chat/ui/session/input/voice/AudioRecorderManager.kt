@@ -12,7 +12,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.file.PrivateFileManager
-import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.core.model.MessageType
 import java.io.File
 import javax.inject.Inject
 import kotlin.math.log10

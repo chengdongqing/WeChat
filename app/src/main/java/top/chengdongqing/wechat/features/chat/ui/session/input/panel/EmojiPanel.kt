@@ -57,10 +57,10 @@ import top.chengdongqing.wechat.core.designsystem.model.Stickers
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.repeatingClickable
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.asAssetPath
 import top.chengdongqing.wechat.core.util.copyAssetToUri
 import top.chengdongqing.wechat.core.util.deleteFileByUri
-import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.theme.ChatTheme
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarViewModel

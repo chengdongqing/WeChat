@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendModule
+import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendHandler
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -38,7 +38,7 @@ import javax.inject.Singleton
  *  - Host a GATT server to receive [BLEPacket] writes from remote clients
  *  - Push [BLEPacket] notifications to subscribed remote clients
  *
- * Exposed flows (consumed by [BLEAddFriendModule]):
+ * Exposed flows (consumed by [BLEAddFriendHandler]):
  *  - [packets]       – raw incoming packets from any connected client
  *  - [subscriptions] – fires when a client enables notifications (signals it's ready to receive data)
  *  - [disconnections]– fires when a client disconnects

@@ -4,9 +4,9 @@ import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.model.SendStatus
+import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.model.SendError
+import top.chengdongqing.wechat.core.model.SendStatus
 
 @Entity(
     tableName = "messages",

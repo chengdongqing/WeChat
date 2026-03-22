@@ -1,8 +1,8 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
 import androidx.compose.runtime.Immutable
+import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.util.isWithinSeconds
-import top.chengdongqing.wechat.data.model.SendError
 
 /**
  * 聊天消息的完整描述，包含消息元数据和当前发送状态。

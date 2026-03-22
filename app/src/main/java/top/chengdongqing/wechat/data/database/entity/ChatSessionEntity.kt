@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.core.model.MessageType
 
 @Entity(tableName = "chat_sessions")
 data class ChatSessionEntity(

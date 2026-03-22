@@ -12,7 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 
 @AndroidEntryPoint
 class CallActivity : ComponentActivity() {

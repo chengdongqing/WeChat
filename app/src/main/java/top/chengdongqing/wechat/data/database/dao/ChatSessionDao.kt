@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
-import top.chengdongqing.wechat.data.model.MessageType
 
 @Dao
 interface ChatSessionDao : BaseDao<ChatSessionEntity> {

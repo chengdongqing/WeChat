@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
-import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
 import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent

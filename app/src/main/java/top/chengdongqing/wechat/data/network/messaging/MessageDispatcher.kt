@@ -6,13 +6,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.model.SendError
+import top.chengdongqing.wechat.core.model.SendStatus
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.database.dao.MediaFileDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.data.session.FileReferenceManager

@@ -6,6 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.model.SendError
+import top.chengdongqing.wechat.core.model.SendStatus
 import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.data.database.WeDatabase
@@ -14,26 +16,24 @@ import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MediaFileDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.model.SendStatus
-import top.chengdongqing.wechat.data.network.avatar.AvatarServer
+import top.chengdongqing.wechat.data.network.AvatarServer
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
+import top.chengdongqing.wechat.data.network.crypto.PacketSigner
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.FileAckStatus
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
 import top.chengdongqing.wechat.data.network.model.ReceiptType
-import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
-import top.chengdongqing.wechat.data.network.transfer.WifiLockManager
+import top.chengdongqing.wechat.data.network.transfer.WiFiLockManager
 import top.chengdongqing.wechat.data.security.LocalIdentity
 import top.chengdongqing.wechat.data.session.FileReferenceManager
-import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.data.model.ProfileBeacon
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
@@ -52,7 +52,7 @@ class MessageSender @Inject constructor(
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
     private val chatSessionDao: ChatSessionDao,
-    private val wifiLockManager: WifiLockManager,
+    private val wifiLockManager: WiFiLockManager,
     private val transferManager: TransferManager,
     private val profileRepository: ProfileRepository,
     private val packetSigner: PacketSigner,

@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.util.format
-import top.chengdongqing.wechat.features.call.model.CallStatus
+import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.theme.ChatTheme

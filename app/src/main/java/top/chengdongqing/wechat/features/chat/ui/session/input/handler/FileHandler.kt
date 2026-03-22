@@ -10,11 +10,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.components.app.model.AppResult
-import top.chengdongqing.wechat.core.designsystem.components.app.rememberPickAppLauncher
+import top.chengdongqing.wechat.core.app.model.AppResult
+import top.chengdongqing.wechat.core.app.rememberPickAppLauncher
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.getFileMetadata
-import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarViewModel
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactResult

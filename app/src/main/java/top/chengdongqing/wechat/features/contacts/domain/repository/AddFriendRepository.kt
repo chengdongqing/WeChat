@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.features.contacts.domain.repository
 
-import top.chengdongqing.wechat.data.model.ContactAddSource
+import top.chengdongqing.wechat.core.model.ContactAddSource
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 
 interface AddFriendRepository {

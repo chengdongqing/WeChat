@@ -4,12 +4,12 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
+import top.chengdongqing.wechat.data.network.crypto.PacketSigner
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketReader
 import top.chengdongqing.wechat.data.network.model.PacketType.HANDSHAKE
 import top.chengdongqing.wechat.data.network.model.PacketWriter
-import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.data.security.LocalIdentity
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 

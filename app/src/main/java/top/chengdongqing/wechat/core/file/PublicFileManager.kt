@@ -12,11 +12,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.R
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.core.util.generateFileName
 import top.chengdongqing.wechat.core.util.getFileConfig
 import top.chengdongqing.wechat.core.util.getFileMetadata
-import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton

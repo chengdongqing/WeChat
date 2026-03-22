@@ -14,12 +14,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.data.model.ContactAddSource
+import top.chengdongqing.wechat.core.model.ContactAddSource
 import top.chengdongqing.wechat.data.network.model.RadarBeacon
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.RadarDiscoveryRepository
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 
 @HiltViewModel
 class RadarScanViewModel @Inject constructor(

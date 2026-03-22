@@ -13,7 +13,7 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.data.network.model.FriendProtocol
-import top.chengdongqing.wechat.features.me.data.model.ProfileBeacon
+import top.chengdongqing.wechat.features.profile.data.model.ProfileBeacon
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton

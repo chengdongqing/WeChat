@@ -8,7 +8,7 @@ import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionRequiredEvent
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.model.Packet
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 
 /**
  * 蓝牙聊天传输层

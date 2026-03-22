@@ -12,7 +12,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.features.call.model.CallUiState
+import top.chengdongqing.wechat.features.call.domain.model.CallUiState
 
 @Composable
 fun CallBackground(state: CallUiState) {

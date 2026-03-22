@@ -3,10 +3,10 @@ package top.chengdongqing.wechat.data.network.messaging
 import android.util.Log
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import top.chengdongqing.wechat.data.model.PermissionResult
+import top.chengdongqing.wechat.core.model.PermissionResult
+import top.chengdongqing.wechat.data.network.crypto.PacketSigner
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.ReceiptType
-import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
 
 /**

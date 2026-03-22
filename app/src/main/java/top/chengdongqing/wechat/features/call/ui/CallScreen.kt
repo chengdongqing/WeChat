@@ -42,8 +42,8 @@ import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.features.call.model.CallState
-import top.chengdongqing.wechat.features.call.model.CallUiState
+import top.chengdongqing.wechat.features.call.domain.model.CallState
+import top.chengdongqing.wechat.features.call.domain.model.CallUiState
 import top.chengdongqing.wechat.features.call.ui.components.CallBackground
 import top.chengdongqing.wechat.features.call.ui.components.CallControlBar
 import top.chengdongqing.wechat.features.call.ui.components.CallTopBar

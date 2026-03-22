@@ -121,15 +121,15 @@
         </activity>
 
         <!-- 功能 Activity -->
-        <activity android:name=".core.designsystem.components.qrcode.scanner.QRCodeScannerActivity" />
-        <activity android:name=".core.designsystem.components.media.preview.MediaPreviewActivity" />
-        <activity android:name=".core.designsystem.components.media.picker.MediaPickerActivity" />
-        <activity android:name=".core.designsystem.components.cropper.ImageCropperActivity" />
-        <activity android:name=".core.designsystem.components.camera.CameraActivity" />
-        <activity android:name=".core.designsystem.components.location.preview.LocationPreviewActivity" />
-        <activity android:name=".core.designsystem.components.location.picker.LocationPickerActivity" />
+        <activity android:name=".core.qrcode.scanner.QRCodeScannerActivity" />
+        <activity android:name=".core.media.preview.MediaPreviewActivity" />
+        <activity android:name=".core.media.picker.MediaPickerActivity" />
+        <activity android:name=".core.cropper.ImageCropperActivity" />
+        <activity android:name=".core.camera.CameraActivity" />
+        <activity android:name=".core.location.preview.LocationPreviewActivity" />
+        <activity android:name=".core.location.picker.LocationPickerActivity" />
         <activity android:name=".features.contacts.ui.picker.ContactPickerActivity" />
-        <activity android:name=".core.designsystem.components.app.AppPickerActivity" />
+        <activity android:name=".core.app.AppPickerActivity" />
 
         <!-- 通话界面 -->
         <activity

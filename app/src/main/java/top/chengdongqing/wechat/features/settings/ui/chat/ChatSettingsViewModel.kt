@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 import javax.inject.Inject
 

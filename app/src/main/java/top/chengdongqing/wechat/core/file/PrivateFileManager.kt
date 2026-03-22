@@ -10,11 +10,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.extractExtension
 import top.chengdongqing.wechat.core.util.generateFileName
 import top.chengdongqing.wechat.core.util.getFileConfig
 import top.chengdongqing.wechat.core.util.getFileMetadata
-import top.chengdongqing.wechat.data.model.MessageType
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

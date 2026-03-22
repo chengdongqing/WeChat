@@ -20,7 +20,7 @@ annotation class DefaultScope // 处理 CPU 密集型任务（加解密、复杂
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class IoScope // 处理 I/O 任务（BLE、数据库、文件）
+annotation class IoScope // 处理 I/O 任务（网络、数据库、文件等）
 
 @Module
 @InstallIn(SingletonComponent::class)

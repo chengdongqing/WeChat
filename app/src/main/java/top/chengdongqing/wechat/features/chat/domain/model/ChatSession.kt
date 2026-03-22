@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.features.chat.domain.model
 
 import androidx.compose.runtime.Immutable
-import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.core.model.MessageType
 
 /**
  * 聊天列表项

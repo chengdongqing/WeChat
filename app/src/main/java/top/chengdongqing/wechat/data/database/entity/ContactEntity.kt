@@ -3,8 +3,8 @@ package top.chengdongqing.wechat.data.database.entity
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import top.chengdongqing.wechat.data.model.ContactAddSource
-import top.chengdongqing.wechat.features.me.domain.model.Gender
+import top.chengdongqing.wechat.core.model.ContactAddSource
+import top.chengdongqing.wechat.features.profile.domain.model.Gender
 
 @Entity(tableName = "contacts")
 data class ContactEntity(

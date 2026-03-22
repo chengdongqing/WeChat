@@ -14,6 +14,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.model.SendError
+import top.chengdongqing.wechat.core.model.SendStatus
 import top.chengdongqing.wechat.core.util.isWithinSeconds
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.data.database.WeDatabase
@@ -21,9 +24,6 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.peerId
-import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.data.network.messaging.ChunkStorageManager
 import top.chengdongqing.wechat.data.network.messaging.MessageSender
@@ -39,7 +39,7 @@ import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import top.chengdongqing.wechat.features.settings.domain.repository.NotificationSettingsRepository
 import java.io.File
 import javax.inject.Inject

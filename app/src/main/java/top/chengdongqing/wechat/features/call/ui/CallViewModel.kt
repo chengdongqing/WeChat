@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import org.webrtc.EglBase
 import org.webrtc.SurfaceViewRenderer
+import top.chengdongqing.wechat.features.call.domain.model.CallActions
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.manager.CallManager
-import top.chengdongqing.wechat.features.call.model.CallActions
-import top.chengdongqing.wechat.features.call.model.CallType
 import javax.inject.Inject
 
 @HiltViewModel

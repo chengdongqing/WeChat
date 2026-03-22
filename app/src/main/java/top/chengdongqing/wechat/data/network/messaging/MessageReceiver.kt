@@ -9,11 +9,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.model.SendError
+import top.chengdongqing.wechat.core.model.SendStatus
 import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.data.database.dao.MediaFileDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
-import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.model.SendStatus
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
@@ -27,7 +27,7 @@ import top.chengdongqing.wechat.data.network.model.PacketType
 import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.session.FileReferenceManager
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream

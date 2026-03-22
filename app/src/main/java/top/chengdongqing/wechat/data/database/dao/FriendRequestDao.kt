@@ -4,8 +4,8 @@ import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
+import top.chengdongqing.wechat.core.model.FriendRequestStatus
 import top.chengdongqing.wechat.data.database.entity.FriendRequestEntity
-import top.chengdongqing.wechat.data.model.FriendRequestStatus
 
 @Dao
 interface FriendRequestDao : BaseDao<FriendRequestEntity> {

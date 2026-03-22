@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.features.call.model.CallType
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.repository.MessageRepository
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.FileHandler
 import top.chengdongqing.wechat.features.contacts.domain.model.Contact
@@ -28,8 +28,8 @@ import top.chengdongqing.wechat.features.contacts.domain.model.ContactRelation
 import top.chengdongqing.wechat.features.contacts.domain.model.toResult
 import top.chengdongqing.wechat.features.contacts.domain.repository.AddFriendRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
-import top.chengdongqing.wechat.features.me.data.mapper.toContact
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.data.mapper.toContact
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 
 @HiltViewModel(assistedFactory = ContactDetailViewModel.Factory::class)
 class ContactDetailViewModel @AssistedInject constructor(

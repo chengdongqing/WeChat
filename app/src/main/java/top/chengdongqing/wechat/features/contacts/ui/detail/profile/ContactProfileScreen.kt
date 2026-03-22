@@ -24,7 +24,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.toYearMonthDisplay
 import top.chengdongqing.wechat.features.contacts.ui.detail.ContactDetailViewModel
-import top.chengdongqing.wechat.features.me.domain.model.Gender.Companion.safePronoun
+import top.chengdongqing.wechat.features.profile.domain.model.Gender.Companion.safePronoun
 
 @Composable
 fun ContactProfileScreen(

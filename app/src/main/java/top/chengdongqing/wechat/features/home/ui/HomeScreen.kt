@@ -29,9 +29,9 @@ import top.chengdongqing.wechat.features.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.features.home.model.HomeTab
 import top.chengdongqing.wechat.features.home.ui.components.HomeBottomBar
 import top.chengdongqing.wechat.features.home.ui.components.HomeTopBarWrapper
-import top.chengdongqing.wechat.features.me.ui.MeScreen
-import top.chengdongqing.wechat.features.me.ui.profile.HandleProfileNavigationEvents
-import top.chengdongqing.wechat.features.me.ui.profile.ProfileViewModel
+import top.chengdongqing.wechat.features.profile.ui.MeScreen
+import top.chengdongqing.wechat.features.profile.ui.profile.HandleProfileNavigationEvents
+import top.chengdongqing.wechat.features.profile.ui.profile.ProfileViewModel
 
 @Composable
 fun HomeScreen(

@@ -5,17 +5,17 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.entity.ChatSessionEntity
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
 import top.chengdongqing.wechat.data.database.entity.peerId
-import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
-import top.chengdongqing.wechat.features.call.model.CallStatus
+import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.ContactRepository
-import top.chengdongqing.wechat.features.me.domain.model.UserProfile
-import top.chengdongqing.wechat.features.me.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.features.profile.domain.model.UserProfile
+import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 
 /**
  * 会话状态更新器

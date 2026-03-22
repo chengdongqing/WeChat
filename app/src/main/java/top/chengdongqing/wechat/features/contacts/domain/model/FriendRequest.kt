@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.features.contacts.domain.model
 
 import androidx.compose.runtime.Immutable
-import top.chengdongqing.wechat.data.model.FriendRequestStatus
+import top.chengdongqing.wechat.core.model.FriendRequestStatus
 
 @Immutable
 data class FriendRequest(

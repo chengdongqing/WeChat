@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.core.util
 
-import top.chengdongqing.wechat.data.model.MessageType
+import top.chengdongqing.wechat.core.model.MessageType
 
 /**
  * 文件配置

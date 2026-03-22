@@ -13,8 +13,8 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.ContactDao
 import top.chengdongqing.wechat.data.database.entity.ContactEntity
+import top.chengdongqing.wechat.data.network.crypto.PacketSigner
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
-import top.chengdongqing.wechat.data.network.signature.PacketSigner
 import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.data.mapper.toDomain

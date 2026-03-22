@@ -1,12 +1,12 @@
 package top.chengdongqing.wechat.data.database
 
 import androidx.room.TypeConverter
-import top.chengdongqing.wechat.data.model.ContactAddSource
-import top.chengdongqing.wechat.data.model.FriendRequestStatus
-import top.chengdongqing.wechat.data.model.MessageType
-import top.chengdongqing.wechat.data.model.SendError
-import top.chengdongqing.wechat.data.model.SendStatus
-import top.chengdongqing.wechat.features.me.domain.model.Gender
+import top.chengdongqing.wechat.core.model.ContactAddSource
+import top.chengdongqing.wechat.core.model.FriendRequestStatus
+import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.model.SendError
+import top.chengdongqing.wechat.core.model.SendStatus
+import top.chengdongqing.wechat.features.profile.domain.model.Gender
 
 class DatabaseConverters {
 

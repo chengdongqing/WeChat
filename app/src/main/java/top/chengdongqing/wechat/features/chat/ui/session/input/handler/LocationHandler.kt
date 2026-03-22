@@ -6,11 +6,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationInfo
-import top.chengdongqing.wechat.core.designsystem.components.location.picker.rememberPickLocationLauncher
 import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.location.model.LocationInfo
+import top.chengdongqing.wechat.core.location.picker.rememberPickLocationLauncher
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.deleteFileByUri
-import top.chengdongqing.wechat.data.model.MessageType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarViewModel
 
