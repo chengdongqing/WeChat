@@ -47,6 +47,9 @@ import top.chengdongqing.wechat.core.designsystem.components.videoplayer.VideoPl
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.rememberVideoPlayerState
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.nio.channels.FileChannel
 
 @Composable
 fun ImagePreview(
@@ -155,28 +158,75 @@ private fun MotionPhotoToggle(
     }
 }
 
-/** 从 JPEG 文件尾部提取内嵌 MP4，写到 cache 后返回其 Uri；非动态图片返回 null */
+/**
+ * 从指定的图片 Uri 中提取动态照片（Motion Photo）内嵌的视频文件。
+ * * 动态照片本质上是一个 JPEG 文件，其末尾追加了一个完整的 MP4 视频数据。
+ * 本方法通过扫描 MP4 的特征头（ftyp）定位视频起始点并将其导出到缓存目录。
+ *
+ * @param uri 原始图片的 Uri
+ * @return 提取出的 MP4 文件的 Uri，若非动态照片或提取失败则返回 null
+ */
 private fun Context.extractMotionPhotoVideo(uri: Uri): Uri? {
-    val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+    // MP4 文件的通用标识符（Brand），通常紧跟在 4 字节的 Box 长度之后
+    val marker = "ftypmp42".toByteArray()
+    // 在缓存目录创建目标文件
+    val cacheFile = File(cacheDir, "motion_${System.currentTimeMillis()}.mp4")
 
-    // 内嵌 MP4 的起始标记
-    val marker = byteArrayOf(0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70) // ftyp box
+    return runCatching {
+        // 使用 ParcelFileDescriptor 以只读模式打开原始文件
+        contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+            FileInputStream(pfd.fileDescriptor).use { input ->
+                val channel = input.channel
+                val size = channel.size()
 
-    val index = bytes.indexOfSequence(marker).takeIf { it > 0 } ?: return null
+                /*
+                 * 使用内存映射文件（Mmap）。
+                 * 优点：不需要将整个大文件加载到 JVM 堆内存中，避免 OOM（内存溢出）。
+                 * 系统会根据需要将文件页加载到物理内存，搜索效率极高。
+                 */
+                val mappedBuffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, size)
 
-    val videoBytes = bytes.copyOfRange(index, bytes.size)
-    val cacheFile = File(cacheDir, "motion_${uri.lastPathSegment}.mp4")
-    cacheFile.writeBytes(videoBytes)
+                var foundIndex = -1
 
-    return cacheFile.toUri()
-}
+                /*
+                 * 算法逻辑：从文件末尾向前搜索。
+                 * 动态照片的视频数据通常位于文件尾部，倒序搜索能显著减少扫描字节数。
+                 */
+                for (i in (size - marker.size).toInt() downTo 0) {
+                    var match = true
+                    for (j in marker.indices) {
+                        if (mappedBuffer.get(i + j) != marker[j]) {
+                            match = false
+                            break
+                        }
+                    }
+                    if (match) {
+                        /* * 定位成功。
+                         * 减去 4 是为了包含 ftyp box 前面的 4 字节长度字段（size field），
+                         * 确保导出的 MP4 文件结构完整。
+                         */
+                        foundIndex = i - 4
+                        break
+                    }
+                }
 
-private fun ByteArray.indexOfSequence(target: ByteArray): Int {
-    outer@ for (i in 0..size - target.size) {
-        for (j in target.indices) {
-            if (this[i + j] != target[j]) continue@outer
+                if (foundIndex >= 0) {
+                    val videoLength = size - foundIndex
+
+                    // 执行提取逻辑
+                    FileOutputStream(cacheFile).use { output ->
+                        /*
+                         * 使用 transferTo（零拷贝技术）。
+                         * 数据直接在内核缓冲区之间传输，不经过用户态内存，
+                         * 这是 Android 中处理文件切分最快的方式。
+                         */
+                        channel.transferTo(foundIndex.toLong(), videoLength, output.channel)
+                    }
+                    cacheFile.toUri()
+                } else {
+                    null // 未找到 MP4 特征头
+                }
+            }
         }
-        return i
-    }
-    return -1
+    }.getOrNull()
 }
