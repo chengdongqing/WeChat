@@ -14,16 +14,10 @@ sealed class FriendEvent {
     ) : FriendEvent()
 
     /**
-     * 加好友结果
-     */
-    data class FriendResponse(
-        val result: FriendRequestResult
-    ) : FriendEvent()
-
-    /**
      * 添加成功
      */
     data class Added(
-        val nickname: String
+        val nickname: String,
+        val contactId: String
     ) : FriendEvent()
 }

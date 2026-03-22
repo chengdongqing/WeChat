@@ -5,7 +5,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.navDeepLink
 import top.chengdongqing.wechat.core.navigation.Screen
 import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
 import top.chengdongqing.wechat.features.contacts.ui.add.AddContactScreen
@@ -217,14 +216,7 @@ fun NavGraphBuilder.contactsNavGraph(navController: NavHostController, onBack: (
         AcceptVerifyScreen(contactId, onBack, onBack)
     }
 
-    composable(
-        route = ContactsRoute.NewFriends.route,
-        deepLinks = listOf(
-            navDeepLink {
-                uriPattern = "wechat://contacts/new_friends"
-            }
-        )
-    ) {
+    composable(ContactsRoute.NewFriends.route) {
         NewContactsScreen(
             onBack = onBack,
             onNavigateToAdd = {

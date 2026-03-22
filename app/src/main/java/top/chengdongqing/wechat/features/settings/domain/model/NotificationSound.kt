@@ -24,5 +24,8 @@ enum class NotificationSound(
 }
 
 fun NotificationSound.toUri(context: Context): Uri =
-    soundRes?.let { "android.resource://${context.packageName}/$it".toUri() }
-        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+    if (soundRes != null) {
+        "android.resource://${context.packageName}/$soundRes".toUri()
+    } else {
+        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+    }

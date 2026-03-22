@@ -117,6 +117,7 @@ class BLEAddFriendModule @Inject constructor(
                 messageBuffers.remove(device.address)
                 processCompleteMessage(buffer)
             }
+
             else -> Log.w(TAG, "未知 packet type: ${packet.type}")
         }
     }
@@ -154,7 +155,6 @@ class BLEAddFriendModule @Inject constructor(
 
     private suspend fun handleFriendResponse(message: FriendProtocol.FriendResponse) {
         friendRequestRepository.handleRequestResponse(message)
-        _friendEvents.emit(FriendEvent.FriendResponse(message.result))
     }
 
     private fun sendProfileToDevice(device: BluetoothDevice) {

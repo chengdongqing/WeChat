@@ -4,7 +4,6 @@ import android.content.Context
 import android.media.RingtoneManager
 import android.net.Uri
 import androidx.annotation.StringRes
-import androidx.core.net.toUri
 import top.chengdongqing.wechat.R
 
 /**
@@ -23,5 +22,8 @@ enum class RingtoneSound(
 }
 
 fun RingtoneSound.toUri(context: Context): Uri =
-    ringtoneRes?.let { "android.resource://${context.packageName}/$it".toUri() }
-        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+    if (ringtoneRes != null) {
+        Uri.parse("android.resource://${context.packageName}/$ringtoneRes")
+    } else {
+        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+    }

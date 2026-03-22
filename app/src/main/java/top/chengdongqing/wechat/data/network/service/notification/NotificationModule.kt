@@ -18,7 +18,6 @@ import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.data.model.toPreviewText
 import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.data.network.model.FriendEvent
-import top.chengdongqing.wechat.data.network.model.FriendRequestResult
 import top.chengdongqing.wechat.data.network.service.ServiceModule
 import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendModule
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -107,15 +106,7 @@ class NotificationModule @Inject constructor(
         when (event) {
             is FriendEvent.FriendRequest -> notificationHelper.showFriendNotification(
                 title = event.nickname,
-                content = context.getString(R.string.contact_notification_request_content)
-            )
-
-            is FriendEvent.FriendResponse -> notificationHelper.showFriendNotification(
-                title = context.getString(R.string.contact_notification_accepted_title),
-                content = when (event.result) {
-                    FriendRequestResult.Accepted -> context.getString(R.string.contact_notification_request_accepted)
-                    FriendRequestResult.Rejected -> context.getString(R.string.contact_notification_request_rejected)
-                }
+                content = context.getString(R.string.contact_notification_request_content),
             )
 
             is FriendEvent.Added -> notificationHelper.showFriendNotification(
@@ -123,7 +114,8 @@ class NotificationModule @Inject constructor(
                 content = context.getString(
                     R.string.contact_notification_auto_added_content,
                     event.nickname
-                )
+                ),
+                contactId = event.contactId
             )
         }
     }

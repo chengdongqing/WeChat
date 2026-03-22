@@ -220,7 +220,7 @@ class P2PService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 }
 
-fun Context.createNetworkServiceIntent(action: String): Intent {
+fun Context.createP2PServiceIntent(action: String): Intent {
     return Intent(this, P2PService::class.java).apply {
         this.action = action
         flags = Intent.FLAG_ACTIVITY_NEW_TASK

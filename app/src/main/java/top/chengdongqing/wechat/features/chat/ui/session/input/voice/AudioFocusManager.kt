@@ -4,7 +4,6 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
-import android.os.Build
 
 /**
  * 音频焦点管理器：用于协调多个应用间的音频播放冲突。
@@ -26,50 +25,34 @@ class AudioFocusManager(context: Context) {
      * * @return 是否成功获取焦点。若返回 true，则其他后台音频已按系统指令暂停或静音。
      */
     fun requestFocus(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION) // 提示音/辅助类用途
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)     // 内容类型为语音
-                        .build()
-                )
-                // 是否接受延迟获取焦点（例如在通话中时，是否排队等待）
-                .setAcceptsDelayedFocusGain(false)
-                // 监听焦点变化回调（如被电话顶掉时的逻辑）
-                .setOnAudioFocusChangeListener { focusChange ->
-                    when (focusChange) {
-                        AudioManager.AUDIOFOCUS_LOSS -> { /* 永久失去焦点 */
-                        }
-
-                        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> { /* 临时失去焦点 */
-                        }
-                    }
+        focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION) // 提示音/辅助类用途
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)     // 内容类型为语音
+                    .build()
+            )
+            // 是否接受延迟获取焦点（例如在通话中时，是否排队等待）
+            .setAcceptsDelayedFocusGain(false)
+            // 监听焦点变化回调（如被电话顶掉时的逻辑）
+            .setOnAudioFocusChangeListener { focusChange ->
+                when (focusChange) {
+                    // 永久失去焦点
+                    AudioManager.AUDIOFOCUS_LOSS -> {}
+                    // 临时失去焦点
+                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {}
                 }
-                .build()
+            }
+            .build()
 
-            audioManager.requestAudioFocus(focusRequest!!) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-        } else {
-            // Android 8.0 以下使用旧版 API
-            @Suppress("DEPRECATION")
-            audioManager.requestAudioFocus(
-                { /* 焦点变化监听器 */ },
-                AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
-            ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-        }
+        return audioManager.requestAudioFocus(focusRequest!!) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
     }
 
     /**
      * 释放音频焦点
-     * * 务必在录音结束、取消或发生异常时调用，否则会导致其他应用（如音乐播放器）无法自动恢复。
+     * 务必在录音结束、取消或发生异常时调用，否则会导致其他应用（如音乐播放器）无法自动恢复。
      */
     fun abandonFocus() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            focusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
-        } else {
-            @Suppress("DEPRECATION")
-            audioManager.abandonAudioFocus { }
-        }
+        focusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
     }
 }

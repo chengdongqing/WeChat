@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketType
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,21 +28,8 @@ class E2ESessionManager @Inject constructor(
         const val TAG = "E2ESessionManager"
     }
 
-    private data class Session(
-        val sessionKey: ByteArray,
-        val isTemporary: Boolean    // true = 因对方开启加密而被动激活
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is Session) return false
-            return isTemporary == other.isTemporary && sessionKey.contentEquals(other.sessionKey)
-        }
-
-        override fun hashCode() = 31 * isTemporary.hashCode() + sessionKey.contentHashCode()
-    }
-
-    private val sessions = mutableMapOf<String, Session>()
-    private val pendingKeyPairs = mutableMapOf<String, E2ECrypto.LocalKeyPair>()
+    private val sessions = ConcurrentHashMap<String, Session>()
+    private val pendingKeyPairs = ConcurrentHashMap<String, E2ECrypto.LocalKeyPair>()
 
     // 活跃的加密连接
     private val _encryptedPeers = MutableStateFlow<Set<String>>(emptySet())
@@ -50,7 +38,7 @@ class E2ESessionManager @Inject constructor(
     /**
      * 当前是否与指定 peer 存在加密 session
      */
-    private fun hasSession(peerId: String) = peerId in sessions
+    private fun hasSession(peerId: String) = sessions.contains(peerId)
 
     /**
      * 【主动方 Step1】生成本次握手的密钥对，返回公钥
@@ -150,4 +138,17 @@ class E2ESessionManager @Inject constructor(
         sessions.clear()
         pendingKeyPairs.clear()
     }
+}
+
+private data class Session(
+    val sessionKey: ByteArray,
+    val isTemporary: Boolean    // true = 因对方开启加密而被动激活
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Session) return false
+        return isTemporary == other.isTemporary && sessionKey.contentEquals(other.sessionKey)
+    }
+
+    override fun hashCode() = 31 * isTemporary.hashCode() + sessionKey.contentHashCode()
 }

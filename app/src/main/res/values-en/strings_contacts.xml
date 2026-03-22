@@ -106,8 +106,8 @@
     <string name="contact_notification_accepted_title">Friend Request</string>
     <string name="contact_notification_auto_added_title">New Friend</string>
     <string name="contact_notification_auto_added_content">You have added %1$s. Start chatting now!</string>
-    <string name="contact_notification_request_accepted">Your friend request has been accepted</string>
-    <string name="contact_notification_request_rejected">Your friend request has been rejected</string>
+    <string name="contact_notification_request_accepted">%1$s accepted your friend request. Start chatting now!</string>
+    <string name="contact_notification_request_rejected">%1$s declined your friend request.</string>
 
     <string name="contact_blocked_hint">This person is now blocked from sending you messages</string>
 

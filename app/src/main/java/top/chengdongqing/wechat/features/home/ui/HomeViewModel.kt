@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.features.home.ui
 
 import android.content.Context
-import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import top.chengdongqing.wechat.data.network.service.P2PService
-import top.chengdongqing.wechat.data.network.service.createNetworkServiceIntent
+import top.chengdongqing.wechat.data.network.service.createP2PServiceIntent
 import top.chengdongqing.wechat.features.chat.domain.repository.ChatSessionRepository
 import top.chengdongqing.wechat.features.contacts.domain.repository.FriendRequestRepository
 import top.chengdongqing.wechat.features.home.model.HomeTab
@@ -45,11 +44,7 @@ class HomeViewModel @Inject constructor(
      * 启动前台服务
      */
     init {
-        val intent = context.createNetworkServiceIntent(P2PService.ACTION_START_SERVICE)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
-        }
+        val intent = context.createP2PServiceIntent(P2PService.ACTION_START_SERVICE)
+        context.startForegroundService(intent)
     }
 }

@@ -9,14 +9,15 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.media.RingtoneManager
-import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
+import top.chengdongqing.wechat.MainActivity
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.data.network.model.NotificationChannelConfig
 import top.chengdongqing.wechat.data.network.model.NotificationId
 import top.chengdongqing.wechat.features.call.ui.CallActivity
+import top.chengdongqing.wechat.features.chat.navigation.ChatRoute
+import top.chengdongqing.wechat.features.contacts.navigation.ContactsRoute
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,8 +40,6 @@ class NotificationHelper @Inject constructor(
      * 创建通知渠道
      */
     private fun createNotificationChannels() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-
         // 消息通知通道
         NotificationChannel(
             NotificationChannelConfig.Message.id,
@@ -76,12 +75,22 @@ class NotificationHelper @Inject constructor(
     fun showFriendNotification(
         title: String,
         content: String,
+        contactId: String? = null,
         notificationId: Int = NotificationId.FriendRequest.id
     ) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = "wechat://contacts/new_friends".toUri()
-            setPackage(context.packageName)
+        // 构建点击通知跳转的 Intent
+        val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+
+            if (contactId != null) {
+                // 加好友成功的通知跳转到聊天详情
+                ChatRoute.ChatSession.createRoute(contactId)
+            } else {
+                // 其余跳转到新的朋友
+                ContactsRoute.NewFriends.route
+            }.also { targetRoute ->
+                putExtra(MainActivity.EXTRA_ROUTE, targetRoute)
+            }
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
@@ -89,6 +98,8 @@ class NotificationHelper @Inject constructor(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
+        // 构建通知
         val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Message.id)
             .setSmallIcon(R.drawable.img_logo)
             .setContentTitle(title)
@@ -100,6 +111,7 @@ class NotificationHelper @Inject constructor(
             .setAutoCancel(true)
             .build()
 
+        // 显示通知
         notificationManager.notify(notificationId, notification)
     }
 
@@ -113,11 +125,10 @@ class NotificationHelper @Inject constructor(
         notificationId: Int,
         avatarBitmap: Bitmap?
     ) {
-        // 构建跳转 Intent：使用 DeepLink 机制跳转到对应的聊天界面
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            data = "wechat://chat/$sessionId".toUri()
-            setPackage(context.packageName)
+        // 构建点击通知跳转的 Intent
+        val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra(MainActivity.EXTRA_ROUTE, ChatRoute.ChatSession.createRoute(sessionId))
         }
         val pendingIntent = PendingIntent.getActivity(
             context,
@@ -125,6 +136,7 @@ class NotificationHelper @Inject constructor(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+
         // 构建通知
         val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Message.id)
             .setSmallIcon(R.drawable.img_logo) // app logo

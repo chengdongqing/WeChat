@@ -10,7 +10,6 @@ import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import java.nio.channels.FileChannel.open
 import java.nio.file.StandardOpenOption
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -57,22 +56,24 @@ class ChunkStorageManager @Inject constructor(
         val dir = getTransferDir(metadata.messageId)
         dir.mkdirs()
 
-        // 保存元数据（调试用）
+        // 保存元数据
         File(dir, META_FILE).writeText(json.encodeToString(metadata))
 
         // 预分配文件 + 打开 FileChannel
         val dataFile = File(dir, DATA_FILE)
-        val channel = open(
+        val channel = FileChannel.open(
             dataFile.toPath(),
             StandardOpenOption.CREATE,
             StandardOpenOption.WRITE,
             StandardOpenOption.READ
         )
 
-        // 预分配空间（防止磁盘碎片）
-        channel.position(metadata.fileSize - 1)
-        channel.write(ByteBuffer.wrap(byteArrayOf(0)))
-        channel.position(0)
+        // 预分配空间（占位）
+        if (metadata.fileSize > 0) {
+            channel.position(metadata.fileSize - 1)
+            channel.write(ByteBuffer.wrap(byteArrayOf(0)))
+            channel.position(0)
+        }
 
         Log.d(TAG, "预分配文件: messageId=${metadata.messageId}, size=${metadata.fileSize}")
         WriteSession(channel)
@@ -92,7 +93,7 @@ class ChunkStorageManager @Inject constructor(
         val dataFile = File(getTransferDir(messageId), DATA_FILE)
         if (!dataFile.exists()) return@withContext null
 
-        val channel = open(
+        val channel = FileChannel.open(
             dataFile.toPath(),
             StandardOpenOption.WRITE,
             StandardOpenOption.READ

@@ -31,12 +31,7 @@ class VibratorHelper @Inject constructor(
     fun vibrate(pattern: LongArray, repeat: Int = -1) {
         if (!shouldVibrate()) return
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator?.vibrate(VibrationEffect.createWaveform(pattern, repeat))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator?.vibrate(pattern, repeat)
-        }
+        vibrator?.vibrate(VibrationEffect.createWaveform(pattern, repeat))
     }
 
     /**

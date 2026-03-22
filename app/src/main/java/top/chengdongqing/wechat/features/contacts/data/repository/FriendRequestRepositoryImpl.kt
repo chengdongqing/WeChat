@@ -155,8 +155,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 it.copy(status = FriendRequestStatus.Accepted)
             }
 
-            // 发送加好友成功通知
-            _friendEvents.emit(FriendEvent.Added(request.nickname))
+            // 推送加好友成功通知
+            _friendEvents.emit(FriendEvent.Added(request.nickname, request.userId))
         }
     }
 
@@ -231,8 +231,8 @@ class FriendRequestRepositoryImpl @Inject constructor(
                 it.copy(status = FriendRequestStatus.Accepted)
             }
 
-            // 发送加好友成功通知
-            _friendEvents.emit(FriendEvent.Added(request.nickname))
+            // 推送加好友成功通知
+            _friendEvents.emit(FriendEvent.Added(request.nickname, request.userId))
         }
     }
 

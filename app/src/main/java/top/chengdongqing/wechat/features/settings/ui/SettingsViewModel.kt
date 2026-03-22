@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.network.service.P2PService
-import top.chengdongqing.wechat.data.network.service.createNetworkServiceIntent
+import top.chengdongqing.wechat.data.network.service.createP2PServiceIntent
 import top.chengdongqing.wechat.features.settings.domain.usecase.LogoutUseCase
 
 @HiltViewModel
@@ -28,7 +28,7 @@ class SettingsViewModel @Inject constructor(
 
             // 停止所有服务
             runCatching {
-                val intent = context.createNetworkServiceIntent(P2PService.ACTION_STOP_SERVICE)
+                val intent = context.createP2PServiceIntent(P2PService.ACTION_STOP_SERVICE)
                 context.startService(intent)
             }
         }
