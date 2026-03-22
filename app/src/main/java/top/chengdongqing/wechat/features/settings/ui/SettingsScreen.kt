@@ -32,7 +32,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.navigation.Screen
-import top.chengdongqing.wechat.core.util.getVersionName
+import top.chengdongqing.wechat.core.util.appVersionName
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.features.settings.domain.model.labelRes
 import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
@@ -45,7 +45,7 @@ fun SettingsScreen(
     viewModel: ConnectionSettingsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val versionName = remember { context.getVersionName() }
+    val versionName = remember { context.appVersionName }
 
     val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
 

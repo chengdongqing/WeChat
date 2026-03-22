@@ -69,17 +69,7 @@ fun rememberPickContactLauncher(onResult: (chatIds: Array<ContactResult>) -> Uni
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getParcelableArrayExtra(
-                        ContactPickerActivity.EXTRA_CONTACTS,
-                        ContactResult::class.java
-                    )
-                } else {
-                    @Suppress("DEPRECATION", "UNCHECKED_CAST")
-                    (getParcelableArrayExtra(ContactPickerActivity.EXTRA_CONTACTS) as? Array<ContactResult>)
-                }?.let(onResult)
-            }
+            result.data?.contactResults?.let(onResult)
         }
     }
 
@@ -97,3 +87,14 @@ fun rememberPickContactLauncher(onResult: (chatIds: Array<ContactResult>) -> Uni
         launcher.launch(intent, options)
     }
 }
+
+private val Intent.contactResults: Array<ContactResult>?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableArrayExtra(
+            ContactPickerActivity.EXTRA_CONTACTS,
+            ContactResult::class.java
+        )
+    } else {
+        @Suppress("DEPRECATION", "UNCHECKED_CAST")
+        getParcelableArrayExtra(ContactPickerActivity.EXTRA_CONTACTS) as? Array<ContactResult>
+    }

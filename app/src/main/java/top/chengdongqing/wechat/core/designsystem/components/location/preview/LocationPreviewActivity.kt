@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.location.model.LocationPreviewInfo
+import top.chengdongqing.wechat.core.designsystem.components.location.preview.LocationPreviewActivity.Companion.EXTRA_LOCATION
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @AndroidEntryPoint
@@ -18,17 +19,12 @@ class LocationPreviewActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val location = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            intent.getParcelableExtra(EXTRA_LOCATION, LocationPreviewInfo::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(EXTRA_LOCATION)
-        }!!
-
         setContent {
             WeTheme {
-                WeLocationPreview(location) {
-                    finish()
+                intent.previewLocation?.let { location ->
+                    WeLocationPreview(location) {
+                        finish()
+                    }
                 }
             }
         }
@@ -54,8 +50,16 @@ class LocationPreviewActivity : ComponentActivity() {
 
 fun Context.previewLocation(location: LocationPreviewInfo) {
     val intent = LocationPreviewActivity.newIntent(this).apply {
-        putExtra(LocationPreviewActivity.EXTRA_LOCATION, location)
+        putExtra(EXTRA_LOCATION, location)
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION
     }
     startActivity(intent)
 }
+
+private val Intent.previewLocation: LocationPreviewInfo?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableExtra(EXTRA_LOCATION, LocationPreviewInfo::class.java)
+    } else {
+        @Suppress("DEPRECATION")
+        getParcelableExtra(EXTRA_LOCATION)
+    }

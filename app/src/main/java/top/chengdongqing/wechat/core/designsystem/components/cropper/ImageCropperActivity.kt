@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import dagger.hilt.android.AndroidEntryPoint
+import top.chengdongqing.wechat.core.designsystem.components.cropper.ImageCropperActivity.Companion.EXTRA_URI
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
 
@@ -22,21 +23,16 @@ class ImageCropperActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getParcelableExtra(EXTRA_URI, Uri::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                intent.getParcelableExtra(EXTRA_URI)
-            }!!
-
             ImmersiveSystemBars()
             WeTheme(isDark = true) {
-                WeImageCropper(uri, onCancel = { finish() }) {
-                    val intent = Intent().apply {
-                        putExtra(EXTRA_URI, it)
+                intent.croppingUri?.let { uri ->
+                    WeImageCropper(uri, onCancel = { finish() }) {
+                        val intent = Intent().apply {
+                            putExtra(EXTRA_URI, it)
+                        }
+                        setResult(RESULT_OK, intent)
+                        finish()
                     }
-                    setResult(RESULT_OK, intent)
-                    finish()
                 }
             }
         }
@@ -57,21 +53,22 @@ fun rememberImageCropperLauncher(onChange: (Uri) -> Unit): (uri: Uri) -> Unit {
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getParcelableExtra(ImageCropperActivity.EXTRA_URI, Uri::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    (getParcelableExtra(ImageCropperActivity.EXTRA_URI) as? Uri)
-                }?.let(onChange)
-            }
+            result.data?.croppingUri?.let(onChange)
         }
     }
 
     return {
         val intent = ImageCropperActivity.newIntent(context).apply {
-            putExtra(ImageCropperActivity.EXTRA_URI, it)
+            putExtra(EXTRA_URI, it)
         }
         launcher.launch(intent)
     }
 }
+
+private val Intent.croppingUri: Uri?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableExtra(EXTRA_URI, Uri::class.java)
+    } else {
+        @Suppress("DEPRECATION")
+        getParcelableExtra(EXTRA_URI)
+    }

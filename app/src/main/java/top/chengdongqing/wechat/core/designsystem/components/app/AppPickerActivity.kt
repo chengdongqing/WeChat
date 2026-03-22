@@ -69,17 +69,7 @@ fun rememberPickAppLauncher(onResult: (Array<AppResult>) -> Unit): (count: Int) 
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getParcelableArrayExtra(
-                        AppPickerActivity.EXTRA_APP_LIST,
-                        AppResult::class.java
-                    )
-                } else {
-                    @Suppress("DEPRECATION", "UNCHECKED_CAST")
-                    (getParcelableArrayExtra(AppPickerActivity.EXTRA_APP_LIST) as? Array<AppResult>)
-                }?.let(onResult)
-            }
+            result.data?.appResults?.let(onResult)
         }
     }
 
@@ -97,3 +87,11 @@ fun rememberPickAppLauncher(onResult: (Array<AppResult>) -> Unit): (count: Int) 
         launcher.launch(intent, options)
     }
 }
+
+private val Intent.appResults: Array<AppResult>?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableArrayExtra(AppPickerActivity.EXTRA_APP_LIST, AppResult::class.java)
+    } else {
+        @Suppress("DEPRECATION", "UNCHECKED_CAST")
+        getParcelableArrayExtra(AppPickerActivity.EXTRA_APP_LIST) as? Array<AppResult>
+    }

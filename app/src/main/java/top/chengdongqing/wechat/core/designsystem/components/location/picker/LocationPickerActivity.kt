@@ -61,18 +61,7 @@ fun rememberPickLocationLauncher(onResult: (LocationInfo) -> Unit): () -> Unit {
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getParcelableExtra(
-                        LocationPickerActivity.EXTRA_LOCATION,
-                        LocationInfo::class.java
-                    )?.let(onResult)
-                } else {
-                    @Suppress("DEPRECATION")
-                    (getParcelableExtra(LocationPickerActivity.EXTRA_LOCATION) as? LocationInfo)
-                        ?.let(onResult)
-                }
-            }
+            result.data?.locationResult?.let { onResult(it) }
         }
     }
 
@@ -84,3 +73,14 @@ fun rememberPickLocationLauncher(onResult: (LocationInfo) -> Unit): () -> Unit {
         launcher.launch(intent)
     }
 }
+
+private val Intent.locationResult: LocationInfo?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableExtra(
+            LocationPickerActivity.EXTRA_LOCATION,
+            LocationInfo::class.java
+        )
+    } else {
+        @Suppress("DEPRECATION")
+        getParcelableExtra(LocationPickerActivity.EXTRA_LOCATION) as? LocationInfo
+    }

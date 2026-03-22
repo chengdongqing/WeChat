@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.core.designsystem.components.app.repository
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.os.Build
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -20,20 +21,7 @@ class AppRepository @Inject constructor(
      */
     suspend fun loadInstalledApks(): List<AppItem> = withContext(Dispatchers.IO) {
         val packageManager = context.packageManager
-        val intent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-
-        // 处理 API 33+ 的兼容性查询
-        val resolveInfos = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.queryIntentActivities(
-                intent,
-                PackageManager.ResolveInfoFlags.of(0L)
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            packageManager.queryIntentActivities(intent, 0)
-        }
+        val resolveInfos = packageManager.resolveInfos
 
         resolveInfos.mapNotNull { resolveInfo ->
             try {
@@ -73,3 +61,20 @@ class AppRepository @Inject constructor(
         }
     }
 }
+
+private val PackageManager.resolveInfos: List<ResolveInfo>
+    get() {
+        val intent = Intent(Intent.ACTION_MAIN, null).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            queryIntentActivities(
+                intent,
+                PackageManager.ResolveInfoFlags.of(0L)
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            queryIntentActivities(intent, 0)
+        }
+    }

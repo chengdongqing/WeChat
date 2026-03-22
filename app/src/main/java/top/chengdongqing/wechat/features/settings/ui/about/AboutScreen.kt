@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.util.getVersionName
+import top.chengdongqing.wechat.core.util.appVersionName
 import java.time.Year
 
 @Composable
@@ -67,7 +67,7 @@ fun AboutScreen(onBack: () -> Unit) {
 @Composable
 private fun AboutHeader() {
     val context = LocalContext.current
-    val versionName = remember { context.getVersionName() }
+    val versionName = remember { context.appVersionName }
 
     Spacer(modifier = Modifier.height(40.dp))
     Image(

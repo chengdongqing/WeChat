@@ -72,18 +72,13 @@ fun rememberCameraLauncher(onChange: (Uri, VisualMediaType) -> Unit): (type: Vis
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                result.data?.getParcelableExtra(CameraActivity.EXTRA_MEDIA_URI, Uri::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                (result.data?.getParcelableExtra(CameraActivity.EXTRA_MEDIA_URI))
-            }
-            val type =
-                result.data?.getStringExtra(CameraActivity.EXTRA_MEDIA_TYPE)?.let { typeName ->
-                    VisualMediaType.valueOf(typeName)
-                }
+            val intent = result.data
 
-            uri?.let { type }?.let { type ->
+            val uri = intent?.photoUri
+            val type = intent?.getStringExtra(CameraActivity.EXTRA_MEDIA_TYPE)
+                ?.let { VisualMediaType.valueOf(it) }
+
+            if (uri != null && type != null) {
                 onChange(uri, type)
             }
         }
@@ -103,3 +98,11 @@ fun rememberCameraLauncher(onChange: (Uri, VisualMediaType) -> Unit): (type: Vis
         launcher.launch(intent, options)
     }
 }
+
+private val Intent.photoUri: Uri?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableExtra(CameraActivity.EXTRA_MEDIA_URI, Uri::class.java)
+    } else {
+        @Suppress("DEPRECATION")
+        getParcelableExtra(CameraActivity.EXTRA_MEDIA_URI)
+    }

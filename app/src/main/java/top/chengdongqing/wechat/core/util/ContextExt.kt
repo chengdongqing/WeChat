@@ -27,10 +27,10 @@ fun Context.copyToClipboard(text: String, label: String) {
 }
 
 /**
- * 获取App版本号
+ * App版本号
  */
-fun Context.getVersionName(): String {
-    val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+val Context.appVersionName: String
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         packageManager.getPackageInfo(
             packageName,
             PackageManager.PackageInfoFlags.of(0)
@@ -38,10 +38,7 @@ fun Context.getVersionName(): String {
     } else {
         @Suppress("DEPRECATION")
         packageManager.getPackageInfo(packageName, 0)
-    }
-
-    return packageInfo.versionName ?: "1.0"
-}
+    }.versionName ?: "1.0"
 
 /**
  * 跳转至系统设置

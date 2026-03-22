@@ -17,6 +17,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.designsystem.components.media.picker.MediaPickerActivity.Companion.EXTRA_MEDIA_LIST
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 
@@ -26,7 +27,7 @@ class MediaPickerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val type = intent.getStringExtra(EXTRA_PICK_TYPE)?.run { VisualMediaType.valueOf(this) }
+        val type = intent.getStringExtra(EXTRA_PICK_TYPE)?.let { VisualMediaType.valueOf(it) }
             ?: VisualMediaType.ImageAndVideo
         val count = intent.getIntExtra(EXTRA_PICK_COUNT, 99)
 
@@ -75,17 +76,7 @@ fun rememberPickMediasLauncher(onResult: (Array<MediaItem>) -> Unit): (type: Vis
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    getParcelableArrayExtra(
-                        MediaPickerActivity.EXTRA_MEDIA_LIST,
-                        MediaItem::class.java
-                    )
-                } else {
-                    @Suppress("DEPRECATION", "UNCHECKED_CAST")
-                    (getParcelableArrayExtra(MediaPickerActivity.EXTRA_MEDIA_LIST) as? Array<MediaItem>)
-                }?.let(onResult)
-            }
+            result.data?.mediaResults?.let { onResult(it) }
         }
     }
 
@@ -103,3 +94,14 @@ fun rememberPickMediasLauncher(onResult: (Array<MediaItem>) -> Unit): (type: Vis
         launcher.launch(intent, options)
     }
 }
+
+private val Intent.mediaResults: Array<MediaItem>?
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelableArrayExtra(
+            EXTRA_MEDIA_LIST,
+            MediaItem::class.java
+        )
+    } else {
+        @Suppress("DEPRECATION", "UNCHECKED_CAST")
+        getParcelableArrayExtra(EXTRA_MEDIA_LIST) as? Array<MediaItem>
+    }
