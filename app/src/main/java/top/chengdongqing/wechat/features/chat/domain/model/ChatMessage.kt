@@ -16,7 +16,7 @@ data class ChatMessage(
     val isRecalled: Boolean = false,
     val isFromMe: Boolean = true,
     val timestamp: Long = System.currentTimeMillis(),
-    val sendStatus: MessageSendStatus = MessageSendStatus.Success
+    val sendStatus: MessageSendStatus
 ) {
     val isProgressing: Boolean
         get() = sendStatus is MessageSendStatus.Sending || sendStatus is MessageSendStatus.Receiving || sendStatus is MessageSendStatus.Paused

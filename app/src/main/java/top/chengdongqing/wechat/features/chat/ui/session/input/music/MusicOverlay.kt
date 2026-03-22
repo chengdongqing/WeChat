@@ -31,10 +31,10 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.media.MusicPlayer
-import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
-import top.chengdongqing.wechat.features.chat.domain.model.InputBarState
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.domain.model.MusicTrack
+import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarActions
+import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarState
 
 @Composable
 fun MusicOverlay(

@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.features.call.domain.model.CallType
-import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
 import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberActionHandler
@@ -24,10 +23,10 @@ import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberM
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberMediaLaunchers
 
 /**
- * 输入栏 Actions 唯一组装入口
+ * 输入栏 Actions 组装入口
  *
  * 将所有 handler / launcher / controller 编排成 [InputBarActions]，
- * 调用方（InputBar）只需拿到这一个对象，不再感知内部依赖。
+ * 调用方（InputBar）只需拿到这一个对象，不感知内部依赖。
  */
 @Composable
 fun rememberInputBarActions(
@@ -39,16 +38,16 @@ fun rememberInputBarActions(
     val scope = rememberCoroutineScope()
     val state by controller.state.collectAsStateWithLifecycle()
     val dialog = rememberDialogState()
+    val privateFileManager = hiltViewModel<InputBarViewModel>().privateFileManager
 
     // --- handlers ---
-    val inputBarViewModel: InputBarViewModel = hiltViewModel()
     val mediaHandler = rememberMediaHandler(
-        viewModel = inputBarViewModel,
+        privateFileManager = privateFileManager,
         onSendMessage = onSendMessage,
         onModeChange = controller::dismissAll
     )
-    val locationHandler = rememberLocationHandler(inputBarViewModel, onSendMessage)
-    val fileHandler = rememberFileHandler(inputBarViewModel, onSendMessage)
+    val locationHandler = rememberLocationHandler(privateFileManager, onSendMessage)
+    val fileHandler = rememberFileHandler(privateFileManager, onSendMessage)
 
     // --- launchers ---
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)
@@ -60,7 +59,7 @@ fun rememberInputBarActions(
         mediaLaunchers = mediaLaunchers,
         locationLauncher = locationLauncher,
         fileLauncher = fileLauncher,
-        viewModel = inputBarViewModel,
+        privateFileManager = privateFileManager,
         onLaunchCall = onLaunchCall,
         onSelectMusic = controller::toggleMusic,
         onSendMessage = onSendMessage
@@ -87,7 +86,6 @@ fun rememberInputBarActions(
             onEmojiBackspace = controller::handleEmojiBackspace,
             onToggleExpand = controller::toggleExpand,
             onToggleMusic = controller::toggleMusic,
-
             // 模式切换
             onSwitchMode = controller::switchMode,
             onSwitchToVoice = { controller.switchMode(InputMode.Voice) },
@@ -98,7 +96,6 @@ fun rememberInputBarActions(
                     controller.focusRequester.requestFocus()
                 }
             },
-
             // 媒体 / 更多
             onMoreAction = actionHandler::handleAction,
             onSpeechResult = { text ->
@@ -108,7 +105,6 @@ fun rememberInputBarActions(
                 )
             },
             onSendMessage = onSendMessage,
-
             // 透传
             onLaunchCall = onLaunchCall
         )

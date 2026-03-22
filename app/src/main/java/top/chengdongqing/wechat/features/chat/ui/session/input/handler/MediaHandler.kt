@@ -21,7 +21,6 @@ import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.deleteFileByUri
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarViewModel
 
 /**
  * 媒体处理器
@@ -99,7 +98,7 @@ class MediaHandler(
 
 @Composable
 fun rememberMediaHandler(
-    viewModel: InputBarViewModel,
+    privateFileManager: PrivateFileManager,
     onModeChange: () -> Unit,
     onSendMessage: (MessageContent) -> Unit
 ): MediaHandler {
@@ -110,7 +109,7 @@ fun rememberMediaHandler(
         MediaHandler(
             context = context,
             scope = scope,
-            privateFileManager = viewModel.privateFileManager,
+            privateFileManager = privateFileManager,
             onModeChange = onModeChange,
             onSendMessage = onSendMessage
         )

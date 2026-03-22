@@ -27,8 +27,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionUiState
 import top.chengdongqing.wechat.features.chat.ui.session.ChatSessionViewModel
-import top.chengdongqing.wechat.features.chat.ui.session.message.ChatSessionUiState
 
 @Composable
 fun ChatSessionTopBar(

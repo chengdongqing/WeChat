@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.features.chat.ui.session.message.ChatSessionUiState
 
 /**
  * 聊天会话上下文

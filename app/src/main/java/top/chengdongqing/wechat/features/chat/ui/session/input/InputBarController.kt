@@ -1,18 +1,6 @@
 package top.chengdongqing.wechat.features.chat.ui.session.input
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,14 +10,12 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.features.chat.data.store.RecentEmojisStore
-import top.chengdongqing.wechat.features.chat.domain.model.InputBarState
 import top.chengdongqing.wechat.features.chat.domain.model.InputMode
-import top.chengdongqing.wechat.features.chat.ui.session.input.panel.RecentEmojisViewModel
 
 /**
  * 输入栏控制器
  *
- * 融合了输入状态管理、模式切换、键盘控制、焦点管理等功能
+ * 负责输入状态管理、模式切换、键盘控制、焦点管理等功能。
  */
 class InputBarController(
     val focusRequester: NativeFocusRequester,
@@ -38,12 +24,16 @@ class InputBarController(
     private val isSendButtonOn: Boolean,
     private val scope: CoroutineScope
 ) {
+    private companion object {
+        /** 一帧时间，用于等待文本更新后再移动光标 */
+        const val ONE_FRAME_MS = 16L
+
+        /** 模式切换后等待输入法收起、焦点就位再请求焦点的延迟 */
+        const val MODE_SWITCH_DELAY_MS = 200L
+    }
+
     private val _state = MutableStateFlow(InputBarState(isSendButtonOn = isSendButtonOn))
     val state = _state.asStateFlow()
-
-    // ============================================
-    // 文本相关
-    // ============================================
 
     /**
      * 更新输入文本
@@ -72,7 +62,7 @@ class InputBarController(
         // 计算新的光标位置
         val newCursorIndex = cursorIndex + insertText.length
         scope.launch {
-            delay(16)
+            delay(ONE_FRAME_MS)
             focusRequester.setSelection(newCursorIndex)
         }
 
@@ -155,10 +145,6 @@ class InputBarController(
         }
     }
 
-    // ============================================
-    // 模式切换相关
-    // ============================================
-
     /**
      * 切换输入模式
      *
@@ -181,7 +167,7 @@ class InputBarController(
                 // 输入表情时显示光标
                 if (target.isEmoji) {
                     scope.launch {
-                        delay(200)
+                        delay(MODE_SWITCH_DELAY_MS)
                         focusRequester.requestFocus(showKeyboard = false)
                     }
 
@@ -215,10 +201,6 @@ class InputBarController(
         _state.update { it.copy(inputMode = target) }
     }
 
-    // ============================================
-    // 其他状态管理
-    // ============================================
-
     /**
      * 切换全屏输入
      */
@@ -232,47 +214,4 @@ class InputBarController(
     fun toggleMusic() {
         _state.update { it.copy(isMusicOpen = !it.isMusicOpen) }
     }
-}
-
-/**
- * 包含了完整的键盘管理、返回键处理等逻辑
- */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun rememberInputBarController(
-    focusRequester: NativeFocusRequester,
-    isSendButtonOn: Boolean = true,
-    recentEmojisStore: RecentEmojisStore = hiltViewModel<RecentEmojisViewModel>().store
-): InputBarController {
-    val scope = rememberCoroutineScope()
-    val isImeVisible = WindowInsets.isImeVisible
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    // 创建控制器
-    val controller = remember(focusRequester, isSendButtonOn) {
-        InputBarController(
-            focusRequester = focusRequester,
-            keyboardController = keyboardController,
-            recentEmojisStore = recentEmojisStore,
-            isSendButtonOn = isSendButtonOn,
-            scope = scope
-        )
-    }
-    val state by controller.state.collectAsState()
-
-    // 监听系统键盘状态
-    // 当键盘弹出时，自动切换到文本模式
-    LaunchedEffect(isImeVisible) {
-        if (isImeVisible) {
-            controller.syncMode(InputMode.Text)
-        }
-    }
-
-    // 返回键处理
-    // 当面板展开时，返回键关闭面板而不是退出页面
-    BackHandler(enabled = state.inputMode.isPanelMode) {
-        controller.dismissAll()
-    }
-
-    return controller
 }

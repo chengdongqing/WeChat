@@ -15,8 +15,6 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.network.connection.wifi.WiFiDirectConnector
 import top.chengdongqing.wechat.data.network.service.chat.WiFiDirectChatHandler
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
-import top.chengdongqing.wechat.features.chat.domain.model.PeerDeviceUiState
-import top.chengdongqing.wechat.features.chat.domain.model.WiFiDirectRole
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,6 +26,8 @@ class WiFiDirectPeerViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(PeerDeviceUiState())
     override val uiState = _uiState.asStateFlow()
+
+    private val nativeDeviceMap = mutableMapOf<String, WifiP2pDevice>() // key为deviceAddress
 
     private val p2pManager by lazy {
         context.getSystemService(Context.WIFI_P2P_SERVICE) as WifiP2pManager
@@ -46,11 +46,7 @@ class WiFiDirectPeerViewModel @Inject constructor(
     fun startAsClient() {
         viewModelScope.launch {
             _uiState.update {
-                it.copy(
-                    role = WiFiDirectRole.Client,
-                    isScanning = true,
-                    error = null
-                )
+                it.copy(role = WiFiDirectRole.Client, isScanning = true, error = null)
             }
             wifiDirectChatModule.startAsClient()
             startScan()
@@ -59,7 +55,6 @@ class WiFiDirectPeerViewModel @Inject constructor(
 
     override fun startScan() {
         _uiState.update { it.copy(isScanning = true, error = null) }
-        // 先停止旧的扫描，完成后再启动，避免状态残留
         p2pManager.cancelConnect(channel, null)
         p2pManager.stopPeerDiscovery(channel, object : WifiP2pManager.ActionListener {
             override fun onSuccess() = discoverPeers()
@@ -73,13 +68,13 @@ class WiFiDirectPeerViewModel @Inject constructor(
             override fun onSuccess() {}
 
             override fun onFailure(reason: Int) {
-                val reason = when (reason) {
+                val msg = when (reason) {
                     WifiP2pManager.ERROR -> "内部错误（检查位置权限）"
                     WifiP2pManager.P2P_UNSUPPORTED -> "设备不支持 WiFi Direct"
                     WifiP2pManager.BUSY -> "系统忙，请稍后重试"
                     else -> "未知错误: $reason"
                 }
-                _uiState.update { it.copy(isScanning = false, error = "扫描失败：$reason") }
+                _uiState.update { it.copy(isScanning = false, error = "扫描失败：$msg") }
             }
         })
     }
@@ -90,7 +85,7 @@ class WiFiDirectPeerViewModel @Inject constructor(
     }
 
     override fun connectDevice(device: PeerDevice, userId: String, onSuccess: () -> Unit) {
-        val p2pDevice = (device as? PeerDevice.WiFiDirect)?.device ?: return
+        val p2pDevice = nativeDeviceMap[device.id] ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(connectingDeviceId = device.id, error = null) }
             runCatching {
@@ -104,10 +99,7 @@ class WiFiDirectPeerViewModel @Inject constructor(
                 onSuccess()
             }.onFailure { e ->
                 _uiState.update {
-                    it.copy(
-                        connectingDeviceId = null,
-                        error = e.message ?: "连接失败"
-                    )
+                    it.copy(connectingDeviceId = null, error = e.message ?: "连接失败")
                 }
             }
         }
@@ -124,17 +116,18 @@ class WiFiDirectPeerViewModel @Inject constructor(
 
     fun onPeersChanged(devices: List<WifiP2pDevice>) {
         val peers = devices.map { d ->
+            nativeDeviceMap[d.deviceAddress] = d
             PeerDevice.WiFiDirect(
                 id = d.deviceAddress,
                 name = d.deviceName,
-                isPaired = d.status == WifiP2pDevice.CONNECTED,
-                device = d,
+                isPaired = d.status == WifiP2pDevice.CONNECTED
             )
         }
         _uiState.update { it.copy(nearbyDevices = peers, isScanning = false) }
     }
 
     override fun reset() {
+        nativeDeviceMap.clear()
         _uiState.value = PeerDeviceUiState()
     }
 

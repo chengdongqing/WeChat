@@ -21,7 +21,7 @@ interface ChatSessionRepository {
     suspend fun getSession(sessionId: String): ChatSession?
 
     /**
-     * 是否开启了免到扰
+     * 是否开启了免打扰
      */
     suspend fun isSessionMuted(sessionId: String): Boolean
 
@@ -56,7 +56,7 @@ interface ChatSessionRepository {
     suspend fun togglePin(sessionId: String, isPinned: Boolean)
 
     /**
-     * 设置免到扰
+     * 设置免打扰
      */
     suspend fun toggleMute(sessionId: String, isMuted: Boolean)
 

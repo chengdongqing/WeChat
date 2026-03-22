@@ -20,8 +20,8 @@ import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.DpSaver
 import top.chengdongqing.wechat.core.util.rememberKeyboardHeight
-import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
 import top.chengdongqing.wechat.features.chat.domain.model.InputMode
+import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarActions
 
 @Composable
 fun InputPanelHolder(

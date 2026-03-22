@@ -28,12 +28,12 @@ import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.Emoj
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.features.chat.domain.model.InputBarActions
-import top.chengdongqing.wechat.features.chat.domain.model.InputBarState
 import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 import top.chengdongqing.wechat.features.chat.ui.session.components.ActionIcon
 import top.chengdongqing.wechat.features.chat.ui.session.components.CircleActionIcon
+import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarActions
 import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarController
+import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarState
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.InputPanelHolder
 import top.chengdongqing.wechat.features.chat.ui.session.input.rememberInputBarController
 

@@ -14,6 +14,7 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionS
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.util.CallOptions
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.copyResourceToUri
@@ -23,7 +24,6 @@ import top.chengdongqing.wechat.core.util.deleteFileByUri
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.LocalChatSessionContext
-import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarViewModel
 import top.chengdongqing.wechat.features.chat.ui.session.input.panel.MoreAction
 import java.io.File
 
@@ -59,14 +59,14 @@ class ActionHandler(
 }
 
 /**
- * 在 InputBarActionsFactory 中组装 ActionHandler
+ * 在 InputBarActionsProvider 中组装 ActionHandler
  */
 @Composable
 fun rememberActionHandler(
     mediaLaunchers: MediaLaunchers,
     locationLauncher: LocationLauncher,
     fileLauncher: FileLauncher,
-    viewModel: InputBarViewModel,
+    privateFileManager: PrivateFileManager,
     onLaunchCall: (CallType) -> Unit,
     onSelectMusic: () -> Unit,
     onSendMessage: (MessageContent) -> Unit,
@@ -178,7 +178,7 @@ fun rememberActionHandler(
                         targetFile = tempFile
                     ) ?: return@launch
                     // 拷贝到私有目录持久化保存
-                    val localPath = viewModel.privateFileManager.saveMedia(
+                    val localPath = privateFileManager.saveMedia(
                         messageType = MessageType.Sticker,
                         sourceUri = uri
                     ).getOrThrow()

@@ -1,7 +1,8 @@
-package top.chengdongqing.wechat.features.chat.domain.model
+package top.chengdongqing.wechat.features.chat.ui.session.input
 
 import androidx.compose.runtime.Stable
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
+import top.chengdongqing.wechat.features.chat.domain.model.InputMode
 
 /**
  * 输入栏UI状态

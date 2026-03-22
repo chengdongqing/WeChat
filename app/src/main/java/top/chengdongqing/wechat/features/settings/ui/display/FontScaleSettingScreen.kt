@@ -45,6 +45,7 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollE
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
+import top.chengdongqing.wechat.features.chat.domain.model.MessageSendStatus
 import top.chengdongqing.wechat.features.chat.ui.session.message.MessageItem
 import top.chengdongqing.wechat.features.settings.domain.model.AppFontScale
 
@@ -115,7 +116,8 @@ private fun ChatPreview(
                 sessionId = id,
                 senderId = id,
                 content = MessageContent.Text(text),
-                isFromMe = index == 0
+                isFromMe = index == 0,
+                sendStatus = MessageSendStatus.Delivered
             )
         }
     }

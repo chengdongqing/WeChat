@@ -30,7 +30,7 @@ sealed class MessageSendStatus {
     /**
      * 已送达
      */
-    data object Success : MessageSendStatus()
+    data object Delivered : MessageSendStatus()
 
     /**
      * 发送失败

@@ -16,7 +16,6 @@ import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
-import top.chengdongqing.wechat.features.chat.ui.session.input.InputBarViewModel
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactResult
 import top.chengdongqing.wechat.features.contacts.ui.picker.rememberPickContactLauncher
 import java.io.File
@@ -101,11 +100,11 @@ class FileHandler(
 
 @Composable
 fun rememberFileHandler(
-    viewModel: InputBarViewModel,
+    privateFileManager: PrivateFileManager,
     onSendMessage: (MessageContent) -> Unit,
 ): FileHandler {
     return remember(onSendMessage) {
-        FileHandler(viewModel.privateFileManager, onSendMessage)
+        FileHandler(privateFileManager, onSendMessage)
     }
 }
 

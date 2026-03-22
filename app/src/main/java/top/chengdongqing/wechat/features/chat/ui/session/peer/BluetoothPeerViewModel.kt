@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.data.network.connection.bluetooth.BtBondManager
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
-import top.chengdongqing.wechat.features.chat.domain.model.PeerDeviceUiState
 import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import javax.inject.Inject
 
@@ -28,6 +27,8 @@ class BluetoothPeerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PeerDeviceUiState())
     override val uiState = _uiState.asStateFlow()
 
+    private val nativeDeviceMap = mutableMapOf<String, BluetoothDevice>() // key为mac地址
+
     private val myUserId: String
         get() = profileRepository.requireUserId()
     private val bluetoothAdapter by lazy {
@@ -35,33 +36,22 @@ class BluetoothPeerViewModel @Inject constructor(
     }
 
     override fun startScan() {
-        // 加载已配对的设备
         loadPairedDevices()
-
-        // 如果正在扫描，先停止
-        if (bluetoothAdapter.isDiscovering) {
-            bluetoothAdapter.cancelDiscovery()
-        }
-
-        // 启动经典蓝牙扫描
+        if (bluetoothAdapter.isDiscovering) bluetoothAdapter.cancelDiscovery()
         bluetoothAdapter.startDiscovery()
-
         _uiState.update { it.copy(isScanning = true, error = null) }
     }
 
     @SuppressLint("MissingPermission")
     override fun stopScan() {
-        if (bluetoothAdapter.isDiscovering) {
-            bluetoothAdapter.cancelDiscovery()
-        }
+        if (bluetoothAdapter.isDiscovering) bluetoothAdapter.cancelDiscovery()
         _uiState.update { it.copy(isScanning = false) }
     }
 
     override fun connectDevice(device: PeerDevice, userId: String, onSuccess: () -> Unit) {
-        val btDevice = (device as? PeerDevice.Bluetooth)?.device ?: return
+        val btDevice = nativeDeviceMap[device.id] ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(connectingDeviceId = device.id, error = null) }
-
             runCatching {
                 bluetoothBondManager.bondAndConnect(
                     userId = userId,
@@ -73,7 +63,10 @@ class BluetoothPeerViewModel @Inject constructor(
                 onSuccess()
             }.onFailure { e ->
                 _uiState.update {
-                    it.copy(connectingDeviceId = null, error = e.message ?: "连接失败")
+                    it.copy(
+                        connectingDeviceId = null,
+                        error = e.message ?: "连接失败"
+                    )
                 }
             }
         }
@@ -89,16 +82,14 @@ class BluetoothPeerViewModel @Inject constructor(
     }
 
     fun onClassicDeviceFound(device: BluetoothDevice, rssi: Int) {
-        // 过滤没有名字的
         if (device.name == null) return
-
+        nativeDeviceMap[device.address] = device
         addNearbyDevice(
             PeerDevice.Bluetooth(
                 id = device.address,
                 name = device.name ?: device.address,
                 isPaired = device.bondState == BluetoothDevice.BOND_BONDED,
-                signalStrength = rssi,
-                device = device
+                signalStrength = rssi
             )
         )
     }
@@ -109,17 +100,18 @@ class BluetoothPeerViewModel @Inject constructor(
 
     private fun loadPairedDevices() {
         val bonded = bluetoothAdapter.bondedDevices?.map { device ->
+            nativeDeviceMap[device.address] = device
             PeerDevice.Bluetooth(
                 id = device.address,
                 name = device.name ?: device.address,
-                isPaired = true,
-                device = device
+                isPaired = true
             )
         } ?: emptyList()
         _uiState.update { it.copy(pairedDevices = bonded) }
     }
 
     override fun reset() {
+        nativeDeviceMap.clear()
         _uiState.value = PeerDeviceUiState()
     }
 

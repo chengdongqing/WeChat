@@ -222,7 +222,11 @@ class MessageToolbarManager(
                     add(MessageAction.Download)
                 }
 
-                else -> {}
+                // Media 是 Image/Video 的抽象基类，正常不会直接出现，
+                // 但 sealed 层次要求显式覆盖，保持编译器穷举检查有效。
+                is MessageContent.Media -> {
+                    add(deleteOrRecall)
+                }
             }
         }
     }
