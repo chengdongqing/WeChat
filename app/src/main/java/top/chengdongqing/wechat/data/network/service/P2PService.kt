@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.data.network.service
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
@@ -185,13 +186,26 @@ class P2PService : Service() {
      * 显示前台服务通知
      */
     private fun showForegroundNotification() {
+        // 创建点击通知后的Intent
+        val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // 构建通知
         val notification = NotificationCompat.Builder(this, NotificationChannelConfig.P2P.id)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText("保持消息收发能力")
+            .setContentText(getString(R.string.p2p_service_content))
             .setSmallIcon(R.drawable.img_logo)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
+            .setContentIntent(pendingIntent)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
+
         startForeground(NotificationId.P2P.id, notification)
     }
 

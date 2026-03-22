@@ -65,4 +65,6 @@
     <string name="nfc_hce_aid_description">Add friends via WeChat Bump</string>
 
     <string name="donate_description">%s is a free and open-source project. If you like the project, please consider supporting the author. Thank you!</string>
+
+    <string name="p2p_service_content">Communication service active.</string>
 </resources>
