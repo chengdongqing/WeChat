@@ -39,6 +39,7 @@ import top.chengdongqing.wechat.core.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.network.connection.bluetooth.BtBondManager
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.service.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -74,8 +75,9 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val publicFileManager: PublicFileManager,
     private val soundTipPlayer: SoundTipPlayer,
     private val notificationHelper: NotificationHelper,
-    val activeSessionManager: ActiveSessionManager,
     private val chatTransportManager: ChatTransportManager,
+    private val btBondManager: BtBondManager,
+    val activeSessionManager: ActiveSessionManager,
     e2eSessionManager: E2ESessionManager,
     connectionSettingsRepository: ConnectionSettingsRepository,
     @param:ApplicationContext private val context: Context
@@ -101,6 +103,8 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun isConnected(): Boolean {
         return chatTransportManager.isConnected(chatId)
     }
+
+    suspend fun isBluetoothDeviceSaved() = btBondManager.hasSaved(chatId)
 
     // region 工具条
 

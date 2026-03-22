@@ -8,7 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.wifi.p2p.WifiP2pDeviceList
 import android.net.wifi.p2p.WifiP2pManager
-import android.os.Build
+import top.chengdongqing.wechat.data.network.connection.bluetooth.bluetoothDevice
 import top.chengdongqing.wechat.features.chat.ui.session.peer.BluetoothPeerViewModel
 import top.chengdongqing.wechat.features.chat.ui.session.peer.WiFiDirectPeerViewModel
 
@@ -26,15 +26,7 @@ fun buildBluetoothReceiver(
             when (intent.action) {
                 BluetoothDevice.ACTION_FOUND -> {
                     // 设备详情
-                    val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent.getParcelableExtra(
-                            BluetoothDevice.EXTRA_DEVICE,
-                            BluetoothDevice::class.java
-                        )
-                    } else {
-                        @Suppress("DEPRECATION")
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    } ?: return
+                    val device = intent.bluetoothDevice ?: return
                     // 信号强度
                     val rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, 0).toInt()
 

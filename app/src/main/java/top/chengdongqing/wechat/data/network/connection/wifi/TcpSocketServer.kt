@@ -6,6 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
+import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ConnectionEvent
 import top.chengdongqing.wechat.data.network.connection.PeerConnection
@@ -24,6 +26,7 @@ import javax.inject.Singleton
 class TcpSocketServer @Inject constructor(
     private val connectionManager: TcpConnectionManager,
     private val handshakeHandler: PeerHandshakeHandler,
+    private val connectionInfoDao: ConnectionInfoDao,
     @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
@@ -121,6 +124,9 @@ class TcpSocketServer @Inject constructor(
             connectionManager.startReceiving(conn)
             // 开始维持心跳
             connectionManager.startHeartbeat(conn)
+
+            // 保存连接信息到数据库
+            saveToDB(userId, socket)
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()
@@ -135,5 +141,20 @@ class TcpSocketServer @Inject constructor(
         socket.receiveBufferSize = TransferConfig.SOCKET_RECV_BUFFER
         socket.keepAlive = true
         socket.tcpNoDelay = true // 禁用 Nagle，避免与 Delayed ACK 叠加产生 40ms 延迟。
+    }
+
+    /**
+     * 保存连接信息到数据库
+     */
+    suspend fun saveToDB(userId: String, socket: Socket) {
+        connectionInfoDao.upsert(
+            ConnectionInfoEntity(
+                userId = userId,
+                lanIpAddress = socket.inetAddress.hostAddress,
+                lanPort = socket.port,
+                isOnline = true,
+                lastSeen = System.currentTimeMillis(),
+            )
+        )
     }
 }

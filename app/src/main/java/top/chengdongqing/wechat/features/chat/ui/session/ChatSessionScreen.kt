@@ -75,7 +75,10 @@ fun ChatSessionScreen(
 
         val shouldShow = when {
             connectionRequired != null -> true
-            connectionMode != ConnectionMode.WiFiLan && !viewModel.isConnected() -> true
+            // 蓝牙设备，如果保存过，在发送消息时将自动发起连接，不用弹窗
+            connectionMode == ConnectionMode.Bluetooth && !viewModel.isBluetoothDeviceSaved() -> false
+            // Wi-Fi p2p设备，每次都要重新连接
+            connectionMode == ConnectionMode.WiFiDirect && !viewModel.isConnected() -> true
             else -> false
         }
 

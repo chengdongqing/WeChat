@@ -30,8 +30,9 @@ import java.util.UUID
 class BtSocketServer @Inject constructor(
     private val connectionManager: BtConnectionManager,
     private val handshakeHandler: PeerHandshakeHandler,
+    private val btBondManager: BtBondManager,
     @param:ApplicationContext private val context: Context,
-    @param:IoScope private val scope: CoroutineScope,
+    @param:IoScope private val scope: CoroutineScope
 ) {
     companion object {
         private const val TAG = "BtSocketServer"
@@ -41,6 +42,8 @@ class BtSocketServer @Inject constructor(
         private const val SERVICE_NAME = "WeChat_Chat"
     }
 
+    private val adapter by lazy { (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter }
+
     private var serverSocket: BluetoothServerSocket? = null
 
     /**
@@ -49,8 +52,6 @@ class BtSocketServer @Inject constructor(
     @SuppressLint("MissingPermission")
     fun start() {
         runCatching {
-            val adapter =
-                (context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
             serverSocket = adapter.listenUsingRfcommWithServiceRecord(SERVICE_NAME, RFCOMM_UUID)
             scope.launch { acceptLoop() }
         }.onFailure {
@@ -91,6 +92,7 @@ class BtSocketServer @Inject constructor(
             val reader = PacketReader(socket.inputStream)
             val writer = PacketWriter(socket.outputStream)
 
+            // 执行握手
             val userId = handshakeHandler.acceptHandshake(reader, writer) ?: run {
                 Log.w(TAG, "握手失败，关闭连接")
                 socket.close()
@@ -105,11 +107,18 @@ class BtSocketServer @Inject constructor(
                 maxConcurrentTransfers = Semaphore(TransferConfig.CONCURRENT_TRANSFERS_BT),
                 closeAction = { socket.close() },
             )
-
+            // 保存连接
             connectionManager.register(conn)
+            // 推送连接事件
             connectionManager.emitEvent(ConnectionEvent.Connected(userId, conn))
+
+            // 开始接收数据
             connectionManager.startReceiving(conn)
+            // 开始维持心跳
             connectionManager.startHeartbeat(conn)
+
+            // 保存连接信息
+            btBondManager.saveToDB(userId, socket.remoteDevice)
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()
