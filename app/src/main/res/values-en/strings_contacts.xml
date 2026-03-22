@@ -83,7 +83,6 @@
     <string name="contact_label_note">Note</string>
     <string name="contact_label_permission">Friend Permissions</string>
     <string name="contact_action_add_tag">Add Tag</string>
-    <string name="contact_action_add_note">Add Note</string>
     <string name="contact_action_set_permission">Set Permissions</string>
     <string name="contact_msg_request_sent">Friend request sent</string>
     <string name="contact_msg_friend_added">Friend added</string>
@@ -103,11 +102,8 @@
     <string name="new_contacts_status_expired">Expired</string>
 
     <string name="contact_notification_request_content">wants to add you as a friend</string>
-    <string name="contact_notification_accepted_title">Friend Request</string>
     <string name="contact_notification_auto_added_title">New Friend</string>
     <string name="contact_notification_auto_added_content">You have added %s. Start chatting now!</string>
-    <string name="contact_notification_request_accepted">%s accepted your friend request. Start chatting now!</string>
-    <string name="contact_notification_request_rejected">%s declined your friend request.</string>
 
     <string name="contact_blocked_hint">This person is now blocked from sending you messages</string>
 

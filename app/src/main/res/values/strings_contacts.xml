@@ -83,7 +83,6 @@
     <string name="contact_label_note">备忘</string>
     <string name="contact_label_permission">朋友权限</string>
     <string name="contact_action_add_tag">添加标签</string>
-    <string name="contact_action_add_note">添加备忘</string>
     <string name="contact_action_set_permission">设置朋友权限</string>
     <string name="contact_msg_request_sent">已发送好友申请</string>
     <string name="contact_msg_friend_added">已添加好友</string>
@@ -103,11 +102,8 @@
     <string name="new_contacts_status_expired">已过期</string>
 
     <string name="contact_notification_request_content">请求添加你为朋友</string>
-    <string name="contact_notification_accepted_title">好友申请</string>
     <string name="contact_notification_auto_added_title">新的朋友</string>
     <string name="contact_notification_auto_added_content">你已添加了%s，现在可以开始聊天了</string>
-    <string name="contact_notification_request_accepted">%s同意了你的好友申请，现在可以开始聊天了</string>
-    <string name="contact_notification_request_rejected">%s拒绝了你的好友申请</string>
 
     <string name="contact_blocked_hint">已添加至黑名单，你将不再收到对方的消息</string>
 

@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -43,6 +44,10 @@ fun WeInput(
     onValueChange: (String) -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }
+
+    val handleFocusChange = { state: FocusState ->
+        isFocused = state.isFocused
+    }
 
     val indicatorColor by animateColorAsState(
         targetValue = if (isFocused) activeColor else inactiveColor,
@@ -76,7 +81,7 @@ fun WeInput(
                 modifier = Modifier
                     .weight(1f)
                     .padding(vertical = 12.dp)
-                    .onFocusChanged { isFocused = it.isFocused },
+                    .onFocusChanged(handleFocusChange),
                 enabled = enabled,
                 textStyle = TextStyle(
                     fontSize = 17.sp,

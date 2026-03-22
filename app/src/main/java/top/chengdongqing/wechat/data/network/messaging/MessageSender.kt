@@ -96,8 +96,7 @@ class MessageSender @Inject constructor(
             .onSuccess {
                 updateStatus(
                     messageId = message.id,
-                    sessionId = message.receiverId,
-                    status = SendStatus.Sent
+                    sessionId = message.receiverId
                 )
             }
             .onFailure { e ->
@@ -122,8 +121,7 @@ class MessageSender @Inject constructor(
 
         updateStatus(
             messageId = message.id,
-            sessionId = message.receiverId,
-            status = SendStatus.Sent
+            sessionId = message.receiverId
         )
     }.onFailure { e ->
         handleSendError(message.id, message.receiverId, e)
@@ -391,7 +389,11 @@ class MessageSender @Inject constructor(
     /**
      * 更新发送状态
      */
-    private suspend fun updateStatus(messageId: String, sessionId: String, status: SendStatus) {
+    private suspend fun updateStatus(
+        messageId: String,
+        sessionId: String,
+        status: SendStatus = SendStatus.Sent
+    ) {
         database.withTransaction {
             messageDao.update(messageId) { message ->
                 message.copy(sendStatus = status)

@@ -119,7 +119,6 @@ class FriendRequestRepositoryImpl @Inject constructor(
                     nickname = myProfile.nickname,
                     publicKey = myProfile.publicKey,
                     greeting = greeting,
-                    avatarSize = avatarBytes?.size ?: 0,
                     source = targetContact.source,
                     timestamp = System.currentTimeMillis()
                 ),

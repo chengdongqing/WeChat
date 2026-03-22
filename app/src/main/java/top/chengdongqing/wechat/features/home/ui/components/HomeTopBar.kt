@@ -79,6 +79,10 @@ private fun HomeTopBar(
         viewModel.handleScannedQRCode(qrCodes.first())
     }
 
+    val handleDismiss = {
+        menuExpanded = false
+    }
+
     Column {
         WeTopBar(title = title) {
             ActionIcon(
@@ -105,7 +109,7 @@ private fun HomeTopBar(
         expanded = menuExpanded,
         anchorPosition = anchorPosition,
         anchorSize = anchorSize,
-        onDismiss = { menuExpanded = false }
+        onDismiss = handleDismiss
     ) { action ->
         when (action) {
             QuickAction.AddFriend -> onNavigateToAddFriend()

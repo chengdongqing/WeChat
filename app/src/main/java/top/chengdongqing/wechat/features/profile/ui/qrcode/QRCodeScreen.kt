@@ -115,8 +115,7 @@ fun QRCodeScreen(
         val qrCodeState = rememberQRCodeState(
             content = uiState.qrCode,
             logoPainter = painterResource(R.drawable.img_logo_outlined),
-            brush = QR_CODE_STYLES[styleIndex],
-            backgroundColor = Color.Transparent
+            brush = QR_CODE_STYLES[styleIndex]
         )
 
         // 准备生成图片所需的资源

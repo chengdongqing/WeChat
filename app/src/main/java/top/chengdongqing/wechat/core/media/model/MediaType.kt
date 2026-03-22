@@ -18,8 +18,5 @@ enum class MediaType(val columnType: Int) {
 enum class VisualMediaType {
     Image,
     Video,
-    ImageAndVideo;
-
-    val isImage get() = this == Image
-    val isVideo get() = this == Video
+    ImageAndVideo
 }

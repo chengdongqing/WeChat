@@ -17,7 +17,6 @@ enum class MessageType {
     Sticker,        // 表情
     Location,       // 位置
     ContactCard,    // 名片
-    Favorite,       // 收藏
     Music,          // 音乐
     VoiceCall,      // 语音通话记录
     VideoCall;      // 视频通话记录
@@ -45,7 +44,6 @@ fun MessageType.toPreviewText(context: Context, content: String): String = when 
     MessageType.Video -> context.getString(R.string.message_preview_video)
     MessageType.File -> context.getString(R.string.message_preview_file)
     MessageType.Location -> context.getString(R.string.message_preview_location)
-    MessageType.Favorite -> context.getString(R.string.message_preview_favorite)
     MessageType.ContactCard -> context.getString(R.string.message_preview_contact_card)
     MessageType.Sticker -> context.getString(R.string.message_preview_sticker)
     MessageType.Music -> context.getString(R.string.message_preview_music)

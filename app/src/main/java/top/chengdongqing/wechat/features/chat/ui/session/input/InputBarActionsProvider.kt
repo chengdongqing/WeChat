@@ -1,12 +1,10 @@
 package top.chengdongqing.wechat.features.chat.ui.session.input
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
@@ -21,6 +19,7 @@ import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberL
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberLocationLauncher
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberMediaHandler
 import top.chengdongqing.wechat.features.chat.ui.session.input.handler.rememberMediaLaunchers
+import top.chengdongqing.wechat.features.contacts.ui.picker.rememberPickContactLauncher
 
 /**
  * 输入栏 Actions 组装入口
@@ -36,7 +35,6 @@ fun rememberInputBarActions(
 ): InputBarActions {
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
-    val state by controller.state.collectAsStateWithLifecycle()
     val dialog = rememberDialogState()
     val privateFileManager = hiltViewModel<InputBarViewModel>().privateFileManager
 
@@ -51,15 +49,19 @@ fun rememberInputBarActions(
 
     // --- launchers ---
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)
-    val locationLauncher = rememberLocationLauncher(locationHandler)
+    val onPickLocation = rememberLocationLauncher(locationHandler)
     val fileLauncher = rememberFileLauncher(fileHandler)
+    val pickContact = rememberPickContactLauncher { contacts ->
+        scope.launch { fileHandler.handleContactSelection(contacts.first()) }
+    }
 
     // --- 路由表 ---
     val actionHandler = rememberActionHandler(
         mediaLaunchers = mediaLaunchers,
-        locationLauncher = locationLauncher,
         fileLauncher = fileLauncher,
         privateFileManager = privateFileManager,
+        pickContact = { pickContact(1) },
+        onPickLocation = onPickLocation,
         onLaunchCall = onLaunchCall,
         onSelectMusic = controller::toggleMusic,
         onSendMessage = onSendMessage
@@ -71,8 +73,9 @@ fun rememberInputBarActions(
             onTextChange = controller::updateText,
             onLineCountChange = controller::updateLineCount,
             onSendText = {
-                if (state.inputText.isNotBlank()) {
-                    onSendMessage(MessageContent.Text(state.inputText))
+                val inputText = controller.state.value.inputText
+                if (inputText.isNotBlank()) {
+                    onSendMessage(MessageContent.Text(inputText))
                     controller.clearInput()
                 } else {
                     dialog.show(
@@ -99,10 +102,8 @@ fun rememberInputBarActions(
             // 媒体 / 更多
             onMoreAction = actionHandler::handleAction,
             onSpeechResult = { text ->
-                val current = state.inputText
-                controller.updateText(
-                    if (current.isNotEmpty()) "$current，$text" else text
-                )
+                val current = controller.state.value.inputText
+                controller.updateText(if (current.isNotEmpty()) "$current，$text" else text)
             },
             onSendMessage = onSendMessage,
             // 透传

@@ -1,10 +1,8 @@
 package top.chengdongqing.wechat.features.home.ui
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,8 +15,7 @@ import top.chengdongqing.wechat.features.home.model.HomeTab
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     chatSessionRepository: ChatSessionRepository,
-    friendRequestRepository: FriendRequestRepository,
-    @ApplicationContext context: Context
+    friendRequestRepository: FriendRequestRepository
 ) : ViewModel() {
 
     // 各个 Tab 的未读消息数

@@ -125,7 +125,7 @@ class BLEConnectionManager @Inject constructor(
  * Splits [data] into [BLEConfig.MAX_PACKET_BODY]-byte chunks, wraps each in a [BLEPacket]
  * of [type], and sends them sequentially via [BLEConnection.sendPacket].
  *
- * Each send suspends until the remote device acknowledges the write, providing natural
+ * Each send suspends until the remote device acknowledges to write, providing natural
  * back-pressure without needing an explicit inter-packet delay.
  *
  * @return false if any individual write fails.

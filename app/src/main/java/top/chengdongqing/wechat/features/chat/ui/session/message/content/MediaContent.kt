@@ -151,8 +151,7 @@ private fun BoxScope.VideoOverlay(
                 size = 36.dp,
                 strokeWidth = 3.dp,
                 trackColor = Color.LightGray.copy(alpha = 0.8f),
-                indicatorColor = White,
-                formatter = null
+                indicatorColor = White
             )
             Icon(
                 painter = painterResource(icon),

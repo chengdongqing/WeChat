@@ -121,7 +121,6 @@
     <string name="message_preview_video">[视频]</string>
     <string name="message_preview_file">[文件]</string>
     <string name="message_preview_location">[位置]</string>
-    <string name="message_preview_favorite">[收藏]</string>
     <string name="message_preview_contact_card">[名片]</string>
     <string name="message_preview_sticker">[表情]</string>
     <string name="message_preview_music">[音乐]</string>

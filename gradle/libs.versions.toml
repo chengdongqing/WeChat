@@ -5,15 +5,15 @@ kotlin = "2.3.20"
 ksp = "2.3.4"
 
 # 核心基础库
-coreKtx = "1.17.0"
+coreKtx = "1.18.0"
 lifecycle = "2.10.0"
-activity = "1.12.4"
+activity = "1.13.0"
 navigation = "2.9.7"
-datastore = "1.2.0"
+datastore = "1.2.1"
 desugar = "2.1.5"
 
 # Compose 相关版本
-composeBom = "2026.02.01"
+composeBom = "2026.03.00"
 materialIcons = "1.7.8"
 accompanist = "0.37.3"
 

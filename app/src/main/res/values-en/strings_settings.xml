@@ -26,7 +26,6 @@
     <string name="notification_msg">Message Notifications</string>
     <string name="notification_call">Voice &amp; Video Call Notifications</string>
     <string name="notification_display">Notification Content</string>
-    <string name="notification_display_desc">Show friend and group chat names, profile photos and messages</string>
 
     <string name="notification_group_sound">Sound &amp; Vibration</string>
     <string name="notification_system_settings">Go to Settings</string>
@@ -53,7 +52,6 @@
     <string name="notification_sound_playful">Delight</string>
     <string name="notification_sound_crisp">Crystals</string>
     <string name="notification_sound_nimble">Fairy</string>
-    <string name="notification_sound_elegant">Elegance</string>
 
     <string name="ringtone_default">WeChat</string>
     <string name="ringtone_mi">Mi</string>

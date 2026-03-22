@@ -64,12 +64,13 @@ class ActionHandler(
 @Composable
 fun rememberActionHandler(
     mediaLaunchers: MediaLaunchers,
-    locationLauncher: LocationLauncher,
     fileLauncher: FileLauncher,
+    pickContact: () -> Unit,
     privateFileManager: PrivateFileManager,
+    onPickLocation: () -> Unit,
     onLaunchCall: (CallType) -> Unit,
     onSelectMusic: () -> Unit,
-    onSendMessage: (MessageContent) -> Unit,
+    onSendMessage: (MessageContent) -> Unit
 ): ActionHandler {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -103,7 +104,7 @@ fun rememberActionHandler(
         }
     }
 
-    return remember(mediaLaunchers, locationLauncher, fileLauncher, isSelf) {
+    return remember(mediaLaunchers, fileLauncher, isSelf) {
         ActionHandler(
             onAlbum = { isLongClick ->
                 if (isLongClick) {
@@ -149,7 +150,7 @@ fun rememberActionHandler(
             onLocation = {
                 actionSheet.show(locationOptions) { index ->
                     when (index) {
-                        0 -> locationLauncher.pickLocation()
+                        0 -> onPickLocation()
                         1 -> {}
                     }
                 }
@@ -157,7 +158,7 @@ fun rememberActionHandler(
             onFile = fileLauncher.pickFile,
             onApk = fileLauncher.pickApk,
             onMusic = onSelectMusic,
-            onContactCard = fileLauncher.pickContact,
+            onContactCard = pickContact,
             onTransfer = {
                 onSendMessage(
                     MessageContent.Text(

@@ -17,7 +17,6 @@ import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.getFileMetadata
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.contacts.domain.model.ContactResult
-import top.chengdongqing.wechat.features.contacts.ui.picker.rememberPickContactLauncher
 import java.io.File
 
 /**
@@ -103,7 +102,7 @@ fun rememberFileHandler(
     privateFileManager: PrivateFileManager,
     onSendMessage: (MessageContent) -> Unit,
 ): FileHandler {
-    return remember(onSendMessage) {
+    return remember(privateFileManager, onSendMessage) {
         FileHandler(privateFileManager, onSendMessage)
     }
 }
@@ -129,23 +128,15 @@ fun rememberFileLauncher(
         }
     }
 
-    val pickContact = rememberPickContactLauncher { contacts ->
-        scope.launch {
-            fileHandler.handleContactSelection(contacts.first())
-        }
-    }
-
     return remember(pickFileLauncher) {
         FileLauncher(
             pickFile = { pickFileLauncher.launch("*/*") },
-            pickApk = { pickApk(9) },
-            pickContact = { pickContact(1) }
+            pickApk = { pickApk(9) }
         )
     }
 }
 
 data class FileLauncher(
     val pickFile: () -> Unit,
-    val pickApk: () -> Unit,
-    val pickContact: () -> Unit
+    val pickApk: () -> Unit
 )

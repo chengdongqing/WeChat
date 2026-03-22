@@ -18,7 +18,7 @@ import kotlin.math.max
  * 状态管理
  * 负责处理缩放、平移、旋转动画以及边界回弹逻辑等
  */
-class CropperState() {
+class CropperState {
     // 基础变换状态
     val scale = Animatable(1f)
     val offsetX = Animatable(0f)

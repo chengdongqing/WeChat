@@ -26,7 +26,6 @@
     <string name="notification_msg">消息通知</string>
     <string name="notification_call">语音和视频通话通知</string>
     <string name="notification_display">通知显示内容</string>
-    <string name="notification_display_desc">显示朋友和群聊的名称、头像、消息内容</string>
 
     <string name="notification_group_sound">声音与振动</string>
     <string name="notification_system_settings">前往系统设置</string>
@@ -53,7 +52,6 @@
     <string name="notification_sound_playful">俏皮</string>
     <string name="notification_sound_crisp">清脆</string>
     <string name="notification_sound_nimble">灵动</string>
-    <string name="notification_sound_elegant">优雅</string>
 
     <string name="ringtone_default">微信</string>
     <string name="ringtone_mi">小米抒情版</string>

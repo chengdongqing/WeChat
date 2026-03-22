@@ -102,10 +102,10 @@ fun rememberMediaHandler(
     onModeChange: () -> Unit,
     onSendMessage: (MessageContent) -> Unit
 ): MediaHandler {
-    val context = LocalContext.current
+    val context = LocalContext.current.applicationContext
     val scope = rememberCoroutineScope()
 
-    return remember {
+    return remember(scope) {
         MediaHandler(
             context = context,
             scope = scope,

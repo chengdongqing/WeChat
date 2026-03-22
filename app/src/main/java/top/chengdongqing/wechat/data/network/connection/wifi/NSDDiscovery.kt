@@ -52,9 +52,6 @@ class NsdDiscovery @Inject constructor(
     /**
      * 注册本地服务，使局域网内其他设备能发现本机
      *
-     * 注：[NsdManager.RegistrationListener.onServiceRegistered] 回调里的 port 在部分设备上
-     * 会返回 0，[ServiceRegistrationState.Registered.port] 已改为使用传入的 [localPort]。
-     *
      * serviceName 加时间戳后缀，避免系统 mDNS 层残留旧注册导致回调静默丢失。
      */
     fun registerService(userId: String, localPort: Int): Flow<ServiceRegistrationState> =
@@ -89,7 +86,7 @@ class NsdDiscovery @Inject constructor(
     private fun ProducerScope<ServiceRegistrationState>.createRegistrationListener(localPort: Int) =
         object : NsdManager.RegistrationListener {
             override fun onServiceRegistered(info: NsdServiceInfo) {
-                trySend(ServiceRegistrationState.Registered(info.serviceName, localPort))
+                trySend(ServiceRegistrationState.Registered)
             }
 
             override fun onRegistrationFailed(info: NsdServiceInfo, errorCode: Int) {
@@ -333,8 +330,7 @@ sealed class DiscoveryEvent {
 }
 
 sealed class ServiceRegistrationState {
-    /** 注册成功，[port] 为实际传入的监听端口（非系统回调值） */
-    data class Registered(val serviceName: String, val port: Int) : ServiceRegistrationState()
+    data object Registered : ServiceRegistrationState()
     data object Unregistered : ServiceRegistrationState()
     data class Failed(val errorCode: Int) : ServiceRegistrationState()
 }

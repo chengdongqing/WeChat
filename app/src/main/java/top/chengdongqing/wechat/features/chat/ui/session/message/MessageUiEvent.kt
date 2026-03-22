@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.features.chat.ui.session.message
 import top.chengdongqing.wechat.features.call.domain.model.CallType
 
 /**
- * 会话页 UI 事件（单次触发，驱动 dialog / navigation 等副作用）
+ * 会话页 UI 事件
  */
 sealed class MessageUiEvent {
     /** 显示删除确认对话框 */

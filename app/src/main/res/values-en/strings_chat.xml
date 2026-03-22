@@ -120,7 +120,6 @@
     <string name="message_preview_video">[Video]</string>
     <string name="message_preview_file">[File]</string>
     <string name="message_preview_location">[Location]</string>
-    <string name="message_preview_favorite">[Favorite]</string>
     <string name="message_preview_contact_card">[Contact]</string>
     <string name="message_preview_sticker">[Sticker]</string>
     <string name="message_preview_music">[Music]</string>

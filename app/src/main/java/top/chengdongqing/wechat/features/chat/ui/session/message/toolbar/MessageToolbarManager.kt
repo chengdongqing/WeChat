@@ -75,18 +75,6 @@ class MessageToolbarManager(
     }
 
     /**
-     * 更新文本选区
-     */
-    fun onTextSelectionChange(selection: TextRange) {
-        val content = _state.value.message?.content as? MessageContent.Text ?: return
-        val selectedText = content.text.substring(selection.start, selection.end)
-
-        _state.update {
-            it.copy(textSelection = selection, selectedText = selectedText)
-        }
-    }
-
-    /**
      * 关闭工具条，重置所有状态
      */
     fun dismiss() {
@@ -207,7 +195,6 @@ class MessageToolbarManager(
                 is MessageContent.Image,
                 is MessageContent.Video,
                 is MessageContent.Location,
-                is MessageContent.Favorite,
                 is MessageContent.File -> {
                     add(MessageAction.Forward)
                     add(MessageAction.Favorite)

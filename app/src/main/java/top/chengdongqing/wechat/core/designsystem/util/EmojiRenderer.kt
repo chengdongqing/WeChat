@@ -44,14 +44,6 @@ object EmojiRenderer {
             }
         }
     }
-
-    /**
-     * 清理缓存
-     * 使用场景：内存警告、退出登录等
-     */
-    fun clearCache() {
-        bitmapCache.evictAll()
-    }
 }
 
 fun Emoji.toBitmap(context: Context, size: Int): Bitmap {

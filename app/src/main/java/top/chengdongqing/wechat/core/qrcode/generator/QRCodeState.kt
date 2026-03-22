@@ -84,7 +84,7 @@ fun rememberQRCodeState(
     content: String,
     logoPainter: Painter? = null,
     brush: Brush = SolidColor(Black),
-    backgroundColor: Color = Color.White,
+    backgroundColor: Color = Color.Transparent,
     logoPercent: Float = 0.22f,
     dotStyle: QrDotStyle = QrDotStyle.Round
 ): QRCodeState = remember(content, logoPainter) {

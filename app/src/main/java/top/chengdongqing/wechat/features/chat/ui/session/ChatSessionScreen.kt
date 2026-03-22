@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
@@ -16,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -36,7 +38,9 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.features.call.domain.model.CallType
 import top.chengdongqing.wechat.features.call.ui.startCall
+import top.chengdongqing.wechat.features.chat.domain.model.ChatMessage
 import top.chengdongqing.wechat.features.chat.domain.model.MessageContent
 import top.chengdongqing.wechat.features.chat.ui.session.components.ChatSessionTopBar
 import top.chengdongqing.wechat.features.chat.ui.session.components.MultiSelectBottomBar
@@ -66,175 +70,50 @@ fun ChatSessionScreen(
     }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val connectionRequired by viewModel.connectionRequired.collectAsStateWithLifecycle()
-    val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
-    val showPeerOverlay = remember { mutableStateOf(false) }
-
-    LaunchedEffect(connectionRequired, connectionMode, uiState.isSelf) {
-        if (uiState.isSelf == null || uiState.isSelf == true) return@LaunchedEffect
-
-        val shouldShow = when {
-            connectionRequired != null -> true
-            // 蓝牙设备，如果保存过，在发送消息时将自动发起连接，不用弹窗
-            connectionMode == ConnectionMode.Bluetooth && !viewModel.isBluetoothDeviceSaved() -> false
-            // Wi-Fi p2p设备，每次都要重新连接
-            connectionMode == ConnectionMode.WiFiDirect && !viewModel.isConnected() -> true
-            else -> false
-        }
-
-        if (shouldShow) {
-            showPeerOverlay.value = true
-        }
-    }
-
-    LaunchedEffect(uiState.isOnline) {
-        if (uiState.isOnline && showPeerOverlay.value) {
-            showPeerOverlay.value = false
-        }
-    }
-
-    PeerDeviceOverlay(
-        visible = showPeerOverlay.value,
-        userId = chatId,
-        mode = connectionMode,
-        onConnected = { showPeerOverlay.value = false },
-        onClose = { showPeerOverlay.value = false }
-    )
-
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
-
-    val context = LocalContext.current
-    val resources = LocalResources.current
     val listState = rememberLazyListState()
-    val overscrollEffect = rememberBounceOverscrollEffect()
-    val dialog = rememberDialogState()
-
-    /**
-     * 键盘和数据更新时的自动滚动
-     */
-    KeyboardScrollEffect(listState, messages.size)
-    MessageDataScrollEffect(listState, messages)
-
-    /**
-     * 上拉加载更多的监听
-     */
-    LoadMoreEffect(
-        listState = listState,
-        messages = messages,
-        isLoadingMore = uiState.isLoadingMore,
-        hasMoreMessages = uiState.hasMoreMessages,
-        onLoadMore = { viewModel.loadMore() }
-    )
-
-    /**
-     * 调起通话
-     */
-    val launchCall = rememberCallLauncher(chatId) { id, type ->
-        context.startCall(id, type)
-    }
-
-    /**
-     * 上下文
-     */
+    val context = LocalContext.current
+    val launchCall = rememberCallLauncher(chatId) { id, type -> context.startCall(id, type) }
     val chatContext = rememberChatSessionContext(
         viewModel = viewModel,
         uiState = uiState,
         onNavigateToContact = { isPeer ->
-            val id = if (isPeer) uiState.peerId else uiState.myId
-            onNavigateToContact(id!!)
+            onNavigateToContact(if (isPeer) uiState.peerId!! else uiState.myId!!)
         },
         onNavigateToRequestAddFriend = onNavigateToRequestAddFriend,
         onNavigateToWebView = onNavigateToWebView
     )
 
-    /**
-     * 生命周期感知
-     */
+    KeyboardScrollEffect(listState, messages.size)
+    MessageDataScrollEffect(listState, messages)
+    LoadMoreEffect(
+        listState = listState,
+        messages = messages,
+        isLoadingMore = uiState.isLoadingMore,
+        hasMoreMessages = uiState.hasMoreMessages,
+        onLoadMore = viewModel::loadMore
+    )
     LifecycleResumeEffect(chatId) {
-        // 注册当前会话为聚焦的会话
-        viewModel.activeSessionManager.enter(chatId)
-        // 清除消息未读状态
+        viewModel.onEnterSession()
         viewModel.clearUnreadState()
-
         onPauseOrDispose {
-            // 清除当前会话的聚焦状态
-            viewModel.activeSessionManager.leave()
-            // 切到后台自动停止播放语音
+            viewModel.onLeaveSession()
             viewModel.stopVoice()
         }
     }
 
-    val pickContact = rememberPickContactLauncher { contacts ->
-        dialog.show(
-            title = resources.getString(R.string.msg_confirm_forward, contacts.size)
-        ) {
-            viewModel.forwardMessages(contacts.map { it.id }.toSet())
-        }
-    }
-
-    /**
-     * UI事件处理
-     */
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is MessageUiEvent.ShowDeleteConfirm -> {
-                    dialog.show(
-                        title = resources.getString(R.string.msg_confirm_delete),
-                        okText = R.string.action_delete,
-                        okColor = Danger
-                    ) {
-                        if (event.messageId != null) {
-                            viewModel.deleteMessage(event.messageId)
-                        } else {
-                            viewModel.deleteSelectedMessages()
-                        }
-                    }
-                }
-
-                is MessageUiEvent.ShowDownloadConfirm -> {
-                    dialog.show(
-                        title = resources.getString(R.string.msg_confirm_save),
-                        okText = R.string.action_save
-                    ) {
-                        viewModel.saveSelectedMessageFiles()
-                    }
-                }
-
-                is MessageUiEvent.ForwardMessage -> {
-                    event.messageId?.let { id ->
-                        viewModel.toggleMessageSelection(id)
-                    }
-                    pickContact(99)
-                }
-
-                is MessageUiEvent.PreviewFile -> {
-                    onNavigateToFilePreview(event.messageId)
-                }
-
-                is MessageUiEvent.PreviewMusic -> {
-                    onNavigateToMusicPreview(event.messageId, event.trackName)
-                }
-
-                is MessageUiEvent.LaunchCall -> {
-                    launchCall(event.callType)
-                }
-
-                is MessageUiEvent.NavigateToContact -> {
-                    onNavigateToContact(event.contactId)
-                }
-
-                else -> {}
-            }
-        }
-    }
+    PeerConnectionOverlay(chatId, uiState, viewModel)
+    ChatSessionUiEventHandler(
+        viewModel = viewModel,
+        launchCall = launchCall,
+        onNavigateToContact = onNavigateToContact,
+        onNavigateToFilePreview = onNavigateToFilePreview,
+        onNavigateToMusicPreview = onNavigateToMusicPreview
+    )
 
     CompositionLocalProvider(LocalChatSessionContext provides chatContext) {
         Box {
-            /**
-             * 聊天背景图片
-             */
             uiState.backgroundPath?.let {
                 AsyncImage(
                     model = it,
@@ -245,22 +124,10 @@ fun ChatSessionScreen(
             }
 
             Scaffold(
-                topBar = {
-                    ChatSessionTopBar(
-                        viewModel = viewModel,
-                        uiState = uiState,
-                        onBack = onBack,
-                        onNavigateToInfo = onNavigateToInfo
-                    )
-                },
+                topBar = { ChatSessionTopBar(viewModel, uiState, onBack, onNavigateToInfo) },
                 bottomBar = {
                     if (!uiState.isSelectMode) {
-                        InputBar(
-                            viewModel = viewModel,
-                            uiState = uiState,
-                            listState = listState,
-                            onLaunchCall = launchCall
-                        )
+                        InputBar(viewModel, uiState, listState, launchCall)
                     } else {
                         MultiSelectBottomBar(
                             enabled = uiState.selectedCount > 0,
@@ -271,59 +138,7 @@ fun ChatSessionScreen(
                 },
                 containerColor = if (uiState.backgroundPath == null) WeTheme.colorScheme.background else Color.Unspecified
             ) { innerPadding ->
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                        .overscroll(overscrollEffect),
-                    contentPadding = PaddingValues(10.dp),
-                    reverseLayout = true,
-                    verticalArrangement = Arrangement.Top,
-                    overscrollEffect = overscrollEffect
-                ) {
-                    itemsIndexed(
-                        items = messages,
-                        key = { _, message -> message.id }
-                    ) { index, message ->
-                        MessageItem(
-                            message = message,
-                            peerAvatar = uiState.peerAvatar,
-                            myAvatar = uiState.myAvatar,
-                            isSelectMode = uiState.isSelectMode,
-                            isMessageSelected = uiState.isSelectMode
-                                    && viewModel.isMessageSelected(message.id),
-                            onMessageClick = {
-                                if (!uiState.isSelectMode) {
-                                    viewModel.handleMessageClick(message)
-                                } else {
-                                    viewModel.toggleMessageSelection(message.id)
-                                }
-                            },
-                            onMessageLongPress = { bubblePosition, bubbleHeight ->
-                                viewModel.handleMessageLongPress(
-                                    message,
-                                    bubblePosition,
-                                    bubbleHeight
-                                )
-                            }
-                        )
-
-                        /**
-                         * 时间分隔线
-                         */
-                        TimeDivider(messages, index)
-                    }
-
-                    /**
-                     * 加载更多指示器
-                     */
-                    if (uiState.isLoadingMore) {
-                        item(key = "load_more") {
-                            WeLoadMore(type = LoadMoreType.Loading)
-                        }
-                    }
-                }
+                ChatMessageList(messages, uiState, viewModel, listState, innerPadding)
             }
 
             MessageToolbar(
@@ -339,4 +154,155 @@ fun ChatSessionScreen(
     }
 
     LoadingDialog(uiState.isFullscreenLoading)
+}
+
+/**
+ * 管理点对点连接弹窗的显示逻辑
+ */
+@Composable
+private fun PeerConnectionOverlay(
+    chatId: String,
+    uiState: ChatSessionUiState,
+    viewModel: ChatSessionViewModel
+) {
+    val connectionRequired by viewModel.connectionRequired.collectAsStateWithLifecycle()
+    val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
+    var showOverlay by remember { mutableStateOf(false) }
+    val closeOverlay = { showOverlay = false }
+
+    LaunchedEffect(connectionRequired, connectionMode, uiState.isSelf) {
+        if (uiState.isSelf == null || uiState.isSelf) {
+            return@LaunchedEffect
+        }
+
+        val shouldShow = when {
+            connectionRequired != null -> true
+            // 蓝牙设备若已保存，发送时自动连接，无需弹窗
+            connectionMode == ConnectionMode.Bluetooth && !viewModel.isBluetoothDeviceSaved() -> false
+            // Wi-Fi Direct 每次都需要重新连接
+            connectionMode == ConnectionMode.WiFiDirect && !viewModel.isConnected() -> true
+            else -> false
+        }
+        if (shouldShow) {
+            showOverlay = true
+        }
+    }
+
+    LaunchedEffect(uiState.isOnline) {
+        if (uiState.isOnline) {
+            closeOverlay()
+        }
+    }
+
+    PeerDeviceOverlay(
+        visible = showOverlay,
+        userId = chatId,
+        mode = connectionMode,
+        onConnected = closeOverlay,
+        onClose = closeOverlay
+    )
+}
+
+/**
+ * UI 事件处理
+ */
+@Composable
+private fun ChatSessionUiEventHandler(
+    viewModel: ChatSessionViewModel,
+    launchCall: (CallType) -> Unit,
+    onNavigateToContact: (String) -> Unit,
+    onNavigateToFilePreview: (String) -> Unit,
+    onNavigateToMusicPreview: (String, String) -> Unit,
+) {
+    val resources = LocalResources.current
+    val dialog = rememberDialogState()
+    val pickContact = rememberPickContactLauncher { contacts ->
+        dialog.show(resources.getString(R.string.msg_confirm_forward, contacts.size)) {
+            viewModel.forwardMessages(contacts.map { it.id }.toSet())
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is MessageUiEvent.ShowDeleteConfirm -> dialog.show(
+                    title = resources.getString(R.string.msg_confirm_delete),
+                    okText = R.string.action_delete,
+                    okColor = Danger
+                ) {
+                    if (event.messageId != null) viewModel.deleteMessage(event.messageId)
+                    else viewModel.deleteSelectedMessages()
+                }
+
+                is MessageUiEvent.ShowDownloadConfirm -> dialog.show(
+                    title = resources.getString(R.string.msg_confirm_save),
+                    okText = R.string.action_save
+                ) { viewModel.saveSelectedMessageFiles() }
+
+                is MessageUiEvent.ForwardMessage -> pickContact(99)
+                is MessageUiEvent.PreviewFile -> onNavigateToFilePreview(event.messageId)
+                is MessageUiEvent.PreviewMusic -> onNavigateToMusicPreview(
+                    event.messageId,
+                    event.trackName
+                )
+
+                is MessageUiEvent.LaunchCall -> launchCall(event.callType)
+                is MessageUiEvent.NavigateToContact -> onNavigateToContact(event.contactId)
+                else -> {}
+            }
+        }
+    }
+}
+
+/**
+ * 消息列表
+ */
+@Composable
+private fun ChatMessageList(
+    messages: List<ChatMessage>,
+    uiState: ChatSessionUiState,
+    viewModel: ChatSessionViewModel,
+    listState: LazyListState,
+    innerPadding: PaddingValues
+) {
+    val overscrollEffect = rememberBounceOverscrollEffect()
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .overscroll(overscrollEffect),
+        contentPadding = PaddingValues(10.dp),
+        reverseLayout = true,
+        verticalArrangement = Arrangement.Top,
+        overscrollEffect = overscrollEffect
+    ) {
+        itemsIndexed(
+            items = messages,
+            key = { _, message -> message.id }
+        ) { index, message ->
+            MessageItem(
+                message = message,
+                peerAvatar = uiState.peerAvatar,
+                myAvatar = uiState.myAvatar,
+                isSelectMode = uiState.isSelectMode,
+                isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(message.id),
+                onMessageClick = {
+                    if (!uiState.isSelectMode) viewModel.handleMessageClick(message)
+                    else viewModel.toggleMessageSelection(message.id)
+                },
+                onMessageLongPress = { pos, height ->
+                    viewModel.handleMessageLongPress(message, pos, height)
+                }
+            )
+            TimeDivider(messages, index)
+        }
+
+        if (uiState.isLoadingMore) {
+            item(key = "load_more") {
+                WeLoadMore(type = LoadMoreType.Loading)
+            }
+        }
+    }
 }

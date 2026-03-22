@@ -103,8 +103,7 @@ fun ControlWithProgress(message: ChatMessage) {
             size = 24.dp,
             strokeWidth = 2.dp,
             trackColor = Color.LightGray.copy(alpha = 0.8f),
-            indicatorColor = Color.Gray,
-            formatter = null
+            indicatorColor = Color.Gray
         )
 
         Icon(

@@ -48,7 +48,7 @@ fun ConnectionModeSettingScreen(
     Scaffold(
         topBar = {
             WeTopBar(
-                title = stringResource(R.string.settings_connection),
+                title = stringResource(R.string.connection_title),
                 onBack = onBack
             ) {
                 WeButton(

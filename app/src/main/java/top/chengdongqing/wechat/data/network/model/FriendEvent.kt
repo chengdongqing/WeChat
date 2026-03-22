@@ -9,8 +9,7 @@ sealed class FriendEvent {
      * 加好友请求
      */
     data class FriendRequest(
-        val nickname: String,
-        val message: String
+        val nickname: String
     ) : FriendEvent()
 
     /**

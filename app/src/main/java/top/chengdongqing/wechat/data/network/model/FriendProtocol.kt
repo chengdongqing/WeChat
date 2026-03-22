@@ -19,7 +19,6 @@ sealed class FriendProtocol {
         val nickname: String,
         val publicKey: String,
         val greeting: String,
-        val avatarSize: Int,
         val source: ContactAddSource?,
         val timestamp: Long
     ) : FriendProtocol()

@@ -257,6 +257,8 @@ class PrivateFileManager @Inject constructor(
     suspend fun getDirectorySize(messageType: MessageType): Long = withContext(Dispatchers.IO) {
         val config = messageType.getFileConfig()
         val dir = getDirectory(config.dirName)
-        dir.walk().filter { it.isFile }.sumOf { it.length() }
+        dir.walk() // 找出指定文件夹下的所有子文件和目录
+            .filter { it.isFile } // 过滤文件夹，只保留文件
+            .sumOf { it.length() } // 计算大小总和
     }
 }

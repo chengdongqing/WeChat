@@ -10,7 +10,7 @@ enum class CallStatus(
     @get:StringRes val descriptionRes: Int,
     @get:StringRes val descriptionForMeRes: Int
 ) {
-    Cancelled(R.string.call_status_cancelled, R.string.call_status_cancelled_by_me),
+    Cancelled(R.string.call_status_cancelled_by_me, R.string.call_status_cancelled),
     Declined(R.string.call_status_declined, R.string.call_status_declined_by_me),
     Finished(R.string.call_status_finished, R.string.call_status_finished),
     Missed(R.string.call_status_missed, R.string.call_status_missed_by_me),

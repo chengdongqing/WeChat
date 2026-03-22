@@ -113,14 +113,6 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             )
         }
 
-        MessageType.Favorite -> {
-            MessageContent.Favorite(
-                title = "",
-                source = "",
-                previewPath = localPath
-            )
-        }
-
         MessageType.Music -> {
             val music = runCatching {
                 MusicTrack.valueOf(content)
@@ -255,12 +247,6 @@ fun MessageContent.toEntity(
                 localPath = content.avatarPath
             )
 
-        is MessageContent.Favorite ->
-            base(
-                contentValue = "",
-                localPath = content.previewPath
-            )
-
         is MessageContent.Music ->
             base(
                 contentValue = content.music.name
@@ -287,7 +273,6 @@ fun MessageContent.toMessageType(): MessageType = when (this) {
     is MessageContent.File -> MessageType.File
     is MessageContent.Location -> MessageType.Location
     is MessageContent.Call -> if (type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
-    is MessageContent.Favorite -> MessageType.Favorite
     is MessageContent.ContactCard -> MessageType.ContactCard
     is MessageContent.Music -> MessageType.Music
     is MessageContent.Media -> MessageType.Image

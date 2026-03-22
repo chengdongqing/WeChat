@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterIsInstance
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -89,15 +90,11 @@ fun InputBar(
      * 重新编辑消息
      */
     LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            when (event) {
-                is MessageUiEvent.ReeditMessage -> {
-                    controller.updateText(state.inputText + event.text)
-                }
-
-                else -> {}
+        viewModel.uiEvent
+            .filterIsInstance<MessageUiEvent.ReeditMessage>()
+            .collect { event ->
+                controller.updateText(controller.state.value.inputText + event.text)
             }
-        }
     }
 
     DisposableEffect(Unit) {

@@ -670,8 +670,7 @@ class CallManager @Inject constructor(
                     status = status.name,
                     duration = actualDuration,
                     callType = snapshot.callType,
-                    timestamp = System.currentTimeMillis(),
-                    signature = ""
+                    timestamp = System.currentTimeMillis()
                 )
             )
         }

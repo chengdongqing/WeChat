@@ -76,7 +76,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val notificationHelper: NotificationHelper,
     private val chatTransportManager: ChatTransportManager,
     private val btBondManager: BtBondManager,
-    val activeSessionManager: ActiveSessionManager,
+    private val activeSessionManager: ActiveSessionManager,
     e2eSessionManager: E2ESessionManager,
     connectionSettingsRepository: ConnectionSettingsRepository,
     @param:ApplicationContext private val context: Context
@@ -89,26 +89,102 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     companion object {
         private const val PAGE_SIZE = 20
+
+        /** 加载更多指示器最短展示时间，防止列表闪烁 */
+        private const val LOAD_MORE_INDICATOR_DELAY_MS = 1000L
     }
+
+    // ── 生命周期 ──────────────────────────────────────────────────────────────
+
+    fun onEnterSession() = activeSessionManager.enter(chatId)
+    fun onLeaveSession() = activeSessionManager.leave()
+
+    // ── 核心状态 ──────────────────────────────────────────────────────────────
 
     private val _uiState = MutableStateFlow(ChatSessionUiState())
     val uiState = _uiState.asStateFlow()
 
+    /** UI 事件总线，供 Screen 层响应一次性操作 */
+    private val _uiEvent = MutableSharedFlow<MessageUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+    /** 当前正在播放语音的消息 ID */
+    private val _playingMessageId = MutableStateFlow<String?>(null)
+    val playingMessageId = _playingMessageId.asStateFlow()
+
+    /** 当前页面加载消息的条数游标 */
     private val _visibleCount = MutableStateFlow(PAGE_SIZE)
+
+    /** 在新协程中发射 UI 事件，省去调用侧的样板代码 */
+    private fun emit(event: MessageUiEvent) {
+        viewModelScope.launch { _uiEvent.emit(event) }
+    }
+
+    // region 消息流
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val messages = _visibleCount.flatMapLatest { count ->
+        messageRepository.observeMessages(chatId, count)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    /**
+     * 媒体预览索引表
+     *
+     * 仅在消息 ID 或媒体路径真正变化时才在后台线程重建索引，避免无效计算。
+     */
+    private val mediaState = messages
+        .map { list ->
+            list.map { msg ->
+                Triple(
+                    msg.id,
+                    msg.content is MessageContent.Media,
+                    (msg.content as? MessageContent.Media)?.localPath
+                )
+            }
+        }
+        .distinctUntilChanged()
+        .map { withContext(Dispatchers.Default) { buildMediaState(messages.value) } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, MediaState())
+
+    private fun buildMediaState(messages: List<ChatMessage>): MediaState {
+        val items = mutableListOf<MediaItem>()
+        val indexMap = mutableMapOf<String, Int>()
+        for (i in messages.indices.reversed()) {
+            (messages[i].content as? MessageContent.Media)?.toMediaItem()?.let {
+                items.add(it)
+                indexMap[messages[i].id] = items.lastIndex
+            }
+        }
+        return MediaState(list = items, indexMap = indexMap)
+    }
+
+    // endregion
+
+    // region 连接 & 加密
 
     val connectionRequired = chatTransportManager.connectionRequired
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun isConnected(): Boolean {
-        return chatTransportManager.isConnected(chatId)
-    }
+    val connectionMode = connectionSettingsRepository.connectionMode
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ConnectionMode.WiFiLan)
 
+    val isE2EActive = e2eSessionManager.encryptedPeers
+        .map { it.contains(chatId) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val unreadCount = chatSessionRepository.observeTotalUnreadCount()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    fun isConnected(): Boolean = chatTransportManager.isConnected(chatId)
     suspend fun isBluetoothDeviceSaved() = btBondManager.hasSaved(chatId)
 
-    // region 工具条
+    // endregion
 
-    private val _uiEvent = MutableSharedFlow<MessageUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    // region 工具条
 
     private val toolbarManager = MessageToolbarManager(
         context = context,
@@ -123,11 +199,7 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     val toolbarState = toolbarManager.state
 
-    fun handleMessageLongPress(
-        message: ChatMessage,
-        bubblePosition: Offset,
-        bubbleHeight: Float
-    ) {
+    fun handleMessageLongPress(message: ChatMessage, bubblePosition: Offset, bubbleHeight: Float) {
         toolbarManager.onLongPress(
             message = message,
             bubblePosition = bubblePosition,
@@ -137,96 +209,13 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun handleToolbarAction(action: MessageAction) {
+        if (action == MessageAction.Forward) {
+            toolbarManager.state.value.message?.id?.let { enterSelectMode(it) }
+        }
         toolbarManager.onAction(action)
     }
 
-    fun dismissToolbar() {
-        toolbarManager.dismiss()
-    }
-
-    // endregion
-
-    // region 消息流
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val messages = _visibleCount.flatMapLatest { count ->
-        messageRepository.observeMessages(chatId, count)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
-
-    /**
-     * 媒体预览列表
-     *
-     * 通过特征列表做 distinctUntilChanged，
-     * 只有消息 ID 或媒体属性真正变化时才重新计算索引。
-     */
-    private val mediaState = messages
-        .map { list ->
-            list.map {
-                val content = it.content
-                Triple(
-                    it.id,
-                    content is MessageContent.Media,
-                    (content as? MessageContent.Media)?.localPath
-                )
-            }
-        }
-        .distinctUntilChanged()
-        .map {
-            val allMessages = messages.value
-            withContext(Dispatchers.Default) {
-                buildMediaState(allMessages)
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = MediaState()
-        )
-
-    private fun buildMediaState(allMessages: List<ChatMessage>): MediaState {
-        val mediaItems = mutableListOf<MediaItem>()
-        val idToIndexMap = mutableMapOf<String, Int>()
-
-        for (i in allMessages.indices.reversed()) {
-            val message = allMessages[i]
-            (message.content as? MessageContent.Media)?.toMediaItem()?.let {
-                mediaItems.add(it)
-                idToIndexMap[message.id] = mediaItems.lastIndex
-            }
-        }
-
-        return MediaState(list = mediaItems, indexMap = idToIndexMap)
-    }
-
-    // endregion
-
-    // region 加密 & 未读等
-
-    val isE2EActive = e2eSessionManager.encryptedPeers
-        .map { it.contains(chatId) }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
-
-    val unreadCount = chatSessionRepository.observeTotalUnreadCount()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = 0
-        )
-
-    val connectionMode = connectionSettingsRepository.connectionMode
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = ConnectionMode.WiFiLan
-        )
+    fun dismissToolbar() = toolbarManager.dismiss()
 
     // endregion
 
@@ -237,35 +226,33 @@ class ChatSessionViewModel @AssistedInject constructor(
         scope = viewModelScope,
         soundTipPlayer = soundTipPlayer,
         onPlayingStateChanged = { _playingMessageId.value = it },
-        onMessagePlayed = { markAsPlayed(it) }
+        onMessagePlayed = ::markAsPlayed
     )
 
-    private val _playingMessageId = MutableStateFlow<String?>(null)
-    val playingMessageId = _playingMessageId.asStateFlow()
-
     fun toggleVoicePlay(messageId: String, localPath: String) {
-        val voiceMessages = messages.value.filter { it.content is MessageContent.Voice }
         audioPlaybackManager.togglePlay(
             messageId = messageId,
             localPath = localPath,
-            messages = voiceMessages,
+            messages = messages.value.filter { it.content is MessageContent.Voice },
             isSpeakerOn = _uiState.value.isSpeakerOn
         )
     }
 
     fun stopVoice() {
-        if (_playingMessageId.value != null) {
-            audioPlaybackManager.stop()
+        if (_playingMessageId.value != null) audioPlaybackManager.stop()
+    }
+
+    fun toggleSpeaker() {
+        viewModelScope.launch {
+            chatSettingsRepository.toggleSpeaker(!_uiState.value.isSpeakerOn)
         }
     }
 
     private fun markAsPlayed(messageId: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            messages.value.find { it.id == messageId }?.let { message ->
-                if (message.content.showUnreadDot) {
-                    messageRepository.markVoiceAsPlayed(messageId)
-                }
-            }
+            messages.value.find { it.id == messageId }
+                ?.takeIf { it.content.showUnreadDot }
+                ?.let { messageRepository.markVoiceAsPlayed(messageId) }
         }
     }
 
@@ -273,15 +260,8 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     // region 会话监听
 
-    private val sessionFlow = chatSessionRepository.observeSession(chatId)
-
     init {
-        observeProfile()
-        observeSessionChanges()
-        observeSettings()
-    }
-
-    private fun observeProfile() {
+        // 联系人 & 个人资料
         viewModelScope.launch {
             contactRepository.observeContact(chatId)
                 .combine(profileRepository.observeProfile()) { contact, profile ->
@@ -293,43 +273,32 @@ class ChatSessionViewModel @AssistedInject constructor(
                         myAvatar = profile?.avatarPath,
                         isSelf = contact == null
                     )
-                }.collect { newState -> _uiState.value = newState }
+                }.collect { _uiState.value = it }
         }
-    }
 
-    private fun observeSessionChanges() {
+        // 会话变更 & 聊天背景
         viewModelScope.launch {
-            sessionFlow
-                .combine(chatSettingsRepository.chatBackground) { session, globalBackground ->
-                    session to globalBackground
-                }
-                .collect { (session, globalBackground) ->
-                    _uiState.update { current ->
-                        current.copy(
-                            peerAvatar = session?.contactAvatar ?: current.peerAvatar,
-                            isMuted = session?.isMuted ?: current.isMuted,
-                            isOnline = session?.isOnline ?: current.isOnline,
-                            draftMessage = session?.draftMessage ?: current.draftMessage,
-                            backgroundPath = session?.backgroundPath ?: globalBackground
+            chatSessionRepository.observeSession(chatId)
+                .combine(chatSettingsRepository.chatBackground) { session, bg -> session to bg }
+                .collect { (session, bg) ->
+                    _uiState.update { cur ->
+                        cur.copy(
+                            peerAvatar = session?.contactAvatar ?: cur.peerAvatar,
+                            isMuted = session?.isMuted ?: cur.isMuted,
+                            isOnline = session?.isOnline ?: cur.isOnline,
+                            draftMessage = session?.draftMessage ?: cur.draftMessage,
+                            backgroundPath = session?.backgroundPath ?: bg
                         )
                     }
                 }
         }
-    }
 
-    private fun observeSettings() {
+        // 扬声器 & 发送按钮设置
         viewModelScope.launch {
             chatSettingsRepository.speakerEnabled
-                .combine(chatSettingsRepository.sendButtonEnabled) { speaker, sendButton ->
-                    Pair(speaker, sendButton)
-                }
+                .combine(chatSettingsRepository.sendButtonEnabled) { speaker, sendButton -> speaker to sendButton }
                 .collect { (speaker, sendButton) ->
-                    _uiState.update {
-                        it.copy(
-                            isSpeakerOn = speaker,
-                            isSendButtonOn = sendButton
-                        )
-                    }
+                    _uiState.update { it.copy(isSpeakerOn = speaker, isSendButtonOn = sendButton) }
                 }
         }
     }
@@ -339,36 +308,28 @@ class ChatSessionViewModel @AssistedInject constructor(
     // region 消息操作
 
     fun clearUnreadState() {
-        viewModelScope.launch {
-            messageRepository.markAllAsRead(chatId)
-        }
+        viewModelScope.launch { messageRepository.markAllAsRead(chatId) }
         notificationHelper.cancelNotification(chatId.hashCode())
     }
 
     fun loadMore() {
-        if (messages.value.size < PAGE_SIZE
-            || _uiState.value.isLoadingMore
-            || !_uiState.value.hasMoreMessages
-        ) return
+        val canLoad = messages.value.size >= PAGE_SIZE
+                && !_uiState.value.isLoadingMore
+                && _uiState.value.hasMoreMessages
+        if (!canLoad) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingMore = true) }
-
-            val newCount = _visibleCount.value + PAGE_SIZE
-            _visibleCount.value = newCount
-
+            _visibleCount.value += PAGE_SIZE
             val hasMore = checkHasMore()
-
-            delay(1000)
-            _uiState.update {
-                it.copy(isLoadingMore = false, hasMoreMessages = hasMore)
-            }
+            delay(LOAD_MORE_INDICATOR_DELAY_MS)
+            _uiState.update { it.copy(isLoadingMore = false, hasMoreMessages = hasMore) }
         }
     }
 
     private suspend fun checkHasMore(): Boolean {
-        val oldestTimestamp = messages.value.lastOrNull()?.timestamp ?: return false
-        return messageRepository.hasOlderMessages(chatId, oldestTimestamp)
+        val oldest = messages.value.lastOrNull()?.timestamp ?: return false
+        return messageRepository.hasOlderMessages(chatId, oldest)
     }
 
     fun sendMessage(content: MessageContent) {
@@ -399,23 +360,14 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun deleteMessage(messageId: String) {
-        viewModelScope.launch {
-            messageRepository.deleteMessage(messageId)
-        }
+        viewModelScope.launch { messageRepository.deleteMessage(messageId) }
     }
 
     fun recallMessage(messageId: String) {
         viewModelScope.launch {
             messageRepository.recallMessage(messageId).onFailure {
-                context.showToast(it.message!!)
+                context.showToast(it.message ?: context.getString(R.string.msg_process_failed))
             }
-        }
-    }
-
-    fun toggleSpeaker() {
-        val isSpeakerOn = !_uiState.value.isSpeakerOn
-        viewModelScope.launch {
-            chatSettingsRepository.toggleSpeaker(isSpeakerOn)
         }
     }
 
@@ -423,19 +375,13 @@ class ChatSessionViewModel @AssistedInject constructor(
         val content = message.content
         val file = File(content.getLocalPath() ?: return)
         val filename = if (content is MessageContent.File) content.filename else null
-
         viewModelScope.launch {
-            val res = publicFileManager.saveMedia(
-                messageType = message.content.toMessageType(),
+            val saved = publicFileManager.saveMedia(
+                messageType = content.toMessageType(),
                 sourceFile = file,
                 filename = filename
             )
-
-            res?.let {
-                context.showToast("已保存到本地")
-            } ?: run {
-                context.showToast("保存失败")
-            }
+            context.showToast(if (saved != null) "已保存到本地" else "保存失败")
         }
     }
 
@@ -456,16 +402,10 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun cancelTransfer(messageId: String) {
-        viewModelScope.launch {
-            messageRepository.cancelTransfer(messageId)
-        }
+        viewModelScope.launch { messageRepository.cancelTransfer(messageId) }
     }
 
-    fun reeditMessage(text: String) {
-        viewModelScope.launch {
-            _uiEvent.emit(MessageUiEvent.ReeditMessage(text))
-        }
-    }
+    fun reeditMessage(text: String) = emit(MessageUiEvent.ReeditMessage(text))
 
     // endregion
 
@@ -474,49 +414,20 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun handleMessageClick(message: ChatMessage) {
         when (val content = message.content) {
             is MessageContent.Image,
-            is MessageContent.Video -> {
-                if (content.localPath.isNotBlank()) {
-                    openMediaPreview(message)
-                }
-            }
+            is MessageContent.Video -> if (content.localPath.isNotBlank()) openMediaPreview(message)
 
-            is MessageContent.Voice -> {
-                toggleVoicePlay(message.id, content.localPath)
-            }
+            is MessageContent.Voice -> toggleVoicePlay(message.id, content.localPath)
+            is MessageContent.File -> emit(MessageUiEvent.PreviewFile(message.id))
+            is MessageContent.Music -> emit(
+                MessageUiEvent.PreviewMusic(message.id, content.music.name)
+            )
 
-            is MessageContent.File -> {
-                viewModelScope.launch {
-                    _uiEvent.emit(MessageUiEvent.PreviewFile(message.id))
-                }
-            }
-
-            is MessageContent.Music -> {
-                viewModelScope.launch {
-                    val trackName = content.music.name
-                    _uiEvent.emit(MessageUiEvent.PreviewMusic(message.id, trackName))
-                }
-            }
-
-            is MessageContent.Call -> {
-                viewModelScope.launch {
-                    _uiEvent.emit(MessageUiEvent.LaunchCall(content.type))
-                }
-            }
-
-            is MessageContent.Location -> {
-                openLocationPreview(content)
-            }
-
-            is MessageContent.ContactCard -> {
-                viewModelScope.launch {
-                    val userId = content.userId
-                    prepareRequestAddFriend(
-                        userId = userId,
-                        fromContactCard = true
-                    ).onSuccess {
-                        _uiEvent.emit(MessageUiEvent.NavigateToContact(userId))
-                    }
-                }
+            is MessageContent.Call -> emit(MessageUiEvent.LaunchCall(content.type))
+            is MessageContent.Location -> openLocationPreview(content)
+            is MessageContent.ContactCard -> viewModelScope.launch {
+                val userId = content.userId
+                prepareRequestAddFriend(userId = userId, fromContactCard = true)
+                    .onSuccess { _uiEvent.emit(MessageUiEvent.NavigateToContact(userId)) }
             }
 
             else -> {}
@@ -524,97 +435,51 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     private fun openMediaPreview(message: ChatMessage) {
-        val (mediaList, indexMap) = mediaState.value
-        val index = indexMap[message.id] ?: run {
+        val index = mediaState.value.indexMap[message.id] ?: run {
             Log.e("MediaPreview", "找不到该消息的媒体索引: ${message.id}")
             return
         }
-        context.previewMedias(mediaList, index)
+        context.previewMedias(mediaState.value.list, index)
     }
 
     private fun openLocationPreview(content: MessageContent.Location) {
-        val info = LocationPreviewInfo(
-            coordinate = LatLng(content.latitude, content.longitude),
-            address = content.address,
-            name = content.poiName
+        context.previewLocation(
+            LocationPreviewInfo(
+                coordinate = LatLng(content.latitude, content.longitude),
+                address = content.address,
+                name = content.poiName
+            )
         )
-        context.previewLocation(info)
     }
 
     // endregion
 
-    // region 跳转联系人
+    // region 多选操作
 
-    suspend fun prepareRequestAddFriend(
-        userId: String = chatId,
-        fromContactCard: Boolean = false
-    ): Result<Unit> {
-        // 是自己或好友：直接跳转到联系人详情
-        if (fromContactCard && (userId == _uiState.value.myId || contactRepository.exists(userId))) {
-            return Result.success(Unit)
-        }
-
-        _uiState.update {
-            it.copy(isFullscreenLoading = true)
-        }
-
-        return runCatching {
-            addFriendRepository.fetchProfile(userId) ?: run {
-                context.showToast(context.getString(R.string.add_contact_fetch_profile_failed))
-                throw Exception()
-            }
-            Unit
-        }.also {
-            _uiState.update {
-                it.copy(isFullscreenLoading = false)
-            }
-        }
-    }
-
-    // endregion
-
-    // region 消息多选
-
-    fun isMessageSelected(messageId: String): Boolean {
-        return messageId in _uiState.value.selectedMessageIds
-    }
+    fun isMessageSelected(messageId: String) = messageId in _uiState.value.selectedMessageIds
 
     fun enterSelectMode(messageId: String) {
-        _uiState.update {
-            it.copy(
-                isSelectMode = true,
-                selectedMessageIds = setOf(messageId)
-            )
-        }
+        _uiState.update { it.copy(isSelectMode = true, selectedMessageIds = setOf(messageId)) }
     }
 
     fun exitSelectMode() {
-        _uiState.update {
-            it.copy(
-                isSelectMode = false,
-                selectedMessageIds = emptySet()
-            )
-        }
+        _uiState.update { it.copy(isSelectMode = false, selectedMessageIds = emptySet()) }
     }
 
     fun toggleMessageSelection(messageId: String) {
-        _uiState.update {
-            val newSet = if (messageId in it.selectedMessageIds) {
-                it.selectedMessageIds - messageId
+        _uiState.update { state ->
+            val newIds = if (messageId in state.selectedMessageIds) {
+                state.selectedMessageIds - messageId
             } else {
-                it.selectedMessageIds + messageId
+                state.selectedMessageIds + messageId
             }
-            it.copy(selectedMessageIds = newSet)
+            state.copy(selectedMessageIds = newIds)
         }
     }
 
     fun deleteSelectedMessages() {
         val ids = _uiState.value.selectedMessageIds
-
-        viewModelScope.launch {
-            messageRepository.deleteMessages(ids, chatId)
-        }
-
+        viewModelScope.launch { messageRepository.deleteMessages(ids, chatId) }
         exitSelectMode()
     }
 
@@ -623,45 +488,32 @@ class ChatSessionViewModel @AssistedInject constructor(
         exitSelectMode()
 
         viewModelScope.launch {
-            // 过滤出所有有本地文件路径的消息内容
             val contents = ids.mapNotNull { id ->
-                messages.value.find {
-                    it.id == id
-                }?.content.takeIf {
-                    it?.getLocalPath() != null
-                }
+                messages.value.find { it.id == id }?.content?.takeIf { it.getLocalPath() != null }
             }
             if (contents.isEmpty()) {
                 context.showToast("没有找到可以保存的内容")
                 return@launch
             }
 
-            _uiState.update {
-                it.copy(isFullscreenLoading = true)
-            }
+            _uiState.update { it.copy(isFullscreenLoading = true) }
 
-            // 并发保存所有文件，等待全部完成
             val results = contents.map { content ->
-                val file = File(content.getLocalPath() ?: return@launch)
+                val localPath = checkNotNull(content.getLocalPath())
                 val filename = if (content is MessageContent.File) content.filename else null
-
                 async {
                     publicFileManager.saveMedia(
                         messageType = content.toMessageType(),
-                        sourceFile = file,
+                        sourceFile = File(localPath),
                         filename = filename
                     )
                 }
             }.awaitAll()
 
-            // 汇总结果，统一提示
             val successCount = results.count { it != null }
             val failCount = results.size - successCount
 
-            _uiState.update {
-                it.copy(isFullscreenLoading = false)
-            }
-
+            _uiState.update { it.copy(isFullscreenLoading = false) }
             context.showToast(
                 when {
                     failCount == 0 -> "已保存 $successCount 个文件"
@@ -675,36 +527,48 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun forwardMessages(targetChatIds: Set<String>) {
         val ids = _uiState.value.selectedMessageIds
         if (ids.isEmpty()) return
-
         viewModelScope.launch {
             messageRepository.forwardMessages(ids, targetChatIds)
             context.showToast("已发送")
         }
-
         exitSelectMode()
     }
 
     fun handleMultiSelectAction(action: MultiMessageAction) {
         when (action) {
-            MultiMessageAction.Forward -> {
-                viewModelScope.launch {
-                    _uiEvent.emit(MessageUiEvent.ForwardMessage())
-                }
+            MultiMessageAction.Forward -> emit(MessageUiEvent.ForwardMessage())
+            MultiMessageAction.Delete -> emit(MessageUiEvent.ShowDeleteConfirm())
+            MultiMessageAction.Download -> emit(MessageUiEvent.ShowDownloadConfirm)
+            MultiMessageAction.Favorite -> { /* 收藏功能暂未实现 */
             }
+        }
+    }
 
-            MultiMessageAction.Delete -> {
-                viewModelScope.launch {
-                    _uiEvent.emit(MessageUiEvent.ShowDeleteConfirm())
-                }
+    // endregion
+
+    // region 跳转联系人
+
+    /**
+     * 跳转到联系人详情前的准备工作：
+     * - 若对方是自己或已是好友，直接返回成功，跳转到联系人详情；
+     * - 否则预拉取对方资料，供「申请添加好友」页使用。
+     */
+    suspend fun prepareRequestAddFriend(
+        userId: String = chatId,
+        fromContactCard: Boolean = false
+    ): Result<Unit> {
+        if (fromContactCard && (userId == _uiState.value.myId || contactRepository.exists(userId))) {
+            return Result.success(Unit)
+        }
+
+        _uiState.update { it.copy(isFullscreenLoading = true) }
+        return runCatching {
+            if (addFriendRepository.fetchProfile(userId) == null) {
+                context.showToast(context.getString(R.string.add_contact_fetch_profile_failed))
+                error("failed to fetch profile for $userId")
             }
-
-            MultiMessageAction.Download -> {
-                viewModelScope.launch {
-                    _uiEvent.emit(MessageUiEvent.ShowDownloadConfirm)
-                }
-            }
-
-            else -> {}
+        }.also {
+            _uiState.update { it.copy(isFullscreenLoading = false) }
         }
     }
 

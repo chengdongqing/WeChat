@@ -67,20 +67,12 @@ class SpeechRecognizerManager(private val context: Context) {
 
     private companion object {
         const val TAG = "SpeechRecognizer"
-        const val MAX_VOLUME = 10f
     }
 
     private val _state = MutableStateFlow(SpeechState())
     val state: StateFlow<SpeechState> = _state.asStateFlow()
 
     private var recognizer: SpeechRecognizer? = null
-
-    /**
-     * 检查设备是否支持语音识别
-     */
-    fun isAvailable(): Boolean {
-        return SpeechRecognizer.isRecognitionAvailable(context)
-    }
 
     /**
      * 开始语音识别

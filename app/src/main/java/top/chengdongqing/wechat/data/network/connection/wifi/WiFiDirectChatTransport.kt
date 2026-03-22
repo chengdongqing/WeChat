@@ -28,5 +28,5 @@ class WiFiDirectChatTransport @Inject constructor(
     }
 
     override suspend fun <T> onConnectionUnavailable(userId: String, packet: Packet?) =
-        requireConnectionFromUi(ConnectionRequiredEvent.WiFiDirect(userId, packet))
+        requireConnectionFromUi(ConnectionRequiredEvent.WiFiDirect)
 }

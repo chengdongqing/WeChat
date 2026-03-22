@@ -46,5 +46,5 @@ class BtChatTransport @Inject constructor(
     }
 
     override suspend fun <T> onConnectionUnavailable(userId: String, packet: Packet?) =
-        requireConnectionFromUi(ConnectionRequiredEvent.Bluetooth(userId, packet))
+        requireConnectionFromUi(ConnectionRequiredEvent.Bluetooth)
 }

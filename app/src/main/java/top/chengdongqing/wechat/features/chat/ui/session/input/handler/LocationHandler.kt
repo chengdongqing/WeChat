@@ -48,7 +48,7 @@ fun rememberLocationHandler(
     privateFileManager: PrivateFileManager,
     onSendMessage: (MessageContent) -> Unit
 ): LocationHandler {
-    return remember(onSendMessage) {
+    return remember(privateFileManager, onSendMessage) {
         LocationHandler(privateFileManager, onSendMessage)
     }
 }
@@ -56,24 +56,13 @@ fun rememberLocationHandler(
 @Composable
 fun rememberLocationLauncher(
     locationHandler: LocationHandler
-): LocationLauncher {
+): () -> Unit {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val pickLocation = rememberPickLocationLauncher { location ->
+    return rememberPickLocationLauncher { location ->
         scope.launch {
             locationHandler.handleLocationSelection(location, context)
         }
     }
-
-    return remember(pickLocation) {
-        LocationLauncher(pickLocation)
-    }
 }
-
-/**
- * 位置启动器集合
- */
-data class LocationLauncher(
-    val pickLocation: () -> Unit
-)

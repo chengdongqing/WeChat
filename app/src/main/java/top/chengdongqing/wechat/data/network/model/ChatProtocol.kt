@@ -47,7 +47,7 @@ sealed class ChatProtocol {
     data class CallMessage(
         override val messageId: String,
         override val senderId: String,
-        override val signature: String,
+        override val signature: String = "",
         override val timestamp: Long = System.currentTimeMillis(),
         val receiverId: String,
         val status: String,
@@ -235,7 +235,7 @@ sealed class ChatProtocol {
     /**
      * 握手包
      *
-     * TCP 连接建立后的第一个包，携带 senderId 供对端识别身份。
+     * 连接建立后的第一个包，携带 senderId 供对端识别身份。
      * 同时承载 E2E 密钥交换：
      *   e2ePublicKey    非空时表示主动发起 E2E 握手
      *   e2ePublicKeyAck 非空时表示响应 E2E 握手

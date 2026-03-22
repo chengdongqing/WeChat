@@ -44,7 +44,7 @@ fun ChatManagementScreen(
     Scaffold(
         topBar = {
             WeTopBar(
-                title = stringResource(R.string.settings_chat_history),
+                title = stringResource(R.string.chat_history_title),
                 onBack = onBack
             )
         },

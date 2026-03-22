@@ -16,18 +16,18 @@ import com.amap.api.services.poisearch.PoiSearchV2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.util.toLatLng
 import top.chengdongqing.wechat.core.location.util.toLatLonPoint
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 import kotlin.math.roundToInt
 
 class LocationRepositoryImpl(private val context: Context) : LocationRepository {
     override suspend fun locationToAddress(latLng: LatLng): RegeocodeAddress? =
         withContext(Dispatchers.IO) {
-            suspendCoroutine { continuation ->
+            suspendCancellableCoroutine { continuation ->
                 val geocoderSearch = GeocodeSearch(context)
                 geocoderSearch.setOnGeocodeSearchListener(object :
                     GeocodeSearch.OnGeocodeSearchListener {
@@ -68,7 +68,7 @@ class LocationRepositoryImpl(private val context: Context) : LocationRepository 
             poiSearch.bound = PoiSearchV2.SearchBound(location.toLatLonPoint(), 100_000)
         }
 
-        suspendCoroutine { continuation ->
+        suspendCancellableCoroutine { continuation ->
             poiSearch.setOnPoiSearchListener(object : PoiSearchV2.OnPoiSearchListener {
                 override fun onPoiSearched(result: PoiResultV2?, resultCode: Int) {
                     if (resultCode == AMapException.CODE_AMAP_SUCCESS && result?.query != null) {

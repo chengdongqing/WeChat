@@ -15,8 +15,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
     private val chatSessionRepository: ChatSessionRepository,
-    private val connectionSettingsRepository: ConnectionSettingsRepository,
-    val activeSessionManager: ActiveSessionManager
+    val activeSessionManager: ActiveSessionManager,
+    connectionSettingsRepository: ConnectionSettingsRepository
 ) : ViewModel() {
 
     val chats = chatSessionRepository

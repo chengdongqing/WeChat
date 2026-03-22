@@ -149,7 +149,7 @@ class BLEAddFriendHandler @Inject constructor(
 
         // 满足以下两个条件时推送通知：1. 开启了好友验证；2. 对方不在通讯录
         if (!exists && friendVerifyEnabled()) {
-            _friendEvents.emit(FriendEvent.FriendRequest(message.nickname, message.greeting))
+            _friendEvents.emit(FriendEvent.FriendRequest(message.nickname))
         }
     }
 
