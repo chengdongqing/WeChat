@@ -141,6 +141,9 @@ class WebRTCManager @Inject constructor(
         // 如果 factory 还在且没被销毁，不重复初始化
         if (factory != null) return
 
+        val options = PeerConnectionFactory.Options().apply {
+            disableNetworkMonitor = true // 禁用网络感知；扫描所有存在的网卡
+        }
         PeerConnectionFactory.initialize(
             PeerConnectionFactory.InitializationOptions.builder(context)
                 .setEnableInternalTracer(false)
@@ -158,6 +161,7 @@ class WebRTCManager @Inject constructor(
         val decoderFactory = DefaultVideoDecoderFactory(eglBase.eglBaseContext)
 
         factory = PeerConnectionFactory.builder()
+            .setOptions(options)
             .setVideoEncoderFactory(encoderFactory)
             .setVideoDecoderFactory(decoderFactory)
             .setAudioDeviceModule(audioDeviceModule)
