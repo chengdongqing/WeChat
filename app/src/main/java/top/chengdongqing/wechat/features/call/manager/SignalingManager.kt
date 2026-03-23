@@ -23,16 +23,17 @@ class SignalingManager @Inject constructor(
         const val TAG = "SignalingManager"
     }
 
-    private val _incomingSignaling =
-        MutableSharedFlow<ChatProtocol.Signaling>(extraBufferCapacity = 16)
+    private val _incomingSignaling = MutableSharedFlow<ChatProtocol.Signaling>(
+        extraBufferCapacity = 16
+    )
 
-    /** 入站信令流，[CallManager] 订阅后处理 Offer/Answer/ICE/Hangup 等 */
+    /**
+     * 入站信令流
+     */
     val incomingSignaling = _incomingSignaling.asSharedFlow()
 
     /**
      * 发送信令
-     *
-     * 由 [CallManager] 调用，序列化后通过 TCP 发给对端。
      */
     suspend fun send(targetUserId: String, message: ChatProtocol.Signaling) {
         val body = json.encodeToString<ChatProtocol.Signaling>(message).toByteArray(Charsets.UTF_8)
@@ -47,9 +48,6 @@ class SignalingManager @Inject constructor(
 
     /**
      * 处理收到的信令
-     *
-     * 由 [top.chengdongqing.wechat.data.network.messaging.MessageDispatcher] 调用，
-     * 推入流后由 [CallManager] 消费。
      */
     suspend fun onSignalingReceived(protocol: ChatProtocol.Signaling) {
         runCatching { _incomingSignaling.emit(protocol) }

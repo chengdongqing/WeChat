@@ -39,7 +39,7 @@ import top.chengdongqing.wechat.core.media.preview.previewMedias
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
-import top.chengdongqing.wechat.data.network.connection.bluetooth.BtBondManager
+import top.chengdongqing.wechat.data.network.connection.bluetooth.BluetoothBondManager
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.data.network.service.notification.NotificationHelper
 import top.chengdongqing.wechat.data.session.ActiveSessionManager
@@ -75,7 +75,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val soundTipPlayer: SoundTipPlayer,
     private val notificationHelper: NotificationHelper,
     private val chatTransportManager: ChatTransportManager,
-    private val btBondManager: BtBondManager,
+    private val bluetoothBondManager: BluetoothBondManager,
     private val activeSessionManager: ActiveSessionManager,
     e2eSessionManager: E2ESessionManager,
     connectionSettingsRepository: ConnectionSettingsRepository,
@@ -180,7 +180,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     fun isConnected(): Boolean = chatTransportManager.isConnected(chatId)
-    suspend fun isBluetoothDeviceSaved() = btBondManager.hasSaved(chatId)
+    suspend fun isBluetoothDeviceSaved() = bluetoothBondManager.hasSaved(chatId)
 
     // endregion
 

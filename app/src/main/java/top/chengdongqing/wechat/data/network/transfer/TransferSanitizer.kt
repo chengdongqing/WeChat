@@ -9,6 +9,9 @@ import top.chengdongqing.wechat.data.network.messaging.ChunkStorageManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * 传输状态重置与分片垃圾清理
+ */
 @Singleton
 class TransferSanitizer @Inject constructor(
     private val messageDao: MessageDao,

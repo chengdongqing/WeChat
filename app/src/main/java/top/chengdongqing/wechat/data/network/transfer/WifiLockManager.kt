@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.PowerManager
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
-import top.chengdongqing.wechat.data.network.transfer.WiFiLockManager.Companion.TRANSFER_WAKE_LOCK_TIMEOUT_MS
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,8 +16,6 @@ import javax.inject.Singleton
  * 两种锁各自维护引用计数，支持嵌套调用：
  * - KeepAlive（WiFi 锁）：应用运行期间持有，防止 WiFi 省电模式断连后台 Socket
  * - Transfer（WakeLock）：文件传输期间额外持有，防止 CPU 休眠导致传输中断
- *
- * [withTransferLock] 内部会自动 acquire/release KeepAlive，调用方无需手动管理。
  */
 @Singleton
 class WiFiLockManager @Inject constructor(
@@ -32,8 +29,9 @@ class WiFiLockManager @Inject constructor(
     private val wifiRefCount = AtomicInteger(0)
     private val wakeRefCount = AtomicInteger(0)
 
-    private val wifiManager =
+    private val wifiManager by lazy {
         context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    }
 
     /**
      * WiFi 锁
@@ -64,7 +62,11 @@ class WiFiLockManager @Inject constructor(
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Chat:WakeLock")
     }
 
-    /** 获取 WiFi 活跃锁，引用计数为 1 时实际加锁 */
+    /**
+     * 获取 WiFi 活跃锁
+     *
+     * 引用计数为 1 时实际加锁
+     */
     fun acquireKeepAlive() {
         if (wifiRefCount.incrementAndGet() == 1 && !wifiLock.isHeld) {
             wifiLock.acquire()
@@ -72,7 +74,11 @@ class WiFiLockManager @Inject constructor(
         }
     }
 
-    /** 释放 WiFi 活跃锁，引用计数归零时实际释放 */
+    /**
+     * 释放 WiFi 活跃锁
+     *
+     * 引用计数归零时实际释放
+     */
     fun releaseKeepAlive() {
         if (wifiRefCount.decrementAndGet() <= 0) {
             wifiRefCount.set(0)
@@ -87,7 +93,6 @@ class WiFiLockManager @Inject constructor(
      * 在文件传输锁保护下执行 [block]
      *
      * 自动持有 WiFi 锁和 CPU 唤醒锁，block 结束后统一释放。
-     * 唤醒锁最长持有 [TRANSFER_WAKE_LOCK_TIMEOUT_MS]，防止异常情况下永久持锁。
      */
     suspend fun <T> withTransferLock(block: suspend () -> T): T {
         acquireKeepAlive()

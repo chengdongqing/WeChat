@@ -4,7 +4,7 @@ import android.util.Log
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import top.chengdongqing.wechat.data.network.connection.ConnectionManager
-import top.chengdongqing.wechat.data.network.connection.bluetooth.BtSocketServer
+import top.chengdongqing.wechat.data.network.connection.bluetooth.BluetoothSocketServer
 import top.chengdongqing.wechat.data.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.data.network.service.ServiceModule
 
@@ -13,7 +13,7 @@ import top.chengdongqing.wechat.data.network.service.ServiceModule
  */
 @Singleton
 class BtChatHandler @Inject constructor(
-    private val socketServer: BtSocketServer,
+    private val socketServer: BluetoothSocketServer,
     private val connectionManager: ConnectionManager,
     private val messageReceiver: MessageReceiver,
 ) : ServiceModule {

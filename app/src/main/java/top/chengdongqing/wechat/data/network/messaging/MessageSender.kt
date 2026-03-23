@@ -16,13 +16,13 @@ import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.data.database.dao.MediaFileDao
 import top.chengdongqing.wechat.data.database.dao.MessageDao
 import top.chengdongqing.wechat.data.database.entity.MessageEntity
-import top.chengdongqing.wechat.data.network.AvatarServer
 import top.chengdongqing.wechat.data.network.config.TransferConfig
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionException
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.data.network.crypto.PacketSigner
+import top.chengdongqing.wechat.data.network.http.AvatarServer
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
 import top.chengdongqing.wechat.data.network.model.FileAckStatus
 import top.chengdongqing.wechat.data.network.model.Packet
@@ -30,7 +30,7 @@ import top.chengdongqing.wechat.data.network.model.PacketType
 import top.chengdongqing.wechat.data.network.model.ReceiptType
 import top.chengdongqing.wechat.data.network.transfer.TransferManager
 import top.chengdongqing.wechat.data.network.transfer.WiFiLockManager
-import top.chengdongqing.wechat.data.security.LocalIdentity
+import top.chengdongqing.wechat.data.security.KeyStoreManager
 import top.chengdongqing.wechat.data.session.FileReferenceManager
 import top.chengdongqing.wechat.features.profile.data.model.ProfileBeacon
 import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
@@ -56,7 +56,7 @@ class MessageSender @Inject constructor(
     private val transferManager: TransferManager,
     private val profileRepository: ProfileRepository,
     private val packetSigner: PacketSigner,
-    private val localIdentity: LocalIdentity,
+    private val keyStoreManager: KeyStoreManager,
     private val avatarServer: AvatarServer,
     private val mediaFileDao: MediaFileDao,
     private val fileReferenceManager: FileReferenceManager,
@@ -85,7 +85,7 @@ class MessageSender @Inject constructor(
             content = message.content,
             timestamp = message.timestamp
         )
-        val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
+        val signature = packetSigner.sign(protocol, keyStoreManager.getPrivateKey())
 
         val packet = Packet(
             PacketType.TEXT,
@@ -149,7 +149,7 @@ class MessageSender @Inject constructor(
             mediaDuration = message.mediaDuration,
             timestamp = message.timestamp
         )
-        val signature = packetSigner.sign(unsigned, localIdentity.getPrivateKey())
+        val signature = packetSigner.sign(unsigned, keyStoreManager.getPrivateKey())
         return unsigned.copy(signature = signature)
     }
 
@@ -275,7 +275,7 @@ class MessageSender @Inject constructor(
             signature = "",
             timestamp = System.currentTimeMillis()
         )
-        val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
+        val signature = packetSigner.sign(protocol, keyStoreManager.getPrivateKey())
 
         transport.send(
             receiverId,
@@ -301,7 +301,7 @@ class MessageSender @Inject constructor(
             profile = beacon,
             signature = ""
         )
-        val signature = packetSigner.sign(protocol, localIdentity.getPrivateKey())
+        val signature = packetSigner.sign(protocol, keyStoreManager.getPrivateKey())
 
         transport.send(
             userId,

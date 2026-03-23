@@ -17,7 +17,7 @@ import top.chengdongqing.wechat.core.util.clearAllCaches
 import top.chengdongqing.wechat.data.database.WeDatabase
 import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.crypto.E2ESessionManager
-import top.chengdongqing.wechat.data.security.LocalIdentity
+import top.chengdongqing.wechat.data.security.KeyStoreManager
 
 class LogoutUseCase @Inject constructor(
     private val database: WeDatabase,
@@ -25,7 +25,7 @@ class LogoutUseCase @Inject constructor(
     private val connectionManager: ConnectionManager,
     private val e2eSessionManager: E2ESessionManager,
     private val privateFileManager: PrivateFileManager,
-    private val localIdentity: LocalIdentity,
+    private val keyStoreManager: KeyStoreManager,
     @param:ApplicationContext private val context: Context
 ) {
     companion object {
@@ -53,7 +53,7 @@ class LogoutUseCase @Inject constructor(
             context.clearAllCaches()
 
             // 删除密钥
-            localIdentity.clearIdentity()
+            keyStoreManager.clearIdentity()
         }
     }.onFailure {
         Log.e(TAG, "退出登录失败", it)

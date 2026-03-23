@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.data.network.connection.bluetooth.BtBondManager
+import top.chengdongqing.wechat.data.network.connection.bluetooth.BluetoothBondManager
 import top.chengdongqing.wechat.features.chat.domain.model.PeerDevice
 import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
 import javax.inject.Inject
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @SuppressLint("MissingPermission")
 class BluetoothPeerViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val bluetoothBondManager: BtBondManager,
+    private val bluetoothBondManager: BluetoothBondManager,
     private val profileRepository: ProfileRepository
 ) : PeerDeviceViewModel() {
 

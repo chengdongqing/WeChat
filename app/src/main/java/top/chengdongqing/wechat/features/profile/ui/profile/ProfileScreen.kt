@@ -25,8 +25,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
-import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
@@ -87,15 +85,6 @@ fun ProfileScreen(
                     navController.navigate(SettingsRoute.RingtoneSetting.route)
                 }
             )
-
-            // 错误提示
-            WeInformationBar(
-                visible = uiState.error != null,
-                message = uiState.error ?: "",
-                type = InformationBarType.WarnStrong,
-                autoClose = true,
-                onClose = { viewModel.clearError() }
-            )
         }
     }
 }
@@ -148,7 +137,7 @@ private fun ProfileContent(
                 label = stringResource(R.string.me_profile_gender),
                 onClick = onNavigateToGenderEdit
             ) {
-                WeSettingValue(profile?.gender?.label?.let { stringResource(it) })
+                WeSettingValue(profile?.gender?.labelRes?.let { stringResource(it) })
             }
 
             // 微信号

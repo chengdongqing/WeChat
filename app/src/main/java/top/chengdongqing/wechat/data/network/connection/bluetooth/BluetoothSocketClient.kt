@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.data.network.model.PacketWriter
  * RFCOMM 客户端，负责主动发起到对方设备的蓝牙连接。
  */
 @Singleton
-class BtSocketClient @Inject constructor(
+class BluetoothSocketClient @Inject constructor(
     private val connectionManager: ConnectionManager,
     private val handshakeHandler: PeerHandshakeHandler,
     @param:ApplicationContext private val context: Context
@@ -82,7 +82,7 @@ class BtSocketClient @Inject constructor(
                 as BluetoothManager).adapter
 
         return adapter.getRemoteDevice(macAddress)
-            .createRfcommSocketToServiceRecord(BtSocketServer.RFCOMM_UUID)
+            .createRfcommSocketToServiceRecord(BluetoothSocketServer.RFCOMM_UUID)
             .apply {
                 connect()
             }

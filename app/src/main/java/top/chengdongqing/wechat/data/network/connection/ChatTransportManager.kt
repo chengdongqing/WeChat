@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.data.network.connection.bluetooth.BtChatTransport
+import top.chengdongqing.wechat.data.network.connection.bluetooth.BluetoothChatTransport
 import top.chengdongqing.wechat.data.network.connection.wifi.WiFiDirectChatTransport
 import top.chengdongqing.wechat.data.network.connection.wifi.WiFiLanChatTransport
 import top.chengdongqing.wechat.data.network.crypto.EncryptingPacketWriter
@@ -30,7 +30,7 @@ import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettings
 class ChatTransportManager @Inject constructor(
     private val wifiLan: WiFiLanChatTransport,
     private val wifiDirect: WiFiDirectChatTransport,
-    private val bluetooth: BtChatTransport,
+    private val bluetooth: BluetoothChatTransport,
     chatSettingsRepository: ChatSettingsRepository,
     @param:IoScope private val scope: CoroutineScope,
 ) : ChatTransport {

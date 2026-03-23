@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -68,15 +67,11 @@ class ProfileViewModel @Inject constructor(
     private fun loadProfile() {
         viewModelScope.launch {
             profileRepository.observeProfile()
-                .catch { error ->
-                    handleError("加载资料失败: ${error.message}")
-                }
                 .collect { profile ->
                     _uiState.update {
                         it.copy(
                             profile = profile,
-                            isLoading = false,
-                            error = null
+                            isLoading = false
                         )
                     }
                 }
@@ -201,21 +196,8 @@ class ProfileViewModel @Inject constructor(
         ) != null
     }
 
-    /**
-     * 清除错误信息
-     */
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
-
     private fun setLoading(isLoading: Boolean) {
         _uiState.update { it.copy(isLoading = isLoading) }
-    }
-
-    private fun handleError(message: String) {
-        _uiState.update {
-            it.copy(isLoading = false, error = message)
-        }
     }
 
     private suspend fun emitEvent(event: ProfileUiEvent) {
@@ -229,8 +211,7 @@ class ProfileViewModel @Inject constructor(
 data class ProfileUiState(
     val profile: UserProfile? = null,
     val qrCode: String = "",
-    val isLoading: Boolean = false,
-    val error: String? = null
+    val isLoading: Boolean = false
 )
 
 /**

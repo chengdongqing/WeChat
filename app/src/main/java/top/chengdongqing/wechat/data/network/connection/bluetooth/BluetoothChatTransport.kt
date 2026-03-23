@@ -14,8 +14,8 @@ import top.chengdongqing.wechat.features.profile.domain.repository.ProfileReposi
  * 蓝牙聊天传输层
  */
 @Singleton
-class BtChatTransport @Inject constructor(
-    private val socketClient: BtSocketClient,
+class BluetoothChatTransport @Inject constructor(
+    private val socketClient: BluetoothSocketClient,
     override val connectionManager: ConnectionManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val profileRepository: ProfileRepository

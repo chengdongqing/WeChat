@@ -28,9 +28,9 @@ import kotlin.coroutines.resume
  */
 @Singleton
 @SuppressLint("MissingPermission")
-class BtBondManager @Inject constructor(
+class BluetoothBondManager @Inject constructor(
     private val connectionInfoDao: ConnectionInfoDao,
-    private val socketClient: BtSocketClient,
+    private val socketClient: BluetoothSocketClient,
     @param:IoScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
 ) {

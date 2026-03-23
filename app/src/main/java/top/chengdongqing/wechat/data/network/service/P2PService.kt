@@ -17,10 +17,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.data.network.AvatarServer
 import top.chengdongqing.wechat.data.network.ble.BluetoothStateMonitor
 import top.chengdongqing.wechat.data.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.data.network.connection.ConnectionMode
+import top.chengdongqing.wechat.data.network.http.AvatarServer
 import top.chengdongqing.wechat.data.network.model.NotificationChannelConfig
 import top.chengdongqing.wechat.data.network.model.NotificationId
 import top.chengdongqing.wechat.data.network.service.addfriend.BLEAddFriendHandler

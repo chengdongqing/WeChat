@@ -35,7 +35,7 @@ fun EditGenderScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val initialGender = uiState.profile?.gender
     val genderOptions = remember {
-        Gender.entries.map { resources.getString(it.label) to it }
+        Gender.entries.map { resources.getString(it.labelRes) to it }
     }
     var gender by remember(initialGender) { mutableStateOf(initialGender) }
     val hasChanged = gender != initialGender

@@ -148,7 +148,7 @@ private fun GenderIcon(
 
     Icon(
         painter = painterResource(icon),
-        contentDescription = stringResource(gender.label),
+        contentDescription = stringResource(gender.labelRes),
         tint = tint,
         modifier = modifier.size(16.dp)
     )

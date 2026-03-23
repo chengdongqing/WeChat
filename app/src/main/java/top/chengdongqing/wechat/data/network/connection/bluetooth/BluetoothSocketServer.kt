@@ -28,10 +28,10 @@ import java.util.UUID
  * RFCOMM 服务端，负责监听并接入对方设备发起的蓝牙连接。
  */
 @Singleton
-class BtSocketServer @Inject constructor(
+class BluetoothSocketServer @Inject constructor(
     private val connectionManager: ConnectionManager,
     private val handshakeHandler: PeerHandshakeHandler,
-    private val btBondManager: BtBondManager,
+    private val bluetoothBondManager: BluetoothBondManager,
     @param:ApplicationContext private val context: Context,
     @param:IoScope private val scope: CoroutineScope
 ) {
@@ -119,7 +119,7 @@ class BtSocketServer @Inject constructor(
             connectionManager.startHeartbeat(conn)
 
             // 保存连接信息
-            btBondManager.saveToDB(userId, socket.remoteDevice)
+            bluetoothBondManager.saveToDB(userId, socket.remoteDevice)
         } catch (e: Exception) {
             Log.e(TAG, "处理客户端失败", e)
             socket.close()

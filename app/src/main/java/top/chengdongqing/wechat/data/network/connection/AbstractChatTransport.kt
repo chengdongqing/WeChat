@@ -20,8 +20,9 @@ abstract class AbstractChatTransport(
 
     /**
      * 连接守卫：已连接则直接执行 [action]，否则尝试自动重连。
-     * 自动重连由子类实现 [tryAutoReconnect]；重连失败后由子类决定
-     * 是发出 [ConnectionRequiredEvent] 还是直接返回 failure。
+     *
+     * 自动重连由子类实现 [tryAutoReconnect]
+     * 重连失败后由子类决定是发出 [ConnectionRequiredEvent] 还是直接返回 failure。
      */
     protected suspend fun <T> ensureConnected(
         userId: String,
@@ -52,7 +53,9 @@ abstract class AbstractChatTransport(
         packet: Packet?,
     ): Result<T>
 
-    /** 向 UI 层发出连接请求事件，引导用户手动选择设备 */
+    /**
+     * 向 UI 层发出连接请求事件，引导用户手动选择设备
+     */
     protected suspend fun requireConnectionFromUi(event: ConnectionRequiredEvent): Result<Nothing> {
         _connectionRequired.emit(event)
         return Result.failure(Exception(event.reason))

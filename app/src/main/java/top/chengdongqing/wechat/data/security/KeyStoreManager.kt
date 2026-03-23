@@ -10,17 +10,21 @@ import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.spec.ECGenParameterSpec
 
+/**
+ * 密钥管理器
+ */
 @Singleton
-class LocalIdentity @Inject constructor() {
+class KeyStoreManager @Inject constructor() {
 
     private companion object {
         const val KEY_ALIAS = "identity_key"
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
+        const val STD_NAME = "secp256r1"
     }
 
     /**
      * 注册时调用，私钥由 KeyStore 管理，永不离开硬件
-     * 返回公钥 Base64 存入 UserProfile
+     * 返回公钥 Base64
      */
     fun generateKeyPair(): String {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
@@ -34,7 +38,7 @@ class LocalIdentity @Inject constructor() {
             KEY_ALIAS,
             KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
         )
-            .setAlgorithmParameterSpec(ECGenParameterSpec("secp256r1"))
+            .setAlgorithmParameterSpec(ECGenParameterSpec(STD_NAME))
             .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
             .build()
 
@@ -60,7 +64,7 @@ class LocalIdentity @Inject constructor() {
     }
 
     /**
-     * 用户退出登录时调用：从硬件安全模块中永久物理删除密钥
+     * 从硬件安全模块中永久物理删除密钥
      */
     fun clearIdentity() {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }

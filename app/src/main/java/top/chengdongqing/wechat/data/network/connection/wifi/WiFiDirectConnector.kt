@@ -37,14 +37,16 @@ class WiFiDirectConnector @Inject constructor() {
         suspendCancellableCoroutine { cont ->
             p2pManager.connect(channel, config, object : WifiP2pManager.ActionListener {
                 override fun onSuccess() {
-                    if (cont.isActive) cont.resume(Unit)
+                    if (cont.isActive) {
+                        cont.resume(Unit)
+                    }
                 }
 
                 override fun onFailure(reason: Int) {
                     Log.w(TAG, "P2P 连接请求失败: $reason")
-                    if (cont.isActive) cont.resumeWithException(
-                        Exception("P2P 连接失败: $reason")
-                    )
+                    if (cont.isActive) {
+                        cont.resumeWithException(Exception("P2P 连接失败: $reason"))
+                    }
                 }
             })
         }

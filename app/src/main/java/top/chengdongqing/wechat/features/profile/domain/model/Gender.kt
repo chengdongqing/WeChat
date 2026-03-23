@@ -9,14 +9,14 @@ import top.chengdongqing.wechat.R
  */
 @Serializable
 enum class Gender(
-    @get:StringRes val label: Int,
-    @get:StringRes val pronoun: Int
+    @get:StringRes val labelRes: Int,
+    @get:StringRes val pronounRes: Int
 ) {
     Male(R.string.gender_male, R.string.gender_male_pronoun),
     Female(R.string.gender_female, R.string.gender_female_pronoun);
 
     companion object {
         val Gender?.safePronoun: Int
-            get() = this?.pronoun ?: Male.pronoun
+            get() = this?.pronounRes ?: Male.pronounRes
     }
 }

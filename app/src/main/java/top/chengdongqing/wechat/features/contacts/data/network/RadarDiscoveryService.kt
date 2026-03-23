@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.data.network.AvatarServer
+import top.chengdongqing.wechat.data.network.http.AvatarServer
 import top.chengdongqing.wechat.data.network.model.RadarBeacon
 import top.chengdongqing.wechat.features.contacts.data.network.RadarDiscoveryService.Companion.BEACON_TIMEOUT_MS
 import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository

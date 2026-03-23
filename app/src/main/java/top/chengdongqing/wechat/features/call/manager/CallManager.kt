@@ -25,7 +25,7 @@ import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.crypto.PacketSigner
 import top.chengdongqing.wechat.data.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.data.network.model.ChatProtocol
-import top.chengdongqing.wechat.data.security.LocalIdentity
+import top.chengdongqing.wechat.data.security.KeyStoreManager
 import top.chengdongqing.wechat.features.call.domain.model.CallState
 import top.chengdongqing.wechat.features.call.domain.model.CallStatus
 import top.chengdongqing.wechat.features.call.domain.model.CallType
@@ -41,18 +41,18 @@ import top.chengdongqing.wechat.features.settings.domain.repository.Notification
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/*
+/**
  * 通话超时场景
  */
 private enum class TimeoutScenario {
-    /* 等待对方接听 */
+    /** 等待对方接听 */
     Ringing,
 
-    /* 等待 ICE 建立连接 */
+    /** 等待 ICE 建立连接 */
     Connecting
 }
 
-/*
+/**
  * 通话管理器
  */
 @Singleton
@@ -67,7 +67,7 @@ class CallManager @Inject constructor(
     private val connectionInfoDao: ConnectionInfoDao,
     private val socketClient: TcpSocketClient,
     private val packetSigner: PacketSigner,
-    private val localIdentity: LocalIdentity,
+    private val keyStoreManager: KeyStoreManager,
     private val profileRepository: ProfileRepository,
     private val notificationRepository: NotificationSettingsRepository,
     @param:MainScope private val scope: CoroutineScope
@@ -75,42 +75,38 @@ class CallManager @Inject constructor(
     private companion object {
         const val TAG = "CallManager"
 
-        /* 无应答超时：30s 后自动挂断 */
-        const val RING_TIMEOUT_MS = 30_000L
-
-        /* ICE 连接超时：15s 后自动挂断 */
-        const val CONNECT_TIMEOUT_MS = 15_000L
+        const val RING_TIMEOUT_MS = 30_000L // 无应答超时：30s 后自动挂断
+        const val CONNECT_TIMEOUT_MS = 15_000L // ICE 连接超时：15s 后自动挂断
     }
 
     private val _state = MutableStateFlow(CallUiState())
     val state = _state.asStateFlow()
 
-    private var isOutgoing = false // 是否为发起方
+    private var isOutgoing = false
     private var isInitialized = false
     private var timeoutJob: Job? = null
     private var durationTimerJob: Job? = null
     private val myUserId: String get() = profileRepository.requireUserId()
-    private val signalingChannel = Channel<ChatProtocol.Signaling>(capacity = 64) // 信令队列，保证有序消费
+    private val signalingChannel = Channel<ChatProtocol.Signaling>(capacity = 64)
 
-    /*
+    /**
      * 初始化，只执行一次
      */
     fun init() {
         if (isInitialized) return
         isInitialized = true
 
+        // 监听信令
         scope.launch {
             signalingManager.incomingSignaling.collect { msg ->
                 when (msg) {
-                    /*
-                     * ICE 候选无需保序，直接并发处理；
-                     * 其余信令入队，由下方协程顺序消费
-                     */
+                    // 除了ICE，其他信令都通过队列消费
                     is ChatProtocol.Signaling.IceCandidate -> launch { handleRemoteIce(msg) }
                     else -> signalingChannel.send(msg)
                 }
             }
         }
+        // 有序消息信令
         scope.launch {
             for (msg in signalingChannel) {
                 handleIncomingSignaling(msg)
@@ -120,7 +116,7 @@ class CallManager @Inject constructor(
         scope.launch { webRTCManager.localIceCandidates.collect { sendIceCandidate(it) } }
     }
 
-    /*
+    /**
      * 发起通话
      */
     fun startCall(peerId: String, callType: CallType) {
@@ -174,9 +170,8 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 确保与目标用户有可用连接
-     * 仅 WiFiLan 模式下生效
      */
     private suspend fun ensureConnected(targetUserId: String, myUserId: String) {
         if (transport.isConnected(targetUserId)) return
@@ -196,7 +191,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 接听来电
      */
     fun accept() {
@@ -224,7 +219,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 拒接来电
      */
     fun decline() {
@@ -233,7 +228,7 @@ class CallManager @Inject constructor(
         endCall(HangupReason.Declined)
     }
 
-    /*
+    /**
      * 取消去电（对方未接听时）
      */
     fun cancel() {
@@ -243,7 +238,7 @@ class CallManager @Inject constructor(
         endCall(HangupReason.Cancelled)
     }
 
-    /*
+    /**
      * 挂断通话
      */
     fun hangup() {
@@ -253,21 +248,21 @@ class CallManager @Inject constructor(
         endCall(HangupReason.Normal, isFromMe = true)
     }
 
-    /*
+    /**
      * 签名并发送信令，统一处理签名+发送逻辑
      */
     private suspend fun sendSignaling(
         targetUserId: String,
         packet: ChatProtocol.Signaling
     ) {
-        val signature = packetSigner.sign(packet, localIdentity.getPrivateKey())
+        val signature = packetSigner.sign(packet, keyStoreManager.getPrivateKey())
         signalingManager.send(
             targetUserId = targetUserId,
             message = packet.withSignature(signature)
         )
     }
 
-    /*
+    /**
      * 发送挂断信令给对方
      */
     private fun sendHangup(reason: HangupReason) {
@@ -288,7 +283,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 开关麦克风
      */
     fun toggleMic() {
@@ -297,7 +292,7 @@ class CallManager @Inject constructor(
         sendMediaState()
     }
 
-    /*
+    /**
      * 开关免提
      */
     fun toggleSpeaker() {
@@ -306,7 +301,7 @@ class CallManager @Inject constructor(
         sendMediaState()
     }
 
-    /*
+    /**
      * 切换摄像头开关并同步媒体状态
      */
     fun toggleVideo() {
@@ -323,7 +318,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 将本端媒体状态（视频/麦克风/免提）同步给对方
      */
     private fun sendMediaState() {
@@ -347,7 +342,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 切换前/后摄像头
      */
     fun switchCamera() {
@@ -355,7 +350,7 @@ class CallManager @Inject constructor(
         _state.update { it.copy(isFrontCamera = !it.isFrontCamera) }
     }
 
-    /*
+    /**
      * 切换主视频为对方/我方
      */
     fun swapVideo() {
@@ -363,7 +358,7 @@ class CallManager @Inject constructor(
         _state.update { it.copy(isVideoSwapped = !it.isVideoSwapped) }
     }
 
-    /*
+    /**
      * 进入/退出沉浸式
      */
     fun toggleControlsVisibility() {
@@ -375,7 +370,7 @@ class CallManager @Inject constructor(
     fun restartVideoCapture() = webRTCManager.restartVideoCapture()
     val eglBase get() = webRTCManager.eglBase
 
-    /*
+    /**
      * 分发收到的信令消息
      */
     private suspend fun handleIncomingSignaling(message: ChatProtocol.Signaling) {
@@ -390,7 +385,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 处理来电 Offer：
      * - 若当前正在通话则回复 Busy；
      * - 否则初始化 WebRTC、更新 UI、启动振铃倒计时
@@ -433,7 +428,7 @@ class CallManager @Inject constructor(
 
         startTimeout(TimeoutScenario.Ringing)
 
-        /* 告知对方我的铃声设置 */
+        // 告知对方我的铃声设置
         runCatching {
             sendSignaling(
                 targetUserId = offer.senderId,
@@ -447,7 +442,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 收到 Answer：设置远端 SDP，切换为 Connecting 并启动 ICE 连接超时
      */
     private suspend fun handleAnswer(answer: ChatProtocol.Signaling.Answer) {
@@ -462,7 +457,7 @@ class CallManager @Inject constructor(
         )
     }
 
-    /*
+    /**
      * 添加对方的 ICE 候选
      */
     private fun handleRemoteIce(ice: ChatProtocol.Signaling.IceCandidate) {
@@ -470,7 +465,7 @@ class CallManager @Inject constructor(
         webRTCManager.addIceCandidate(IceCandidate(ice.sdpMid, ice.sdpMLineIndex, ice.candidate))
     }
 
-    /*
+    /**
      * 处理对方挂断
      */
     private fun handleHangup(hangup: ChatProtocol.Signaling.Hangup) {
@@ -478,7 +473,7 @@ class CallManager @Inject constructor(
         endCall(reason = hangup.reason, duration = hangup.duration)
     }
 
-    /*
+    /**
      * 处理通话繁忙
      */
     private fun handleBusy(busy: ChatProtocol.Signaling.Busy) {
@@ -486,7 +481,7 @@ class CallManager @Inject constructor(
         endCall(reason = HangupReason.Busy)
     }
 
-    /*
+    /**
      * 更新对方的媒体状态（视频/麦克风/免提）
      */
     private fun handleMediaState(state: ChatProtocol.Signaling.MediaState) {
@@ -500,7 +495,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 获取对方的铃声设置，发起方据此播放对应铃声
      */
     private fun handleRingtoneInfo(info: ChatProtocol.Signaling.RingtoneInfo) {
@@ -512,7 +507,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 处理 ICE 连接状态变化：
      * - CONNECTED/COMPLETED：通话正式建立，启动计时
      * - DISCONNECTED：等待信令层处理，不主动挂断
@@ -544,7 +539,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 将 ICE 候选发送给对方
      */
     private fun sendIceCandidate(candidate: IceCandidate) {
@@ -568,7 +563,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 启动超时自动挂断：
      * - Ringing：等待对方接听，超时视为无应答
      * - Connecting：等待 ICE 建立，超时视为连接错误
@@ -586,7 +581,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 取消超时计时器
      */
     private fun cancelTimeout() {
@@ -594,7 +589,7 @@ class CallManager @Inject constructor(
         timeoutJob = null
     }
 
-    /*
+    /**
      * 开始通话计时，每秒更新 duration
      */
     private fun startDurationTimer() {
@@ -608,7 +603,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
     * 结束时长计时器
     */
     private fun stopDurationTimer() {
@@ -616,7 +611,7 @@ class CallManager @Inject constructor(
         durationTimerJob = null
     }
 
-    /*
+    /**
      * 结束通话：取消计时、更新状态、释放 WebRTC 资源、保存通话记录
      */
     private fun endCall(reason: HangupReason, isFromMe: Boolean = false, duration: Long? = null) {
@@ -639,7 +634,7 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
+    /**
      * 写通话记录
      */
     private suspend fun saveCallRecord(
@@ -676,8 +671,8 @@ class CallManager @Inject constructor(
         }
     }
 
-    /*
-     * 重置状态（通话结束后 UI 关闭时调用）
+    /**
+     * 重置状态
      */
     fun reset() {
         if (_state.value.callState.isTerminal) {

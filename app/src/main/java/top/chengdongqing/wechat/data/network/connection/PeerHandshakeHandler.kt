@@ -10,7 +10,7 @@ import top.chengdongqing.wechat.data.network.model.Packet
 import top.chengdongqing.wechat.data.network.model.PacketReader
 import top.chengdongqing.wechat.data.network.model.PacketType.HANDSHAKE
 import top.chengdongqing.wechat.data.network.model.PacketWriter
-import top.chengdongqing.wechat.data.security.LocalIdentity
+import top.chengdongqing.wechat.data.security.KeyStoreManager
 import top.chengdongqing.wechat.features.settings.domain.repository.ChatSettingsRepository
 
 /**
@@ -25,7 +25,7 @@ class PeerHandshakeHandler @Inject constructor(
     private val e2e: E2ESessionManager,
     private val chatSettingsRepository: ChatSettingsRepository,
     private val packetSigner: PacketSigner,
-    private val localIdentity: LocalIdentity
+    private val keyStoreManager: KeyStoreManager
 ) {
     private suspend fun isE2eEnabled() = chatSettingsRepository.e2eEnabled.first()
 
@@ -40,7 +40,7 @@ class PeerHandshakeHandler @Inject constructor(
             e2ePublicKey = e2eKey,
             signature = ""
         )
-        val signature = packetSigner.sign(hs, localIdentity.getPrivateKey())
+        val signature = packetSigner.sign(hs, keyStoreManager.getPrivateKey())
 
         return Packet(
             type = HANDSHAKE,
@@ -68,7 +68,7 @@ class PeerHandshakeHandler @Inject constructor(
                 e2ePublicKeyAck = myKey,
                 signature = ""
             )
-            val signature = packetSigner.sign(ack, localIdentity.getPrivateKey())
+            val signature = packetSigner.sign(ack, keyStoreManager.getPrivateKey())
 
             writer.write(
                 Packet(
@@ -99,7 +99,7 @@ class PeerHandshakeHandler @Inject constructor(
                     e2ePublicKeyAck = myKey,
                     signature = ""
                 )
-                val signature = packetSigner.sign(ack, localIdentity.getPrivateKey())
+                val signature = packetSigner.sign(ack, keyStoreManager.getPrivateKey())
 
                 conn.writer.write(
                     Packet(

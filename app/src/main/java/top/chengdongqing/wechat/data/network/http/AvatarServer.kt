@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.data.network
+package top.chengdongqing.wechat.data.network.http
 
 import android.util.Log
 import jakarta.inject.Inject
@@ -30,7 +30,11 @@ class AvatarServer @Inject constructor(
     private var serverSocket: ServerSocket? = null
     private var serverPort: Int = -1
     val avatarUrl: String?
-        get() = if (serverPort == -1) null else "http://${getLocalIpAddress()}:${serverPort}/avatar?t=${System.currentTimeMillis()}"
+        get() = if (serverPort > 0) {
+            "http://${getLocalIpAddress()}:${serverPort}/avatar?t=${System.currentTimeMillis()}"
+        } else {
+            null
+        }
 
     override fun start() {
         scope.launch {
