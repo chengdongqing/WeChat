@@ -21,16 +21,16 @@ class LocationHandler(
      * 处理位置选择结果
      */
     suspend fun handleLocationSelection(location: LocationInfo, context: Context) {
-        val uri = location.staticMapUri ?: return
-
-        // 拷贝到私有目录
-        val localPath = privateFileManager.saveMedia(
-            messageType = MessageType.Location,
-            sourceUri = uri
-        ).getOrThrow()
-
-        // 清理临时文件
-        context.deleteFileByUri(uri)
+        val localPath = location.staticMapUri?.let { uri ->
+            // 拷贝到私有目录
+            privateFileManager.saveMedia(
+                messageType = MessageType.Location,
+                sourceUri = uri
+            ).also {
+                // 清理临时文件
+                context.deleteFileByUri(uri)
+            }.getOrNull()
+        }
 
         val content = MessageContent.Location(
             latitude = location.coordinate.latitude,

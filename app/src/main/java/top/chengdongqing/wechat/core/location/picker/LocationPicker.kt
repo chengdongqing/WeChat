@@ -78,12 +78,13 @@ fun WeLocationPicker(
 
                 val bitmap = mapController.takeSnapshot()
                 markerHandle?.remove()
+                var location = pickerState.selectedLocation!!
 
-                bitmap?.let {
-                    val snapshot = context.createImageUri(it)
-                    val location = pickerState.selectedLocation!!.copy(staticMapUri = snapshot)
-                    onConfirm(location)
+                if (bitmap != null) {
+                    val snapshot = context.createImageUri(bitmap)
+                    location = location.copy(staticMapUri = snapshot)
                 }
+                onConfirm(location)
             } finally {
                 // 无论截图成功与否，都重置加载状态
                 isLoading = false

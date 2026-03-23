@@ -24,7 +24,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
-            abiFilters.addAll(listOf("arm64-v8a"))
+            abiFilters.add("arm64-v8a")
         }
     }
 
@@ -100,8 +100,8 @@ dependencies {
     // 实时通话
     implementation(libs.webrtc)
 
-    // 地图
-    implementation(files("${rootProject.projectDir}/libs/AMap3DMap_11.1.060_AMapSearch_9.7.4_AMapLocation_11.1.060_20251229.aar"))
+    // 高德地图合包
+    implementation(files("${rootProject.projectDir}/libs/Lite3dMap_1.2.0_AMapSearch_9.7.4_AMapLocation_11.1.000_20260306.aar"))
 
     // 测试相关
     testImplementation(libs.test.junit)

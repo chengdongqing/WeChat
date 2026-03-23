@@ -119,7 +119,11 @@ class MessageRepositoryImpl @Inject constructor(
         if (!shouldSkipSend) {
             // 切入后台作用域执行网络发送
             scope.launch {
-                sendMessageAsync(message)
+                try {
+                    sendMessageAsync(message)
+                } catch (e: Exception) {
+                    Log.w(TAG, "发送失败: ${message.id}, ${e.message}")
+                }
             }
         }
     }
@@ -128,18 +132,18 @@ class MessageRepositoryImpl @Inject constructor(
      * 异步发送消息
      */
     private suspend fun sendMessageAsync(message: MessageEntity) {
-        try {
-            when (message.contentType) {
-                MessageType.Text,
-                MessageType.Music -> messageSender.sendTextMessage(message)
+        when (message.contentType) {
+            MessageType.Text,
+            MessageType.Music -> messageSender.sendTextMessage(message)
 
-                else -> {
-                    val file = File(message.localPath ?: throw Exception("文件路径为空"))
+            else -> {
+                if (message.localPath != null) {
+                    val file = File(message.localPath)
                     messageSender.sendMediaMessage(message, file)
+                } else {
+                    messageSender.sendTextMessage(message)
                 }
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "发送失败: ${message.id}, ${e.message}")
         }
     }
 
@@ -156,15 +160,7 @@ class MessageRepositoryImpl @Inject constructor(
             transferManager.remove(messageId)
 
             // 重新发送
-            when (message.contentType) {
-                MessageType.Text,
-                MessageType.Music -> messageSender.sendTextMessage(message)
-
-                else -> {
-                    val file = File(message.localPath ?: throw Exception("文件路径为空"))
-                    messageSender.sendMediaMessage(message, file)
-                }
-            }
+            sendMessageAsync(message)
         }
     }
 
