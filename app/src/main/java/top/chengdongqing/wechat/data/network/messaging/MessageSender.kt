@@ -361,8 +361,9 @@ class MessageSender @Inject constructor(
                 if (bytesRead <= 0) break
 
                 buffer.flip()
+                val currentOffset = totalSent // 记录当前读取的位置
                 val rawChunk = ByteArray(buffer.remaining()).also { buffer.get(it) }
-                onChunk(FileChunkCodec.encode(messageId, rawChunk))
+                onChunk(FileChunkCodec.encode(messageId, currentOffset, rawChunk))
 
                 totalSent += bytesRead
                 if (fileSize > 0 && totalSent - lastReportedAt >= progressInterval) {

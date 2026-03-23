@@ -179,21 +179,31 @@ class WriteSession(private val channel: FileChannel) {
      * 在指定偏移量写入数据
      */
     fun writeAtOffset(offset: Long, data: ByteArray) {
-        channel.position(offset)
-        channel.write(ByteBuffer.wrap(data))
+        val buffer = ByteBuffer.wrap(data)
+        var bytesWritten = 0
+        while (buffer.hasRemaining()) {
+            val written = channel.write(buffer, offset + bytesWritten)
+            if (written <= 0) break
+            bytesWritten += written
+        }
     }
 
     /**
      * 强制刷盘
      */
-    fun flush() {
-        runCatching { channel.force(false) }
+    fun flush(includeMetadata: Boolean = true) {
+        runCatching {
+            // 正常传输中用 false 提高性能，最终完成必须用 true
+            channel.force(includeMetadata)
+        }
     }
 
     /**
      * 关闭文件句柄
      */
     fun close() {
+        // 确保在关闭前进行最后一次强刷
+        flush(true)
         runCatching { channel.close() }
     }
 }
