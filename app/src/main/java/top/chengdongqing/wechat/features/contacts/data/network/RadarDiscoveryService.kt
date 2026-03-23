@@ -60,12 +60,14 @@ class RadarDiscoveryService @Inject constructor(
         stop()
 
         scope.launch {
-            acquireMulticastLock(wifiManager)
-            setupSocket()
+            runCatching {
+                acquireMulticastLock(wifiManager)
+                setupSocket()
 
-            launch(Dispatchers.IO) { receiveLoop() }
-            launch(Dispatchers.IO) { beaconLoop() }
-            launch { timeoutCleanerLoop() }
+                launch(Dispatchers.IO) { receiveLoop() }
+                launch(Dispatchers.IO) { beaconLoop() }
+                launch { timeoutCleanerLoop() }
+            }
         }
     }
 
