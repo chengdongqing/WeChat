@@ -15,6 +15,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import top.chengdongqing.wechat.core.di.IoScope
+import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
+import top.chengdongqing.wechat.data.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.data.network.connection.ConnectionManager
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketClient
 import top.chengdongqing.wechat.data.network.connection.wifi.TcpSocketServer
@@ -36,6 +38,7 @@ class WiFiDirectChatHandler @Inject constructor(
     private val activeSessionManager: ActiveSessionManager,
     private val messageReceiver: MessageReceiver,
     private val profileRepository: ProfileRepository,
+    private val connectionInfoDao: ConnectionInfoDao,
     @param:ApplicationContext private val context: Context,
     @param:IoScope private val scope: CoroutineScope
 ) : ServiceModule {
@@ -134,7 +137,12 @@ class WiFiDirectChatHandler @Inject constructor(
                         if (!info.isGroupOwner && goIp != null && goUserId != null) {
                             scope.launch {
                                 delay(1000)
-                                connectToGroupOwner(goUserId, goIp)
+
+                                // 连接Go
+                                connectToGroupOwner(goUserId, goIp).onSuccess {
+                                    // 保存连接信息（主要为保存已连接的状态）
+                                    saveToDB(goUserId, goIp)
+                                }
                             }
                         }
                     } else {
@@ -154,12 +162,26 @@ class WiFiDirectChatHandler @Inject constructor(
     /**
      * 主动连接 Group Owner
      */
-    private suspend fun connectToGroupOwner(goUserId: String, goIp: String) {
+    private suspend fun connectToGroupOwner(goUserId: String, goIp: String, goPort: Int = PORT) =
         socketClient.connect(
             userId = goUserId,
             host = goIp,
-            port = PORT,
+            port = goPort,
             myUserId = myUserId
+        )
+
+    /**
+     * 保存连接信息到数据库
+     */
+    suspend fun saveToDB(userId: String, goIp: String, goPort: Int = PORT) {
+        connectionInfoDao.upsert(
+            ConnectionInfoEntity(
+                userId = userId,
+                lanIpAddress = goIp,
+                lanPort = goPort,
+                isOnline = true,
+                lastSeen = System.currentTimeMillis()
+            )
         )
     }
 

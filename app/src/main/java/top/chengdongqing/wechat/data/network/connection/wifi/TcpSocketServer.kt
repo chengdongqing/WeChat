@@ -154,7 +154,7 @@ class TcpSocketServer @Inject constructor(
                 lanIpAddress = socket.inetAddress.hostAddress,
                 lanPort = socket.port,
                 isOnline = true,
-                lastSeen = System.currentTimeMillis(),
+                lastSeen = System.currentTimeMillis()
             )
         )
     }

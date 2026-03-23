@@ -25,11 +25,14 @@ interface ConnectionInfoDao : BaseDao<ConnectionInfoEntity> {
     @Query("SELECT isOnline FROM connection_info WHERE userId = :userId")
     fun observeOnlineStatus(userId: String): Flow<Boolean?>
 
+    @Query("UPDATE connection_info SET isOnline = 1, lastSeen = :timestamp, updatedAt = :now WHERE userId = :userId")
+    suspend fun markOnline(userId: String, timestamp: Long, now: Long = System.currentTimeMillis())
+
     @Query("UPDATE connection_info SET isOnline = 0, updatedAt = :now WHERE userId = :userId")
     suspend fun markOffline(userId: String, now: Long = System.currentTimeMillis())
 
-    @Query("UPDATE connection_info SET isOnline = 1, lastSeen = :timestamp, updatedAt = :now WHERE userId = :userId")
-    suspend fun markOnline(userId: String, timestamp: Long, now: Long = System.currentTimeMillis())
+    @Query("UPDATE connection_info SET isOnline = 0, updatedAt = :now WHERE isOnline = 1")
+    suspend fun markAllAsOffline(now: Long = System.currentTimeMillis())
 
     @Query("DELETE FROM connection_info WHERE userId = :userId")
     suspend fun deleteById(userId: String)
