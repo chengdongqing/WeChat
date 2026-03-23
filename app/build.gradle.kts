@@ -101,7 +101,7 @@ dependencies {
     implementation(libs.webrtc)
 
     // 高德地图合包
-    implementation(files("${rootProject.projectDir}/libs/Lite3dMap_1.2.0_AMapSearch_9.7.4_AMapLocation_11.1.000_20260306.aar"))
+    implementation(files("${rootProject.projectDir}/libs/AMap3DMap_11.1.063_AMapSearch_9.7.4_AMapLocation_11.1.060_20260206.aar"))
 
     // 测试相关
     testImplementation(libs.test.junit)
