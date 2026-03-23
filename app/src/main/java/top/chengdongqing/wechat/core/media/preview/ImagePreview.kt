@@ -167,8 +167,8 @@ private fun MotionPhotoToggle(
  * @return 提取出的 MP4 文件的 Uri，若非动态照片或提取失败则返回 null
  */
 private fun Context.extractMotionPhotoVideo(uri: Uri): Uri? {
-    // MP4 文件的通用标识符（Brand），通常紧跟在 4 字节的 Box 长度之后
-    val marker = "ftypmp42".toByteArray()
+    // 搜索 MP4 通用的 ftyp box 标识
+    val marker = "ftyp".toByteArray()
     // 在缓存目录创建目标文件
     val cacheFile = File(cacheDir, "motion_${System.currentTimeMillis()}.mp4")
 
@@ -192,7 +192,7 @@ private fun Context.extractMotionPhotoVideo(uri: Uri): Uri? {
                  * 算法逻辑：从文件末尾向前搜索。
                  * 动态照片的视频数据通常位于文件尾部，倒序搜索能显著减少扫描字节数。
                  */
-                for (i in (size - marker.size).toInt() downTo 0) {
+                for (i in (size - marker.size).toInt() downTo 4) {
                     var match = true
                     for (j in marker.indices) {
                         if (mappedBuffer.get(i + j) != marker[j]) {
@@ -201,12 +201,22 @@ private fun Context.extractMotionPhotoVideo(uri: Uri): Uri? {
                         }
                     }
                     if (match) {
-                        /* * 定位成功。
+                        /*
+                         * 定位成功。
                          * 减去 4 是为了包含 ftyp box 前面的 4 字节长度字段（size field），
                          * 确保导出的 MP4 文件结构完整。
+                         *
+                         * 同时校验 box size 合法性（16~1024 字节），防止 JPEG 数据中
+                         * 碰巧出现 "ftyp" 字节序列导致误识别。
                          */
-                        foundIndex = i - 4
-                        break
+                        val boxSize = ((mappedBuffer.get(i - 4).toInt() and 0xFF) shl 24) or
+                                ((mappedBuffer.get(i - 3).toInt() and 0xFF) shl 16) or
+                                ((mappedBuffer.get(i - 2).toInt() and 0xFF) shl 8) or
+                                (mappedBuffer.get(i - 1).toInt() and 0xFF)
+                        if (boxSize in 16..1024) {
+                            foundIndex = i - 4
+                            break
+                        }
                     }
                 }
 
