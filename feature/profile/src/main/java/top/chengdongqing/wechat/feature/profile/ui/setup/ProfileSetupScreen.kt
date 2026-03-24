@@ -154,7 +154,7 @@ private fun ProfileSetupContent(
             message = uiState.errorMessage ?: "",
             type = InformationBarType.WarnStrong,
             autoClose = true,
-            onClose = onErrorDismiss
+            onDismiss = onErrorDismiss
         )
     }
 }

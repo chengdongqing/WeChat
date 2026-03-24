@@ -37,7 +37,7 @@ fun PeerDeviceOverlay(
     userId: String,
     mode: ConnectionMode,
     onConnected: () -> Unit,
-    onClose: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val viewModel: PeerDeviceViewModel = when (mode) {
         ConnectionMode.Bluetooth -> hiltViewModel<BluetoothPeerViewModel>()
@@ -59,7 +59,7 @@ fun PeerDeviceOverlay(
             ConnectionMode.Bluetooth -> stringResource(R.string.conn_title_select_bluetooth_device)
             ConnectionMode.WiFiDirect -> stringResource(R.string.conn_title_select_wifi_direct_device)
         },
-        onClose = onClose
+        onDismiss = onDismiss
     ) {
         PeerScanEffect(mode, viewModel)
 
@@ -70,7 +70,7 @@ fun PeerDeviceOverlay(
                 viewModel = viewModel,
                 userId = userId,
                 onConnected = onConnected,
-                onClose = onClose,
+                onDismiss = onDismiss,
             )
             item { Spacer(modifier = Modifier.height(40.dp)) }
         }
@@ -83,7 +83,7 @@ private fun LazyListScope.peerDeviceListContent(
     viewModel: PeerDeviceViewModel,
     userId: String,
     onConnected: () -> Unit,
-    onClose: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     if (mode == ConnectionMode.WiFiDirect) {
         val wfdViewModel = viewModel as WiFiDirectPeerViewModel
@@ -121,7 +121,7 @@ private fun LazyListScope.peerDeviceListContent(
     }
 
     val connectDevice = { device: PeerDevice ->
-        viewModel.connectDevice(device, userId) { onConnected(); onClose() }
+        viewModel.connectDevice(device, userId) { onConnected(); onDismiss() }
     }
 
     if (state.pairedDevices.isNotEmpty()) {

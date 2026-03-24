@@ -64,7 +64,7 @@ fun WeActionSheet(
         visible = visible,
         padding = PaddingValues(0.dp),
         draggable = false,
-        onClose = onCancel
+        onDismiss = onCancel
     ) {
         Column {
             title?.let {

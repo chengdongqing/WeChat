@@ -42,13 +42,13 @@ fun InputOverlay(
     state: InputBarState,
     actions: InputBarActions
 ) {
-    val onClose = actions.onToggleExpand
+    val onDismiss = actions.onToggleExpand
 
     WePopup(
         draggable = false,
         visible = state.isExpanded,
         padding = PaddingValues.Zero,
-        onClose = onClose
+        onDismiss = onDismiss
     ) {
         val focusRequester = remember { NativeFocusRequester() }
         val controller = rememberInputBarController(focusRequester)
@@ -67,13 +67,13 @@ fun InputOverlay(
                 controller.switchMode(showKeyboard = false)
             } else {
                 actions.onTextChange(innerState.inputText)
-                onClose()
+                onDismiss()
             }
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
             // 顶部关闭按钮
-            InputTopBar(onClose)
+            InputTopBar(onDismiss)
 
             // 全屏输入区域
             Column(
@@ -157,14 +157,14 @@ private fun InputActionBar(
 }
 
 @Composable
-private fun InputTopBar(onClose: () -> Unit) {
+private fun InputTopBar(onDismiss: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp), horizontalArrangement = Arrangement.Start
     ) {
         CircleActionIcon(
-            icon = R.drawable.ic_arrow_down_outlined, onClick = onClose
+            icon = R.drawable.ic_arrow_down_outlined, onClick = onDismiss
         )
     }
 }

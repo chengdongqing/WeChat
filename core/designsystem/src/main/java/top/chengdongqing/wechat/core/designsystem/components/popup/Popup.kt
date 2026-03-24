@@ -60,7 +60,7 @@ import kotlin.math.roundToInt
  * @param exitTransition 收起时的过渡动画
  * @param padding 内边距
  * @param draggable 是否可拖动关闭
- * @param onClose 关闭事件
+ * @param onDismiss 关闭事件
  * @param content 内容
  */
 @Composable
@@ -77,7 +77,7 @@ fun WePopup(
     ),
     padding: PaddingValues = PaddingValues(12.dp),
     draggable: Boolean = true,
-    onClose: () -> Unit,
+    onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
     var localVisible by remember { mutableStateOf(false) }
@@ -94,7 +94,7 @@ fun WePopup(
             visible = visible && localVisible,
             enterTransition,
             exitTransition,
-            onClose
+            onDismiss
         ) {
             var height by remember { mutableIntStateOf(0) }
             val offsetY = remember { mutableIntStateOf(0) }
@@ -117,7 +117,7 @@ fun WePopup(
                         enabled = draggable,
                         orientation = Orientation.Vertical,
                         onDragStopped = {
-                            handleDragStopped(offsetY, height, onClose)
+                            handleDragStopped(offsetY, height, onDismiss)
                         }
                     )
                     .then(
@@ -127,7 +127,7 @@ fun WePopup(
                                     PopupNestedScrollConnection(
                                         offsetY,
                                         height,
-                                        onClose
+                                        onDismiss
                                     )
                                 }
                             )
@@ -163,18 +163,18 @@ private fun PopupContainer(
     visible: Boolean,
     enterTransition: EnterTransition,
     exitTransition: ExitTransition,
-    onClose: () -> Unit,
+    onDismiss: () -> Unit,
     content: @Composable () -> Unit
 ) {
     Dialog(
-        onDismissRequest = onClose,
+        onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .weClickable {
-                    onClose()
+                    onDismiss()
                 },
             contentAlignment = Alignment.BottomCenter
         ) {
@@ -229,7 +229,7 @@ private fun PopupTitle(title: String) {
 private class PopupNestedScrollConnection(
     private val offsetY: MutableIntState,
     private val height: Int,
-    private val onClose: () -> Unit
+    private val onDismiss: () -> Unit
 ) : NestedScrollConnection {
     override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
         if (source == NestedScrollSource.UserInput && offsetY.intValue > 0) {
@@ -257,7 +257,7 @@ private class PopupNestedScrollConnection(
         consumed: Velocity,
         available: Velocity
     ): Velocity {
-        handleDragStopped(offsetY, height, onClose)
+        handleDragStopped(offsetY, height, onDismiss)
         return available
     }
 }
@@ -267,9 +267,9 @@ private fun handleDrag(offsetY: MutableIntState, delta: Float) {
         .coerceAtLeast(0)
 }
 
-private fun handleDragStopped(offsetY: MutableIntState, height: Int, onClose: () -> Unit) {
+private fun handleDragStopped(offsetY: MutableIntState, height: Int, onDismiss: () -> Unit) {
     if (offsetY.intValue > height / 2) {
-        onClose()
+        onDismiss()
     } else {
         offsetY.intValue = 0
     }

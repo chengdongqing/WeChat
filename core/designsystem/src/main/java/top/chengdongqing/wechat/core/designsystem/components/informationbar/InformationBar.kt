@@ -52,7 +52,7 @@ fun WeInformationBar(
     linkText: String? = null,
     autoClose: Boolean = false,
     onLink: (() -> Unit)? = null,
-    onClose: (() -> Unit)? = null
+    onDismiss: (() -> Unit)? = null
 ) {
     val colors = colorSchemeOf(type)
 
@@ -66,7 +66,7 @@ fun WeInformationBar(
     LaunchedEffect(visible, autoClose, message) {
         if (visible && autoClose) {
             delay(5000)
-            onClose?.invoke()
+            onDismiss?.invoke()
         }
     }
 
@@ -109,7 +109,7 @@ fun WeInformationBar(
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-            onClose?.let {
+            onDismiss?.let {
                 Icon(
                     Icons.Outlined.Close,
                     contentDescription = null,

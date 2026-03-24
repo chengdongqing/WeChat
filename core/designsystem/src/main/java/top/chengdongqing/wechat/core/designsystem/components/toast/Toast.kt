@@ -68,7 +68,7 @@ enum class ToastIcon {
  * @param icon 图标
  * @param duration 显示的时长
  * @param mask 是否防止触摸穿透
- * @param onClose 关闭事件
+ * @param onDismiss 关闭事件
  */
 @Composable
 fun WeToast(
@@ -77,7 +77,7 @@ fun WeToast(
     icon: ToastIcon = ToastIcon.None,
     duration: Duration = 1500.milliseconds,
     mask: Boolean = false,
-    onClose: () -> Unit
+    onDismiss: () -> Unit
 ) {
     val hasIcon = icon != ToastIcon.None
     var localVisible by remember {
@@ -87,7 +87,7 @@ fun WeToast(
     LaunchedEffect(visible, duration, title) {
         if (visible && duration != Duration.INFINITE) {
             delay(duration)
-            onClose()
+            onDismiss()
         }
     }
     LaunchedEffect(visible) {

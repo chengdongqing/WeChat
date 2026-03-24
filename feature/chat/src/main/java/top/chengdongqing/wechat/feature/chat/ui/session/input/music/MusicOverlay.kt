@@ -41,13 +41,13 @@ fun MusicOverlay(
     state: InputBarState,
     actions: InputBarActions
 ) {
-    val onClose = actions.onToggleMusic
+    val onDismiss = actions.onToggleMusic
 
     WePopup(
         visible = state.isMusicOpen,
         padding = PaddingValues(vertical = 16.dp),
         title = stringResource(R.string.music_select_title),
-        onClose = onClose
+        onDismiss = onDismiss
     ) {
         val context = LocalContext.current
         val player = remember { MusicPlayer(context) }
@@ -74,7 +74,7 @@ fun MusicOverlay(
                     },
                     onSelect = {
                         actions.onSendMessage(MessageContent.Music(music))
-                        onClose()
+                        onDismiss()
                     }
                 )
                 WeDivider(modifier = Modifier.padding(start = 92.dp))

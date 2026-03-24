@@ -41,7 +41,6 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.annotations)
 
-    // 相机与扫码
     implementation(libs.bundles.camera)
     implementation(libs.mlkit.barcode)
     implementation(libs.zxing.core)
@@ -56,6 +55,8 @@ dependencies {
 
     implementation(libs.bundles.coil)
     implementation(libs.coil.zoomable)
+
+    implementation(libs.exifinterface)
 
     coreLibraryDesugaring(libs.desugar.jdk)
 }

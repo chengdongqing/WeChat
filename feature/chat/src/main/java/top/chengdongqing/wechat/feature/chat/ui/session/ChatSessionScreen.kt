@@ -200,7 +200,7 @@ private fun PeerConnectionOverlay(
         userId = chatId,
         mode = connectionMode,
         onConnected = closeOverlay,
-        onClose = closeOverlay
+        onDismiss = closeOverlay
     )
 }
 
