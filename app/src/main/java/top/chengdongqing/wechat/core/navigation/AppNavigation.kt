@@ -12,43 +12,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import top.chengdongqing.wechat.core.util.decode
-import top.chengdongqing.wechat.core.util.encode
-import top.chengdongqing.wechat.features.chat.navigation.chatNavGraph
-import top.chengdongqing.wechat.features.common.PlainTextScreen
-import top.chengdongqing.wechat.features.common.WebViewScreen
-import top.chengdongqing.wechat.features.contacts.navigation.contactsNavGraph
-import top.chengdongqing.wechat.features.home.theme.HomeTheme
-import top.chengdongqing.wechat.features.home.ui.HomeScreen
-import top.chengdongqing.wechat.features.profile.navigation.meNavGraph
-import top.chengdongqing.wechat.features.profile.ui.setup.ProfileSetupScreen
-import top.chengdongqing.wechat.features.settings.navigation.SettingsRoute
-import top.chengdongqing.wechat.features.settings.navigation.settingsNavGraph
-import top.chengdongqing.wechat.features.startup.SplashScreen
-import top.chengdongqing.wechat.features.startup.WelcomeScreen
-
-sealed class Screen(val route: String) {
-    object Splash : Screen("splash")
-    object Welcome : Screen("welcome")
-    object ProfileSetup : Screen("profile_setup")
-    object Home : Screen("home")
-
-    object PlainText : Screen("plain_text/{text}") {
-        const val ARG_TEXT = "text"
-
-        fun createRoute(text: String): String {
-            return "plain_text/${text.encode()}"
-        }
-    }
-
-    data object WebView : Screen("webview/{url}") {
-        const val ARG_URL = "url"
-
-        fun createRoute(url: String): String {
-            return "webview/${url.encode()}"
-        }
-    }
-}
+import top.chengdongqing.wechat.core.common.navigation.Screen
+import top.chengdongqing.wechat.core.common.navigation.SettingsRoute
+import top.chengdongqing.wechat.core.common.navigation.WeNavHost
+import top.chengdongqing.wechat.core.common.util.decode
+import top.chengdongqing.wechat.feature.chat.navigation.chatNavGraph
+import top.chengdongqing.wechat.feature.common.PlainTextScreen
+import top.chengdongqing.wechat.feature.common.WebViewScreen
+import top.chengdongqing.wechat.feature.contacts.navigation.contactsNavGraph
+import top.chengdongqing.wechat.feature.home.theme.HomeTheme
+import top.chengdongqing.wechat.feature.home.ui.HomeScreen
+import top.chengdongqing.wechat.feature.profile.navigation.meNavGraph
+import top.chengdongqing.wechat.feature.profile.ui.setup.ProfileSetupScreen
+import top.chengdongqing.wechat.feature.settings.navigation.settingsNavGraph
+import top.chengdongqing.wechat.feature.startup.SplashScreen
+import top.chengdongqing.wechat.feature.startup.WelcomeScreen
 
 @Composable
 fun AppNavigation(

@@ -26,3 +26,23 @@ dependencyResolutionManagement {
 
 rootProject.name = "WeChat"
 include(":app")
+
+// Core modules
+include(":core:model")
+include(":core:database")
+include(":core:designsystem")
+include(":core:common")
+include(":core:network")
+include(":core:location")
+include(":core:data")
+
+// Feature modules
+include(":feature:startup")
+include(":feature:home")
+include(":feature:chat")
+include(":feature:contacts")
+include(":feature:discovery")
+include(":feature:profile")
+include(":feature:call")
+include(":feature:settings")
+include(":feature:common")

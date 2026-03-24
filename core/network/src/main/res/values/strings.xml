@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">WeChat Lan</string>
+    <string name="p2p_service_content">局域网消息服务运行中</string>
+    <!-- Notification strings -->
+    <string name="contact_notification_request_content">请求添加你为好友</string>
+    <string name="contact_notification_auto_added_title">新的好友</string>
+    <string name="contact_notification_auto_added_content">%1$s 已添加你为好友</string>
+    <string name="chat_notification_contact_unknown">未知联系人</string>
+    <string name="chat_notification_hidden">你有一条新消息</string>
+    <string name="chat_notification_sender_only">你有一条新消息</string>
+    <!-- Call notification strings -->
+    <string name="call_notification_incoming_video">视频通话来电</string>
+    <string name="call_notification_incoming_voice">语音通话来电</string>
+    <string name="call_notification_outgoing">正在呼叫 %1$s…</string>
+    <string name="call_notification_connecting">连接中…</string>
+    <string name="call_notification_ongoing">通话中：%1$s</string>
+</resources>

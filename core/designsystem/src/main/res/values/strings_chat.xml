@@ -1,0 +1,203 @@
+<resources>
+    <string name="chat_action_mark_unread">标为未读</string>
+    <string name="chat_action_mark_read">标为已读</string>
+    <string name="chat_action_sticky_top">置顶该聊天</string>
+    <string name="chat_action_remove_top">取消置顶</string>
+    <string name="chat_action_hide">不显示该聊天</string>
+    <string name="chat_action_delete">删除该聊天</string>
+
+    <string name="chat_hide_hint_title">不显示聊天后，聊天记录将不会被删除</string>
+    <string name="chat_hide_hint_content">进入聊天详情，可以找回聊天。</string>
+    <string name="chat_delete_hint">删除后，将清空记录同时不显示聊天</string>
+
+    <string name="chat_action_album">照片</string>
+    <string name="chat_action_camera">拍摄</string>
+    <string name="chat_action_video_call">视频通话</string>
+    <string name="chat_action_location">位置</string>
+    <string name="chat_action_transfer">转账</string>
+    <string name="chat_action_favorite">收藏</string>
+    <string name="chat_action_voice">语音输入</string>
+    <string name="chat_action_card">个人名片</string>
+    <string name="chat_action_file">文件</string>
+    <string name="chat_action_app">应用程序</string>
+    <string name="chat_action_music">音乐</string>
+
+    <string name="chat_camera_photo">拍摄照片</string>
+    <string name="chat_camera_video">拍摄视频</string>
+    <string name="chat_camera_title">调用系统相机</string>
+    <string name="chat_call_video">视频通话</string>
+    <string name="chat_call_voice">语音通话</string>
+    <string name="chat_location_send">发送位置</string>
+    <string name="chat_location_share">共享实时位置</string>
+
+    <string name="sticker_title">表情</string>
+    <string name="sticker_custom_title">动图</string>
+    <string name="sticker_recent">最近使用</string>
+    <string name="sticker_all">所有表情</string>
+    <string name="sticker_backspace">退格</string>
+
+    <string name="voice_hold_to_talk">按住 说话</string>
+    <string name="voice_release_to_send">松开 发送</string>
+    <string name="voice_release_to_convert">松开 转文字</string>
+    <string name="voice_release_to_cancel">松开 取消发送</string>
+    <string name="voice_too_short">说话时间太短</string>
+    <string name="voice_action_cancel">取 消</string>
+    <string name="voice_action_text">文 字</string>
+
+    <string name="chat_status_online">在线</string>
+    <string name="chat_status_offline">离线</string>
+    <string name="chat_selected_count">已选择%d条消息</string>
+    <string name="chat_select_mode">选择消息</string>
+    <string name="chat_muted_desc">免打扰</string>
+    <string name="chat_earpiece_desc">通过听筒播放语音</string>
+    <string name="chat_encrypted_desc">已加密</string>
+
+    <string name="message_action_copy">复制</string>
+    <string name="message_action_delete">删除</string>
+    <string name="message_action_cancel">取消</string>
+    <string name="message_action_forward">转发</string>
+    <string name="message_action_favorite">收藏</string>
+    <string name="message_action_remind">提醒</string>
+    <string name="message_action_recall">撤回</string>
+    <string name="message_action_multi_select">多选</string>
+    <string name="message_action_speaker">扬声器</string>
+    <string name="message_action_earpiece">听筒</string>
+    <string name="message_action_quote">引用</string>
+    <string name="message_action_download">保存</string>
+
+    <string name="chat_info">聊天信息</string>
+    <string name="chat_info_search">查找聊天记录</string>
+    <string name="chat_info_mute">消息免打扰</string>
+    <string name="chat_info_pin">置顶聊天</string>
+    <string name="chat_info_remind">提醒</string>
+    <string name="chat_info_clear_background">清除当前背景</string>
+    <string name="chat_info_background_setting">设置当前聊天背景</string>
+    <string name="chat_info_background_clear_title">确定清除当前聊天背景吗？</string>
+    <string name="chat_info_clear">清空聊天记录</string>
+    <string name="chat_info_clear_title">确定删除和%s的聊天记录吗？</string>
+    <string name="chat_info_complaint">投诉</string>
+
+    <string name="msg_confirm_delete">确认删除？</string>
+    <string name="msg_confirm_save">确认保存？</string>
+    <string name="msg_confirm_send">确定发送吗？</string>
+    <string name="msg_confirm_forward">确定转发给选定的%d位联系人吗？</string>
+    <string name="msg_empty_message_title">提示</string>
+    <string name="msg_empty_message_content">不能发送空白消息</string>
+
+    <string name="contact_delete_title">即将删除联系人\"%s\"</string>
+    <string name="contact_delete_content">删除后对方不会收到通知</string>
+
+    <string name="send_error_connection_failed">连接失败。</string>
+    <string name="send_error_cancelled">已取消发送。</string>
+    <string name="send_error_not_friend">对方开启了朋友验证，你还不是他（她）朋友。请先发送朋友验证，对方验证通过后，才能聊天。</string>
+    <string name="send_error_blocked">消息已发出，但被对方拒收了。</string>
+    <string name="send_error_too_large">消息内容过大。</string>
+    <string name="send_error_unknown">未知错误。</string>
+
+    <string name="chat_recalled_by_me">你撤回了一条消息</string>
+    <string name="chat_recalled_by_other">对方撤回了一条消息</string>
+    <string name="chat_sent_no_receipt">消息已发出，但未收到对方的回执。</string>
+    <string name="chat_action_resend">再次发送</string>
+    <string name="chat_action_retry">重试</string>
+    <string name="chat_action_send_verify">发送朋友验证</string>
+    <string name="chat_action_reedit">重新编辑</string>
+
+    <string name="message_contact_card">个人名片</string>
+    <string name="message_music_album_cover">专辑封面</string>
+    <string name="message_file_size">文件大小：%s</string>
+    <string name="message_file_not_found">文件不存在或已被清理</string>
+    <string name="music_select_title">选择音乐</string>
+    <string name="app_select_title">选择应用程序</string>
+    <string name="contact_select_title">选择联系人</string>
+    <string name="group_chat_select_title">选择群聊</string>
+    <string name="location_search_placeholder">搜索地点</string>
+    <string name="location_tab_nearby">附近</string>
+    <string name="location_tab_all">不限</string>
+    <string name="location_current">当前位置</string>
+    <string name="location_navigate">导航</string>
+
+    <string name="message_preview_image">[图片]</string>
+    <string name="message_preview_voice">[语音]</string>
+    <string name="message_preview_video">[视频]</string>
+    <string name="message_preview_file">[文件]</string>
+    <string name="message_preview_location">[位置]</string>
+    <string name="message_preview_contact_card">[名片]</string>
+    <string name="message_preview_sticker">[表情]</string>
+    <string name="message_preview_music">[音乐]</string>
+    <string name="message_preview_voice_call">[语音通话]</string>
+    <string name="message_preview_video_call">[视频通话]</string>
+    <string name="message_preview_draft">[草稿]</string>
+
+    <string name="call_type_voice">语音通话</string>
+    <string name="call_type_video">视频通话</string>
+
+    <string name="call_status_cancelled">对方已取消</string>
+    <string name="call_status_cancelled_by_me">已取消</string>
+    <string name="call_status_declined">已拒绝</string>
+    <string name="call_status_declined_by_me">对方已拒绝</string>
+    <string name="call_status_finished">已接通</string>
+    <string name="call_status_missed">未应答</string>
+    <string name="call_status_missed_by_me">对方无应答</string>
+    <string name="call_status_failed">连接失败</string>
+    <string name="call_status_duration">通话时长 %s</string>
+
+    <string name="call_control_mic">麦克风</string>
+    <string name="call_control_speaker">扬声器</string>
+    <string name="call_control_camera">摄像头</string>
+    <string name="call_control_flip">翻转</string>
+    <string name="call_control_cancel">取消</string>
+    <string name="call_control_hangup">挂断</string>
+    <string name="call_control_decline">拒绝</string>
+    <string name="call_control_accept">接听</string>
+    <string name="call_control_minimize">最小化</string>
+    <string name="call_control_status_on">%s已开</string>
+    <string name="call_control_status_off">%s已关</string>
+
+    <string name="call_state_outgoing">等待对方接受邀请…</string>
+    <string name="call_state_incoming_video">邀请你视频通话…</string>
+    <string name="call_state_incoming_voice">邀请你语音通话…</string>
+    <string name="call_state_connecting">连接中…</string>
+    <string name="call_state_ended_normal_by_me">已挂断，通话结束</string>
+    <string name="call_state_ended_normal_by_other">对方已挂断，通话结束</string>
+    <string name="call_state_ended_declined_by_me">已拒绝了对方的通话请求</string>
+    <string name="call_state_ended_declined_by_other">对方拒绝了你的通话请求</string>
+    <string name="call_state_ended_cancelled_by_me">已取消，通话结束</string>
+    <string name="call_state_ended_cancelled_by_other">对方已取消，通话结束</string>
+    <string name="call_state_ended_timeout">对方无应答</string>
+    <string name="call_state_ended_busy">对方忙线中</string>
+    <string name="call_state_ended_offline">对方不在线</string>
+    <string name="call_state_ended_error">连接失败</string>
+    <string name="call_state_ended">通话结束</string>
+
+    <string name="call_notification_incoming_video">视频通话 来电</string>
+    <string name="call_notification_incoming_voice">语音通话 来电</string>
+    <string name="call_notification_outgoing">正在呼叫 %s…</string>
+    <string name="call_notification_connecting">连接中…</string>
+    <string name="call_notification_ongoing">通话中 - %s</string>
+
+    <string name="chat_notification_hidden">你收到了1条消息</string>
+    <string name="chat_notification_sender_only">给你发来了1条消息</string>
+    <string name="chat_notification_contact_unknown">未知联系人</string>
+
+    <string name="conn_title_select_bluetooth_device">选择蓝牙设备</string>
+    <string name="conn_title_select_wifi_direct_device">选择 Wi-Fi Direct 设备</string>
+    <string name="conn_section_paired_devices">已配对设备</string>
+    <string name="conn_section_nearby_devices">附近设备</string>
+    <string name="conn_label_select_mode">选择连接方式</string>
+    <string name="conn_desc_mode_hint">一台设备创建群组，另一台加入群组</string>
+    <string name="conn_label_create_group">创建群组</string>
+    <string name="conn_desc_create_group">让对方来连接你</string>
+    <string name="conn_label_join_group">加入群组</string>
+    <string name="conn_desc_join_group">搜索并连接对方</string>
+    <string name="conn_device_status_paired">已配对</string>
+    <string name="conn_signal_excellent">信号极强</string>
+    <string name="conn_signal_good">信号良好</string>
+    <string name="conn_signal_fair">信号一般</string>
+    <string name="conn_signal_weak">信号较弱</string>
+    <string name="conn_empty_no_devices">未找到附近设备</string>
+    <string name="conn_empty_ensure_bluetooth">请确保对方已开启蓝牙</string>
+    <string name="conn_empty_ensure_wifi_direct">请确保对方已开启 Wi-Fi Direct</string>
+    <string name="conn_status_group_created">群组已创建</string>
+    <string name="conn_desc_group_created_hint">等待对方选择「加入群组」连接你</string>
+    <string name="conn_status_scanning">正在搜索附近设备…</string>
+</resources>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_done">完成</string>
+    <string name="action_more">更多</string>
+    <string name="action_ok">确定</string>
+    <string name="action_preview">预览</string>
+    <string name="action_save">保存</string>
+    <string name="action_select_from_gallery">从相册选择</string>
+    <string name="action_share">分享</string>
+    <string name="action_take_photo">拍照</string>
+    <string name="app_name" translatable="false">WeChat Lan</string>
+    <string name="app_select_title">选择应用程序</string>
+    <string name="camera_flash_toggle">开关闪光灯</string>
+    <string name="camera_switch">切换相机</string>
+    <string name="camera_tip_photo">轻触拍照</string>
+    <string name="camera_tip_video">长按摄像</string>
+    <string name="chat_info_background_clear_title">确定清除当前聊天背景吗？</string>
+    <string name="chat_info_clear_background">清除当前背景</string>
+    <string name="media_select_all">图片和视频</string>
+    <string name="media_select_image">选择图片</string>
+    <string name="media_select_video">选择视频</string>
+    <string name="msg_max_select_limit">你最多只能选择%1$d个</string>
+    <string name="msg_save_failed">保存失败</string>
+    <string name="msg_save_success">保存成功</string>
+    <string name="scan_hint">扫二维码 / 条码</string>
+    <string name="scan_recognize_failed">识别失败</string>
+    <string name="scan_tool_album">相册</string>
+    <string name="scan_tool_flash">闪光灯</string>
+    <string name="separator">，</string>
+    <string name="time_friday">周五</string>
+    <string name="time_monday">周一</string>
+    <string name="time_saturday">周六</string>
+    <string name="time_sunday">周日</string>
+    <string name="time_thursday">周四</string>
+    <string name="time_tuesday">周二</string>
+    <string name="time_wednesday">周三</string>
+    <string name="time_yesterday">昨天</string>
+
+    <!-- CallStatus -->
+    <string name="call_status_cancelled">已取消</string>
+    <string name="call_status_cancelled_by_me">已取消</string>
+    <string name="call_status_declined">已拒绝</string>
+    <string name="call_status_declined_by_me">对方已拒绝</string>
+    <string name="call_status_finished">通话完成</string>
+    <string name="call_status_missed">未接听</string>
+    <string name="call_status_missed_by_me">对方未接听</string>
+    <string name="call_status_failed">通话失败</string>
+
+    <!-- NotificationDisplay -->
+    <string name="notification_display_hidden_all">隐藏通知内容</string>
+    <string name="notification_display_sender_only">仅显示发件人</string>
+    <string name="notification_display_sender_and_content">显示发件人和内容</string>
+
+    <!-- NotificationSound -->
+    <string name="notification_sound_blocks">方块</string>
+    <string name="notification_sound_cute">可爱</string>
+    <string name="notification_sound_ethereal">空灵</string>
+    <string name="notification_sound_playful">俏皮</string>
+    <string name="notification_sound_crisp">清脆</string>
+    <string name="notification_sound_nimble">轻盈</string>
+
+    <!-- Settings shared -->
+    <string name="settings_follow_system">跟随系统</string>
+
+    <!-- RingtoneSound -->
+    <string name="ringtone_default">默认</string>
+    <string name="ringtone_mi">小米</string>
+    <string name="ringtone_mi_jazz">小米爵士</string>
+    <string name="ringtone_mi_house">小米豪斯</string>
+    <string name="ringtone_mi_remix">小米混音</string>
+</resources>

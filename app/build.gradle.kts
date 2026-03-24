@@ -58,50 +58,48 @@ configurations.all {
 }
 
 dependencies {
+    // Feature modules
+    implementation(project(":feature:startup"))
+    implementation(project(":feature:home"))
+    implementation(project(":feature:chat"))
+    implementation(project(":feature:contacts"))
+    implementation(project(":feature:discovery"))
+    implementation(project(":feature:profile"))
+    implementation(project(":feature:call"))
+    implementation(project(":feature:settings"))
+    implementation(project(":feature:common"))
+
+    // Core modules
+    implementation(project(":core:designsystem"))
+    implementation(project(":core:common"))
+    implementation(project(":core:network"))
+    implementation(project(":core:data"))
+    implementation(project(":core:database"))
+    implementation(project(":core:location"))
+    implementation(project(":core:model"))
+
     // 核心库
     implementation(libs.core.ktx)
     implementation(libs.annotations)
+    implementation(libs.appcompat)
+
+    // 数据存储与序列化
     implementation(libs.datastore.preferences)
     implementation(libs.serialization.json)
-    implementation(libs.pinyin)
+    implementation(libs.bundles.room)
+    ksp(libs.room.compiler)
 
-    // 生命周期与导航
-    implementation(libs.lifecycle.runtime)
-    implementation(libs.lifecycle.viewmodel.compose)
+    // 导航
     implementation(libs.navigation.compose)
 
     // Compose 核心 UI
     implementation(platform(libs.compose.bom))
     implementation(libs.bundles.compose)
-    implementation(libs.compose.icons.extended)
-    implementation(libs.compose.material3.adaptive)
-
-    // 权限管理
-    implementation(libs.permissions.accompanist)
 
     // 依赖注入 (Hilt)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-
-    //数据库 (Room)
-    implementation(libs.bundles.room)
-    ksp(libs.room.compiler)
-
-    // 图片加载与多媒体
-    implementation(libs.bundles.coil)
-    implementation(libs.coil.zoomable)
-
-    // 相机与扫码
-    implementation(libs.bundles.camera)
-    implementation(libs.mlkit.barcode)
-    implementation(libs.zxing.core)
-
-    // 实时通话
-    implementation(libs.webrtc)
-
-    // 高德地图合包
-    implementation(files("${rootProject.projectDir}/libs/AMap3DMap_11.1.063_AMapSearch_9.7.4_AMapLocation_11.1.060_20260206.aar"))
 
     // 测试相关
     testImplementation(libs.test.junit)

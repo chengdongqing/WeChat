@@ -5,9 +5,9 @@ import dagger.hilt.android.HiltAndroidApp
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.di.IoScope
-import top.chengdongqing.wechat.core.util.clearAllCaches
-import top.chengdongqing.wechat.data.network.transfer.TransferSanitizer
+import top.chengdongqing.wechat.core.common.di.IoScope
+import top.chengdongqing.wechat.core.common.util.clearAllCaches
+import top.chengdongqing.wechat.core.network.transfer.TransferSanitizer
 
 @HiltAndroidApp
 class WeApplication : Application() {

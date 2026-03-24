@@ -5,38 +5,18 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import com.google.android.datatransport.runtime.dagger.multibindings.IntoSet
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import jakarta.inject.Qualifier
 import jakarta.inject.Singleton
-
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class ProfileDataStore
-
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class DisplaySettingsDataStore
-
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class ChatSettingsDataStore
-
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class NotificationSettingsDataStore
-
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class PrivacySettingsDataStore
-
-@Qualifier
-@Retention(AnnotationRetention.RUNTIME)
-annotation class ConnectionSettingsDataStore
+import top.chengdongqing.wechat.core.common.di.ChatSettingsDataStore
+import top.chengdongqing.wechat.core.common.di.ConnectionSettingsDataStore
+import top.chengdongqing.wechat.core.common.di.DisplaySettingsDataStore
+import top.chengdongqing.wechat.core.common.di.NotificationSettingsDataStore
+import top.chengdongqing.wechat.core.common.di.PrivacySettingsDataStore
+import top.chengdongqing.wechat.core.common.di.ProfileDataStore
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -67,7 +47,6 @@ object DataStoreModule {
         )
 
     @Provides
-    @IntoSet
     @Singleton
     @NotificationSettingsDataStore
     fun provideNotificationSettingsDataStore(@ApplicationContext context: Context): DataStore<Preferences> =

@@ -4,7 +4,7 @@ import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.features.profile.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.feature.profile.domain.repository.ProfileRepository
 import javax.inject.Inject
 
 /**
@@ -24,10 +24,7 @@ class NfcHceService : HostApduService() {
 
     companion object {
         /** 应用标识符（AID），读卡方凭此定位到本应用 */
-        val AID = byteArrayOf(
-            0xF0.toByte(), 0x57, 0x65, 0x43,
-            0x68, 0x61, 0x74, 0x4E, 0x46, 0x43
-        )
+        val AID get() = top.chengdongqing.wechat.core.common.nfc.NfcConstants.HCE_AID
 
         /** SELECT APDU 指令头，固定为 CLA=00 INS=A4 P1=04 P2=00 */
         private val SELECT_APDU_HEADER = byteArrayOf(0x00, 0xA4.toByte(), 0x04, 0x00)

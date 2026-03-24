@@ -6,13 +6,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.AppNavigation
-import top.chengdongqing.wechat.data.network.service.P2PService
+import top.chengdongqing.wechat.core.network.service.P2PService
+import top.chengdongqing.wechat.feature.settings.ui.display.DisplaySettingsViewModel
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -32,6 +35,8 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val navController = rememberNavController()
             val route by navRoute
+            val displayViewModel: DisplaySettingsViewModel = hiltViewModel()
+            val displaySettings by displayViewModel.settings.collectAsState()
 
             // 响应路由事件
             LaunchedEffect(route) {
@@ -43,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            WeTheme {
+            WeTheme(settings = displaySettings) {
                 AppNavigation(navController)
             }
         }

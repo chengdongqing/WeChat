@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <queries>
+        <package android:name="com.autonavi.minimap" />
+        <package android:name="com.baidu.BaiduMap" />
+        <package android:name="com.tencent.map" />
+        <package android:name="com.google.android.apps.maps" />
+    </queries>
+
+    <application>
+        <activity android:name=".preview.LocationPreviewActivity" />
+        <activity android:name=".picker.LocationPickerActivity" />
+
+        <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="3469bdc400a6b0c400160f09aac68024" />
+    </application>
+</manifest>

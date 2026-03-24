@@ -1,0 +1,11 @@
+package top.chengdongqing.wechat.core.network.connection
+
+import top.chengdongqing.wechat.core.model.SendError
+
+/**
+ * 连接异常类
+ */
+class ConnectionException(
+    message: String,
+    val failReason: SendError
+) : Exception(message)

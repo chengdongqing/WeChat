@@ -7,13 +7,13 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import top.chengdongqing.wechat.data.database.WeDatabase
-import top.chengdongqing.wechat.data.database.dao.ChatSessionDao
-import top.chengdongqing.wechat.data.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.data.database.dao.ContactDao
-import top.chengdongqing.wechat.data.database.dao.FriendRequestDao
-import top.chengdongqing.wechat.data.database.dao.MediaFileDao
-import top.chengdongqing.wechat.data.database.dao.MessageDao
+import top.chengdongqing.wechat.core.database.WeDatabase
+import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
+import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
+import top.chengdongqing.wechat.core.database.dao.ContactDao
+import top.chengdongqing.wechat.core.database.dao.FriendRequestDao
+import top.chengdongqing.wechat.core.database.dao.MediaFileDao
+import top.chengdongqing.wechat.core.database.dao.MessageDao
 import javax.inject.Singleton
 
 @Module

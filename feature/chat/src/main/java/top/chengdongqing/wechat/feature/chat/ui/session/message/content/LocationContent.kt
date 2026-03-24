@@ -1,0 +1,63 @@
+package top.chengdongqing.wechat.feature.chat.ui.session.message.content
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
+
+@Composable
+fun LocationContent(content: MessageContent.Location) {
+    val targetWidth = rememberScreenFractionWidth(0.6f)
+
+    Column(modifier = Modifier.width(targetWidth)) {
+        // 位置基础信息
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Text(
+                text = content.poiName,
+                color = WeTheme.colorScheme.textPrimary,
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = content.address,
+                color = WeTheme.colorScheme.textSecondary,
+                fontSize = 12.sp,
+                lineHeight = 22.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+
+        WeDivider()
+
+        // 位置快照图片
+        AsyncImage(
+            model = content.snapshotPath,
+            contentDescription = "Location",
+            error = painterResource(R.drawable.img_location_placeholder),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(95.dp),
+            contentScale = ContentScale.Crop,
+            alpha = if (LocalIsDarkTheme.current) 0.4f else 1f
+        )
+    }
+}

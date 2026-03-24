@@ -1,0 +1,118 @@
+<resources>
+    <string name="contacts_menu_new_friends">New Friends</string>
+    <string name="contacts_menu_group_chat">Group Chats</string>
+    <string name="contacts_menu_tags">Tags</string>
+    <string name="contacts_menu_official_accounts">Official Accounts</string>
+
+    <string name="contacts_action_edit_profile">Edit friend profile</string>
+    <string name="contacts_count">%d friend(s)</string>
+
+    <string name="contact_avatar_description">Avatar</string>
+    <string name="contact_label_nickname">Name: </string>
+    <string name="contact_label_wechat_id">WeChat ID: </string>
+    <string name="contact_profile_title">Profile</string>
+    <string name="contact_profile_label_note">Note</string>
+    <string name="contact_moments_title">Moments</string>
+    <string name="contact_action_send_message">Send Message</string>
+    <string name="contact_action_voice_video_call">Voice or Video Call</string>
+    <string name="contact_action_add_to_contacts">Add to Contacts</string>
+
+    <string name="contact_profile_section_remark">Alias</string>
+    <string name="contact_profile_remark_name">Alias</string>
+    <string name="contact_profile_remark_phone">Phone No.</string>
+    <string name="contact_profile_remark_tags">Tags</string>
+    <string name="contact_profile_remark_note">Note</string>
+    <string name="contact_profile_remark_photos">Photo</string>
+    <string name="contact_profile_section_permissions">Friends\' permissions</string>
+    <string name="contact_profile_permissions_label">Permissions</string>
+    <string name="contact_profile_permissions_value">Chats, Moments, WeRun, etc.</string>
+    <string name="contact_profile_section_more">More Info</string>
+    <string name="contact_profile_common_groups">Shared Groups</string>
+    <string name="contact_profile_common_groups_count">%d</string>
+    <string name="contact_profile_signature">What\'s Up</string>
+    <string name="contact_profile_source">From</string>
+    <string name="contact_profile_added_at">Add time</string>
+
+    <string name="contact_profile_edit_title">Set Remarks</string>
+    <string name="contact_profile_edit_label_name">Alias</string>
+    <string name="contact_profile_edit_label_tags">Tags</string>
+    <string name="contact_profile_edit_label_note">Note</string>
+    <string name="contact_profile_edit_label_photo">Photo</string>
+    <string name="contact_profile_edit_add_tag">Add Tags</string>
+    <string name="contact_profile_edit_note_placeholder">Enter Text</string>
+    <string name="contact_profile_edit_add_photo">Add Photo</string>
+
+    <string name="contact_settings_title">Friend Settings</string>
+    <string name="contact_settings_profile">Edit friend profile</string>
+    <string name="contact_settings_permissions">Privacy</string>
+    <string name="contact_settings_recommend">Share Contact</string>
+    <string name="contact_settings_add_to_desktop">Add to Home Screen</string>
+    <string name="contact_settings_star">Add Star</string>
+    <string name="contact_settings_block">Block</string>
+    <string name="contact_settings_report">Report</string>
+
+    <string name="add_contact_title">Add Contacts</string>
+    <string name="add_contact_my_wechat_id">My WeChat ID: %s</string>
+    <string name="add_contact_option_scan_title">Scan</string>
+    <string name="add_contact_option_scan_desc">Scan contact\'s QR code</string>
+    <string name="add_contact_option_nfc_title">Bump</string>
+    <string name="add_contact_option_nfc_desc">Add friends via NFC</string>
+    <string name="add_contact_option_radar_title">Radar</string>
+    <string name="add_contact_option_radar_desc">Quick add friends in your vicinity</string>
+    <string name="add_contact_option_face_to_face_title">Join Private Group</string>
+    <string name="add_contact_option_face_to_face_desc">Join a group with friends nearby</string>
+    <string name="add_contact_option_face_to_face_desc_full">Join a group chat with friends nearby by \n entering the required four digits</string>
+    <string name="add_contact_fetch_profile_failed">Failed to fetch the other person\'s profile</string>
+
+    <string name="nfc_not_supported_title">NFC Not Supported</string>
+    <string name="nfc_not_supported_description">Your device doesn\'t have an NFC chip and can\'t use Tap to Add.\nYou can still add friends by scanning a QR code.</string>
+    <string name="nfc_disabled_title">NFC Is Turned Off</string>
+    <string name="nfc_disabled_description">Please enable NFC in your system settings, then come back to use Tap to Add.</string>
+    <string name="nfc_action_go_to_settings">Enable NFC</string>
+    <string name="nfc_tap_instruction">Hold your phone back-to-back with your friend\'s phone</string>
+    <string name="nfc_tap_hint">Profile will be fetched automatically after tapping</string>
+    <string name="nfc_hce_hint">Some devices require NFC to be set to HCE card emulation mode manually</string>
+    <string name="nfc_mode_scan">Scan</string>
+    <string name="nfc_mode_be_scanned">Be Scanned</string>
+
+    <string name="contact_action_apply">Add Friend</string>
+    <string name="contact_action_verify">Accept Friend Request</string>
+    <string name="contact_label_greeting">Greeting Message</string>
+    <string name="contact_label_remark">Remark</string>
+    <string name="contact_label_tag">Tags</string>
+    <string name="contact_label_note">Note</string>
+    <string name="contact_label_permission">Friend Permissions</string>
+    <string name="contact_action_add_tag">Add Tag</string>
+    <string name="contact_action_set_permission">Set Permissions</string>
+    <string name="contact_msg_request_sent">Friend request sent</string>
+    <string name="contact_msg_friend_added">Friend added</string>
+
+    <string name="new_contacts_title">New Friends</string>
+    <string name="new_contacts_title_with_count">New Friends (%1$d)</string>
+    <string name="new_contacts_action_add">Add Friend</string>
+    <string name="new_contacts_search_placeholder">Search ID / Name</string>
+    <string name="new_contacts_menu_add_phone">Add Phone Contacts</string>
+    <string name="new_contacts_section_recent">Last 3 Days</string>
+    <string name="new_contacts_section_older">Earlier</string>
+    <string name="new_contacts_outgoing_prefix">Me: </string>
+    <string name="new_contacts_avatar_desc">User Avatar</string>
+    <string name="new_contacts_status_pending">Pending</string>
+    <string name="new_contacts_status_accepted">Added</string>
+    <string name="new_contacts_status_rejected">Declined</string>
+    <string name="new_contacts_status_expired">Expired</string>
+
+    <string name="contact_notification_request_content">wants to add you as a friend</string>
+    <string name="contact_notification_auto_added_title">New Friend</string>
+    <string name="contact_notification_auto_added_content">You have added %s. Start chatting now!</string>
+
+    <string name="contact_blocked_hint">This person is now blocked from sending you messages</string>
+
+    <string name="add_source_search">Account Search</string>
+    <string name="add_source_qrcode">QR Code</string>
+    <string name="add_source_bump">Bump to Add</string>
+    <string name="add_source_radar">Nearby Radar</string>
+    <string name="add_source_group">Group Chat</string>
+    <string name="add_source_card">Business Card</string>
+    <string name="add_source_desc_from_me">Added via %s</string>
+    <string name="add_source_desc_from_other">Added you via %s</string>
+</resources>

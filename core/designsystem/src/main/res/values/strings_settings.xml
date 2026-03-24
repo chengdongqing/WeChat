@@ -1,0 +1,144 @@
+<resources>
+    <string name="settings">设置</string>
+    <string name="settings_follow_system">跟随系统</string>
+
+    <string name="settings_group_general">通用</string>
+    <string name="settings_notifications">通知</string>
+    <string name="settings_display">界面与显示</string>
+    <string name="settings_privacy">朋友权限</string>
+    <string name="settings_storage">存储空间</string>
+    <string name="settings_more">更多</string>
+
+    <string name="settings_group_features">功能</string>
+    <string name="settings_connection">连接模式</string>
+    <string name="settings_chat">聊天</string>
+    <string name="settings_chat_history">聊天记录管理</string>
+
+    <string name="settings_group_help">帮助与关于</string>
+    <string name="settings_help">帮助与反馈</string>
+    <string name="settings_about">关于微信</string>
+    <string name="settings_version">版本</string>
+
+    <string name="settings_logout">退出登录</string>
+    <string name="settings_logout_title">确定退出登录吗？</string>
+    <string name="settings_logout_content">将删除所有的数据，并彻底注销账号！</string>
+
+    <string name="notification_msg">消息通知</string>
+    <string name="notification_call">语音和视频通话通知</string>
+    <string name="notification_display">通知显示内容</string>
+
+    <string name="notification_group_sound">声音与振动</string>
+    <string name="notification_system_settings">前往系统设置</string>
+    <string name="notification_in_chat">聊天界面中的新消息通知</string>
+
+    <string name="notification_group_ringtone">提示音和铃声</string>
+    <string name="notification_msg_sound">消息提示音</string>
+    <string name="notification_ringtone">来电铃声</string>
+    <string name="notification_ringtone_hint">呼叫我时朋友也可听见我的来电铃声</string>
+
+    <string name="notification_display_hidden_all">仅显示「你收到了1条消息」</string>
+    <string name="notification_display_sender_only">显示朋友和群聊的名称</string>
+    <string name="notification_display_sender_and_content">显示朋友、群聊名称及消息内容</string>
+
+    <string name="notification_in_chat_sound">声音</string>
+    <string name="notification_in_chat_vibration">振动</string>
+    <string name="notification_in_chat_hint">此处的开关可以控制以下场景的声音与振动</string>
+    <string name="notification_in_chat_hint_item1">- 聊天列表中收到新消息</string>
+    <string name="notification_in_chat_hint_item2">- 当前聊天中收到新消息</string>
+
+    <string name="notification_sound_blocks">积木</string>
+    <string name="notification_sound_cute">可爱</string>
+    <string name="notification_sound_ethereal">空灵</string>
+    <string name="notification_sound_playful">俏皮</string>
+    <string name="notification_sound_crisp">清脆</string>
+    <string name="notification_sound_nimble">灵动</string>
+
+    <string name="ringtone_default">微信</string>
+    <string name="ringtone_mi">小米抒情版</string>
+    <string name="ringtone_mi_jazz">小米爵士版</string>
+    <string name="ringtone_mi_house">小米电子版</string>
+    <string name="ringtone_mi_remix">小米清新版</string>
+
+    <string name="display_theme">深色模式</string>
+    <string name="display_theme_light">普通模式</string>
+    <string name="display_theme_dark">深色模式</string>
+    <string name="display_theme_follow_system_desc">开启后，将跟随系统打开或关闭深色模式</string>
+    <string name="display_theme_manual_select">手动选择</string>
+
+    <string name="display_font_scale">字体大小</string>
+    <string name="display_font_scale_normal">标准</string>
+    <string name="display_font_scale_preview_title">预览字体大小</string>
+    <string name="display_font_scale_preview_hint">拖动下面的滑块，可设置字体大小</string>
+    <string name="display_font_scale_preview_desc">设置后，会改变聊天和朋友圈的字体大小。如果在使用过程中存在问题或意见，可反馈给微信团队</string>
+
+    <string name="display_language">多语言</string>
+    <string name="display_language_chinese">简体中文</string>
+    <string name="display_language_english">English</string>
+
+    <string name="privacy_add_verify">加我为朋友时需要验证</string>
+    <string name="privacy_add_method">添加我的方式</string>
+    <string name="privacy_chat_only">仅聊天</string>
+    <string name="privacy_moments">朋友圈</string>
+    <string name="privacy_channels">视频号</string>
+    <string name="privacy_top_stories">看一看</string>
+    <string name="privacy_sports">微信运动</string>
+    <string name="privacy_blacklist">通讯录黑名单</string>
+    <string name="privacy_blacklist_title">通讯录黑名单</string>
+
+    <string name="privacy_add_method_group">可通过以下方式添加我为好友</string>
+    <string name="privacy_add_method_qrcode">二维码</string>
+    <string name="privacy_add_method_bump">碰一碰</string>
+    <string name="privacy_add_method_radar">雷达</string>
+    <string name="privacy_add_method_card">名片</string>
+    <string name="privacy_add_method_other">其他</string>
+    <string name="privacy_add_method_other_desc">删除的联系人保留的聊天等</string>
+
+    <string name="more_minor_mode">未成年模式</string>
+    <string name="more_care_mode">关怀模式</string>
+    <string name="more_auto_save_photo">自动保存拍摄或编辑后的图片</string>
+    <string name="more_auto_save_video">自动保存拍摄或编辑后的视频</string>
+    <string name="more_system_permissions">系统权限</string>
+
+    <string name="permission_title">系统权限管理</string>
+    <string name="permission_enabled">已开启</string>
+    <string name="permission_location">位置信息</string>
+    <string name="permission_location_desc">用于搜索周边的 Wi-Fi 节点及蓝牙设备等。</string>
+    <string name="permission_microphone">麦克风</string>
+    <string name="permission_microphone_desc">用于录制语音消息或进行实时通话等。</string>
+    <string name="permission_camera">相机</string>
+    <string name="permission_camera_desc">用于拍摄照片、视频以及实时通话、扫描二维码等。</string>
+    <string name="permission_nfc">NFC</string>
+    <string name="permission_nfc_desc">用于通过触碰快速建立连接或交换名片等。</string>
+    <string name="permission_bluetooth">蓝牙</string>
+    <string name="permission_bluetooth_desc">用于在无网络环境下搜索并连接周边好友等。</string>
+    <string name="permission_wifi">Wi-Fi</string>
+    <string name="permission_wifi_desc">用于局域网内的高速文件传输与消息同步等。</string>
+
+    <string name="connection_title">连接模式</string>
+    <string name="connection_hint">连接模式说明</string>
+    <string name="connection_wifi_lan">Wi-Fi 局域网</string>
+    <string name="connection_wifi_lan_desc">在同一 Wi-Fi 下通信，稳定方便，支持通话。</string>
+    <string name="connection_wifi_direct">Wi-Fi 直连</string>
+    <string name="connection_wifi_direct_desc">完全离线，设备间直接互联，适合户外无网络环境或大文件传输。</string>
+    <string name="connection_bluetooth">蓝牙</string>
+    <string name="connection_bluetooth_desc">功耗低，但速率也很低，适合近距离发送短消息。</string>
+
+    <string name="chat_settings_background">聊天背景</string>
+    <string name="chat_settings_earpiece">使用听筒播放语音消息</string>
+    <string name="chat_settings_send_button">使用独立的发送按钮</string>
+    <string name="chat_settings_e2e">端到端加密</string>
+    <string name="chat_settings_e2e_desc">消息经端到端加密，仅收发双方可读取</string>
+
+    <string name="chat_history_title">聊天记录管理</string>
+    <string name="chat_history_import_title">导入与导出</string>
+    <string name="chat_history_import_desc">从其它设备导入聊天记录，或将聊天记录导出到其它设备。</string>
+    <string name="chat_history_backup_title">备份与恢复</string>
+    <string name="chat_history_backup_desc">把手机里的聊天记录备份到其他存储设备，以便在丢失或使用新手机时恢复聊天记录。</string>
+    <string name="chat_history_clear">清空全部聊天记录</string>
+    <string name="chat_history_clear_title">确定清空全部聊天记录吗？</string>
+    <string name="chat_history_clear_content">被清空的聊天记录将无法恢复，请再次确认是否清空所有个人和群的聊天记录</string>
+
+    <string name="about_features">功能介绍</string>
+    <string name="about_complaint">投诉</string>
+    <string name="about_update">版本更新</string>
+</resources>

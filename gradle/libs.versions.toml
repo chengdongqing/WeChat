@@ -1,6 +1,7 @@
 [versions]
 # 构建工具与插件
 agp = "9.1.0"
+appcompat = "1.7.1"
 kotlin = "2.3.20"
 ksp = "2.3.4"
 
@@ -42,6 +43,7 @@ annotations = "26.1.0"
 
 [libraries]
 # 核心支持库
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 compose-activity = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
 # JetBrains 注解库
@@ -113,6 +115,7 @@ compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-mani
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

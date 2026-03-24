@@ -78,11 +78,6 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
-
-        <package android:name="com.autonavi.minimap" />
-        <package android:name="com.baidu.BaiduMap" />
-        <package android:name="com.tencent.map" />
-        <package android:name="com.google.android.apps.maps" />
     </queries>
 
     <!-- 硬件特性（非必须） -->
@@ -125,33 +120,6 @@
             </intent-filter>
         </activity>
 
-        <!-- 功能 Activity -->
-        <activity android:name=".core.qrcode.scanner.QRCodeScannerActivity" />
-        <activity android:name=".core.media.preview.MediaPreviewActivity" />
-        <activity android:name=".core.media.picker.MediaPickerActivity" />
-        <activity android:name=".core.cropper.ImageCropperActivity" />
-        <activity android:name=".core.camera.CameraActivity" />
-        <activity android:name=".core.location.preview.LocationPreviewActivity" />
-        <activity android:name=".core.location.picker.LocationPickerActivity" />
-        <activity android:name=".features.contacts.ui.picker.ContactPickerActivity" />
-        <activity android:name=".core.app.AppPickerActivity" />
-
-        <!-- 通话界面 -->
-        <activity
-            android:name=".features.call.ui.CallActivity"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:showOnLockScreen="true"
-            android:taskAffinity=""
-            android:turnScreenOn="true"
-            tools:targetApi="27" />
-
-        <!-- 前台网络服务 -->
-        <service
-            android:name=".data.network.service.P2PService"
-            android:exported="false"
-            android:foregroundServiceType="connectedDevice|dataSync" />
-
         <!-- NFC HCE 服务 -->
         <service
             android:name=".core.nfc.NfcHceService"
@@ -166,11 +134,6 @@
                 android:name="android.nfc.cardemulation.host_apdu_service"
                 android:resource="@xml/nfc_hce_aid" />
         </service>
-
-        <!-- 地图 SDK -->
-        <meta-data
-            android:name="com.amap.api.v2.apikey"
-            android:value="3469bdc400a6b0c400160f09aac68024" />
 
         <!-- FileProvider -->
         <provider
