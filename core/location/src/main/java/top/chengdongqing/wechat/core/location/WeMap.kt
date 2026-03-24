@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.showToast
 import top.chengdongqing.wechat.core.location.map.MapController
-import top.chengdongqing.wechat.core.location.map.amap.AMapController
+import top.chengdongqing.wechat.core.location.map.amap.createMapController
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 
 /**
@@ -52,13 +52,14 @@ fun rememberMapController(): MapController {
     val context = LocalContext.current
     val isDarkTheme = LocalIsDarkTheme.current
     val scope = rememberCoroutineScope()
-    return remember { AMapController(context, isDarkTheme, scope) }
+
+    return remember {
+        createMapController(context, isDarkTheme, scope)
+    }
 }
 
 /**
  * 地图渲染容器
- *
- * 通过 [MapController] 接口与具体 SDK 完全解耦，不引入任何 AMap 类型。
  *
  * @param controller 由 [rememberMapController] 创建，持有具体 SDK 实例
  * @param overlay 地图上叠加的控件，默认显示定位回中按钮
@@ -74,7 +75,9 @@ fun WeMap(
 
     LifecycleEffect(controller, mapSaveState)
     PermissionHandler {
-        if (mapSaveState.isEmpty) controller.enableMyLocation(context)
+        if (mapSaveState.isEmpty) {
+            controller.enableMyLocation(context)
+        }
     }
 
     Box(modifier) {
@@ -90,8 +93,12 @@ fun WeMap(
  * 定位回中控件，点击后将地图视野移至当前设备位置
  */
 @Composable
-fun BoxScope.LocationControl(controller: MapController, onClick: ((GeoPoint) -> Unit)? = null) {
+fun BoxScope.LocationControl(
+    controller: MapController,
+    onClick: ((GeoPoint) -> Unit)? = null
+) {
     val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .align(Alignment.BottomStart)

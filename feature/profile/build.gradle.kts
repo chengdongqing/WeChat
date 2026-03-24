@@ -24,12 +24,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:designsystem"))
-    implementation(project(":core:common"))
-    implementation(project(":core:network"))
-    implementation(project(":core:database"))
-    implementation(project(":core:data"))
-    implementation(project(":core:model"))
+    implementation(projects.core.model)
+    implementation(projects.core.data)
+    implementation(projects.core.common)
+    implementation(projects.core.designsystem)
+    implementation(projects.core.network)
+    implementation(projects.core.database)
 
     implementation(libs.navigation.compose)
     implementation(libs.hilt.android)

@@ -12,6 +12,8 @@ android {
 
     defaultConfig {
         minSdk = 26
+
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     compileOptions {
@@ -22,17 +24,24 @@ android {
     buildFeatures {
         compose = true
     }
+
+    flavorDimensions.add("version")
+    productFlavors {
+        create("full") { dimension = "version" }
+        create("lite") { dimension = "version" }
+    }
 }
 
 dependencies {
-    implementation(project(":core:designsystem"))
-    implementation(project(":core:model"))
-    implementation(project(":core:common"))
+    implementation(projects.core.model)
+    implementation(projects.core.common)
+    implementation(projects.core.designsystem)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.datastore.preferences)
 
     // 高德地图合包
-    implementation(files("${rootProject.projectDir}/core/location/libs/AMap3DMap_11.1.063_AMapSearch_9.7.4_AMapLocation_11.1.060_20260206.aar"))
+    "fullImplementation"(files("${rootProject.projectDir}/core/location/libs/AMap3DMap_11.1.063_AMapSearch_9.7.4_AMapLocation_11.1.060_20260206.aar"))
+    "liteImplementation"(files("${rootProject.projectDir}/core/location/libs/Lite3dMap_1.2.0_AMapSearch_9.7.4_AMapLocation_11.1.000_20260306.aar"))
 }

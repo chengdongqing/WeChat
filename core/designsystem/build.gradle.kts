@@ -22,7 +22,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:model"))
+    implementation(projects.core.model)
 
     api(platform(libs.compose.bom))
     api(libs.bundles.compose)

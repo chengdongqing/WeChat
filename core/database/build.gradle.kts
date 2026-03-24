@@ -28,7 +28,7 @@ configure<RoomExtension> {
 }
 
 dependencies {
-    implementation(project(":core:model"))
+    implementation(projects.core.model)
 
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)

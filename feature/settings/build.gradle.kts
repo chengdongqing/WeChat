@@ -21,18 +21,24 @@ android {
     buildFeatures {
         compose = true
     }
+
+    flavorDimensions.add("version")
+    productFlavors {
+        create("full") { dimension = "version" }
+        create("lite") { dimension = "version" }
+    }
 }
 
 dependencies {
-    implementation(project(":core:designsystem"))
-    implementation(project(":core:common"))
-    implementation(project(":core:network"))
-    implementation(project(":core:database"))
-    implementation(project(":core:data"))
-    implementation(project(":core:model"))
+    implementation(projects.core.model)
+    implementation(projects.core.data)
+    implementation(projects.core.common)
+    implementation(projects.core.designsystem)
+    implementation(projects.core.network)
+    implementation(projects.core.database)
 
-    implementation(project(":feature:chat"))
-    implementation(project(":feature:contacts"))
+    implementation(projects.feature.chat)
+    implementation(projects.feature.contacts)
 
     implementation(libs.navigation.compose)
     implementation(libs.hilt.android)

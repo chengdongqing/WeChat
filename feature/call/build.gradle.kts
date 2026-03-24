@@ -12,9 +12,7 @@ android {
     defaultConfig {
         minSdk = 26
 
-        ndk {
-            abiFilters.add("arm64-v8a")
-        }
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     compileOptions {
@@ -28,11 +26,11 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:designsystem"))
-    implementation(project(":core:common"))
-    implementation(project(":core:network"))
-    implementation(project(":core:database"))
-    implementation(project(":core:model"))
+    implementation(projects.core.model)
+    implementation(projects.core.common)
+    implementation(projects.core.designsystem)
+    implementation(projects.core.network)
+    implementation(projects.core.database)
 
     implementation(libs.navigation.compose)
     implementation(libs.hilt.android)
@@ -41,7 +39,6 @@ dependencies {
 
     implementation(libs.serialization.json)
 
-    // 实时音视频通话（仅此模块依赖，隔离 WebRTC SDK）
     implementation(libs.webrtc)
 
     implementation(libs.bundles.coil)

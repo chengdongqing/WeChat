@@ -47,6 +47,12 @@ android {
     buildFeatures {
         compose = true
     }
+
+    flavorDimensions.add("version")
+    productFlavors {
+        create("full") { dimension = "version" }
+        create("lite") { dimension = "version" }
+    }
 }
 
 configure<RoomExtension> {
@@ -59,24 +65,24 @@ configurations.all {
 
 dependencies {
     // Feature modules
-    implementation(project(":feature:startup"))
-    implementation(project(":feature:home"))
-    implementation(project(":feature:chat"))
-    implementation(project(":feature:contacts"))
-    implementation(project(":feature:discovery"))
-    implementation(project(":feature:profile"))
-    implementation(project(":feature:call"))
-    implementation(project(":feature:settings"))
-    implementation(project(":feature:common"))
+    implementation(projects.feature.startup)
+    implementation(projects.feature.home)
+    implementation(projects.feature.chat)
+    implementation(projects.feature.contacts)
+    implementation(projects.feature.discovery)
+    implementation(projects.feature.profile)
+    implementation(projects.feature.call)
+    implementation(projects.feature.settings)
+    implementation(projects.feature.common)
 
     // Core modules
-    implementation(project(":core:designsystem"))
-    implementation(project(":core:common"))
-    implementation(project(":core:network"))
-    implementation(project(":core:data"))
-    implementation(project(":core:database"))
-    implementation(project(":core:location"))
-    implementation(project(":core:model"))
+    implementation(projects.core.designsystem)
+    implementation(projects.core.common)
+    implementation(projects.core.network)
+    implementation(projects.core.data)
+    implementation(projects.core.database)
+    implementation(projects.core.location)
+    implementation(projects.core.model)
 
     // 核心库
     implementation(libs.core.ktx)

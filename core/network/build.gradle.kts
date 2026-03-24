@@ -21,10 +21,10 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:model"))
-    implementation(project(":core:database"))
-    implementation(project(":core:common"))
-    api(project(":core:data"))  // expose data types to consumers
+    implementation(projects.core.model)
+    implementation(projects.core.common)
+    implementation(projects.core.database)
+    api(projects.core.data)  // expose data types to consumers
 
     implementation(libs.core.ktx)
     implementation(libs.serialization.json)

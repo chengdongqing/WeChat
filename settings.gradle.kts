@@ -24,6 +24,9 @@ dependencyResolutionManagement {
     }
 }
 
+// 开启类型安全项目访问器
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.name = "WeChat"
 include(":app")
 

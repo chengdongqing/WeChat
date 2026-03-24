@@ -32,7 +32,7 @@ import top.chengdongqing.wechat.core.location.util.createIconBitmap
  * 所有 AMap SDK 类型均封闭在此类内部，外部通过 [MapController] 接口交互。
  */
 @Stable
-internal class AMapController(
+class AMapController(
     context: Context,
     isDarkTheme: Boolean,
     private val scope: CoroutineScope
@@ -124,7 +124,9 @@ internal class AMapController(
     override fun addMarker(point: GeoPoint, icon: Bitmap?): MapMarkerHandle {
         val marker = map.addMarker(MarkerOptions().apply {
             position(point.toLatLng())
-            icon?.let { icon(BitmapDescriptorFactory.fromBitmap(it)) }
+            icon?.let {
+                icon(BitmapDescriptorFactory.fromBitmap(it))
+            }
         })
         return AMapMarkerHandle(marker)
     }
@@ -132,7 +134,9 @@ internal class AMapController(
     override suspend fun takeSnapshot(): Bitmap? = suspendCancellableCoroutine { cont ->
         map.getMapScreenShot(object : AMap.OnMapScreenShotListener {
             private fun deliver(bitmap: Bitmap?) {
-                if (cont.isActive) cont.resume(bitmap) { _, _, _ -> bitmap?.recycle() }
+                if (cont.isActive) {
+                    cont.resume(bitmap) { _, _, _ -> bitmap?.recycle() }
+                }
             }
 
             override fun onMapScreenShot(bitmap: Bitmap?) = deliver(bitmap)
@@ -143,20 +147,28 @@ internal class AMapController(
     // ── 事件监听 ──────────────────────────────────────────────────────────
 
     override fun setOnMapClickListener(listener: (GeoPoint) -> Unit) {
-        map.setOnMapClickListener { listener(it.toGeoPoint()) }
+        map.setOnMapClickListener {
+            listener(it.toGeoPoint())
+        }
     }
 
     override fun setOnPoiClickListener(listener: (GeoPoint) -> Unit) {
-        map.setOnPOIClickListener { listener(it.coordinate.toGeoPoint()) }
+        map.setOnPOIClickListener {
+            listener(it.coordinate.toGeoPoint())
+        }
     }
 
     override fun setOnTouchListener(listener: (MotionEvent) -> Unit) {
-        map.setOnMapTouchListener { listener(it) }
+        map.setOnMapTouchListener {
+            listener(it)
+        }
     }
 
     override fun setOnLocationChangeListener(listener: (GeoPoint) -> Unit) {
         map.setOnMyLocationChangeListener { location ->
-            if (location.isValid()) listener(location.toGeoPoint())
+            if (location.isValid()) {
+                listener(location.toGeoPoint())
+            }
         }
     }
 }

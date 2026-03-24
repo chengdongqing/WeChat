@@ -20,9 +20,9 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:model"))
-    implementation(project(":core:database"))
-    implementation(project(":core:common"))
+    implementation(projects.core.model)
+    implementation(projects.core.common)
+    implementation(projects.core.database)
 
     implementation(libs.core.ktx)
     implementation(libs.datastore.preferences)

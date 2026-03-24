@@ -20,11 +20,6 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# AMap
--keep class com.autonavi.**{ *; }
--keep class com.amap.api.**.**{ *; }
--keep, allowobfuscation class top.chengdongqing.wechat.core.designsystem.components.location.model.**
-
 # Pinyin
 -keep,allowobfuscation class com.github.houbb.pinyin.** { *; }
 
@@ -36,18 +31,7 @@
 -keep enum com.google.mlkit.**  { *; }
 -keep interface com.google.mlkit.**  { *; }
 
-# WebRTC
--keep class org.webrtc.** { *; }
--keepattributes InnerClasses
--keepattributes *Annotation*
--keepattributes Exceptions
--keep class org.jni_zero.** { *; }
--keepnames class org.jni_zero.** { *; }
--keepclasseswithmembernames class * {
-    @org.jni_zero.NativeMethods *;
-}
-
 # 保持异常堆栈的行号和源文件名，方便排查崩溃
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable
 # 强制保留某些可能用于反射的类名，让报错信息显示出原始类名
-#-keepattributes Signature,EnclosingMethod,InnerClasses,AnnotationDefault
+-keepattributes Signature,EnclosingMethod,InnerClasses,AnnotationDefault
