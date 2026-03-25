@@ -1,7 +1,6 @@
 package top.chengdongqing.wechat.core.common.util
 
 import android.content.res.Resources
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.model.AppLanguage
 import java.time.DayOfWeek
 import java.time.Instant
@@ -10,6 +9,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import kotlin.time.Duration
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 private const val HourInSeconds = 3600
 private const val MinuteInSeconds = 60
@@ -55,20 +55,20 @@ fun Long.toChatDisplayTime(resources: Resources): String {
 
         // 昨天
         targetDate.isEqual(nowDate.minusDays(1)) -> {
-            "${resources.getString(R.string.time_yesterday)} ${target.format(TimeFormatter)}"
+            "${resources.getString(DesignR.string.time_yesterday)} ${target.format(TimeFormatter)}"
         }
 
         // 一周内 (2-7天前)
         targetDate.isAfter(nowDate.minusDays(7)) -> {
             val weekDayRes = when (target.dayOfWeek) {
-                DayOfWeek.MONDAY -> R.string.time_monday
-                DayOfWeek.TUESDAY -> R.string.time_tuesday
-                DayOfWeek.WEDNESDAY -> R.string.time_wednesday
-                DayOfWeek.THURSDAY -> R.string.time_thursday
-                DayOfWeek.FRIDAY -> R.string.time_friday
-                DayOfWeek.SATURDAY -> R.string.time_saturday
-                DayOfWeek.SUNDAY -> R.string.time_sunday
-                else -> R.string.time_monday
+                DayOfWeek.MONDAY -> DesignR.string.time_monday
+                DayOfWeek.TUESDAY -> DesignR.string.time_tuesday
+                DayOfWeek.WEDNESDAY -> DesignR.string.time_wednesday
+                DayOfWeek.THURSDAY -> DesignR.string.time_thursday
+                DayOfWeek.FRIDAY -> DesignR.string.time_friday
+                DayOfWeek.SATURDAY -> DesignR.string.time_saturday
+                DayOfWeek.SUNDAY -> DesignR.string.time_sunday
+                else -> DesignR.string.time_monday
             }
             "${resources.getString(weekDayRes)} ${target.format(TimeFormatter)}"
         }

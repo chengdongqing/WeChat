@@ -12,9 +12,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import top.chengdongqing.wechat.core.common.R
 import javax.inject.Inject
 import javax.inject.Singleton
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 提示音管理器
@@ -44,11 +44,11 @@ class SoundTipPlayer @Inject constructor(
         // 预加载常用音频
         preload(
             context,
-            R.raw.tip_call_end,
-            R.raw.ringtone_default,
-            R.raw.tip_voice_played,
-            R.raw.tip_qrcode_completed,
-            R.raw.tip_after_upload_voice
+            DesignR.raw.tip_call_end,
+            DesignR.raw.ringtone_default,
+            DesignR.raw.tip_voice_played,
+            DesignR.raw.tip_qrcode_completed,
+            DesignR.raw.tip_after_upload_voice
         )
     }
 

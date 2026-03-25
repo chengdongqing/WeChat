@@ -20,7 +20,7 @@ import com.amap.api.maps.model.MyLocationStyle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import top.chengdongqing.wechat.core.location.R
+import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.location.map.MapController
 import top.chengdongqing.wechat.core.location.map.MapMarkerHandle
 import top.chengdongqing.wechat.core.location.model.GeoPoint
@@ -28,8 +28,6 @@ import top.chengdongqing.wechat.core.location.util.createIconBitmap
 
 /**
  * 基于高德地图 SDK 的 [MapController] 实现
- *
- * 所有 AMap SDK 类型均封闭在此类内部，外部通过 [MapController] 接口交互。
  */
 @Stable
 class AMapController(

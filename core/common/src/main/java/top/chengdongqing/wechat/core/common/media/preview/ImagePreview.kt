@@ -41,11 +41,11 @@ import me.saket.telephoto.zoomable.ZoomableState
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.util.MotionPhotoExtractor
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.rememberVideoPlayerState
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ImagePreview(
@@ -137,8 +137,8 @@ private fun MotionPhotoToggle(
         ) {
             Icon(
                 painter = painterResource(
-                    if (enabled) R.drawable.ic_motion_outlined
-                    else R.drawable.ic_motion_off_outlined
+                    if (enabled) DesignR.drawable.ic_motion_outlined
+                    else DesignR.drawable.ic_motion_off_outlined
                 ),
                 contentDescription = null,
                 tint = contentColor,

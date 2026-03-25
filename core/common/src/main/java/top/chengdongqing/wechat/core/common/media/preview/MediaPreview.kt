@@ -32,12 +32,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import me.saket.telephoto.zoomable.rememberZoomableState
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.rememberVideoPlayerState
 import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun WeMediaPreview(medias: List<MediaItem>, current: Int = 0, onDismiss: () -> Unit) {
@@ -121,13 +121,13 @@ private fun BoxScope.ToolBar(
     ) {
         ActionIcon(
             imageVector = Icons.Outlined.Share,
-            label = stringResource(R.string.action_share)
+            label = stringResource(DesignR.string.action_share)
         ) {
             viewModel.shareMedia(media)
         }
         ActionIcon(
             imageVector = Icons.Outlined.Download,
-            label = stringResource(R.string.action_save)
+            label = stringResource(DesignR.string.action_save)
         ) {
             viewModel.saveMedia(media)
         }

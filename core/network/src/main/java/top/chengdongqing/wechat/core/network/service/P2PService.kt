@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.repository.ConnectionSettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
-import top.chengdongqing.wechat.core.network.R
+import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.network.ble.BluetoothStateMonitor
 import top.chengdongqing.wechat.core.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.core.network.http.AvatarServer

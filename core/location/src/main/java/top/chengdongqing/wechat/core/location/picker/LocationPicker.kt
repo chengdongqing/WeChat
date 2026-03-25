@@ -44,13 +44,13 @@ import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.location.LocationControl
-import top.chengdongqing.wechat.core.location.R
 import top.chengdongqing.wechat.core.location.WeMap
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.picker.locationlist.SearchableLocationList
 import top.chengdongqing.wechat.core.location.rememberMapController
 import top.chengdongqing.wechat.core.location.repository.LocationRepository
 import top.chengdongqing.wechat.core.location.util.createIconBitmap
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun WeLocationPicker(
@@ -72,7 +72,8 @@ fun WeLocationPicker(
             try {
                 // 非搜索模式：先临时添加 Marker 再截图，截图后立即移除
                 val markerHandle = if (!pickerState.isSearchMode) {
-                    val icon = createIconBitmap(context, R.drawable.ic_location_marker, 160, 160)
+                    val icon =
+                        createIconBitmap(context, DesignR.drawable.ic_location_marker, 160, 160)
                     pickerState.mapCenterLatLng?.let { mapController.addMarker(it, icon) }
                 } else null
 
@@ -119,7 +120,7 @@ private fun BoxScope.LocationMarker(state: LocationPickerState) {
     val context = LocalContext.current
     // 搜索模式下才需要图标 Bitmap（普通模式用 Image composable overlay 代替）
     val locationIcon by produceState<Bitmap?>(null) {
-        value = createIconBitmap(context, R.drawable.ic_location_marker, 160, 160)
+        value = createIconBitmap(context, DesignR.drawable.ic_location_marker, 160, 160)
     }
 
     if (!state.isSearchMode) {
@@ -131,7 +132,7 @@ private fun BoxScope.LocationMarker(state: LocationPickerState) {
             offsetY.animateTo(0f, animationSpec)
         }
         Image(
-            painter = painterResource(id = R.drawable.ic_location_marker),
+            painter = painterResource(id = DesignR.drawable.ic_location_marker),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.Center)
@@ -170,13 +171,13 @@ private fun TopBar(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
-            text = stringResource(R.string.action_cancel),
+            text = stringResource(DesignR.string.action_cancel),
             color = Color.White,
             fontSize = 16.sp,
             modifier = Modifier.weClickable { onCancel() }
         )
         WeButton(
-            text = stringResource(R.string.action_done),
+            text = stringResource(DesignR.string.action_done),
             size = ButtonSize.Small,
             enabled = hasSelected,
             loading = isLoading,

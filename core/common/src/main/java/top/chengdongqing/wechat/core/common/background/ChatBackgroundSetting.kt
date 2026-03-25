@@ -19,13 +19,13 @@ import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.util.createImageUri
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ChatBackgroundSetting(
@@ -41,13 +41,13 @@ fun ChatBackgroundSetting(
 
     val options = remember(value) {
         val list = mutableListOf(
-            ActionSheetItem(R.string.action_take_photo),
-            ActionSheetItem(R.string.action_select_from_gallery)
+            ActionSheetItem(DesignR.string.action_take_photo),
+            ActionSheetItem(DesignR.string.action_select_from_gallery)
         )
         if (value != null) {
             list.add(
                 ActionSheetItem(
-                    labelRes = R.string.chat_info_clear_background,
+                    labelRes = DesignR.string.chat_info_clear_background,
                     color = Danger
                 )
             )
@@ -61,7 +61,7 @@ fun ChatBackgroundSetting(
                 0 -> scope.launch { selectorState.handleCameraAction() }
                 1 -> selectorState.pickVisualMedia()
                 2 -> {
-                    dialog.show(resources.getString(R.string.chat_info_background_clear_title)) {
+                    dialog.show(resources.getString(DesignR.string.chat_info_background_clear_title)) {
                         onChange(null)
                     }
                 }

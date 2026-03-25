@@ -35,7 +35,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.app.model.AppItem
 import top.chengdongqing.wechat.core.common.app.model.AppResult
 import top.chengdongqing.wechat.core.common.app.model.toResult
@@ -51,6 +50,7 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun AppPicker(
@@ -133,7 +133,7 @@ fun AppPicker(
                                             if (uiState.selectedCount >= count && !isSelected) {
                                                 context.showToast(
                                                     resources.getString(
-                                                        R.string.msg_max_select_limit,
+                                                        DesignR.string.msg_max_select_limit,
                                                         count
                                                     )
                                                 )
@@ -188,7 +188,7 @@ fun ApkListItem(apk: AppItem) {
         AsyncImage(
             model = apk.icon,
             contentDescription = null,
-            error = painterResource(R.drawable.img_logo),
+            error = painterResource(DesignR.drawable.img_logo),
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(4.dp))
@@ -222,11 +222,11 @@ private fun TopBar(
     val isEnabled = uiState.selectedCount > 0
     val buttonText = run {
         val suffix = if (isEnabled) "(${uiState.selectedCount})" else ""
-        "${stringResource(R.string.action_done)}$suffix"
+        "${stringResource(DesignR.string.action_done)}$suffix"
     }
 
     WeTopBar(
-        title = stringResource(R.string.app_select_title),
+        title = stringResource(DesignR.string.app_select_title),
         onBack = onBack
     ) {
         WeButton(

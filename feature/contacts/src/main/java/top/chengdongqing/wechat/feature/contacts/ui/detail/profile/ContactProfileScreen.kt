@@ -23,7 +23,8 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.model.Gender.Companion.safePronoun
+import top.chengdongqing.wechat.core.designsystem.ui.getDescription
+import top.chengdongqing.wechat.core.designsystem.ui.safePronounRes
 import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailViewModel
 
 @Composable
@@ -107,7 +108,7 @@ fun ContactProfileScreen(
                     WeSettingItem(
                         label = stringResource(
                             R.string.contact_profile_common_groups,
-                            stringResource(contact.gender.safePronoun)
+                            stringResource(contact.gender.safePronounRes)
                         ),
                         trailing = {
                             WeSettingValue(

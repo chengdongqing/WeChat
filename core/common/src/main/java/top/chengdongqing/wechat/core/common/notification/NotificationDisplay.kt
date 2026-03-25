@@ -1,12 +1,12 @@
 package top.chengdongqing.wechat.core.common.notification
 
 import androidx.annotation.StringRes
-import top.chengdongqing.wechat.core.common.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 enum class NotificationDisplay(
     @get:StringRes val descriptionRes: Int
 ) {
-    HiddenAll(R.string.notification_display_hidden_all),
-    SenderOnly(R.string.notification_display_sender_only),
-    SenderAndContent(R.string.notification_display_sender_and_content);
+    HiddenAll(DesignR.string.notification_display_hidden_all),
+    SenderOnly(DesignR.string.notification_display_sender_only),
+    SenderAndContent(DesignR.string.notification_display_sender_and_content);
 }

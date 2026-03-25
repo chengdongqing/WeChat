@@ -2,7 +2,7 @@ package top.chengdongqing.wechat.core.model
 
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
-import top.chengdongqing.wechat.core.util.randomUUID
+import java.util.UUID
 
 @Immutable
 @Serializable
@@ -34,3 +34,5 @@ data class UserProfile(
         updatedAt = System.currentTimeMillis()
     )
 }
+
+private fun randomUUID() = UUID.randomUUID().toString().replace("-", "")

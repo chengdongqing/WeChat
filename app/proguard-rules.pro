@@ -23,14 +23,6 @@
 # Pinyin
 -keep,allowobfuscation class com.github.houbb.pinyin.** { *; }
 
-# MLKit
--keepclassmembers class com.google.mlkit.** {
-    native <methods>;
-    public <init>(...);
-}
--keep enum com.google.mlkit.**  { *; }
--keep interface com.google.mlkit.**  { *; }
-
 # 保持异常堆栈的行号和源文件名，方便排查崩溃
 -keepattributes SourceFile,LineNumberTable
 # 强制保留某些可能用于反射的类名，让报错信息显示出原始类名

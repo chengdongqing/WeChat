@@ -7,9 +7,9 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.R
 import java.io.File
 import java.io.FileOutputStream
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 获取 FileProvider Uri
@@ -77,7 +77,7 @@ suspend fun Context.createImageUri(
 fun Context.shareUri(
     uri: Uri,
     mimeType: String,
-    title: String = getString(R.string.action_share)
+    title: String = getString(DesignR.string.action_share)
 ) {
     val shareUri = if (uri.scheme == "file") {
         getFileProviderUri(File(uri.path!!))

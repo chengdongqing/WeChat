@@ -34,6 +34,7 @@ import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.ui.labelRes
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.Gender

@@ -40,13 +40,13 @@ import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.core.location.R
 import top.chengdongqing.wechat.core.location.WeMap
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.model.MapType
 import top.chengdongqing.wechat.core.location.rememberMapController
 import top.chengdongqing.wechat.core.location.util.createIconBitmap
 import top.chengdongqing.wechat.core.location.util.navigateToLocation
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun WeLocationPreview(location: LocationPreviewInfo, onBack: () -> Unit) {
@@ -55,7 +55,7 @@ fun WeLocationPreview(location: LocationPreviewInfo, onBack: () -> Unit) {
 
     LaunchedEffect(mapController) {
         mapController.moveTo(location.coordinate, location.zoomLevel)
-        val icon = createIconBitmap(context, R.drawable.ic_location_marker, 120, 120)
+        val icon = createIconBitmap(context, DesignR.drawable.ic_location_marker, 120, 120)
         mapController.addMarker(location.coordinate, icon)
     }
 
@@ -85,8 +85,8 @@ private fun TopBar(onBack: () -> Unit) {
             .padding(bottom = 20.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_back_circle_filled),
-            contentDescription = stringResource(R.string.action_back),
+            painter = painterResource(DesignR.drawable.ic_back_circle_filled),
+            contentDescription = stringResource(DesignR.string.action_back),
             modifier = Modifier
                 .offset(x = 14.dp, y = 16.dp)
                 .size(26.dp)
@@ -163,7 +163,7 @@ private fun BottomBar(location: LocationPreviewInfo) {
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = stringResource(R.string.location_navigate),
+                text = stringResource(DesignR.string.location_navigate),
                 color = WeTheme.colorScheme.textSecondary,
                 fontSize = 14.sp
             )

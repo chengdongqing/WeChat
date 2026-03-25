@@ -30,11 +30,11 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 internal fun BoxScope.ScannerTools(state: ScannerState) {
@@ -43,7 +43,7 @@ internal fun BoxScope.ScannerTools(state: ScannerState) {
 
     val pickMedia = rememberPickMediasLauncher {
         state.scanPhoto(it.first().uri) {
-            context.showToast(resources.getString(R.string.scan_recognize_failed))
+            context.showToast(resources.getString(DesignR.string.scan_recognize_failed))
         }
     }
 
@@ -55,13 +55,16 @@ internal fun BoxScope.ScannerTools(state: ScannerState) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         ToolItem(
-            label = stringResource(R.string.scan_tool_flash),
+            label = stringResource(DesignR.string.scan_tool_flash),
             icon = if (state.isFlashOn) Icons.Filled.FlashlightOn else Icons.Filled.FlashlightOff,
             iconColor = if (state.isFlashOn) WeTheme.colorScheme.primary else Color.White
         ) {
             state.toggleFlashState()
         }
-        ToolItem(label = stringResource(R.string.scan_tool_album), icon = Icons.Filled.Image) {
+        ToolItem(
+            label = stringResource(DesignR.string.scan_tool_album),
+            icon = Icons.Filled.Image
+        ) {
             pickMedia(VisualMediaType.Image, 1)
             if (state.isFlashOn) {
                 state.toggleFlashState()

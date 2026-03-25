@@ -12,7 +12,6 @@ import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import top.chengdongqing.wechat.MainActivity
-import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.common.navigation.ChatRoute
 import top.chengdongqing.wechat.core.common.navigation.ContactsRoute
 import top.chengdongqing.wechat.core.network.model.NotificationChannelConfig
@@ -20,6 +19,7 @@ import top.chengdongqing.wechat.core.network.model.NotificationId
 import top.chengdongqing.wechat.feature.call.ui.CallActivity
 import javax.inject.Inject
 import javax.inject.Singleton
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 通知管理器
@@ -101,7 +101,7 @@ class NotificationHelper @Inject constructor(
 
         // 构建通知
         val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Message.id)
-            .setSmallIcon(R.drawable.img_logo)
+            .setSmallIcon(DesignR.drawable.img_logo)
             .setContentTitle(title)
             .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -139,7 +139,7 @@ class NotificationHelper @Inject constructor(
 
         // 构建通知
         val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Message.id)
-            .setSmallIcon(R.drawable.img_logo) // app logo
+            .setSmallIcon(DesignR.drawable.img_logo) // app logo
             .setLargeIcon(avatarBitmap) // 头像
             .setSound(null)
             .setVibrate(null)
@@ -177,7 +177,7 @@ class NotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Call.id)
-            .setSmallIcon(R.drawable.img_logo)
+            .setSmallIcon(DesignR.drawable.img_logo)
             .setSound(null)
             .setVibrate(null)
             .setContentTitle(title)
@@ -206,7 +206,7 @@ class NotificationHelper @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Call.id)
-            .setSmallIcon(R.drawable.img_logo)
+            .setSmallIcon(DesignR.drawable.img_logo)
             .setSound(null)
             .setVibrate(null)
             .setContentTitle(text)

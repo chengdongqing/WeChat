@@ -9,9 +9,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.location.R
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.LocationPreviewActivity.Companion.EXTRA_LOCATION
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @AndroidEntryPoint
 class LocationPreviewActivity : ComponentActivity() {
@@ -34,10 +34,10 @@ class LocationPreviewActivity : ComponentActivity() {
         super.finish()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, R.anim.fade_out)
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, DesignR.anim.fade_out)
         } else {
             @Suppress("DEPRECATION")
-            overridePendingTransition(0, R.anim.fade_out)
+            overridePendingTransition(0, DesignR.anim.fade_out)
         }
     }
 

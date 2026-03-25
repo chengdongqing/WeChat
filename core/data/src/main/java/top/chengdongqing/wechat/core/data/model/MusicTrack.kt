@@ -2,7 +2,7 @@ package top.chengdongqing.wechat.core.data.model
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.RawRes
-import top.chengdongqing.wechat.core.data.R
+import top.chengdongqing.wechat.core.designsystem.R
 
 enum class MusicTrack(
     val title: String,

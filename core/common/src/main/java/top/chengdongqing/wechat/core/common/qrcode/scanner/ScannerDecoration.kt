@@ -23,14 +23,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.common.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 internal fun BoxScope.ScannerDecoration() {
     ScanningAnimation()
 
     Text(
-        text = stringResource(R.string.scan_hint),
+        text = stringResource(DesignR.string.scan_hint),
         color = Color.White,
         fontSize = 16.sp,
         modifier = Modifier
@@ -60,7 +60,7 @@ private fun BoxScope.ScanningAnimation() {
             .fillMaxWidth(0.9f)
     ) {
         Image(
-            painter = painterResource(R.drawable.img_scan_beam),
+            painter = painterResource(DesignR.drawable.img_scan_beam),
             contentDescription = null,
             modifier = Modifier.fillMaxWidth(),
             contentScale = ContentScale.Crop

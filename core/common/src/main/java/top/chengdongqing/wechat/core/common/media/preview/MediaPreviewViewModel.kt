@@ -6,13 +6,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.common.util.shareUri
 import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.model.MessageType
 import javax.inject.Inject
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @HiltViewModel
 class MediaPreviewViewModel @Inject constructor(
@@ -31,9 +31,9 @@ class MediaPreviewViewModel @Inject constructor(
                 filename = media.filename
             )
             if (res != null) {
-                context.showToast(context.getString(R.string.msg_save_success))
+                context.showToast(context.getString(DesignR.string.msg_save_success))
             } else {
-                context.showToast(context.getString(R.string.msg_save_failed))
+                context.showToast(context.getString(DesignR.string.msg_save_failed))
             }
         }
     }

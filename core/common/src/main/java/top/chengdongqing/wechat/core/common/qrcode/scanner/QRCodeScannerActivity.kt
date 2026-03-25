@@ -12,9 +12,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.media.rememberSoundTipPlayer
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @AndroidEntryPoint
 class QRCodeScannerActivity : ComponentActivity() {
@@ -53,7 +53,7 @@ fun rememberScanCodeLauncher(onChange: (Array<String>) -> Unit): () -> Unit {
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            soundTipPlayer.play(R.raw.tip_qrcode_completed) // 播放提示音
+            soundTipPlayer.play(DesignR.raw.tip_qrcode_completed) // 播放提示音
             result.data?.getStringArrayExtra(QRCodeScannerActivity.EXTRA_QR_CODES)?.let(onChange)
         }
     }

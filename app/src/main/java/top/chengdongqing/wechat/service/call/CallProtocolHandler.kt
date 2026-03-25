@@ -9,7 +9,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
 import top.chengdongqing.wechat.core.model.CallState
@@ -21,6 +20,7 @@ import top.chengdongqing.wechat.feature.call.ui.CallActivity
 import top.chengdongqing.wechat.service.notification.NotificationHelper
 import javax.inject.Inject
 import javax.inject.Singleton
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 通话模块
@@ -90,8 +90,8 @@ class CallProtocolHandler @Inject constructor(
                         notificationHelper.showIncomingNotification(
                             title = state.peerName,
                             text = context.getString(
-                                if (state.isVideoCall) R.string.call_notification_incoming_video
-                                else R.string.call_notification_incoming_voice
+                                if (state.isVideoCall) DesignR.string.call_notification_incoming_video
+                                else DesignR.string.call_notification_incoming_voice
                             )
                         )
                     }
@@ -101,7 +101,10 @@ class CallProtocolHandler @Inject constructor(
                      */
                     CallState.Outgoing -> {
                         notificationHelper.showOngoingNotification(
-                            context.getString(R.string.call_notification_outgoing, state.peerName)
+                            context.getString(
+                                DesignR.string.call_notification_outgoing,
+                                state.peerName
+                            )
                         )
                     }
 
@@ -113,7 +116,7 @@ class CallProtocolHandler @Inject constructor(
                         callAudioManager.stopRingtone()
 
                         notificationHelper.showOngoingNotification(
-                            context.getString(R.string.call_notification_connecting)
+                            context.getString(DesignR.string.call_notification_connecting)
                         )
                     }
 
@@ -127,7 +130,10 @@ class CallProtocolHandler @Inject constructor(
                         callAudioManager.enterCallMode(state.isVideoCall)
 
                         notificationHelper.showOngoingNotification(
-                            context.getString(R.string.call_notification_ongoing, state.peerName)
+                            context.getString(
+                                DesignR.string.call_notification_ongoing,
+                                state.peerName
+                            )
                         )
                     }
 

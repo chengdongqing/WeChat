@@ -27,9 +27,9 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.core.location.R
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.util.formatDistance
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun LocationList(
@@ -106,7 +106,7 @@ private fun LocationListItem(checked: Boolean, location: LocationInfo, onClick: 
         }
         if (checked) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_check),
+                painter = painterResource(id = DesignR.drawable.ic_check),
                 contentDescription = null,
                 tint = WeTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)

@@ -54,10 +54,10 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import kotlin.math.abs
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 internal fun BoxScope.ControlBar(state: CameraState) {
@@ -86,7 +86,7 @@ internal fun BoxScope.ControlBar(state: CameraState) {
             ) {
                 Icon(
                     imageVector = if (state.isFlashOn) Icons.Filled.FlashOn else Icons.Filled.FlashOff,
-                    contentDescription = stringResource(R.string.camera_flash_toggle),
+                    contentDescription = stringResource(DesignR.string.camera_flash_toggle),
                     tint = Color.White
                 )
             }
@@ -96,7 +96,7 @@ internal fun BoxScope.ControlBar(state: CameraState) {
             ) {
                 Icon(
                     Icons.Filled.FlipCameraAndroid,
-                    contentDescription = stringResource(R.string.camera_switch),
+                    contentDescription = stringResource(DesignR.string.camera_switch),
                     tint = Color.White
                 )
             }
@@ -197,12 +197,12 @@ fun TipText(state: CameraState) {
     val tips = remember {
         buildList {
             if (state.type == VisualMediaType.ImageAndVideo || state.type == VisualMediaType.Image) {
-                add(resources.getString(R.string.camera_tip_photo))
+                add(resources.getString(DesignR.string.camera_tip_photo))
             }
             if (state.type == VisualMediaType.ImageAndVideo || state.type == VisualMediaType.Video) {
-                add(resources.getString(R.string.camera_tip_video))
+                add(resources.getString(DesignR.string.camera_tip_video))
             }
-        }.joinToString(resources.getString(R.string.separator))
+        }.joinToString(resources.getString(DesignR.string.separator))
     }
 
     Text(

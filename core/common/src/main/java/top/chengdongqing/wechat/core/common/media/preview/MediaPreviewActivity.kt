@@ -8,9 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @AndroidEntryPoint
 class MediaPreviewActivity : ComponentActivity() {
@@ -34,10 +34,10 @@ class MediaPreviewActivity : ComponentActivity() {
         super.finish()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, R.anim.fade_out)
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, DesignR.anim.fade_out)
         } else {
             @Suppress("DEPRECATION")
-            overridePendingTransition(0, R.anim.fade_out)
+            overridePendingTransition(0, DesignR.anim.fade_out)
         }
     }
 

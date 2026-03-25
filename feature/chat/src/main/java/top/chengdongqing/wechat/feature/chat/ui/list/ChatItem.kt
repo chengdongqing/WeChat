@@ -38,13 +38,13 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.ui.toPreviewText
 import top.chengdongqing.wechat.core.designsystem.util.RichTextMode
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.designsystem.util.parseRichText
 import top.chengdongqing.wechat.core.designsystem.util.rememberEmojiInlineContent
 import top.chengdongqing.wechat.core.model.ChatSession
 import top.chengdongqing.wechat.core.model.MessageType
-import top.chengdongqing.wechat.core.model.toPreviewText
 
 @Composable
 fun ChatItem(chat: ChatSession) {
@@ -164,8 +164,11 @@ private fun rememberAnnotatedText(session: ChatSession): AnnotatedString {
             when {
                 // 提示已撤回
                 session.lastMessageRecalled && !isDraft -> {
-                    val resId =
-                        if (session.lastMessageFromMe) R.string.chat_recalled_by_me else R.string.chat_recalled_by_other
+                    val resId = if (session.lastMessageFromMe) {
+                        R.string.chat_recalled_by_me
+                    } else {
+                        R.string.chat_recalled_by_other
+                    }
                     append(resources.getString(resId))
                 }
 

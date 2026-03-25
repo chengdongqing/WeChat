@@ -4,18 +4,18 @@ import android.content.Context
 import android.media.RingtoneManager
 import android.net.Uri
 import androidx.annotation.StringRes
-import top.chengdongqing.wechat.core.common.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 enum class RingtoneSound(
     @get:StringRes val labelRes: Int,
     val ringtoneRes: Int?
 ) {
-    FollowSystem(R.string.settings_follow_system, null),
-    Default(R.string.ringtone_default, R.raw.ringtone_default),
-    Mi(R.string.ringtone_mi, R.raw.ringtone_mi),
-    MiJazz(R.string.ringtone_mi_jazz, R.raw.ringtone_mi_jazz),
-    MiHouse(R.string.ringtone_mi_house, R.raw.ringtone_mi_house),
-    MiRemix(R.string.ringtone_mi_remix, R.raw.ringtone_mi_remix);
+    FollowSystem(DesignR.string.settings_follow_system, null),
+    Default(DesignR.string.ringtone_default, DesignR.raw.ringtone_default),
+    Mi(DesignR.string.ringtone_mi, DesignR.raw.ringtone_mi),
+    MiJazz(DesignR.string.ringtone_mi_jazz, DesignR.raw.ringtone_mi_jazz),
+    MiHouse(DesignR.string.ringtone_mi_house, DesignR.raw.ringtone_mi_house),
+    MiRemix(DesignR.string.ringtone_mi_remix, DesignR.raw.ringtone_mi_remix);
 }
 
 fun RingtoneSound.toUri(context: Context): Uri =

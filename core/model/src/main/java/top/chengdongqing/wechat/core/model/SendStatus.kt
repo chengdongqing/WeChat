@@ -1,7 +1,5 @@
 package top.chengdongqing.wechat.core.model
 
-import androidx.annotation.StringRes
-
 /**
  * 消息发送状态
  */
@@ -21,14 +19,11 @@ enum class SendStatus {
 /**
  * 消息发送失败原因
  */
-enum class SendError(
-    @get:StringRes val messageRes: Int,
-    val canRetry: Boolean
-) {
-    ConnectionFailed(R.string.send_error_connection_failed, true),
-    Cancelled(R.string.send_error_cancelled, true),
-    NotFriend(R.string.send_error_not_friend, false),
-    Blocked(R.string.send_error_blocked, false),
-    MessageTooLarge(R.string.send_error_too_large, false),
-    Unknown(R.string.send_error_unknown, true)
+enum class SendError(val canRetry: Boolean) {
+    ConnectionFailed(true),
+    Cancelled(true),
+    NotFriend(false),
+    Blocked(false),
+    MessageTooLarge(false),
+    Unknown(true)
 }

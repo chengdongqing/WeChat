@@ -11,7 +11,6 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.R
 import top.chengdongqing.wechat.core.common.util.extractExtension
 import top.chengdongqing.wechat.core.common.util.generateFileName
 import top.chengdongqing.wechat.core.common.util.getFileConfig
@@ -20,6 +19,7 @@ import top.chengdongqing.wechat.core.model.MessageType
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 系统 MediaStore 文件管理器
@@ -36,7 +36,7 @@ class PublicFileManager @Inject constructor(
         get() = context.contentResolver
 
     private val appName: String
-        get() = context.getString(R.string.app_name)
+        get() = context.getString(DesignR.string.app_name)
 
     /**
      * 保存媒体文件到 MediaStore（从 Uri）

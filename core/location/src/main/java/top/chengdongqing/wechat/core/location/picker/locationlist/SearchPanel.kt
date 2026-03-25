@@ -38,9 +38,9 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.LaunchedUpdateEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberKeyboardHeight
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
-import top.chengdongqing.wechat.core.location.R
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.picker.LocationPickerState
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun SearchPanel(state: LocationPickerState) {
@@ -98,8 +98,8 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
     val resources = LocalResources.current
     val options = remember {
         listOf(
-            resources.getString(R.string.location_tab_nearby),
-            resources.getString(R.string.location_tab_all)
+            resources.getString(DesignR.string.location_tab_nearby),
+            resources.getString(DesignR.string.location_tab_all)
         )
     }
     val density = LocalDensity.current
