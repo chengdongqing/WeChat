@@ -258,7 +258,7 @@ class MessageReceiver @Inject constructor(
      * 不同文件的分片可以在同一连接上并发到达，各自路由到独立上下文，互不干扰
      */
     private suspend fun handleFileChunk(body: ByteArray) {
-        val (messageId, chunkData) = try {
+        val (messageId, offset, chunkData) = try {
             FileChunkCodec.decode(body)
         } catch (e: IllegalArgumentException) {
             Log.e(TAG, "FILE_CHUNK body 格式非法，丢弃", e)
@@ -271,7 +271,7 @@ class MessageReceiver @Inject constructor(
         }
 
         if (ctx.isLargeFile) {
-            handleLargeFileChunk(messageId, ctx, chunkData)
+            handleLargeFileChunk(messageId, ctx, offset, chunkData)
         } else {
             handleSmallFileChunk(messageId, ctx, chunkData)
         }
@@ -326,14 +326,16 @@ class MessageReceiver @Inject constructor(
     private suspend fun handleLargeFileChunk(
         messageId: String,
         ctx: ReceiveContext,
+        offset: Long,
         chunkData: ByteArray
     ) = withContext(Dispatchers.IO) {
         val state = ctx.state
         val session = state.writeSession ?: return@withContext
 
         // 写入预分配的文件
-        session.writeAtOffset(state.receivedBytes, chunkData)
-        state.receivedBytes += chunkData.size
+        session.writeAtOffset(offset, chunkData)
+        // 进度更新逻辑为：已接收最大边界
+        state.receivedBytes = maxOf(state.receivedBytes, offset + chunkData.size)
 
         // 进度上报
         if (state.receivedBytes - state.lastReportedAt >= progressInterval) {

@@ -162,7 +162,11 @@ class WiFiDirectChatHandler @Inject constructor(
     /**
      * 主动连接 Group Owner
      */
-    private suspend fun connectToGroupOwner(goUserId: String, goIp: String, goPort: Int = PORT) =
+    private suspend fun connectToGroupOwner(
+        goUserId: String,
+        goIp: String,
+        goPort: Int = PORT
+    ) =
         socketClient.connect(
             userId = goUserId,
             host = goIp,
@@ -173,7 +177,11 @@ class WiFiDirectChatHandler @Inject constructor(
     /**
      * 保存连接信息到数据库
      */
-    suspend fun saveToDB(userId: String, goIp: String, goPort: Int = PORT) {
+    suspend fun saveToDB(
+        userId: String,
+        goIp: String,
+        goPort: Int = PORT
+    ) {
         connectionInfoDao.upsert(
             ConnectionInfoEntity(
                 userId = userId,
