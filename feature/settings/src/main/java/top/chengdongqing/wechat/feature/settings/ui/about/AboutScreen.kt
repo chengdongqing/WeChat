@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,10 +21,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.common.util.appVersionName
@@ -126,17 +133,28 @@ private fun BoxScope.AboutFooter() {
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "项目说明：《掘金社区》",
-                color = WeTheme.colorScheme.link,
-                fontSize = 12.sp
+            ClickableLinkText(
+                label = "项目说明：",
+                linkText = "《掘金社区》",
+                url = "https://juejin.cn/post/7620369623636705316"
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "开源地址：《GitHub》《Gitee》",
-                color = WeTheme.colorScheme.link,
+                text = "开源地址：",
+                color = WeTheme.colorScheme.textSecondary,
                 fontSize = 12.sp
+            )
+            ClickableLinkText(
+                label = "",
+                linkText = "《GitHub》",
+                url = "https://github.com/chengdongqing/wechat"
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            ClickableLinkText(
+                label = "",
+                linkText = "《Gitee》",
+                url = "https://gitee.com/chengdongqing/wechat"
             )
         }
 
@@ -171,4 +189,36 @@ private fun BoxScope.AboutFooter() {
             fontSize = 10.sp
         )
     }
+}
+
+@Composable
+private fun ClickableLinkText(label: String, linkText: String, url: String) {
+    val uriHandler = LocalUriHandler.current
+
+    val annotatedString = buildAnnotatedString {
+        if (label.isNotEmpty()) {
+            append(label)
+        }
+        withLink(
+            LinkAnnotation.Url(
+                url = url,
+                styles = TextLinkStyles(
+                    style = SpanStyle(
+                        color = WeTheme.colorScheme.link
+                    )
+                ),
+                linkInteractionListener = {
+                    uriHandler.openUri(url)
+                }
+            )
+        ) {
+            append(linkText)
+        }
+    }
+
+    Text(
+        text = annotatedString,
+        color = WeTheme.colorScheme.textSecondary,
+        fontSize = 12.sp
+    )
 }

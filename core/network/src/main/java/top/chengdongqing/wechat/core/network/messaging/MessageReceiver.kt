@@ -230,7 +230,6 @@ class MessageReceiver @Inject constructor(
                     isLargeFile = true
                 )
 
-                messageDispatcher.updateReceiveProgress(metadata.messageId, receivedBytes)
                 sendFileMetaAck(userId, metadata.messageId, FileAckStatus.ResumeFrom, receivedBytes)
                 return
             }

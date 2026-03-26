@@ -18,8 +18,8 @@ android {
         applicationId = "top.chengdongqing.wechat"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 20260326
+        versionName = "2026.03.26"
 
         ndk {
             abiFilters.add("arm64-v8a")
@@ -49,7 +49,7 @@ android {
     flavorDimensions.add("version")
     productFlavors {
         create("full") { dimension = "version" }
-        create("lite") { dimension = "version" }
+        create("lite") { dimension = "version" } // Lite版使用轻量版的高德地图SDK，但打包混淆配置待修正
     }
 }
 
