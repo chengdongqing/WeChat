@@ -136,7 +136,7 @@ private fun BoxScope.AboutFooter() {
             ClickableLinkText(
                 label = "项目说明：",
                 linkText = "《掘金社区》",
-                url = "https://juejin.cn/post/7620369623636705316"
+                url = "https://juejin.cn/post/7621443853845594154"
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
