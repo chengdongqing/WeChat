@@ -23,6 +23,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -107,7 +108,7 @@ fun InputBar(
     }
 
     Column(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .background(ChatTheme.colorScheme.bottomBarBackground)
             .navigationBarsPadding()
     ) {
@@ -256,7 +257,11 @@ private fun SendOrMoreToggle(
     ) { shouldShow ->
         if (shouldShow) {
             Box(modifier = Modifier.height(40.dp), contentAlignment = Alignment.Center) {
-                WeButton(text = "发送", size = ButtonSize.Small, onClick = actions.onSendText)
+                WeButton(
+                    text = stringResource(R.string.action_send),
+                    size = ButtonSize.Small,
+                    onClick = actions.onSendText
+                )
             }
         } else {
             ActionIcon(icon = R.drawable.ic_plus_circle_outlined) {
