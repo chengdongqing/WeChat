@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.core.designsystem.util
 
 import android.graphics.BlurMaskFilter
+import android.graphics.Paint
 import androidx.compose.foundation.IndicationNodeFactory
 import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
@@ -9,7 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -56,7 +56,7 @@ object NeonGreenIndication : IndicationNodeFactory {
             if (isPressed) {
                 // 使用底层 Canvas 绘制外发光（Compose 原生 drawRect 暂不支持 BlurMaskFilter）
                 drawIntoCanvas { canvas ->
-                    val paint = Paint().asFrameworkPaint().apply {
+                    val paint = Paint().apply {
                         color = GreenPrimary.toArgb()
                         // 设置原生 Paint 的模糊滤镜，实现“发光”感
                         // 10f 是模糊半径，OUTER 表示只在形状外部模糊

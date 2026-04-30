@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "top.chengdongqing.wechat.core.location"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
@@ -30,6 +30,7 @@ android {
         create("full") { dimension = "version" }
         create("lite") { dimension = "version" }
     }
+    compileSdkMinor = 0
 }
 
 dependencies {

@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "top.chengdongqing.wechat.core.database"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
@@ -21,6 +21,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+    compileSdkMinor = 0
 }
 
 configure<RoomExtension> {

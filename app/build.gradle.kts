@@ -12,12 +12,17 @@ plugins {
 
 android {
     namespace = "top.chengdongqing.wechat"
-    compileSdk = 36
+
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 0
+        }
+    }
 
     defaultConfig {
         applicationId = "top.chengdongqing.wechat"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 20260326
         versionName = "2026.03.26"
 
@@ -37,11 +42,13 @@ android {
             )
         }
     }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+
     buildFeatures {
         compose = true
     }
