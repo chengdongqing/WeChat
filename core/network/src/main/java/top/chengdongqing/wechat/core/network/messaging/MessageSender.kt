@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.core.network.messaging
 
 import android.util.Log
-import androidx.room.withTransaction
+import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -395,7 +395,7 @@ class MessageSender @Inject constructor(
         sessionId: String,
         status: SendStatus = SendStatus.Sent
     ) {
-        database.withTransaction {
+        database.withWriteTransaction {
             messageDao.update(messageId) { message ->
                 message.copy(sendStatus = status)
             }
@@ -422,7 +422,7 @@ class MessageSender @Inject constructor(
             else -> SendError.Unknown
         }
 
-        database.withTransaction {
+        database.withWriteTransaction {
             // 更新消息状态
             messageDao.update(messageId) { message ->
                 message.copy(

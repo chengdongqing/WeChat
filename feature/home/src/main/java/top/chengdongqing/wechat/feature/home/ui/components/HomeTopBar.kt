@@ -18,8 +18,9 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import top.chengdongqing.wechat.core.common.navigation.ContactsRoute
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import top.chengdongqing.wechat.core.common.navigation.ContactsKey
 import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
@@ -34,7 +35,7 @@ import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 fun HomeTopBarWrapper(
     currentTab: HomeTab,
     viewModel: ProfileViewModel,
-    navController: NavHostController,
+    backStack: NavBackStack<NavKey>,
     unreadCounts: Map<HomeTab, Int>
 ) {
     if (currentTab.route != HomeTab.Me.route) {
@@ -44,7 +45,7 @@ fun HomeTopBarWrapper(
             title = title,
             viewModel = viewModel,
             onNavigateToAddFriend = {
-                navController.navigate(ContactsRoute.AddContact.route)
+                backStack.add(ContactsKey.AddContact)
             }
         )
     } else {

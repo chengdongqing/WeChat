@@ -9,12 +9,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
@@ -32,15 +32,12 @@ import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLa
 
 @Composable
 fun ContactSettingScreen(
-    contactId: String,
     onBack: () -> Unit,
     onDelete: () -> Unit,
     onNavigateToContactProfile: () -> Unit,
-    viewModel: ContactDetailViewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
-        factory.create(contactId)
-    }
+    viewModel: ContactDetailViewModel
 ) {
-    val contact = viewModel.contact.collectAsState().value ?: return
+    val contact by viewModel.contact.collectAsStateWithLifecycle()
 
     // 处理导航事件
     LaunchedEffect(Unit) {
@@ -49,17 +46,6 @@ fun ContactSettingScreen(
                 is NavigationEvent.ContactDeleted -> onDelete()
                 else -> {}
             }
-        }
-    }
-
-    val dialog = rememberDialogState()
-    val resources = LocalResources.current
-    val pickContact = rememberPickContactLauncher { contacts ->
-        dialog.show(
-            title = resources.getString(R.string.msg_confirm_send),
-            okText = R.string.action_send
-        ) {
-            viewModel.sendContactCard(contacts.first().id)
         }
     }
 
@@ -79,62 +65,88 @@ fun ContactSettingScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            WeSettingGroup {
-                WeSettingItem(
-                    label = stringResource(R.string.contact_settings_profile),
-                    onClick = onNavigateToContactProfile
-                ) {
-                    WeSettingValue(contact.displayName)
-                }
-                WeSettingItem(
-                    label = stringResource(R.string.contact_settings_permissions),
-                    showDivider = false,
-                    onClick = {}
+            contact?.let {
+                ContactSettingContent(
+                    contact = it,
+                    viewModel = viewModel,
+                    onNavigateToContactProfile = onNavigateToContactProfile
                 )
             }
-            if (contact.isFriend) {
-                WeSettingGroup {
-                    WeSettingItem(
-                        label = stringResource(R.string.contact_settings_recommend),
-                        onClick = {
-                            pickContact(1)
-                        }
-                    )
-                    WeSettingItem(
-                        label = stringResource(R.string.contact_settings_add_to_desktop),
-                        showDivider = false,
-                        onClick = {}
-                    )
-                }
-                WeSettingItem(
-                    label = stringResource(R.string.contact_settings_star),
-                    showArrow = false,
-                    showDivider = false
-                ) {
-                    WeSwitch()
-                }
-            }
-            WeSettingGroup {
-                WeSettingItem(
-                    label = stringResource(R.string.contact_settings_block),
-                    showArrow = false
-                ) {
-                    WeSwitch(checked = contact.isBlocked) {
-                        viewModel.toggleBlock()
-                    }
-                }
-                WeSettingItem(
-                    label = stringResource(R.string.contact_settings_report),
-                    showDivider = false,
-                    onClick = {}
-                )
-            }
+        }
+    }
+}
 
-            if (contact.isFriend) {
-                DeleteButton(contact) {
-                    viewModel.deleteContact()
+@Composable
+private fun ContactSettingContent(
+    contact: Contact,
+    viewModel: ContactDetailViewModel,
+    onNavigateToContactProfile: () -> Unit
+) {
+    val dialog = rememberDialogState()
+    val resources = LocalResources.current
+    val pickContact = rememberPickContactLauncher { contacts ->
+        dialog.show(
+            title = resources.getString(R.string.msg_confirm_send),
+            okText = R.string.action_send
+        ) {
+            viewModel.sendContactCard(contacts.first().id)
+        }
+    }
+
+    WeSettingGroup {
+        WeSettingItem(
+            label = stringResource(R.string.contact_settings_profile),
+            onClick = onNavigateToContactProfile
+        ) {
+            WeSettingValue(contact.displayName)
+        }
+        WeSettingItem(
+            label = stringResource(R.string.contact_settings_permissions),
+            showDivider = false,
+            onClick = {}
+        )
+    }
+    if (contact.isFriend) {
+        WeSettingGroup {
+            WeSettingItem(
+                label = stringResource(R.string.contact_settings_recommend),
+                onClick = {
+                    pickContact(1)
                 }
+            )
+            WeSettingItem(
+                label = stringResource(R.string.contact_settings_add_to_desktop),
+                showDivider = false,
+                onClick = {}
+            )
+        }
+        WeSettingItem(
+            label = stringResource(R.string.contact_settings_star),
+            showArrow = false,
+            showDivider = false
+        ) {
+            WeSwitch()
+        }
+    }
+    WeSettingGroup {
+        WeSettingItem(
+            label = stringResource(R.string.contact_settings_block),
+            showArrow = false
+        ) {
+            WeSwitch(checked = contact.isBlocked) {
+                viewModel.toggleBlock()
             }
+        }
+        WeSettingItem(
+            label = stringResource(R.string.contact_settings_report),
+            showDivider = false,
+            onClick = {}
+        )
+    }
+
+    if (contact.isFriend) {
+        DeleteButton(contact) {
+            viewModel.deleteContact()
         }
     }
 }

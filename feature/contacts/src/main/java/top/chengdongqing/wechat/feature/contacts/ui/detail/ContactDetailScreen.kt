@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
@@ -26,23 +25,20 @@ import top.chengdongqing.wechat.feature.contacts.ui.detail.components.ContactDet
 
 @Composable
 fun ContactDetailScreen(
-    contactId: String,
     onBack: () -> Unit,
-    onNavigateToChat: (String) -> Unit = {},
-    onNavigateToMoments: (String) -> Unit = {},
-    onNavigateToProfile: (String) -> Unit = {},
-    onNavigateToSetting: (String) -> Unit = {},
-    onNavigateToRequestAdd: (String) -> Unit = {},
-    viewModel: ContactDetailViewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
-        factory.create(contactId)
-    }
+    onNavigateToChat: () -> Unit = {},
+    onNavigateToMoments: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToSetting: () -> Unit = {},
+    onNavigateToRequestAdd: () -> Unit = {},
+    viewModel: ContactDetailViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val contact = viewModel.contact.collectAsStateWithLifecycle().value ?: return
+    val contact by viewModel.contact.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     val context = LocalContext.current
-    val launchCall = rememberCallLauncher(contact.id) { id, type ->
+    val launchCall = rememberCallLauncher(contact?.id ?: "") { id, type ->
         context.startCall(id, type)
     }
 
@@ -50,12 +46,12 @@ fun ContactDetailScreen(
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
-                is NavigationEvent.NavigateToChat -> onNavigateToChat(contactId)
+                is NavigationEvent.NavigateToChat -> onNavigateToChat()
                 is NavigationEvent.LaunchCall -> launchCall(event.type)
-                is NavigationEvent.NavigateToMoments -> onNavigateToMoments(contactId)
-                is NavigationEvent.NavigateToProfile -> onNavigateToProfile(contactId)
-                is NavigationEvent.ShowMoreOptions -> onNavigateToSetting(contactId)
-                is NavigationEvent.NavigateToRequestAdd -> onNavigateToRequestAdd(contactId)
+                is NavigationEvent.NavigateToMoments -> onNavigateToMoments()
+                is NavigationEvent.NavigateToProfile -> onNavigateToProfile()
+                is NavigationEvent.ShowMoreOptions -> onNavigateToSetting()
+                is NavigationEvent.NavigateToRequestAdd -> onNavigateToRequestAdd()
                 else -> {}
             }
         }
@@ -71,7 +67,7 @@ fun ContactDetailScreen(
     Scaffold(
         topBar = {
             ContactDetailTopBar(
-                showMoreAction = contact.isFriend,
+                showMoreAction = contact?.isFriend ?: false,
                 onBack = onBack
             ) {
                 viewModel.handleAction(ContactAction.ShowMore)
@@ -82,21 +78,20 @@ fun ContactDetailScreen(
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .fillMaxSize()
         ) {
-            ContactDetailContent(
-                contact = contact,
-                onAction = viewModel::handleAction
-            )
+            contact?.let {
+                ContactDetailContent(
+                    contact = it,
+                    onAction = viewModel::handleAction
+                )
+            }
         }
     }
 }
 
-/**
- * 联系人详情顶部导航栏
- */
 @Composable
 private fun ContactDetailTopBar(
     showMoreAction: Boolean,

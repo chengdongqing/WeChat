@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.feature.chat.data.repository
 import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
-import androidx.room.withTransaction
+import androidx.room3.withWriteTransaction
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -111,7 +111,7 @@ class MessageRepositoryImpl @Inject constructor(
             sendStatus = if (shouldSkipSend) SendStatus.Delivered else SendStatus.Sending
         )
 
-        database.withTransaction {
+        database.withWriteTransaction {
             // 保存消息
             messageDao.insert(message)
             // 更新会话
@@ -245,7 +245,7 @@ class MessageRepositoryImpl @Inject constructor(
     }
 
     override suspend fun markAllAsRead(sessionId: String) {
-        database.withTransaction {
+        database.withWriteTransaction {
             messageDao.markAsReadBySessionId(sessionId)
             chatSessionRepository.clearUnreadCount(sessionId)
         }
@@ -261,7 +261,7 @@ class MessageRepositoryImpl @Inject constructor(
         // 查询消息详情
         val message = messageDao.getById(messageId)
 
-        database.withTransaction {
+        database.withWriteTransaction {
             // 删除消息
             messageDao.deleteById(messageId)
 
@@ -291,7 +291,7 @@ class MessageRepositoryImpl @Inject constructor(
         }
 
         // 标记为已撤回
-        database.withTransaction {
+        database.withWriteTransaction {
             // 更新消息
             messageDao.update(messageId) { message ->
                 message.copy(
@@ -338,7 +338,7 @@ class MessageRepositoryImpl @Inject constructor(
             // 查询消息关联的媒体文件
             val localPaths = messageDao.getLocalPathsByIds(ids)
 
-            database.withTransaction {
+            database.withWriteTransaction {
                 // 批量删除消息记录
                 messageDao.deleteByIds(ids)
 
@@ -410,7 +410,7 @@ class MessageRepositoryImpl @Inject constructor(
             }
 
             val message = entityBuilder()
-            database.withTransaction {
+            database.withWriteTransaction {
                 // 保存消息
                 messageDao.insert(message)
                 // 更新会话

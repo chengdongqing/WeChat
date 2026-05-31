@@ -51,7 +51,6 @@ import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 
 @Composable
 fun AddContactScreen(
-    viewModel: ProfileViewModel = hiltViewModel(),
     onBack: () -> Unit,
     onNavigateToNFC: () -> Unit,
     onNavigateToRadar: () -> Unit,
@@ -59,6 +58,7 @@ fun AddContactScreen(
     onNavigateToContactDetail: (contactId: String) -> Unit,
     onNavigateToPlainText: (text: String) -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
     RequestAddFriendPermission(onRevoked = onBack) {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()

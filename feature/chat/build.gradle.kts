@@ -44,14 +44,14 @@ dependencies {
     implementation(projects.feature.contacts)
     implementation(projects.feature.call)
 
-    implementation(libs.navigation.compose)
+    implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
     implementation(libs.bundles.coil)
     implementation(libs.serialization.json)
-    implementation(libs.bundles.room)
+    implementation(libs.room.runtime)
     implementation(libs.datastore.preferences)
     implementation(libs.pinyin)
 }

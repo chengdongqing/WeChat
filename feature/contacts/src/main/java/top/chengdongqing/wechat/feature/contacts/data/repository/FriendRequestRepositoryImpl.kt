@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.feature.contacts.data.repository
 
 import android.util.Log
-import androidx.room.withTransaction
+import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -223,7 +223,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         }
 
     private suspend fun handleAccepted(request: FriendRequestEntity) {
-        database.withTransaction {
+        database.withWriteTransaction {
             addContactFromRequest(request)
 
             friendRequestDao.update(request.id) {

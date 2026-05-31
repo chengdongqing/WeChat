@@ -34,10 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.navigation.MeRoute
-import top.chengdongqing.wechat.core.common.navigation.SettingsRoute
+import top.chengdongqing.wechat.core.common.navigation.MeKey
+import top.chengdongqing.wechat.core.common.navigation.SettingsKey
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
@@ -48,7 +49,7 @@ import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 
 @Composable
 fun MeScreen(
-    navController: NavController,
+    backStack: NavBackStack<NavKey>,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -64,10 +65,10 @@ fun MeScreen(
             UserInfoSection(
                 profile = uiState.profile,
                 onNavigateToProfile = {
-                    navController.navigate(MeRoute.PROFILE)
+                    backStack.add(MeKey.Profile)
                 },
                 onNavigateToQRCode = {
-                    navController.navigate(MeRoute.QR_CODE)
+                    backStack.add(MeKey.QrCode)
                 }
             )
             StatusSection()
@@ -105,7 +106,7 @@ fun MeScreen(
             icon = R.drawable.ic_settings_outlined,
             iconColor = Color(0xFF2782D7)
         ) {
-            navController.navigate(SettingsRoute.Settings.route)
+            backStack.add(SettingsKey.Settings)
         }
     }
 }

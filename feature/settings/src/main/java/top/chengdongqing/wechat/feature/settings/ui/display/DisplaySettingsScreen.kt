@@ -12,8 +12,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
-import top.chengdongqing.wechat.core.common.navigation.SettingsRoute
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import top.chengdongqing.wechat.core.common.navigation.SettingsKey
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -24,7 +25,7 @@ import top.chengdongqing.wechat.core.designsystem.ui.labelRes
 
 @Composable
 fun DisplaySettingsScreen(
-    navController: NavHostController,
+    backStack: NavBackStack<NavKey>,
     onBack: () -> Unit,
     viewModel: DisplaySettingsViewModel = hiltViewModel()
 ) {
@@ -49,7 +50,7 @@ fun DisplaySettingsScreen(
                 label = stringResource(R.string.display_theme),
                 showDivider = false,
                 onClick = {
-                    navController.navigate(SettingsRoute.ThemeSetting.route)
+                    backStack.add(SettingsKey.Theme)
                 }
             ) {
                 WeSettingValue(stringResource(settings.theme.labelRes))
@@ -58,14 +59,14 @@ fun DisplaySettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.display_font_scale),
                     onClick = {
-                        navController.navigate(SettingsRoute.FontScaleSetting.route)
+                        backStack.add(SettingsKey.FontScale)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.display_language),
                     showDivider = false,
                     onClick = {
-                        navController.navigate(SettingsRoute.LanguageSetting.route)
+                        backStack.add(SettingsKey.Language)
                     }
                 ) {
                     WeSettingValue(stringResource(settings.language.labelRes))

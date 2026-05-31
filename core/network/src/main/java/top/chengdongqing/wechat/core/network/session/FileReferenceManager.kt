@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.core.network.session
 
-import androidx.room.withTransaction
+import androidx.room3.withWriteTransaction
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.entity.MediaFileEntity
@@ -22,7 +22,7 @@ class FileReferenceManager @Inject constructor(
         localPath ?: return
         // 先尝试插入（已存在则忽略），再 +1
         // 两步合起来等价于 upsert
-        database.withTransaction {
+        database.withWriteTransaction {
             mediaFileDao.insertIfAbsent(
                 MediaFileEntity(
                     localPath = localPath,
@@ -39,7 +39,7 @@ class FileReferenceManager @Inject constructor(
      */
     suspend fun release(localPath: String?): String? {
         localPath ?: return null
-        return database.withTransaction {
+        return database.withWriteTransaction {
             mediaFileDao.release(localPath)
             val unreferenced = mediaFileDao.getUnreferencedPaths()
             if (unreferenced.isNotEmpty()) {
@@ -58,7 +58,7 @@ class FileReferenceManager @Inject constructor(
             .eachCount()
         if (countByPath.isEmpty()) return emptyList()
 
-        return database.withTransaction {
+        return database.withWriteTransaction {
             countByPath.forEach { (path, count) ->
                 mediaFileDao.release(path, count)
             }

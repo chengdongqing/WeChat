@@ -28,7 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.background.ChatBackgroundSetting
@@ -45,12 +44,9 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 @Composable
 fun ChatInfoScreen(
-    chatId: String,
     onBack: () -> Unit,
-    onNavigateToContact: (chatId: String) -> Unit,
-    viewModel: ChatInfoViewModel = hiltViewModel { factory: ChatInfoViewModel.Factory ->
-        factory.create(chatId)
-    }
+    onNavigateToContact: () -> Unit,
+    viewModel: ChatInfoViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val resources = LocalResources.current
@@ -75,7 +71,7 @@ fun ChatInfoScreen(
             ContactListBar(
                 name = uiState.contactName,
                 avatarPath = uiState.contactAvatar,
-                onNavigateToContact = { onNavigateToContact(chatId) }
+                onNavigateToContact = { onNavigateToContact() }
             )
 
             WeSettingItem(

@@ -41,7 +41,7 @@ dependencies {
     implementation(projects.feature.discovery)
     implementation(projects.feature.profile)
 
-    implementation(libs.navigation.compose)
+    implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)

@@ -177,7 +177,7 @@ fun AppPicker(
 }
 
 @Composable
-fun ApkListItem(apk: AppItem) {
+private fun ApkListItem(apk: AppItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

@@ -17,8 +17,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
-import top.chengdongqing.wechat.core.common.navigation.SettingsRoute
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import top.chengdongqing.wechat.core.common.navigation.SettingsKey
 import top.chengdongqing.wechat.core.common.util.navigateToAppSettings
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -31,7 +32,7 @@ import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollE
 
 @Composable
 fun NotificationSettingsScreen(
-    navController: NavHostController,
+    backStack: NavBackStack<NavKey>,
     onBack: () -> Unit,
     viewModel: NotificationSettingsViewModel = hiltViewModel()
 ) {
@@ -89,7 +90,7 @@ fun NotificationSettingsScreen(
                 showDivider = false,
                 height = 68.dp,
                 onClick = {
-                    navController.navigate(SettingsRoute.NotificationDisplaySetting.route)
+                    backStack.add(SettingsKey.NotificationDisplay)
                 }
             )
             WeSettingGroup(stringResource(R.string.notification_group_sound)) {
@@ -113,7 +114,7 @@ fun NotificationSettingsScreen(
                     label = stringResource(R.string.notification_in_chat),
                     showDivider = false,
                     onClick = {
-                        navController.navigate(SettingsRoute.InChatNotificationSetting.route)
+                        backStack.add(SettingsKey.InChatNotification)
                     }
                 )
             }
@@ -121,7 +122,7 @@ fun NotificationSettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.notification_msg_sound),
                     onClick = {
-                        navController.navigate(SettingsRoute.NotificationSoundSetting.route)
+                        backStack.add(SettingsKey.NotificationSound)
                     }
                 ) {
                     WeSettingValue(stringResource(notificationSound.labelRes))
@@ -129,7 +130,7 @@ fun NotificationSettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.notification_ringtone),
                     onClick = {
-                        navController.navigate(SettingsRoute.RingtoneSetting.route)
+                        backStack.add(SettingsKey.Ringtone)
                     }
                 ) {
                     WeSettingValue(stringResource(ringtone.labelRes))

@@ -20,7 +20,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 @Composable
 fun WeCheckBox(checked: Boolean) {
     Box(
-        Modifier
+        modifier = Modifier
             .size(22.dp)
             .clip(CircleShape)
             .border(

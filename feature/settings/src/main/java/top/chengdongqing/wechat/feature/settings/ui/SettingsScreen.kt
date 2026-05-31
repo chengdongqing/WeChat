@@ -20,9 +20,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
-import top.chengdongqing.wechat.core.common.navigation.Screen
-import top.chengdongqing.wechat.core.common.navigation.SettingsRoute
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import top.chengdongqing.wechat.core.common.navigation.CommonKey
+import top.chengdongqing.wechat.core.common.navigation.SettingsKey
 import top.chengdongqing.wechat.core.common.util.appVersionName
 import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.designsystem.R
@@ -40,7 +41,7 @@ import top.chengdongqing.wechat.feature.settings.ui.connection.ConnectionSetting
 
 @Composable
 fun SettingsScreen(
-    navController: NavHostController,
+    backStack: NavBackStack<NavKey>,
     onBack: () -> Unit,
     viewModel: ConnectionSettingsViewModel = hiltViewModel()
 ) {
@@ -69,19 +70,19 @@ fun SettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.settings_notifications),
                     onClick = {
-                        navController.navigate(SettingsRoute.NotificationSettings.route)
+                        backStack.add(SettingsKey.Notification)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.settings_display),
                     onClick = {
-                        navController.navigate(SettingsRoute.DisplaySettings.route)
+                        backStack.add(SettingsKey.Display)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.settings_privacy),
                     onClick = {
-                        navController.navigate(SettingsRoute.PrivacySettings.route)
+                        backStack.add(SettingsKey.Privacy)
                     }
                 )
                 WeSettingItem(
@@ -92,15 +93,16 @@ fun SettingsScreen(
                     label = stringResource(R.string.settings_more),
                     showDivider = false,
                     onClick = {
-                        navController.navigate(SettingsRoute.MoreSettings.route)
+                        backStack.add(SettingsKey.More)
                     }
                 )
             }
+
             WeSettingGroup(stringResource(R.string.settings_group_features)) {
                 WeSettingItem(
                     label = stringResource(R.string.settings_connection),
                     onClick = {
-                        navController.navigate(SettingsRoute.ConnectionModeSettings.route)
+                        backStack.add(SettingsKey.ConnectionMode)
                     }
                 ) {
                     WeSettingValue(stringResource(connectionMode.labelRes))
@@ -108,17 +110,18 @@ fun SettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.settings_chat),
                     onClick = {
-                        navController.navigate(SettingsRoute.ChatSettings.route)
+                        backStack.add(SettingsKey.ChatSettings)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.settings_chat_history),
                     showDivider = false,
                     onClick = {
-                        navController.navigate(SettingsRoute.ChatManagement.route)
+                        backStack.add(SettingsKey.ChatManagement)
                     }
                 )
             }
+
             WeSettingGroup(stringResource(R.string.settings_group_help)) {
                 WeSettingItem(
                     label = stringResource(R.string.settings_help),
@@ -128,13 +131,14 @@ fun SettingsScreen(
                     label = stringResource(R.string.settings_about),
                     showDivider = false,
                     onClick = {
-                        navController.navigate(SettingsRoute.About.route)
+                        backStack.add(SettingsKey.About)
                     }
                 ) {
                     WeSettingValue("${stringResource(R.string.settings_version)} $versionName")
                 }
             }
-            LogoutButton(navController)
+
+            LogoutButton(backStack)
             Spacer(modifier = Modifier.height(100.dp))
         }
     }
@@ -142,7 +146,7 @@ fun SettingsScreen(
 
 @Composable
 private fun LogoutButton(
-    navController: NavHostController,
+    backStack: NavBackStack<NavKey>,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val dialog = rememberDialogState()
@@ -153,9 +157,8 @@ private fun LogoutButton(
         viewModel.logoutResult.collect { result ->
             result.onSuccess {
                 // 导航到登录页，清除回退栈
-                navController.navigate(Screen.Welcome.route) {
-                    popUpTo(0) { inclusive = true }
-                }
+                backStack.clear()
+                backStack.add(CommonKey.Welcome)
             }.onFailure {
                 // 提示失败
                 context.showToast(resources.getString(R.string.msg_process_failed))

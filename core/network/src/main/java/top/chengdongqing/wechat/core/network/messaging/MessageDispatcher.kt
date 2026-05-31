@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.core.network.messaging
 
 import android.util.Log
-import androidx.room.withTransaction
+import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -154,7 +154,7 @@ class MessageDispatcher @Inject constructor(
             isFromMe = false
         )
 
-        database.withTransaction {
+        database.withWriteTransaction {
             messageDao.insert(message)
             chatSessionUpdater.update(message)
         }

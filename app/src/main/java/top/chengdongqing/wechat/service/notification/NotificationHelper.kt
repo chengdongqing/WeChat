@@ -11,9 +11,11 @@ import android.graphics.Bitmap
 import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.MainActivity
-import top.chengdongqing.wechat.core.common.navigation.ChatRoute
-import top.chengdongqing.wechat.core.common.navigation.ContactsRoute
+import top.chengdongqing.wechat.core.common.navigation.AppNavKey
+import top.chengdongqing.wechat.core.common.navigation.ChatKey
+import top.chengdongqing.wechat.core.common.navigation.ContactsKey
 import top.chengdongqing.wechat.core.network.model.NotificationChannelConfig
 import top.chengdongqing.wechat.core.network.model.NotificationId
 import top.chengdongqing.wechat.feature.call.ui.CallActivity
@@ -26,6 +28,7 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
  */
 @Singleton
 class NotificationHelper @Inject constructor(
+    private val json: Json,
     @param:ApplicationContext private val context: Context
 ) {
     private val notificationManager by lazy {
@@ -84,12 +87,13 @@ class NotificationHelper @Inject constructor(
 
             if (contactId != null) {
                 // 加好友成功的通知跳转到聊天详情
-                ChatRoute.ChatSession.createRoute(contactId)
+                ChatKey.ChatSession(contactId)
             } else {
                 // 其余跳转到新的朋友
-                ContactsRoute.NewFriends.route
-            }.also { targetRoute ->
-                putExtra(MainActivity.EXTRA_ROUTE, targetRoute)
+                ContactsKey.NewFriends
+            }.also { targetNav ->
+                val navJson = json.encodeToString<AppNavKey>(targetNav)
+                putExtra(MainActivity.EXTRA_NAV, navJson)
             }
         }
         val pendingIntent = PendingIntent.getActivity(
@@ -128,7 +132,10 @@ class NotificationHelper @Inject constructor(
         // 构建点击通知跳转的 Intent
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            putExtra(MainActivity.EXTRA_ROUTE, ChatRoute.ChatSession.createRoute(sessionId))
+
+            val targetNav = ChatKey.ChatSession(sessionId)
+            val navJson = json.encodeToString<AppNavKey>(targetNav)
+            putExtra(MainActivity.EXTRA_NAV, navJson)
         }
         val pendingIntent = PendingIntent.getActivity(
             context,

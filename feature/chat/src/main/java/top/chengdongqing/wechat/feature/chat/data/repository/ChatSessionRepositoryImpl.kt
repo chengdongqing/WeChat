@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.feature.chat.data.repository
 
 import android.util.LruCache
-import androidx.room.withTransaction
+import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
@@ -125,7 +125,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
         // 删除会话，不真正删除这条记录，目的是保留 置顶/免到扰 等设置
         // 执行：清空消息+隐藏会话
-        database.withTransaction {
+        database.withWriteTransaction {
             chatSessionDao.clearLastMessage(sessionId)
             if (shouldHide) {
                 hideSession(sessionId)
@@ -149,7 +149,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
         val localPaths = messageDao.getAllLocalPaths()
 
         // 清空所有消息 + 隐藏所有会话（保留置顶/免打扰等设置）
-        database.withTransaction {
+        database.withWriteTransaction {
             chatSessionDao.clearAll()
             messageDao.deleteAll()
         }

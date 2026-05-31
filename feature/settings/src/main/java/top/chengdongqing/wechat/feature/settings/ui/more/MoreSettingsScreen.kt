@@ -9,8 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import top.chengdongqing.wechat.core.common.navigation.SettingsRoute
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
+import top.chengdongqing.wechat.core.common.navigation.SettingsKey
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -20,7 +21,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
 fun MoreSettingsScreen(
-    navController: NavHostController,
+    backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
     Scaffold(
@@ -68,7 +69,7 @@ fun MoreSettingsScreen(
                 label = stringResource(R.string.more_system_permissions),
                 showDivider = false,
                 onClick = {
-                    navController.navigate(SettingsRoute.SystemPermissionSettings.route)
+                    backStack.add(SettingsKey.SystemPermission)
                 }
             )
         }

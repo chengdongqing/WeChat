@@ -1,8 +1,8 @@
 package top.chengdongqing.wechat.core.database.dao
 
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Update
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
+import androidx.room3.Update
 
 interface BaseDao<T> {
 

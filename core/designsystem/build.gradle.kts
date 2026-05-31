@@ -28,7 +28,6 @@ dependencies {
     api(platform(libs.compose.bom))
     api(libs.bundles.compose)
     api(libs.compose.icons.extended)
-    api(libs.compose.material3.adaptive)
     api(libs.permissions.accompanist)
 
     implementation(libs.bundles.coil)

@@ -10,8 +10,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberNavBackStack
 import dagger.hilt.android.AndroidEntryPoint
+import jakarta.inject.Inject
+import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.common.navigation.AppNavKey
+import top.chengdongqing.wechat.core.common.navigation.CommonKey
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.AppNavigation
 import top.chengdongqing.wechat.core.network.service.P2PService
@@ -20,8 +25,11 @@ import top.chengdongqing.wechat.feature.settings.ui.display.DisplaySettingsViewM
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    @Inject
+    lateinit var json: Json
+
     // 记录待跳转的路由
-    private val navRoute = mutableStateOf<String?>(null)
+    private val pendingNavKey = mutableStateOf<NavKey?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,23 +41,23 @@ class MainActivity : AppCompatActivity() {
         initP2PService()
 
         setContent {
-            val navController = rememberNavController()
-            val route by navRoute
+            val backStack = rememberNavBackStack(CommonKey.Splash)
+            val navKey by pendingNavKey
             val displayViewModel: DisplaySettingsViewModel = hiltViewModel()
             val displaySettings by displayViewModel.settings.collectAsState()
 
             // 响应路由事件
-            LaunchedEffect(route) {
-                route?.let {
-                    navController.navigate(it) {
-                        launchSingleTop = true
+            LaunchedEffect(navKey) {
+                navKey?.let { key ->
+                    if (backStack.last() != key) {
+                        backStack.add(key)
                     }
-                    navRoute.value = null
+                    pendingNavKey.value = null
                 }
             }
 
             WeTheme(settings = displaySettings) {
-                AppNavigation(navController)
+                AppNavigation(backStack)
             }
         }
     }
@@ -61,9 +69,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        val route = intent?.getStringExtra(EXTRA_ROUTE)
-        if (route != null) {
-            navRoute.value = route
+        val navJson = intent?.getStringExtra(EXTRA_NAV) ?: return
+
+        runCatching {
+            json.decodeFromString<AppNavKey>(navJson)
+        }.onSuccess { targetNav ->
+            pendingNavKey.value = targetNav
+        }.onFailure {
+            it.printStackTrace()
         }
     }
 
@@ -73,6 +86,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val EXTRA_ROUTE = "extra_route"
+        const val EXTRA_NAV = "extra_nav"
     }
 }

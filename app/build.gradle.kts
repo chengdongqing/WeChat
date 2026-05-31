@@ -1,4 +1,4 @@
-import androidx.room.gradle.RoomExtension
+import androidx.room3.gradle.RoomExtension
 
 plugins {
     alias(libs.plugins.android.application)
@@ -12,19 +12,14 @@ plugins {
 
 android {
     namespace = "top.chengdongqing.wechat"
-
-    compileSdk {
-        version = release(37) {
-            minorApiLevel = 0
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "top.chengdongqing.wechat"
         minSdk = 26
         targetSdk = 37
-        versionCode = 20260326
-        versionName = "2026.03.26"
+        versionCode = 20260531
+        versionName = "2026.05.31"
 
         ndk {
             abiFilters.add("arm64-v8a")
@@ -56,7 +51,7 @@ android {
     flavorDimensions.add("version")
     productFlavors {
         create("full") { dimension = "version" }
-        create("lite") { dimension = "version" } // Lite版使用轻量版的高德地图SDK，但打包混淆配置待修正
+        create("lite") { dimension = "version" } // Lite版使用轻量版的高德地图SDK（打包混淆配置待修正）
     }
 }
 
@@ -97,11 +92,12 @@ dependencies {
     // 数据存储与序列化
     implementation(libs.datastore.preferences)
     implementation(libs.serialization.json)
-    implementation(libs.bundles.room)
+    implementation(libs.room.runtime)
     ksp(libs.room.compiler)
 
     // 导航
-    implementation(libs.navigation.compose)
+    implementation(libs.navigation.runtime)
+    implementation(libs.navigation.ui)
 
     // Compose 核心 UI
     implementation(platform(libs.compose.bom))

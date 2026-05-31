@@ -41,12 +41,12 @@ dependencies {
     implementation(projects.feature.chat)
     implementation(projects.feature.contacts)
 
-    implementation(libs.navigation.compose)
+    implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
     implementation(libs.datastore.preferences)
-    implementation(libs.bundles.room)
+    implementation(libs.room.runtime)
     implementation(libs.appcompat)
 }

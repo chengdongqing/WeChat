@@ -16,11 +16,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.navigation.ChatRoute
-import top.chengdongqing.wechat.core.common.navigation.ContactsRoute
-import top.chengdongqing.wechat.core.common.navigation.Screen
+import top.chengdongqing.wechat.core.common.navigation.ChatKey
+import top.chengdongqing.wechat.core.common.navigation.CommonKey
+import top.chengdongqing.wechat.core.common.navigation.ContactsKey
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.ui.list.ChatListScreen
@@ -35,12 +36,12 @@ import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 
 @Composable
 fun HomeScreen(
-    navController: NavHostController,
-    viewModel: HomeViewModel = hiltViewModel(),
+    backStack: NavBackStack<NavKey>,
+    homeViewModel: HomeViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
-    val unreadCounts by viewModel.unreadCounts.collectAsStateWithLifecycle()
+    val unreadCounts by homeViewModel.unreadCounts.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val pagerState = rememberPagerState(
@@ -55,13 +56,13 @@ fun HomeScreen(
         viewModel = profileViewModel,
         snackbarHostState = snackbarHostState,
         onNavigateToContactDetail = { id ->
-            navController.navigate(ContactsRoute.Detail.createRoute(id))
+            backStack.add(ContactsKey.Detail(id))
         },
         onNavigateToPlainText = { text ->
-            navController.navigate(Screen.PlainText.createRoute(text))
+            backStack.add(CommonKey.PlainText(text))
         },
         onNavigateToWebView = { url ->
-            navController.navigate(Screen.WebView.createRoute(url))
+            backStack.add(CommonKey.WebView(url))
         }
     )
 
@@ -71,7 +72,7 @@ fun HomeScreen(
                 currentTab = currentTab,
                 unreadCounts = unreadCounts,
                 viewModel = profileViewModel,
-                navController = navController
+                backStack = backStack
             )
         },
         bottomBar = {
@@ -91,7 +92,7 @@ fun HomeScreen(
         HomeContentPager(
             pagerState = pagerState,
             innerPadding = innerPadding,
-            navController = navController
+            backStack = backStack
         )
     }
 
@@ -102,7 +103,7 @@ fun HomeScreen(
 private fun HomeContentPager(
     pagerState: PagerState,
     innerPadding: PaddingValues,
-    navController: NavHostController
+    backStack: NavBackStack<NavKey>
 ) {
     HorizontalPager(
         state = pagerState,
@@ -113,26 +114,18 @@ private fun HomeContentPager(
     ) { page ->
         when (HomeTab.tabs[page]) {
             HomeTab.Chats -> ChatListScreen(
-                onNavigateToDetail = { id ->
-                    navController.navigate(ChatRoute.ChatSession.createRoute(id))
-                }
+                onNavigateToDetail = { backStack.add(ChatKey.ChatSession(it)) }
             )
 
             HomeTab.Contacts -> ContactListScreen(
-                onNavigateToNewFriends = {
-                    navController.navigate(ContactsRoute.NewFriends.route)
-                },
-                onNavigateToDetail = { id ->
-                    navController.navigate(ContactsRoute.Detail.createRoute(id))
-                },
-                onNavigateToProfileEdit = { id ->
-                    navController.navigate(ContactsRoute.ProfileEdit.createRoute(id))
-                }
+                onNavigateToNewFriends = { backStack.add(ContactsKey.NewFriends) },
+                onNavigateToDetail = { backStack.add(ContactsKey.Detail(it)) },
+                onNavigateToProfileEdit = { backStack.add(ContactsKey.EditProfile(it)) }
             )
 
             HomeTab.Discovery -> DiscoveryScreen()
 
-            HomeTab.Me -> MeScreen(navController)
+            HomeTab.Me -> MeScreen(backStack)
         }
     }
 }

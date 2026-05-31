@@ -43,7 +43,6 @@ class BLEConnection(
         private const val TAG = "BLEConnection"
     }
 
-    // Own scope: canceled on close, does not affect the parent scope
     private val job = SupervisorJob(parentScope.coroutineContext[Job])
     private val scope = CoroutineScope(parentScope.coroutineContext + job)
 
@@ -65,9 +64,10 @@ class BLEConnection(
         return withTimeoutOrNull(BLEConfig.CONNECT_TIMEOUT_MS) {
             suspendCancellableCoroutine { cont ->
                 connectContinuation = cont
+                @Suppress("DEPRECATION")
                 gatt = device.connectGatt(
                     context,
-                    /*autoConnect=*/ false,
+                    false,
                     gattCallback,
                     BluetoothDevice.TRANSPORT_LE,
                 )
@@ -124,7 +124,7 @@ class BLEConnection(
     }
 
     fun close() {
-        job.cancel()           // cancels all coroutines in this connection's scope
+        job.cancel()
         connectContinuation?.cancel()
         writeContinuation?.cancel()
         closeGatt()
@@ -139,6 +139,7 @@ class BLEConnection(
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             when (newState) {
                 BluetoothProfile.STATE_CONNECTED -> {
+                    gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
                     Log.d(TAG, "已连接，请求 MTU: ${BLEConfig.MTU_SIZE}")
                     gatt.requestMtu(BLEConfig.MTU_SIZE)
                 }

@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.core.database
 
-import androidx.room.TypeConverter
+import androidx.room3.TypeConverter
 import top.chengdongqing.wechat.core.model.ContactAddSource
 import top.chengdongqing.wechat.core.model.FriendRequestStatus
 import top.chengdongqing.wechat.core.model.Gender

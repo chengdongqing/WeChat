@@ -2,7 +2,7 @@ package top.chengdongqing.wechat.feature.contacts.data.repository
 
 import android.util.LruCache
 import androidx.core.net.toUri
-import androidx.room.withTransaction
+import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
@@ -114,7 +114,7 @@ class ContactRepositoryImpl @Inject constructor(
     override suspend fun deleteContact(userId: String) {
         val contact = contactDao.getById(userId) ?: return
 
-        database.withTransaction {
+        database.withWriteTransaction {
             // 删除会话的所有信息、所有消息记录、所有会话文件
             chatSessionRepository.deleteSession(userId)
             chatSessionDao.deleteById(userId)

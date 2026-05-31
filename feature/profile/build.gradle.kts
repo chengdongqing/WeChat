@@ -32,7 +32,7 @@ dependencies {
     implementation(projects.core.network)
     implementation(projects.core.database)
 
-    implementation(libs.navigation.compose)
+    implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)

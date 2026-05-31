@@ -1,4 +1,4 @@
-import androidx.room.gradle.RoomExtension
+import androidx.room3.gradle.RoomExtension
 
 plugins {
     alias(libs.plugins.android.library)
@@ -31,7 +31,7 @@ configure<RoomExtension> {
 dependencies {
     implementation(projects.core.model)
 
-    implementation(libs.bundles.room)
+    implementation(libs.room.runtime)
     ksp(libs.room.compiler)
 
     implementation(libs.hilt.android)

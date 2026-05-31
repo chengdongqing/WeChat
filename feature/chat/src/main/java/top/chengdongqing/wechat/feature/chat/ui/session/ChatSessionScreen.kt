@@ -24,7 +24,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -66,9 +65,7 @@ fun ChatSessionScreen(
     onNavigateToMusicPreview: (messageId: String, trackName: String) -> Unit,
     onNavigateToRequestAddFriend: () -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
-    viewModel: ChatSessionViewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
-        factory.create(chatId)
-    }
+    viewModel: ChatSessionViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val messages by viewModel.messages.collectAsStateWithLifecycle()

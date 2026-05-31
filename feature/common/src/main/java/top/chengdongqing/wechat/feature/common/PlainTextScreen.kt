@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.White
 
 @Composable
 fun PlainTextScreen(
@@ -20,15 +19,22 @@ fun PlainTextScreen(
     onBack: () -> Unit
 ) {
     Scaffold(topBar = {
-        WeTopBar(onBack = onBack, backIconResId = R.drawable.ic_close_outlined)
+        WeTopBar(
+            onBack = onBack,
+            backIconResId = R.drawable.ic_close_outlined
+        )
     }) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(White)
+                .background(WeTheme.colorScheme.surface)
                 .padding(innerPadding)
         ) {
-            Text(text = text, color = WeTheme.colorScheme.textPrimary, fontSize = 15.sp)
+            Text(
+                text = text,
+                color = WeTheme.colorScheme.textPrimary,
+                fontSize = 15.sp
+            )
         }
     }
 }

@@ -48,7 +48,8 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
-    implementation(libs.navigation.compose)
+    implementation(libs.navigation.runtime)
+    implementation(libs.navigation.ui)
     implementation(libs.pinyin)
     implementation(libs.serialization.json)
 

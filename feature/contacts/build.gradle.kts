@@ -36,14 +36,14 @@ dependencies {
     implementation(projects.feature.call)
     implementation(projects.feature.profile)
 
-    implementation(libs.navigation.compose)
+    implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
     implementation(libs.serialization.json)
 
-    implementation(libs.bundles.room)
+    implementation(libs.room.runtime)
     implementation(libs.bundles.coil)
     implementation(libs.coil.zoomable)
 

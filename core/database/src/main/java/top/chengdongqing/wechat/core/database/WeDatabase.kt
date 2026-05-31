@@ -1,8 +1,8 @@
 package top.chengdongqing.wechat.core.database
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
+import androidx.room3.Database
+import androidx.room3.RoomDatabase
+import androidx.room3.TypeConverters
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.dao.ContactDao

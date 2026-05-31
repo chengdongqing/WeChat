@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.core.designsystem.components.emojitextfield
 
 import android.content.Context
+import android.os.Build
+import android.view.WindowInsets
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.widget.AppCompatEditText
 import java.lang.ref.WeakReference
@@ -27,9 +29,14 @@ class NativeFocusRequester {
             view.requestFocus()
 
             if (showKeyboard) {
-                val imm =
-                    view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    view.windowInsetsController?.show(WindowInsets.Type.ime())
+                } else {
+                    val imm =
+                        view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    @Suppress("DEPRECATION")
+                    imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+                }
             }
         }
     }

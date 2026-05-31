@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalResources
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.R
@@ -15,12 +14,9 @@ import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.components.Fri
 
 @Composable
 fun RequestAddScreen(
-    contactId: String,
     onBack: () -> Unit,
     onSuccess: () -> Unit,
-    viewModel: RequestAddViewModel = hiltViewModel { factory: RequestAddViewModel.Factory ->
-        factory.create(contactId)
-    }
+    viewModel: RequestAddViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val toast = rememberToastState()

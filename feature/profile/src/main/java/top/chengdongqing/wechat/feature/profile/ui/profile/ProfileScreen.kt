@@ -22,11 +22,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.media.RingtoneSound
-import top.chengdongqing.wechat.core.common.navigation.MeRoute
-import top.chengdongqing.wechat.core.common.navigation.SettingsRoute
+import top.chengdongqing.wechat.core.common.navigation.MeKey
+import top.chengdongqing.wechat.core.common.navigation.SettingsKey
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -45,7 +46,7 @@ import top.chengdongqing.wechat.core.model.UserProfile
  */
 @Composable
 fun ProfileScreen(
-    navController: NavController,
+    backStack: NavBackStack<NavKey>,
     onBack: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -59,31 +60,30 @@ fun ProfileScreen(
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
-            // 资料内容
             ProfileContent(
                 modifier = Modifier.padding(innerPadding),
                 profile = uiState.profile,
                 ringtone = ringtone,
                 onNavigateToAvatarEdit = {
-                    navController.navigate(MeRoute.Edit.AVATAR)
+                    backStack.add(MeKey.EditAvatar)
                 },
                 onNavigateToNameEdit = {
-                    navController.navigate(MeRoute.Edit.NAME)
+                    backStack.add(MeKey.EditName)
                 },
                 onNavigateToGenderEdit = {
-                    navController.navigate(MeRoute.Edit.GENDER)
+                    backStack.add(MeKey.EditGender)
                 },
                 onNavigateToIdView = {
-                    navController.navigate(MeRoute.Edit.ID)
+                    backStack.add(MeKey.EditId)
                 },
                 onNavigateToQRCode = {
-                    navController.navigate(MeRoute.QR_CODE)
+                    backStack.add(MeKey.QrCode)
                 },
                 onNavigateToSignatureEdit = {
-                    navController.navigate(MeRoute.Edit.SIGNATURE)
+                    backStack.add(MeKey.EditSignature)
                 },
                 onNavigateToRingtoneSetting = {
-                    navController.navigate(SettingsRoute.RingtoneSetting.route)
+                    backStack.add(SettingsKey.Ringtone)
                 }
             )
         }
