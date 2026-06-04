@@ -49,6 +49,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -134,7 +135,9 @@ fun ZoomControlBar(state: CameraState) {
         // 在底层滑动的背景圆圈
         Box(
             modifier = Modifier
-                .offset(x = indicatorOffset)
+                .offset {
+                    IntOffset(x = indicatorOffset.roundToPx(), y = 0)
+                }
                 .size(itemWidth)
                 .clip(CircleShape)
                 .background(Color.Black.copy(alpha = 0.4f))

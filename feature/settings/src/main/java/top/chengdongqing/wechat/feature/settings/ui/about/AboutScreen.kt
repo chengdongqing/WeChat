@@ -110,7 +110,7 @@ private fun AboutActionList() {
             onClick = {}
         )
         WeSettingItem(
-            label = stringResource(R.string.about_complaint),
+            label = stringResource(R.string.about_feedback),
             onClick = {}
         )
         WeSettingItem(

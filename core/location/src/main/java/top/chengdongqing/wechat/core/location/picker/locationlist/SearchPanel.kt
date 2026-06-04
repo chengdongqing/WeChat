@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -134,7 +135,9 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
         HorizontalDivider(
             modifier = Modifier
                 .width(animatedWidth)
-                .offset(x = animatedOffsetX),
+                .offset {
+                    IntOffset(x = animatedOffsetX.roundToPx(), y = 0)
+                },
             thickness = 2.dp,
             color = WeTheme.colorScheme.primary
         )

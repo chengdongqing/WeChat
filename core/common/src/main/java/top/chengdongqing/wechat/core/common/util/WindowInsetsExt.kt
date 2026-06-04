@@ -5,7 +5,6 @@ import android.view.View
 import android.view.ViewTreeObserver
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -22,21 +21,6 @@ import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import top.chengdongqing.wechat.core.designsystem.util.DpSaver
-
-/**
- * 获取状态栏高度
- */
-@Composable
-fun rememberStatusBarHeight(): Dp {
-    val density = LocalDensity.current
-    val statusBars = WindowInsets.statusBars
-
-    return remember {
-        with(density) {
-            statusBars.getTop(this).toDp()
-        }
-    }
-}
 
 /**
  * 键盘高度测量模式

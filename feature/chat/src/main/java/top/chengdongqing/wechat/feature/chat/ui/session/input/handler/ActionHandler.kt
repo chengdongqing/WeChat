@@ -172,10 +172,10 @@ fun rememberActionHandler(
                 scope.launch {
                     delay(500)
 
-                    val tempFile = File.createTempFile("Dotate_", ".jpg")
+                    val tempFile = File.createTempFile("Dotation_", ".jpg")
                     // 获取表情URI
                     val uri = context.copyResourceToUri(
-                        resId = R.drawable.img_donate,
+                        resId = R.drawable.img_donation,
                         targetFile = tempFile
                     ) ?: return@launch
                     // 拷贝到私有目录持久化保存

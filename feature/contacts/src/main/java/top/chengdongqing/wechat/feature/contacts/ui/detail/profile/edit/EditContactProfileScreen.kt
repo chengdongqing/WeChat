@@ -52,7 +52,7 @@ fun EditContactProfileScreen(
     }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val contact = uiState.contact ?: return
+    val contact = uiState.contact
     val toast = rememberToastState()
 
     // 监听保存事件
@@ -107,7 +107,7 @@ fun EditContactProfileScreen(
                 ) {
                     WeInput(
                         value = uiState.remarkName,
-                        placeholder = contact.nickname,
+                        placeholder = contact?.nickname ?: "",
                         maxLength = 17,
                         showDivider = false,
                         onValueChange = { viewModel.updateRemarkName(it) }

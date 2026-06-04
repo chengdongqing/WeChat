@@ -21,6 +21,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -55,7 +56,9 @@ private fun BoxScope.ScanningAnimation() {
 
     Box(
         modifier = Modifier
-            .offset(y = (offsetY * screenHeight).dp)
+            .offset {
+                IntOffset(x = 0, y = (offsetY * screenHeight).dp.roundToPx())
+            }
             .align(Alignment.TopCenter)
             .fillMaxWidth(0.9f)
     ) {

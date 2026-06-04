@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -142,7 +143,9 @@ fun WeSlider(
             Box(
                 Modifier
                     .size(handleSize)
-                    .offset(offsetX - halfHandleSize)
+                    .offset {
+                        IntOffset(x = (offsetX - halfHandleSize).roundToPx(), y = 0)
+                    }
                     .shadow(
                         shape = CircleShape,
                         elevation = halfHandleSize,

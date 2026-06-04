@@ -2,11 +2,11 @@
 # 构建工具与插件
 agp = "9.2.1"
 appcompat = "1.7.1"
-kotlin = "2.3.21"
+kotlin = "2.4.0"
 ksp = "2.3.4"
 
 # 核心基础库
-coreKtx = "1.18.0"
+coreKtx = "1.19.0"
 lifecycle = "2.10.0"
 activity = "1.13.0"
 navigation = "1.1.2"
@@ -29,7 +29,7 @@ camera = "1.6.1"
 exifinterface = "1.4.2"
 
 # 业务逻辑与数据
-room = "3.0.0-alpha05"
+room = "3.0.0-alpha06"
 serialization = "1.11.0"
 webrtc = "144.7559.05"
 mlkit = "17.3.0"

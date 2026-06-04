@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -137,7 +138,10 @@ private fun BoxScope.LocationMarker(state: LocationPickerState) {
             modifier = Modifier
                 .align(Alignment.Center)
                 .size(50.dp)
-                .offset(y = (-25).dp + offsetY.value.dp)
+                .offset {
+                    val yOffsetDp = ((-25).dp + offsetY.value.dp)
+                    IntOffset(x = 0, y = yOffsetDp.roundToPx())
+                }
         )
     } else if (state.selectedLocation != null) {
         // 搜索模式：通过 MapController 添加真实 Marker，切换/消失时自动移除

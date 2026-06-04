@@ -139,6 +139,6 @@
     <string name="chat_history_clear_content">Cleared messages cannot be recovered once cleared. Are you sure you want to clear all personal and group chat messages?</string>
 
     <string name="about_features">What\'s Fresh</string>
-    <string name="about_complaint">Feedback</string>
+    <string name="about_feedback">Feedback</string>
     <string name="about_update">Version Update</string>
 </resources>

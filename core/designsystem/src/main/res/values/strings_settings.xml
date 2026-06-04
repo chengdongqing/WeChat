@@ -139,6 +139,6 @@
     <string name="chat_history_clear_content">被清空的聊天记录将无法恢复，请再次确认是否清空所有个人和群的聊天记录</string>
 
     <string name="about_features">功能介绍</string>
-    <string name="about_complaint">投诉</string>
+    <string name="about_feedback">投诉</string>
     <string name="about_update">版本更新</string>
 </resources>

@@ -33,7 +33,7 @@ class AddFriendRepositoryImpl @Inject constructor(
     override suspend fun handleScannedQRCode(qrContent: String): Result<Contact> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val beacon = DiscoveryBeacon.Companion.fromByteArray(
+                val beacon = DiscoveryBeacon.fromByteArray(
                     Base64.decode(
                         qrContent,
                         Base64.NO_WRAP
@@ -59,7 +59,7 @@ class AddFriendRepositoryImpl @Inject constructor(
 
     override suspend fun generateMyQRCode(): String = withContext(Dispatchers.IO) {
         val userId = profileRepository.requireUserId()
-        val beaconBytes = DiscoveryBeacon.Companion.create(userId).toByteArray()
+        val beaconBytes = DiscoveryBeacon.create(userId).toByteArray()
         Base64.encodeToString(beaconBytes, Base64.NO_WRAP)
     }
 

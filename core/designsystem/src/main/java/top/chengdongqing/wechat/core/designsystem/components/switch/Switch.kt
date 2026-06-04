@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
@@ -66,7 +67,9 @@ fun WeSwitch(
     ) {
         Box(
             Modifier
-                .offset(offsetX, 2.dp)
+                .offset {
+                    IntOffset(offsetX.roundToPx(), 2.dp.roundToPx())
+                }
                 .size(22.dp)
                 .clip(RoundedCornerShape(50))
                 .background(Color.White)
