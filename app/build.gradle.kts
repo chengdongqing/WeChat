@@ -1,5 +1,3 @@
-import androidx.room3.gradle.RoomExtension
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -55,7 +53,7 @@ android {
     }
 }
 
-configure<RoomExtension> {
+room3 {
     schemaDirectory("$projectDir/schemas")
 }
 

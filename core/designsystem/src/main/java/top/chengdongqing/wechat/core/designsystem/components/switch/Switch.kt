@@ -2,16 +2,15 @@ package top.chengdongqing.wechat.core.designsystem.components.switch
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.style.ExperimentalFoundationStyleApi
+import androidx.compose.foundation.style.Style
+import androidx.compose.foundation.style.styleable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -27,6 +26,7 @@ import top.chengdongqing.wechat.core.designsystem.util.weClickable
  * @param disabled 是否禁用
  * @param onChange 状态改变事件
  */
+@OptIn(ExperimentalFoundationStyleApi::class)
 @Composable
 fun WeSwitch(
     checked: Boolean = false,
@@ -40,18 +40,17 @@ fun WeSwitch(
     )
     val haptic = LocalHapticFeedback.current
 
+    val primaryColor = WeTheme.colorScheme.primary
+    val outlineColor = WeTheme.colorScheme.divider
+
     Box(
         Modifier
-            .size(width = 44.dp, height = 26.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (checked) {
-                    WeTheme.colorScheme.primary
-                } else {
-                    WeTheme.colorScheme.divider
-                }
-            )
-            .alpha(if (disabled) 0.7f else 1f)
+            .styleable(style = Style {
+                size(44.dp, 26.dp)
+                alpha(if (disabled) 0.7f else 1f)
+                shape(RoundedCornerShape(16.dp))
+                background(if (checked) primaryColor else outlineColor)
+            })
             .weClickable(!disabled) {
                 val newValue = !checked
                 onChange?.invoke(newValue)
@@ -70,9 +69,11 @@ fun WeSwitch(
                 .offset {
                     IntOffset(offsetX.roundToPx(), 2.dp.roundToPx())
                 }
-                .size(22.dp)
-                .clip(RoundedCornerShape(50))
-                .background(Color.White)
+                .styleable(style = Style {
+                    size(22.dp)
+                    background(Color.White)
+                    shape(RoundedCornerShape(50))
+                })
         )
     }
 }
