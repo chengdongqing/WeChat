@@ -38,7 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
+import top.chengdongqing.wechat.core.designsystem.theme.Link
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 /**
@@ -59,7 +59,7 @@ fun WeDialog(
     content: String? = null,
     okText: String = "确定",
     cancelText: String = "取消",
-    okColor: Color = LinkColor,
+    okColor: Color = Link,
     onOk: () -> Unit,
     onCancel: (() -> Unit)? = null,
     onDismiss: () -> Unit
@@ -169,7 +169,7 @@ interface DialogState {
         content: String? = null,
         @StringRes okText: Int = R.string.action_ok,
         @StringRes cancelText: Int = R.string.action_cancel,
-        okColor: Color = LinkColor,
+        okColor: Color = Link,
         closeOnAction: Boolean = true,
         onCancel: (() -> Unit)? = {},
         onOk: (() -> Unit)? = null

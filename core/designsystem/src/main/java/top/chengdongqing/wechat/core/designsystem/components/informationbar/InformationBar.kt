@@ -30,7 +30,7 @@ import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
-import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
+import top.chengdongqing.wechat.core.designsystem.theme.Link
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
@@ -160,7 +160,7 @@ private fun colorSchemeOf(type: InformationBarType): InformationBarColors {
             } else {
                 Color(0f, 0f, 0f, 0.55f)
             },
-            linkColor = LinkColor,
+            linkColor = Link,
             closeIconColor = Color(0f, 0f, 0f, 0.55f)
         )
 

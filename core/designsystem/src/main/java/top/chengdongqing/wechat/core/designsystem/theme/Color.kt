@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 // --- 品牌核心色 ---
 val GreenPrimary = Color(0xFF07C160)
 val Danger = Color(0xFFFA5151)
-val LinkColor = Color(0xFF576B95)
+val Link = Color(0xFF576B95)
 
 // --- 基础色 ---
 val White = Color(0xFFFFFFFF)

@@ -28,7 +28,7 @@ import java.util.Locale
 data class WeColorScheme(
     val primary: Color = GreenPrimary,
     val danger: Color = Danger,
-    val link: Color = LinkColor,
+    val link: Color = Link,
     // 背景层级（从低到高）
     val background: Color,       // 页面底色
     val surface: Color,          // 卡片/列表容器

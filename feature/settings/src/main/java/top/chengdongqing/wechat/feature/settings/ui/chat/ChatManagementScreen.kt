@@ -32,7 +32,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
-import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
+import top.chengdongqing.wechat.core.designsystem.theme.Link
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
@@ -87,7 +87,7 @@ private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
 
     Text(
         text = stringResource(R.string.chat_history_clear),
-        color = LinkColor,
+        color = Link,
         fontSize = 13.sp,
         modifier = Modifier
             .align(Alignment.BottomCenter)
