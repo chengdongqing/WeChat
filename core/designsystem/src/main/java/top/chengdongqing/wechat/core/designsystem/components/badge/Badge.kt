@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.White
 
 @Composable
@@ -37,7 +37,7 @@ fun WeBadge(
     gap: Dp = 8.dp,
     offset: DpOffset? = null,
     contentColor: Color = White,
-    containerColor: Color = Danger,
+    containerColor: Color = RedDanger,
     holder: (@Composable () -> Unit)? = null
 ) {
     Box(modifier = modifier) {

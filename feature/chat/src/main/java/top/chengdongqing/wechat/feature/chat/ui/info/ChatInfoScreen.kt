@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
@@ -119,7 +119,7 @@ fun ChatInfoScreen(
                             uiState.contactName
                         ),
                         okText = R.string.action_clear,
-                        okColor = Danger,
+                        okColor = RedDanger,
                         onOk = { viewModel.clearMessages() }
                     )
                 }

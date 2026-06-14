@@ -37,7 +37,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.theme.Link
+import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
@@ -202,7 +202,7 @@ private fun LinkedRow(label: String, onClick: () -> Unit) {
             .fillMaxWidth()
             .weClickable { onClick() }
     ) {
-        Text(text = label, color = Link, fontSize = 16.sp)
+        Text(text = label, color = PurpleLink, fontSize = 16.sp)
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
             contentDescription = null,

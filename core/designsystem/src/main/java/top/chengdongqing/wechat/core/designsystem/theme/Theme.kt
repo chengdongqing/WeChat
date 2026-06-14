@@ -27,8 +27,8 @@ import java.util.Locale
 @Immutable
 data class WeColorScheme(
     val primary: Color = GreenPrimary,
-    val danger: Color = Danger,
-    val link: Color = Link,
+    val danger: Color = RedDanger,
+    val link: Color = PurpleLink,
     // 背景层级（从低到高）
     val background: Color,       // 页面底色
     val surface: Color,          // 卡片/列表容器

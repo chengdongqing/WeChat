@@ -29,7 +29,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.CallState
 import top.chengdongqing.wechat.core.model.CallType
@@ -191,13 +191,13 @@ private fun CancelButton(actions: CallActions, showLabel: Boolean = false) = Con
     icon = R.drawable.ic_hangup_filled,
     label = if (showLabel) stringResource(R.string.call_control_cancel) else null,
     onClick = actions.onCancel,
-    backgroundColor = Danger
+    backgroundColor = RedDanger
 )
 
 @Composable
 private fun HangupButton(
     actions: CallActions,
-    backgroundColor: Color = Danger,
+    backgroundColor: Color = RedDanger,
     showLabel: Boolean = false
 ) = ControlToggle(
     icon = R.drawable.ic_hangup_filled,
@@ -211,7 +211,7 @@ private fun DeclineButton(actions: CallActions, showLabel: Boolean = false) = Co
     icon = R.drawable.ic_hangup_filled,
     label = if (showLabel) stringResource(R.string.call_control_decline) else null,
     onClick = actions.onDecline,
-    backgroundColor = Danger
+    backgroundColor = RedDanger
 )
 
 @OptIn(ExperimentalPermissionsApi::class)

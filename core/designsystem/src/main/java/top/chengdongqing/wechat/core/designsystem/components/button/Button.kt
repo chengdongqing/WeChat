@@ -20,9 +20,9 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
 
@@ -128,9 +128,9 @@ private fun colorSchemeOf(type: ButtonType, enabled: Boolean): ButtonColors {
         )
 
         ButtonType.Danger -> if (isDarkTheme) {
-            ButtonColors(Danger, TextPrimaryDark)
+            ButtonColors(RedDanger, TextPrimaryDark)
         } else {
-            ButtonColors(Color.Black.copy(0.05f), Danger)
+            ButtonColors(Color.Black.copy(0.05f), RedDanger)
         }
 
         ButtonType.Plain -> if (isDarkTheme) {

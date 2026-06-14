@@ -33,7 +33,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.feature.settings.domain.model.labelRes
@@ -170,7 +170,7 @@ private fun LogoutButton(
         dialog.show(
             title = resources.getString(R.string.settings_logout_title),
             content = resources.getString(R.string.settings_logout_content),
-            okColor = Danger,
+            okColor = RedDanger,
             onOk = viewModel::exit
         )
     }

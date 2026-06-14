@@ -10,7 +10,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -29,7 +29,7 @@ fun DiscoveryScreen() {
         WeMenuListItem(
             label = stringResource(R.string.discover_menu_search),
             icon = R.drawable.ic_search_logo_outlined,
-            iconColor = Danger,
+            iconColor = RedDanger,
             onClick = {}
         )
     }

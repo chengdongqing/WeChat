@@ -28,8 +28,8 @@ import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDial
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBluetoothEnabled
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
@@ -184,7 +184,7 @@ private fun ChatContextMenuHandler(
             3 -> dialog.show(
                 title = deleteHint,
                 okText = R.string.action_delete,
-                okColor = Danger
+                okColor = RedDanger
             ) { viewModel.deleteChat(chat.id) }
         }
     }

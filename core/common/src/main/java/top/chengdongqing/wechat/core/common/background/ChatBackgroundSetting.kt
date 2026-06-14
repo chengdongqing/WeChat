@@ -24,7 +24,7 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionS
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
@@ -48,7 +48,7 @@ fun ChatBackgroundSetting(
             list.add(
                 ActionSheetItem(
                     labelRes = DesignR.string.chat_info_clear_background,
-                    color = Danger
+                    color = RedDanger
                 )
             )
         }

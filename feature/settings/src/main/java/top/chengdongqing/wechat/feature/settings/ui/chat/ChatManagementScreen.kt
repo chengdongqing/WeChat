@@ -31,8 +31,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.theme.Danger
-import top.chengdongqing.wechat.core.designsystem.theme.Link
+import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
+import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
@@ -87,7 +87,7 @@ private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
 
     Text(
         text = stringResource(R.string.chat_history_clear),
-        color = Link,
+        color = PurpleLink,
         fontSize = 13.sp,
         modifier = Modifier
             .align(Alignment.BottomCenter)
@@ -97,7 +97,7 @@ private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
                     title = resources.getString(R.string.chat_history_clear_title),
                     content = resources.getString(R.string.chat_history_clear_content),
                     okText = R.string.action_clear,
-                    okColor = Danger,
+                    okColor = RedDanger,
                     onOk = viewModel::deleteAllSessions
                 )
             }

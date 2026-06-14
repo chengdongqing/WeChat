@@ -39,7 +39,7 @@ import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.theme.Link
+import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
@@ -196,7 +196,7 @@ private fun LinkedRow(
             .fillMaxWidth()
             .weClickable { onClick() }
     ) {
-        Text(text = label, color = Link, fontSize = 16.sp)
+        Text(text = label, color = PurpleLink, fontSize = 16.sp)
         Icon(
             painter = painterResource(R.drawable.ic_right_outlined),
             contentDescription = null,
@@ -219,13 +219,13 @@ private fun PhotoSection() {
         Icon(
             painter = painterResource(R.drawable.ic_plus_circle_outlined),
             contentDescription = null,
-            tint = Link,
+            tint = PurpleLink,
             modifier = Modifier.size(32.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = stringResource(R.string.contact_profile_edit_add_photo),
-            color = Link,
+            color = PurpleLink,
             fontSize = 15.sp
         )
     }
