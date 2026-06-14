@@ -29,7 +29,7 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
-import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBluetoothEnabled
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
@@ -46,7 +46,7 @@ fun ChatListScreen(
     val chats by viewModel.chats.collectAsStateWithLifecycle()
 
     val contextMenuState = rememberContextMenuState(
-        itemWidthDp = when (LocalAppLanguage.current) {
+        itemWidthDp = when (LocalAppearanceSetting.current.appLanguage) {
             AppLanguage.English -> 160.dp
             else -> 140.dp
         }

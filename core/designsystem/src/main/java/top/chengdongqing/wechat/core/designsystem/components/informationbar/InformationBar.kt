@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.LinkColor
-import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.util.weClickable
 
 enum class InformationBarType {
@@ -133,7 +133,7 @@ private data class InformationBarColors(
 
 @Composable
 private fun colorSchemeOf(type: InformationBarType): InformationBarColors {
-    val isDarkTheme = LocalIsDarkTheme.current
+    val isDarkTheme = LocalAppearanceSetting.current.isDarkTheme
 
     return when (type) {
         InformationBarType.WarnStrong -> InformationBarColors(

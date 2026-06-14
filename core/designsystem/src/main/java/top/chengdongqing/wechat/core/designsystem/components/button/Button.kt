@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
-import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
 
@@ -107,7 +107,7 @@ private data class ButtonColors(
 
 @Composable
 private fun colorSchemeOf(type: ButtonType, enabled: Boolean): ButtonColors {
-    val isDarkTheme = LocalIsDarkTheme.current
+    val isDarkTheme = LocalAppearanceSetting.current.isDarkTheme
 
     return when (type) {
         ButtonType.Primary -> ButtonColors(

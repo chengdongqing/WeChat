@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.core.model
 /**
  * 字体缩放
  */
-enum class AppFontScale(val scale: Float) {
+enum class AppFontScale(val value: Float) {
     Small(0.85f),
     Normal(1.0f),
     Medium(1.15f),

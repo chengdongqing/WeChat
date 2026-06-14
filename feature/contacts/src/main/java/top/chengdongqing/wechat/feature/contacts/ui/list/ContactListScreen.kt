@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weConte
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
-import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.model.AppLanguage
@@ -95,10 +95,10 @@ fun ContactListScreen(
                         items(
                             items = contacts,
                             key = { it.id },
-                            contentType = { "ContactItem" } // 告诉 LazyColumn 哪些项是同一种布局，提高复用效率
+                            contentType = { "ContactItem" }
                         ) { contact ->
                             val contextMenuState = rememberContextMenuState(
-                                itemWidthDp = when (LocalAppLanguage.current) {
+                                itemWidthDp = when (LocalAppearanceSetting.current.appLanguage) {
                                     AppLanguage.English -> 160.dp
                                     else -> 140.dp
                                 }

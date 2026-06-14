@@ -9,7 +9,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.Danger
 import top.chengdongqing.wechat.core.designsystem.theme.Dark_Surface
 import top.chengdongqing.wechat.core.designsystem.theme.Dark_Surface2
 import top.chengdongqing.wechat.core.designsystem.theme.Grey_F7
-import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
 import top.chengdongqing.wechat.core.designsystem.theme.TextSecondaryDark
@@ -79,7 +79,7 @@ val LocalChatColorScheme = staticCompositionLocalOf { ChatLightColors }
 
 @Composable
 fun ChatTheme(
-    isDark: Boolean = LocalIsDarkTheme.current,
+    isDark: Boolean = LocalAppearanceSetting.current.isDarkTheme,
     content: @Composable () -> Unit
 ) {
     val colors = if (isDark) ChatDarkColors else ChatLightColors

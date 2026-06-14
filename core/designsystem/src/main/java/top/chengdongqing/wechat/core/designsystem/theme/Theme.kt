@@ -64,9 +64,15 @@ val DarkColorScheme = WeColorScheme(
     divider = DividerDark,
 )
 
-val LocalWeColorScheme = staticCompositionLocalOf { LightColorScheme }
-val LocalIsDarkTheme = staticCompositionLocalOf { false }
-val LocalAppLanguage = staticCompositionLocalOf { AppLanguage.FollowSystem }
+@Immutable
+data class AppearanceSetting(
+    val fontScale: Float = 1f,
+    val isDarkTheme: Boolean = false,
+    val colorScheme: WeColorScheme = LightColorScheme,
+    val appLanguage: AppLanguage = AppLanguage.FollowSystem
+)
+
+val LocalAppearanceSetting = staticCompositionLocalOf { AppearanceSetting() }
 
 @Composable
 fun WeTheme(
@@ -80,13 +86,13 @@ fun WeTheme(
         AppTheme.Dark -> true
         AppTheme.Light -> false
     }
+    // 颜色方案
     val colorScheme = when {
         isDarkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-
-    // 当前的语言
-    val currentLanguage = remember(settings.language) {
+    // 语言配置
+    val appLanguage = remember(settings.language) {
         when (settings.language) {
             AppLanguage.FollowSystem -> {
                 val locale = AppCompatDelegate.getApplicationLocales()[0]
@@ -122,10 +128,12 @@ fun WeTheme(
             LocalTextStyle provides TextStyle(
                 platformStyle = PlatformTextStyle(false) // 避免文本自带边距
             ),
-            LocalFontScale provides settings.fontScale.scale,
-            LocalIsDarkTheme provides isDarkTheme,
-            LocalWeColorScheme provides colorScheme,
-            LocalAppLanguage provides currentLanguage
+            LocalAppearanceSetting provides AppearanceSetting(
+                fontScale = settings.fontScale.value,
+                isDarkTheme = isDarkTheme,
+                colorScheme = colorScheme,
+                appLanguage = appLanguage
+            )
         ) {
             content()
         }
@@ -135,5 +143,5 @@ fun WeTheme(
 object WeTheme {
     val colorScheme: WeColorScheme
         @Composable
-        get() = LocalWeColorScheme.current
+        get() = LocalAppearanceSetting.current.colorScheme
 }

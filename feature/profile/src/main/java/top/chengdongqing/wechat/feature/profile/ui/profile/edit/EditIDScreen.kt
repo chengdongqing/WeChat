@@ -25,7 +25,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 
@@ -57,7 +57,7 @@ fun EditIDScreen(
                 painter = painterResource(R.drawable.img_logo_gray),
                 contentDescription = null,
                 modifier = Modifier.size(100.dp),
-                alpha = if (LocalIsDarkTheme.current) 0.4f else 0.15f
+                alpha = if (LocalAppearanceSetting.current.isDarkTheme) 0.4f else 0.15f
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(

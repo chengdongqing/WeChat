@@ -34,7 +34,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.showToast
 import top.chengdongqing.wechat.core.location.map.MapController
@@ -51,7 +51,7 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun rememberMapController(): MapController {
     val context = LocalContext.current
-    val isDarkTheme = LocalIsDarkTheme.current
+    val isDarkTheme = LocalAppearanceSetting.current.isDarkTheme
     val scope = rememberCoroutineScope()
 
     return remember {

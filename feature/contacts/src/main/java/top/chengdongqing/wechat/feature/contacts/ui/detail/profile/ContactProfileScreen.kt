@@ -21,7 +21,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.getDescription
 import top.chengdongqing.wechat.core.designsystem.ui.safePronounRes
@@ -162,7 +162,11 @@ private fun ContactProfileContent(
             contact.addedAt?.let {
                 WeSettingItem(
                     label = stringResource(R.string.contact_profile_added_at),
-                    trailing = { WeSettingValue(it.toYearMonthDisplay(LocalAppLanguage.current)) },
+                    trailing = {
+                        val result =
+                            it.toYearMonthDisplay(LocalAppearanceSetting.current.appLanguage)
+                        WeSettingValue(result)
+                    },
                     showArrow = false,
                     showDivider = false
                 )

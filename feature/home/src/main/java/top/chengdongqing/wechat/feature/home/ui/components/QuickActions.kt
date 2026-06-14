@@ -46,7 +46,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.theme.LocalAppLanguage
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.feature.home.model.QuickAction
@@ -76,7 +76,7 @@ fun QuickActions(
 
     if (!shouldShow) return
 
-    val menuWidth = when (LocalAppLanguage.current) {
+    val menuWidth = when (LocalAppearanceSetting.current.appLanguage) {
         AppLanguage.English -> 180.dp
         else -> 160.dp
     }

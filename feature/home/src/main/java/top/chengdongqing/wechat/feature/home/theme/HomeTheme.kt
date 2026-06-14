@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.Dark_TabBar
 import top.chengdongqing.wechat.core.designsystem.theme.Grey_F7
-import top.chengdongqing.wechat.core.designsystem.theme.LocalIsDarkTheme
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.TabBarIconInactiveDark
 import top.chengdongqing.wechat.core.designsystem.theme.White
 
@@ -34,7 +34,7 @@ val LocalHomeColorScheme = staticCompositionLocalOf { HomeLightColorScheme }
 
 @Composable
 fun HomeTheme(
-    isDark: Boolean = LocalIsDarkTheme.current,
+    isDark: Boolean = LocalAppearanceSetting.current.isDarkTheme,
     content: @Composable () -> Unit
 ) {
     val colors = if (isDark) HomeDarkColorScheme else HomeLightColorScheme

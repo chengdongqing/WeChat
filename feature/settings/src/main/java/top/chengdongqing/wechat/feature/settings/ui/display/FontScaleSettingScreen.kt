@@ -83,7 +83,7 @@ fun FontScaleSettingScreen(
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         CompositionLocalProvider(
-            LocalFontScale provides fontScale.scale
+            LocalFontScale provides fontScale.value
         ) {
             ChatPreview(
                 viewModel = viewModel,
