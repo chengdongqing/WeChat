@@ -2,8 +2,6 @@ package top.chengdongqing.wechat.feature.settings.ui.about
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +30,7 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,6 +40,7 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import java.time.Year
 
 @Composable
@@ -52,10 +54,14 @@ fun AboutScreen(onBack: () -> Unit) {
         },
         containerColor = WeTheme.colorScheme.surface
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .verticalScroll(
+                    state = rememberScrollState(),
+                    overscrollEffect = rememberBounceOverscrollEffect()
+                )
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -65,6 +71,15 @@ fun AboutScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(40.dp))
                 AboutActionList()
             }
+
+            Spacer(
+                modifier = Modifier
+                    .weight(1f)
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(50.dp)
+            )
 
             AboutFooter()
         }
@@ -123,11 +138,10 @@ private fun AboutActionList() {
 }
 
 @Composable
-private fun BoxScope.AboutFooter() {
+private fun AboutFooter() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .align(Alignment.BottomCenter)
             .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -160,35 +174,30 @@ private fun BoxScope.AboutFooter() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "作者：James Lu",
-            color = WeTheme.colorScheme.textSecondary,
-            fontSize = 12.sp
-        )
-        Text(
-            text = "邮箱：1912525497@qq.com",
-            color = WeTheme.colorScheme.textSecondary,
-            fontSize = 12.sp
-        )
-        Text(
-            text = "提示：请在法律允许的范围内合规使用。",
-            color = WeTheme.colorScheme.textSecondary,
-            fontSize = 12.sp
-        )
+        HintText("作者：James Lu")
+        HintText("邮箱：1912525497@qq.com")
+        HintText("提示：请在法律允许的范围内合规使用。")
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        Text(
-            "腾讯公司 版权所有",
-            color = WeTheme.colorScheme.textSecondary,
-            fontSize = 12.sp
-        )
+        HintText("腾讯公司 版权所有")
         Text(
             text = "Copyright © 2011-${Year.now().value} Tencent. All Rights Reserved.",
             color = Color.LightGray,
-            fontSize = 10.sp
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center
         )
     }
+}
+
+@Composable
+private fun HintText(text: String) {
+    Text(
+        text = text,
+        color = WeTheme.colorScheme.textSecondary,
+        fontSize = 12.sp,
+        textAlign = TextAlign.Center
+    )
 }
 
 @Composable

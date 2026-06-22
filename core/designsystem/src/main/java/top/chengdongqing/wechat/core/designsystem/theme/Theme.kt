@@ -14,9 +14,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Density
 import androidx.core.view.WindowCompat
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.model.AppLanguage
@@ -78,6 +81,7 @@ val LocalAppearanceSetting = staticCompositionLocalOf { AppearanceSetting() }
 fun WeTheme(
     settings: DisplaySettings = DisplaySettings(),
     isDark: Boolean? = null,
+    designWidth: Float = 375f,
     content: @Composable () -> Unit
 ) {
     // 是否启用深色主题
@@ -105,6 +109,13 @@ fun WeTheme(
         }
     }
 
+    // 统一在不同屏幕上的显示大小
+    val screenWidthPx = LocalResources.current.displayMetrics.widthPixels
+    val scaledDensity = Density(
+        density = screenWidthPx / designWidth,
+        fontScale = LocalDensity.current.fontScale * settings.fontScale.value
+    )
+
     // 沉浸式状态栏兼容低版本
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
         val view = LocalView.current
@@ -125,11 +136,11 @@ fun WeTheme(
 
     MaterialTheme {
         CompositionLocalProvider(
+            LocalDensity provides scaledDensity,
             LocalTextStyle provides TextStyle(
                 platformStyle = PlatformTextStyle(false) // 避免文本自带边距
             ),
             LocalAppearanceSetting provides AppearanceSetting(
-                fontScale = settings.fontScale.value,
                 isDarkTheme = isDarkTheme,
                 colorScheme = colorScheme,
                 appLanguage = appLanguage

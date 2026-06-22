@@ -27,9 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -83,6 +85,9 @@ fun FontScaleSettingScreen(
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         CompositionLocalProvider(
+            LocalDensity provides Density(
+                density = LocalDensity.current.density
+            ),
             LocalFontScale provides fontScale.value
         ) {
             ChatPreview(
