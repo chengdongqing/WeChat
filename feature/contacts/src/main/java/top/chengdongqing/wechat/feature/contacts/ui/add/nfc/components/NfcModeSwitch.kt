@@ -20,7 +20,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 @Composable
 fun NfcModeSwitch(
@@ -49,7 +49,7 @@ fun NfcModeSwitch(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
                         .background(if (selected) GreenPrimary else Color.Unspecified)
-                        .weClickable { onModeChange(mode) }
+                        .onTap { onModeChange(mode) }
                         .padding(horizontal = 20.dp, vertical = 8.dp)
                 ) {
                     Text(

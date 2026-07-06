@@ -1,13 +1,10 @@
 package top.chengdongqing.wechat.core.designsystem.util
 
 import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,44 +26,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-
-/**
- * 自定义点击，不带水波纹
- */
-fun Modifier.weClickable(
-    enabled: Boolean = true,
-    onClick: () -> Unit
-): Modifier = composed {
-    this.clickable(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = null,
-        enabled = enabled,
-        onClick = onClick
-    )
-}
-
-/**
- * 自定义点击，带自定义背景色
- */
-fun Modifier.weClickableWithBg(
-    enabled: Boolean = true,
-    showBackground: Boolean = true,
-    onClick: () -> Unit
-): Modifier = composed {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val pressedColor = WeTheme.colorScheme.divider
-
-    this
-        .background(if (isPressed && showBackground) pressedColor else Color.Transparent)
-        .clickable(
-            interactionSource = interactionSource,
-            indication = null,
-            enabled = enabled,
-            onClick = onClick
-        )
-}
 
 /**
  * 长按连续触发

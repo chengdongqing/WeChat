@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -49,7 +50,6 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
 import kotlin.math.roundToInt
 
 @Composable
@@ -116,7 +116,7 @@ fun MenuContent(options: List<String>, menuWidthDp: Dp, itemHeightDp: Dp, onClic
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(itemHeightDp)
-                        .weClickableWithBg { onClick(index) }
+                        .clickable { onClick(index) }
                         .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {

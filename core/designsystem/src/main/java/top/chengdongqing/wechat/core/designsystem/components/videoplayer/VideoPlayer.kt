@@ -23,7 +23,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
 import top.chengdongqing.wechat.core.designsystem.util.format
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -41,7 +41,7 @@ fun WeVideoPlayer(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .weClickable {
+            .onTap {
                 if (state.isPlaying) {
                     state.pause()
                 } else {

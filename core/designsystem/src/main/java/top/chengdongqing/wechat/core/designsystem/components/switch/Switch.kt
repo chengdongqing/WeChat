@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 /**
  * 开关
@@ -51,7 +51,7 @@ fun WeSwitch(
                 shape(RoundedCornerShape(16.dp))
                 background(if (checked) primaryColor else outlineColor)
             })
-            .weClickable(!disabled) {
+            .onTap(!disabled) {
                 val newValue = !checked
                 onChange?.invoke(newValue)
 

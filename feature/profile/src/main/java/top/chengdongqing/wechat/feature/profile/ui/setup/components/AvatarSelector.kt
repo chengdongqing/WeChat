@@ -44,7 +44,7 @@ import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 /**
  * 头像选择器组件
@@ -126,7 +126,7 @@ private fun AvatarDisplay(
         modifier = Modifier
             .size(100.dp)
             .clip(CircleShape)
-            .weClickable(enabled = enabled, onClick = onClick)
+            .onTap(enabled = enabled, onClick = onClick)
     ) {
         if (avatarUri != null) {
             AsyncImage(

@@ -19,7 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 /**
  * 通话顶部栏
@@ -80,7 +80,7 @@ private fun MinimizeButton(
         modifier = modifier
             .size(32.dp)
             .offset(x = 14.dp)
-            .weClickable(onClick = onClick),
+            .onTap(onClick = onClick),
         tint = Color.White
     )
 }

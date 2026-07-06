@@ -39,7 +39,7 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.remembe
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.location.WeMap
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.model.MapType
@@ -90,7 +90,7 @@ private fun TopBar(onBack: () -> Unit) {
             modifier = Modifier
                 .offset(x = 14.dp, y = 16.dp)
                 .size(26.dp)
-                .weClickable { onBack() },
+                .onTap { onBack() },
             tint = White
         )
     }

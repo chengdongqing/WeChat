@@ -26,7 +26,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreTyp
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.util.formatDistance
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -84,7 +84,7 @@ private fun LocationListItem(checked: Boolean, location: LocationInfo, onClick: 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .weClickable { onClick() }
+            .onTap { onClick() }
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

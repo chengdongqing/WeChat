@@ -51,7 +51,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.model.UserProfile
 import kotlin.math.cos
 import kotlin.math.sin
@@ -234,7 +234,7 @@ private fun UserAvatar(
                 .size((size.value * 0.6).dp)
                 .clip(CircleShape)
                 .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
-                .weClickable(enabled = !isLoading, onClick = onClick)
+                .onTap(enabled = !isLoading, onClick = onClick)
         ) {
             AsyncImage(
                 model = user.avatarUrl,

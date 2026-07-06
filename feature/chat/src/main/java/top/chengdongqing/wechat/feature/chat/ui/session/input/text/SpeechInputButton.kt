@@ -28,7 +28,7 @@ import top.chengdongqing.wechat.core.common.media.SpeechState
 import top.chengdongqing.wechat.core.common.media.SpeechStatus
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 /**
  * 语音输入按钮
@@ -44,7 +44,7 @@ fun SpeechInputButton(
     Box(
         modifier = modifier
             .size(40.dp)
-            .weClickable(onClick = speechState::toggle),
+            .onTap(onClick = speechState::toggle),
         contentAlignment = Alignment.Center
     ) {
         if (speechState.isListening) {

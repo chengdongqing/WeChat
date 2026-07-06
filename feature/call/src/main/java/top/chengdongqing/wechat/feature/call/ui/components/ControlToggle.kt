@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 /**
  * 统一的通话控制按钮
@@ -52,7 +52,7 @@ fun ControlToggle(
                     }
                 )
                 .alpha(if (enabled) 1f else 0.5f)
-                .weClickable(
+                .onTap(
                     enabled = enabled,
                     onClick = onClick
                 ),

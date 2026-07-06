@@ -37,8 +37,8 @@ import kotlinx.coroutines.flow.filter
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.LaunchedUpdateEffect
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.designsystem.util.rememberKeyboardHeight
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.picker.LocationPickerState
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -115,7 +115,7 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
                     color = if (active) WeTheme.colorScheme.primary else WeTheme.colorScheme.textPrimary,
                     modifier = Modifier
                         .onSizeChanged { itemWidths[index] = with(density) { it.width.toDp() } }
-                        .weClickable { onChange(index) }
+                        .onTap { onChange(index) }
                         .padding(vertical = 3.dp)
                 )
             }

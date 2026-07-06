@@ -14,7 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 /**
  * TopBar 操作按钮作用域
@@ -81,7 +81,7 @@ internal class WeTopBarScopeImpl(
             fontSize = 16.sp,
             modifier = modifier
                 .padding(horizontal = 8.dp)
-                .weClickable(onClick = onClick ?: {})
+                .onTap(onClick = onClick ?: {})
         )
     }
 }
@@ -100,7 +100,7 @@ fun WeTopBarIcon(
     Box(
         modifier = modifier
             .size(40.dp)
-            .weClickable(
+            .onTap(
                 enabled = onClick != null,
                 onClick = { onClick?.invoke() }
             ),

@@ -70,8 +70,8 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.feature.profile.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
@@ -385,7 +385,7 @@ private fun LinkText(text: String, onClick: () -> Unit) {
         text = text,
         fontSize = 14.sp,
         color = PurpleLink,
-        modifier = Modifier.weClickable(onClick = onClick)
+        modifier = Modifier.onTap(onClick = onClick)
     )
 }
 

@@ -33,7 +33,7 @@ import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 
@@ -149,7 +149,7 @@ fun MessageItem(
                         modifier = Modifier
                             .matchParentSize()
                             .zIndex(1f)
-                            .weClickable(onClick = onMessageClick)
+                            .onTap(onClick = onMessageClick)
                     )
                 }
             }
@@ -178,7 +178,7 @@ private fun Avatar(model: Any?, isPeer: Boolean) {
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))
-            .weClickable {
+            .onTap {
                 chatContext?.onNavigateToContact(isPeer)
             })
 }

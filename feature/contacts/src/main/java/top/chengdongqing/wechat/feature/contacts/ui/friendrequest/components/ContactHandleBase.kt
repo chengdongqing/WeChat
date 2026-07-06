@@ -39,7 +39,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDial
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 enum class FriendActionType(@get:StringRes val titleRes: Int) {
     Apply(R.string.contact_action_apply),
@@ -200,7 +200,7 @@ private fun LinkedRow(label: String, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .weClickable { onClick() }
+            .onTap { onClick() }
     ) {
         Text(text = label, color = PurpleLink, fontSize = 16.sp)
         Icon(

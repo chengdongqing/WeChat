@@ -41,7 +41,7 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToast
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 @Composable
 fun EditContactProfileScreen(
@@ -194,7 +194,7 @@ private fun LinkedRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .weClickable { onClick() }
+            .onTap { onClick() }
     ) {
         Text(text = label, color = PurpleLink, fontSize = 16.sp)
         Icon(

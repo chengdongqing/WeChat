@@ -22,7 +22,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 /**
  * 顶部导航栏
@@ -80,7 +80,7 @@ fun WeTopBar(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .padding(horizontal = 8.dp)
-                            .weClickable(onClick = onBack)
+                            .onTap(onClick = onBack)
                     )
                 }
             }

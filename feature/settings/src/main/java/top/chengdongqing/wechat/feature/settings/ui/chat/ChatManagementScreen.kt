@@ -34,7 +34,7 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 @Composable
 fun ChatManagementScreen(
@@ -92,7 +92,7 @@ private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .padding(bottom = 40.dp)
-            .weClickable {
+            .onTap {
                 dialog.show(
                     title = resources.getString(R.string.chat_history_clear_title),
                     content = resources.getString(R.string.chat_history_clear_content),

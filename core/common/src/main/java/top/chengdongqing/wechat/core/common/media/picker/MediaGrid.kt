@@ -33,8 +33,8 @@ import top.chengdongqing.wechat.core.common.util.format
 import top.chengdongqing.wechat.core.common.util.loadMediaThumbnail
 import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -134,7 +134,7 @@ private fun BoxScope.MediaCheckbox(selected: Boolean, selectedIndex: Int, onClic
     Box(
         modifier = Modifier
             .align(Alignment.TopEnd)
-            .weClickable { onClick() }
+            .onTap { onClick() }
             .padding(top = 6.dp, end = 6.dp, start = 18.dp, bottom = 18.dp)
     ) {
         Box(

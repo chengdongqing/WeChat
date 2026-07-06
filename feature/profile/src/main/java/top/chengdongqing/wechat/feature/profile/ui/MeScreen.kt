@@ -43,7 +43,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 
@@ -121,7 +121,7 @@ fun UserInfoSection(
         modifier = Modifier
             .fillMaxWidth()
             .background(WeTheme.colorScheme.surface)
-            .weClickable { onNavigateToProfile() }
+            .onTap { onNavigateToProfile() }
             .padding(start = 24.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -152,7 +152,7 @@ fun UserInfoSection(
                     contentDescription = null,
                     modifier = Modifier
                         .size(20.dp)
-                        .weClickable { onNavigateToQRCode() },
+                        .onTap { onNavigateToQRCode() },
                     tint = Color(0xFF456F6F)
                 )
             }

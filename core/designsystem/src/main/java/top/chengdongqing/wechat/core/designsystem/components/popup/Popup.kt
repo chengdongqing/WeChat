@@ -48,7 +48,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import kotlin.math.roundToInt
 
 /**
@@ -137,7 +137,7 @@ fun WePopup(
                     )
                     .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                     .background(WeTheme.colorScheme.surface)
-                    .weClickable { }
+                    .onTap { }
                     .padding(padding)
                     .onSizeChanged {
                         height = it.height
@@ -173,7 +173,7 @@ private fun PopupContainer(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .weClickable {
+                .onTap {
                     onDismiss()
                 },
             contentAlignment = Alignment.BottomCenter

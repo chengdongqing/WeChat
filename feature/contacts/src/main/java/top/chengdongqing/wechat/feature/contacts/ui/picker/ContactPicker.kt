@@ -42,8 +42,8 @@ import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetInd
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
 import top.chengdongqing.wechat.core.model.ContactResult
 import top.chengdongqing.wechat.core.model.toResult
 
@@ -129,7 +129,7 @@ fun ContactPicker(
                                     modifier = Modifier.background(WeTheme.colorScheme.surface)
                                 ) {
                                     Row(
-                                        modifier = Modifier.weClickable {
+                                        modifier = Modifier.onTap {
                                             if (uiState.selectedCount >= count && !isSelected) {
                                                 context.showToast(
                                                     resources.getString(
@@ -137,7 +137,7 @@ fun ContactPicker(
                                                         count
                                                     )
                                                 )
-                                                return@weClickable
+                                                return@onTap
                                             }
                                             viewModel.toggleSelection(contact)
                                         },

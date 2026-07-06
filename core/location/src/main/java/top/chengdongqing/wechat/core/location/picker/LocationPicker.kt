@@ -43,7 +43,7 @@ import top.chengdongqing.wechat.core.common.util.createImageUri
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.theme.Black
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.location.LocationControl
 import top.chengdongqing.wechat.core.location.WeMap
 import top.chengdongqing.wechat.core.location.model.LocationInfo
@@ -178,7 +178,7 @@ private fun TopBar(
             text = stringResource(DesignR.string.action_cancel),
             color = Color.White,
             fontSize = 16.sp,
-            modifier = Modifier.weClickable { onCancel() }
+            modifier = Modifier.onTap { onCancel() }
         )
         WeButton(
             text = stringResource(DesignR.string.action_done),

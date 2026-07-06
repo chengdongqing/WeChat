@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 @Composable
 fun WeSearchBar(
@@ -113,7 +113,7 @@ fun WeSearchBar(
                 color = PurpleLink,
                 fontSize = 16.sp,
                 modifier = Modifier
-                    .weClickable {
+                    .onTap {
                         setFocus(false)
                         onChange("")
                     }
@@ -165,7 +165,7 @@ private fun SearchPlaceholder(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .weClickable(onClick = onActivate),
+            .onTap(onClick = onActivate),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {

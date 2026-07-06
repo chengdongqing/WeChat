@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,7 +48,6 @@ import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
-import top.chengdongqing.wechat.core.designsystem.util.weClickableWithBg
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.feature.home.model.QuickAction
 import top.chengdongqing.wechat.feature.home.theme.HomeTheme
@@ -157,7 +157,7 @@ private fun ActionItem(action: QuickAction, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(55.dp)
-            .weClickableWithBg(onClick = onClick)
+            .clickable(onClick = onClick)
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

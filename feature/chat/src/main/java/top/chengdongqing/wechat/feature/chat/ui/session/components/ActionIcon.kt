@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 @Composable
 fun ActionIcon(
@@ -29,7 +29,7 @@ fun ActionIcon(
     Box(
         modifier = modifier
             .size(40.dp)
-            .weClickable(onClick = { onClick?.invoke() }),
+            .onTap(onClick = { onClick?.invoke() }),
         contentAlignment = Alignment.Center
     ) {
         Icon(

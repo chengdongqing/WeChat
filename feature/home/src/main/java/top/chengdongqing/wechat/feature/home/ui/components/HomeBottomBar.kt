@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.feature.home.model.HomeTab
 import top.chengdongqing.wechat.feature.home.theme.HomeTheme
 
@@ -60,7 +60,7 @@ fun HomeBottomBar(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .weClickable { onTabSelected(index) },
+                        .onTap { onTabSelected(index) },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {

@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 @Composable
 fun PlayButton(isPlaying: Boolean, onClick: () -> Unit) {
@@ -36,7 +36,7 @@ fun PlayButton(isPlaying: Boolean, onClick: () -> Unit) {
             .size(54.dp)
             .clip(CircleShape)
             .background(Color.Black.copy(0.1f))
-            .weClickable(onClick = onClick)
+            .onTap(onClick = onClick)
             .padding(8.dp)
     ) {
         AnimatedContent(targetState = isPlaying) { isPlaying ->

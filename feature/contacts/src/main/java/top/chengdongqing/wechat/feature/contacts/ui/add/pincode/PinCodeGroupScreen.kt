@@ -3,7 +3,6 @@ package top.chengdongqing.wechat.feature.contacts.ui.add.pincode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,8 +38,9 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
-import top.chengdongqing.wechat.core.designsystem.util.NeonGreenIndication
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.util.neonIndication
 
 @Composable
 fun PinCodeGroupScreen(onBack: () -> Unit) {
@@ -108,7 +108,7 @@ private fun DigitCodeInput(code: String) {
                         )
                     )
                 } else {
-                    // 未输入：黑色原点
+                    // 未输入：黑色圆点
                     Box(
                         modifier = Modifier
                             .size(14.dp)
@@ -127,21 +127,25 @@ private fun CustomNumberKeyboard(
     onNumberClick: (String) -> Unit,
     onDelete: () -> Unit
 ) {
-    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "DEL")
+    val keys = remember {
+        listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "DEL")
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         keys.chunked(3).forEach { row ->
             Row(modifier = Modifier.fillMaxWidth()) {
                 row.forEach { key ->
-                    val interactionSource = remember { MutableInteractionSource() }
-
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(60.dp)
                             .clickable(
-                                interactionSource = interactionSource,
-                                indication = NeonGreenIndication
+                                interactionSource = null,
+                                indication = if (key.isNotEmpty()) {
+                                    neonIndication(WeTheme.colorScheme.primary)
+                                } else {
+                                    null
+                                }
                             ) {
                                 when (key) {
                                     "DEL" -> onDelete()

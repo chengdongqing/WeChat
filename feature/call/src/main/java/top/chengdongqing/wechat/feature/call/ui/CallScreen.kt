@@ -41,7 +41,7 @@ import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
 import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.model.CallState
 import top.chengdongqing.wechat.feature.call.domain.model.CallUiState
 import top.chengdongqing.wechat.feature.call.ui.components.CallBackground
@@ -77,7 +77,7 @@ fun CallScreen(viewModel: CallViewModel, onDismiss: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .weClickable(enabled = uiState.canToggleControls) {
+            .onTap(enabled = uiState.canToggleControls) {
                 viewModel.actions.onToggleControlsVisibility()
             }
     ) {
@@ -219,7 +219,7 @@ private fun FloatingPipWindow(uiState: CallUiState, viewModel: CallViewModel) {
                     }
                 }
             }
-            .weClickable { viewModel.actions.onSwapVideo() }
+            .onTap { viewModel.actions.onSwapVideo() }
     ) {
         WebRTCVideoView(
             eglContext = viewModel.eglContext,

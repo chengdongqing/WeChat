@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 @Composable
 fun WelcomeScreen(
@@ -54,7 +54,7 @@ fun WelcomeScreen(
                 text = stringResource(R.string.welcome_language),
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 15.sp,
-                modifier = Modifier.weClickable {
+                modifier = Modifier.onTap {
                     onNavigateToLanguage()
                 }
             )

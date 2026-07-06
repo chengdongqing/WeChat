@@ -32,7 +32,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 enum class InformationBarType {
     WarnStrong,
@@ -103,7 +103,7 @@ fun WeInformationBar(
                     text = it,
                     fontSize = 14.sp,
                     color = colors.linkColor,
-                    modifier = Modifier.weClickable {
+                    modifier = Modifier.onTap {
                         onLink?.invoke()
                     }
                 )
@@ -114,7 +114,7 @@ fun WeInformationBar(
                     Icons.Outlined.Close,
                     contentDescription = null,
                     tint = colors.closeIconColor,
-                    modifier = Modifier.weClickable {
+                    modifier = Modifier.onTap {
                         it()
                     }
                 )

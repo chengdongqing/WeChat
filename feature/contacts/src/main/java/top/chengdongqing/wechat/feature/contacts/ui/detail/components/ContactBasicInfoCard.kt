@@ -35,7 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.Gender
 
@@ -69,7 +69,7 @@ private fun ContactAvatar(contact: Contact) {
         modifier = Modifier
             .size(64.dp)
             .clip(RoundedCornerShape(6.dp))
-            .weClickable(enabled = contact.isFriend || contact.isSelf) {
+            .onTap(enabled = contact.isFriend || contact.isSelf) {
                 dialogVisible = true
             }
     )

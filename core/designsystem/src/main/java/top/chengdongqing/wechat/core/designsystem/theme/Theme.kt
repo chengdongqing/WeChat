@@ -3,9 +3,9 @@ package top.chengdongqing.wechat.core.designsystem.theme
 import android.app.Activity
 import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -17,8 +17,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Density
 import androidx.core.view.WindowCompat
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
@@ -134,20 +132,16 @@ fun WeTheme(
     // 设置状态栏文字颜色
     StatusBarAppearanceEffect(isDark = !isDarkTheme)
 
-    MaterialTheme {
-        CompositionLocalProvider(
-            LocalDensity provides scaledDensity,
-            LocalTextStyle provides TextStyle(
-                platformStyle = PlatformTextStyle(false) // 避免文本自带边距
-            ),
-            LocalAppearanceSetting provides AppearanceSetting(
-                isDarkTheme = isDarkTheme,
-                colorScheme = colorScheme,
-                appLanguage = appLanguage
-            )
-        ) {
-            content()
-        }
+    CompositionLocalProvider(
+        LocalDensity provides scaledDensity,
+        LocalIndication provides ripple(),
+        LocalAppearanceSetting provides AppearanceSetting(
+            isDarkTheme = isDarkTheme,
+            colorScheme = colorScheme,
+            appLanguage = appLanguage
+        )
+    ) {
+        content()
     }
 }
 

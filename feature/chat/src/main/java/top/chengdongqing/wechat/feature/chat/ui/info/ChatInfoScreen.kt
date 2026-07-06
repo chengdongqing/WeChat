@@ -40,7 +40,7 @@ import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.weClickable
+import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 @Composable
 fun ChatInfoScreen(
@@ -149,7 +149,7 @@ private fun ContactListBar(
         Column(
             modifier = Modifier
                 .widthIn(max = 80.dp)
-                .weClickable { onNavigateToContact() },
+                .onTap { onNavigateToContact() },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
