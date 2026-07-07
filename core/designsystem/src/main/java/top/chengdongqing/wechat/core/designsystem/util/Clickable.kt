@@ -27,13 +27,11 @@ import kotlinx.coroutines.launch
 fun Modifier.onTap(
     enabled: Boolean = true,
     onClick: () -> Unit
-): Modifier = then(
-    Modifier.clickable(
-        interactionSource = null,
-        indication = null,
-        enabled = enabled,
-        onClick = onClick
-    )
+): Modifier = clickable(
+    interactionSource = null,
+    indication = null,
+    enabled = enabled,
+    onClick = onClick
 )
 
 /**
@@ -41,7 +39,7 @@ fun Modifier.onTap(
  * 用于在组件被按下时展示霓虹灯效果
  */
 @Stable
-fun neonIndication(color: Color): IndicationNodeFactory = NeonNodeFactory(color)
+fun neon(color: Color): IndicationNodeFactory = NeonNodeFactory(color)
 
 @Stable
 private class NeonNodeFactory(

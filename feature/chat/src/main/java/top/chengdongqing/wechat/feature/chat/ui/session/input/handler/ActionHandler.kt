@@ -112,14 +112,14 @@ fun rememberActionHandler(
                     mediaLaunchers.launchSystemMediaPicker.launch(
                         PickVisualMediaRequest(
                             ActivityResultContracts.PickVisualMedia.ImageAndVideo,
-                            9
+                            99
                         )
                     )
                 } else {
                     // 短按：打开内置图库
                     mediaLaunchers.launchMediaPicker(
                         VisualMediaType.ImageAndVideo,
-                        9
+                        99
                     )
                 }
             },

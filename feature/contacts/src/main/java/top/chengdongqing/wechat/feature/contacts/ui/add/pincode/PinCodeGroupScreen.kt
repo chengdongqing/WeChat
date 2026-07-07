@@ -40,7 +40,7 @@ import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
-import top.chengdongqing.wechat.core.designsystem.util.neonIndication
+import top.chengdongqing.wechat.core.designsystem.util.neon
 
 @Composable
 fun PinCodeGroupScreen(onBack: () -> Unit) {
@@ -142,7 +142,7 @@ private fun CustomNumberKeyboard(
                             .clickable(
                                 interactionSource = null,
                                 indication = if (key.isNotEmpty()) {
-                                    neonIndication(WeTheme.colorScheme.primary)
+                                    neon(WeTheme.colorScheme.primary)
                                 } else {
                                     null
                                 }

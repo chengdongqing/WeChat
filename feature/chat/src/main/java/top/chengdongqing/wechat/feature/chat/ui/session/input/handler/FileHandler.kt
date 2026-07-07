@@ -47,7 +47,7 @@ fun rememberFileLauncher(
     return remember(pickFileLauncher) {
         FileLauncher(
             pickFile = { pickFileLauncher.launch("*/*") },
-            pickApk = { pickApk(9) }
+            pickApk = { pickApk(99) }
         )
     }
 }
