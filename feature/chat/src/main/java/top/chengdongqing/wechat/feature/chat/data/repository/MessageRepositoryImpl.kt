@@ -3,6 +3,10 @@ package top.chengdongqing.wechat.feature.chat.data.repository
 import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.map
 import androidx.room3.withWriteTransaction
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -72,16 +76,22 @@ class MessageRepositoryImpl @Inject constructor(
     private val myUserId: String
         get() = profileRepository.requireUserId()
 
-    override fun observeMessages(sessionId: String, limit: Int): Flow<List<ChatMessage>> {
-        return messageDao.observeBySessionId(sessionId, limit).map { list ->
+    override fun pager(
+        sessionId: String,
+        pageSize: Int,
+        prefetchDistance: Int
+    ): Flow<PagingData<ChatMessage>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = pageSize,
+                prefetchDistance = prefetchDistance,
+                enablePlaceholders = false
+            ),
+            pagingSourceFactory = { messageDao.pagingSource(sessionId) }
+        ).flow.map { list ->
             list.map { it.toDomain(json) }
         }
     }
-
-    override suspend fun hasOlderMessages(
-        sessionId: String,
-        lastTimestamp: Long
-    ): Boolean = messageDao.hasOlderMessages(sessionId, lastTimestamp)
 
     override suspend fun getMessage(messageId: String): ChatMessage? {
         return messageDao.getById(messageId)?.toDomain(json)

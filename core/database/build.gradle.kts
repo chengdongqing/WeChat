@@ -32,7 +32,10 @@ dependencies {
     implementation(projects.core.model)
 
     implementation(libs.room.runtime)
+    implementation(libs.room.paging)
     ksp(libs.room.compiler)
+
+    implementation(libs.paging.compose)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

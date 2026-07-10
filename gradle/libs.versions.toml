@@ -30,6 +30,7 @@ exifinterface = "1.4.2"
 
 # 业务逻辑与数据
 room = "3.0.0"
+paging = "3.5.0"
 serialization = "1.11.0"
 webrtc = "144.7559.09"
 mlkit = "17.3.0"
@@ -76,6 +77,11 @@ hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", ve
 # 数据库 (Room)
 room-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room" }
 room-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room" }
+room-paging = { module = "androidx.room3:room3-paging", version.ref = "room" }
+
+# 数据分页
+paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging" }
+paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 
 # 图片加载与网络媒体
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }

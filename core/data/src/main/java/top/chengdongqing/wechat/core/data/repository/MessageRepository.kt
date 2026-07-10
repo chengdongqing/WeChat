@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.core.data.repository
 
+import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
@@ -9,8 +10,12 @@ import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.model.SendStatus
 
 interface MessageRepository {
-    fun observeMessages(sessionId: String, limit: Int): Flow<List<ChatMessage>>
-    suspend fun hasOlderMessages(sessionId: String, lastTimestamp: Long): Boolean
+    fun pager(
+        sessionId: String,
+        pageSize: Int,
+        prefetchDistance: Int
+    ): Flow<PagingData<ChatMessage>>
+
     suspend fun getMessage(messageId: String): ChatMessage?
     suspend fun sendMessage(
         sessionId: String,
@@ -18,6 +23,7 @@ interface MessageRepository {
         messageId: String? = null,
         content: MessageContent
     ): Result<Unit>
+
     suspend fun retrySend(messageId: String): Result<Unit>
     suspend fun pauseTransfer(messageId: String): Result<Unit>
     suspend fun resumeTransfer(messageId: String): Result<Unit>
@@ -33,6 +39,7 @@ interface MessageRepository {
         entityBuilder: suspend () -> MessageEntity,
         onNotifyRequired: suspend (ChatMessage) -> Unit
     )
+
     suspend fun updateMessageStatus(
         messageId: String,
         status: SendStatus,

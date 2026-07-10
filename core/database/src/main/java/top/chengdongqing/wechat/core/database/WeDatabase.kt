@@ -1,8 +1,10 @@
 package top.chengdongqing.wechat.core.database
 
 import androidx.room3.ColumnTypeConverters
+import androidx.room3.DaoReturnTypeConverters
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
+import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.dao.ContactDao
@@ -29,6 +31,7 @@ import top.chengdongqing.wechat.core.database.entity.MessageEntity
     exportSchema = false
 )
 @ColumnTypeConverters(DatabaseConverters::class)
+@DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
 abstract class WeDatabase : RoomDatabase() {
     abstract fun friendRequestDao(): FriendRequestDao
     abstract fun contactDao(): ContactDao

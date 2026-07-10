@@ -52,6 +52,9 @@ dependencies {
     implementation(libs.bundles.coil)
     implementation(libs.serialization.json)
     implementation(libs.room.runtime)
+    implementation(libs.room.paging)
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
     implementation(libs.datastore.preferences)
     implementation(libs.pinyin)
 }

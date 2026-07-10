@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.datastore.preferences)
     implementation(libs.serialization.json)
+    implementation(libs.paging.compose)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

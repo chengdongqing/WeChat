@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Scaffold
@@ -26,6 +25,11 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
@@ -51,7 +55,6 @@ import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar.MessageToolbar
 import top.chengdongqing.wechat.feature.chat.ui.session.peer.PeerDeviceOverlay
 import top.chengdongqing.wechat.feature.chat.ui.session.util.KeyboardScrollEffect
-import top.chengdongqing.wechat.feature.chat.ui.session.util.LoadMoreEffect
 import top.chengdongqing.wechat.feature.chat.ui.session.util.MessageDataScrollEffect
 import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLauncher
 
@@ -68,7 +71,7 @@ fun ChatSessionScreen(
     viewModel: ChatSessionViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val messages by viewModel.messages.collectAsStateWithLifecycle()
+    val lazyMessageItems = viewModel.messagePagingFlow.collectAsLazyPagingItems()
     val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
     val context = LocalContext.current
@@ -83,15 +86,8 @@ fun ChatSessionScreen(
         onNavigateToWebView = onNavigateToWebView
     )
 
-    KeyboardScrollEffect(listState, messages.size)
-    MessageDataScrollEffect(listState, messages)
-    LoadMoreEffect(
-        listState = listState,
-        messages = messages,
-        isLoadingMore = uiState.isLoadingMore,
-        hasMoreMessages = uiState.hasMoreMessages,
-        onLoadMore = viewModel::loadMore
-    )
+    KeyboardScrollEffect(listState, lazyMessageItems.itemCount)
+    MessageDataScrollEffect(listState, lazyMessageItems.itemSnapshotList.items)
     LifecycleResumeEffect(chatId) {
         viewModel.onEnterSession()
         viewModel.clearUnreadState()
@@ -99,6 +95,10 @@ fun ChatSessionScreen(
             viewModel.onLeaveSession()
             viewModel.stopVoice()
         }
+    }
+
+    LaunchedEffect(lazyMessageItems.itemSnapshotList) {
+        viewModel.syncMessages(lazyMessageItems.itemSnapshotList.items)
     }
 
     PeerConnectionOverlay(chatId, uiState, viewModel)
@@ -136,7 +136,7 @@ fun ChatSessionScreen(
                 },
                 containerColor = if (uiState.backgroundPath == null) WeTheme.colorScheme.background else Color.Unspecified
             ) { innerPadding ->
-                ChatMessageList(messages, uiState, viewModel, listState, innerPadding)
+                ChatMessageList(lazyMessageItems, uiState, viewModel, listState, innerPadding)
             }
 
             MessageToolbar(
@@ -257,7 +257,7 @@ private fun ChatSessionUiEventHandler(
  */
 @Composable
 private fun ChatMessageList(
-    messages: List<ChatMessage>,
+    lazyMessageItems: LazyPagingItems<ChatMessage>,
     uiState: ChatSessionUiState,
     viewModel: ChatSessionViewModel,
     listState: LazyListState,
@@ -276,29 +276,31 @@ private fun ChatMessageList(
         verticalArrangement = Arrangement.Top,
         overscrollEffect = overscrollEffect
     ) {
-        itemsIndexed(
-            items = messages,
-            key = { _, message -> message.id },
-            contentType = { _, message -> message.content.toMessageType() }
-        ) { index, message ->
-            MessageItem(
-                message = message,
-                peerAvatar = uiState.peerAvatar,
-                myAvatar = uiState.myAvatar,
-                isSelectMode = uiState.isSelectMode,
-                isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(message.id),
-                onMessageClick = {
-                    if (!uiState.isSelectMode) viewModel.handleMessageClick(message)
-                    else viewModel.toggleMessageSelection(message.id)
-                },
-                onMessageLongPress = { pos, height ->
-                    viewModel.handleMessageLongPress(message, pos, height)
-                }
-            )
-            TimeDivider(messages, index)
+        items(
+            count = lazyMessageItems.itemCount,
+            key = lazyMessageItems.itemKey { it.id },
+            contentType = lazyMessageItems.itemContentType { it.content.toMessageType() }
+        ) { index ->
+            lazyMessageItems[index]?.let { message ->
+                MessageItem(
+                    message = message,
+                    peerAvatar = uiState.peerAvatar,
+                    myAvatar = uiState.myAvatar,
+                    isSelectMode = uiState.isSelectMode,
+                    isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(message.id),
+                    onMessageClick = {
+                        if (!uiState.isSelectMode) viewModel.handleMessageClick(message)
+                        else viewModel.toggleMessageSelection(message.id)
+                    },
+                    onMessageLongPress = { pos, height ->
+                        viewModel.handleMessageLongPress(message, pos, height)
+                    }
+                )
+                TimeDivider(lazyMessageItems.itemSnapshotList.items, index)
+            }
         }
 
-        if (uiState.isLoadingMore) {
+        if (lazyMessageItems.loadState.append is LoadState.Loading) {
             item(key = "load_more") {
                 WeLoadMore(type = LoadMoreType.Loading)
             }

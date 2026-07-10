@@ -6,16 +6,17 @@ import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -86,13 +86,6 @@ class ChatSessionViewModel @AssistedInject constructor(
         fun create(chatId: String): ChatSessionViewModel
     }
 
-    companion object {
-        private const val PAGE_SIZE = 20
-
-        /** 加载更多指示器最短展示时间，防止列表闪烁 */
-        private const val LOAD_MORE_INDICATOR_DELAY_MS = 1000L
-    }
-
     // ── 生命周期 ──────────────────────────────────────────────────────────────
 
     fun onEnterSession() = activeSessionManager.enter(chatId)
@@ -111,9 +104,6 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val _playingMessageId = MutableStateFlow<String?>(null)
     val playingMessageId = _playingMessageId.asStateFlow()
 
-    /** 当前页面加载消息的条数游标 */
-    private val _visibleCount = MutableStateFlow(PAGE_SIZE)
-
     /** 在新协程中发射 UI 事件，省去调用侧的样板代码 */
     private fun emit(event: MessageUiEvent) {
         viewModelScope.launch { _uiEvent.emit(event) }
@@ -121,14 +111,20 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     // region 消息流
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val messages = _visibleCount.flatMapLatest { count ->
-        messageRepository.observeMessages(chatId, count)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    val messagePagingFlow: Flow<PagingData<ChatMessage>> = messageRepository
+        .pager(
+            sessionId = chatId,
+            pageSize = 10,
+            prefetchDistance = 1
+        )
+        .cachedIn(viewModelScope)
+
+    private val messages = MutableStateFlow(emptyList<ChatMessage>())
+
+    // 同步paging内部已加载的数据
+    fun syncMessages(list: List<ChatMessage>) {
+        messages.update { list }
+    }
 
     /**
      * 媒体预览索引表
@@ -310,26 +306,6 @@ class ChatSessionViewModel @AssistedInject constructor(
         viewModelScope.launch { messageRepository.markAllAsRead(chatId) }
         (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
             .cancel(chatId.hashCode())
-    }
-
-    fun loadMore() {
-        val canLoad = messages.value.size >= PAGE_SIZE
-                && !_uiState.value.isLoadingMore
-                && _uiState.value.hasMoreMessages
-        if (!canLoad) return
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoadingMore = true) }
-            _visibleCount.value += PAGE_SIZE
-            val hasMore = checkHasMore()
-            delay(LOAD_MORE_INDICATOR_DELAY_MS)
-            _uiState.update { it.copy(isLoadingMore = false, hasMoreMessages = hasMore) }
-        }
-    }
-
-    private suspend fun checkHasMore(): Boolean {
-        val oldest = messages.value.lastOrNull()?.timestamp ?: return false
-        return messageRepository.hasOlderMessages(chatId, oldest)
     }
 
     fun sendMessage(content: MessageContent) {
@@ -575,7 +551,6 @@ class ChatSessionViewModel @AssistedInject constructor(
     // endregion
 
     override fun onCleared() {
-        super.onCleared()
         audioPlaybackManager.release()
     }
 }

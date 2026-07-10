@@ -1,9 +1,9 @@
 package top.chengdongqing.wechat.core.database.dao
 
+import androidx.paging.PagingSource
 import androidx.room3.Dao
 import androidx.room3.Query
 import androidx.room3.Transaction
-import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.model.SendStatus
@@ -16,10 +16,9 @@ interface MessageDao : BaseDao<MessageEntity> {
         SELECT * FROM messages 
         WHERE sessionId = :sessionId 
         ORDER BY timestamp DESC
-        LIMIT :limit
     """
     )
-    fun observeBySessionId(sessionId: String, limit: Int): Flow<List<MessageEntity>>
+    fun pagingSource(sessionId: String): PagingSource<Int, MessageEntity>
 
     @Query("SELECT * FROM messages WHERE id = :messageId")
     suspend fun getById(messageId: String): MessageEntity?
@@ -78,9 +77,6 @@ interface MessageDao : BaseDao<MessageEntity> {
 
     @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE id = :messageId)")
     suspend fun exists(messageId: String): Boolean
-
-    @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE sessionId = :sessionId AND timestamp < :lastTimestamp LIMIT 1)")
-    suspend fun hasOlderMessages(sessionId: String, lastTimestamp: Long): Boolean
 
     @Transaction
     suspend fun update(messageId: String, updateBlock: (MessageEntity) -> MessageEntity) {

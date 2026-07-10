@@ -16,8 +16,8 @@ android {
         applicationId = "top.chengdongqing.wechat"
         minSdk = 26
         targetSdk = 37
-        versionCode = 20260707
-        versionName = "2026.07.07"
+        versionCode = 20260710
+        versionName = "2026.07.10"
 
         ndk {
             abiFilters.add("arm64-v8a")
