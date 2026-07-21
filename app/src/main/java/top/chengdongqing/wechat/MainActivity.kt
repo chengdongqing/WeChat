@@ -15,8 +15,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.navigation.AppNavKey
-import top.chengdongqing.wechat.core.common.navigation.CommonKey
+import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.AppNavigation
 import top.chengdongqing.wechat.core.network.service.P2PService
@@ -41,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         initP2PService()
 
         setContent {
-            val backStack = rememberNavBackStack(CommonKey.Splash)
+            val backStack = rememberNavBackStack(NavigationKey.Splash)
             val navKey by pendingNavKey
             val displayViewModel: DisplaySettingsViewModel = hiltViewModel()
             val displaySettings by displayViewModel.settings.collectAsState()
@@ -72,7 +71,7 @@ class MainActivity : AppCompatActivity() {
         val navJson = intent?.getStringExtra(EXTRA_NAV) ?: return
 
         runCatching {
-            json.decodeFromString<AppNavKey>(navJson)
+            json.decodeFromString<NavigationKey>(navJson)
         }.onSuccess { targetNav ->
             pendingNavKey.value = targetNav
         }.onFailure {

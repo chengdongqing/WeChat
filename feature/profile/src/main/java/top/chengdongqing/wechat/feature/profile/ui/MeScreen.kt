@@ -37,8 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.navigation.MeKey
-import top.chengdongqing.wechat.core.common.navigation.SettingsKey
+import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
@@ -65,10 +64,10 @@ fun MeScreen(
             UserInfoSection(
                 profile = uiState.profile,
                 onNavigateToProfile = {
-                    backStack.add(MeKey.Profile)
+                    backStack.add(NavigationKey.Profile)
                 },
                 onNavigateToQRCode = {
-                    backStack.add(MeKey.QrCode)
+                    backStack.add(NavigationKey.QrCode)
                 }
             )
             StatusSection()
@@ -106,7 +105,7 @@ fun MeScreen(
             icon = R.drawable.ic_settings_outlined,
             iconColor = Color(0xFF2782D7)
         ) {
-            backStack.add(SettingsKey.Settings)
+            backStack.add(NavigationKey.Settings)
         }
     }
 }

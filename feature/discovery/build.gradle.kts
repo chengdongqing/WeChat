@@ -7,7 +7,9 @@ plugins {
 
 android {
     namespace = "top.chengdongqing.wechat.feature.discovery"
-    compileSdk = 37
+    compileSdk {
+        version = release(37)
+    }
 
     defaultConfig {
         minSdk = 26

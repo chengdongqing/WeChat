@@ -4,127 +4,126 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.common.navigation.ChatKey
-import top.chengdongqing.wechat.core.common.navigation.CommonKey
-import top.chengdongqing.wechat.core.common.navigation.ContactsKey
-import top.chengdongqing.wechat.feature.contacts.ui.add.AddContactScreen
-import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.NfcAddContactScreen
-import top.chengdongqing.wechat.feature.contacts.ui.add.pincode.PinCodeGroupScreen
-import top.chengdongqing.wechat.feature.contacts.ui.add.radar.RadarScanScreen
+import top.chengdongqing.wechat.core.common.navigation.NavigationKey
+import top.chengdongqing.wechat.feature.contacts.ui.add.AddFriendScreen
+import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.NFCAddFriendScreen
+import top.chengdongqing.wechat.feature.contacts.ui.add.pincode.PinCodeCreateGroupScreen
+import top.chengdongqing.wechat.feature.contacts.ui.add.radar.RadarScanAddFriendScreen
 import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailScreen
 import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailViewModel
 import top.chengdongqing.wechat.feature.contacts.ui.detail.profile.ContactProfileScreen
 import top.chengdongqing.wechat.feature.contacts.ui.detail.profile.edit.EditContactProfileScreen
 import top.chengdongqing.wechat.feature.contacts.ui.detail.setting.ContactSettingScreen
-import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.NewContactsScreen
-import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.RequestAddScreen
-import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.RequestAddViewModel
-import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.verify.AcceptVerifyScreen
-import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.verify.AcceptVerifyViewModel
+import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.NewFriendsScreen
+import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.RequestAddFriendScreen
+import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.RequestAddFriendViewModel
+import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.verify.AcceptFriendRequestScreen
+import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.verify.AcceptFriendRequestViewModel
 
 fun EntryProviderScope<NavKey>.contactsNavEntries(
     backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
-    // 添加联系人相关
-    entry<ContactsKey.AddContact> {
-        AddContactScreen(
+    // 添加好友相关
+    entry<NavigationKey.AddFriend> {
+        AddFriendScreen(
             onBack = onBack,
-            onNavigateToNFC = { backStack.add(ContactsKey.NFC) },
-            onNavigateToRadar = { backStack.add(ContactsKey.RadarScan) },
-            onNavigateToGroup = { backStack.add(ContactsKey.PinCodeGroup) },
-            onNavigateToContactDetail = { backStack.add(ContactsKey.Detail(it)) },
-            onNavigateToPlainText = { backStack.add(CommonKey.PlainText(it)) },
-            onNavigateToWebView = { backStack.add(CommonKey.WebView(it)) }
+            onNavigateToNFC = { backStack.add(NavigationKey.NFCAddFriend) },
+            onNavigateToRadar = { backStack.add(NavigationKey.RadarScanAddFriend) },
+            onNavigateToGroup = { backStack.add(NavigationKey.PinCodeCreateGroup) },
+            onNavigateToContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
+            onNavigateToPlainText = { backStack.add(NavigationKey.PlainText(it)) },
+            onNavigateToWebView = { backStack.add(NavigationKey.WebView(it)) }
         )
     }
-    entry<ContactsKey.NFC> {
-        NfcAddContactScreen(
+    entry<NavigationKey.NFCAddFriend> {
+        NFCAddFriendScreen(
             onBack = onBack,
-            onNavigateToContact = { backStack.add(ContactsKey.Detail(it)) }
+            onNavigateToContact = { backStack.add(NavigationKey.ContactDetail(it)) }
         )
     }
-    entry<ContactsKey.RadarScan> {
-        RadarScanScreen(
+    entry<NavigationKey.RadarScanAddFriend> {
+        RadarScanAddFriendScreen(
             onBack = onBack,
-            onNavigateToContact = { backStack.add(ContactsKey.Detail(it)) }
+            onNavigateToContact = { backStack.add(NavigationKey.ContactDetail(it)) }
         )
     }
-    entry<ContactsKey.PinCodeGroup> {
-        PinCodeGroupScreen(onBack)
+    entry<NavigationKey.PinCodeCreateGroup> {
+        PinCodeCreateGroupScreen(onBack)
     }
 
     // 详情与资料
-    entry<ContactsKey.Detail> {
+    entry<NavigationKey.ContactDetail> {
         val id = it.contactId
 
         ContactDetailScreen(
             onBack = onBack,
             onNavigateToChat = {
-                backStack.removeIf { key -> key is ChatKey.ChatSession }
-                backStack.add(ChatKey.ChatSession(id))
+                backStack.removeIf { key -> key is NavigationKey.ChatSession }
+                backStack.add(NavigationKey.ChatSession(id))
             },
-            onNavigateToSetting = { backStack.add(ContactsKey.Setting(id)) },
-            onNavigateToProfile = { backStack.add(ContactsKey.Profile(id)) },
-            onNavigateToRequestAdd = { backStack.add(ContactsKey.RequestAdd(id)) },
+            onNavigateToSetting = { backStack.add(NavigationKey.ContactSetting(id)) },
+            onNavigateToProfile = { backStack.add(NavigationKey.ContactProfile(id)) },
+            onNavigateToRequestAdd = { backStack.add(NavigationKey.RequestAddFriend(id)) },
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }
         )
     }
-    entry<ContactsKey.Setting> {
+    entry<NavigationKey.ContactSetting> {
         val id = it.contactId
 
         ContactSettingScreen(
             onBack = onBack,
             onDelete = {
-                backStack.add(CommonKey.Home)
+                backStack.clear()
+                backStack.add(NavigationKey.Home)
             },
-            onNavigateToContactProfile = { backStack.add(ContactsKey.EditProfile(id)) },
+            onNavigateToContactProfile = { backStack.add(NavigationKey.EditContactProfile(id)) },
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }
         )
     }
-    entry<ContactsKey.Profile> {
+    entry<NavigationKey.ContactProfile> {
         val id = it.contactId
 
         ContactProfileScreen(
             onBack = onBack,
-            onNavigateToEdit = { backStack.add(ContactsKey.EditProfile(id)) },
+            onNavigateToEdit = { backStack.add(NavigationKey.EditContactProfile(id)) },
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }
         )
     }
-    entry<ContactsKey.EditProfile> {
+    entry<NavigationKey.EditContactProfile> {
         EditContactProfileScreen(it.contactId, onBack)
     }
 
     // 请求与验证
-    entry<ContactsKey.RequestAdd> {
-        RequestAddScreen(
+    entry<NavigationKey.RequestAddFriend> {
+        RequestAddFriendScreen(
             onBack = onBack,
-            onSuccess = { backStack.add(CommonKey.Home) },
-            viewModel = hiltViewModel { factory: RequestAddViewModel.Factory ->
+            onSuccess = { backStack.add(NavigationKey.Home) },
+            viewModel = hiltViewModel { factory: RequestAddFriendViewModel.Factory ->
                 factory.create(it.contactId)
             }
         )
     }
-    entry<ContactsKey.AcceptVerify> {
-        AcceptVerifyScreen(
+    entry<NavigationKey.AcceptFriendRequest> {
+        AcceptFriendRequestScreen(
             onBack = onBack,
             onSuccess = onBack,
-            viewModel = hiltViewModel { factory: AcceptVerifyViewModel.Factory ->
+            viewModel = hiltViewModel { factory: AcceptFriendRequestViewModel.Factory ->
                 factory.create(it.requestId)
             }
         )
     }
-    entry<ContactsKey.NewFriends> {
-        NewContactsScreen(
+    entry<NavigationKey.NewFriends> {
+        NewFriendsScreen(
             onBack = onBack,
-            onNavigateToAdd = { backStack.add(ContactsKey.AddContact) },
-            onNavigateToVerify = { backStack.add(ContactsKey.AcceptVerify(it)) }
+            onNavigateToAdd = { backStack.add(NavigationKey.AddFriend) },
+            onNavigateToVerify = { backStack.add(NavigationKey.AcceptFriendRequest(it)) }
         )
     }
 }

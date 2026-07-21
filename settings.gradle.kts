@@ -40,7 +40,7 @@ include(":core:location")
 include(":core:data")
 
 // Feature modules
-include(":feature:startup")
+include(":feature:launch")
 include(":feature:home")
 include(":feature:chat")
 include(":feature:contacts")

@@ -9,16 +9,15 @@ plugins {
 
 android {
     namespace = "top.chengdongqing.wechat.core.common"
-    compileSdk = 37
+    compileSdk {
+        version = release(37)
+    }
 
     defaultConfig {
         minSdk = 26
-
-        consumerProguardFiles("consumer-rules.pro")
     }
 
     compileOptions {
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -57,6 +56,4 @@ dependencies {
     implementation(libs.coil.zoomable)
 
     implementation(libs.exifinterface)
-
-    coreLibraryDesugaring(libs.desugar.jdk)
 }

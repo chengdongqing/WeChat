@@ -43,7 +43,7 @@ data class WeColorScheme(
     val divider: Color,          // 分隔线
 )
 
-val LightColorScheme = WeColorScheme(
+private val LightColorScheme = WeColorScheme(
     background = Grey_ED,
     surface = White,
     surfaceVariant = Grey_F7,
@@ -54,7 +54,7 @@ val LightColorScheme = WeColorScheme(
     divider = DividerLight,
 )
 
-val DarkColorScheme = WeColorScheme(
+private val DarkColorScheme = WeColorScheme(
     background = Dark_BG,
     surface = Dark_Surface,
     surfaceVariant = Dark_Surface2,

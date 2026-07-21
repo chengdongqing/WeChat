@@ -1,0 +1,20 @@
+# Add project specific R8 rules here.
+# AGP will combine all keep rule files in src/main/keepRules to pass to R8
+#
+# For more details, see
+#   https://d.android.com/r/tools/r8/keep-rules
+
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+#   public *;
+#}
+
+# Pinyin
+-keep,allowobfuscation class com.github.houbb.pinyin.** { *; }
+
+# 保持异常堆栈的行号和源文件名，方便排查崩溃
+-keepattributes SourceFile,LineNumberTable
+# 强制保留某些可能用于反射的类名，让报错信息显示出原始类名
+-keepattributes Signature,EnclosingMethod,InnerClasses,AnnotationDefault

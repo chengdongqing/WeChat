@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.common.navigation.ContactsKey
+import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
@@ -45,7 +45,7 @@ fun HomeTopBarWrapper(
             title = title,
             viewModel = viewModel,
             onNavigateToAddFriend = {
-                backStack.add(ContactsKey.AddContact)
+                backStack.add(NavigationKey.AddFriend)
             }
         )
     } else {

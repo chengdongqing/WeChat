@@ -26,8 +26,7 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.media.RingtoneSound
-import top.chengdongqing.wechat.core.common.navigation.MeKey
-import top.chengdongqing.wechat.core.common.navigation.SettingsKey
+import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -65,25 +64,25 @@ fun ProfileScreen(
                 profile = uiState.profile,
                 ringtone = ringtone,
                 onNavigateToAvatarEdit = {
-                    backStack.add(MeKey.EditAvatar)
+                    backStack.add(NavigationKey.EditAvatar)
                 },
                 onNavigateToNameEdit = {
-                    backStack.add(MeKey.EditName)
+                    backStack.add(NavigationKey.EditName)
                 },
                 onNavigateToGenderEdit = {
-                    backStack.add(MeKey.EditGender)
+                    backStack.add(NavigationKey.EditGender)
                 },
                 onNavigateToIdView = {
-                    backStack.add(MeKey.EditId)
+                    backStack.add(NavigationKey.EditId)
                 },
                 onNavigateToQRCode = {
-                    backStack.add(MeKey.QrCode)
+                    backStack.add(NavigationKey.QrCode)
                 },
                 onNavigateToSignatureEdit = {
-                    backStack.add(MeKey.EditSignature)
+                    backStack.add(NavigationKey.EditSignature)
                 },
                 onNavigateToRingtoneSetting = {
-                    backStack.add(SettingsKey.Ringtone)
+                    backStack.add(NavigationKey.RingtoneSettings)
                 }
             )
         }

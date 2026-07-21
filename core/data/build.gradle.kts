@@ -7,7 +7,9 @@ plugins {
 
 android {
     namespace = "top.chengdongqing.wechat.core.data"
-    compileSdk = 37
+    compileSdk {
+        version = release(37)
+    }
 
     defaultConfig {
         minSdk = 26

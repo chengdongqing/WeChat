@@ -7,7 +7,9 @@ plugins {
 
 android {
     namespace = "top.chengdongqing.wechat.feature.settings"
-    compileSdk = 37
+    compileSdk {
+        version = release(37)
+    }
 
     defaultConfig {
         minSdk = 26
@@ -20,12 +22,6 @@ android {
 
     buildFeatures {
         compose = true
-    }
-
-    flavorDimensions.add("version")
-    productFlavors {
-        create("full") { dimension = "version" }
-        create("lite") { dimension = "version" }
     }
     compileSdkMinor = 0
 }

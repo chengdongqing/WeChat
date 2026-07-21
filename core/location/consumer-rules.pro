@@ -1,2 +1,0 @@
--keep class com.autonavi.**{ *; }
--keep class com.amap.api.**{ *; }

@@ -19,7 +19,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.common.navigation.SettingsKey
+import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.common.util.navigateToAppSettings
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -90,7 +90,7 @@ fun NotificationSettingsScreen(
                 showDivider = false,
                 height = 68.dp,
                 onClick = {
-                    backStack.add(SettingsKey.NotificationDisplay)
+                    backStack.add(NavigationKey.NotificationDisplaySettings)
                 }
             )
             WeSettingGroup(stringResource(R.string.notification_group_sound)) {
@@ -114,7 +114,7 @@ fun NotificationSettingsScreen(
                     label = stringResource(R.string.notification_in_chat),
                     showDivider = false,
                     onClick = {
-                        backStack.add(SettingsKey.InChatNotification)
+                        backStack.add(NavigationKey.InChatNotificationSettings)
                     }
                 )
             }
@@ -122,7 +122,7 @@ fun NotificationSettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.notification_msg_sound),
                     onClick = {
-                        backStack.add(SettingsKey.NotificationSound)
+                        backStack.add(NavigationKey.NotificationSoundSettings)
                     }
                 ) {
                     WeSettingValue(stringResource(notificationSound.labelRes))
@@ -130,7 +130,7 @@ fun NotificationSettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.notification_ringtone),
                     onClick = {
-                        backStack.add(SettingsKey.Ringtone)
+                        backStack.add(NavigationKey.RingtoneSettings)
                     }
                 ) {
                     WeSettingValue(stringResource(ringtone.labelRes))

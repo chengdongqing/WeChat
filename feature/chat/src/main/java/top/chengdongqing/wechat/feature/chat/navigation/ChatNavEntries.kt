@@ -4,9 +4,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.common.navigation.ChatKey
-import top.chengdongqing.wechat.core.common.navigation.CommonKey
-import top.chengdongqing.wechat.core.common.navigation.ContactsKey
+import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.data.model.MusicTrack
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.info.ChatInfoScreen
@@ -21,29 +19,29 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     onBack: () -> Unit
 ) {
     // 聊天会话页
-    entry<ChatKey.ChatSession> {
+    entry<NavigationKey.ChatSession> {
         val chatId = it.chatId
 
         ChatTheme {
             ChatSessionScreen(
                 chatId = chatId,
                 onBack = onBack,
-                onNavigateToInfo = { backStack.add(ChatKey.ChatInfo(chatId)) },
+                onNavigateToInfo = { backStack.add(NavigationKey.ChatInfo(chatId)) },
                 onNavigateToContact = { id ->
-                    backStack.removeIf { key -> key is ContactsKey.Detail }
-                    backStack.add(ContactsKey.Detail(id))
+                    backStack.removeIf { key -> key is NavigationKey.ContactDetail }
+                    backStack.add(NavigationKey.ContactDetail(id))
                 },
-                onNavigateToFilePreview = { id -> backStack.add(ChatKey.FilePreview(id)) },
+                onNavigateToFilePreview = { id -> backStack.add(NavigationKey.FilePreview(id)) },
                 onNavigateToMusicPreview = { id, name ->
                     backStack.add(
-                        ChatKey.MusicPreview(
+                        NavigationKey.MusicPreview(
                             messageId = id,
                             trackName = name
                         )
                     )
                 },
-                onNavigateToRequestAddFriend = { backStack.add(ContactsKey.RequestAdd(chatId)) },
-                onNavigateToWebView = { url -> backStack.add(CommonKey.WebView(url)) },
+                onNavigateToRequestAddFriend = { backStack.add(NavigationKey.RequestAddFriend(chatId)) },
+                onNavigateToWebView = { url -> backStack.add(NavigationKey.WebView(url)) },
                 viewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
                     factory.create(chatId)
                 }
@@ -52,14 +50,14 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     }
 
     // 聊天信息页
-    entry<ChatKey.ChatInfo> {
+    entry<NavigationKey.ChatInfo> {
         val id = it.chatId
 
         ChatInfoScreen(
             onBack = onBack,
             onNavigateToContact = {
-                backStack.removeIf { key -> key is ContactsKey.Detail }
-                backStack.add(ContactsKey.Detail(id))
+                backStack.removeIf { key -> key is NavigationKey.ContactDetail }
+                backStack.add(NavigationKey.ContactDetail(id))
             },
             viewModel = hiltViewModel { factory: ChatInfoViewModel.Factory ->
                 factory.create(id)
@@ -68,7 +66,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     }
 
     // 文件预览页
-    entry<ChatKey.FilePreview> {
+    entry<NavigationKey.FilePreview> {
         FilePreviewScreen(
             messageId = it.messageId,
             onBack = onBack
@@ -76,7 +74,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     }
 
     // 音乐预览页
-    entry<ChatKey.MusicPreview> {
+    entry<NavigationKey.MusicPreview> {
         val music = runCatching { MusicTrack.valueOf(it.trackName) }
             .getOrDefault(MusicTrack.Perfect)
 

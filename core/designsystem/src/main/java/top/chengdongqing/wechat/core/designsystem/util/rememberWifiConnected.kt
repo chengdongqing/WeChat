@@ -1,15 +1,18 @@
 package top.chengdongqing.wechat.core.designsystem.util
 
+import android.Manifest
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import androidx.annotation.RequiresPermission
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
+@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 fun rememberWifiConnected(): Boolean {
     val context = LocalContext.current
 
@@ -18,6 +21,7 @@ fun rememberWifiConnected(): Boolean {
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         val callback = object : ConnectivityManager.NetworkCallback() {
+            @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
             override fun onAvailable(network: Network) {
                 // 当任何网络可用时，检查是否为 Wi-Fi
                 val capabilities = connectivityManager.getNetworkCapabilities(network)

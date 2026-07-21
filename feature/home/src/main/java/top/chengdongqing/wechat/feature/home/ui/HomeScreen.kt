@@ -19,9 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.navigation.ChatKey
-import top.chengdongqing.wechat.core.common.navigation.CommonKey
-import top.chengdongqing.wechat.core.common.navigation.ContactsKey
+import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.ui.list.ChatListScreen
@@ -56,13 +54,13 @@ fun HomeScreen(
         viewModel = profileViewModel,
         snackbarHostState = snackbarHostState,
         onNavigateToContactDetail = { id ->
-            backStack.add(ContactsKey.Detail(id))
+            backStack.add(NavigationKey.ContactDetail(id))
         },
         onNavigateToPlainText = { text ->
-            backStack.add(CommonKey.PlainText(text))
+            backStack.add(NavigationKey.PlainText(text))
         },
         onNavigateToWebView = { url ->
-            backStack.add(CommonKey.WebView(url))
+            backStack.add(NavigationKey.WebView(url))
         }
     )
 
@@ -114,13 +112,13 @@ private fun HomeContentPager(
     ) { page ->
         when (HomeTab.tabs[page]) {
             HomeTab.Chats -> ChatListScreen(
-                onNavigateToDetail = { backStack.add(ChatKey.ChatSession(it)) }
+                onNavigateToDetail = { backStack.add(NavigationKey.ChatSession(it)) }
             )
 
             HomeTab.Contacts -> ContactListScreen(
-                onNavigateToNewFriends = { backStack.add(ContactsKey.NewFriends) },
-                onNavigateToDetail = { backStack.add(ContactsKey.Detail(it)) },
-                onNavigateToProfileEdit = { backStack.add(ContactsKey.EditProfile(it)) }
+                onNavigateToNewFriends = { backStack.add(NavigationKey.NewFriends) },
+                onNavigateToDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
+                onNavigateToProfileEdit = { backStack.add(NavigationKey.EditContactProfile(it)) }
             )
 
             HomeTab.Discovery -> DiscoveryScreen()

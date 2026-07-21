@@ -43,7 +43,7 @@ import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.designsystem.util.neon
 
 @Composable
-fun PinCodeGroupScreen(onBack: () -> Unit) {
+fun PinCodeCreateGroupScreen(onBack: () -> Unit) {
     var inputCode by remember { mutableStateOf("") }
 
     StatusBarAppearanceEffect(false)
