@@ -1,6 +1,6 @@
 <div align="center">
 
-<img height="192" src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" alt="Logo">
+<img height="192" src="app/src/main/ic_launcher-playstore.png" alt="Logo">
 
 <h1>WeChat Lan</h1>
 
