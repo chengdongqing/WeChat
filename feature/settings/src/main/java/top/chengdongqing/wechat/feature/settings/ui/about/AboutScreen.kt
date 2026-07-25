@@ -36,9 +36,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.common.util.appVersionName
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import java.time.Year
@@ -47,7 +47,7 @@ import java.time.Year
 fun AboutScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
-            WeTopBar(
+            WeTopAppBar(
                 containerColor = WeTheme.colorScheme.surface,
                 onBack = onBack
             )

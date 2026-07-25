@@ -36,10 +36,10 @@ import top.chengdongqing.wechat.core.common.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.core.common.qrcode.generator.rememberQRCodeState
 import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
@@ -94,7 +94,7 @@ fun AddFriendScreen(
 
         Scaffold(
             topBar = {
-                WeTopBar(
+                WeTopAppBar(
                     title = stringResource(R.string.add_contact_title),
                     onBack = onBack,
                     containerColor = WeTheme.colorScheme.surface

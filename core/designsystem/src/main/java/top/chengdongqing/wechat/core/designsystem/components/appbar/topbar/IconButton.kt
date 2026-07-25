@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.designsystem.components.topbar
+package top.chengdongqing.wechat.core.designsystem.components.appbar.topbar
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
@@ -23,12 +23,12 @@ import top.chengdongqing.wechat.core.designsystem.util.onTap
 annotation class TopBarScopeMarker
 
 @TopBarScopeMarker
-interface WeTopBarScope {
+interface TopAppBarScope {
     /**
      * 操作按钮（图标）
      */
     @Composable
-    fun ActionIcon(
+    fun IconButton(
         @DrawableRes icon: Int,
         modifier: Modifier = Modifier,
         description: String? = null,
@@ -39,28 +39,25 @@ interface WeTopBarScope {
      * 操作按钮（文字）
      */
     @Composable
-    fun ActionText(
+    fun TextButton(
         text: String,
         modifier: Modifier = Modifier,
         onClick: (() -> Unit)? = null
     )
 }
 
-/**
- * Scope 实现（内部类，外部不可见）
- */
-internal class WeTopBarScopeImpl(
+internal class TopAppBarScopeImpl(
     private val contentColor: Color
-) : WeTopBarScope {
+) : TopAppBarScope {
 
     @Composable
-    override fun ActionIcon(
+    override fun IconButton(
         icon: Int,
         modifier: Modifier,
         description: String?,
         onClick: (() -> Unit)?
     ) {
-        WeTopBarIcon(
+        IconButton(
             icon = icon,
             description = description,
             tint = contentColor,
@@ -70,7 +67,7 @@ internal class WeTopBarScopeImpl(
     }
 
     @Composable
-    override fun ActionText(
+    override fun TextButton(
         text: String,
         modifier: Modifier,
         onClick: (() -> Unit)?
@@ -86,11 +83,8 @@ internal class WeTopBarScopeImpl(
     }
 }
 
-/**
- * TopBar 图标按钮（可独立使用）
- */
 @Composable
-fun WeTopBarIcon(
+internal fun IconButton(
     @DrawableRes icon: Int,
     modifier: Modifier = Modifier,
     description: String? = null,

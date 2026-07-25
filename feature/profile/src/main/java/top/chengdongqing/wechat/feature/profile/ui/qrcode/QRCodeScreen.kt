@@ -61,12 +61,12 @@ import top.chengdongqing.wechat.core.common.qrcode.generator.rememberQRCodeState
 import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.common.util.createImageUri
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastState
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
@@ -130,7 +130,7 @@ fun QRCodeScreen(
         }
 
         Scaffold(
-            topBar = { WeTopBar(onBack = onBack) },
+            topBar = { WeTopAppBar(onBack = onBack) },
             snackbarHost = { SnackbarHost(snackbarHostState) },
             containerColor = WeTheme.colorScheme.background
         ) { innerPadding ->

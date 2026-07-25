@@ -27,9 +27,9 @@ import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLaunc
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
@@ -78,7 +78,7 @@ fun EditAvatarScreen(
 
     StatusBarAppearanceEffect(isDark = false)
     Box(modifier = Modifier.background(Black)) {
-        WeTopBar(
+        WeTopAppBar(
             title = stringResource(R.string.me_profile_avatar),
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -87,7 +87,7 @@ fun EditAvatarScreen(
             contentColor = White,
             onBack = onBack
         ) {
-            ActionIcon(
+            IconButton(
                 icon = R.drawable.ic_more_outlined,
                 description = stringResource(R.string.action_more)
             ) {

@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.feature.call.ui.startCall
@@ -98,12 +98,12 @@ private fun ContactDetailTopBar(
     onBack: () -> Unit,
     onMoreClick: () -> Unit
 ) {
-    WeTopBar(
+    WeTopAppBar(
         containerColor = WeTheme.colorScheme.surface,
         onBack = onBack
     ) {
         if (showMoreAction) {
-            ActionIcon(
+            IconButton(
                 icon = R.drawable.ic_more_outlined,
                 description = stringResource(R.string.action_more),
                 onClick = onMoreClick

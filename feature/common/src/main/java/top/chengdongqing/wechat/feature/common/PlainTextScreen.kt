@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -19,7 +19,7 @@ fun PlainTextScreen(
     onBack: () -> Unit
 ) {
     Scaffold(topBar = {
-        WeTopBar(
+        WeTopAppBar(
             onBack = onBack,
             backIconResId = R.drawable.ic_close_outlined
         )

@@ -1,11 +1,11 @@
 package top.chengdongqing.wechat.feature.home.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,42 +23,41 @@ import androidx.navigation3.runtime.NavKey
 import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBarIcon
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.home.model.HomeTab
 import top.chengdongqing.wechat.feature.home.model.QuickAction
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 
 @Composable
-fun HomeTopBarWrapper(
+fun HomeTopBar(
     currentTab: HomeTab,
     viewModel: ProfileViewModel,
     backStack: NavBackStack<NavKey>,
-    unreadCounts: Map<HomeTab, Int>
+    unreadMap: Map<HomeTab, Int>
 ) {
-    if (currentTab.route != HomeTab.Me.route) {
-        val title = currentTab.getDisplayTitle(unreadCounts)
+    when {
+        currentTab != HomeTab.Me -> {
+            val title = currentTab.getDisplayTitle(unreadMap)
 
-        HomeTopBar(
-            title = title,
-            viewModel = viewModel,
-            onNavigateToAddFriend = {
-                backStack.add(NavigationKey.AddFriend)
-            }
-        )
-    } else {
-        Surface(
-            color = WeTheme.colorScheme.surface,
-            modifier = Modifier.fillMaxWidth()
-        ) {
+            TopBarContent(
+                title = title,
+                viewModel = viewModel,
+                onNavigateToAddFriend = {
+                    backStack.add(NavigationKey.AddFriend)
+                }
+            )
+        }
+
+        else -> {
             Box(
                 modifier = Modifier
+                    .background(WeTheme.colorScheme.surface)
                     .fillMaxWidth()
                     .statusBarsPadding()
                     .height(50.dp)
-            ) {}
+            )
         }
     }
 }
@@ -67,7 +66,7 @@ fun HomeTopBarWrapper(
  * 首页顶部栏
  */
 @Composable
-private fun HomeTopBar(
+private fun TopBarContent(
     title: String,
     viewModel: ProfileViewModel,
     onNavigateToAddFriend: () -> Unit
@@ -85,13 +84,13 @@ private fun HomeTopBar(
     }
 
     Column {
-        WeTopBar(title = title) {
-            ActionIcon(
+        WeTopAppBar(title = title) {
+            IconButton(
                 icon = R.drawable.ic_search_outlined,
-                description = "搜索"
+                description = stringResource(R.string.action_search)
             )
 
-            WeTopBarIcon(
+            IconButton(
                 modifier = Modifier.onGloballyPositioned { layoutCoordinates ->
                     anchorPosition = layoutCoordinates.positionInWindow()
                     anchorSize = layoutCoordinates.size
@@ -121,12 +120,12 @@ private fun HomeTopBar(
 }
 
 @Composable
-private fun HomeTab.getDisplayTitle(unreadCounts: Map<HomeTab, Int>): String {
-    val tabLabel = stringResource(label)
+private fun HomeTab.getDisplayTitle(unreadMap: Map<HomeTab, Int>): String {
+    val tabLabel = stringResource(labelRes)
 
     return when {
         this == HomeTab.Chats -> {
-            val unread = unreadCounts[this] ?: 0
+            val unread = unreadMap[this] ?: 0
             if (unread > 0) "$tabLabel($unread)" else tabLabel
         }
 

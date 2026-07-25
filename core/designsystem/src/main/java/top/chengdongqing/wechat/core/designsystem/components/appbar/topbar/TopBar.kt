@@ -1,8 +1,9 @@
-package top.chengdongqing.wechat.core.designsystem.components.topbar
+package top.chengdongqing.wechat.core.designsystem.components.appbar.topbar
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,7 +29,7 @@ import top.chengdongqing.wechat.core.designsystem.util.onTap
  * 顶部导航栏
  */
 @Composable
-fun WeTopBar(
+fun WeTopAppBar(
     modifier: Modifier = Modifier,
     title: String? = null,
     titleContent: (@Composable () -> Unit)? = null,
@@ -38,7 +39,7 @@ fun WeTopBar(
     @DrawableRes backIconResId: Int = R.drawable.ic_back_outlined,
     unreadCount: Int = 0,
     backText: String? = null,
-    actions: @Composable WeTopBarScope.() -> Unit = {}
+    actions: @Composable TopAppBarScope.() -> Unit = {}
 ) {
     Surface(
         color = containerColor,
@@ -53,37 +54,13 @@ fun WeTopBar(
             contentAlignment = Alignment.Center
         ) {
             // 返回按钮
-            if (onBack != null) {
-                if (backText == null) {
-                    WeBadge(
-                        visible = unreadCount > 0,
-                        content = unreadCount.toBadgeText(),
-                        alignment = Alignment.CenterEnd,
-                        size = 20.dp,
-                        gap = (-8).dp,
-                        contentColor = WeTheme.colorScheme.textPrimary,
-                        containerColor = WeTheme.colorScheme.divider,
-                        modifier = Modifier.align(Alignment.CenterStart)
-                    ) {
-                        WeTopBarIcon(
-                            icon = backIconResId,
-                            description = "返回",
-                            tint = contentColor,
-                            onClick = onBack
-                        )
-                    }
-                } else {
-                    Text(
-                        text = backText,
-                        color = contentColor,
-                        fontSize = 16.sp,
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(horizontal = 8.dp)
-                            .onTap(onClick = onBack)
-                    )
-                }
-            }
+            LeftPart(
+                onBack = onBack,
+                backIconResId = backIconResId,
+                unreadCount = unreadCount,
+                backText = backText,
+                contentColor = contentColor
+            )
 
             // 标题
             if (title != null) {
@@ -106,8 +83,53 @@ fun WeTopBar(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                WeTopBarScopeImpl(contentColor).actions()
+                TopAppBarScopeImpl(contentColor).actions()
             }
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.LeftPart(
+    onBack: (() -> Unit)?,
+    @DrawableRes backIconResId: Int,
+    unreadCount: Int,
+    backText: String?,
+    contentColor: Color
+) {
+    if (onBack == null) return
+
+    when {
+        backText == null -> {
+            WeBadge(
+                visible = unreadCount > 0,
+                content = unreadCount.toBadgeText(),
+                alignment = Alignment.CenterEnd,
+                size = 20.dp,
+                gap = (-8).dp,
+                contentColor = WeTheme.colorScheme.textPrimary,
+                containerColor = WeTheme.colorScheme.divider,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                IconButton(
+                    icon = backIconResId,
+                    description = "返回",
+                    tint = contentColor,
+                    onClick = onBack
+                )
+            }
+        }
+
+        else -> {
+            Text(
+                text = backText,
+                color = contentColor,
+                fontSize = 16.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(horizontal = 8.dp)
+                    .onTap(onClick = onBack)
+            )
         }
     }
 }

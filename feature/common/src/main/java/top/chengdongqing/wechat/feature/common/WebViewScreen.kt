@@ -23,7 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 
@@ -120,7 +120,7 @@ private fun WebViewTopBar(
     title: String,
     onBack: () -> Unit
 ) {
-    WeTopBar(
+    WeTopAppBar(
         title = title.ifEmpty { "加载中..." },
         onBack = onBack,
         backIconResId = R.drawable.ic_close_outlined

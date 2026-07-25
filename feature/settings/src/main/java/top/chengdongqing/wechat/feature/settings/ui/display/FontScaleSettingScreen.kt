@@ -40,10 +40,10 @@ import top.chengdongqing.wechat.core.common.util.randomUUID
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.LocalFontScale
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
@@ -62,7 +62,7 @@ fun FontScaleSettingScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(
+            WeTopAppBar(
                 title = stringResource(R.string.display_font_scale),
                 onBack = onBack
             ) {

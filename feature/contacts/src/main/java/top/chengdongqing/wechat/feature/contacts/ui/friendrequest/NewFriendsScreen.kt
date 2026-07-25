@@ -34,6 +34,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -43,7 +44,6 @@ import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weConte
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.model.FriendRequest
@@ -141,7 +141,7 @@ private fun NewFriendsTopBar(
     onNavigateToAdd: () -> Unit,
     pendingCount: Int
 ) {
-    WeTopBar(
+    WeTopAppBar(
         title = if (pendingCount > 0) {
             stringResource(R.string.new_contacts_title_with_count, pendingCount)
         } else {
@@ -149,7 +149,7 @@ private fun NewFriendsTopBar(
         },
         onBack = onBack,
         actions = {
-            ActionText(
+            TextButton(
                 text = stringResource(R.string.new_contacts_action_add),
                 onClick = onNavigateToAdd
             )

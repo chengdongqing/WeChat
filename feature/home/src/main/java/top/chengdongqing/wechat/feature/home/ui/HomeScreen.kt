@@ -20,14 +20,14 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.navigation.NavigationKey
+import top.chengdongqing.wechat.core.designsystem.components.appbar.bottombar.WeNavigationBottomBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.ui.list.ChatListScreen
 import top.chengdongqing.wechat.feature.contacts.ui.list.ContactListScreen
 import top.chengdongqing.wechat.feature.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.feature.home.model.HomeTab
-import top.chengdongqing.wechat.feature.home.ui.components.HomeBottomBar
-import top.chengdongqing.wechat.feature.home.ui.components.HomeTopBarWrapper
+import top.chengdongqing.wechat.feature.home.ui.components.HomeTopBar
 import top.chengdongqing.wechat.feature.profile.ui.MeScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
@@ -38,16 +38,15 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
-    val unreadCounts by homeViewModel.unreadCounts.collectAsStateWithLifecycle()
+    val unreadMap by homeViewModel.unreadMap.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val pagerState = rememberPagerState(
         initialPage = 0,
-        pageCount = { HomeTab.tabs.size }
+        pageCount = { HomeTab.entries.size }
     )
     val scope = rememberCoroutineScope()
-    val currentTab = HomeTab.tabs[pagerState.currentPage]
+    val currentTab = HomeTab.entries[pagerState.currentPage]
 
     // 处理导航事件
     HandleProfileNavigationEvents(
@@ -66,20 +65,23 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            HomeTopBarWrapper(
+            HomeTopBar(
                 currentTab = currentTab,
-                unreadCounts = unreadCounts,
+                unreadMap = unreadMap,
                 viewModel = profileViewModel,
                 backStack = backStack
             )
         },
         bottomBar = {
-            HomeBottomBar(
-                unreadCounts = unreadCounts,
-                pagerState = pagerState,
+            WeNavigationBottomBar(
+                tabs = HomeTab.entries,
+                currentTabIndex = pagerState.currentPage,
+                badgeMap = unreadMap,
                 onTabSelected = { index ->
-                    scope.launch {
-                        pagerState.scrollToPage(index)
+                    if (index != pagerState.currentPage) {
+                        scope.launch {
+                            pagerState.scrollToPage(index)
+                        }
                     }
                 }
             )
@@ -94,6 +96,12 @@ fun HomeScreen(
         )
     }
 
+    ProfileLoadingOverlay(profileViewModel)
+}
+
+@Composable
+private fun ProfileLoadingOverlay(viewModel: ProfileViewModel) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     LoadingDialog(uiState.isLoading)
 }
 
@@ -110,7 +118,7 @@ private fun HomeContentPager(
             .fillMaxSize(),
         beyondViewportPageCount = 1 // 预加载相邻页面
     ) { page ->
-        when (HomeTab.tabs[page]) {
+        when (HomeTab.entries[page]) {
             HomeTab.Chats -> ChatListScreen(
                 onNavigateToDetail = { backStack.add(NavigationKey.ChatSession(it)) }
             )

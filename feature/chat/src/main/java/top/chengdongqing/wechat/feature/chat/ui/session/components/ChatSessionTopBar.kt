@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionUiState
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionViewModel
@@ -40,7 +40,7 @@ fun ChatSessionTopBar(
     val isSelectMode = uiState.isSelectMode
     val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle(0)
 
-    WeTopBar(
+    WeTopAppBar(
         titleContent = {
             ChatSessionTitle(viewModel, uiState)
         },
@@ -55,7 +55,7 @@ fun ChatSessionTopBar(
         unreadCount = unreadCount
     ) {
         if (!isSelectMode) {
-            ActionIcon(
+            IconButton(
                 icon = R.drawable.ic_more_outlined,
                 description = stringResource(R.string.action_more)
             ) {

@@ -28,10 +28,10 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.media.RingtoneSound
 import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
@@ -54,7 +54,7 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(title = stringResource(R.string.me_profile), onBack = onBack)
+            WeTopAppBar(title = stringResource(R.string.me_profile), onBack = onBack)
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->

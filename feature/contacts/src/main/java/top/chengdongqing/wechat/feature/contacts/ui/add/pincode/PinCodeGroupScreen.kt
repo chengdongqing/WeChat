@@ -36,7 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
@@ -50,7 +50,7 @@ fun PinCodeCreateGroupScreen(onBack: () -> Unit) {
     Scaffold(
         containerColor = Color(0xFF171F1E),
         topBar = {
-            WeTopBar(
+            WeTopAppBar(
                 title = stringResource(R.string.add_contact_option_face_to_face_title),
                 containerColor = Color.Unspecified,
                 contentColor = Color.White,

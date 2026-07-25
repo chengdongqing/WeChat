@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.feature.home.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,12 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -45,12 +42,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.feature.home.model.QuickAction
-import top.chengdongqing.wechat.feature.home.theme.HomeTheme
 
 @Composable
 fun QuickActions(
@@ -60,21 +55,12 @@ fun QuickActions(
     onDismiss: () -> Unit,
     onAction: (QuickAction) -> Unit
 ) {
-    var shouldShow by remember { mutableStateOf(expanded) }
-    var isVisible by remember { mutableStateOf(false) }
-
-    // 同步外部状态
+    val visibilityState = remember { MutableTransitionState(false) }
     LaunchedEffect(expanded) {
-        if (expanded) {
-            shouldShow = true
-            delay(10)
-            isVisible = true
-        } else {
-            isVisible = false
-        }
+        visibilityState.targetState = expanded
     }
 
-    if (!shouldShow) return
+    if (!visibilityState.currentState && !visibilityState.targetState) return
 
     val menuWidth = when (LocalAppearanceSetting.current.appLanguage) {
         AppLanguage.English -> 180.dp
@@ -90,11 +76,11 @@ fun QuickActions(
         }
     }
 
-    val backgroundColor = HomeTheme.colorScheme.quickActionBackground
+    val backgroundColor = Color(0xFF4C4C4C)
 
     Popup(
         offset = popupOffset,
-        onDismissRequest = { isVisible = false },
+        onDismissRequest = onDismiss,
         properties = PopupProperties(focusable = true)
     ) {
         val pivotX = 0.9f
@@ -102,7 +88,7 @@ fun QuickActions(
         val animationSpec = tween<Float>(durationMillis = 150, easing = LinearOutSlowInEasing)
 
         AnimatedVisibility(
-            visible = isVisible,
+            visibleState = visibilityState,
             enter = scaleIn(
                 initialScale = 0.8f,
                 transformOrigin = TransformOrigin(pivotX, pivotY),
@@ -114,15 +100,6 @@ fun QuickActions(
                 animationSpec = tween(150)
             ) + fadeOut(animationSpec)
         ) {
-            DisposableEffect(Unit) {
-                onDispose {
-                    if (!isVisible) {
-                        shouldShow = false
-                        onDismiss()
-                    }
-                }
-            }
-
             Column(
                 modifier = Modifier
                     .width(menuWidth)
@@ -151,7 +128,7 @@ fun QuickActions(
 
 @Composable
 private fun ActionItem(action: QuickAction, onClick: () -> Unit) {
-    val color = HomeTheme.colorScheme.quickActionText
+    val color = Color.White
 
     Row(
         modifier = Modifier

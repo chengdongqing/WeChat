@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
-import top.chengdongqing.wechat.core.designsystem.components.topbar.WeTopBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.components.NfcModeSwitch
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.components.NfcUnavailable
@@ -67,7 +67,7 @@ fun NFCAddFriendScreen(
 
     Scaffold(
         topBar = {
-            WeTopBar(
+            WeTopAppBar(
                 title = stringResource(R.string.add_contact_option_nfc_desc),
                 onBack = onBack,
                 containerColor = Color.Unspecified

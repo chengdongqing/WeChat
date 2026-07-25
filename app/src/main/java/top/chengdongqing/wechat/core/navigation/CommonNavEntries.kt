@@ -14,7 +14,6 @@ import androidx.navigation3.ui.NavDisplay
 import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.feature.common.PlainTextScreen
 import top.chengdongqing.wechat.feature.common.WebViewScreen
-import top.chengdongqing.wechat.feature.home.theme.HomeTheme
 import top.chengdongqing.wechat.feature.home.ui.HomeScreen
 import top.chengdongqing.wechat.feature.profile.ui.login.LoginScreen
 import top.chengdongqing.wechat.feature.startup.GuideScreen
@@ -81,9 +80,7 @@ internal fun EntryProviderScope<NavKey>.commonNavEntries(
             }
         }
     ) {
-        HomeTheme {
-            HomeScreen(backStack)
-        }
+        HomeScreen(backStack)
     }
 
     // 文本预览
