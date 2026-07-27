@@ -51,7 +51,7 @@ fun GuideScreen(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                text = stringResource(R.string.welcome_language),
+                text = stringResource(R.string.action_language),
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 15.sp,
                 modifier = Modifier.onTap {
@@ -69,7 +69,7 @@ fun GuideScreen(
                 .padding(40.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            WeButton(stringResource(R.string.welcome_start)) {
+            WeButton(stringResource(R.string.get_started)) {
                 onNavigateToSetup()
             }
         }

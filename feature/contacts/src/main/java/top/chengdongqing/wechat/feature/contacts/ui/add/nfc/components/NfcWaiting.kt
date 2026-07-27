@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -122,7 +122,7 @@ private fun PulsingNfcIcon() {
                     .scale(0.5f + progress * 0.5f)
                     .alpha((1f - progress) * ring.maxAlpha)
                     .clip(CircleShape)
-                    .border(width = 1.5.dp, color = GreenPrimary, shape = CircleShape)
+                    .border(width = 1.5.dp, color = BrandPrimary, shape = CircleShape)
             )
         }
 
@@ -132,16 +132,16 @@ private fun PulsingNfcIcon() {
                 .clip(CircleShape)
                 .background(
                     Brush.radialGradient(
-                        listOf(GreenPrimary.copy(alpha = 0.20f), GreenPrimary.copy(alpha = 0.06f))
+                        listOf(BrandPrimary.copy(alpha = 0.20f), BrandPrimary.copy(alpha = 0.06f))
                     )
                 )
-                .border(2.dp, GreenPrimary.copy(alpha = 0.85f), CircleShape),
+                .border(2.dp, BrandPrimary.copy(alpha = 0.85f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_nfc_outlined),
                 contentDescription = "NFC",
-                tint = GreenPrimary,
+                tint = BrandPrimary,
                 modifier = Modifier.size(42.dp)
             )
         }

@@ -3,34 +3,27 @@ package top.chengdongqing.wechat.core.designsystem.theme
 import androidx.compose.ui.graphics.Color
 
 // --- 品牌核心色 ---
-val GreenPrimary = Color(0xFF07C160)
-val RedDanger = Color(0xFFFA5151)
-val PurpleLink = Color(0xFF576B95)
+val BrandPrimary = Color(0xFF07C160)
+val SemanticError = Color(0xFFFA5151)
+val LinkBlue = Color(0xFF576B95)
 
 // --- 基础色 ---
 val White = Color(0xFFFFFFFF)
 val Black = Color(0xFF000000)
 
-// --- 浅色模式灰阶 ---
-val Grey_F7 = Color(0xFFF7F7F7)
-val Grey_ED = Color(0xFFEDEDED)
+val Neutral50 = Color(0xFFF7F7F7)
+val Neutral100 = Color(0xFFEDEDED)
+val Neutral1000 = Color(0xFF111111)
+val Neutral950 = Color(0xFF1E1E1E)
+val Neutral900 = Color(0xFF2A2A2A)
+val DarkElevated = Color(0xFF333333)
 
-// --- 深色模式灰阶 ---
-val Dark_BG = Color(0xFF111111)  // 页面底色，比纯黑柔和
-val Dark_Surface = Color(0xFF1E1E1E)  // 卡片/容器，与底色有明显区分
-val Dark_Surface2 = Color(0xFF2A2A2A)
-val Dark_TabBar = Color(0xFF161616)  // TabBar 略深于底色，有落地感
-val Dark_Elevated = Color(0xFF333333)  // 浮层/弹窗，最高层级
+val TextPrimaryLight = Color(0xE6000000)
+val TextSecondaryLight = Color(0x73000000)
+val TextTertiaryLight = Color(0x3D000000)
+val DividerLight = Color(0x1A000000)
 
-// --- 浅色模式文本/分割线 ---
-val TextPrimaryLight = Color(0xE6000000)  // 90% Black
-val TextSecondaryLight = Color(0x73000000)  // 45% Black
-val TextTertiaryLight = Color(0x3D000000)  // 24% Black
-val DividerLight = Color(0x1A000000)  // 10% Black
-
-// --- 深色模式文本/分割线 ---
-val TextPrimaryDark = Color(0xDEFFFFFF)   // 87% White
-val TextSecondaryDark = Color(0x99FFFFFF)   // 60% White
-val TextTertiaryDark = Color(0x61FFFFFF)   // 38% White
-val DividerDark = Color(0x1FFFFFFF)   // 12% White
-val TabBarIconInactiveDark = Color(0x99FFFFFF) // 60% White
+val TextPrimaryDark = Color(0xDEFFFFFF)
+val TextSecondaryDark = Color(0x99FFFFFF)
+val TextTertiaryDark = Color(0x61FFFFFF)
+val DividerDark = Color(0x1FFFFFFF)

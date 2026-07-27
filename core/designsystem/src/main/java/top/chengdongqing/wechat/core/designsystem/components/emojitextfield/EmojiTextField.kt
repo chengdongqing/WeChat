@@ -34,7 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.withTranslation
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
-import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.EmojiRenderer
 
@@ -200,7 +200,7 @@ private fun AppCompatEditText.setupConfig(fontSizeSp: Int, cursorWidth: Int, max
     // Android 10+ 使用自定义光标
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         textCursorDrawable = GradientDrawable().apply {
-            setColor(GreenPrimary.toArgb())
+            setColor(BrandPrimary.toArgb())
             setSize(cursorWidth, 0)
         }
     }

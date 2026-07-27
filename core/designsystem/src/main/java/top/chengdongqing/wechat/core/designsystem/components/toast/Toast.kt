@@ -48,7 +48,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
-import top.chengdongqing.wechat.core.designsystem.theme.Grey_ED
+import top.chengdongqing.wechat.core.designsystem.theme.Neutral100
 import top.chengdongqing.wechat.core.designsystem.util.rememberStatusBarHeight
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -145,7 +145,7 @@ fun WeToast(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             when (icon) {
                                 ToastIcon.Loading -> {
-                                    WeLoading(size = 43.dp, color = Grey_ED)
+                                    WeLoading(size = 43.dp, color = Neutral100)
                                     Spacer(modifier = Modifier.height(10.dp))
                                 }
 
@@ -155,7 +155,7 @@ fun WeToast(
                                         if (icon == ToastIcon.Success) Icons.Outlined.Check else Icons.Filled.Info,
                                         contentDescription = null,
                                         modifier = Modifier.size(43.dp),
-                                        tint = Grey_ED
+                                        tint = Neutral100
                                     )
 
                                 else -> {}

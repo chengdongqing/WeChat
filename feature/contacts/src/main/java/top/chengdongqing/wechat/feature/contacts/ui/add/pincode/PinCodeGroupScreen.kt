@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
-import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.designsystem.util.neon
@@ -101,10 +101,10 @@ private fun DigitCodeInput(code: String) {
                     Text(
                         text = char.toString(),
                         style = TextStyle(
-                            color = GreenPrimary,
+                            color = BrandPrimary,
                             fontSize = 42.sp,
                             fontWeight = FontWeight.Thin,
-                            shadow = Shadow(color = GreenPrimary, blurRadius = 12f)
+                            shadow = Shadow(color = BrandPrimary, blurRadius = 12f)
                         )
                     )
                 } else {

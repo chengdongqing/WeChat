@@ -1,7 +1,5 @@
 package top.chengdongqing.wechat.core.designsystem.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -9,16 +7,12 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Density
-import androidx.core.view.WindowCompat
 import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.AppTheme
@@ -27,9 +21,9 @@ import java.util.Locale
 
 @Immutable
 data class WeColorScheme(
-    val primary: Color = GreenPrimary,
-    val danger: Color = RedDanger,
-    val link: Color = PurpleLink,
+    val primary: Color = BrandPrimary,
+    val danger: Color = SemanticError,
+    val link: Color = LinkBlue,
     // 背景层级（从低到高）
     val background: Color,       // 页面底色
     val surface: Color,          // 卡片/列表容器
@@ -44,9 +38,9 @@ data class WeColorScheme(
 )
 
 private val LightColorScheme = WeColorScheme(
-    background = Grey_ED,
+    background = Neutral100,
     surface = White,
-    surfaceVariant = Grey_F7,
+    surfaceVariant = Neutral50,
     elevated = White,
     textPrimary = TextPrimaryLight,
     textSecondary = TextSecondaryLight,
@@ -55,10 +49,10 @@ private val LightColorScheme = WeColorScheme(
 )
 
 private val DarkColorScheme = WeColorScheme(
-    background = Dark_BG,
-    surface = Dark_Surface,
-    surfaceVariant = Dark_Surface2,
-    elevated = Dark_Elevated,
+    background = Neutral1000,
+    surface = Neutral950,
+    surfaceVariant = Neutral900,
+    elevated = DarkElevated,
     textPrimary = TextPrimaryDark,
     textSecondary = TextSecondaryDark,
     textTertiary = TextTertiaryDark,
@@ -113,21 +107,6 @@ fun WeTheme(
         density = screenWidthPx / designWidth,
         fontScale = LocalDensity.current.fontScale * settings.fontScale.value
     )
-
-    // 沉浸式状态栏兼容低版本
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-        val view = LocalView.current
-        if (!view.isInEditMode) {
-            SideEffect {
-                val window = (view.context as Activity).window
-                // 设置状态栏的背景颜色为透明
-                @Suppress("DEPRECATION")
-                window.statusBarColor = Color.Transparent.toArgb()
-                // 设置为 false 表示 App 内容会延伸到状态栏和导航栏的正下方（即沉浸式）
-                WindowCompat.setDecorFitsSystemWindows(window, false)
-            }
-        }
-    }
 
     // 设置状态栏文字颜色
     StatusBarAppearanceEffect(isDark = !isDarkTheme)

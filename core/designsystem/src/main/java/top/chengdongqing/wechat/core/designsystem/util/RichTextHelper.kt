@@ -7,7 +7,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
-import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
+import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 
 /**
  * 解析富文本
@@ -168,10 +168,10 @@ private object RichTextConfig {
     val PHONE_PATTERN = Regex("(\\d{3}-\\d{8}|\\d{11})")
 
     val LinkStyles = TextLinkStyles(
-        style = SpanStyle(PurpleLink),
+        style = SpanStyle(LinkBlue),
         pressedStyle = SpanStyle(
-            color = PurpleLink,
-            background = PurpleLink.copy(alpha = 0.1f)
+            color = LinkBlue,
+            background = LinkBlue.copy(alpha = 0.1f)
         )
     )
 }

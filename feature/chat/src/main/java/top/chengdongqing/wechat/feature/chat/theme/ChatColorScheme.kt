@@ -5,11 +5,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import top.chengdongqing.wechat.core.designsystem.theme.Dark_Surface
-import top.chengdongqing.wechat.core.designsystem.theme.Dark_Surface2
-import top.chengdongqing.wechat.core.designsystem.theme.Grey_F7
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
-import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
+import top.chengdongqing.wechat.core.designsystem.theme.Neutral50
+import top.chengdongqing.wechat.core.designsystem.theme.Neutral900
+import top.chengdongqing.wechat.core.designsystem.theme.Neutral950
+import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
 import top.chengdongqing.wechat.core.designsystem.theme.TextSecondaryDark
@@ -47,12 +47,12 @@ private val ChatLightColors = ChatColorScheme(
     bubbleTextOutgoing = TextPrimaryLight,
     bubbleTextIncoming = TextPrimaryLight,
     timestamp = TextSecondaryLight,
-    bottomBarBackground = Grey_F7,
+    bottomBarBackground = Neutral50,
     textField = White,
 
     recordBackground = Color(0xFFF7F7F7),
     recordActionDefault = Color(0xFFE9E9E9),
-    recordActionCancel = RedDanger,
+    recordActionCancel = SemanticError,
     recordActionConvert = Color(0xFFD8D8D8),
     recordActionLabel = TextPrimaryDark,
     recordWaveBar = Color(0xFF191919)
@@ -60,16 +60,16 @@ private val ChatLightColors = ChatColorScheme(
 
 private val ChatDarkColors = ChatColorScheme(
     bubbleOutgoing = Color(0xFF3DAF72),
-    bubbleIncoming = Dark_Surface2,
+    bubbleIncoming = Neutral900,
     bubbleTextOutgoing = TextPrimaryLight,
     bubbleTextIncoming = TextPrimaryDark,
     timestamp = TextSecondaryDark,
-    bottomBarBackground = Dark_Surface,
+    bottomBarBackground = Neutral950,
     textField = Color(0xFF282828),
 
     recordBackground = Color(0xFF1C1C1C),
     recordActionDefault = Color(0xFF3A3A3A),
-    recordActionCancel = RedDanger,
+    recordActionCancel = SemanticError,
     recordActionConvert = Color(0xFF4A4A4A),
     recordActionLabel = TextPrimaryDark,
     recordWaveBar = Color(0xFFE5E5E5)

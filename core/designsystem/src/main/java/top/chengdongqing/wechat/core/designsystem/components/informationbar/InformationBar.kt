@@ -28,10 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.theme.GreenPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
-import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
-import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
+import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 enum class InformationBarType {
@@ -154,18 +154,18 @@ private fun colorSchemeOf(type: InformationBarType): InformationBarColors {
             } else {
                 Color(1f, 0.945f, 0.957f)
             },
-            iconColor = RedDanger,
+            iconColor = SemanticError,
             textColor = if (isDarkTheme) {
                 Color(0.922f, 0.627f, 0.651f, 1.0f)
             } else {
                 Color(0f, 0f, 0f, 0.55f)
             },
-            linkColor = PurpleLink,
+            linkColor = LinkBlue,
             closeIconColor = Color(0f, 0f, 0f, 0.55f)
         )
 
         InformationBarType.Success -> InformationBarColors(
-            backgroundColor = GreenPrimary
+            backgroundColor = BrandPrimary
         )
     }
 }

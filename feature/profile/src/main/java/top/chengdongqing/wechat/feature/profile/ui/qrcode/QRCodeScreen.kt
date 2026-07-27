@@ -67,7 +67,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDial
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastState
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
-import top.chengdongqing.wechat.core.designsystem.theme.PurpleLink
+import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermission
 import top.chengdongqing.wechat.core.designsystem.util.onTap
@@ -384,7 +384,7 @@ private fun LinkText(text: String, onClick: () -> Unit) {
     Text(
         text = text,
         fontSize = 14.sp,
-        color = PurpleLink,
+        color = LinkBlue,
         modifier = Modifier.onTap(onClick = onClick)
     )
 }

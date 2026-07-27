@@ -39,7 +39,7 @@ import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDial
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
-import top.chengdongqing.wechat.core.designsystem.theme.RedDanger
+import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
@@ -226,7 +226,7 @@ private fun ChatSessionUiEventHandler(
                 is MessageUiEvent.ShowDeleteConfirm -> dialog.show(
                     title = resources.getString(R.string.msg_confirm_delete),
                     okText = R.string.action_delete,
-                    okColor = RedDanger
+                    okColor = SemanticError
                 ) {
                     if (event.messageId != null) viewModel.deleteMessage(event.messageId)
                     else viewModel.deleteSelectedMessages()
