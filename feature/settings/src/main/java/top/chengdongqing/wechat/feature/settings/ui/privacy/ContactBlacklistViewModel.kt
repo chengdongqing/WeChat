@@ -6,8 +6,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import top.chengdongqing.wechat.core.data.mapper.toListItem
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
-import top.chengdongqing.wechat.feature.contacts.data.mapper.toListItem
 import javax.inject.Inject
 
 @HiltViewModel

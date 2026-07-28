@@ -14,6 +14,10 @@ object QRCodeFormat {
         return "https://$APP_DOMAIN/u/$beaconBase64"
     }
 
+    fun generateJoinGroupQRCode(groupId: String): String {
+        return "https://$APP_DOMAIN/g/$groupId"
+    }
+
     /**
      * 解析二维码内容
      */
@@ -43,4 +47,3 @@ object QRCodeFormat {
         }
     }
 }
-

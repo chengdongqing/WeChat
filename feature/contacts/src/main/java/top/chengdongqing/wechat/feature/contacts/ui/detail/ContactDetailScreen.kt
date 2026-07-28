@@ -12,15 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
-import top.chengdongqing.wechat.feature.call.ui.startCall
+import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
 import top.chengdongqing.wechat.feature.contacts.ui.detail.components.ContactDetailContent
 
 @Composable
@@ -37,17 +36,15 @@ fun ContactDetailScreen(
     val contact by viewModel.contact.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val context = LocalContext.current
-    val launchCall = rememberCallLauncher(contact?.id ?: "") { id, type ->
-        context.startCall(id, type)
-    }
+    val launchCall = LocalCallLauncher.current.rememberLauncher(contact?.id.orEmpty())
+    val currentLaunchCall by rememberUpdatedState(launchCall)
 
     // 处理导航事件
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
                 is NavigationEvent.NavigateToChat -> onNavigateToChat()
-                is NavigationEvent.LaunchCall -> launchCall(event.type)
+                is NavigationEvent.LaunchCall -> currentLaunchCall(event.type)
                 is NavigationEvent.NavigateToMoments -> onNavigateToMoments()
                 is NavigationEvent.NavigateToProfile -> onNavigateToProfile()
                 is NavigationEvent.ShowMoreOptions -> onNavigateToSetting()

@@ -54,6 +54,26 @@ fun ImmersiveSystemBars(enabled: Boolean = true) {
 }
 
 /**
+ * 仅控制状态栏可见性，保持导航栏和页面布局稳定。
+ */
+@Composable
+fun StatusBarVisibilityEffect(visible: Boolean) {
+    val window = LocalActivity.current?.window ?: return
+
+    DisposableEffect(visible) {
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        if (visible) {
+            controller.show(WindowInsetsCompat.Type.statusBars())
+        } else {
+            controller.hide(WindowInsetsCompat.Type.statusBars())
+        }
+        onDispose {
+            controller.show(WindowInsetsCompat.Type.statusBars())
+        }
+    }
+}
+
+/**
  * 获取窗口宽度的百分比尺寸
  */
 @Composable

@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.feature.chat.ui.preview.music
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,14 +12,14 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 
 @Composable
-fun MusicBackground(@DrawableRes albumArtRes: Int) {
+fun MusicBackground(albumArt: Any) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Black.copy(alpha = 0.8f))
     ) {
         AsyncImage(
-            model = albumArtRes,
+            model = albumArt,
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()

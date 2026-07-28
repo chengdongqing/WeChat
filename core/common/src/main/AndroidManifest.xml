@@ -3,10 +3,31 @@
 
     <application>
         <activity android:name=".camera.CameraActivity" />
-        <activity android:name=".qrcode.scanner.QRCodeScannerActivity" />
+        <!-- 桌面 App Shortcut 由系统 Launcher 跨进程启动，因此需要导出。 -->
+        <activity
+            android:name=".qrcode.scanner.QRCodeScannerActivity"
+            android:exported="true" />
         <activity android:name=".cropper.ImageCropperActivity" />
         <activity android:name=".media.preview.MediaPreviewActivity" />
         <activity android:name=".media.picker.MediaPickerActivity" />
         <activity android:name=".app.AppPickerActivity" />
+        <activity
+            android:name=".app.install.AppInstallActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/Theme.WeChat" />
+        <activity
+            android:name=".app.install.AppInstallResultActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.WeChat" />
+        <receiver
+            android:name=".media.MusicNotificationActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

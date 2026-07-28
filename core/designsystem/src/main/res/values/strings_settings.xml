@@ -100,6 +100,12 @@
     <string name="more_system_permissions">系统权限</string>
 
     <string name="permission_title">系统权限管理</string>
+    <string name="permission_full_screen_call">锁屏显示来电</string>
+    <string name="permission_full_screen_call_desc">息屏或锁屏时点亮屏幕并显示接听界面</string>
+    <string name="permission_overlay_call">后台弹出来电</string>
+    <string name="permission_overlay_call_desc">使用其他应用时自动显示接听界面</string>
+    <string name="permission_miui_call">小米来电显示权限</string>
+    <string name="permission_miui_call_desc">请开启“锁屏显示”和“后台弹出界面”</string>
     <string name="permission_enabled">已开启</string>
     <string name="permission_location">位置信息</string>
     <string name="permission_location_desc">用于搜索周边的 Wi-Fi 节点及蓝牙设备等。</string>

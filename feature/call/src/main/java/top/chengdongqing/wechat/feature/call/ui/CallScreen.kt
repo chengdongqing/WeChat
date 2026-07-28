@@ -51,7 +51,11 @@ import top.chengdongqing.wechat.feature.call.ui.components.CallUserInfo
 import kotlin.math.roundToInt
 
 @Composable
-fun CallScreen(viewModel: CallViewModel, onDismiss: () -> Unit) {
+fun CallScreen(
+    viewModel: CallViewModel,
+    onDismiss: () -> Unit,
+    onMinimize: () -> Unit
+) {
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
     // 通话结束后延迟 2s 退出，给用户看到结束状态
@@ -89,7 +93,7 @@ fun CallScreen(viewModel: CallViewModel, onDismiss: () -> Unit) {
             exit = fadeOut() + shrinkVertically(),
             modifier = Modifier.fillMaxSize()
         ) {
-            ControlsLayer(uiState, viewModel)
+            ControlsLayer(uiState, viewModel, onMinimize)
         }
 
         if (uiState.showFloatingWindow) {
@@ -127,7 +131,11 @@ private fun FullScreenLayer(uiState: CallUiState, viewModel: CallViewModel) {
  * 控件层：顶栏 + 中间用户信息 + 底部操作栏
  */
 @Composable
-private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
+private fun ControlsLayer(
+    uiState: CallUiState,
+    viewModel: CallViewModel,
+    onMinimize: () -> Unit
+) {
     val context = LocalContext.current
     val statusText = uiState.getStatusText(context)
 
@@ -139,7 +147,7 @@ private fun ControlsLayer(uiState: CallUiState, viewModel: CallViewModel) {
     ) {
         CallTopBar(
             statusText = if (uiState.isCallActive) statusText else null,
-            onMinimizeClick = viewModel.actions.onMinimize,
+            onMinimizeClick = onMinimize,
             isDarkBackground = uiState.isVideoCall
         )
 

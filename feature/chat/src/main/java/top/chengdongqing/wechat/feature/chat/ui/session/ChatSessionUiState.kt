@@ -20,8 +20,15 @@ data class ChatSessionUiState(
     val isOnline: Boolean = false,
     val draftMessage: String? = null,
     val isSelectMode: Boolean = false,
-    val selectedMessageIds: Set<String> = emptySet()
+    val selectedMessageIds: Set<String> = emptySet(),
+    val mentionMembers: List<MentionMember> = emptyList()
 ) {
     val selectedCount: Int
         get() = selectedMessageIds.size
 }
+
+data class MentionMember(
+    val id: String,
+    val name: String,
+    val avatarPath: String?
+)

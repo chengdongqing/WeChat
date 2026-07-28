@@ -47,6 +47,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.mediaSharedElement
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -63,7 +64,11 @@ fun MediaContent(message: ChatMessage) {
         contentAlignment = Alignment.Center
     ) {
         // 缩略图
-        ThumbnailImage(content.localPath, content is MessageContent.Video)
+        ThumbnailImage(
+            localPath = content.localPath,
+            isVideo = content is MessageContent.Video,
+            messageId = message.id
+        )
 
         when (content) {
             is MessageContent.Image -> {
@@ -84,7 +89,7 @@ fun MediaContent(message: ChatMessage) {
 }
 
 @Composable
-private fun ThumbnailImage(localPath: String, isVideo: Boolean) {
+private fun ThumbnailImage(localPath: String, isVideo: Boolean, messageId: String) {
     val context = LocalContext.current
     val thumbnail by produceState<Any?>(initialValue = null, localPath) {
         value = if (localPath.isNotBlank()) {
@@ -100,6 +105,7 @@ private fun ThumbnailImage(localPath: String, isVideo: Boolean) {
         contentDescription = null,
         modifier = Modifier
             .fillMaxSize()
+            .mediaSharedElement(messageId)
             .background(
                 if (localPath.isBlank() || hasError.value) {
                     WeTheme.colorScheme.surface.copy(alpha = 0.2f)

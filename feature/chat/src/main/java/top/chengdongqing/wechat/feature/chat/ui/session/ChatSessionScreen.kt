@@ -1,5 +1,13 @@
 package top.chengdongqing.wechat.feature.chat.ui.session
 
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,13 +22,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -31,6 +42,9 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.common.media.model.MediaItem
+import top.chengdongqing.wechat.core.common.media.preview.WeMediaPreview
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -42,13 +56,20 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.util.rememberCallLauncher
 import top.chengdongqing.wechat.core.model.CallType
-import top.chengdongqing.wechat.feature.call.ui.startCall
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
+import top.chengdongqing.wechat.core.model.MessageSendStatus
+import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
+import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
 import top.chengdongqing.wechat.feature.chat.ui.session.components.ChatSessionTopBar
 import top.chengdongqing.wechat.feature.chat.ui.session.components.MultiSelectBottomBar
 import top.chengdongqing.wechat.feature.chat.ui.session.components.TimeDivider
+import top.chengdongqing.wechat.feature.chat.ui.session.effect.BombMessageEffect
+import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveEffectEvent
+import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveEffectType
+import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveMessageEffect
+import top.chengdongqing.wechat.feature.chat.ui.session.effect.bombShakeTransform
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageItem
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
@@ -56,7 +77,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar.MessageT
 import top.chengdongqing.wechat.feature.chat.ui.session.peer.PeerDeviceOverlay
 import top.chengdongqing.wechat.feature.chat.ui.session.util.KeyboardScrollEffect
 import top.chengdongqing.wechat.feature.chat.ui.session.util.MessageDataScrollEffect
-import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLauncher
+import java.util.UUID
 
 @Composable
 fun ChatSessionScreen(
@@ -68,14 +89,41 @@ fun ChatSessionScreen(
     onNavigateToMusicPreview: (messageId: String, trackName: String) -> Unit,
     onNavigateToRequestAddFriend: () -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
+    onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
     viewModel: ChatSessionViewModel
 ) {
+    var mediaPreview by remember { mutableStateOf<ChatMediaPreviewState?>(null) }
+    var mediaPreviewClosing by remember { mutableStateOf(false) }
+    val mediaPreviewScope = rememberCoroutineScope()
+    val closeMediaPreview: () -> Unit = {
+        if (!mediaPreviewClosing) {
+            mediaPreviewClosing = true
+            mediaPreviewScope.launch {
+                // 先让视频 Surface 被封面替换并至少完成一次绘制，再触发共享元素退出。
+                withFrameNanos { }
+                withFrameNanos { }
+                mediaPreview = null
+                mediaPreviewClosing = false
+            }
+        }
+    }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val streamingAiMessage by viewModel.streamingAiMessage.collectAsStateWithLifecycle()
     val lazyMessageItems = viewModel.messagePagingFlow.collectAsLazyPagingItems()
     val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
-    val context = LocalContext.current
-    val launchCall = rememberCallLauncher(chatId) { id, type -> context.startCall(id, type) }
+    var bombTrigger by remember(chatId) { mutableIntStateOf(0) }
+    var bombProgress by remember(chatId) { mutableFloatStateOf(1f) }
+    var festiveSerial by remember(chatId) { mutableIntStateOf(0) }
+    var festiveEvent by remember(chatId) { mutableStateOf<FestiveEffectEvent?>(null) }
+    val knownMessageIds = remember(chatId) { mutableSetOf<String>() }
+    var messageSnapshotInitialized by remember(chatId) { mutableStateOf(false) }
+    val launchCall = LocalCallLauncher.current.rememberLauncher(chatId)
+    val selectAiModel = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let(viewModel::importLocalAiModel)
+    }
     val chatContext = rememberChatSessionContext(
         viewModel = viewModel,
         uiState = uiState,
@@ -83,7 +131,8 @@ fun ChatSessionScreen(
             onNavigateToContact(if (isPeer) uiState.peerId!! else uiState.myId!!)
         },
         onNavigateToRequestAddFriend = onNavigateToRequestAddFriend,
-        onNavigateToWebView = onNavigateToWebView
+        onNavigateToWebView = onNavigateToWebView,
+        onNavigateToLive = onNavigateToLive
     )
 
     KeyboardScrollEffect(listState, lazyMessageItems.itemCount)
@@ -97,8 +146,36 @@ fun ChatSessionScreen(
         }
     }
 
-    LaunchedEffect(lazyMessageItems.itemSnapshotList) {
-        viewModel.syncMessages(lazyMessageItems.itemSnapshotList.items)
+    val initialMessagesLoaded = lazyMessageItems.loadState.refresh is LoadState.NotLoading
+    LaunchedEffect(lazyMessageItems.itemSnapshotList, initialMessagesLoaded) {
+        val messages = lazyMessageItems.itemSnapshotList.items
+        viewModel.syncMessages(messages)
+        if (!messageSnapshotInitialized) {
+            knownMessageIds += messages.map { it.id }
+            messageSnapshotInitialized = initialMessagesLoaded
+        } else {
+            val freshMessages = messages.filter { knownMessageIds.add(it.id) }
+            if (freshMessages.any { it.isBombMessage() }) {
+                bombTrigger++
+            }
+            freshMessages.asReversed().firstNotNullOfOrNull { it.festiveEffectType() }?.let { type ->
+                festiveSerial++
+                festiveEvent = FestiveEffectEvent(festiveSerial, type)
+            }
+        }
+    }
+    LaunchedEffect(lazyMessageItems.itemSnapshotList, streamingAiMessage) {
+        val streaming = streamingAiMessage ?: return@LaunchedEffect
+        if (!streaming.isGenerating) {
+            val persistedText = lazyMessageItems.itemSnapshotList.items
+                .firstOrNull { it.id == streaming.id }
+                ?.content
+                .let { it as? MessageContent.Text }
+                ?.text
+            if (persistedText == streaming.text) {
+                viewModel.finishAiStreamHandoff(streaming.id)
+            }
+        }
     }
 
     PeerConnectionOverlay(chatId, uiState, viewModel)
@@ -107,47 +184,129 @@ fun ChatSessionScreen(
         launchCall = launchCall,
         onNavigateToContact = onNavigateToContact,
         onNavigateToFilePreview = onNavigateToFilePreview,
-        onNavigateToMusicPreview = onNavigateToMusicPreview
+        onNavigateToMusicPreview = onNavigateToMusicPreview,
+        onPreviewMedia = {
+            mediaPreviewClosing = false
+            mediaPreview = it
+        }
     )
 
     CompositionLocalProvider(LocalChatSessionContext provides chatContext) {
-        Box {
-            uiState.backgroundPath?.let {
-                AsyncImage(
-                    model = it,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
+        SharedTransitionLayout {
+            AnimatedContent(
+                targetState = mediaPreview,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "chat-media-preview"
+            ) { preview ->
+                CompositionLocalProvider(
+                    LocalMediaSharedTransitionScope provides this@SharedTransitionLayout,
+                    LocalMediaAnimatedVisibilityScope provides this@AnimatedContent
+                ) {
+                    if (preview == null) {
+                        Box {
+                            uiState.backgroundPath?.let {
+                                AsyncImage(
+                                    model = it,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
 
-            Scaffold(
-                topBar = { ChatSessionTopBar(viewModel, uiState, onBack, onNavigateToInfo) },
-                bottomBar = {
-                    if (!uiState.isSelectMode) {
-                        InputBar(viewModel, uiState, listState, launchCall)
+                            Scaffold(
+                                topBar = {
+                                    ChatSessionTopBar(
+                                        viewModel = viewModel,
+                                        uiState = uiState,
+                                        onBack = onBack,
+                                        onNavigateToInfo = onNavigateToInfo,
+                                        onSelectLocalAiModel = {
+                                            selectAiModel.launch(arrayOf("application/octet-stream", "*/*"))
+                                        }
+                                    )
+                                },
+                                bottomBar = {
+                                    if (!uiState.isSelectMode) {
+                                        InputBar(
+                                            viewModel,
+                                            uiState,
+                                            listState,
+                                            launchCall,
+                                            onStartLive = {
+                                                val liveId = UUID.randomUUID().toString()
+                                                viewModel.sendMessage(
+                                                    MessageContent.Live(
+                                                        liveId = liveId,
+                                                        title = "${uiState.title}的直播",
+                                                        hostName = "我",
+                                                        actorId = uiState.myId
+                                                    )
+                                                )
+                                                onNavigateToLive(liveId, true, uiState.myId.orEmpty())
+                                            }
+                                        )
+                                    } else {
+                                        MultiSelectBottomBar(
+                                            enabled = uiState.selectedCount > 0,
+                                            onActionClick = viewModel::handleMultiSelectAction,
+                                            onExitSelectMode = viewModel::exitSelectMode
+                                        )
+                                    }
+                                },
+                                containerColor =
+                                    if (uiState.backgroundPath == null) {
+                                        WeTheme.colorScheme.background
+                                    } else {
+                                        Color.Unspecified
+                                    }
+                            ) { innerPadding ->
+                                ChatMessageList(
+                                    lazyMessageItems,
+                                    streamingAiMessage,
+                                    uiState,
+                                    viewModel,
+                                    listState,
+                                    innerPadding,
+                                    bombProgress
+                                )
+                            }
+
+                            MessageToolbar(
+                                visible = toolbarState.visible,
+                                actions = toolbarState.actions,
+                                bubblePosition = toolbarState.bubblePosition,
+                                bubbleHeight = toolbarState.bubbleHeight,
+                                isTextMessage =
+                                    toolbarState.message?.content is MessageContent.Text,
+                                onActionClick = viewModel::handleToolbarAction,
+                                onDismiss = viewModel::dismissToolbar
+                            )
+
+                            BombMessageEffect(
+                                trigger = bombTrigger,
+                                onProgress = { bombProgress = it },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            FestiveMessageEffect(
+                                event = festiveEvent,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     } else {
-                        MultiSelectBottomBar(
-                            enabled = uiState.selectedCount > 0,
-                            onActionClick = viewModel::handleMultiSelectAction,
-                            onExitSelectMode = viewModel::exitSelectMode
+                        BackHandler { closeMediaPreview() }
+                        WeMediaPreview(
+                            medias = preview.medias,
+                            current = preview.initialIndex,
+                            interactiveContentEnabled = !mediaPreviewClosing,
+                            interactiveContentDelayMillis = 320L,
+                            pageModifier = { index ->
+                                Modifier.mediaSharedElement(preview.messageIds[index])
+                            },
+                            onDismiss = closeMediaPreview
                         )
                     }
-                },
-                containerColor = if (uiState.backgroundPath == null) WeTheme.colorScheme.background else Color.Unspecified
-            ) { innerPadding ->
-                ChatMessageList(lazyMessageItems, uiState, viewModel, listState, innerPadding)
+                }
             }
-
-            MessageToolbar(
-                visible = toolbarState.visible,
-                actions = toolbarState.actions,
-                bubblePosition = toolbarState.bubblePosition,
-                bubbleHeight = toolbarState.bubbleHeight,
-                isTextMessage = toolbarState.message?.content is MessageContent.Text,
-                onActionClick = viewModel::handleToolbarAction,
-                onDismiss = viewModel::dismissToolbar
-            )
         }
     }
 
@@ -169,7 +328,7 @@ private fun PeerConnectionOverlay(
     val closeOverlay = { showOverlay = false }
 
     LaunchedEffect(connectionRequired, connectionMode, uiState.isSelf) {
-        if (uiState.isSelf == null || uiState.isSelf) {
+        if (viewModel.isLocalAiSession || uiState.isSelf == null || uiState.isSelf) {
             return@LaunchedEffect
         }
 
@@ -211,10 +370,11 @@ private fun ChatSessionUiEventHandler(
     onNavigateToContact: (String) -> Unit,
     onNavigateToFilePreview: (String) -> Unit,
     onNavigateToMusicPreview: (String, String) -> Unit,
+    onPreviewMedia: (ChatMediaPreviewState) -> Unit,
 ) {
     val resources = LocalResources.current
     val dialog = rememberDialogState()
-    val pickContact = rememberPickContactLauncher { contacts ->
+    val pickContact = LocalContactPickerLauncher.current.rememberLauncher { contacts ->
         dialog.show(resources.getString(R.string.msg_confirm_forward, contacts.size)) {
             viewModel.forwardMessages(contacts.map { it.id }.toSet())
         }
@@ -243,6 +403,13 @@ private fun ChatSessionUiEventHandler(
                     event.messageId,
                     event.trackName
                 )
+                is MessageUiEvent.PreviewMedia -> onPreviewMedia(
+                    ChatMediaPreviewState(
+                        medias = event.medias,
+                        messageIds = event.messageIds,
+                        initialIndex = event.initialIndex
+                    )
+                )
 
                 is MessageUiEvent.LaunchCall -> launchCall(event.callType)
                 is MessageUiEvent.NavigateToContact -> onNavigateToContact(event.contactId)
@@ -252,18 +419,29 @@ private fun ChatSessionUiEventHandler(
     }
 }
 
+private data class ChatMediaPreviewState(
+    val medias: List<MediaItem>,
+    val messageIds: List<String>,
+    val initialIndex: Int
+)
+
 /**
  * 消息列表
  */
 @Composable
 private fun ChatMessageList(
     lazyMessageItems: LazyPagingItems<ChatMessage>,
+    streamingAiMessage: StreamingAiMessage?,
     uiState: ChatSessionUiState,
     viewModel: ChatSessionViewModel,
     listState: LazyListState,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    bombProgress: Float
 ) {
     val overscrollEffect = rememberBounceOverscrollEffect()
+    val streamingMessageInPaging = streamingAiMessage?.let { streaming ->
+        lazyMessageItems.itemSnapshotList.items.any { it.id == streaming.id }
+    } == true
 
     LazyColumn(
         state = listState,
@@ -276,24 +454,56 @@ private fun ChatMessageList(
         verticalArrangement = Arrangement.Top,
         overscrollEffect = overscrollEffect
     ) {
+        if (streamingAiMessage != null && !streamingMessageInPaging) {
+            item(
+                key = "streaming_${streamingAiMessage.id}",
+                contentType = streamingAiMessage
+            ) {
+                MessageItem(
+                    message = streamingAiMessage.toChatMessage(uiState.peerId.orEmpty()),
+                    peerAvatar = if (viewModel.isLocalAiSession) {
+                        R.drawable.img_logo
+                    } else uiState.peerAvatar,
+                    myAvatar = uiState.myAvatar,
+                    isSelectMode = false,
+                    isMessageSelected = false,
+                    onMessageClick = {},
+                    onMessageLongPress = { _, _ -> }
+                )
+            }
+        }
+
         items(
             count = lazyMessageItems.itemCount,
             key = lazyMessageItems.itemKey { it.id },
             contentType = lazyMessageItems.itemContentType { it.content.toMessageType() }
         ) { index ->
             lazyMessageItems[index]?.let { message ->
+                val displayMessage = if (message.id == streamingAiMessage?.id) {
+                    message.copy(content = MessageContent.Text(streamingAiMessage.text))
+                } else {
+                    message
+                }
+                val phase = (displayMessage.id.hashCode() and 0xFF) / 255f * 6.28f
+                val shake = bombShakeTransform(bombProgress, phase)
                 MessageItem(
-                    message = message,
-                    peerAvatar = uiState.peerAvatar,
+                    message = displayMessage,
+                    peerAvatar = if (viewModel.isLocalAiSession) {
+                        R.drawable.img_logo
+                    } else uiState.peerAvatar,
                     myAvatar = uiState.myAvatar,
                     isSelectMode = uiState.isSelectMode,
-                    isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(message.id),
+                    isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(displayMessage.id),
+                    shakeOffsetX = shake.x,
+                    shakeOffsetY = shake.y,
+                    shakeRotation = shake.rotation,
+                    shakeScale = shake.scale,
                     onMessageClick = {
-                        if (!uiState.isSelectMode) viewModel.handleMessageClick(message)
-                        else viewModel.toggleMessageSelection(message.id)
+                        if (!uiState.isSelectMode) viewModel.handleMessageClick(displayMessage)
+                        else viewModel.toggleMessageSelection(displayMessage.id)
                     },
                     onMessageLongPress = { pos, height ->
-                        viewModel.handleMessageLongPress(message, pos, height)
+                        viewModel.handleMessageLongPress(displayMessage, pos, height)
                     }
                 )
                 TimeDivider(lazyMessageItems.itemSnapshotList.items, index)
@@ -307,3 +517,59 @@ private fun ChatMessageList(
         }
     }
 }
+
+private fun StreamingAiMessage.toChatMessage(sessionId: String) = ChatMessage(
+    id = id,
+    sessionId = sessionId,
+    senderId = LocalAiAssistant.ID,
+    content = MessageContent.Text(text),
+    isFromMe = false,
+    timestamp = timestamp,
+    sendStatus = if (isGenerating) {
+        MessageSendStatus.Receiving()
+    } else {
+        MessageSendStatus.Delivered
+    }
+)
+
+private fun ChatMessage.isBombMessage(): Boolean =
+    singleSpecialEffectToken() == "[炸弹]"
+
+private fun ChatMessage.festiveEffectType(): FestiveEffectType? {
+    return when (singleSpecialEffectToken()) {
+        "[烟花]" -> FestiveEffectType.Fireworks
+        "[庆祝]" -> FestiveEffectType.Celebration
+        "[爆竹]", "[鞭炮]" -> FestiveEffectType.Firecrackers
+        else -> null
+    }
+}
+
+/**
+ * 微信式特效只响应单个特效表情。同一条消息包含多个特效标记时整体静默，
+ * 避免多个全屏动画竞争或连续轰炸。
+ */
+private fun ChatMessage.singleSpecialEffectToken(): String? {
+    val text = (content as? MessageContent.Text)?.text ?: return null
+    var found: String? = null
+    var count = 0
+    SPECIAL_EFFECT_TOKENS.forEach { token ->
+        var start = 0
+        while (true) {
+            val index = text.indexOf(token, start)
+            if (index < 0) break
+            count++
+            if (count > 1) return null
+            found = token
+            start = index + token.length
+        }
+    }
+    return found
+}
+
+private val SPECIAL_EFFECT_TOKENS = listOf(
+    "[炸弹]",
+    "[烟花]",
+    "[庆祝]",
+    "[爆竹]",
+    "[鞭炮]"
+)

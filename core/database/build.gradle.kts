@@ -19,6 +19,12 @@ android {
         minSdk = 26
     }
 
+    sourceSets {
+        getByName("androidTest").assets.directories.add(
+            layout.projectDirectory.dir("schemas").asFile.absolutePath
+        )
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
@@ -43,4 +49,6 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.serialization.json)
+
+    testImplementation(libs.test.junit)
 }

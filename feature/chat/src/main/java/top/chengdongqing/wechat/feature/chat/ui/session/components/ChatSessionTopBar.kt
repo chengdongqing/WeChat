@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionUiState
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionViewModel
 
@@ -35,7 +36,8 @@ fun ChatSessionTopBar(
     viewModel: ChatSessionViewModel,
     uiState: ChatSessionUiState,
     onBack: () -> Unit,
-    onNavigateToInfo: () -> Unit
+    onNavigateToInfo: () -> Unit,
+    onSelectLocalAiModel: () -> Unit
 ) {
     val isSelectMode = uiState.isSelectMode
     val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle(0)
@@ -57,9 +59,13 @@ fun ChatSessionTopBar(
         if (!isSelectMode) {
             IconButton(
                 icon = R.drawable.ic_more_outlined,
-                description = stringResource(R.string.action_more)
+                description = if (viewModel.isLocalAiSession) {
+                    "选择本地 GGUF 模型"
+                } else {
+                    stringResource(R.string.action_more)
+                }
             ) {
-                onNavigateToInfo()
+                if (viewModel.isLocalAiSession) onSelectLocalAiModel() else onNavigateToInfo()
             }
         }
     }
@@ -71,6 +77,7 @@ private fun ChatSessionTitle(
     uiState: ChatSessionUiState,
 ) {
     val isE2EActive by viewModel.isE2EActive.collectAsStateWithLifecycle()
+    val localAiState by viewModel.localAiState.collectAsStateWithLifecycle()
     val statusColor = if (uiState.isOnline) {
         WeTheme.colorScheme.primary
     } else {
@@ -84,6 +91,16 @@ private fun ChatSessionTitle(
         }
     )
     val title = when {
+        !uiState.isSelectMode && viewModel.isLocalAiSession -> {
+            val status = when (localAiState) {
+                LocalAiState.NoModel -> "选择模型"
+                is LocalAiState.Importing -> "正在导入"
+                LocalAiState.Loading -> "正在加载"
+                is LocalAiState.Ready -> "本地"
+                is LocalAiState.Error -> "模型错误"
+            }
+            "${uiState.title} · $status"
+        }
         !uiState.isSelectMode -> uiState.title
         uiState.selectedCount > 0 -> stringResource(
             R.string.chat_selected_count,

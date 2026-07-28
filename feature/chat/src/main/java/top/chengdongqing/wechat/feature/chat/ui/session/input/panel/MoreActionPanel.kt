@@ -45,12 +45,14 @@ import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit) {
     val chatContext = LocalChatSessionContext.current
     val isSelf = chatContext?.isSelf.isTrue()
+    val isGroup = chatContext?.isGroup == true
 
-    val pages = remember(isSelf) {
+    val pages = remember(isSelf, isGroup) {
         MoreAction.entries
             .filter { action ->
                 // 如果是自己，则过滤掉视频通话
-                !(isSelf && action == MoreAction.VideoCall)
+                !(isSelf && action == MoreAction.VideoCall) &&
+                    (isGroup || action != MoreAction.Live)
             }
             .chunked(ChunkCount)
     }

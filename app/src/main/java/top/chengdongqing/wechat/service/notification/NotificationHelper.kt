@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.service.notification
 
 import android.annotation.SuppressLint
+import android.app.KeyguardManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,14 +10,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.media.RingtoneManager
+import android.os.PowerManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.MainActivity
-import top.chengdongqing.wechat.core.common.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.core.network.model.NotificationChannelConfig
 import top.chengdongqing.wechat.core.network.model.NotificationId
-import top.chengdongqing.wechat.feature.call.ui.CallActivity
+import top.chengdongqing.wechat.service.call.CallNotificationService
 import javax.inject.Inject
 import javax.inject.Singleton
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -68,6 +71,19 @@ class NotificationHelper @Inject constructor(
         }.also {
             notificationManager.createNotificationChannel(it)
         }
+
+        NotificationChannel(
+            NotificationChannelConfig.OngoingCall.id,
+            NotificationChannelConfig.OngoingCall.title,
+            NotificationChannelConfig.OngoingCall.importance
+        ).apply {
+            setSound(null, null)
+            enableVibration(false)
+            vibrationPattern = null
+            description = NotificationChannelConfig.OngoingCall.description
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            setShowBadge(false)
+        }.also(notificationManager::createNotificationChannel)
     }
 
     /**
@@ -170,31 +186,11 @@ class NotificationHelper @Inject constructor(
     fun showIncomingNotification(
         title: String,
         text: String,
-        notificationId: Int = NotificationId.Call.id
+        isVideo: Boolean = false
     ) {
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            notificationId,
-            Intent(context, CallActivity::class.java).apply {
-                setPackage(context.packageName)
-                flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Call.id)
-            .setSmallIcon(DesignR.drawable.img_logo)
-            .setSound(null)
-            .setVibrate(null)
-            .setContentTitle(title)
-            .setContentText(text)
-            .setPriority(NotificationCompat.PRIORITY_MAX)
-            .setCategory(NotificationCompat.CATEGORY_CALL)
-            .setContentIntent(pendingIntent)
-            .setFullScreenIntent(pendingIntent, true)
-            .setOngoing(true)
-            .build()
-
-        notificationManager.notify(notificationId, notification)
+        wakeScreenForIncomingCall()
+        CallNotificationService.incoming(context, title, text, isVideo)
+        return
     }
 
     /**
@@ -202,30 +198,60 @@ class NotificationHelper @Inject constructor(
      */
     fun showOngoingNotification(
         text: String,
-        notificationId: Int = NotificationId.Call.id
+        peerName: String = text,
+        durationSeconds: Long = 0,
+        showChronometer: Boolean = false,
+        isMuted: Boolean = false,
+        isVideo: Boolean = false
     ) {
-        val intent = PendingIntent.getActivity(
-            context,
-            notificationId,
-            Intent(context, CallActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        CallNotificationService.ongoing(
+            context = context,
+            text = text,
+            peerName = peerName,
+            durationSeconds = durationSeconds,
+            showChronometer = showChronometer,
+            isMuted = isMuted,
+            isVideo = isVideo
         )
-        val notification = NotificationCompat.Builder(context, NotificationChannelConfig.Call.id)
-            .setSmallIcon(DesignR.drawable.img_logo)
-            .setSound(null)
-            .setVibrate(null)
-            .setContentTitle(text)
-            .setContentIntent(intent)
-            .setOngoing(true)
-            .build()
-
-        notificationManager.notify(notificationId, notification)
     }
 
     /**
      * 取消通知
      */
     fun cancelNotification(notificationId: Int) {
+        if (notificationId == NotificationId.Call.id) {
+            CallNotificationService.stop(context)
+        }
         notificationManager.cancel(notificationId)
+    }
+
+    /**
+     * 某些厂商在息屏状态不会仅因 fullScreenIntent 点亮屏幕。短暂唤醒屏幕后，
+     * 系统仍然负责决定是否展示全屏来电页，不会长期阻止设备重新休眠。
+     */
+    @Suppress("DEPRECATION")
+    private fun wakeScreenForIncomingCall() {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        if (powerManager.isInteractive && !keyguardManager.isKeyguardLocked) return
+
+        runCatching {
+            powerManager.newWakeLock(
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or
+                        PowerManager.ACQUIRE_CAUSES_WAKEUP or
+                        PowerManager.ON_AFTER_RELEASE,
+                "${context.packageName}:incoming-call"
+            ).apply {
+                setReferenceCounted(false)
+                acquire(INCOMING_CALL_WAKE_LOCK_TIMEOUT_MS)
+            }
+        }.onFailure {
+            Log.w(TAG, "无法点亮来电屏幕", it)
+        }
+    }
+
+    private companion object {
+        const val TAG = "NotificationHelper"
+        const val INCOMING_CALL_WAKE_LOCK_TIMEOUT_MS = 10_000L
     }
 }

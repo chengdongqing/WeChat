@@ -6,6 +6,7 @@ import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.CallContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.ContactCardContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.FileContent
+import top.chengdongqing.wechat.feature.chat.ui.session.message.content.LiveContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.LocationContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.MediaContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.MusicContent
@@ -28,6 +29,7 @@ fun MessageContent(message: ChatMessage) {
         is MessageContent.File -> FileContent(message)
         is MessageContent.ContactCard -> ContactCardContent(content)
         is MessageContent.Music -> MusicContent(content)
+        is MessageContent.Live -> LiveContent(message)
         else -> Unit
     }
 }

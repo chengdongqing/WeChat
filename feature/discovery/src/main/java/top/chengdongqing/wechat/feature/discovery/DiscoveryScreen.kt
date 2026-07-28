@@ -14,7 +14,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun DiscoveryScreen() {
+fun DiscoveryScreen(onNavigateToMoments: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -24,7 +24,7 @@ fun DiscoveryScreen() {
         WeMenuListItem(
             label = stringResource(R.string.discover_menu_moments),
             icon = R.drawable.ic_moments_outlined_colorful,
-            onClick = {}
+            onClick = onNavigateToMoments
         )
         WeMenuListItem(
             label = stringResource(R.string.discover_menu_search),

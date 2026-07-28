@@ -16,6 +16,7 @@ enum class MessageType {
     Location,       // 位置
     ContactCard,    // 名片
     Music,          // 音乐
+    Live,           // 群直播
     VoiceCall,      // 语音通话记录
     VideoCall;      // 视频通话记录
 

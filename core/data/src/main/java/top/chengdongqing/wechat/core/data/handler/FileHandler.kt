@@ -55,7 +55,7 @@ class FileHandler(
             // 构建消息内容
             val content = MessageContent.File(
                 localPath = app.filePath,
-                mimeType = "application/vnd.android.package-archive",
+                mimeType = app.mimeType,
                 filename = app.fileName,
                 size = app.fileSize
             )

@@ -1,9 +1,13 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.input.panel
 
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,9 +16,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -26,23 +32,37 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.decode.StaticImageDecoder
 import coil3.request.ImageRequest
@@ -56,12 +76,11 @@ import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddBut
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
-import top.chengdongqing.wechat.core.designsystem.model.Sticker
-import top.chengdongqing.wechat.core.designsystem.model.Stickers
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.repeatingClickable
 import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.feature.chat.data.store.ManagedSticker
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarViewModel
 import java.io.File
@@ -285,20 +304,109 @@ private fun EmojiItem(
     emoji: Emoji,
     onSelect: (Emoji) -> Unit
 ) {
+    var showPreview by remember(emoji.description) { mutableStateOf(false) }
     val model = remember(emoji.localPath) {
         emoji.localPath.asAssetPath
     }
 
-    AsyncImage(
-        model = model,
-        contentDescription = emoji.description,
+    Box(
         modifier = Modifier
             .size(38.dp)
             .clip(RoundedCornerShape(4.dp))
-            .clickable { onSelect(emoji) }
-            .padding(4.dp),
-        contentScale = ContentScale.Inside
-    )
+            .pointerInput(emoji.description) {
+                detectTapGestures(
+                    onPress = {
+                        tryAwaitRelease()
+                        showPreview = false
+                    },
+                    onLongPress = {
+                        showPreview = true
+                    },
+                    onTap = { onSelect(emoji) }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        AsyncImage(
+            model = model,
+            contentDescription = emoji.description,
+            modifier = Modifier.fillMaxSize().padding(4.dp),
+            contentScale = ContentScale.Inside
+        )
+        if (showPreview) {
+            EmojiPressPreview(emoji)
+        }
+    }
+}
+
+@Composable
+private fun EmojiPressPreview(emoji: Emoji) {
+    val popoverColor = WeTheme.colorScheme.surface
+
+    Popup(
+        popupPositionProvider = EmojiPreviewPositionProvider,
+        properties = PopupProperties(
+            focusable = false,
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            clippingEnabled = false
+        )
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Surface(
+                modifier = Modifier.width(112.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = popoverColor,
+                shadowElevation = 10.dp,
+                tonalElevation = 1.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AsyncImage(
+                        model = emoji.localPath.asAssetPath,
+                        contentDescription = emoji.description,
+                        modifier = Modifier.size(72.dp),
+                        contentScale = ContentScale.Inside
+                    )
+                    Text(
+                        text = emoji.description,
+                        color = WeTheme.colorScheme.textPrimary,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 5.dp)
+                    )
+                }
+            }
+            Canvas(Modifier.size(width = 18.dp, height = 9.dp)) {
+                drawPath(
+                    Path().apply {
+                        moveTo(0f, 0f)
+                        lineTo(size.width, 0f)
+                        lineTo(size.width / 2f, size.height)
+                        close()
+                    },
+                    color = popoverColor
+                )
+            }
+        }
+    }
+}
+
+private object EmojiPreviewPositionProvider : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        popupContentSize: IntSize
+    ): IntOffset {
+        val margin = 8
+        val x = (anchorBounds.left + anchorBounds.width / 2 - popupContentSize.width / 2)
+            .coerceIn(margin, (windowSize.width - popupContentSize.width - margin).coerceAtLeast(margin))
+        val above = anchorBounds.top - popupContentSize.height - 6
+        val y = if (above >= margin) above else anchorBounds.bottom + 6
+        return IntOffset(x, y)
+    }
 }
 
 /**
@@ -327,8 +435,15 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
  * 贴纸网格
  */
 @Composable
-private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
+private fun StickersGrid(
+    onSelect: (MessageContent.Sticker) -> Unit,
+    viewModel: StickersViewModel = hiltViewModel()
+) {
     val overscrollEffect = rememberBounceOverscrollEffect()
+    val stickers by viewModel.stickers.collectAsStateWithLifecycle()
+    val addSticker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let(viewModel::add)
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
@@ -341,15 +456,19 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
         overscrollEffect = overscrollEffect
     ) {
         item(key = "add_sticker_button") {
-            DashedAddButton(color = WeTheme.colorScheme.textPrimary) {}
+            DashedAddButton(color = WeTheme.colorScheme.textPrimary) {
+                addSticker.launch("image/*")
+            }
         }
         items(
-            items = Stickers.all,
-            key = { it.localPath }
+            items = stickers,
+            key = { it.path }
         ) { sticker ->
             StickerItem(
                 sticker = sticker,
-                onSelect = onSelect
+                onSelect = onSelect,
+                onMoveToFront = { viewModel.moveToFront(sticker) },
+                onDelete = { viewModel.delete(sticker) }
             )
         }
     }
@@ -360,22 +479,29 @@ private fun StickersGrid(onSelect: (MessageContent.Sticker) -> Unit) {
  */
 @Composable
 private fun StickerItem(
-    sticker: Sticker,
+    sticker: ManagedSticker,
     onSelect: (MessageContent.Sticker) -> Unit,
+    onMoveToFront: () -> Unit,
+    onDelete: () -> Unit,
     viewModel: InputBarViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var showPreview by remember { mutableStateOf(false) }
 
     // 在选择器里面表情图片要保持静态
-    val imageRequest = remember(sticker.localPath) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    val imageRequest = remember(sticker.path, sticker.isAsset) {
+        if (sticker.isAsset && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ImageRequest.Builder(context)
-                .data(sticker.localPath.asAssetPath)
+                .data(sticker.path.asAssetPath)
                 .decoderFactory(StaticImageDecoder.Factory())
                 .build()
         } else {
-            sticker.localPath.asAssetPath
+            if (sticker.isAsset) {
+                sticker.path.asAssetPath
+            } else {
+                sticker.path
+            }
         }
     }
 
@@ -383,24 +509,15 @@ private fun StickerItem(
         modifier = Modifier
             .aspectRatio(1f)
             .clip(RoundedCornerShape(4.dp))
-            .clickable {
-                scope.launch {
-                    val tempFile = File.createTempFile("Sticker_", ".gif")
-                    // 获取表情URI
-                    val uri = context.copyAssetToUri(
-                        assetName = sticker.localPath,
-                        targetFile = tempFile
-                    ) ?: return@launch
-                    // 拷贝到私有目录持久化保存
-                    val localPath = viewModel.privateFileManager.saveMedia(
-                        messageType = MessageType.Sticker,
-                        sourceUri = uri
-                    ).getOrThrow()
-                    // 清理临时文件
-                    context.deleteFileByUri(uri)
-
-                    onSelect(MessageContent.Sticker(localPath))
-                }
+            .pointerInput(sticker.path) {
+                detectTapGestures(
+                    onLongPress = {
+                        showPreview = true
+                    },
+                    onTap = {
+                        scope.launch { sendSticker(context, sticker, viewModel, onSelect) }
+                    }
+                )
             },
         contentAlignment = Alignment.Center
     ) {
@@ -410,7 +527,123 @@ private fun StickerItem(
             modifier = Modifier.padding(4.dp),
             contentScale = ContentScale.Inside
         )
+
+        if (showPreview) {
+            StickerPressPreview(
+                sticker = sticker,
+                onDismiss = { showPreview = false },
+                onMoveToFront = {
+                    onMoveToFront()
+                    showPreview = false
+                },
+                onDelete = {
+                    onDelete()
+                    showPreview = false
+                }
+            )
+        }
     }
+}
+
+@Composable
+private fun StickerPressPreview(
+    sticker: ManagedSticker,
+    onDismiss: () -> Unit,
+    onMoveToFront: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val model = if (sticker.isAsset) sticker.path.asAssetPath else sticker.path
+    val popoverColor = WeTheme.colorScheme.surface
+    Popup(
+        popupPositionProvider = StickerPreviewPositionProvider,
+        onDismissRequest = onDismiss,
+        properties = PopupProperties(
+            focusable = true,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
+            clippingEnabled = false
+        )
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = popoverColor,
+                shadowElevation = 8.dp,
+                tonalElevation = 1.dp
+            ) {
+                Column(Modifier.width(174.dp)) {
+                    AsyncImage(
+                        model = model,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().height(150.dp).padding(12.dp),
+                        contentScale = ContentScale.Inside
+                    )
+                    WeDivider()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        TextButton(onClick = onMoveToFront) {
+                            Text("移到最前", color = WeTheme.colorScheme.textPrimary)
+                        }
+                        TextButton(onClick = onDelete) {
+                            Text("删除", color = Color(0xFFFA5151))
+                        }
+                    }
+                }
+            }
+            Canvas(Modifier.size(width = 18.dp, height = 9.dp)) {
+                drawPath(
+                    Path().apply {
+                        moveTo(0f, 0f)
+                        lineTo(size.width, 0f)
+                        lineTo(size.width / 2f, size.height)
+                        close()
+                    },
+                    color = popoverColor
+                )
+            }
+        }
+    }
+}
+
+private object StickerPreviewPositionProvider : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        popupContentSize: IntSize
+    ): IntOffset {
+        val x = (anchorBounds.left + anchorBounds.width / 2 - popupContentSize.width / 2)
+            .coerceIn(8, (windowSize.width - popupContentSize.width - 8).coerceAtLeast(8))
+        val above = anchorBounds.top - popupContentSize.height - 8
+        val y = if (above >= 8) above else anchorBounds.bottom + 8
+        return IntOffset(x, y)
+    }
+}
+
+private suspend fun sendSticker(
+    context: android.content.Context,
+    sticker: ManagedSticker,
+    viewModel: InputBarViewModel,
+    onSelect: (MessageContent.Sticker) -> Unit
+) {
+    if (!sticker.isAsset) {
+        onSelect(MessageContent.Sticker(sticker.path))
+        return
+    }
+    @Suppress("BlockingMethodInNonBlockingContext")
+    val tempFile = File.createTempFile("Sticker_", ".gif")
+    val uri = context.copyAssetToUri(
+        assetName = sticker.path,
+        targetFile = tempFile
+    ) ?: return
+    val localPath = viewModel.privateFileManager.saveMedia(
+        messageType = MessageType.Sticker,
+        sourceUri = uri
+    ).getOrThrow()
+    context.deleteFileByUri(uri)
+    onSelect(MessageContent.Sticker(localPath))
 }
 
 /**

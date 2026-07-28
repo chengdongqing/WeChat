@@ -184,7 +184,8 @@ class MessageToolbarManager(
                 }
 
                 is MessageContent.ContactCard,
-                is MessageContent.Music -> {
+                is MessageContent.Music,
+                is MessageContent.Live -> {
                     add(MessageAction.Forward)
                     add(MessageAction.Quote)
                     add(MessageAction.Remind)

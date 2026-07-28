@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -51,6 +50,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.model.UserProfile
 import kotlin.math.cos
@@ -85,6 +85,7 @@ fun RadarScanAddFriendScreen(
         }
     }
 
+    ImmersiveSystemBars()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -111,8 +112,7 @@ fun RadarScanAddFriendScreen(
 private fun BackButton(onBack: () -> Unit) {
     Box(
         modifier = Modifier
-            .statusBarsPadding()
-            .offset(20.dp)
+            .offset(20.dp, 40.dp)
             .clip(RoundedCornerShape(2.dp))
             .border(1.dp, Color.Gray, RoundedCornerShape(2.dp))
             .clickable { onBack() }

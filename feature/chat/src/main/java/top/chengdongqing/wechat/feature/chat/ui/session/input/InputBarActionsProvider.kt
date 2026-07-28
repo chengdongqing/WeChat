@@ -11,6 +11,7 @@ import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.model.CallType
+import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberActionHandler
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberFileHandler
@@ -19,7 +20,6 @@ import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberLo
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberLocationLauncher
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberMediaHandler
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberMediaLaunchers
-import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLauncher
 
 /**
  * 输入栏 Actions 组装入口
@@ -31,7 +31,8 @@ import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLa
 fun rememberInputBarActions(
     controller: InputBarController,
     onSendMessage: (MessageContent) -> Unit,
-    onLaunchCall: (CallType) -> Unit
+    onLaunchCall: (CallType) -> Unit,
+    onStartLive: () -> Unit
 ): InputBarActions {
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
@@ -51,7 +52,7 @@ fun rememberInputBarActions(
     val mediaLaunchers = rememberMediaLaunchers(mediaHandler)
     val onPickLocation = rememberLocationLauncher(locationHandler)
     val fileLauncher = rememberFileLauncher(fileHandler)
-    val pickContact = rememberPickContactLauncher { contacts ->
+    val pickContact = LocalContactPickerLauncher.current.rememberLauncher { contacts ->
         scope.launch { fileHandler.handleContactSelection(contacts.first()) }
     }
 
@@ -64,6 +65,7 @@ fun rememberInputBarActions(
         onPickLocation = onPickLocation,
         onLaunchCall = onLaunchCall,
         onSelectMusic = controller::toggleMusic,
+        onStartLive = onStartLive,
         onSendMessage = onSendMessage
     )
 

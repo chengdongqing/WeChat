@@ -32,11 +32,6 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.core.designsystem)
 
-    implementation(projects.feature.chat)
-    implementation(projects.feature.contacts)
-    implementation(projects.feature.discovery)
-    implementation(projects.feature.profile)
-
     implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

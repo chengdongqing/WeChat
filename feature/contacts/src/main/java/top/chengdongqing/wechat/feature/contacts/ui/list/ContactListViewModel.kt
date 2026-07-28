@@ -7,13 +7,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import top.chengdongqing.wechat.core.data.mapper.toListItem
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.ContactItem
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.toContact
-import top.chengdongqing.wechat.feature.contacts.data.mapper.toListItem
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,14 +39,27 @@ class ContactListViewModel @Inject constructor(
         }
 
         // 根据首字母分组
-        val groups = allContacts.groupByInitial()
+        val groups = allContacts.groupByInitial().toMutableMap().apply {
+            put(
+                '★',
+                listOf(
+                    ContactItem(
+                        id = LocalAiAssistant.ID,
+                        displayName = LocalAiAssistant.NAME,
+                        nickname = LocalAiAssistant.NAME,
+                        note = LocalAiAssistant.SIGNATURE,
+                        initial = '★'
+                    )
+                ) + get('★').orEmpty()
+            )
+        }
         // 计算索引映射
         val indexMap = calculateIndexMap(groups)
 
         ContactListUiState(
             isLoading = false,
             groups = groups,
-            totalCount = allContacts.size,
+            totalCount = allContacts.size + 1,
             indexMap = indexMap,
             unreadCount = unreadCount
         )

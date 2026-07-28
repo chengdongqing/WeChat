@@ -39,6 +39,7 @@ class ActionHandler(
     private val onApk: () -> Unit,
     private val onContactCard: () -> Unit,
     private val onMusic: () -> Unit,
+    private val onLive: () -> Unit,
     private val onTransfer: () -> Unit
 ) {
     /** 统一入口，按 action 路由 */
@@ -52,6 +53,7 @@ class ActionHandler(
             MoreAction.ContactCard -> onContactCard()
             MoreAction.App -> onApk()
             MoreAction.Music -> onMusic()
+            MoreAction.Live -> onLive()
             MoreAction.Transfer -> onTransfer()
             else -> Unit
         }
@@ -70,6 +72,7 @@ fun rememberActionHandler(
     onPickLocation: () -> Unit,
     onLaunchCall: (CallType) -> Unit,
     onSelectMusic: () -> Unit,
+    onStartLive: () -> Unit,
     onSendMessage: (MessageContent) -> Unit
 ): ActionHandler {
     val context = LocalContext.current
@@ -158,6 +161,7 @@ fun rememberActionHandler(
             onFile = fileLauncher.pickFile,
             onApk = fileLauncher.pickApk,
             onMusic = onSelectMusic,
+            onLive = onStartLive,
             onContactCard = pickContact,
             onTransfer = {
                 onSendMessage(

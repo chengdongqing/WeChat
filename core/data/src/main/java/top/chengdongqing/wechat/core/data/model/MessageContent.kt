@@ -77,4 +77,14 @@ sealed class MessageContent(
     ) : MessageContent(isSameBackground = true)
 
     data class Music(val music: MusicTrack) : MessageContent(showBubbleArrow = false)
+
+    data class Live(
+        val liveId: String,
+        val title: String,
+        val hostName: String,
+        val status: String = "live",
+        val actorId: String? = null,
+        val targetId: String? = null,
+        val payload: String? = null
+    ) : MessageContent(showBubbleArrow = false, isSameBackground = true)
 }

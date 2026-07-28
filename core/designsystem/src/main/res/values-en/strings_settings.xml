@@ -100,6 +100,12 @@
     <string name="more_system_permissions">System Permissions</string>
 
     <string name="permission_title">System Permissions</string>
+    <string name="permission_full_screen_call">Full-screen incoming calls</string>
+    <string name="permission_full_screen_call_desc">Wake the screen and show calls while locked</string>
+    <string name="permission_overlay_call">Incoming calls over apps</string>
+    <string name="permission_overlay_call_desc">Show the answer screen while using another app</string>
+    <string name="permission_miui_call">Xiaomi call display</string>
+    <string name="permission_miui_call_desc">Enable “Show on Lock screen” and “Display pop-up windows”</string>
     <string name="permission_enabled">Enabled</string>
     <string name="permission_location">Location</string>
     <string name="permission_location_desc">Used to search nearby Wi-Fi nodes and Bluetooth devices.</string>

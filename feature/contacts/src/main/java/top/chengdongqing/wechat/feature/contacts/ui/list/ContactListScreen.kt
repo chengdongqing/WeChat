@@ -35,12 +35,16 @@ import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.model.AppLanguage
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.feature.contacts.ui.list.components.TopFunctionList
 
 @Composable
 fun ContactListScreen(
     onNavigateToNewFriends: () -> Unit,
+    onNavigateToGroups: () -> Unit,
+    onNavigateToTags: () -> Unit,
     onNavigateToDetail: (contactId: String) -> Unit,
+    onNavigateToChat: (contactId: String) -> Unit,
     onNavigateToProfileEdit: (contactId: String) -> Unit,
     viewModel: ContactListViewModel = hiltViewModel(),
 ) {
@@ -63,7 +67,9 @@ fun ContactListScreen(
             item {
                 TopFunctionList(
                     pendingCount = state.unreadCount,
-                    onNavigateToNewFriends = onNavigateToNewFriends
+                    onNavigateToNewFriends = onNavigateToNewFriends,
+                    onNavigateToGroups = onNavigateToGroups,
+                    onNavigateToTags = onNavigateToTags
                 )
             }
 
@@ -111,9 +117,15 @@ fun ContactListScreen(
                                 ContactListItem(
                                     contact = contact,
                                     modifier = Modifier.weContextMenu(
-                                        onClick = { onNavigateToDetail(contact.id) },
+                                        onClick = {
+                                            if (contact.id == LocalAiAssistant.ID) {
+                                                onNavigateToChat(contact.id)
+                                            } else {
+                                                onNavigateToDetail(contact.id)
+                                            }
+                                        },
                                         onLongClick = { position ->
-                                            if (!contact.isSelf) {
+                                            if (!contact.isSelf && contact.id != LocalAiAssistant.ID) {
                                                 contextMenuState.show(
                                                     position,
                                                     listOf(actionLabel),

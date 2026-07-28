@@ -115,9 +115,30 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
 
         MessageType.Music -> {
             val music = runCatching {
+                json.decodeFromString<MusicTrack>(content)
+            }.recoverCatching {
                 MusicTrack.valueOf(content)
             }.getOrDefault(MusicTrack.Perfect)
-            MessageContent.Music(music)
+            MessageContent.Music(
+                if (localPath != null && localPath != music.audioPath) {
+                    music.copy(audioPath = localPath, coverPath = null)
+                } else music
+            )
+        }
+
+        MessageType.Live -> {
+            val live = runCatching {
+                json.decodeFromString<LiveContent>(content)
+            }.getOrElse { LiveContent() }
+            MessageContent.Live(
+                liveId = live.liveId,
+                title = live.title,
+                hostName = live.hostName,
+                status = live.status,
+                actorId = live.actorId,
+                targetId = live.targetId,
+                payload = live.payload
+            )
         }
 
         MessageType.VoiceCall,
@@ -249,7 +270,24 @@ fun MessageContent.toEntity(
 
         is MessageContent.Music ->
             base(
-                contentValue = content.music.name
+                contentValue = json.encodeToString(content.music),
+                localPath = content.music.audioPath,
+                fileSize = content.music.size.takeIf { it > 0 }
+            )
+
+        is MessageContent.Live ->
+            base(
+                contentValue = json.encodeToString(
+                    LiveContent(
+                        liveId = content.liveId,
+                        title = content.title,
+                        hostName = content.hostName,
+                        status = content.status,
+                        actorId = content.actorId,
+                        targetId = content.targetId,
+                        payload = content.payload
+                    )
+                )
             )
 
         is MessageContent.Call ->
@@ -275,14 +313,27 @@ fun MessageContent.toMessageType(): MessageType = when (this) {
     is MessageContent.Call -> if (type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
     is MessageContent.ContactCard -> MessageType.ContactCard
     is MessageContent.Music -> MessageType.Music
+    is MessageContent.Live -> MessageType.Live
     is MessageContent.Media -> MessageType.Image
 }
+
+@Serializable
+private data class LiveContent(
+    val liveId: String = "",
+    val title: String = "群直播",
+    val hostName: String = "",
+    val status: String = "live",
+    val actorId: String? = null,
+    val targetId: String? = null,
+    val payload: String? = null
+)
 
 fun MessageContent.getLocalPath(): String? = when (this) {
     is MessageContent.Voice -> localPath
     is MessageContent.Media -> localPath
     is MessageContent.File -> localPath
     is MessageContent.Sticker -> localPath
+    is MessageContent.Music -> music.audioPath
     else -> null
 }
 

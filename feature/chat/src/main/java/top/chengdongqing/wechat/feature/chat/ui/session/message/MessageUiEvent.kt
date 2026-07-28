@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.message
 
+import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.model.CallType
 
 /**
@@ -23,6 +24,13 @@ sealed class MessageUiEvent {
 
     /** 预览音乐 */
     data class PreviewMusic(val messageId: String, val trackName: String) : MessageUiEvent()
+
+    /** 在聊天页面内预览媒体，以支持共享元素转场 */
+    data class PreviewMedia(
+        val medias: List<MediaItem>,
+        val messageIds: List<String>,
+        val initialIndex: Int
+    ) : MessageUiEvent()
 
     /** 调起通话 */
     data class LaunchCall(val callType: CallType) : MessageUiEvent()

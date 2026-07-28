@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -17,12 +16,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.data.model.MusicTrack
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.Black
@@ -36,10 +38,13 @@ fun MusicAlbumArt(music: MusicTrack, isPlaying: Boolean) {
             .clip(RoundedCornerShape(3.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(music.albumArtRes),
+        AsyncImage(
+            model = remember(music.id, music.coverPath, music.coverData) {
+                music.coverModel()
+            },
             contentDescription = "专辑封面",
-            modifier = Modifier.matchParentSize()
+            modifier = Modifier.matchParentSize(),
+            contentScale = ContentScale.Crop
         )
 
         if (!isPlaying) {

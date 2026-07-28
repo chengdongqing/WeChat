@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
 }
@@ -31,8 +32,13 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.common)
     implementation(projects.core.designsystem)
+    implementation(projects.core.navigation)
 
     implementation(libs.navigation.runtime)
+    implementation(libs.serialization.json)
+    implementation(libs.bundles.coil)
+    implementation(libs.media3.transformer)
+    implementation(libs.media3.effect)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)

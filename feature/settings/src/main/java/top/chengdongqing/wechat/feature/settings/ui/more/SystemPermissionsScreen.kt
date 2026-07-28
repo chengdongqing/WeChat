@@ -26,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import top.chengdongqing.wechat.core.common.permission.CallNotificationPermissionManager
 import top.chengdongqing.wechat.core.common.util.navigateToAppSettings
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
@@ -44,12 +45,18 @@ fun SystemPermissionSettingsScreen(onBack: () -> Unit) {
     var permissionStatusMap by remember {
         mutableStateOf(permissions.associateWith { false })
     }
+    var fullScreenCallGranted by remember { mutableStateOf(false) }
+    var overlayGranted by remember { mutableStateOf(false) }
 
     LifecycleResumeEffect(Unit) {
         // 每次应用回到前台时，重新检测所有权限
         permissionStatusMap = permissions.associateWith { permission ->
             context.isPermissionGranted(permission)
         }
+        fullScreenCallGranted =
+            CallNotificationPermissionManager.canUseFullScreenIntent(context)
+        overlayGranted =
+            CallNotificationPermissionManager.canDisplayOverOtherApps(context)
         onPauseOrDispose {}
     }
 
@@ -95,9 +102,55 @@ fun SystemPermissionSettingsScreen(onBack: () -> Unit) {
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(12.dp))
+            WeSettingGroup {
+                WeSettingItem(
+                    label = stringResource(R.string.permission_full_screen_call),
+                    description = stringResource(R.string.permission_full_screen_call_desc),
+                    showDivider = true,
+                    height = 68.dp,
+                    onClick = {
+                        CallNotificationPermissionManager.openFullScreenIntentSettings(context)
+                    }
+                ) {
+                    if (fullScreenCallGranted) PermissionEnabledIcon()
+                }
+                WeSettingItem(
+                    label = stringResource(R.string.permission_overlay_call),
+                    description = stringResource(R.string.permission_overlay_call_desc),
+                    showDivider = CallNotificationPermissionManager.needsMiuiCallPermissions(),
+                    height = 68.dp,
+                    onClick = {
+                        CallNotificationPermissionManager.openOverlaySettings(context)
+                    }
+                ) {
+                    if (overlayGranted) PermissionEnabledIcon()
+                }
+                if (CallNotificationPermissionManager.needsMiuiCallPermissions()) {
+                    WeSettingItem(
+                        label = stringResource(R.string.permission_miui_call),
+                        description = stringResource(R.string.permission_miui_call_desc),
+                        showDivider = false,
+                        height = 68.dp,
+                        onClick = {
+                            CallNotificationPermissionManager.openMiuiPermissionSettings(context)
+                        }
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(100.dp))
         }
     }
+}
+
+@Composable
+private fun PermissionEnabledIcon() {
+    Icon(
+        painter = painterResource(R.drawable.ic_check),
+        contentDescription = stringResource(R.string.permission_enabled),
+        tint = WeTheme.colorScheme.primary,
+        modifier = Modifier.size(20.dp)
+    )
 }
 
 /**

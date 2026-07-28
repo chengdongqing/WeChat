@@ -29,15 +29,18 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "WeChat"
 include(":app")
+include(":benchmark")
 
 // Core modules
 include(":core:model")
+include(":core:navigation")
 include(":core:database")
 include(":core:designsystem")
 include(":core:common")
 include(":core:network")
 include(":core:location")
 include(":core:data")
+include(":core:ai")
 
 // Feature modules
 include(":feature:launch")

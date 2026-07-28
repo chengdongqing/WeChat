@@ -300,6 +300,7 @@ class PublicFileManager @Inject constructor(
             "rar" -> "application/x-rar-compressed"
             "7z" -> "application/x-7z-compressed"
             "apk" -> "application/vnd.android.package-archive"
+            "apks" -> "application/zip"
             else -> "application/octet-stream"
         }
     }

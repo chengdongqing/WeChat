@@ -5,7 +5,6 @@ import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.util.extractExtension
 import top.chengdongqing.wechat.core.common.util.toSHA256Hex
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
@@ -15,6 +14,7 @@ import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
+import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
@@ -51,6 +51,7 @@ class MessageSender @Inject constructor(
     private val transport: ChatTransportManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
+    private val groupDao: GroupDao,
     private val chatSessionDao: ChatSessionDao,
     private val wifiLockManager: WiFiLockManager,
     private val transferManager: TransferManager,
@@ -60,7 +61,6 @@ class MessageSender @Inject constructor(
     private val avatarServer: AvatarServer,
     private val mediaFileDao: MediaFileDao,
     private val fileReferenceManager: FileReferenceManager,
-    private val privateFileManager: PrivateFileManager,
     private val fileAckRegistry: FileAckRegistry,
     private val json: Json
 ) {
@@ -103,6 +103,40 @@ class MessageSender @Inject constructor(
                 handleSendError(message.id, message.receiverId, e)
                 throw e
             }
+    }
+
+    suspend fun sendGroupTextMessage(message: MessageEntity): Result<Unit> {
+        val group = groupDao.getById(message.sessionId)
+            ?: return Result.failure(IllegalStateException("群聊不存在"))
+        val unsigned = ChatProtocol.GroupTextMessage(
+            messageId = message.id,
+            senderId = message.senderId,
+            signature = "",
+            timestamp = message.timestamp,
+            groupId = group.id,
+            memberVersion = group.memberVersion,
+            messageType = message.contentType,
+            content = message.content
+        )
+        val protocol = unsigned.copy(
+            signature = packetSigner.sign(unsigned, keyStoreManager.getPrivateKey())
+        )
+        val packet = Packet(PacketType.TEXT, serializeChatProtocol(protocol))
+        val targets = groupDao.getMembers(group.id)
+            .map { it.userId }
+            .filter { it != myUserId }
+
+        val results = targets.map { target -> transport.send(target, packet) }
+        val delivered = results.count { it.isSuccess }
+        return if (delivered > 0 || targets.isEmpty()) {
+            updateStatus(message.id, message.sessionId)
+            Result.success(Unit)
+        } else {
+            val error = results.firstNotNullOfOrNull { it.exceptionOrNull() }
+                ?: IllegalStateException("没有可达的群成员")
+            handleSendError(message.id, message.sessionId, error)
+            Result.failure(error)
+        }
     }
 
     /**
@@ -460,7 +494,9 @@ class MessageSender @Inject constructor(
 
             fileReferenceManager.retain(existingFile.localPath, checksum)
             messageDao.update(message.id) { it.copy(localPath = existingFile.localPath) }
-            privateFileManager.deleteFile(file.absolutePath)
+            // 不能在发送流程中删除传入文件：它可能属于音乐曲库、转发来源，
+            // 或被尚未登记到 media_files 的业务记录持有。这里只切换消息引用；
+            // 物理文件统一由对应业务删除和 FileReferenceManager 负责清理。
             File(existingFile.localPath)
         } else {
             fileReferenceManager.retain(file.absolutePath, checksum)

@@ -31,6 +31,63 @@ sealed class ChatProtocol {
             "$messageId|$senderId|$receiverId|$messageType|$content|$timestamp"
     }
 
+    /**
+     * 群文本消息。route/ttl 是可变的 Mesh 传输元数据，不进入原作者签名；
+     * 其余字段由原发送者签名，任何中继节点都无法篡改正文或目标群。
+     */
+    @Serializable
+    data class GroupTextMessage(
+        override val messageId: String,
+        override val senderId: String,
+        override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
+        val groupId: String,
+        val memberVersion: Long,
+        val messageType: MessageType,
+        val content: String,
+        val ttl: Int = 6,
+        val route: List<String> = emptyList()
+    ) : ChatProtocol() {
+        override fun signingPayload() =
+            "$messageId|$senderId|$groupId|$memberVersion|$messageType|$content|$timestamp"
+    }
+
+    /** 群资料与成员快照。新建群、成员变化和修改群名均通过该协议同步。 */
+    @Serializable
+    data class GroupSnapshot(
+        override val messageId: String,
+        override val senderId: String,
+        override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
+        val groupId: String,
+        val name: String,
+        val announcement: String? = null,
+        val ownerId: String,
+        val memberVersion: Long,
+        val members: List<GroupMemberSnapshot>
+    ) : ChatProtocol() {
+        override fun signingPayload() =
+            "$messageId|$senderId|$groupId|$name|$announcement|$ownerId|$memberVersion|$members|$timestamp"
+    }
+
+    /** 群直播房间事件与 WebRTC 信令，不作为聊天消息持久化。 */
+    @Serializable
+    data class GroupLiveEvent(
+        override val messageId: String,
+        override val senderId: String,
+        override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
+        val groupId: String,
+        val liveId: String,
+        val status: String,
+        val displayName: String,
+        val targetId: String? = null,
+        val payload: String? = null
+    ) : ChatProtocol() {
+        override fun signingPayload() =
+            "$messageId|$senderId|$groupId|$liveId|$status|$displayName|$targetId|$payload|$timestamp"
+    }
+
     data class CallMessage(
         override val messageId: String,
         override val senderId: String,
@@ -196,3 +253,10 @@ sealed class ChatProtocol {
     }
 }
 
+@Serializable
+data class GroupMemberSnapshot(
+    val userId: String,
+    val nickname: String,
+    val avatarPath: String? = null,
+    val role: String = "Member"
+)

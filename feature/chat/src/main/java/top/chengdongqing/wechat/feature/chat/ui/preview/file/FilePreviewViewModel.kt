@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.common.app.install.AppPackageInstaller
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
 import top.chengdongqing.wechat.core.common.util.openFile
 import top.chengdongqing.wechat.core.common.util.showToast
@@ -94,7 +95,13 @@ class FilePreviewViewModel @AssistedInject constructor(
         val file = File(path)
 
         try {
-            context.openFile(file, state.mimeType)
+            if (file.extension.equals("apk", ignoreCase = true) ||
+                file.extension.equals("apks", ignoreCase = true)
+            ) {
+                AppPackageInstaller.launch(context, file)
+            } else {
+                context.openFile(file, state.mimeType)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "打开文件失败", e)
             context.showToast("没有找到可以打开此文件的应用")

@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.feature.home.ui
+package top.chengdongqing.wechat.core.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +19,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.designsystem.components.appbar.bottombar.WeNavigationBottomBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -27,40 +26,31 @@ import top.chengdongqing.wechat.feature.chat.ui.list.ChatListScreen
 import top.chengdongqing.wechat.feature.contacts.ui.list.ContactListScreen
 import top.chengdongqing.wechat.feature.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.feature.home.model.HomeTab
+import top.chengdongqing.wechat.feature.home.ui.HomeViewModel
 import top.chengdongqing.wechat.feature.home.ui.components.HomeTopBar
 import top.chengdongqing.wechat.feature.profile.ui.MeScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 
+/** App-level shell that composes independently owned tab destinations. */
 @Composable
-fun HomeScreen(
+fun HomeDestination(
     backStack: NavBackStack<NavKey>,
     homeViewModel: HomeViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     val unreadMap by homeViewModel.unreadMap.collectAsStateWithLifecycle()
-
     val snackbarHostState = remember { SnackbarHostState() }
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { HomeTab.entries.size }
-    )
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { HomeTab.entries.size })
     val scope = rememberCoroutineScope()
     val currentTab = HomeTab.entries[pagerState.currentPage]
 
-    // 处理导航事件
     HandleProfileNavigationEvents(
         viewModel = profileViewModel,
         snackbarHostState = snackbarHostState,
-        onNavigateToContactDetail = { id ->
-            backStack.add(NavigationKey.ContactDetail(id))
-        },
-        onNavigateToPlainText = { text ->
-            backStack.add(NavigationKey.PlainText(text))
-        },
-        onNavigateToWebView = { url ->
-            backStack.add(NavigationKey.WebView(url))
-        }
+        onNavigateToContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
+        onNavigateToPlainText = { backStack.add(NavigationKey.PlainText(it)) },
+        onNavigateToWebView = { backStack.add(NavigationKey.WebView(it)) }
     )
 
     Scaffold(
@@ -68,8 +58,9 @@ fun HomeScreen(
             HomeTopBar(
                 currentTab = currentTab,
                 unreadMap = unreadMap,
-                viewModel = profileViewModel,
-                backStack = backStack
+                onNavigateToGroupChat = { backStack.add(NavigationKey.GroupChat("")) },
+                onNavigateToAddFriend = { backStack.add(NavigationKey.AddFriend) },
+                onScannedQrCode = profileViewModel::handleScannedQRCode
             )
         },
         bottomBar = {
@@ -79,9 +70,7 @@ fun HomeScreen(
                 badgeMap = unreadMap,
                 onTabSelected = { index ->
                     if (index != pagerState.currentPage) {
-                        scope.launch {
-                            pagerState.scrollToPage(index)
-                        }
+                        scope.launch { pagerState.scrollToPage(index) }
                     }
                 }
             )
@@ -89,11 +78,7 @@ fun HomeScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
-        HomeContentPager(
-            pagerState = pagerState,
-            innerPadding = innerPadding,
-            backStack = backStack
-        )
+        HomeTabPager(pagerState, innerPadding, backStack)
     }
 
     ProfileLoadingOverlay(profileViewModel)
@@ -106,31 +91,29 @@ private fun ProfileLoadingOverlay(viewModel: ProfileViewModel) {
 }
 
 @Composable
-private fun HomeContentPager(
+private fun HomeTabPager(
     pagerState: PagerState,
     innerPadding: PaddingValues,
     backStack: NavBackStack<NavKey>
 ) {
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize(),
-        beyondViewportPageCount = 1 // 预加载相邻页面
+        modifier = Modifier.padding(innerPadding).fillMaxSize(),
+        beyondViewportPageCount = 1
     ) { page ->
         when (HomeTab.entries[page]) {
-            HomeTab.Chats -> ChatListScreen(
-                onNavigateToDetail = { backStack.add(NavigationKey.ChatSession(it)) }
-            )
-
+            HomeTab.Chats -> ChatListScreen { backStack.add(NavigationKey.ChatSession(it)) }
             HomeTab.Contacts -> ContactListScreen(
                 onNavigateToNewFriends = { backStack.add(NavigationKey.NewFriends) },
+                onNavigateToGroups = { backStack.add(NavigationKey.GroupList) },
+                onNavigateToTags = { backStack.add(NavigationKey.ContactTags) },
                 onNavigateToDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
+                onNavigateToChat = { backStack.add(NavigationKey.ChatSession(it)) },
                 onNavigateToProfileEdit = { backStack.add(NavigationKey.EditContactProfile(it)) }
             )
-
-            HomeTab.Discovery -> DiscoveryScreen()
-
+            HomeTab.Discovery -> DiscoveryScreen {
+                backStack.add(NavigationKey.Moments)
+            }
             HomeTab.Me -> MeScreen(backStack)
         }
     }

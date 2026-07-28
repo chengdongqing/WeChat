@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.res.painterResource
@@ -47,6 +48,10 @@ fun MessageItem(
     myAvatar: Any? = null,
     isSelectMode: Boolean = false,
     isMessageSelected: Boolean = false,
+    shakeOffsetX: Float = 0f,
+    shakeOffsetY: Float = 0f,
+    shakeRotation: Float = 0f,
+    shakeScale: Float = 1f,
     onMessageClick: () -> Unit = {},
     onMessageLongPress: (bubblePosition: Offset, bubbleHeight: Float) -> Unit = { _, _ -> }
 ) {
@@ -57,7 +62,15 @@ fun MessageItem(
     var bubblePosition by remember { mutableStateOf(Offset.Zero) }
     var bubbleHeight by remember { mutableFloatStateOf(0f) }
 
-    Column {
+    Column(
+        modifier = Modifier.graphicsLayer {
+            translationX = shakeOffsetX
+            translationY = shakeOffsetY
+            rotationZ = shakeRotation
+            scaleX = shakeScale
+            scaleY = shakeScale
+        }
+    ) {
         if (!message.isRecalled) {
             Box {
                 Row(

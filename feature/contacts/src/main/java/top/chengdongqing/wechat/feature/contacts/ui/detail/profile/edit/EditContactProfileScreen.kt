@@ -47,6 +47,7 @@ import top.chengdongqing.wechat.core.designsystem.util.onTap
 fun EditContactProfileScreen(
     contactId: String,
     onBack: () -> Unit,
+    onManageTags: () -> Unit = {},
     viewModel: EditContactProfileViewModel = hiltViewModel { factory: EditContactProfileViewModel.Factory ->
         factory.create(contactId)
     }
@@ -114,7 +115,10 @@ fun EditContactProfileScreen(
                     )
                 }
                 ListItem(label = stringResource(R.string.contact_profile_edit_label_tags)) {
-                    LinkedRow {}
+                    LinkedRow(
+                        label = stringResource(R.string.contact_profile_edit_add_tag),
+                        onClick = onManageTags
+                    )
                 }
                 ListItem(
                     label = stringResource(R.string.contact_profile_edit_label_note),

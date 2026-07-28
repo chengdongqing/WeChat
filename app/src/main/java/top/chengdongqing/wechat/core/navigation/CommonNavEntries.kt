@@ -11,10 +11,8 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.metadata
 import androidx.navigation3.ui.NavDisplay
-import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.feature.common.PlainTextScreen
 import top.chengdongqing.wechat.feature.common.WebViewScreen
-import top.chengdongqing.wechat.feature.home.ui.HomeScreen
 import top.chengdongqing.wechat.feature.profile.ui.login.LoginScreen
 import top.chengdongqing.wechat.feature.startup.GuideScreen
 import top.chengdongqing.wechat.feature.startup.SplashScreen
@@ -80,7 +78,7 @@ internal fun EntryProviderScope<NavKey>.commonNavEntries(
             }
         }
     ) {
-        HomeScreen(backStack)
+        HomeDestination(backStack)
     }
 
     // 文本预览

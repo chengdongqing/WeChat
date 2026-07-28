@@ -32,8 +32,10 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
     implementation(projects.core.database)
+    implementation(projects.core.data)
 
     implementation(libs.navigation.runtime)
+    implementation(libs.core.telecom)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)

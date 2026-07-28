@@ -25,10 +25,11 @@ class ContactPickerActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val count = intent.getIntExtra(EXTRA_PICK_COUNT, 99)
+        val excludeSelf = intent.getBooleanExtra(EXTRA_EXCLUDE_SELF, false)
 
         setContent {
             WeTheme {
-                ContactPicker(count, onCancel = ::finish) { contacts ->
+                ContactPicker(count, excludeSelf, onCancel = ::finish) { contacts ->
                     val intent = Intent().apply {
                         putExtra(EXTRA_CONTACTS, contacts)
                     }
@@ -57,13 +58,17 @@ class ContactPickerActivity : ComponentActivity() {
     companion object {
         const val EXTRA_CONTACTS = "extra_contacts"
         const val EXTRA_PICK_COUNT = "extra_pick_count"
+        const val EXTRA_EXCLUDE_SELF = "extra_exclude_self"
 
         fun newIntent(context: Context) = Intent(context, ContactPickerActivity::class.java)
     }
 }
 
 @Composable
-fun rememberPickContactLauncher(onResult: (chatIds: Array<ContactResult>) -> Unit): (count: Int) -> Unit {
+fun rememberPickContactLauncher(
+    excludeSelf: Boolean = false,
+    onResult: (chatIds: Array<ContactResult>) -> Unit
+): (count: Int) -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -76,6 +81,7 @@ fun rememberPickContactLauncher(onResult: (chatIds: Array<ContactResult>) -> Uni
     return { count ->
         val intent = ContactPickerActivity.newIntent(context).apply {
             putExtra(ContactPickerActivity.EXTRA_PICK_COUNT, count)
+            putExtra(ContactPickerActivity.EXTRA_EXCLUDE_SELF, excludeSelf)
         }
 
         val options = ActivityOptionsCompat.makeCustomAnimation(

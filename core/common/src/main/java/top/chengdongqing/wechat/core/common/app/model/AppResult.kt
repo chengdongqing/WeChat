@@ -7,13 +7,6 @@ import kotlinx.parcelize.Parcelize
 data class AppResult(
     val fileName: String,
     val filePath: String,
-    val fileSize: Long
+    val fileSize: Long,
+    val mimeType: String
 ) : Parcelable
-
-fun List<AppItem>.toResult() = map { app ->
-    AppResult(
-        fileName = "${app.name}-v${app.versionName}.apk",
-        filePath = app.apkPath,
-        fileSize = app.apkSize
-    )
-}

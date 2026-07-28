@@ -9,12 +9,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import top.chengdongqing.wechat.core.data.mapper.toListItem
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.ContactItem
 import top.chengdongqing.wechat.core.model.toContact
-import top.chengdongqing.wechat.feature.contacts.data.mapper.toListItem
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,6 +24,7 @@ class ContactPickerViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ContactPickerUiState())
+    private val _excludeSelf = MutableStateFlow(false)
     val uiState = _uiState.asStateFlow()
 
     /**
@@ -31,10 +32,11 @@ class ContactPickerViewModel @Inject constructor(
      */
     val contactState = combine(
         contactRepository.observeAllContacts(),
-        profileRepository.observeProfile()
-    ) { contacts, myProfile ->
+        profileRepository.observeProfile(),
+        _excludeSelf
+    ) { contacts, myProfile, excludeSelf ->
         // 将自己插入到联系人列表
-        val allContacts = if (myProfile != null) {
+        val allContacts = if (myProfile != null && !excludeSelf) {
             contacts + myProfile.toContact()
         } else {
             contacts
@@ -87,6 +89,10 @@ class ContactPickerViewModel @Inject constructor(
     }
 
     // region 联系人选择
+
+    fun setExcludeSelf(value: Boolean) {
+        _excludeSelf.value = value
+    }
 
     fun isSelected(contact: ContactItem): Boolean {
         return contact in _uiState.value.selectedContacts

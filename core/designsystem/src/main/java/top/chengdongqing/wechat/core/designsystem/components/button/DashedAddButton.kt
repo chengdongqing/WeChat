@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.core.designsystem.components.button
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -35,6 +36,7 @@ fun DashedAddButton(
     strokeWidth: Dp = 1.dp,
     cornerRadius: Dp = 10.dp,
     iconSize: Dp = 30.dp,
+    @DrawableRes iconRes: Int = R.drawable.ic_plus_outlined,
     onClick: () -> Unit
 ) {
     Box(
@@ -51,7 +53,7 @@ fun DashedAddButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_plus_outlined),
+            painter = painterResource(id = iconRes),
             contentDescription = "Add Item",
             modifier = Modifier.size(iconSize),
             tint = color

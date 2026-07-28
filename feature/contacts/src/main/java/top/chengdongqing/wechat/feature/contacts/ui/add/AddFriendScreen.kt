@@ -46,8 +46,6 @@ import top.chengdongqing.wechat.core.designsystem.util.RequestAddFriendPermissio
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
 import top.chengdongqing.wechat.feature.contacts.domain.model.AddContactOption
-import top.chengdongqing.wechat.feature.profile.ui.profile.HandleProfileNavigationEvents
-import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 
 @Composable
 fun AddFriendScreen(
@@ -58,7 +56,7 @@ fun AddFriendScreen(
     onNavigateToContactDetail: (contactId: String) -> Unit,
     onNavigateToPlainText: (text: String) -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: AddFriendViewModel = hiltViewModel()
 ) {
     RequestAddFriendPermission(onRevoked = onBack) {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -66,21 +64,24 @@ fun AddFriendScreen(
 
         // 生成二维码
         LaunchedEffect(Unit) {
-            viewModel.generateQRCode()
+            viewModel.generateMyQrCode()
         }
         // 处理扫码
         val launchScanner = rememberScanCodeLauncher { qrCodes ->
-            viewModel.handleScannedQRCode(qrCodes.first())
+            qrCodes.firstOrNull()?.let(viewModel::handleScannedQrCode)
         }
 
         // 处理导航事件
-        HandleProfileNavigationEvents(
-            viewModel = viewModel,
-            snackbarHostState = snackbarHostState,
-            onNavigateToContactDetail = onNavigateToContactDetail,
-            onNavigateToPlainText = onNavigateToPlainText,
-            onNavigateToWebView = onNavigateToWebView
-        )
+        LaunchedEffect(viewModel) {
+            viewModel.events.collect { event ->
+                when (event) {
+                    is AddFriendEvent.NavigateToContact -> onNavigateToContactDetail(event.contactId)
+                    is AddFriendEvent.ShowText -> onNavigateToPlainText(event.text)
+                    is AddFriendEvent.OpenUrl -> onNavigateToWebView(event.url)
+                    is AddFriendEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
+                }
+            }
+        }
 
         // 处理点击事件
         val handleAction = { option: AddContactOption ->

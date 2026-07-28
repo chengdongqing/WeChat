@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.core.common.app
 
+import android.graphics.drawable.Drawable
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,6 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.app.model.AppItem
+import top.chengdongqing.wechat.core.common.app.model.AppResult
 import top.chengdongqing.wechat.core.common.app.repository.AppRepository
 import top.chengdongqing.wechat.core.common.util.getInitial
 import javax.inject.Inject
@@ -21,6 +24,8 @@ class AppPickerViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AppPickerUiState())
     val uiState = _uiState.asStateFlow()
+    private val icons = mutableStateMapOf<String, Drawable>()
+    private val loadingIcons = mutableSetOf<String>()
 
     init {
         loadApps()
@@ -101,6 +106,28 @@ class AppPickerViewModel @Inject constructor(
             state.copy(selectedApps = updated)
         }
     }
+
+    fun iconFor(packageName: String): Drawable? = icons[packageName]
+
+    fun loadIcon(packageName: String) {
+        if (packageName in icons || !loadingIcons.add(packageName)) return
+        viewModelScope.launch {
+            try {
+                appRepository.loadIcon(packageName)?.let { icons[packageName] = it }
+            } finally {
+                loadingIcons.remove(packageName)
+            }
+        }
+    }
+
+    suspend fun prepareSelectedApps(): Array<AppResult> {
+        _uiState.update { it.copy(isPreparing = true) }
+        return try {
+            appRepository.prepareForSharing(_uiState.value.selectedApps).toTypedArray()
+        } finally {
+            _uiState.update { it.copy(isPreparing = false) }
+        }
+    }
 }
 
 data class AppPickerUiState(
@@ -109,6 +136,7 @@ data class AppPickerUiState(
     val groups: Map<Char, List<AppItem>> = emptyMap(),
     val indexMap: Map<Char, Int> = emptyMap(),
     val selectedApps: List<AppItem> = emptyList(),
+    val isPreparing: Boolean = false,
     val error: String? = null,
 ) {
     val selectedCount: Int

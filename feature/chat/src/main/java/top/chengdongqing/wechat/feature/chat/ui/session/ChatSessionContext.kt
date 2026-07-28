@@ -14,12 +14,14 @@ import kotlinx.coroutines.launch
 data class ChatSessionContext(
     val title: String,
     val isSelf: Boolean,
+    val isGroup: Boolean,
     val playingMessageId: String?,
     val onVoiceStop: () -> Unit,
     val onRetrySend: (messageId: String) -> Unit,
     val onNavigateToRequestAddFriend: () -> Unit,
     val onNavigateToContact: (isPeer: Boolean) -> Unit,
     val onNavigateToWebView: (url: String) -> Unit,
+    val onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
     val onCancelTransfer: (messageId: String) -> Unit,
     val onPauseTransfer: (messageId: String) -> Unit,
     val onResumeTransfer: (messageId: String) -> Unit,
@@ -37,7 +39,8 @@ fun rememberChatSessionContext(
     uiState: ChatSessionUiState,
     onNavigateToContact: (isPeer: Boolean) -> Unit,
     onNavigateToRequestAddFriend: () -> Unit,
-    onNavigateToWebView: (url: String) -> Unit
+    onNavigateToWebView: (url: String) -> Unit,
+    onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit
 ): ChatSessionContext {
     val scope = rememberCoroutineScope()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
@@ -46,6 +49,7 @@ fun rememberChatSessionContext(
         ChatSessionContext(
             title = uiState.title,
             isSelf = uiState.isSelf == true,
+            isGroup = viewModel.isGroupSession,
             playingMessageId = playingMessageId,
             onVoiceStop = viewModel::stopVoice,
             onRetrySend = { viewModel.retrySend(it) },
@@ -58,6 +62,7 @@ fun rememberChatSessionContext(
             },
             onNavigateToContact = onNavigateToContact,
             onNavigateToWebView = onNavigateToWebView,
+            onNavigateToLive = onNavigateToLive,
             onCancelTransfer = viewModel::cancelTransfer,
             onPauseTransfer = viewModel::pauseTransfer,
             onResumeTransfer = viewModel::resumeTransfer,

@@ -36,7 +36,9 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 @Composable
 fun TopFunctionList(
     pendingCount: Int,
-    onNavigateToNewFriends: () -> Unit
+    onNavigateToNewFriends: () -> Unit,
+    onNavigateToGroups: () -> Unit,
+    onNavigateToTags: () -> Unit
 ) {
     val functions = remember(pendingCount) {
         listOf(
@@ -51,13 +53,13 @@ fun TopFunctionList(
                 title = R.string.contacts_menu_group_chat,
                 icon = R.drawable.ic_group_chat_filled,
                 containerColor = Color(0xFF07C160),
-                onClick = {}
+                onClick = onNavigateToGroups
             ),
             TopFunction(
                 title = R.string.contacts_menu_tags,
                 icon = R.drawable.ic_tag_filled,
                 containerColor = Color(0xFF2782D7),
-                onClick = {}
+                onClick = onNavigateToTags
             ),
             TopFunction(
                 title = R.string.contacts_menu_official_accounts,

@@ -5,6 +5,7 @@ import androidx.room3.Dao
 import androidx.room3.Query
 import androidx.room3.Transaction
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.model.SendStatus
 
@@ -72,8 +73,17 @@ interface MessageDao : BaseDao<MessageEntity> {
     @Query("SELECT localPath FROM messages WHERE localPath IS NOT NULL")
     suspend fun getAllLocalPaths(): List<String>
 
+    @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE localPath = :localPath)")
+    suspend fun hasLocalPathReference(localPath: String): Boolean
+
     @Query("SELECT * FROM messages WHERE sessionId = :sessionId order by timestamp desc LIMIT 1")
     suspend fun getLatestMessage(sessionId: String): MessageEntity?
+
+    @Query("SELECT * FROM messages WHERE sessionId = :sessionId AND contentType = :type")
+    suspend fun getBySessionAndType(
+        sessionId: String,
+        type: MessageType
+    ): List<MessageEntity>
 
     @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE id = :messageId)")
     suspend fun exists(messageId: String): Boolean
@@ -101,4 +111,7 @@ interface MessageDao : BaseDao<MessageEntity> {
 
     @Query("DELETE FROM messages")
     suspend fun deleteAll()
+
+    @Query("UPDATE messages SET localPath = NULL, sentBytes = 0 WHERE localPath IS NOT NULL")
+    suspend fun clearAllLocalPaths()
 }

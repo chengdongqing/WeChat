@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.repository.ConnectionSettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.network.R
 import top.chengdongqing.wechat.core.network.ble.BluetoothStateMonitor
 import top.chengdongqing.wechat.core.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.core.network.http.AvatarServer
@@ -88,7 +88,8 @@ class P2PService : Service() {
     }
 
     /**
-     * 监听个人信息变化，注册后自动启动相关服务，注销后自动停止
+     * A P2P node must not advertise or accept traffic without a local identity.
+     * Profile removal therefore tears down every transport and discovery service.
      */
     private suspend fun CoroutineScope.observeMyProfile() {
         profileRepository.observeProfile()
@@ -103,16 +104,12 @@ class P2PService : Service() {
             }
     }
 
-    /**
-     * 核心业务逻辑启动
-     */
     private fun CoroutineScope.startModules() {
-        // 启动常驻子服务
+        // These services share the user's identity and remain mode-independent.
         callHandler.start()
         avatarServer.start()
         notificationHandler.start()
 
-        // 监听连接模式，动态切换
         launch {
             connectionSettingsRepository.connectionMode
                 .distinctUntilChanged()
@@ -121,7 +118,6 @@ class P2PService : Service() {
                 }
         }
 
-        // 监听蓝牙状态，动态启停加好友模块
         launch {
             bluetoothStateMonitor.isAvailable.collectLatest { available ->
                 if (available) {
@@ -133,20 +129,17 @@ class P2PService : Service() {
         }
     }
 
-    /**
-     * 处理连接模式切换
-     */
     private suspend fun handleModeSwitch(mode: ConnectionMode) {
         transportManager.setMode(mode)
 
-        // 停止所有
+        // Transports bind competing sockets and discovery resources; stop the
+        // active set before starting the requested mode to prevent dual delivery.
         listOf(lanChatHandler, directChatHandler, btChatHandler).forEach {
             runCatching { it.stop() }
         }
 
         delay(500)
 
-        // 启动对应模块
         when (mode) {
             ConnectionMode.WiFiLan -> lanChatHandler.start()
             ConnectionMode.WiFiDirect -> directChatHandler.start()
@@ -154,9 +147,6 @@ class P2PService : Service() {
         }
     }
 
-    /**
-     * 停止所有模块
-     */
     private fun stopModules() {
         listOf(
             lanChatHandler, directChatHandler, btChatHandler,
@@ -197,9 +187,9 @@ class P2PService : Service() {
 
         // 构建通知
         val notification = NotificationCompat.Builder(this, NotificationChannelConfig.P2P.id)
-            .setContentTitle(getString(R.string.app_name))
+            .setContentTitle(applicationInfo.loadLabel(packageManager))
             .setContentText(getString(R.string.p2p_service_content))
-            .setSmallIcon(R.drawable.img_logo)
+            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)
             .setContentIntent(pendingIntent)

@@ -11,13 +11,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.navigation.NavigationKey
 
 @Composable
 fun MoreSettingsScreen(

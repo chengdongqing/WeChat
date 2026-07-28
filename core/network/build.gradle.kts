@@ -26,9 +26,8 @@ android {
 dependencies {
     implementation(projects.core.model)
     implementation(projects.core.common)
-    implementation(projects.core.designsystem)
     implementation(projects.core.database)
-    api(projects.core.data)
+    implementation(projects.core.data)
 
     implementation(libs.core.ktx)
     implementation(libs.serialization.json)

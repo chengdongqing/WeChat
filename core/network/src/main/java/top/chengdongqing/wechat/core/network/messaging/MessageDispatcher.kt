@@ -12,8 +12,14 @@ import top.chengdongqing.wechat.core.data.model.ReceiptType
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.database.WeDatabase
+import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
+import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
+import top.chengdongqing.wechat.core.database.entity.ChatSessionEntity
+import top.chengdongqing.wechat.core.database.entity.GroupEntity
+import top.chengdongqing.wechat.core.database.entity.GroupMemberEntity
+import top.chengdongqing.wechat.core.database.entity.GroupMemberRole
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.SendError
@@ -35,6 +41,10 @@ class MessageDispatcher @Inject constructor(
     private val mediaFileDao: MediaFileDao,
     private val fileReferenceManager: FileReferenceManager,
     private val messageDao: MessageDao,
+    private val groupDao: GroupDao,
+    private val groupChatCoordinator: GroupChatCoordinator,
+    private val groupLiveEventBus: GroupLiveEventBus,
+    private val chatSessionDao: ChatSessionDao,
     private val database: WeDatabase,
     private val chatSessionUpdater: ChatSessionUpdater
 ) {
@@ -55,6 +65,9 @@ class MessageDispatcher @Inject constructor(
     suspend fun dispatch(protocol: ChatProtocol) = runCatching {
         when (protocol) {
             is ChatProtocol.TextMessage -> handleTextMessage(protocol)
+            is ChatProtocol.GroupTextMessage -> handleGroupTextMessage(protocol)
+            is ChatProtocol.GroupSnapshot -> handleGroupSnapshot(protocol)
+            is ChatProtocol.GroupLiveEvent -> groupLiveEventBus.receive(protocol)
             is ChatProtocol.CallMessage -> handleCallMessage(protocol)
             is ChatProtocol.MessageReceipt -> handleReceipt(protocol)
             is ChatProtocol.Signaling -> handleSignaling(protocol)
@@ -187,6 +200,90 @@ class MessageDispatcher @Inject constructor(
 
     private suspend fun handleTextMessage(protocol: ChatProtocol.TextMessage) {
         handleIncomingChat(protocol) { createTextEntity(protocol) }
+    }
+
+    private suspend fun handleGroupTextMessage(protocol: ChatProtocol.GroupTextMessage) {
+        val group = groupDao.getById(protocol.groupId) ?: return
+        if (groupDao.getMembers(group.id).none { it.userId == protocol.senderId }) return
+        handleIncomingChat(protocol) {
+            MessageEntity(
+                id = protocol.messageId,
+                sessionId = protocol.groupId,
+                senderId = protocol.senderId,
+                receiverId = protocol.groupId,
+                contentType = protocol.messageType,
+                content = protocol.content,
+                timestamp = protocol.timestamp,
+                sendStatus = SendStatus.Delivered,
+                isFromMe = false
+            )
+        }
+    }
+
+    private suspend fun handleGroupSnapshot(protocol: ChatProtocol.GroupSnapshot) {
+        val current = groupDao.getById(protocol.groupId)
+        if (current == null && protocol.senderId != protocol.ownerId) return
+        if (current != null) {
+            val sender = groupDao.getMembers(protocol.groupId)
+                .firstOrNull { it.userId == protocol.senderId }
+            if (sender?.role != GroupMemberRole.Owner && sender?.role != GroupMemberRole.Admin) return
+        }
+        if (current != null && current.memberVersion >= protocol.memberVersion) return
+        val members = protocol.members.map {
+            val localAvatar = contactRepository.getContact(it.userId)?.avatarPath
+                ?: it.avatarPath?.takeIf { path -> File(path).isFile }
+            GroupMemberEntity(
+                groupId = protocol.groupId,
+                userId = it.userId,
+                nickname = it.nickname,
+                avatarPath = localAvatar,
+                role = runCatching { GroupMemberRole.valueOf(it.role) }
+                    .getOrDefault(GroupMemberRole.Member)
+            )
+        }
+        // 群头像路径是设备本地路径，不能跨设备直接复用；每台设备自行生成。
+        val avatarPath = groupChatCoordinator.generateGroupAvatar(protocol.groupId, members)
+        database.withWriteTransaction {
+            groupDao.replace(
+                current?.copy(
+                    name = protocol.name,
+                    announcement = protocol.announcement,
+                    ownerId = protocol.ownerId,
+                    avatarPath = avatarPath,
+                    memberVersion = protocol.memberVersion
+                ) ?: GroupEntity(
+                    id = protocol.groupId,
+                    name = protocol.name,
+                    announcement = protocol.announcement,
+                    ownerId = protocol.ownerId,
+                    avatarPath = avatarPath,
+                    memberVersion = protocol.memberVersion
+                ),
+                members
+            )
+            val session = chatSessionDao.getById(protocol.groupId)
+            if (session == null) {
+                chatSessionDao.insert(
+                    ChatSessionEntity(
+                        id = protocol.groupId,
+                        contactId = protocol.groupId,
+                        contactName = protocol.name,
+                        contactAvatar = avatarPath,
+                        lastMessageId = null,
+                        lastMessage = null,
+                        lastMessageType = null,
+                        lastMessageTime = null
+                    )
+                )
+            } else {
+                chatSessionDao.update(
+                    session.copy(
+                        contactName = protocol.name,
+                        contactAvatar = avatarPath
+                    )
+                )
+            }
+        }
     }
 
     private suspend fun handleCallMessage(protocol: ChatProtocol.CallMessage) {

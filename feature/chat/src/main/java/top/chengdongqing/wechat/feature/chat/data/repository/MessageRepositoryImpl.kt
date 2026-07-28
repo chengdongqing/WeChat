@@ -33,9 +33,11 @@ import top.chengdongqing.wechat.core.data.repository.NotificationSettingsReposit
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
+import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.database.entity.peerId
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.model.SendStatus
@@ -53,6 +55,7 @@ import javax.inject.Inject
 class MessageRepositoryImpl @Inject constructor(
     private val database: WeDatabase,
     private val messageDao: MessageDao,
+    private val groupDao: GroupDao,
     private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
     private val activeSessionManager: ActiveSessionManager,
@@ -97,6 +100,26 @@ class MessageRepositoryImpl @Inject constructor(
         return messageDao.getById(messageId)?.toDomain(json)
     }
 
+    override suspend fun updateLiveStatus(
+        sessionId: String,
+        liveId: String,
+        status: String
+    ) {
+        messageDao.getBySessionAndType(sessionId, MessageType.Live).forEach { entity ->
+            val live = entity.toDomain(json).content as? MessageContent.Live ?: return@forEach
+            if (live.liveId != liveId) return@forEach
+            val updatedContent = live.copy(status = status).toEntity(
+                messageId = entity.id,
+                sessionId = entity.sessionId,
+                senderId = entity.senderId,
+                receiverId = entity.receiverId,
+                timestamp = entity.timestamp,
+                json = json
+            ).content
+            messageDao.update(entity.copy(content = updatedContent))
+        }
+    }
+
     override suspend fun sendMessage(
         sessionId: String,
         receiverId: String,
@@ -106,7 +129,7 @@ class MessageRepositoryImpl @Inject constructor(
         val finalMessageId = messageId ?: randomUUID()
         val isSelf = receiverId == myUserId
         val isCall = content is MessageContent.Call
-        val shouldSkipSend = isSelf || isCall // 如果是给自己发的，或者是通话记录，直接设置为发送成功，不走发送逻辑
+        val shouldSkipSend = isSelf || isCall || receiverId == LocalAiAssistant.ID
 
         // 构建消息实体
         val message = content.toEntity(
@@ -140,13 +163,57 @@ class MessageRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun upsertLocalAssistantMessage(
+        sessionId: String,
+        messageId: String,
+        senderId: String,
+        receiverId: String,
+        text: String,
+        updateSessionPreview: Boolean
+    ) {
+        val existing = messageDao.getById(messageId)
+        if (existing != null) {
+            val updated = existing.copy(content = text)
+            messageDao.update(updated)
+            if (updateSessionPreview) {
+                chatSessionUpdater.update(updated)
+            }
+            return
+        }
+        val message = MessageContent.Text(text).toEntity(
+            messageId = messageId,
+            sessionId = sessionId,
+            senderId = senderId,
+            receiverId = receiverId,
+            timestamp = System.currentTimeMillis(),
+            json = json
+        ).copy(sendStatus = SendStatus.Delivered, isRead = true, isFromMe = false)
+        database.withWriteTransaction {
+            messageDao.insert(message)
+            chatSessionUpdater.update(message)
+        }
+    }
+
     /**
      * 异步发送消息
      */
     private suspend fun sendMessageAsync(message: MessageEntity) {
+        if (groupDao.getById(message.sessionId) != null) {
+            if (message.localPath == null) {
+                messageSender.sendGroupTextMessage(message)
+            } else {
+                // 群媒体分片将在后续协议版本中做逐成员传输；先明确失败，避免误发给群 ID。
+                throw UnsupportedOperationException("群聊暂不支持媒体消息")
+            }
+            return
+        }
         when (message.contentType) {
-            MessageType.Text,
-            MessageType.Music -> messageSender.sendTextMessage(message)
+            MessageType.Text -> messageSender.sendTextMessage(message)
+
+            MessageType.Music -> {
+                message.localPath?.let { messageSender.sendMediaMessage(message, File(it)) }
+                    ?: messageSender.sendTextMessage(message)
+            }
 
             else -> {
                 if (message.localPath != null) {

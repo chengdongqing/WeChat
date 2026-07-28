@@ -10,6 +10,11 @@
             android:showOnLockScreen="true"
             android:taskAffinity=""
             android:turnScreenOn="true"
+            android:supportsPictureInPicture="true"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             tools:targetApi="27" />
+        <receiver
+            android:name=".service.CallActionReceiver"
+            android:exported="false" />
     </application>
 </manifest>

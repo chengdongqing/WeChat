@@ -4,7 +4,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.common.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.feature.contacts.ui.add.AddFriendScreen
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.NFCAddFriendScreen
 import top.chengdongqing.wechat.feature.contacts.ui.add.pincode.PinCodeCreateGroupScreen
@@ -19,6 +19,10 @@ import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.Reques
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.RequestAddFriendViewModel
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.verify.AcceptFriendRequestScreen
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.verify.AcceptFriendRequestViewModel
+import top.chengdongqing.wechat.feature.contacts.ui.group.GroupListScreen
+import top.chengdongqing.wechat.feature.contacts.ui.tags.ContactTagEditorScreen
+import top.chengdongqing.wechat.feature.contacts.ui.tags.ContactTagPickerScreen
+import top.chengdongqing.wechat.feature.contacts.ui.tags.ContactTagsScreen
 
 fun EntryProviderScope<NavKey>.contactsNavEntries(
     backStack: NavBackStack<NavKey>,
@@ -50,6 +54,12 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
     }
     entry<NavigationKey.PinCodeCreateGroup> {
         PinCodeCreateGroupScreen(onBack)
+    }
+    entry<NavigationKey.GroupList> {
+        GroupListScreen(
+            onBack = onBack,
+            onOpenGroup = { groupId -> backStack.add(NavigationKey.ChatSession(groupId)) }
+        )
     }
 
     // 详情与资料
@@ -97,7 +107,30 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
         )
     }
     entry<NavigationKey.EditContactProfile> {
-        EditContactProfileScreen(it.contactId, onBack)
+        EditContactProfileScreen(
+            contactId = it.contactId,
+            onBack = onBack,
+            onManageTags = { backStack.add(NavigationKey.ManageContactTags(it.contactId)) }
+        )
+    }
+
+    entry<NavigationKey.ContactTags> {
+        ContactTagsScreen(
+            onBack = onBack,
+            onCreate = { backStack.add(NavigationKey.EditContactTag()) },
+            onEdit = { backStack.add(NavigationKey.EditContactTag(it)) }
+        )
+    }
+    entry<NavigationKey.EditContactTag> {
+        ContactTagEditorScreen(tagId = it.tagId, onBack = onBack)
+    }
+    entry<NavigationKey.ManageContactTags> {
+        val contactId = it.contactId
+        ContactTagPickerScreen(
+            contactId = contactId,
+            onBack = onBack,
+            onCreate = { backStack.add(NavigationKey.EditContactTag()) }
+        )
     }
 
     // 请求与验证

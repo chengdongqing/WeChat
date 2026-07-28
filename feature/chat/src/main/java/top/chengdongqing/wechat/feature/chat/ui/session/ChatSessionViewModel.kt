@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.feature.chat.ui.session
 
 import android.app.NotificationManager
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
@@ -13,9 +14,15 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,10 +36,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
 import top.chengdongqing.wechat.core.common.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
-import top.chengdongqing.wechat.core.common.media.preview.previewMedias
+import top.chengdongqing.wechat.core.common.util.randomUUID
 import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
@@ -44,14 +52,18 @@ import top.chengdongqing.wechat.core.data.repository.ConnectionSettingsRepositor
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.previewLocation
+import top.chengdongqing.wechat.core.model.ChatSession
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.core.network.connection.bluetooth.BluetoothBondManager
 import top.chengdongqing.wechat.core.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiEngine
 import top.chengdongqing.wechat.feature.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMediaItem
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
@@ -70,16 +82,30 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
     private val chatSettingsRepository: ChatSettingsRepository,
     private val contactRepository: ContactRepository,
+    private val groupDao: GroupDao,
     private val addFriendRepository: AddFriendRepository,
     private val publicFileManager: PublicFileManager,
     private val soundTipPlayer: SoundTipPlayer,
     private val chatTransportManager: ChatTransportManager,
     private val bluetoothBondManager: BluetoothBondManager,
     private val activeSessionManager: ActiveSessionManager,
+    private val localAiEngine: LocalAiEngine,
     e2eSessionManager: E2ESessionManager,
     connectionSettingsRepository: ConnectionSettingsRepository,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
+    private var aiGenerationJob: Job? = null
+    val isLocalAiSession: Boolean get() = chatId == LocalAiAssistant.ID
+    val isGroupSession: Boolean get() = chatId.startsWith("group_")
+    val localAiState = localAiEngine.state
+    private val _streamingAiMessage = MutableStateFlow<StreamingAiMessage?>(null)
+    val streamingAiMessage = _streamingAiMessage.asStateFlow()
+
+    fun importLocalAiModel(uri: Uri) {
+        viewModelScope.launch {
+            runCatching { localAiEngine.importModel(uri) }
+        }
+    }
 
     @AssistedFactory
     interface Factory {
@@ -147,14 +173,16 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private fun buildMediaState(messages: List<ChatMessage>): MediaState {
         val items = mutableListOf<MediaItem>()
+        val messageIds = mutableListOf<String>()
         val indexMap = mutableMapOf<String, Int>()
         for (i in messages.indices.reversed()) {
             (messages[i].content as? MessageContent.Media)?.toMediaItem()?.let {
                 items.add(it)
+                messageIds.add(messages[i].id)
                 indexMap[messages[i].id] = items.lastIndex
             }
         }
-        return MediaState(list = items, indexMap = indexMap)
+        return MediaState(list = items, messageIds = messageIds, indexMap = indexMap)
     }
 
     // endregion
@@ -256,17 +284,38 @@ class ChatSessionViewModel @AssistedInject constructor(
     // region 会话监听
 
     init {
+        if (chatId.startsWith("group_")) {
+            viewModelScope.launch {
+                groupDao.observeById(chatId)
+                    .combine(groupDao.observeMembers(chatId)) { group, members ->
+                        group to members
+                    }
+                    .collect { (group, members) ->
+                        _uiState.update { current ->
+                            current.copy(
+                                title = group?.remark?.takeIf(String::isNotBlank)
+                                    ?: group?.name.orEmpty(),
+                                mentionMembers = members
+                                    .filterNot { it.userId == current.myId }
+                                    .map { MentionMember(it.userId, it.nickname, it.avatarPath) }
+                            )
+                        }
+                    }
+            }
+        }
         // 联系人 & 个人资料
         viewModelScope.launch {
             contactRepository.observeContact(chatId)
                 .combine(profileRepository.observeProfile()) { contact, profile ->
+                    val isLocalAi = chatId == LocalAiAssistant.ID
                     _uiState.value.copy(
-                        title = contact?.displayName ?: profile?.nickname ?: "",
-                        peerId = contact?.id,
+                        title = if (isLocalAi) LocalAiAssistant.NAME else contact?.displayName ?: profile?.nickname ?: "",
+                        peerId = if (isLocalAi) LocalAiAssistant.ID else contact?.id,
                         peerAvatar = contact?.avatarPath,
                         myId = profile?.id,
                         myAvatar = profile?.avatarPath,
-                        isSelf = contact == null
+                        isSelf = !isLocalAi && contact == null,
+                        isOnline = isLocalAi
                     )
                 }.collect { _uiState.value = it }
         }
@@ -280,7 +329,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                         cur.copy(
                             peerAvatar = session?.contactAvatar ?: cur.peerAvatar,
                             isMuted = session?.isMuted ?: cur.isMuted,
-                            isOnline = session?.isOnline ?: cur.isOnline,
+                            isOnline = if (chatId == LocalAiAssistant.ID) true else session?.isOnline ?: cur.isOnline,
                             draftMessage = session?.draftMessage ?: cur.draftMessage,
                             backgroundPath = session?.backgroundPath ?: bg
                         )
@@ -310,6 +359,15 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     fun sendMessage(content: MessageContent) {
         viewModelScope.launch {
+            if (chatId == LocalAiAssistant.ID && !chatSessionRepository.exists(chatId)) {
+                chatSessionRepository.createSession(
+                    ChatSession(
+                        id = chatId,
+                        contactId = chatId,
+                        contactName = LocalAiAssistant.NAME
+                    )
+                )
+            }
             messageRepository.sendMessage(
                 sessionId = chatId,
                 receiverId = chatId,
@@ -318,7 +376,106 @@ class ChatSessionViewModel @AssistedInject constructor(
                 if (content is MessageContent.Voice) {
                     soundTipPlayer.play(R.raw.tip_after_upload_voice)
                 }
+                if (chatId == LocalAiAssistant.ID && content is MessageContent.Text) {
+                    generateAiReply(content.text)
+                }
             }
+        }
+    }
+
+    private fun generateAiReply(prompt: String) {
+        aiGenerationJob?.cancel()
+        aiGenerationJob = viewModelScope.launch {
+            val receiverId = _uiState.value.myId ?: return@launch
+            val messageId = randomUUID()
+            val timestamp = System.currentTimeMillis()
+            val response = StringBuffer()
+            _streamingAiMessage.value = StreamingAiMessage(
+                id = messageId,
+                text = "",
+                timestamp = timestamp,
+                isGenerating = true
+            )
+            val persistenceSignals = Channel<Boolean>(Channel.CONFLATED)
+            val persistenceJob = launch(Dispatchers.IO) {
+                var isFirstWrite = true
+                for (isFinal in persistenceSignals) {
+                    messageRepository.upsertLocalAssistantMessage(
+                        sessionId = chatId,
+                        messageId = messageId,
+                        senderId = LocalAiAssistant.ID,
+                        receiverId = receiverId,
+                        text = response.toString(),
+                        updateSessionPreview = isFirstWrite || isFinal
+                    )
+                    isFirstWrite = false
+                    if (!isFinal) delay(AI_STREAM_PERSIST_INTERVAL_MS)
+                }
+            }
+
+            try {
+                localAiEngine.generate(prompt).collect { token ->
+                    response.append(token)
+                    _streamingAiMessage.update { current ->
+                        current?.takeIf { it.id == messageId }?.copy(text = response.toString())
+                            ?: current
+                    }
+                    persistenceSignals.trySend(false)
+                }
+                persistenceSignals.send(true)
+            } catch (error: CancellationException) {
+                withContext(NonCancellable) {
+                    persistenceSignals.close()
+                    persistenceJob.cancelAndJoin()
+                    if (response.isNotEmpty()) {
+                        withContext(Dispatchers.IO) {
+                            messageRepository.upsertLocalAssistantMessage(
+                                sessionId = chatId,
+                                messageId = messageId,
+                                senderId = LocalAiAssistant.ID,
+                                receiverId = receiverId,
+                                text = response.toString(),
+                                updateSessionPreview = true
+                            )
+                        }
+                    }
+                    markAiStreamCompleted(messageId, response.toString())
+                }
+                throw error
+            } catch (error: Throwable) {
+                val text = error.message ?: "本地模型推理失败"
+                if (response.isEmpty()) {
+                    response.append(text)
+                } else {
+                    response.append("\n\n生成中断：").append(text)
+                }
+                _streamingAiMessage.update { current ->
+                    current?.takeIf { it.id == messageId }?.copy(text = response.toString())
+                        ?: current
+                }
+                persistenceSignals.send(true)
+            } finally {
+                persistenceSignals.close()
+                if (!persistenceJob.isCancelled) {
+                    persistenceJob.join()
+                }
+            }
+            markAiStreamCompleted(messageId, response.toString())
+        }
+    }
+
+    private fun markAiStreamCompleted(messageId: String, text: String) {
+        _streamingAiMessage.update { current ->
+            current?.takeIf { it.id == messageId }?.copy(
+                text = text,
+                isGenerating = false
+            ) ?: current
+        }
+    }
+
+    fun finishAiStreamHandoff(messageId: String) {
+        _streamingAiMessage.update { current ->
+            if (current?.id == messageId && !current.isGenerating) null else current
         }
     }
 
@@ -395,7 +552,7 @@ class ChatSessionViewModel @AssistedInject constructor(
             is MessageContent.Voice -> toggleVoicePlay(message.id, content.localPath)
             is MessageContent.File -> emit(MessageUiEvent.PreviewFile(message.id))
             is MessageContent.Music -> emit(
-                MessageUiEvent.PreviewMusic(message.id, content.music.name)
+                MessageUiEvent.PreviewMusic(message.id, Json.encodeToString(content.music))
             )
 
             is MessageContent.Call -> emit(MessageUiEvent.LaunchCall(content.type))
@@ -415,7 +572,13 @@ class ChatSessionViewModel @AssistedInject constructor(
             Log.e("MediaPreview", "找不到该消息的媒体索引: ${message.id}")
             return
         }
-        context.previewMedias(mediaState.value.list, index)
+        emit(
+            MessageUiEvent.PreviewMedia(
+                medias = mediaState.value.list,
+                messageIds = mediaState.value.messageIds,
+                initialIndex = index
+            )
+        )
     }
 
     private fun openLocationPreview(content: MessageContent.Location) {
@@ -551,11 +714,22 @@ class ChatSessionViewModel @AssistedInject constructor(
     // endregion
 
     override fun onCleared() {
+        aiGenerationJob?.cancel()
         audioPlaybackManager.release()
     }
 }
 
 private data class MediaState(
     val list: List<MediaItem> = emptyList(),
+    val messageIds: List<String> = emptyList(),
     val indexMap: Map<String, Int> = emptyMap()
 )
+
+data class StreamingAiMessage(
+    val id: String,
+    val text: String,
+    val timestamp: Long,
+    val isGenerating: Boolean
+)
+
+private const val AI_STREAM_PERSIST_INTERVAL_MS = 400L

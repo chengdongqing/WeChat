@@ -3,8 +3,8 @@ package top.chengdongqing.wechat.feature.profile.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.common.navigation.NavigationKey
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.edit.EditAvatarScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.edit.EditGenderScreen

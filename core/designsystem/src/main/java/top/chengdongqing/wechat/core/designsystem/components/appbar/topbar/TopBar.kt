@@ -4,11 +4,14 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +32,7 @@ import top.chengdongqing.wechat.core.designsystem.util.onTap
  * 顶部导航栏
  */
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun WeTopAppBar(
     modifier: Modifier = Modifier,
     title: String? = null,
@@ -48,7 +52,9 @@ fun WeTopAppBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
+                // 使用忽略可见性的稳定 inset。即使媒体页或系统手势临时隐藏状态栏，
+                // 顶栏高度也不会塌缩，退出全屏时不会发生纵向跳动。
+                .windowInsetsPadding(WindowInsets.statusBarsIgnoringVisibility)
                 .height(50.dp)
                 .padding(horizontal = 10.dp),
             contentAlignment = Alignment.Center

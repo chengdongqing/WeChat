@@ -18,6 +18,7 @@ import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -50,10 +51,12 @@ import top.chengdongqing.wechat.core.model.toResult
 @Composable
 fun ContactPicker(
     count: Int,
+    excludeSelf: Boolean = false,
     onCancel: () -> Unit,
     viewModel: ContactPickerViewModel = hiltViewModel(),
     onSelect: (contacts: Array<ContactResult>) -> Unit
 ) {
+    LaunchedEffect(excludeSelf) { viewModel.setExcludeSelf(excludeSelf) }
     val context = LocalContext.current
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()

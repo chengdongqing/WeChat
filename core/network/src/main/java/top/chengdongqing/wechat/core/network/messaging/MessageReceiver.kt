@@ -42,6 +42,7 @@ import javax.inject.Singleton
 class MessageReceiver @Inject constructor(
     private val transport: ChatTransportManager,
     private val messageDispatcher: MessageDispatcher,
+    private val meshGroupRouter: MeshGroupRouter,
     private val permissionChecker: MessagePermissionChecker,
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
@@ -144,9 +145,12 @@ class MessageReceiver @Inject constructor(
             // 回执消息不判断
             protocol is ChatProtocol.MessageReceipt -> Unit
             // 权限校验
-            !permissionChecker.checkAndReply(userId, protocol) -> return
+            !permissionChecker.checkAndReply(protocol.senderId, protocol) -> return
         }
 
+        if (protocol is ChatProtocol.GroupTextMessage) {
+            meshGroupRouter.relay(protocol, receivedFrom = userId)
+        }
         // 将消息分发下去
         messageDispatcher.dispatch(protocol)
     }

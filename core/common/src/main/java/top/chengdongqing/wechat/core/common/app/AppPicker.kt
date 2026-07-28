@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -37,7 +38,6 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.app.model.AppItem
 import top.chengdongqing.wechat.core.common.app.model.AppResult
-import top.chengdongqing.wechat.core.common.app.model.toResult
 import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
@@ -70,8 +70,13 @@ fun AppPicker(
     Scaffold(
         topBar = {
             TopBar(uiState, onBack = onCancel) {
-                val selectedApps = uiState.selectedApps.toResult().toTypedArray()
-                onSelect(selectedApps)
+                scope.launch {
+                    runCatching { viewModel.prepareSelectedApps() }
+                        .onSuccess(onSelect)
+                        .onFailure {
+                            context.showToast(it.message ?: "应用文件准备失败")
+                        }
+                }
             }
         },
         containerColor = WeTheme.colorScheme.background
@@ -145,7 +150,11 @@ fun AppPicker(
                                     ) {
                                         Spacer(modifier = Modifier.width(16.dp))
                                         WeCheckBox(isSelected)
-                                        ApkListItem(apk)
+                                        ApkListItem(
+                                            apk = apk,
+                                            icon = viewModel.iconFor(apk.packageName),
+                                            onLoadIcon = viewModel::loadIcon
+                                        )
                                     }
 
                                     if (index < contacts.lastIndex) {
@@ -177,7 +186,15 @@ fun AppPicker(
 }
 
 @Composable
-private fun ApkListItem(apk: AppItem) {
+private fun ApkListItem(
+    apk: AppItem,
+    icon: android.graphics.drawable.Drawable?,
+    onLoadIcon: (String) -> Unit
+) {
+    LaunchedEffect(apk.packageName) {
+        onLoadIcon(apk.packageName)
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -186,8 +203,9 @@ private fun ApkListItem(apk: AppItem) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = apk.icon,
+            model = icon,
             contentDescription = null,
+            placeholder = painterResource(DesignR.drawable.img_logo),
             error = painterResource(DesignR.drawable.img_logo),
             modifier = Modifier
                 .size(40.dp)
@@ -219,7 +237,7 @@ private fun TopBar(
     onBack: () -> Unit,
     onOk: () -> Unit
 ) {
-    val isEnabled = uiState.selectedCount > 0
+    val isEnabled = uiState.selectedCount > 0 && !uiState.isPreparing
     val buttonText = run {
         val suffix = if (isEnabled) "(${uiState.selectedCount})" else ""
         "${stringResource(DesignR.string.action_done)}$suffix"

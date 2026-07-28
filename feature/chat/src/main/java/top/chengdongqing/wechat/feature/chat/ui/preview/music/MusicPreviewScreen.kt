@@ -1,5 +1,10 @@
 package top.chengdongqing.wechat.feature.chat.ui.preview.music
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.common.media.MusicPlayer
 import top.chengdongqing.wechat.core.common.util.format
@@ -31,11 +37,28 @@ import kotlin.time.Duration.Companion.milliseconds
 fun MusicPreviewScreen(music: MusicTrack, onBack: () -> Unit) {
     val context = LocalContext.current
     val player = remember { MusicPlayer(context) }
+    val cover = remember(music.id, music.coverPath, music.coverData) { music.coverModel() }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
+
+    LaunchedEffect(Unit) {
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
 
     // 准备音频
     LaunchedEffect(music) {
         delay(300)
-        player.prepare(music.audioRes)
+        player.setMetadata(music.title, music.artist, cover)
+        music.audioPath?.let(player::prepare) ?: player.prepare(music.audioRes)
         player.play()
     }
 
@@ -55,7 +78,7 @@ fun MusicPreviewScreen(music: MusicTrack, onBack: () -> Unit) {
     StatusBarAppearanceEffect(isDark = false)
 
     Box {
-        MusicBackground(music.albumArtRes)
+        MusicBackground(cover)
 
         Scaffold(
             topBar = {
@@ -77,7 +100,7 @@ fun MusicPreviewScreen(music: MusicTrack, onBack: () -> Unit) {
 
                 // 唱片
                 VinylRecord(
-                    albumArtRes = music.albumArtRes,
+                    albumArt = cover,
                     isPlaying = player.isPlaying
                 )
 

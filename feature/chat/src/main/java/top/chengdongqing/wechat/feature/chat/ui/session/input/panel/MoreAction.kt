@@ -21,5 +21,6 @@ enum class MoreAction(
     ContactCard(R.string.chat_action_card, R.drawable.ic_person_filled),
     File(R.string.chat_action_file, R.drawable.ic_folder_filled),
     App(R.string.chat_action_app, R.drawable.ic_apk_filled),
-    Music(R.string.chat_action_music, R.drawable.ic_music_filled);
+    Music(R.string.chat_action_music, R.drawable.ic_music_filled),
+    Live(R.string.chat_action_live, R.drawable.ic_video_filled);
 }

@@ -30,12 +30,10 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.data)
     implementation(projects.core.common)
+    implementation(projects.core.navigation)
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
     implementation(projects.core.database)
-
-    implementation(projects.feature.chat)
-    implementation(projects.feature.contacts)
 
     implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
