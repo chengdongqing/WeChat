@@ -6,6 +6,8 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalGridApi
+import androidx.compose.foundation.layout.Grid
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,8 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -54,7 +54,7 @@ fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
                 !(isSelf && action == MoreAction.VideoCall) &&
                     (isGroup || action != MoreAction.Live)
             }
-            .chunked(ChunkCount)
+            .chunked(ActionsPerPage)
     }
 
     val pagerState = rememberPagerState { pages.size }
@@ -92,29 +92,31 @@ fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
 }
 
 @Composable
+@OptIn(ExperimentalGridApi::class)
 private fun MorePanelGrid(
     items: List<MoreAction>,
     onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(4),
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(36.dp),
-        userScrollEnabled = false
-    ) {
-        items(ChunkCount) { index ->
-            val item = items.getOrNull(index)
-            if (item != null) {
+    Grid(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        config = {
+            repeat(ColumnCount) {
+                column(minmax(0.dp, 1.fr))
+            }
+            rowGap(36.dp)
+        },
+        content = {
+            items.forEach { item ->
                 MorePanelItem(
                     item = item,
                     onClick = { onAction(item, false) },
                     onLongClick = { onAction(item, true) }
                 )
-            } else {
-                Spacer(modifier = Modifier.size(52.dp))
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -181,4 +183,5 @@ private fun PagerIndicator(
     }
 }
 
-private const val ChunkCount = 8
+private const val ColumnCount = 4
+private const val ActionsPerPage = ColumnCount * 2
