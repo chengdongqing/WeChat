@@ -82,6 +82,7 @@ fun TextContent(
     var textPositionInWindow by remember { mutableStateOf(Offset.Zero) }
     var magnifierPosition by remember { mutableStateOf(Offset.Unspecified) }
     var isDraggingSelection by remember { mutableStateOf(false) }
+    var dragSelection by remember(content.text) { mutableStateOf<SelectionDragState?>(null) }
     val selectionStart = selection?.min?.coerceIn(0, content.text.length)
     val selectionEnd = selection?.max?.coerceIn(0, content.text.length)
     val currentOnSelectionBoundsChange by rememberUpdatedState(onSelectionBoundsChange)
@@ -89,7 +90,10 @@ fun TextContent(
 
     fun updateDraggingState(isDragging: Boolean) {
         isDraggingSelection = isDragging
-        if (!isDragging) magnifierPosition = Offset.Unspecified
+        if (!isDragging) {
+            magnifierPosition = Offset.Unspecified
+            dragSelection = null
+        }
         currentOnSelectionDragChange(isDragging)
     }
 
@@ -141,7 +145,11 @@ fun TextContent(
                                 clipRect(top = top, bottom = bottom) {
                                     drawPath(
                                         path = line.path,
-                                        color = colors.textSelectionBackground
+                                        color = if (message.isFromMe) {
+                                            colors.textSelectionBackground
+                                        } else {
+                                            colors.textSelectionBackground.copy(alpha = 0.28f)
+                                        }
                                     )
                                 }
                             }
@@ -166,35 +174,76 @@ fun TextContent(
             selectionEnd != null &&
             selectionStart < selectionEnd
         ) {
+            val activeDrag = dragSelection
+            val firstOffset = activeDrag?.currentOffset ?: selectionStart
+            val secondOffset = activeDrag?.fixedOffset ?: selectionEnd
+            val firstIsStart = firstOffset <= secondOffset
+
             MessageSelectionHandle(
-                position = layout.getCursorRect(selectionStart).bottomLeft,
-                isStartHandle = true,
+                position = layout.getCursorRect(firstOffset).let {
+                    if (firstIsStart) it.bottomLeft else it.bottomRight
+                },
+                isStartHandle = firstIsStart,
                 color = colors.textSelectionHandle,
                 onDragStart = { position ->
+                    dragSelection = SelectionDragState(
+                        fixedOffset = selectionEnd,
+                        currentOffset = selectionStart
+                    )
                     magnifierPosition = position
                     updateDraggingState(true)
                 },
                 onDragTo = { position ->
                     magnifierPosition = position
+                    val current = dragSelection ?: return@MessageSelectionHandle
                     val offset = layout.getOffsetForPosition(position)
-                        .coerceIn(0, selectionEnd - 1)
-                    onSelectionChange(TextRange(offset, selectionEnd))
+                        .coerceIn(0, content.text.length)
+                        .avoidCollapsingOnto(
+                            anchor = current.fixedOffset,
+                            previous = current.currentOffset,
+                            textLength = content.text.length
+                        )
+                    dragSelection = current.copy(currentOffset = offset)
+                    onSelectionChange(
+                        TextRange(
+                            minOf(offset, current.fixedOffset),
+                            maxOf(offset, current.fixedOffset)
+                        )
+                    )
                 },
                 onDragEnd = { updateDraggingState(false) }
             )
             MessageSelectionHandle(
-                position = layout.getCursorRect(selectionEnd).bottomRight,
-                isStartHandle = false,
+                position = layout.getCursorRect(secondOffset).let {
+                    if (firstIsStart) it.bottomRight else it.bottomLeft
+                },
+                isStartHandle = !firstIsStart,
                 color = colors.textSelectionHandle,
                 onDragStart = { position ->
+                    dragSelection = SelectionDragState(
+                        fixedOffset = selectionStart,
+                        currentOffset = selectionEnd
+                    )
                     magnifierPosition = position
                     updateDraggingState(true)
                 },
                 onDragTo = { position ->
                     magnifierPosition = position
+                    val current = dragSelection ?: return@MessageSelectionHandle
                     val offset = layout.getOffsetForPosition(position)
-                        .coerceIn(selectionStart + 1, content.text.length)
-                    onSelectionChange(TextRange(selectionStart, offset))
+                        .coerceIn(0, content.text.length)
+                        .avoidCollapsingOnto(
+                            anchor = current.fixedOffset,
+                            previous = current.currentOffset,
+                            textLength = content.text.length
+                        )
+                    dragSelection = current.copy(currentOffset = offset)
+                    onSelectionChange(
+                        TextRange(
+                            minOf(offset, current.fixedOffset),
+                            maxOf(offset, current.fixedOffset)
+                        )
+                    )
                 },
                 onDragEnd = { updateDraggingState(false) }
             )
@@ -295,6 +344,21 @@ private data class SelectionLine(
     val top: Float,
     val bottom: Float
 )
+
+private data class SelectionDragState(
+    val fixedOffset: Int,
+    val currentOffset: Int
+)
+
+private fun Int.avoidCollapsingOnto(anchor: Int, previous: Int, textLength: Int): Int {
+    if (this != anchor) return this
+    return when {
+        previous < anchor -> (anchor - 1).coerceAtLeast(0)
+        previous > anchor -> (anchor + 1).coerceAtMost(textLength)
+        anchor < textLength -> anchor + 1
+        else -> (anchor - 1).coerceAtLeast(0)
+    }
+}
 
 private val HandleTouchSize = 44.dp
 private val SelectionLineGap = 1.dp
