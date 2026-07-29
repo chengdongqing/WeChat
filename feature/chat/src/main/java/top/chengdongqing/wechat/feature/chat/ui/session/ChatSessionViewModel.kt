@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.TextRange
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -239,6 +240,18 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun dismissToolbar() = toolbarManager.dismiss()
+
+    fun updateTextSelection(selection: TextRange) {
+        toolbarManager.updateTextSelection(selection)
+    }
+
+    fun updateTextSelectionDragging(isDragging: Boolean) {
+        toolbarManager.updateTextSelectionDragging(isDragging)
+    }
+
+    fun updateTextSelectionBounds(position: Offset, height: Float) {
+        toolbarManager.updateTextSelectionBounds(position, height)
+    }
 
     // endregion
 

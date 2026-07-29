@@ -14,5 +14,6 @@ data class MessageToolbarState(
     val bubbleHeight: Float = 0f,
     val actions: List<MessageAction> = emptyList(),
     val selectedText: String? = null,
-    val textSelection: TextRange? = null
+    val textSelection: TextRange? = null,
+    val isTextSelectionDragging: Boolean = false
 )

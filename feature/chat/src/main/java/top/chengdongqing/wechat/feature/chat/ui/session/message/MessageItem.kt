@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
@@ -52,6 +53,10 @@ fun MessageItem(
     shakeOffsetY: Float = 0f,
     shakeRotation: Float = 0f,
     shakeScale: Float = 1f,
+    textSelection: TextRange? = null,
+    onTextSelectionChange: (TextRange) -> Unit = {},
+    onTextSelectionDragChange: (Boolean) -> Unit = {},
+    onTextSelectionBoundsChange: (Offset, Float) -> Unit = { _, _ -> },
     onMessageClick: () -> Unit = {},
     onMessageLongPress: (bubblePosition: Offset, bubbleHeight: Float) -> Unit = { _, _ -> }
 ) {
@@ -61,6 +66,7 @@ fun MessageItem(
     /* 记录气泡在窗口中的位置和高度 */
     var bubblePosition by remember { mutableStateOf(Offset.Zero) }
     var bubbleHeight by remember { mutableFloatStateOf(0f) }
+    var bubbleWidth by remember { mutableFloatStateOf(0f) }
 
     Column(
         modifier = Modifier.graphicsLayer {
@@ -128,19 +134,29 @@ fun MessageItem(
                                 modifier = Modifier
                                     .onGloballyPositioned { coordinates ->
                                         bubblePosition = coordinates.positionInWindow()
+                                        bubbleWidth = coordinates.size.width.toFloat()
                                         bubbleHeight = coordinates.size.height.toFloat()
                                     }
                                     .combinedClickable(
                                         onClick = onMessageClick,
                                         onLongClick = {
-                                            onMessageLongPress(bubblePosition, bubbleHeight)
+                                            onMessageLongPress(
+                                                bubblePosition + Offset(bubbleWidth / 2f, 0f),
+                                                bubbleHeight
+                                            )
                                         }
                                     )
                             ) {
                                 /**
                                  * 消息内容
                                  */
-                                MessageContent(message)
+                                MessageContent(
+                                    message = message,
+                                    textSelection = textSelection,
+                                    onTextSelectionChange = onTextSelectionChange,
+                                    onTextSelectionDragChange = onTextSelectionDragChange,
+                                    onTextSelectionBoundsChange = onTextSelectionBoundsChange
+                                )
                             }
 
                             if (!isFromMe) {

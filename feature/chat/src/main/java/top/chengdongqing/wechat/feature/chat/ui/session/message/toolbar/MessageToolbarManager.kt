@@ -81,6 +81,41 @@ class MessageToolbarManager(
         _state.update { MessageToolbarState() }
     }
 
+    fun updateTextSelection(selection: TextRange) {
+        _state.update { state ->
+            val text = (state.message?.content as? MessageContent.Text)?.text ?: return@update state
+            val start = selection.min.coerceIn(0, text.length)
+            val end = selection.max.coerceIn(0, text.length)
+            state.copy(
+                textSelection = selection,
+                selectedText = text.substring(start, end)
+            )
+        }
+    }
+
+    fun updateTextSelectionDragging(isDragging: Boolean) {
+        _state.update { state ->
+            if (!state.visible || state.message?.content !is MessageContent.Text) {
+                state
+            } else {
+                state.copy(isTextSelectionDragging = isDragging)
+            }
+        }
+    }
+
+    fun updateTextSelectionBounds(position: Offset, height: Float) {
+        _state.update { state ->
+            if (!state.visible || state.message?.content !is MessageContent.Text) {
+                state
+            } else {
+                state.copy(
+                    bubblePosition = position,
+                    bubbleHeight = height
+                )
+            }
+        }
+    }
+
     /**
      * 处理工具条按钮点击
      */

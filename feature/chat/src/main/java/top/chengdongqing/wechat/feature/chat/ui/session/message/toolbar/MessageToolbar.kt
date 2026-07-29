@@ -6,11 +6,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -52,6 +55,9 @@ private const val ANIM_EXIT_MS = 150
 private const val ITEMS_PER_ROW = 5
 private const val ITEM_WIDTH_DP = 60
 private const val SCREEN_MARGIN_PX = 10f
+private const val ARROW_WIDTH_DP = 12
+private const val ARROW_HEIGHT_DP = 6
+private const val ARROW_GAP_DP = 4
 
 /**
  * 工具条位置参数（缓存用，避免关闭动画期间参数跳动）
@@ -70,6 +76,7 @@ private data class CachedToolbarParams(
 @Composable
 fun MessageToolbar(
     visible: Boolean,
+    temporarilyHidden: Boolean = false,
     actions: List<MessageAction>,
     bubblePosition: Offset,
     bubbleHeight: Float,
@@ -84,12 +91,6 @@ fun MessageToolbar(
 
     LaunchedEffect(visible) {
         if (visible) {
-            cached = CachedToolbarParams(
-                bubblePosition = bubblePosition,
-                bubbleHeight = bubbleHeight,
-                isTextMessage = isTextMessage,
-                actions = actions
-            )
             shouldShowPopup = true
             delay(50)
             showContent = true
@@ -97,6 +98,17 @@ fun MessageToolbar(
             showContent = false
             delay(ANIM_EXIT_MS.toLong() + 50)
             shouldShowPopup = false
+        }
+    }
+
+    LaunchedEffect(visible, bubblePosition, bubbleHeight, isTextMessage, actions) {
+        if (visible) {
+            cached = CachedToolbarParams(
+                bubblePosition = bubblePosition,
+                bubbleHeight = bubbleHeight,
+                isTextMessage = isTextMessage,
+                actions = actions
+            )
         }
     }
 
@@ -117,10 +129,15 @@ fun MessageToolbar(
     Popup(
         offset = position.offset,
         onDismissRequest = onDismiss,
-        properties = PopupProperties(focusable = true)
+        // 文本选择手柄使用独立 Popup。按下手柄对工具条属于“外部点击”，
+        // 选择过程中不能因此清空工具条和选区。
+        properties = PopupProperties(
+            focusable = !cached.isTextMessage,
+            dismissOnClickOutside = !cached.isTextMessage
+        )
     ) {
         AnimatedVisibility(
-            visible = showContent,
+            visible = showContent && !temporarilyHidden,
             enter = fadeIn(tween(ANIM_ENTER_MS)) + scaleIn(
                 initialScale = 0.8f,
                 transformOrigin = position.transformOrigin,
@@ -134,6 +151,8 @@ fun MessageToolbar(
         ) {
             ActionButtonGroup(
                 actions = cached.actions,
+                showBelow = position.showBelow,
+                arrowCenterX = position.arrowCenterX,
                 onActionClick = {
                     onActionClick(it)
                     onDismiss()
@@ -150,7 +169,9 @@ fun MessageToolbar(
 @Immutable
 private data class ToolbarPosition(
     val offset: IntOffset,
-    val transformOrigin: TransformOrigin
+    val transformOrigin: TransformOrigin,
+    val showBelow: Boolean,
+    val arrowCenterX: Float
 )
 
 /**
@@ -168,31 +189,38 @@ private fun computeToolbarPosition(
     val rows = (params.actions.size + ITEMS_PER_ROW - 1) / ITEMS_PER_ROW
     val rowHeightPx = 62f * density
     val dividerPx = 1f * density
-    val estimatedHeight = rows * rowHeightPx + (rows - 1) * dividerPx
+    val arrowHeightPx = ARROW_HEIGHT_DP * density
+    val estimatedHeight = rows * rowHeightPx + (rows - 1) * dividerPx + arrowHeightPx
     val effectiveHeight = if (measuredHeight > 0f) measuredHeight else estimatedHeight
 
     val toolbarWidth = minOf(params.actions.size, ITEMS_PER_ROW) * ITEM_WIDTH_DP * density
     val margin = 20f * density
-    val gap = 10f * density
+    val arrowGap = ARROW_GAP_DP * density
 
     val showBelow = params.bubblePosition.y < effectiveHeight + margin
 
     val x = (params.bubblePosition.x - toolbarWidth / 2f)
         .coerceIn(SCREEN_MARGIN_PX, screenWidth - toolbarWidth - SCREEN_MARGIN_PX)
 
-    val y = if (params.isTextMessage) {
-        if (showBelow) params.bubblePosition.y + margin
-        else params.bubblePosition.y - effectiveHeight - gap
+    val y = if (showBelow) {
+        params.bubblePosition.y + params.bubbleHeight + arrowGap
     } else {
-        if (showBelow) params.bubblePosition.y + params.bubbleHeight + gap
-        else params.bubblePosition.y - effectiveHeight - gap
+        params.bubblePosition.y - effectiveHeight - arrowGap
     }
 
-    val origin = TransformOrigin(0.5f, if (showBelow) 0f else 1f)
+    val arrowMargin = (ARROW_WIDTH_DP / 2f + 4f) * density
+    val arrowCenterX = (params.bubblePosition.x - x)
+        .coerceIn(arrowMargin, toolbarWidth - arrowMargin)
+    val origin = TransformOrigin(
+        pivotFractionX = arrowCenterX / toolbarWidth,
+        pivotFractionY = if (showBelow) 0f else 1f
+    )
 
     return ToolbarPosition(
         offset = IntOffset(x.toInt(), y.toInt()),
-        transformOrigin = origin
+        transformOrigin = origin,
+        showBelow = showBelow,
+        arrowCenterX = arrowCenterX
     )
 }
 
@@ -204,6 +232,8 @@ private fun computeToolbarPosition(
 @Composable
 private fun ActionButtonGroup(
     actions: List<MessageAction>,
+    showBelow: Boolean,
+    arrowCenterX: Float,
     onActionClick: (MessageAction) -> Unit,
     onHeightMeasured: (Float) -> Unit
 ) {
@@ -212,31 +242,84 @@ private fun ActionButtonGroup(
     Column(
         modifier = Modifier
             .width(IntrinsicSize.Max)
-            .clip(RoundedCornerShape(4.dp))
-            .background(Color(0xFF525252))
             .onGloballyPositioned { coordinates ->
                 onHeightMeasured(coordinates.size.height.toFloat())
             }
     ) {
-        rows.forEachIndexed { rowIndex, rowActions ->
-            Row(
-                modifier = Modifier.height(IntrinsicSize.Min),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                rowActions.forEach { action ->
-                    ActionButton(action) {
-                        onActionClick(action)
+        if (showBelow) {
+            ToolbarArrow(
+                pointsUp = true,
+                centerX = arrowCenterX
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color(0xFF525252))
+        ) {
+            rows.forEachIndexed { rowIndex, rowActions ->
+                Row(
+                    modifier = Modifier.height(IntrinsicSize.Min),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    rowActions.forEach { action ->
+                        ActionButton(action) {
+                            onActionClick(action)
+                        }
                     }
                 }
-            }
 
-            if (rowIndex < rows.lastIndex) {
-                WeDivider(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    color = Color.White.copy(alpha = 0.1f)
-                )
+                if (rowIndex < rows.lastIndex) {
+                    WeDivider(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        color = Color.White.copy(alpha = 0.1f)
+                    )
+                }
             }
         }
+
+        if (!showBelow) {
+            ToolbarArrow(
+                pointsUp = false,
+                centerX = arrowCenterX
+            )
+        }
+    }
+}
+
+@Composable
+private fun ToolbarArrow(
+    pointsUp: Boolean,
+    centerX: Float
+) {
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(ARROW_HEIGHT_DP.dp)
+    ) {
+        val halfWidth = ARROW_WIDTH_DP.dp.toPx() / 2f
+        val tipRadius = 1.5.dp.toPx()
+        val path = Path().apply {
+            if (pointsUp) {
+                moveTo(centerX - tipRadius, tipRadius)
+                quadraticTo(centerX, 0f, centerX + tipRadius, tipRadius)
+                lineTo(centerX + halfWidth, size.height)
+                lineTo(centerX - halfWidth, size.height)
+            } else {
+                moveTo(centerX - halfWidth, 0f)
+                lineTo(centerX + halfWidth, 0f)
+                lineTo(centerX + tipRadius, size.height - tipRadius)
+                quadraticTo(
+                    centerX,
+                    size.height,
+                    centerX - tipRadius,
+                    size.height - tipRadius
+                )
+            }
+            close()
+        }
+        drawPath(path, Color(0xFF525252))
     }
 }
 

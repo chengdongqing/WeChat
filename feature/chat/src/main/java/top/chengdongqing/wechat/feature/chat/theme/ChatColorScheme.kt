@@ -23,6 +23,8 @@ data class ChatColorScheme(
     val bubbleIncoming: Color,
     val bubbleTextOutgoing: Color,
     val bubbleTextIncoming: Color,
+    val textSelectionBackground: Color,
+    val textSelectionHandle: Color,
 
     // 时间戳
     val timestamp: Color,
@@ -46,6 +48,8 @@ private val ChatLightColors = ChatColorScheme(
     bubbleIncoming = White,
     bubbleTextOutgoing = TextPrimaryLight,
     bubbleTextIncoming = TextPrimaryLight,
+    textSelectionBackground = Color(0xB35DBF67),
+    textSelectionHandle = Color(0xFF07C160),
     timestamp = TextSecondaryLight,
     bottomBarBackground = Neutral50,
     textField = White,
@@ -63,6 +67,8 @@ private val ChatDarkColors = ChatColorScheme(
     bubbleIncoming = Neutral900,
     bubbleTextOutgoing = TextPrimaryLight,
     bubbleTextIncoming = TextPrimaryDark,
+    textSelectionBackground = Color(0xB35DBF7A),
+    textSelectionHandle = Color(0xFF3DAF72),
     timestamp = TextSecondaryDark,
     bottomBarBackground = Neutral950,
     textField = Color(0xFF282828),

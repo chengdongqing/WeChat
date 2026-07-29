@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.message
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.TextRange
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.CallContent
@@ -18,9 +20,21 @@ import top.chengdongqing.wechat.feature.chat.ui.session.message.content.VoiceCon
  * 消息内容渲染
  */
 @Composable
-fun MessageContent(message: ChatMessage) {
+fun MessageContent(
+    message: ChatMessage,
+    textSelection: TextRange? = null,
+    onTextSelectionChange: (TextRange) -> Unit = {},
+    onTextSelectionDragChange: (Boolean) -> Unit = {},
+    onTextSelectionBoundsChange: (Offset, Float) -> Unit = { _, _ -> }
+) {
     when (val content = message.content) {
-        is MessageContent.Text -> TextContent(message)
+        is MessageContent.Text -> TextContent(
+            message = message,
+            selection = textSelection,
+            onSelectionChange = onTextSelectionChange,
+            onSelectionDragChange = onTextSelectionDragChange,
+            onSelectionBoundsChange = onTextSelectionBoundsChange
+        )
         is MessageContent.Voice -> VoiceContent(message)
         is MessageContent.Sticker -> StickerContent(content)
         is MessageContent.Image, is MessageContent.Video -> MediaContent(message)

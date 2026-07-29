@@ -8,6 +8,9 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.dp
@@ -72,6 +77,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveMessageEff
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.bombShakeTransform
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageItem
+import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageToolbarState
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar.MessageToolbar
 import top.chengdongqing.wechat.feature.chat.ui.session.peer.PeerDeviceOverlay
@@ -111,6 +117,9 @@ fun ChatSessionScreen(
     val streamingAiMessage by viewModel.streamingAiMessage.collectAsStateWithLifecycle()
     val lazyMessageItems = viewModel.messagePagingFlow.collectAsLazyPagingItems()
     val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
+    val selectingTextMessageId = toolbarState.message
+        ?.takeIf { toolbarState.visible && it.content is MessageContent.Text }
+        ?.id
     val listState = rememberLazyListState()
     var bombTrigger by remember(chatId) { mutableIntStateOf(0) }
     var bombProgress by remember(chatId) { mutableFloatStateOf(1f) }
@@ -203,7 +212,26 @@ fun ChatSessionScreen(
                     LocalMediaAnimatedVisibilityScope provides this@AnimatedContent
                 ) {
                     if (preview == null) {
-                        Box {
+                        Box(
+                            modifier = Modifier.then(
+                                if (selectingTextMessageId != null) {
+                                    Modifier.pointerInput(selectingTextMessageId) {
+                                        awaitEachGesture {
+                                            awaitFirstDown(
+                                                requireUnconsumed = false,
+                                                pass = PointerEventPass.Final
+                                            )
+                                            val up = waitForUpOrCancellation(PointerEventPass.Final)
+                                            if (up != null) {
+                                                viewModel.dismissToolbar()
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Modifier
+                                }
+                            )
+                        ) {
                             uiState.backgroundPath?.let {
                                 AsyncImage(
                                     model = it,
@@ -264,6 +292,7 @@ fun ChatSessionScreen(
                                     lazyMessageItems,
                                     streamingAiMessage,
                                     uiState,
+                                    toolbarState,
                                     viewModel,
                                     listState,
                                     innerPadding,
@@ -273,6 +302,7 @@ fun ChatSessionScreen(
 
                             MessageToolbar(
                                 visible = toolbarState.visible,
+                                temporarilyHidden = toolbarState.isTextSelectionDragging,
                                 actions = toolbarState.actions,
                                 bubblePosition = toolbarState.bubblePosition,
                                 bubbleHeight = toolbarState.bubbleHeight,
@@ -433,6 +463,7 @@ private fun ChatMessageList(
     lazyMessageItems: LazyPagingItems<ChatMessage>,
     streamingAiMessage: StreamingAiMessage?,
     uiState: ChatSessionUiState,
+    toolbarState: MessageToolbarState,
     viewModel: ChatSessionViewModel,
     listState: LazyListState,
     innerPadding: PaddingValues,
@@ -498,6 +529,12 @@ private fun ChatMessageList(
                     shakeOffsetY = shake.y,
                     shakeRotation = shake.rotation,
                     shakeScale = shake.scale,
+                    textSelection = toolbarState.textSelection.takeIf {
+                        toolbarState.visible && toolbarState.message?.id == displayMessage.id
+                    },
+                    onTextSelectionChange = viewModel::updateTextSelection,
+                    onTextSelectionDragChange = viewModel::updateTextSelectionDragging,
+                    onTextSelectionBoundsChange = viewModel::updateTextSelectionBounds,
                     onMessageClick = {
                         if (!uiState.isSelectMode) viewModel.handleMessageClick(displayMessage)
                         else viewModel.toggleMessageSelection(displayMessage.id)
