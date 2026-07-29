@@ -27,6 +27,60 @@ interface MessageDao : BaseDao<MessageEntity> {
     @Query("SELECT * FROM messages WHERE id IN (:ids) ORDER BY timestamp ASC")
     suspend fun getByIds(ids: Set<String>): List<MessageEntity>
 
+    @Query(
+        """SELECT * FROM messages
+           WHERE isFromMe = 1 AND receiverId = :peerId
+             AND sendStatus IN (:statuses)
+           ORDER BY timestamp ASC
+           LIMIT :limit"""
+    )
+    suspend fun getPendingOutgoing(
+        peerId: String,
+        statuses: Array<SendStatus> = arrayOf(
+            SendStatus.Sending,
+            SendStatus.Sent,
+            SendStatus.Failed
+        ),
+        limit: Int = 100
+    ): List<MessageEntity>
+
+    @Query(
+        """SELECT * FROM messages
+           WHERE isFromMe = 1 AND attemptCount < :maxAttempts
+             AND (
+               (sendStatus = :sentStatus AND ackDeadlineAt IS NOT NULL AND ackDeadlineAt <= :now)
+               OR
+               (sendStatus = :failedStatus AND nextRetryAt IS NOT NULL AND nextRetryAt <= :now
+                 AND failReason != :cancelledError)
+             )
+           ORDER BY COALESCE(nextRetryAt, ackDeadlineAt) ASC
+           LIMIT :limit"""
+    )
+    suspend fun getDueOutgoing(
+        now: Long,
+        maxAttempts: Int,
+        sentStatus: SendStatus = SendStatus.Sent,
+        failedStatus: SendStatus = SendStatus.Failed,
+        cancelledError: SendError = SendError.Cancelled,
+        limit: Int = 50
+    ): List<MessageEntity>
+
+    @Query(
+        """UPDATE messages
+           SET sendStatus = :failedStatus, failReason = :failReason,
+               ackDeadlineAt = NULL, nextRetryAt = NULL
+           WHERE isFromMe = 1 AND sendStatus = :sentStatus
+             AND ackDeadlineAt IS NOT NULL AND ackDeadlineAt <= :now
+             AND attemptCount >= :maxAttempts"""
+    )
+    suspend fun failExhaustedAckWaits(
+        now: Long,
+        maxAttempts: Int,
+        sentStatus: SendStatus = SendStatus.Sent,
+        failedStatus: SendStatus = SendStatus.Failed,
+        failReason: SendError = SendError.ConnectionFailed
+    )
+
     @Query("UPDATE messages SET sendStatus = :targetStatus WHERE sendStatus in (:currentStatus) and sentBytes > 0")
     suspend fun pauseOngoingTransfers(
         targetStatus: SendStatus = SendStatus.Paused,

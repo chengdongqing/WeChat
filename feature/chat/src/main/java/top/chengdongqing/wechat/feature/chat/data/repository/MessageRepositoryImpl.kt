@@ -542,7 +542,9 @@ class MessageRepositoryImpl @Inject constructor(
         messageDao.update(messageId) { message ->
             message.copy(
                 sendStatus = status,
-                failReason = failedReason
+                failReason = failedReason,
+                ackDeadlineAt = null,
+                nextRetryAt = null
             )
         }
 

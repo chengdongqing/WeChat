@@ -34,6 +34,7 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,6 +65,7 @@ class MessageReceiver @Inject constructor(
     }
 
     private val receiveContexts = ConcurrentHashMap<String, ReceiveContext>()
+    private val started = AtomicBoolean(false)
 
     private val myUserId: String
         get() = profileRepository.requireUserId()
@@ -72,11 +74,14 @@ class MessageReceiver @Inject constructor(
      * 启动监听，订阅新连接并自动开始消费
      */
     fun start() {
+        if (!started.compareAndSet(false, true)) return
+        messageSender.startRetryScheduler()
         scope.launch {
             transport.connectionEvents.collect { event ->
                 when (event) {
                     is ConnectionEvent.Connected -> {
                         startListening(event.conn)
+                        scope.launch { messageSender.retryPendingMessages(event.userId) }
                     }
 
                     is ConnectionEvent.Disconnected -> {

@@ -151,9 +151,25 @@ object WeDatabaseMigrations {
         }
     }
 
+    private val migration7To8 = object : Migration(7, 8) {
+        override suspend fun migrate(connection: SQLiteConnection) {
+            connection.execSQL(
+                "ALTER TABLE `messages` ADD COLUMN `attemptCount` INTEGER NOT NULL DEFAULT 0"
+            )
+            connection.execSQL("ALTER TABLE `messages` ADD COLUMN `lastAttemptAt` INTEGER")
+            connection.execSQL("ALTER TABLE `messages` ADD COLUMN `nextRetryAt` INTEGER")
+            connection.execSQL("ALTER TABLE `messages` ADD COLUMN `ackDeadlineAt` INTEGER")
+            connection.execSQL("ALTER TABLE `messages` ADD COLUMN `lastTransportType` TEXT")
+            connection.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_messages_sendStatus_nextRetryAt` " +
+                        "ON `messages` (`sendStatus`, `nextRetryAt`)"
+            )
+        }
+    }
+
     val all: Array<Migration> =
         arrayOf(
             migration1To2, migration2To3, migration3To4, migration4To5,
-            migration5To6, migration6To7
+            migration5To6, migration6To7, migration7To8
         )
 }

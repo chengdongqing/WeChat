@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.core.database.entity
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Embedded
 import androidx.room3.Entity
 import androidx.room3.Index
@@ -11,7 +12,8 @@ import top.chengdongqing.wechat.core.model.SendStatus
 @Entity(
     tableName = "messages",
     indices = [
-        Index(value = ["sessionId", "timestamp"])
+        Index(value = ["sessionId", "timestamp"]),
+        Index(value = ["sendStatus", "nextRetryAt"])
     ]
 )
 data class MessageEntity(
@@ -40,6 +42,12 @@ data class MessageEntity(
     val isRecalled: Boolean = false,    // 是否已撤回
     val isFromMe: Boolean,              // 是否我发送的
     val failReason: SendError? = null,  // 发送失败原因
+    @ColumnInfo(defaultValue = "0")
+    val attemptCount: Int = 0,
+    val lastAttemptAt: Long? = null,
+    val nextRetryAt: Long? = null,
+    val ackDeadlineAt: Long? = null,
+    val lastTransportType: String? = null,
 
     @Embedded
     val audit: EntityAudit = EntityAudit()

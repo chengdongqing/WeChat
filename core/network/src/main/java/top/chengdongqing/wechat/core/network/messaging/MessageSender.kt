@@ -2,9 +2,16 @@ package top.chengdongqing.wechat.core.network.messaging
 
 import android.util.Log
 import androidx.room3.withWriteTransaction
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.common.util.extractExtension
 import top.chengdongqing.wechat.core.common.util.toSHA256Hex
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
@@ -41,6 +48,8 @@ import java.io.File
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
@@ -65,20 +74,99 @@ class MessageSender @Inject constructor(
     private val mediaFileDao: MediaFileDao,
     private val assetReferenceManager: AssetReferenceManager,
     private val fileAckRegistry: FileAckRegistry,
-    private val json: Json
+    private val json: Json,
+    @param:IoScope private val scope: CoroutineScope
 ) {
     private companion object {
         const val TAG = "MessageSender"
         const val ACK_TIMEOUT_MS = 10_000L // 发大文件时等待回执的超时时间
+        const val MAX_TOTAL_ATTEMPTS = 6
+        const val RETRY_BASE_DELAY_MS = 750L
+        const val ACK_DELIVERY_TIMEOUT_MS = 12_000L
+        const val RETRY_POLL_INTERVAL_MS = 2_000L
     }
 
     private val myUserId: String
         get() = profileRepository.requireUserId()
 
+    private val retryLocks = ConcurrentHashMap<String, Mutex>()
+    private val retrySchedulerStarted = AtomicBoolean(false)
+
+    fun startRetryScheduler() {
+        if (!retrySchedulerStarted.compareAndSet(false, true)) return
+        scope.launch {
+            while (isActive) {
+                delay(RETRY_POLL_INTERVAL_MS)
+                val now = System.currentTimeMillis()
+                messageDao.failExhaustedAckWaits(now, MAX_TOTAL_ATTEMPTS)
+                val due = messageDao.getDueOutgoing(
+                    now = now,
+                    maxAttempts = MAX_TOTAL_ATTEMPTS
+                )
+                due.forEach { message ->
+                    if (!transport.isConnected(message.receiverId)) return@forEach
+                    retryLocks.getOrPut(message.receiverId) { Mutex() }.withLock {
+                        if (transport.isConnected(message.receiverId)) {
+                            messageDao.update(message.id) {
+                                it.copy(sendStatus = SendStatus.Sending, nextRetryAt = null)
+                            }
+                            resend(message)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 连接恢复后重放未获得送达回执的消息。
+     *
+     * 接收端以 messageId 幂等，重放 Sent 状态可以覆盖“已写入 Socket，
+     * 但送达回执在断线时丢失”的窗口。
+     */
+    suspend fun retryPendingMessages(peerId: String) {
+        retryLocks.getOrPut(peerId) { Mutex() }.withLock {
+            val pending = messageDao.getPendingOutgoing(peerId).filter { message ->
+                message.attemptCount < MAX_TOTAL_ATTEMPTS &&
+                        (message.sendStatus != SendStatus.Failed ||
+                                message.failReason?.canRetry != false &&
+                                message.failReason != SendError.Cancelled)
+            }
+            if (pending.isEmpty()) return
+
+            Log.i(TAG, "重连补发 ${pending.size} 条消息: $peerId")
+            pending.forEach { message ->
+                if (!transport.isConnected(peerId)) return
+                messageDao.update(message.id) {
+                    it.copy(sendStatus = SendStatus.Sending, failReason = null, nextRetryAt = null)
+                }
+                resend(message).onFailure { Log.w(TAG, "补发失败: ${message.id}", it) }
+            }
+        }
+    }
+
+    private suspend fun resend(message: MessageEntity): Result<Unit> = runCatching {
+        when {
+            groupDao.getById(message.sessionId) != null && message.localPath == null ->
+                sendGroupTextMessage(message).getOrThrow()
+
+            message.localPath != null -> {
+                val file = File(message.localPath!!)
+                require(file.exists()) { "待发送文件不存在" }
+                sendMediaMessage(message, file).getOrThrow()
+            }
+
+            else -> sendTextMessage(message).getOrThrow()
+        }
+    }.onFailure { error ->
+        Log.w(TAG, "补发尝试失败: ${message.id}", error)
+    }
+
     /**
      * 发送文本消息
      */
     suspend fun sendTextMessage(message: MessageEntity): Result<Unit> {
+        markAttemptStarted(message.id)
         val protocol = ChatProtocol.TextMessage(
             messageId = message.id,
             senderId = message.senderId,
@@ -110,6 +198,7 @@ class MessageSender @Inject constructor(
     }
 
     suspend fun sendGroupTextMessage(message: MessageEntity): Result<Unit> {
+        markAttemptStarted(message.id)
         val group = groupDao.getById(message.sessionId)
             ?: return Result.failure(IllegalStateException("群聊不存在"))
         val unsigned = ChatProtocol.GroupTextMessage(
@@ -148,6 +237,7 @@ class MessageSender @Inject constructor(
      * 发送媒体消息
      */
     suspend fun sendMediaMessage(message: MessageEntity, file: File): Result<Unit> = runCatching {
+        markAttemptStarted(message.id)
         val checksum = file.toSHA256Hex()
         val targetFile = resolveTargetFile(message, file, checksum)
         val metadata = buildSignedMetadata(message, targetFile, checksum)
@@ -442,7 +532,14 @@ class MessageSender @Inject constructor(
     ) {
         database.withWriteTransaction {
             messageDao.update(messageId) { message ->
-                message.copy(sendStatus = status)
+                message.copy(
+                    sendStatus = status,
+                    ackDeadlineAt = if (status == SendStatus.Sent) {
+                        System.currentTimeMillis() + ACK_DELIVERY_TIMEOUT_MS
+                    } else null,
+                    nextRetryAt = null,
+                    failReason = null
+                )
             }
             // 更新会话状态
             if (status == SendStatus.Sent) {
@@ -470,9 +567,17 @@ class MessageSender @Inject constructor(
         database.withWriteTransaction {
             // 更新消息状态
             messageDao.update(messageId) { message ->
+                val retryDelay = RETRY_BASE_DELAY_MS *
+                        (1L shl message.attemptCount.coerceIn(0, 5))
                 message.copy(
                     sendStatus = SendStatus.Failed,
-                    failReason = failReason
+                    failReason = failReason,
+                    ackDeadlineAt = null,
+                    nextRetryAt = if (
+                        failReason.canRetry &&
+                        failReason != SendError.Cancelled &&
+                        message.attemptCount < MAX_TOTAL_ATTEMPTS
+                    ) System.currentTimeMillis() + retryDelay else null
                 )
             }
             // 更新会话状态
@@ -484,6 +589,19 @@ class MessageSender @Inject constructor(
         // 标记为离线
         if (error !is CancellationException) {
             connectionInfoDao.markOffline(receiverId)
+        }
+    }
+
+    private suspend fun markAttemptStarted(messageId: String) {
+        val now = System.currentTimeMillis()
+        messageDao.update(messageId) { message ->
+            message.copy(
+                attemptCount = message.attemptCount + 1,
+                lastAttemptAt = now,
+                nextRetryAt = null,
+                ackDeadlineAt = null,
+                lastTransportType = transport.mode.value.name
+            )
         }
     }
 
