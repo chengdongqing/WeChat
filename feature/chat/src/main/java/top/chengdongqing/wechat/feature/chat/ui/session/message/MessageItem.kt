@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.message
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -29,6 +31,7 @@ import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.data.model.ChatMessage
@@ -37,6 +40,7 @@ import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.model.MessageSendStatus
+import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 
 /**
@@ -57,6 +61,8 @@ fun MessageItem(
     onTextSelectionChange: (TextRange) -> Unit = {},
     onTextSelectionDragChange: (Boolean) -> Unit = {},
     onTextSelectionBoundsChange: (Offset, Float) -> Unit = { _, _ -> },
+    quoteSenderName: String = "",
+    onQuoteClick: (String) -> Unit = {},
     onMessageClick: () -> Unit = {},
     onMessageLongPress: (bubblePosition: Offset, bubbleHeight: Float) -> Unit = { _, _ -> }
 ) {
@@ -150,13 +156,34 @@ fun MessageItem(
                                 /**
                                  * 消息内容
                                  */
-                                MessageContent(
-                                    message = message,
-                                    textSelection = textSelection,
-                                    onTextSelectionChange = onTextSelectionChange,
-                                    onTextSelectionDragChange = onTextSelectionDragChange,
-                                    onTextSelectionBoundsChange = onTextSelectionBoundsChange
-                                )
+                                Column {
+                                    message.quote?.let { quote ->
+                                        Column(
+                                            modifier = Modifier
+                                                .clickable { onQuoteClick(quote.messageId) }
+                                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                        ) {
+                                            Text(
+                                                text = quoteSenderName,
+                                                color = ChatTheme.colorScheme.timestamp,
+                                                fontSize = 12.sp
+                                            )
+                                            Text(
+                                                text = quote.preview,
+                                                color = ChatTheme.colorScheme.timestamp,
+                                                fontSize = 12.sp,
+                                                maxLines = 2
+                                            )
+                                        }
+                                    }
+                                    MessageContent(
+                                        message = message,
+                                        textSelection = textSelection,
+                                        onTextSelectionChange = onTextSelectionChange,
+                                        onTextSelectionDragChange = onTextSelectionDragChange,
+                                        onTextSelectionBoundsChange = onTextSelectionBoundsChange
+                                    )
+                                }
                             }
 
                             if (!isFromMe) {

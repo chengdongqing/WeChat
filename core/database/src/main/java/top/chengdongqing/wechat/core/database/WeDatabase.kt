@@ -37,7 +37,7 @@ import top.chengdongqing.wechat.core.database.entity.MessageEntity
         ContactTagEntity::class,
         ContactTagMemberEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 @ColumnTypeConverters(DatabaseConverters::class)

@@ -35,7 +35,8 @@ class MessageToolbarManager(
     private val onCancelMessage: (String) -> Unit,
     private val onToggleSpeaker: () -> Unit,
     private val onSaveFile: (ChatMessage) -> Unit,
-    private val onMultiSelect: (String) -> Unit
+    private val onMultiSelect: (String) -> Unit,
+    private val onQuote: (ChatMessage) -> Unit
 ) {
     private val _state = MutableStateFlow(MessageToolbarState())
     val state = _state.asStateFlow()
@@ -151,6 +152,7 @@ class MessageToolbarManager(
 
             MessageAction.Download -> onSaveFile(message)
             MessageAction.MultiSelect -> onMultiSelect(message.id)
+            MessageAction.Quote -> onQuote(message)
 
             else -> {}
         }

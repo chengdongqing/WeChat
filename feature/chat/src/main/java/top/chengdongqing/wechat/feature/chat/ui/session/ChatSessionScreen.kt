@@ -470,6 +470,7 @@ private fun ChatMessageList(
     bombProgress: Float
 ) {
     val overscrollEffect = rememberBounceOverscrollEffect()
+    val scope = rememberCoroutineScope()
     val streamingMessageInPaging = streamingAiMessage?.let { streaming ->
         lazyMessageItems.itemSnapshotList.items.any { it.id == streaming.id }
     } == true
@@ -535,6 +536,20 @@ private fun ChatMessageList(
                     onTextSelectionChange = viewModel::updateTextSelection,
                     onTextSelectionDragChange = viewModel::updateTextSelectionDragging,
                     onTextSelectionBoundsChange = viewModel::updateTextSelectionBounds,
+                    quoteSenderName = displayMessage.quote?.let { quote ->
+                        when (quote.senderId) {
+                            uiState.myId -> "我"
+                            uiState.peerId -> uiState.title
+                            else -> quote.senderId
+                        }
+                    }.orEmpty(),
+                    onQuoteClick = { quotedId ->
+                        val targetIndex = lazyMessageItems.itemSnapshotList.items
+                            .indexOfFirst { it.id == quotedId }
+                        if (targetIndex >= 0) {
+                            scope.launch { listState.animateScrollToItem(targetIndex) }
+                        }
+                    },
                     onMessageClick = {
                         if (!uiState.isSelectMode) viewModel.handleMessageClick(displayMessage)
                         else viewModel.toggleMessageSelection(displayMessage.id)

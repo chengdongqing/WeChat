@@ -46,6 +46,7 @@ import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.data.model.MessageQuote
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ChatSettingsRepository
@@ -96,6 +97,8 @@ class ChatSessionViewModel @AssistedInject constructor(
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
     private var aiGenerationJob: Job? = null
+    private val _pendingQuote = MutableStateFlow<MessageQuote?>(null)
+    val pendingQuote = _pendingQuote.asStateFlow()
     val isLocalAiSession: Boolean get() = chatId == LocalAiAssistant.ID
     val isGroupSession: Boolean get() = chatId.startsWith("group_")
     val localAiState = localAiEngine.state
@@ -218,7 +221,8 @@ class ChatSessionViewModel @AssistedInject constructor(
         onCancelMessage = ::cancelTransfer,
         onToggleSpeaker = ::toggleSpeaker,
         onSaveFile = ::saveFile,
-        onMultiSelect = ::enterSelectMode
+        onMultiSelect = ::enterSelectMode,
+        onQuote = ::quoteMessage
     )
 
     val toolbarState = toolbarManager.state
@@ -240,6 +244,19 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun dismissToolbar() = toolbarManager.dismiss()
+
+    private fun quoteMessage(message: ChatMessage) {
+        _pendingQuote.value = MessageQuote(
+            messageId = message.id,
+            senderId = message.senderId,
+            messageType = message.content.toMessageType(),
+            preview = message.content.quotePreview()
+        )
+    }
+
+    fun cancelQuote() {
+        _pendingQuote.value = null
+    }
 
     fun updateTextSelection(selection: TextRange) {
         toolbarManager.updateTextSelection(selection)
@@ -384,8 +401,10 @@ class ChatSessionViewModel @AssistedInject constructor(
             messageRepository.sendMessage(
                 sessionId = chatId,
                 receiverId = chatId,
-                content = content
+                content = content,
+                quote = _pendingQuote.value
             ).onSuccess {
+                _pendingQuote.value = null
                 if (content is MessageContent.Voice) {
                     soundTipPlayer.play(R.raw.tip_after_upload_voice)
                 }
@@ -394,6 +413,21 @@ class ChatSessionViewModel @AssistedInject constructor(
                 }
             }
         }
+    }
+
+    private fun MessageContent.quotePreview(): String = when (this) {
+        is MessageContent.Text -> text.replace('\n', ' ').trim().take(160)
+        is MessageContent.Voice -> "[语音]"
+        is MessageContent.Sticker -> "[表情]"
+        is MessageContent.Image -> "[图片]"
+        is MessageContent.Video -> "[视频]"
+        is MessageContent.Media -> "[媒体]"
+        is MessageContent.Call -> "[通话]"
+        is MessageContent.Location -> "[位置] ${poiName.ifBlank { address }}"
+        is MessageContent.File -> "[文件] $filename"
+        is MessageContent.ContactCard -> "[名片] $nickname"
+        is MessageContent.Music -> "[音乐] ${music.title}"
+        is MessageContent.Live -> "[直播] $title"
     }
 
     private fun generateAiReply(prompt: String) {

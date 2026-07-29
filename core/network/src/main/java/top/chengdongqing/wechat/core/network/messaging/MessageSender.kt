@@ -9,6 +9,7 @@ import top.chengdongqing.wechat.core.common.util.extractExtension
 import top.chengdongqing.wechat.core.common.util.toSHA256Hex
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
+import top.chengdongqing.wechat.core.data.model.MessageQuote
 import top.chengdongqing.wechat.core.data.model.ReceiptType
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.WeDatabase
@@ -83,6 +84,7 @@ class MessageSender @Inject constructor(
             signature = "",
             messageType = message.contentType,
             content = message.content,
+            quote = message.toQuote(),
             timestamp = message.timestamp
         )
         val signature = packetSigner.sign(protocol, keyStoreManager.getPrivateKey())
@@ -116,7 +118,8 @@ class MessageSender @Inject constructor(
             groupId = group.id,
             memberVersion = group.memberVersion,
             messageType = message.contentType,
-            content = message.content
+            content = message.content,
+            quote = message.toQuote()
         )
         val protocol = unsigned.copy(
             signature = packetSigner.sign(unsigned, keyStoreManager.getPrivateKey())
@@ -181,11 +184,23 @@ class MessageSender @Inject constructor(
             fileSize = targetFile.length(),
             checksum = checksum,
             mediaDuration = message.mediaDuration,
+            quote = message.toQuote(),
             timestamp = message.timestamp
         )
         val signature = packetSigner.sign(unsigned, keyStoreManager.getPrivateKey())
         return unsigned.copy(signature = signature)
     }
+
+    private fun MessageEntity.toQuote(): MessageQuote? =
+        quoteMessageId?.let {
+            MessageQuote(
+                messageId = it,
+                senderId = quoteSenderId.orEmpty(),
+                messageType = quoteMessageType
+                    ?: top.chengdongqing.wechat.core.model.MessageType.Text,
+                preview = quotePreview.orEmpty()
+            )
+        }
 
     /**
      * 小文件直传

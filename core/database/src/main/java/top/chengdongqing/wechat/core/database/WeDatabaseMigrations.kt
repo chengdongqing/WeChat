@@ -68,5 +68,15 @@ object WeDatabaseMigrations {
         }
     }
 
-    val all: Array<Migration> = arrayOf(migration1To2, migration2To3, migration3To4)
+    private val migration4To5 = object : Migration(4, 5) {
+        override suspend fun migrate(connection: SQLiteConnection) {
+            connection.execSQL("ALTER TABLE `messages` ADD COLUMN `quoteMessageId` TEXT")
+            connection.execSQL("ALTER TABLE `messages` ADD COLUMN `quoteSenderId` TEXT")
+            connection.execSQL("ALTER TABLE `messages` ADD COLUMN `quoteMessageType` TEXT")
+            connection.execSQL("ALTER TABLE `messages` ADD COLUMN `quotePreview` TEXT")
+        }
+    }
+
+    val all: Array<Migration> =
+        arrayOf(migration1To2, migration2To3, migration3To4, migration4To5)
 }

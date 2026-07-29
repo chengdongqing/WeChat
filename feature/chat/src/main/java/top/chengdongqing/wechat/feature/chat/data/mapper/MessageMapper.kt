@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.call.CallStatus
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.data.model.MessageQuote
 import top.chengdongqing.wechat.core.data.model.MusicTrack
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.model.CallType
@@ -19,6 +20,14 @@ fun MessageEntity.toDomain(json: Json): ChatMessage {
         sessionId = sessionId,
         senderId = senderId,
         content = toMessageContent(json),
+        quote = quoteMessageId?.let { messageId ->
+            MessageQuote(
+                messageId = messageId,
+                senderId = quoteSenderId.orEmpty(),
+                messageType = quoteMessageType ?: MessageType.Text,
+                preview = quotePreview.orEmpty()
+            )
+        },
         isFromMe = isFromMe,
         isRecalled = isRecalled,
         timestamp = timestamp,
@@ -159,7 +168,8 @@ fun MessageContent.toEntity(
     senderId: String,
     receiverId: String,
     timestamp: Long,
-    json: Json
+    json: Json,
+    quote: MessageQuote? = null
 ): MessageEntity {
     val content = this
 
@@ -176,6 +186,10 @@ fun MessageContent.toEntity(
         receiverId = receiverId,
         contentType = toMessageType(),
         content = contentValue,
+        quoteMessageId = quote?.messageId,
+        quoteSenderId = quote?.senderId,
+        quoteMessageType = quote?.messageType,
+        quotePreview = quote?.preview,
         localPath = localPath,
         fileSize = fileSize,
         mediaDuration = mediaDuration,

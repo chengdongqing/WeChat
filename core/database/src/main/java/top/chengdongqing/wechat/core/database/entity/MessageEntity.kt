@@ -23,6 +23,10 @@ data class MessageEntity(
 
     val contentType: MessageType,       // 消息类型
     val content: String,                // 消息内容
+    val quoteMessageId: String? = null,
+    val quoteSenderId: String? = null,
+    val quoteMessageType: MessageType? = null,
+    val quotePreview: String? = null,
 
     val localPath: String? = null,      // 文件路径
     val fileSize: Long? = null,         // 文件大小

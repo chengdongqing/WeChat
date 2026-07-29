@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.data.model.MessageQuote
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.model.SendStatus
@@ -21,7 +22,8 @@ interface MessageRepository {
         sessionId: String,
         receiverId: String,
         messageId: String? = null,
-        content: MessageContent
+        content: MessageContent,
+        quote: MessageQuote? = null
     ): Result<Unit>
 
     suspend fun upsertLocalAssistantMessage(

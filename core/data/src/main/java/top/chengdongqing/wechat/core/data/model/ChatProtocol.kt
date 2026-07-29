@@ -25,10 +25,12 @@ sealed class ChatProtocol {
         override val timestamp: Long = System.currentTimeMillis(),
         val receiverId: String,
         val messageType: MessageType,
-        val content: String
+        val content: String,
+        val quote: MessageQuote? = null
     ) : ChatProtocol() {
         override fun signingPayload() =
-            "$messageId|$senderId|$receiverId|$messageType|$content|$timestamp"
+            "$messageId|$senderId|$receiverId|$messageType|$content|$timestamp" +
+                    quote.signingSuffix()
     }
 
     /**
@@ -45,11 +47,13 @@ sealed class ChatProtocol {
         val memberVersion: Long,
         val messageType: MessageType,
         val content: String,
+        val quote: MessageQuote? = null,
         val ttl: Int = 6,
         val route: List<String> = emptyList()
     ) : ChatProtocol() {
         override fun signingPayload() =
-            "$messageId|$senderId|$groupId|$memberVersion|$messageType|$content|$timestamp"
+            "$messageId|$senderId|$groupId|$memberVersion|$messageType|$content|$timestamp" +
+                    quote.signingSuffix()
     }
 
     /** 群资料与成员快照。新建群、成员变化和修改群名均通过该协议同步。 */
@@ -114,10 +118,12 @@ sealed class ChatProtocol {
         val extension: String?,
         val fileSize: Long,
         val checksum: String,
-        val mediaDuration: Long? = null
+        val mediaDuration: Long? = null,
+        val quote: MessageQuote? = null
     ) : ChatProtocol() {
         override fun signingPayload() =
-            "$messageId|$senderId|$receiverId|$messageType|$content|$fileSize|$checksum|$mediaDuration|$timestamp"
+            "$messageId|$senderId|$receiverId|$messageType|$content|$fileSize|$checksum|$mediaDuration|$timestamp" +
+                    quote.signingSuffix()
     }
 
     @Serializable
@@ -252,6 +258,9 @@ sealed class ChatProtocol {
             "$messageId|$senderId|$e2ePublicKey|$e2ePublicKeyAck|$timestamp"
     }
 }
+
+private fun MessageQuote?.signingSuffix(): String =
+    this?.let { "|quote:${it.messageId}|${it.senderId}|${it.messageType}|${it.preview}" }.orEmpty()
 
 @Serializable
 data class GroupMemberSnapshot(

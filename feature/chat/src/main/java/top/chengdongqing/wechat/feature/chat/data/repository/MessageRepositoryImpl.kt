@@ -26,6 +26,7 @@ import top.chengdongqing.wechat.core.common.util.randomUUID
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.data.model.MessageQuote
 import top.chengdongqing.wechat.core.data.model.ReceiptType
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
@@ -124,7 +125,8 @@ class MessageRepositoryImpl @Inject constructor(
         sessionId: String,
         receiverId: String,
         messageId: String?,
-        content: MessageContent
+        content: MessageContent,
+        quote: MessageQuote?
     ): Result<Unit> = runCatching {
         val finalMessageId = messageId ?: randomUUID()
         val isSelf = receiverId == myUserId
@@ -138,7 +140,8 @@ class MessageRepositoryImpl @Inject constructor(
             senderId = myUserId,
             receiverId = receiverId,
             timestamp = System.currentTimeMillis(),
-            json = json
+            json = json,
+            quote = quote
         ).copy(
             // 如果需要发送，初始状态设为 Sending，否则直接 Delivered
             sendStatus = if (shouldSkipSend) SendStatus.Delivered else SendStatus.Sending

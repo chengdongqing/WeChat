@@ -80,6 +80,7 @@ fun InputBar(
     val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputBarController(focusRequester, uiState.isSendButtonOn)
     val state by controller.state.collectAsStateWithLifecycle()
+    val pendingQuote by viewModel.pendingQuote.collectAsStateWithLifecycle()
     val actions = rememberInputBarActions(
         controller = controller,
         onSendMessage = viewModel::sendMessage,
@@ -146,6 +147,30 @@ fun InputBar(
             .background(ChatTheme.colorScheme.bottomBarBackground)
             .windowInsetsPadding(WindowInsets.navigationBarsIgnoringVisibility)
     ) {
+        pendingQuote?.let { quote ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        text = if (quote.senderId == uiState.myId) "我" else uiState.title,
+                        color = ChatTheme.colorScheme.timestamp
+                    )
+                    Text(
+                        text = quote.preview,
+                        color = ChatTheme.colorScheme.timestamp,
+                        maxLines = 2
+                    )
+                }
+                ActionIcon(
+                    icon = R.drawable.ic_close_outlined,
+                    onClick = viewModel::cancelQuote
+                )
+            }
+        }
         InputMainSection(
             state = state,
             actions = inputActions,
@@ -201,14 +226,19 @@ private fun InputBarController.insertMention(name: String) {
 @Composable
 private fun MentionPickerItem(name: String, avatarPath: String?, onClick: () -> Unit) {
     Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 9.dp),
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
             model = avatarPath,
             error = painterResource(R.drawable.img_avatar_placeholder),
             contentDescription = null,
-            modifier = Modifier.size(40.dp).clip(RoundedCornerShape(4.dp))
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(4.dp))
         )
         Text(name, modifier = Modifier.padding(start = 12.dp))
     }

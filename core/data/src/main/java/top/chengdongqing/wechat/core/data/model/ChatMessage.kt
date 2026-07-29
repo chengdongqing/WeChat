@@ -9,6 +9,7 @@ data class ChatMessage(
     val sessionId: String,
     val senderId: String,
     val content: MessageContent,
+    val quote: MessageQuote? = null,
     val isRecalled: Boolean = false,
     val isFromMe: Boolean = true,
     val timestamp: Long = System.currentTimeMillis(),
