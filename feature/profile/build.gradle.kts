@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
     implementation(projects.core.database)
+    implementation(projects.core.location)
 
     implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
@@ -41,8 +42,12 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.datastore.preferences)
+    implementation(libs.core.ktx)
 
     implementation(libs.serialization.json)
+    implementation(libs.room.paging)
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
 
     implementation(libs.bundles.coil)
     implementation(libs.coil.zoomable)

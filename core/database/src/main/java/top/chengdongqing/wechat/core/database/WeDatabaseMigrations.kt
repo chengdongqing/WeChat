@@ -132,6 +132,28 @@ object WeDatabaseMigrations {
         }
     }
 
+    private val migration6To7 = object : Migration(6, 7) {
+        override suspend fun migrate(connection: SQLiteConnection) {
+            connection.execSQL(
+                """CREATE TABLE IF NOT EXISTS `favorites` (
+                    `id` TEXT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL,
+                    `content` TEXT NOT NULL, `mediaPaths` TEXT NOT NULL,
+                    `sourceMessageIds` TEXT NOT NULL, `sourceName` TEXT NOT NULL,
+                    `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL,
+                    PRIMARY KEY(`id`))""".trimIndent()
+            )
+            connection.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_favorites_createdAt` ON `favorites` (`createdAt`)"
+            )
+            connection.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_favorites_type` ON `favorites` (`type`)"
+            )
+        }
+    }
+
     val all: Array<Migration> =
-        arrayOf(migration1To2, migration2To3, migration3To4, migration4To5, migration5To6)
+        arrayOf(
+            migration1To2, migration2To3, migration3To4, migration4To5,
+            migration5To6, migration6To7
+        )
 }

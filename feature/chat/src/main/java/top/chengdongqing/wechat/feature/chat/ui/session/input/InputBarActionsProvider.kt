@@ -32,7 +32,8 @@ fun rememberInputBarActions(
     controller: InputBarController,
     onSendMessage: (MessageContent) -> Unit,
     onLaunchCall: (CallType) -> Unit,
-    onStartLive: () -> Unit
+    onStartLive: () -> Unit,
+    onOpenFavorites: () -> Unit
 ): InputBarActions {
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
@@ -66,6 +67,7 @@ fun rememberInputBarActions(
         onLaunchCall = onLaunchCall,
         onSelectMusic = controller::toggleMusic,
         onStartLive = onStartLive,
+        onOpenFavorites = onOpenFavorites,
         onSendMessage = onSendMessage
     )
 

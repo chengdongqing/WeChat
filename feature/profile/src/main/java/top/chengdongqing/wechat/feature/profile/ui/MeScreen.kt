@@ -76,14 +76,14 @@ fun MeScreen(
             label = stringResource(R.string.me_menu_service),
             icon = R.drawable.ic_pay_logo_outlined,
             iconColor = Color(0xFF07C160),
-            onClick = {}
+            onClick = { backStack.add(NavigationKey.Services) }
         )
         Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
             WeMenuListItem(
                 label = stringResource(R.string.me_menu_favorites),
                 icon = R.drawable.ic_favorites_outlined_colorful,
                 iconColor = Color.Unspecified,
-                onClick = {}
+                onClick = { backStack.add(NavigationKey.Favorites()) }
             )
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             WeMenuListItem(

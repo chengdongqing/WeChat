@@ -54,7 +54,9 @@ import top.chengdongqing.wechat.core.data.repository.ConnectionSettingsRepositor
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.database.dao.FavoriteDao
 import top.chengdongqing.wechat.core.database.dao.GroupDao
+import top.chengdongqing.wechat.core.database.entity.FavoriteEntity
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
@@ -85,6 +87,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val chatSettingsRepository: ChatSettingsRepository,
     private val contactRepository: ContactRepository,
     private val groupDao: GroupDao,
+    private val favoriteDao: FavoriteDao,
     private val addFriendRepository: AddFriendRepository,
     private val publicFileManager: PublicFileManager,
     private val soundTipPlayer: SoundTipPlayer,
@@ -239,6 +242,8 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun handleToolbarAction(action: MessageAction) {
         if (action == MessageAction.Forward) {
             toolbarManager.state.value.message?.id?.let { enterSelectMode(it) }
+        } else if (action == MessageAction.Favorite) {
+            toolbarManager.state.value.message?.let { favoriteMessages(listOf(it)) }
         }
         toolbarManager.onAction(action)
     }
@@ -725,9 +730,54 @@ class ChatSessionViewModel @AssistedInject constructor(
             MultiMessageAction.Forward -> emit(MessageUiEvent.ForwardMessage())
             MultiMessageAction.Delete -> emit(MessageUiEvent.ShowDeleteConfirm())
             MultiMessageAction.Download -> emit(MessageUiEvent.ShowDownloadConfirm)
-            MultiMessageAction.Favorite -> { /* 收藏功能暂未实现 */
+            MultiMessageAction.Favorite -> viewModelScope.launch {
+                val messages = _uiState.value.selectedMessageIds.mapNotNull {
+                    messageRepository.getMessage(it)
+                }
+                favoriteMessages(messages)
+                exitSelectMode()
             }
         }
+    }
+
+    private fun favoriteMessages(messages: List<ChatMessage>) {
+        if (messages.isEmpty()) return
+        viewModelScope.launch {
+            val now = System.currentTimeMillis()
+            val first = messages.first()
+            val previews = messages.map { it.content.favoritePreview() }
+            favoriteDao.upsert(
+                FavoriteEntity(
+                    id = randomUUID(),
+                    type = if (messages.size > 1) "RICH_TEXT" else first.content.favoriteType(),
+                    title = if (messages.size > 1) "${messages.size} 条聊天记录" else previews.first(),
+                    content = previews.joinToString("\n"),
+                    mediaPaths = messages.mapNotNull { it.content.getLocalPath() }
+                        .joinToString("\n"),
+                    sourceMessageIds = messages.joinToString(",") { it.id },
+                    sourceName = _uiState.value.title,
+                    createdAt = now,
+                    updatedAt = now
+                )
+            )
+            context.showToast("已收藏")
+        }
+    }
+
+    private fun MessageContent.favoriteType(): String = when (this) {
+        is MessageContent.Voice -> "VOICE"
+        is MessageContent.Location -> "LOCATION"
+        is MessageContent.Image, is MessageContent.Video, is MessageContent.File,
+        is MessageContent.Sticker -> "MEDIA"
+
+        else -> "RICH_TEXT"
+    }
+
+    private fun MessageContent.favoritePreview(): String = when (this) {
+        is MessageContent.Text -> text
+        is MessageContent.Voice -> duration.toString()
+        is MessageContent.Location -> "$latitude|$longitude|$address"
+        else -> quotePreview()
     }
 
     // endregion

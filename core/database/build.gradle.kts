@@ -17,6 +17,7 @@ android {
 
     defaultConfig {
         minSdk = 26
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     sourceSets {
@@ -51,4 +52,6 @@ dependencies {
     implementation(libs.serialization.json)
 
     testImplementation(libs.test.junit)
+    androidTestImplementation(libs.test.junit.ext)
+    androidTestImplementation(libs.room.testing)
 }

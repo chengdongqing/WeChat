@@ -96,6 +96,7 @@ fun ChatSessionScreen(
     onNavigateToRequestAddFriend: () -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
     onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
+    onNavigateToFavorites: () -> Unit,
     viewModel: ChatSessionViewModel
 ) {
     var mediaPreview by remember { mutableStateOf<ChatMediaPreviewState?>(null) }
@@ -271,7 +272,8 @@ fun ChatSessionScreen(
                                                     )
                                                 )
                                                 onNavigateToLive(liveId, true, uiState.myId.orEmpty())
-                                            }
+                                            },
+                                            onOpenFavorites = onNavigateToFavorites
                                         )
                                     } else {
                                         MultiSelectBottomBar(

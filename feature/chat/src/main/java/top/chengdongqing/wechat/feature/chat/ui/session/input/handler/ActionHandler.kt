@@ -40,7 +40,8 @@ class ActionHandler(
     private val onContactCard: () -> Unit,
     private val onMusic: () -> Unit,
     private val onLive: () -> Unit,
-    private val onTransfer: () -> Unit
+    private val onTransfer: () -> Unit,
+    private val onFavorite: () -> Unit
 ) {
     /** 统一入口，按 action 路由 */
     fun handleAction(action: MoreAction, isLongClick: Boolean) {
@@ -55,6 +56,7 @@ class ActionHandler(
             MoreAction.Music -> onMusic()
             MoreAction.Live -> onLive()
             MoreAction.Transfer -> onTransfer()
+            MoreAction.Favorite -> onFavorite()
             else -> Unit
         }
     }
@@ -73,6 +75,7 @@ fun rememberActionHandler(
     onLaunchCall: (CallType) -> Unit,
     onSelectMusic: () -> Unit,
     onStartLive: () -> Unit,
+    onOpenFavorites: () -> Unit,
     onSendMessage: (MessageContent) -> Unit
 ): ActionHandler {
     val context = LocalContext.current
@@ -192,7 +195,8 @@ fun rememberActionHandler(
 
                     onSendMessage(MessageContent.Sticker(localPath))
                 }
-            }
+            },
+            onFavorite = onOpenFavorites
         )
     }
 }

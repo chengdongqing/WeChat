@@ -13,6 +13,7 @@ import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.dao.ContactDao
 import top.chengdongqing.wechat.core.database.dao.ContactTagDao
+import top.chengdongqing.wechat.core.database.dao.FavoriteDao
 import top.chengdongqing.wechat.core.database.dao.FriendRequestDao
 import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.dao.MediaAssetReferenceDao
@@ -59,6 +60,9 @@ object DatabaseModule {
 
     @Provides
     fun provideContactTagDao(database: WeDatabase): ContactTagDao = database.contactTagDao()
+
+    @Provides
+    fun provideFavoriteDao(database: WeDatabase): FavoriteDao = database.favoriteDao()
 
     private const val DATABASE_NAME = "wechat"
 }

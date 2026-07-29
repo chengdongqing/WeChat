@@ -59,6 +59,22 @@ sealed interface NavigationKey : NavKey {
     @Serializable data object EditId : NavigationKey
     @Serializable data object EditSignature : NavigationKey
     @Serializable data object EditGender : NavigationKey
+    @Serializable
+    data class Favorites(val targetChatId: String? = null) : NavigationKey
+    @Serializable
+    data class FavoriteEditor(val favoriteId: String? = null) : NavigationKey
+    @Serializable
+    data object Services : NavigationKey
+    @Serializable
+    data object Wallet : NavigationKey
+    @Serializable
+    data object WalletBalance : NavigationKey
+    @Serializable
+    data object BankCards : NavigationKey
+    @Serializable
+    data object PaymentBills : NavigationKey
+    @Serializable
+    data object PaymentCode : NavigationKey
 
     @Serializable data object Settings : NavigationKey
     @Serializable data object StorageSettings : NavigationKey

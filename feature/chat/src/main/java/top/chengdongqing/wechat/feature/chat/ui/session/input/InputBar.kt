@@ -75,7 +75,8 @@ fun InputBar(
     uiState: ChatSessionUiState,
     listState: LazyListState,
     onLaunchCall: (type: CallType) -> Unit,
-    onStartLive: () -> Unit
+    onStartLive: () -> Unit,
+    onOpenFavorites: () -> Unit
 ) {
     val focusRequester = remember { NativeFocusRequester() }
     val controller = rememberInputBarController(focusRequester, uiState.isSendButtonOn)
@@ -85,7 +86,8 @@ fun InputBar(
         controller = controller,
         onSendMessage = viewModel::sendMessage,
         onLaunchCall = onLaunchCall,
-        onStartLive = onStartLive
+        onStartLive = onStartLive,
+        onOpenFavorites = onOpenFavorites
     )
     var showMentionPicker by remember { mutableStateOf(false) }
     val inputActions = remember(actions, state.inputText, uiState.mentionMembers) {

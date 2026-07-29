@@ -44,6 +44,9 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                     onNavigateToMusicPreview = { _, _ -> },
                     onNavigateToRequestAddFriend = {},
                     onNavigateToWebView = {},
+                    onNavigateToFavorites = {
+                        backStack.add(NavigationKey.Favorites(it.groupId))
+                    },
                     onNavigateToLive = { liveId, isHost, hostId ->
                         backStack.add(NavigationKey.LiveRoom(it.groupId, liveId, isHost, hostId))
                     },
@@ -84,6 +87,9 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                 },
                 onNavigateToRequestAddFriend = { backStack.add(NavigationKey.RequestAddFriend(chatId)) },
                 onNavigateToWebView = { url -> backStack.add(NavigationKey.WebView(url)) },
+                onNavigateToFavorites = {
+                    backStack.add(NavigationKey.Favorites(chatId))
+                },
                 onNavigateToLive = { liveId, isHost, hostId ->
                     backStack.add(NavigationKey.LiveRoom(chatId, liveId, isHost, hostId))
                 },

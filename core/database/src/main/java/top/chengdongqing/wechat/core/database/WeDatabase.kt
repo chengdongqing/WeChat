@@ -9,6 +9,7 @@ import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.dao.ContactDao
 import top.chengdongqing.wechat.core.database.dao.ContactTagDao
+import top.chengdongqing.wechat.core.database.dao.FavoriteDao
 import top.chengdongqing.wechat.core.database.dao.FriendRequestDao
 import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.dao.MediaAssetReferenceDao
@@ -19,6 +20,7 @@ import top.chengdongqing.wechat.core.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.core.database.entity.ContactEntity
 import top.chengdongqing.wechat.core.database.entity.ContactTagEntity
 import top.chengdongqing.wechat.core.database.entity.ContactTagMemberEntity
+import top.chengdongqing.wechat.core.database.entity.FavoriteEntity
 import top.chengdongqing.wechat.core.database.entity.FriendRequestEntity
 import top.chengdongqing.wechat.core.database.entity.GroupEntity
 import top.chengdongqing.wechat.core.database.entity.GroupMemberEntity
@@ -38,9 +40,10 @@ import top.chengdongqing.wechat.core.database.entity.MessageEntity
         GroupMemberEntity::class,
         ContactTagEntity::class,
         ContactTagMemberEntity::class,
-        MediaAssetReferenceEntity::class
+        MediaAssetReferenceEntity::class,
+        FavoriteEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 @ColumnTypeConverters(DatabaseConverters::class)
@@ -55,4 +58,5 @@ abstract class WeDatabase : RoomDatabase() {
     abstract fun mediaAssetReferenceDao(): MediaAssetReferenceDao
     abstract fun groupDao(): GroupDao
     abstract fun contactTagDao(): ContactTagDao
+    abstract fun favoriteDao(): FavoriteDao
 }
