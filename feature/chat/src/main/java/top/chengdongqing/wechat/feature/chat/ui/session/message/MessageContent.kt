@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextRange
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.feature.chat.ui.session.message.content.AlbumMediaContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.CallContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.ContactCardContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.FileContent
@@ -22,6 +23,8 @@ import top.chengdongqing.wechat.feature.chat.ui.session.message.content.VoiceCon
 @Composable
 fun MessageContent(
     message: ChatMessage,
+    albumMessages: List<ChatMessage> = emptyList(),
+    onAlbumMediaClick: (ChatMessage) -> Unit = {},
     textSelection: TextRange? = null,
     onTextSelectionChange: (TextRange) -> Unit = {},
     onTextSelectionDragChange: (Boolean) -> Unit = {},
@@ -37,7 +40,13 @@ fun MessageContent(
         )
         is MessageContent.Voice -> VoiceContent(message)
         is MessageContent.Sticker -> StickerContent(content)
-        is MessageContent.Image, is MessageContent.Video -> MediaContent(message)
+        is MessageContent.Image, is MessageContent.Video -> {
+            if (albumMessages.size >= 3) {
+                AlbumMediaContent(albumMessages, onAlbumMediaClick)
+            } else {
+                MediaContent(message)
+            }
+        }
         is MessageContent.Call -> CallContent(message)
         is MessageContent.Location -> LocationContent(content)
         is MessageContent.File -> FileContent(message)

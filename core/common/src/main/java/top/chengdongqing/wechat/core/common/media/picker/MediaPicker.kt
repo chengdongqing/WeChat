@@ -19,11 +19,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDownCircle
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -51,7 +55,7 @@ fun WeMediaPicker(
     type: VisualMediaType,
     count: Int,
     onCancel: () -> Unit,
-    onConfirm: (Array<MediaItem>) -> Unit
+    onConfirm: (Array<MediaItem>, merge: Boolean) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -66,8 +70,8 @@ fun WeMediaPicker(
                 WeLoadMore()
             } else {
                 MediaGrid(state)
-                BottomBar(state) {
-                    onConfirm(state.selectedMediaList.toTypedArray())
+                BottomBar(state) { merge ->
+                    onConfirm(state.selectedMediaList.toTypedArray(), merge)
                 }
             }
         }
@@ -143,35 +147,57 @@ private fun TopBar(
 }
 
 @Composable
-private fun BottomBar(state: MediaPickerState, onConfirm: () -> Unit) {
+private fun BottomBar(state: MediaPickerState, onConfirm: (Boolean) -> Unit) {
     val context = LocalContext.current
     val selectedCount = state.selectedMediaList.size
     val countDescription = if (selectedCount > 0) "($selectedCount)" else ""
 
-    Row(
+    var merge by remember { mutableStateOf(false) }
+    if (selectedCount < 3) merge = false
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Text(
-            text = "${stringResource(DesignR.string.action_preview)}$countDescription",
-            color = WeTheme.colorScheme.textPrimary,
-            fontSize = 16.sp,
-            modifier = Modifier
-                .alpha(if (selectedCount > 0) 1f else 0.6f)
-                .clickable(enabled = selectedCount > 0) {
-                    context.previewMedias(state.selectedMediaList)
-                }
-        )
-        WeButton(
-            text = "${stringResource(DesignR.string.action_ok)}$countDescription",
-            size = ButtonSize.Small,
-            enabled = selectedCount > 0
+        if (selectedCount >= 3) {
+            Row(
+                modifier = Modifier
+                    .clickable { merge = !merge }
+                    .padding(bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(checked = merge, onCheckedChange = { merge = it })
+                Text(
+                    text = "发送后合并展示",
+                    color = WeTheme.colorScheme.textPrimary,
+                    fontSize = 16.sp
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            onConfirm()
+            Text(
+                text = "${stringResource(DesignR.string.action_preview)}$countDescription",
+                color = WeTheme.colorScheme.textPrimary,
+                fontSize = 16.sp,
+                modifier = Modifier
+                    .alpha(if (selectedCount > 0) 1f else 0.6f)
+                    .clickable(enabled = selectedCount > 0) {
+                        context.previewMedias(state.selectedMediaList)
+                    }
+            )
+            WeButton(
+                text = "${stringResource(DesignR.string.action_ok)}$countDescription",
+                size = ButtonSize.Small,
+                enabled = selectedCount > 0
+            ) {
+                onConfirm(merge)
+            }
         }
     }
 }

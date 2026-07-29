@@ -49,6 +49,8 @@ import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 @Composable
 fun MessageItem(
     message: ChatMessage,
+    albumMessages: List<ChatMessage> = emptyList(),
+    onAlbumMediaClick: (ChatMessage) -> Unit = {},
     peerAvatar: Any? = null,
     myAvatar: Any? = null,
     isSelectMode: Boolean = false,
@@ -178,6 +180,8 @@ fun MessageItem(
                                     }
                                     MessageContent(
                                         message = message,
+                                        albumMessages = albumMessages,
+                                        onAlbumMediaClick = onAlbumMediaClick,
                                         textSelection = textSelection,
                                         onTextSelectionChange = onTextSelectionChange,
                                         onTextSelectionDragChange = onTextSelectionDragChange,

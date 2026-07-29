@@ -25,7 +25,10 @@ sealed class MessageContent(
         open val mimeType: String,
         open val width: Int,
         open val height: Int,
-        open val size: Long
+        open val size: Long,
+        open val albumId: String? = null,
+        open val albumIndex: Int = 0,
+        open val albumSize: Int = 1
     ) : MessageContent(showBubbleArrow = false, showLoading = false) {
         val ratio: Float get() = width.toFloat() / height.toFloat()
     }
@@ -36,8 +39,11 @@ sealed class MessageContent(
         override val mimeType: String,
         override val width: Int,
         override val height: Int,
-        override val size: Long
-    ) : Media(localPath, filename, mimeType, width, height, size)
+        override val size: Long,
+        override val albumId: String? = null,
+        override val albumIndex: Int = 0,
+        override val albumSize: Int = 1
+    ) : Media(localPath, filename, mimeType, width, height, size, albumId, albumIndex, albumSize)
 
     data class Video(
         override val localPath: String,
@@ -46,8 +52,11 @@ sealed class MessageContent(
         override val width: Int,
         override val height: Int,
         override val size: Long,
-        val duration: Long
-    ) : Media(localPath, filename, mimeType, width, height, size)
+        val duration: Long,
+        override val albumId: String? = null,
+        override val albumIndex: Int = 0,
+        override val albumSize: Int = 1
+    ) : Media(localPath, filename, mimeType, width, height, size, albumId, albumIndex, albumSize)
 
     data class Call(
         val type: CallType,

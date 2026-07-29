@@ -129,7 +129,11 @@ fun TextContent(
                 .onGloballyPositioned {
                     textPositionInWindow = it.positionInWindow()
                 }
-                .magnifier(sourceCenter = { magnifierPosition })
+                .magnifier(
+                    sourceCenter = { magnifierPosition },
+                    cornerRadius = 26.dp,
+                    elevation = 6.dp
+                )
                 .drawBehind {
                     val layout = textLayout
                     if (layout != null &&

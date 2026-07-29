@@ -58,7 +58,10 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
                 filename = data.filename,
                 width = data.width,
                 height = data.height,
-                size = fileSize ?: 0
+                size = fileSize ?: 0,
+                albumId = data.albumId,
+                albumIndex = data.albumIndex,
+                albumSize = data.albumSize
             )
         }
 
@@ -74,7 +77,9 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
                 width = data.width,
                 height = data.height,
                 size = fileSize ?: 0,
-                duration = mediaDuration ?: 0
+                duration = mediaDuration ?: 0, albumId = data.albumId,
+                albumIndex = data.albumIndex,
+                albumSize = data.albumSize
             )
         }
 
@@ -218,7 +223,9 @@ fun MessageContent.toEntity(
                         width = content.width,
                         height = content.height,
                         mimeType = content.mimeType,
-                        filename = content.filename
+                        filename = content.filename, albumId = content.albumId,
+                        albumIndex = content.albumIndex,
+                        albumSize = content.albumSize
                     )
                 ),
                 localPath = content.localPath,
@@ -232,7 +239,9 @@ fun MessageContent.toEntity(
                         width = content.width,
                         height = content.height,
                         mimeType = content.mimeType,
-                        filename = content.filename
+                        filename = content.filename, albumId = content.albumId,
+                        albumIndex = content.albumIndex,
+                        albumSize = content.albumSize
                     )
                 ),
                 localPath = content.localPath,
@@ -375,7 +384,10 @@ data class MediaContent(
     val width: Int = 0,
     val height: Int = 0,
     val mimeType: String = "",
-    val filename: String = ""
+    val filename: String = "",
+    val albumId: String? = null,
+    val albumIndex: Int = 0,
+    val albumSize: Int = 1
 )
 
 @Serializable

@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -79,6 +80,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBar
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageItem
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageToolbarState
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
+import top.chengdongqing.wechat.feature.chat.ui.session.message.content.LocalExpandedMediaAlbums
 import top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar.MessageToolbar
 import top.chengdongqing.wechat.feature.chat.ui.session.peer.PeerDeviceOverlay
 import top.chengdongqing.wechat.feature.chat.ui.session.util.KeyboardScrollEffect
@@ -99,6 +101,7 @@ fun ChatSessionScreen(
     onNavigateToFavorites: () -> Unit,
     viewModel: ChatSessionViewModel
 ) {
+    val expandedMediaAlbums = remember(chatId) { mutableStateListOf<String>() }
     var mediaPreview by remember { mutableStateOf<ChatMediaPreviewState?>(null) }
     var mediaPreviewClosing by remember { mutableStateOf(false) }
     val mediaPreviewScope = rememberCoroutineScope()
@@ -201,7 +204,10 @@ fun ChatSessionScreen(
         }
     )
 
-    CompositionLocalProvider(LocalChatSessionContext provides chatContext) {
+    CompositionLocalProvider(
+        LocalChatSessionContext provides chatContext,
+        LocalExpandedMediaAlbums provides expandedMediaAlbums
+    ) {
         SharedTransitionLayout {
             AnimatedContent(
                 targetState = mediaPreview,
@@ -513,6 +519,15 @@ private fun ChatMessageList(
             contentType = lazyMessageItems.itemContentType { it.content.toMessageType() }
         ) { index ->
             lazyMessageItems[index]?.let { message ->
+                val media = message.content as? MessageContent.Media
+                val albumMessages = media?.albumId?.let { albumId ->
+                    lazyMessageItems.itemSnapshotList.items.filter {
+                        (it.content as? MessageContent.Media)?.albumId == albumId
+                    }
+                }.orEmpty()
+                if (media?.albumId != null && media.albumIndex != 0) {
+                    return@let
+                }
                 val displayMessage = if (message.id == streamingAiMessage?.id) {
                     message.copy(content = MessageContent.Text(streamingAiMessage.text))
                 } else {
@@ -522,6 +537,8 @@ private fun ChatMessageList(
                 val shake = bombShakeTransform(bombProgress, phase)
                 MessageItem(
                     message = displayMessage,
+                    albumMessages = albumMessages,
+                    onAlbumMediaClick = viewModel::handleMessageClick,
                     peerAvatar = if (viewModel.isLocalAiSession) {
                         R.drawable.img_logo
                     } else uiState.peerAvatar,

@@ -21,6 +21,7 @@ import top.chengdongqing.wechat.core.common.util.deleteFileByUri
 import top.chengdongqing.wechat.core.common.util.getFileMetadata
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.model.MessageType
+import java.util.UUID
 
 /**
  * 媒体处理器
@@ -37,7 +38,13 @@ class MediaHandler(
     /**
      * 将媒体 Uri 处理并发送
      */
-    private suspend fun processAndSend(uri: Uri, isFromCapture: Boolean = false) {
+    private suspend fun processAndSend(
+        uri: Uri,
+        isFromCapture: Boolean = false,
+        albumId: String? = null,
+        albumIndex: Int = 0,
+        albumSize: Int = 1
+    ) {
         // 获取元数据
         val metadata = context.getFileMetadata(uri) ?: return
         val isImage = metadata.isImage
@@ -62,7 +69,9 @@ class MediaHandler(
                 filename = metadata.filename,
                 width = metadata.width,
                 height = metadata.height,
-                size = metadata.size
+                size = metadata.size, albumId = albumId,
+                albumIndex = albumIndex,
+                albumSize = albumSize
             )
         } else {
             MessageContent.Video(
@@ -72,18 +81,26 @@ class MediaHandler(
                 width = metadata.width,
                 height = metadata.height,
                 duration = metadata.duration,
-                size = metadata.size
+                size = metadata.size, albumId = albumId,
+                albumIndex = albumIndex,
+                albumSize = albumSize
             )
         }
 
         onSendMessage(content)
     }
 
-    fun handleMediaSelection(uris: List<Uri>) {
+    fun handleMediaSelection(uris: List<Uri>, merge: Boolean = false) {
         onModeChange()
         scope.launch {
+            val albumId = if (merge && uris.size >= 3) UUID.randomUUID().toString() else null
             uris.forEachIndexed { index, uri ->
-                processAndSend(uri)
+                processAndSend(
+                    uri = uri,
+                    albumId = albumId,
+                    albumIndex = index,
+                    albumSize = if (albumId != null) uris.size else 1
+                )
                 if (index < uris.lastIndex) delay(50)
             }
         }
@@ -128,8 +145,8 @@ fun rememberMediaLaunchers(
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
 
     // 媒体选择器
-    val launchMediaPicker = rememberPickMediasLauncher { items ->
-        mediaHandler.handleMediaSelection(items.map { it.uri })
+    val launchMediaPicker = rememberPickMediasLauncher { items, merge ->
+        mediaHandler.handleMediaSelection(items.map { it.uri }, merge)
     }
 
     // 系统媒体选择器

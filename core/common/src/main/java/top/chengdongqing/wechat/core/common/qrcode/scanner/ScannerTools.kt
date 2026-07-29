@@ -41,8 +41,8 @@ internal fun BoxScope.ScannerTools(state: ScannerState) {
     val context = LocalContext.current
     val resources = LocalResources.current
 
-    val pickMedia = rememberPickMediasLauncher {
-        state.scanPhoto(it.first().uri) {
+    val pickMedia = rememberPickMediasLauncher { medias, _ ->
+        state.scanPhoto(medias.first().uri) {
             context.showToast(resources.getString(DesignR.string.scan_recognize_failed))
         }
     }
