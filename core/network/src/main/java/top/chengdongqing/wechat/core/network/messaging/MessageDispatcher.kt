@@ -11,6 +11,9 @@ import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.ReceiptType
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
+import top.chengdongqing.wechat.core.data.storage.AssetOwner
+import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.GroupDao
@@ -24,7 +27,6 @@ import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.model.SendStatus
-import top.chengdongqing.wechat.core.network.session.FileReferenceManager
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,7 +41,7 @@ class MessageDispatcher @Inject constructor(
     private val signalingDispatcher: SignalingDispatcher,
     private val contactRepository: ContactRepository,
     private val mediaFileDao: MediaFileDao,
-    private val fileReferenceManager: FileReferenceManager,
+    private val assetReferenceManager: AssetReferenceManager,
     private val messageDao: MessageDao,
     private val groupDao: GroupDao,
     private val groupChatCoordinator: GroupChatCoordinator,
@@ -459,7 +461,11 @@ class MessageDispatcher @Inject constructor(
         val existingFile = mediaFileDao.getByChecksum(protocol.checksum)
 
         if (existingFile != null) {
-            fileReferenceManager.retain(existingFile.localPath, protocol.checksum)
+            assetReferenceManager.attach(
+                existingFile.localPath,
+                protocol.checksum,
+                AssetOwner(AssetOwnerType.Message, protocol.messageId)
+            )
             existingFile.localPath
         } else {
             val newPath = privateFileManager.saveMedia(
@@ -467,7 +473,11 @@ class MessageDispatcher @Inject constructor(
                 sourceFile = tempFile,
                 extension = protocol.extension
             ).getOrThrow()
-            fileReferenceManager.retain(newPath, protocol.checksum)
+            assetReferenceManager.attach(
+                newPath,
+                protocol.checksum,
+                AssetOwner(AssetOwnerType.Message, protocol.messageId)
+            )
             newPath
         }
     }.also {

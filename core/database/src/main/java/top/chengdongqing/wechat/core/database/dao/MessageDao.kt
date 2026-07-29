@@ -61,6 +61,12 @@ interface MessageDao : BaseDao<MessageEntity> {
     )
     suspend fun getTransferRelatedIdsBySessionId(sessionId: String): List<String>
 
+    @Query("SELECT id FROM messages WHERE sessionId = :sessionId")
+    suspend fun getIdsBySessionId(sessionId: String): List<String>
+
+    @Query("SELECT id FROM messages")
+    suspend fun getAllIds(): List<String>
+
     @Query(
         """
       SELECT localPath FROM messages 

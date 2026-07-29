@@ -17,7 +17,7 @@ class MusicLibraryViewModel @Inject constructor(
 
     /**
      * 曲库只拥有自己的文件入口。历史消息仍引用音频时不能物理删除；
-     * 最后一条消息删除后会沿用消息仓库的 FileReferenceManager 清理。
+     * 最后一条消息删除后会由 AssetReferenceManager 统一清理。
      */
     fun deleteFiles(track: MusicTrack) {
         viewModelScope.launch(Dispatchers.IO) {

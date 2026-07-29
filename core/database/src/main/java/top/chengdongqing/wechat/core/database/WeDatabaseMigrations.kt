@@ -77,6 +77,61 @@ object WeDatabaseMigrations {
         }
     }
 
+    private val migration5To6 = object : Migration(5, 6) {
+        override suspend fun migrate(connection: SQLiteConnection) {
+            connection.execSQL(
+                """CREATE TABLE IF NOT EXISTS `media_asset_references` (
+                    `assetPath` TEXT NOT NULL, `ownerType` TEXT NOT NULL,
+                    `ownerId` TEXT NOT NULL, `createdAt` INTEGER NOT NULL,
+                    PRIMARY KEY(`assetPath`, `ownerType`, `ownerId`))""".trimIndent()
+            )
+            connection.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_media_asset_references_ownerType_ownerId` " +
+                        "ON `media_asset_references` (`ownerType`, `ownerId`)"
+            )
+            connection.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_media_asset_references_assetPath` " +
+                        "ON `media_asset_references` (`assetPath`)"
+            )
+            val now = System.currentTimeMillis()
+            connection.execSQL(
+                """CREATE TABLE `media_files_v6` (`localPath` TEXT NOT NULL,
+                    `checksum` TEXT NOT NULL, `createdAt` INTEGER NOT NULL,
+                    PRIMARY KEY(`localPath`))"""
+            )
+            connection.execSQL(
+                """INSERT OR IGNORE INTO media_files_v6(localPath, checksum, createdAt)
+                    SELECT localPath, checksum, createdAt FROM media_files"""
+            )
+            connection.execSQL(
+                """INSERT OR IGNORE INTO media_files_v6(localPath, checksum, createdAt)
+                    SELECT localPath, '', $now FROM messages WHERE localPath IS NOT NULL"""
+            )
+            connection.execSQL(
+                """INSERT OR IGNORE INTO media_files_v6(localPath, checksum, createdAt)
+                    SELECT avatarPath, '', $now FROM contacts WHERE avatarPath IS NOT NULL"""
+            )
+            connection.execSQL(
+                """INSERT OR IGNORE INTO media_files_v6(localPath, checksum, createdAt)
+                    SELECT avatarPath, '', $now FROM friend_requests WHERE avatarPath IS NOT NULL"""
+            )
+            connection.execSQL("DROP TABLE media_files")
+            connection.execSQL("ALTER TABLE media_files_v6 RENAME TO media_files")
+            connection.execSQL(
+                """INSERT OR IGNORE INTO media_asset_references(assetPath, ownerType, ownerId, createdAt)
+                    SELECT localPath, 'MESSAGE', id, $now FROM messages WHERE localPath IS NOT NULL"""
+            )
+            connection.execSQL(
+                """INSERT OR IGNORE INTO media_asset_references(assetPath, ownerType, ownerId, createdAt)
+                    SELECT avatarPath, 'CONTACT', id, $now FROM contacts WHERE avatarPath IS NOT NULL"""
+            )
+            connection.execSQL(
+                """INSERT OR IGNORE INTO media_asset_references(assetPath, ownerType, ownerId, createdAt)
+                    SELECT avatarPath, 'FRIEND_REQUEST', id, $now FROM friend_requests WHERE avatarPath IS NOT NULL"""
+            )
+        }
+    }
+
     val all: Array<Migration> =
-        arrayOf(migration1To2, migration2To3, migration3To4, migration4To5)
+        arrayOf(migration1To2, migration2To3, migration3To4, migration4To5, migration5To6)
 }

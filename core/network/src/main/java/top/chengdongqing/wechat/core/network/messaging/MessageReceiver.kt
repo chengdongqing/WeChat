@@ -14,6 +14,9 @@ import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.ReceiptType
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.data.storage.AssetOwner
+import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.model.SendError
@@ -26,7 +29,6 @@ import top.chengdongqing.wechat.core.network.model.FileAckStatus
 import top.chengdongqing.wechat.core.network.model.FileMetaAck
 import top.chengdongqing.wechat.core.network.model.Packet
 import top.chengdongqing.wechat.core.network.model.PacketType
-import top.chengdongqing.wechat.core.network.session.FileReferenceManager
 import top.chengdongqing.wechat.core.network.transfer.TransferManager
 import java.io.BufferedOutputStream
 import java.io.File
@@ -46,7 +48,7 @@ class MessageReceiver @Inject constructor(
     private val permissionChecker: MessagePermissionChecker,
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
-    private val fileReferenceManager: FileReferenceManager,
+    private val assetReferenceManager: AssetReferenceManager,
     private val chunkStorageManager: ChunkStorageManager,
     private val fileAckRegistry: FileAckRegistry,
     private val transferManager: TransferManager,
@@ -208,7 +210,11 @@ class MessageReceiver @Inject constructor(
         // 判断是否可以秒传
         val existingFile = mediaFileDao.getByChecksum(metadata.checksum)
         if (existingFile != null) {
-            fileReferenceManager.retain(existingFile.localPath, metadata.checksum)
+            assetReferenceManager.attach(
+                existingFile.localPath,
+                metadata.checksum,
+                AssetOwner(AssetOwnerType.Message, metadata.messageId)
+            )
             messageDispatcher.dispatchExistingMedia(metadata, existingFile.localPath)
             sendFileMetaAck(userId, metadata.messageId, FileAckStatus.AlreadyExists)
             return

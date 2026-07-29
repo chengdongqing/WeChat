@@ -8,9 +8,13 @@ import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.util.downloadAvatar
 import top.chengdongqing.wechat.core.common.util.getOrPutAsync
+import top.chengdongqing.wechat.core.common.util.toSHA256Hex
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
+import top.chengdongqing.wechat.core.data.storage.AssetOwner
+import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
@@ -18,7 +22,6 @@ import top.chengdongqing.wechat.core.database.dao.ContactDao
 import top.chengdongqing.wechat.core.database.entity.ContactEntity
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.network.crypto.PacketSigner
-import top.chengdongqing.wechat.core.network.session.FileReferenceManager
 import top.chengdongqing.wechat.feature.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.feature.contacts.data.mapper.toEntity
 import java.io.File
@@ -32,7 +35,7 @@ class ContactRepositoryImpl @Inject constructor(
     private val connectionInfoDao: ConnectionInfoDao,
     private val packetSigner: PacketSigner,
     private val privateFileManager: PrivateFileManager,
-    private val fileReferenceManager: FileReferenceManager
+    private val assetReferenceManager: AssetReferenceManager
 ) : ContactRepository {
 
     // 联系人缓存
@@ -58,6 +61,13 @@ class ContactRepositoryImpl @Inject constructor(
 
     override suspend fun createContact(contact: Contact) {
         contactDao.insert(contact.toEntity())
+        contact.avatarPath?.let { path ->
+            assetReferenceManager.attach(
+                path,
+                File(path).toSHA256Hex(),
+                AssetOwner(AssetOwnerType.Contact, contact.id)
+            )
+        }
     }
 
     override suspend fun updateContact(
@@ -104,19 +114,21 @@ class ContactRepositoryImpl @Inject constructor(
             )
         }
 
-        // 删除旧文件
-        if (newAvatarPath != null && oldAvatarPath != null) {
-            val toDelete = fileReferenceManager.release(oldAvatarPath)
-            toDelete?.let { privateFileManager.deleteFile(it) }
+        if (newAvatarPath != null && newAvatarPath != oldAvatarPath) {
+            assetReferenceManager.attach(
+                newAvatarPath,
+                File(newAvatarPath).toSHA256Hex(),
+                AssetOwner(AssetOwnerType.Contact, userId)
+            )
         }
     }
 
     override suspend fun deleteContact(userId: String) {
         val contact = contactDao.getById(userId) ?: return
 
+        // 会话删除包含独立的资源清理，不应嵌套在联系人数据库事务中。
+        chatSessionRepository.deleteSession(userId)
         database.withWriteTransaction {
-            // 删除会话的所有信息、所有消息记录、所有会话文件
-            chatSessionRepository.deleteSession(userId)
             chatSessionDao.deleteById(userId)
             // 删除联系人
             contactDao.deleteById(userId)
@@ -126,8 +138,7 @@ class ContactRepositoryImpl @Inject constructor(
             packetSigner.invalidateCache(userId)
         }
 
-        val toDelete = fileReferenceManager.release(contact.avatarPath)
-        toDelete?.let { privateFileManager.deleteFile(it) }
+        assetReferenceManager.detach(AssetOwner(AssetOwnerType.Contact, contact.id))
 
         contactCache.remove(userId)
     }

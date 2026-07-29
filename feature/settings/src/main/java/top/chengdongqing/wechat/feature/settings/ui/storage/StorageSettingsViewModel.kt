@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.database.dao.MediaFileDao
+import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import java.io.File
 import javax.inject.Inject
@@ -34,7 +35,7 @@ enum class StorageCategory { Cache, Chats, Resources }
 class StorageSettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val messageDao: MessageDao,
-    private val mediaFileDao: MediaFileDao
+    private val assetReferenceManager: AssetReferenceManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StorageUiState())
     val uiState = _uiState.asStateFlow()
@@ -58,10 +59,11 @@ class StorageSettingsViewModel @Inject constructor(
                         context.codeCacheDir.deleteChildren()
                     }
                     StorageCategory.Chats -> {
-                        messageDao.getAllLocalPaths().forEach { File(it).delete() }
+                        assetReferenceManager.detachAll(
+                            AssetOwnerType.Message,
+                            messageDao.getAllIds()
+                        )
                         messageDao.clearAllLocalPaths()
-                        mediaFileDao.getUnreferencedPaths().forEach { File(it).delete() }
-                        mediaFileDao.deleteUnreferenced()
                     }
                     StorageCategory.Resources -> RESOURCE_DIRS.forEach {
                         File(context.filesDir, it).deleteChildren()

@@ -224,7 +224,10 @@ class PrivateFileManager @Inject constructor(
      */
     suspend fun deleteFile(filePath: String): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            File(filePath).takeIf { it.exists() }?.delete()
+            val file = File(filePath)
+            if (file.exists() && !file.delete()) {
+                throw IOException("无法删除文件: $filePath")
+            }
             Unit
         }
     }

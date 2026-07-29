@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.common.util.clearAllCaches
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.network.transfer.TransferSanitizer
 
 @HiltAndroidApp
@@ -19,6 +20,9 @@ class WeChatApplication : Application() {
     @Inject
     lateinit var transferSanitizer: TransferSanitizer
 
+    @Inject
+    lateinit var assetReferenceManager: AssetReferenceManager
+
     override fun onCreate() {
         super.onCreate()
 
@@ -27,6 +31,7 @@ class WeChatApplication : Application() {
          */
         scope.launch {
             clearAllCaches()
+            assetReferenceManager.cleanupOrphans()
         }
 
         /**

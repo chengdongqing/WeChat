@@ -6,9 +6,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.util.getOrPutAsync
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
+import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
@@ -16,7 +17,6 @@ import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.model.ChatSession
 import top.chengdongqing.wechat.core.network.messaging.ChunkStorageManager
-import top.chengdongqing.wechat.core.network.session.FileReferenceManager
 import top.chengdongqing.wechat.feature.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.feature.chat.data.mapper.toEntity
 import javax.inject.Inject
@@ -26,9 +26,8 @@ class ChatSessionRepositoryImpl @Inject constructor(
     private val chatSessionDao: ChatSessionDao,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
-    private val fileReferenceManager: FileReferenceManager,
-    private val chunkStorageManager: ChunkStorageManager,
-    private val privateFileManager: PrivateFileManager
+    private val assetReferenceManager: AssetReferenceManager,
+    private val chunkStorageManager: ChunkStorageManager
 ) : ChatSessionRepository {
 
     // 会话缓存
@@ -120,8 +119,8 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
     override suspend fun deleteSession(sessionId: String, shouldHide: Boolean) {
         // 查询当前会话所有的媒体文件，方便统一删除
-        val localPaths = messageDao.getLocalPathsBySessionId(sessionId)
-        val messageIds = messageDao.getTransferRelatedIdsBySessionId(sessionId)
+        val messageIds = messageDao.getIdsBySessionId(sessionId)
+        val transferIds = messageDao.getTransferRelatedIdsBySessionId(sessionId)
 
         // 删除会话，不真正删除这条记录，目的是保留 置顶/免到扰 等设置
         // 执行：清空消息+隐藏会话
@@ -134,11 +133,10 @@ class ChatSessionRepositoryImpl @Inject constructor(
         }
 
         // 清理可能存在的本地文件
-        val toDelete = fileReferenceManager.releaseAll(localPaths)
-        privateFileManager.deleteFiles(toDelete)
+        assetReferenceManager.detachAll(AssetOwnerType.Message, messageIds)
 
         // 清理可能存在的文件分片
-        chunkStorageManager.cleanupBatch(messageIds)
+        chunkStorageManager.cleanupBatch(transferIds)
 
         // 从缓存清除
         sessionCache.remove(sessionId)
@@ -146,7 +144,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
     override suspend fun deleteAllSessions() {
         // 查询所有会话的媒体文件路径
-        val localPaths = messageDao.getAllLocalPaths()
+        val messageIds = messageDao.getAllIds()
 
         // 清空所有消息 + 隐藏所有会话（保留置顶/免打扰等设置）
         database.withWriteTransaction {
@@ -155,8 +153,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
         }
 
         // 清理可能存在的本地文件
-        val toDelete = fileReferenceManager.releaseAll(localPaths)
-        privateFileManager.deleteFiles(toDelete)
+        assetReferenceManager.detachAll(AssetOwnerType.Message, messageIds)
 
         // 清理可能存在的文件分片
         chunkStorageManager.clearAllTransfers()

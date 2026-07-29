@@ -23,6 +23,7 @@ import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.util.isWithinSeconds
 import top.chengdongqing.wechat.core.common.util.randomUUID
+import top.chengdongqing.wechat.core.common.util.toSHA256Hex
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -32,6 +33,9 @@ import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.data.storage.AssetOwner
+import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.GroupDao
@@ -46,7 +50,6 @@ import top.chengdongqing.wechat.core.network.messaging.ChatSessionUpdater
 import top.chengdongqing.wechat.core.network.messaging.ChunkStorageManager
 import top.chengdongqing.wechat.core.network.messaging.MessageSender
 import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
-import top.chengdongqing.wechat.core.network.session.FileReferenceManager
 import top.chengdongqing.wechat.core.network.transfer.TransferManager
 import top.chengdongqing.wechat.feature.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.feature.chat.data.mapper.toEntity
@@ -63,7 +66,7 @@ class MessageRepositoryImpl @Inject constructor(
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
-    private val fileReferenceManager: FileReferenceManager,
+    private val assetReferenceManager: AssetReferenceManager,
     private val privateFileManager: PrivateFileManager,
     private val transferManager: TransferManager,
     private val chunkStorageManager: ChunkStorageManager,
@@ -152,6 +155,13 @@ class MessageRepositoryImpl @Inject constructor(
             messageDao.insert(message)
             // 更新会话
             chatSessionUpdater.update(message, !shouldSkipSend)
+        }
+        message.localPath?.let { path ->
+            assetReferenceManager.attach(
+                localPath = path,
+                checksum = File(path).toSHA256Hex(),
+                owner = AssetOwner(AssetOwnerType.Message, message.id)
+            )
         }
 
         if (!shouldSkipSend) {
@@ -352,9 +362,8 @@ class MessageRepositoryImpl @Inject constructor(
         }
 
         // 删除关联的媒体文件
-        message?.localPath?.let { path ->
-            val toDelete = fileReferenceManager.release(path)
-            toDelete?.let { privateFileManager.deleteFile(it) }
+        message?.let {
+            assetReferenceManager.detach(AssetOwner(AssetOwnerType.Message, it.id))
         }
 
         // 清理可能存在的分片
@@ -376,7 +385,10 @@ class MessageRepositoryImpl @Inject constructor(
             messageDao.update(messageId) { message ->
                 message.copy(
                     isRecalled = true,
-                    content = if (isFromMe) message.content else "" // 如果是对方撤回的：置空消息内容
+                    content = if (isFromMe) message.content else "", // 如果是对方撤回的：置空消息内容
+                    localPath = null,
+                    fileSize = null,
+                    sentBytes = 0L
                 )
             }
             // 更新会话
@@ -393,10 +405,7 @@ class MessageRepositoryImpl @Inject constructor(
         }
 
         // 删除可能存在的媒体文件
-        message.localPath?.let { path ->
-            val toDelete = fileReferenceManager.release(path)
-            toDelete?.let { privateFileManager.deleteFile(it) }
-        }
+        assetReferenceManager.detach(AssetOwner(AssetOwnerType.Message, message.id))
 
         // 清理可能存在的分片
         chunkStorageManager.cleanup(messageId)
@@ -415,9 +424,6 @@ class MessageRepositoryImpl @Inject constructor(
 
     override suspend fun deleteMessages(ids: Set<String>, sessionId: String) =
         withContext(Dispatchers.IO) {
-            // 查询消息关联的媒体文件
-            val localPaths = messageDao.getLocalPathsByIds(ids)
-
             database.withWriteTransaction {
                 // 批量删除消息记录
                 messageDao.deleteByIds(ids)
@@ -426,9 +432,7 @@ class MessageRepositoryImpl @Inject constructor(
                 updateLastMessage(sessionId)
             }
 
-            // 批量删除可能存在的本地文件
-            val toDelete = fileReferenceManager.releaseAll(localPaths)
-            privateFileManager.deleteFiles(toDelete)
+            assetReferenceManager.detachAll(AssetOwnerType.Message, ids)
 
             // 清理可能存在的分片
             ids.forEach { chunkStorageManager.cleanup(it) }

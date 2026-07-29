@@ -31,6 +31,7 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.serialization.json)
     implementation(libs.paging.compose)
+    implementation(libs.room.runtime)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

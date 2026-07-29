@@ -12,6 +12,9 @@ import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageQuote
 import top.chengdongqing.wechat.core.data.model.ReceiptType
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.data.storage.AssetOwner
+import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
@@ -32,7 +35,6 @@ import top.chengdongqing.wechat.core.network.model.FileAckStatus
 import top.chengdongqing.wechat.core.network.model.Packet
 import top.chengdongqing.wechat.core.network.model.PacketType
 import top.chengdongqing.wechat.core.network.security.KeyStoreManager
-import top.chengdongqing.wechat.core.network.session.FileReferenceManager
 import top.chengdongqing.wechat.core.network.transfer.TransferManager
 import top.chengdongqing.wechat.core.network.transfer.WiFiLockManager
 import java.io.File
@@ -61,7 +63,7 @@ class MessageSender @Inject constructor(
     private val keyStoreManager: KeyStoreManager,
     private val avatarServer: AvatarServer,
     private val mediaFileDao: MediaFileDao,
-    private val fileReferenceManager: FileReferenceManager,
+    private val assetReferenceManager: AssetReferenceManager,
     private val fileAckRegistry: FileAckRegistry,
     private val json: Json
 ) {
@@ -221,9 +223,6 @@ class MessageSender @Inject constructor(
                 )
                 // 发送文件内容
                 sendFileChunks(writer, file, message.id)
-            }.onFailure {
-                // 失败后回滚引用计数
-                fileReferenceManager.release(file.absolutePath)
             }.getOrThrow()
         }
     }
@@ -277,9 +276,6 @@ class MessageSender @Inject constructor(
                 streamFileChunks(file, file.length(), messageId, offset) { encodedChunk ->
                     writer.writeNoFlush(Packet(PacketType.FILE_CHUNK, encodedChunk))
                 }
-            }.onFailure {
-                // 失败后回滚引用计数
-                fileReferenceManager.release(file.absolutePath)
             }.getOrThrow()
         }
     }
@@ -503,18 +499,23 @@ class MessageSender @Inject constructor(
         val existingFile = mediaFileDao.getByChecksum(checksum)
 
         return if (existingFile != null) {
-            if (existingFile.localPath == file.absolutePath) {
-                return file
-            }
-
-            fileReferenceManager.retain(existingFile.localPath, checksum)
+            assetReferenceManager.attach(
+                existingFile.localPath,
+                checksum,
+                AssetOwner(AssetOwnerType.Message, message.id)
+            )
+            if (existingFile.localPath == file.absolutePath) return file
             messageDao.update(message.id) { it.copy(localPath = existingFile.localPath) }
             // 不能在发送流程中删除传入文件：它可能属于音乐曲库、转发来源，
             // 或被尚未登记到 media_files 的业务记录持有。这里只切换消息引用；
-            // 物理文件统一由对应业务删除和 FileReferenceManager 负责清理。
+            // 物理文件统一由 AssetReferenceManager 负责清理。
             File(existingFile.localPath)
         } else {
-            fileReferenceManager.retain(file.absolutePath, checksum)
+            assetReferenceManager.attach(
+                file.absolutePath,
+                checksum,
+                AssetOwner(AssetOwnerType.Message, message.id)
+            )
             file
         }
     }

@@ -21,6 +21,9 @@ import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.core.data.repository.PrivacySettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.data.storage.AssetOwner
+import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
+import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.FriendRequestDao
 import top.chengdongqing.wechat.core.database.entity.FriendRequestEntity
@@ -29,7 +32,6 @@ import top.chengdongqing.wechat.core.model.ContactAddSource
 import top.chengdongqing.wechat.core.model.FriendRequest
 import top.chengdongqing.wechat.core.model.FriendRequestStatus
 import top.chengdongqing.wechat.core.network.ble.BLEConnectionManager
-import top.chengdongqing.wechat.core.network.session.FileReferenceManager
 import top.chengdongqing.wechat.feature.contacts.data.mapper.toDomain
 import java.io.File
 import javax.inject.Inject
@@ -42,7 +44,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val privateFileManager: PrivateFileManager,
     private val bleConnectionManager: BLEConnectionManager,
-    private val fileReferenceManager: FileReferenceManager,
+    private val assetReferenceManager: AssetReferenceManager,
     private val privacySettingsRepository: PrivacySettingsRepository
 ) : FriendRequestRepository {
 
@@ -80,8 +82,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
         friendRequestDao.deleteById(requestId)
 
         // 删除头像文件
-        val toDelete = fileReferenceManager.release(request.avatarPath)
-        toDelete?.let { privateFileManager.deleteFile(it) }
+        assetReferenceManager.detach(AssetOwner(AssetOwnerType.FriendRequest, request.id))
     }
 
     override suspend fun sendFriendRequest(
@@ -251,9 +252,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
     ) {
         // 注册文件引用
         targetContact.avatarPath?.let {
-            fileReferenceManager.retain(
+            assetReferenceManager.attach(
                 localPath = it,
-                checksum = File(it).toSHA256Hex()
+                checksum = File(it).toSHA256Hex(),
+                owner = AssetOwner(AssetOwnerType.FriendRequest, requestId)
             )
         }
         friendRequestDao.insert(
@@ -292,9 +294,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
         }
         // 注册文件引用
         avatarPath?.let {
-            fileReferenceManager.retain(
+            assetReferenceManager.attach(
                 localPath = it,
-                checksum = File(it).toSHA256Hex()
+                checksum = File(it).toSHA256Hex(),
+                owner = AssetOwner(AssetOwnerType.FriendRequest, requestId)
             )
         }
 
@@ -325,9 +328,10 @@ class FriendRequestRepositoryImpl @Inject constructor(
     ) {
         // 注册文件引用
         request.avatarPath?.let {
-            fileReferenceManager.retain(
+            assetReferenceManager.attach(
                 localPath = it,
-                checksum = File(it).toSHA256Hex()
+                checksum = File(it).toSHA256Hex(),
+                owner = AssetOwner(AssetOwnerType.Contact, request.userId)
             )
         }
 
