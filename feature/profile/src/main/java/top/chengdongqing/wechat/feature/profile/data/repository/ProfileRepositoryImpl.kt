@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.feature.profile.data.repository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,7 @@ class ProfileRepositoryImpl @Inject constructor(
 
     private companion object {
         val PROFILE_KEY = stringPreferencesKey("current_profile")
+        val QR_CODE_STYLE_INDEX_KEY = intPreferencesKey("qr_code_style_index")
     }
 
     val profileFlow = dataStore.data.map { it[PROFILE_KEY] }
@@ -41,6 +43,9 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override fun observeProfile(): Flow<UserProfile?> = profileState
 
+    override fun observeQrCodeStyleIndex(): Flow<Int> =
+        dataStore.data.map { preferences -> preferences[QR_CODE_STYLE_INDEX_KEY] ?: 0 }
+
     override fun getProfile(): UserProfile? = profileState.value
 
     override fun requireProfile(): UserProfile = getProfile() ?: throw Exception("未找到个人资料")
@@ -49,6 +54,10 @@ class ProfileRepositoryImpl @Inject constructor(
 
     override suspend fun saveProfile(profile: UserProfile) {
         dataStore.edit { it[PROFILE_KEY] = profile.toJson() }
+    }
+
+    override suspend fun saveQrCodeStyleIndex(index: Int) {
+        dataStore.edit { it[QR_CODE_STYLE_INDEX_KEY] = index }
     }
 
     override suspend fun updateProfile(

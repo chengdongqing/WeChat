@@ -6,10 +6,12 @@ import top.chengdongqing.wechat.core.model.UserProfile
 
 interface ProfileRepository {
     fun observeProfile(): Flow<UserProfile?>
+    fun observeQrCodeStyleIndex(): Flow<Int>
     fun getProfile(): UserProfile?
     fun requireProfile(): UserProfile
     fun requireUserId(): String
     suspend fun saveProfile(profile: UserProfile)
+    suspend fun saveQrCodeStyleIndex(index: Int)
     suspend fun updateProfile(
         nickname: String? = null,
         gender: Gender? = null,

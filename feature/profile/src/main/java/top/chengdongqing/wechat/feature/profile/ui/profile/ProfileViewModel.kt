@@ -59,6 +59,15 @@ class ProfileViewModel @Inject constructor(
 
     init {
         loadProfile()
+        loadQrCodeStyle()
+    }
+
+    private fun loadQrCodeStyle() {
+        viewModelScope.launch {
+            profileRepository.observeQrCodeStyleIndex().collect { index ->
+                _uiState.update { it.copy(qrCodeStyleIndex = index) }
+            }
+        }
     }
 
     /**
@@ -89,6 +98,16 @@ class ProfileViewModel @Inject constructor(
                 }.onFailure {
                     _eventFlow.emit(ProfileUiEvent.ShowError("生成二维码失败: ${it.message}"))
                 }
+        }
+    }
+
+    fun selectNextQrCodeStyle(styleCount: Int) {
+        if (styleCount <= 0) return
+
+        val nextIndex = (_uiState.value.qrCodeStyleIndex + 1) % styleCount
+        _uiState.update { it.copy(qrCodeStyleIndex = nextIndex) }
+        viewModelScope.launch {
+            profileRepository.saveQrCodeStyleIndex(nextIndex)
         }
     }
 
@@ -211,6 +230,7 @@ class ProfileViewModel @Inject constructor(
 data class ProfileUiState(
     val profile: UserProfile? = null,
     val qrCode: String = "",
+    val qrCodeStyleIndex: Int = 0,
     val isLoading: Boolean = false
 )
 

@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -111,12 +110,17 @@ fun QRCodeScreen(
         val toast = rememberToastState()
 
         // QR 码样式状态
-        var styleIndex by remember { mutableIntStateOf(0) }
+        val styleIndex = uiState.qrCodeStyleIndex
+            .takeIf { it in QR_CODE_STYLES.indices }
+            ?: 0
         val qrCodeState = rememberQRCodeState(
             content = uiState.qrCode,
             logoPainter = painterResource(R.drawable.img_logo_outlined),
             brush = QR_CODE_STYLES[styleIndex]
         )
+        LaunchedEffect(styleIndex, qrCodeState) {
+            qrCodeState.brush = QR_CODE_STYLES[styleIndex]
+        }
 
         // 准备生成图片所需的资源
         val context = LocalContext.current
@@ -141,8 +145,7 @@ fun QRCodeScreen(
                 innerPadding = innerPadding,
                 onScanQRCode = viewModel::handleScannedQRCode,
                 onChangeStyle = {
-                    styleIndex = (styleIndex + 1) % QR_CODE_STYLES.size
-                    qrCodeState.brush = QR_CODE_STYLES[styleIndex]
+                    viewModel.selectNextQrCodeStyle(QR_CODE_STYLES.size)
                 },
                 onSaveToAlbum = {
                     handleSaveToAlbum(
