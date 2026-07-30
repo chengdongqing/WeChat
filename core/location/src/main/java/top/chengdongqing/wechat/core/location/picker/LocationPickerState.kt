@@ -14,6 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.location.map.MapController
 import top.chengdongqing.wechat.core.location.model.GeoPoint
@@ -113,8 +115,12 @@ private class LocationPickerStateImpl(
             selectedIndex = 0
             paging.startRefresh()
             scope.launch {
-                val centerItem = reverseGeocodeToItem(value)?.let { listOf(it) } ?: emptyList()
-                val nearby = search(value).getOrElse { emptyList() }
+                // 地址解析和附近 POI 是两个独立网络请求，并行可明显缩短首屏等待。
+                val (centerItem, nearby) = coroutineScope {
+                    val centerDeferred = async { reverseGeocodeToItem(value) }
+                    val nearbyDeferred = async { search(value).getOrElse { emptyList() } }
+                    (centerDeferred.await()?.let(::listOf) ?: emptyList()) to nearbyDeferred.await()
+                }
                 paging.endRefresh(centerItem + nearby)
                 listState.scrollToItem(0)
             }

@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.core.location.map.amap
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Bundle
 import android.view.MotionEvent
@@ -18,6 +19,7 @@ import com.amap.api.maps.model.Marker
 import com.amap.api.maps.model.MarkerOptions
 import com.amap.api.maps.model.MyLocationStyle
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import top.chengdongqing.wechat.core.designsystem.R
@@ -89,7 +91,8 @@ class AMapController(
     override fun enableMyLocation(context: Context) {
         scope.launch {
             map.myLocationStyle = MyLocationStyle().apply {
-                interval(5000)
+                // 选择器生命周期很短，缩短重试间隔可以更快拿到首次有效结果。
+                interval(1000)
                 myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE_NO_CENTER)
                 val icon = createIconBitmap(context, R.drawable.ic_location_rotatable, 90, 90, -60f)
                     ?.let { BitmapDescriptorFactory.fromBitmap(it) }
@@ -129,17 +132,52 @@ class AMapController(
         return AMapMarkerHandle(marker)
     }
 
-    override suspend fun takeSnapshot(): Bitmap? = suspendCancellableCoroutine { cont ->
-        map.getMapScreenShot(object : AMap.OnMapScreenShotListener {
-            private fun deliver(bitmap: Bitmap?) {
-                if (cont.isActive) {
-                    cont.resume(bitmap) { _, _, _ -> bitmap?.recycle() }
-                }
-            }
+    override suspend fun takeSnapshot(
+        markerPoint: GeoPoint?,
+        markerIcon: Bitmap?
+    ): Bitmap? {
+        // 定位蓝点属于独立的 GL 图层。先关闭并留出一帧刷新时间，避免它偶尔混入缩略图。
+        map.isMyLocationEnabled = false
+        delay(SNAPSHOT_RENDER_DELAY_MS)
 
-            override fun onMapScreenShot(bitmap: Bitmap?) = deliver(bitmap)
-            override fun onMapScreenShot(bitmap: Bitmap?, status: Int) = deliver(bitmap)
-        })
+        return suspendCancellableCoroutine { cont ->
+            map.getMapScreenShot(object : AMap.OnMapScreenShotListener {
+                private fun deliver(bitmap: Bitmap?) {
+                    val result = bitmap?.withMarker(markerPoint, markerIcon)
+                    if (cont.isActive) {
+                        cont.resume(result) { _, _, _ ->
+                            if (result !== bitmap) result?.recycle()
+                            bitmap?.recycle()
+                        }
+                        if (result !== bitmap) bitmap?.recycle()
+                    } else {
+                        if (result !== bitmap) result?.recycle()
+                        bitmap?.recycle()
+                    }
+                }
+
+                override fun onMapScreenShot(bitmap: Bitmap?) = deliver(bitmap)
+                override fun onMapScreenShot(bitmap: Bitmap?, status: Int) = deliver(bitmap)
+            })
+        }
+    }
+
+    private fun Bitmap.withMarker(point: GeoPoint?, icon: Bitmap?): Bitmap {
+        if (point == null || icon == null) return this
+
+        val result = copy(Bitmap.Config.ARGB_8888, true)
+        val screenPoint = map.projection.toScreenLocation(point.toLatLng())
+        Canvas(result).drawBitmap(
+            icon,
+            screenPoint.x - icon.width / 2f,
+            screenPoint.y - icon.height.toFloat(),
+            null
+        )
+        return result
+    }
+
+    private companion object {
+        const val SNAPSHOT_RENDER_DELAY_MS = 100L
     }
 
     // ── 事件监听 ──────────────────────────────────────────────────────────

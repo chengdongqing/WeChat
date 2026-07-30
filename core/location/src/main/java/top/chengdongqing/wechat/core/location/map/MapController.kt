@@ -66,8 +66,12 @@ interface MapController {
      */
     fun addMarker(point: GeoPoint, icon: Bitmap? = null): MapMarkerHandle
 
-    /** 截取当前地图快照 */
-    suspend fun takeSnapshot(): Bitmap?
+    /**
+     * 截取当前地图快照。
+     *
+     * 选点图标由截图实现直接合成，避免地图 SDK 的异步 Marker 图层尚未绘制完成。
+     */
+    suspend fun takeSnapshot(markerPoint: GeoPoint? = null, markerIcon: Bitmap? = null): Bitmap?
 
     // ── 事件监听 ──────────────────────────────────────────────────────────
 

@@ -76,9 +76,8 @@ fun WeMap(
 
     LifecycleEffect(controller, mapSaveState)
     PermissionHandler {
-        if (mapSaveState.isEmpty) {
-            controller.enableMyLocation(context)
-        }
+        // MapView 的恢复状态不保证同时恢复定位开关，授权后始终显式启用。
+        controller.enableMyLocation(context)
     }
 
     Box(modifier) {
@@ -149,9 +148,15 @@ private fun LifecycleEffect(controller: MapController, mapSaveState: Bundle) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner, controller) {
+        // Compose 首次执行到这里时 Activity 通常已经走过 ON_CREATE，
+        // 此时再单纯监听 ON_CREATE 会漏掉 MapView 的初始化。
+        controller.onCreate(mapSaveState)
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            controller.onResume()
+        }
+
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_CREATE -> controller.onCreate(mapSaveState)
                 Lifecycle.Event.ON_RESUME -> controller.onResume()
                 Lifecycle.Event.ON_PAUSE -> controller.onPause(mapSaveState)
                 else -> {}
