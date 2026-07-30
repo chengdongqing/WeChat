@@ -10,16 +10,17 @@
 
 ## Planned module roles
 
-| Module | Responsibility | Must not depend on |
-| --- | --- | --- |
-| `core:model` | Serializable domain values and identifiers | Android UI, features |
-| `core:navigation` | Type-safe destinations and navigation contracts | features |
-| `core:database` | Room entities, DAO, schema history, migrations | UI, features |
-| `core:network` | Network clients and protocol transport | UI, repositories |
-| `core:connectivity` | P2P, Bluetooth, Wi-Fi Direct, NFC and WebRTC capability contracts | UI, features |
-| `core:designsystem` | Compose components, resources and themes | feature implementations |
-| `core:testing` | Fakes, fixtures and coroutine test utilities | production features |
-| `feature:*` | UI, feature state, domain contracts and data implementation | other features |
+| Module              | Responsibility                                                    | Must not depend on      |
+|---------------------|-------------------------------------------------------------------|-------------------------|
+| `core:model`        | Serializable domain values and identifiers                        | Android UI, features    |
+| `core:util`         | Reusable Kotlin and Android platform utilities                    | Compose UI, features    |
+| `core:navigation`   | Type-safe destinations and navigation contracts                   | features                |
+| `core:database`     | Room entities, DAO, schema history, migrations                    | UI, features            |
+| `core:network`      | Network clients and protocol transport                            | UI, repositories        |
+| `core:connectivity` | P2P, Bluetooth, Wi-Fi Direct, NFC and WebRTC capability contracts | UI, features            |
+| `core:designsystem` | Compose components, resources and themes                          | feature implementations |
+| `core:testing`      | Fakes, fixtures and coroutine test utilities                      | production features     |
+| `feature:*`         | UI, feature state, domain contracts and data implementation       | other features          |
 
 ## Social and group extensibility
 

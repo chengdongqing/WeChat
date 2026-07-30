@@ -4,7 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import top.chengdongqing.wechat.core.common.util.showToast
+import top.chengdongqing.wechat.core.util.showToast
 
 /**
  * 在前台承接 PackageInstaller 状态并拉起系统确认页。

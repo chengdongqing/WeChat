@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.data.handler.FileHandler
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
@@ -30,6 +29,7 @@ import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.ContactRelation
 import top.chengdongqing.wechat.core.model.toContact
 import top.chengdongqing.wechat.core.model.toResult
+import top.chengdongqing.wechat.core.util.showToast
 
 @HiltViewModel(assistedFactory = ContactDetailViewModel.Factory::class)
 class ContactDetailViewModel @AssistedInject constructor(

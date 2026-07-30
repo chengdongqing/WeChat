@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLauncher
-import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable

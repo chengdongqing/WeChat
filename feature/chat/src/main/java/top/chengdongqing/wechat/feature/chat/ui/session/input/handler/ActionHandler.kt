@@ -10,17 +10,16 @@ import androidx.compose.ui.platform.LocalResources
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
+import top.chengdongqing.wechat.core.common.file.copyResourceToUri
+import top.chengdongqing.wechat.core.common.file.createImageUri
+import top.chengdongqing.wechat.core.common.file.createVideoUri
+import top.chengdongqing.wechat.core.common.file.deleteFileByUri
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.common.util.copyResourceToUri
-import top.chengdongqing.wechat.core.common.util.createImageUri
-import top.chengdongqing.wechat.core.common.util.createVideoUri
-import top.chengdongqing.wechat.core.common.util.deleteFileByUri
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
-import top.chengdongqing.wechat.core.designsystem.util.CallOptions
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
+import top.chengdongqing.wechat.core.designsystem.components.call.CallOptions
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
@@ -83,7 +82,7 @@ fun rememberActionHandler(
     val scope = rememberCoroutineScope()
     val actionSheet = rememberActionSheetState()
     val chatContext = LocalChatSessionContext.current
-    val isSelf = chatContext?.isSelf.isTrue()
+    val isSelf = chatContext?.isSelf == true
 
     // 动态生成位置选项
     val locationOptions = remember(isSelf) {

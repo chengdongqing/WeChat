@@ -35,6 +35,7 @@ configurations.all {
 dependencies {
     implementation(projects.core.model)
     implementation(projects.core.designsystem)
+    api(projects.core.util)
 
     implementation(libs.core.ktx)
     implementation(libs.annotations)

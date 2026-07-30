@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.common.util.toYearMonthDisplay
+import top.chengdongqing.wechat.core.common.time.toYearMonthDisplay
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup

@@ -4,7 +4,7 @@
 
     <string name="settings_group_account">账号</string>
     <string name="settings_account_security">账号安全</string>
-    <string name="settings_app_lock">应用启动锁</string>
+    <string name="settings_app_lock">应用锁</string>
     <string name="settings_app_lock_on">已开启</string>
     <string name="settings_app_lock_off">未开启</string>
 

@@ -47,7 +47,7 @@ import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.rememberVideoPlayerState
-import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
+import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable

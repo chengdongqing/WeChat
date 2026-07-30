@@ -49,9 +49,9 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
-import top.chengdongqing.wechat.core.designsystem.util.onTap
+import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.model.UserProfile
 import kotlin.math.cos
 import kotlin.math.sin

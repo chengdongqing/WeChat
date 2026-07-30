@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 data class ChatParticipant(val id: String, val name: String, val avatarPath: String?)
 
@@ -37,22 +37,28 @@ fun ChatParticipantsBar(
     onManage: (() -> Unit)? = null
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().background(WeTheme.colorScheme.surface)
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(WeTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 18.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         participants.take(5).forEach { participant ->
             Column(
-                modifier = Modifier.widthIn(max = 56.dp).onTap {
-                    onParticipantClick(participant)
-                },
+                modifier = Modifier
+                    .widthIn(max = 56.dp)
+                    .onTap {
+                        onParticipantClick(participant)
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AsyncImage(
                     model = participant.avatarPath,
                     error = painterResource(R.drawable.img_avatar_placeholder),
                     contentDescription = participant.name,
-                    modifier = Modifier.size(52.dp).clip(RoundedCornerShape(6.dp))
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(6.dp))
                 )
                 Spacer(Modifier.height(7.dp))
                 Text(

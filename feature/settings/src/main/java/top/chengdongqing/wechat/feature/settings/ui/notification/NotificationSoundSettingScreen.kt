@@ -27,8 +27,8 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTop
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 
 @Composable
 fun NotificationSoundSettingScreen(

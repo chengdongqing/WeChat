@@ -6,7 +6,6 @@ import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.os.Build
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
 
 /**
  * 语音播放器
@@ -34,7 +33,7 @@ class VoicePlayer(context: Context) {
         isSpeakerOn: Boolean,
         onComplete: () -> Unit
     ) {
-        if (mediaPlayer?.isPlaying.isTrue()) {
+        if (mediaPlayer?.isPlaying == true) {
             stop()
         }
 

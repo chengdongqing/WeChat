@@ -67,18 +67,18 @@ import coil3.compose.AsyncImage
 import coil3.decode.StaticImageDecoder
 import coil3.request.ImageRequest
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.util.asAssetPath
-import top.chengdongqing.wechat.core.common.util.copyAssetToUri
-import top.chengdongqing.wechat.core.common.util.deleteFileByUri
+import top.chengdongqing.wechat.core.common.file.asAssetPath
+import top.chengdongqing.wechat.core.common.file.copyAssetToUri
+import top.chengdongqing.wechat.core.common.file.deleteFileByUri
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
+import top.chengdongqing.wechat.core.designsystem.modifier.repeatingClickable
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.util.repeatingClickable
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.data.store.ManagedSticker
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
@@ -330,7 +330,9 @@ private fun EmojiItem(
         AsyncImage(
             model = model,
             contentDescription = emoji.description,
-            modifier = Modifier.fillMaxSize().padding(4.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp),
             contentScale = ContentScale.Inside
         )
         if (showPreview) {
@@ -575,7 +577,10 @@ private fun StickerPressPreview(
                     AsyncImage(
                         model = model,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().height(150.dp).padding(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .padding(12.dp),
                         contentScale = ContentScale.Inside
                     )
                     WeDivider()

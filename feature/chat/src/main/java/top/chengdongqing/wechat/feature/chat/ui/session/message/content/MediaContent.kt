@@ -34,9 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.util.format
-import top.chengdongqing.wechat.core.common.util.loadMediaThumbnail
-import top.chengdongqing.wechat.core.common.util.toPercent
+import top.chengdongqing.wechat.core.common.file.loadMediaThumbnail
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
@@ -44,8 +42,10 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
+import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.model.MessageSendStatus
+import top.chengdongqing.wechat.core.util.format
+import top.chengdongqing.wechat.core.util.toPercent
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 import top.chengdongqing.wechat.feature.chat.ui.session.mediaSharedElement
 import java.io.File

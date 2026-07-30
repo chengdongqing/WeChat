@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import top.chengdongqing.wechat.core.common.util.getOrPutAsync
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
 import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
@@ -14,9 +13,9 @@ import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.model.ChatSession
 import top.chengdongqing.wechat.core.network.messaging.ChunkStorageManager
+import top.chengdongqing.wechat.core.util.getOrPutAsync
 import top.chengdongqing.wechat.feature.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.feature.chat.data.mapper.toEntity
 import javax.inject.Inject
@@ -57,7 +56,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun isSessionMuted(sessionId: String): Boolean {
-        return getSession(sessionId)?.isMuted.isTrue()
+        return getSession(sessionId)?.isMuted == true
     }
 
     override suspend fun exists(sessionId: String): Boolean {

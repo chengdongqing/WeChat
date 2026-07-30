@@ -11,8 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.di.IoScope
-import top.chengdongqing.wechat.core.common.util.toBytes
-import top.chengdongqing.wechat.core.common.util.toMD5Bytes
+import top.chengdongqing.wechat.core.common.file.toBytes
 import top.chengdongqing.wechat.core.data.model.FriendEvent
 import top.chengdongqing.wechat.core.data.model.FriendProtocol
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
@@ -26,6 +25,7 @@ import top.chengdongqing.wechat.core.network.ble.BLEPacketType
 import top.chengdongqing.wechat.core.network.ble.BLEServer
 import top.chengdongqing.wechat.core.network.ble.ServerPacketEvent
 import top.chengdongqing.wechat.core.network.service.ServiceModule
+import top.chengdongqing.wechat.core.util.toMD5Bytes
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap

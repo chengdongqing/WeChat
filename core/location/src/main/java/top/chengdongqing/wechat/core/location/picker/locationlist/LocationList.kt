@@ -25,8 +25,8 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.util.formatDistance
 import top.chengdongqing.wechat.core.designsystem.R as DesignR

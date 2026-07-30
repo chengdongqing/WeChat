@@ -22,8 +22,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.common.util.appVersionName
-import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
@@ -31,10 +29,12 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.util.appVersionName
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.feature.settings.domain.model.labelRes
 import top.chengdongqing.wechat.feature.settings.ui.connection.ConnectionSettingsViewModel
 

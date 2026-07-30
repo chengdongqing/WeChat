@@ -17,12 +17,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.app.install.AppPackageInstaller
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
-import top.chengdongqing.wechat.core.common.util.openFile
-import top.chengdongqing.wechat.core.common.util.showToast
+import top.chengdongqing.wechat.core.common.file.openFile
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.util.showToast
 import java.io.File
 
 data class FilePreviewUiState(

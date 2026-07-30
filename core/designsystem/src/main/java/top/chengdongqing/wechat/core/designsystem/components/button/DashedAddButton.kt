@@ -17,7 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.util.dashedBorder
+import top.chengdongqing.wechat.core.designsystem.modifier.dashedBorder
 
 /**
  * 通用的虚线边框新增按钮

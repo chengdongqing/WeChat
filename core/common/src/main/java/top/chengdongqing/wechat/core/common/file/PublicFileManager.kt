@@ -11,10 +11,6 @@ import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.util.extractExtension
-import top.chengdongqing.wechat.core.common.util.generateFileName
-import top.chengdongqing.wechat.core.common.util.getFileConfig
-import top.chengdongqing.wechat.core.common.util.getFileMetadata
 import top.chengdongqing.wechat.core.model.MessageType
 import java.io.File
 import javax.inject.Inject

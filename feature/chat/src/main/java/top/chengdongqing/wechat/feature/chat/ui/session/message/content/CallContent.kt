@@ -21,11 +21,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.common.call.CallStatus
-import top.chengdongqing.wechat.core.common.util.format
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
+import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import kotlin.time.Duration.Companion.seconds
 

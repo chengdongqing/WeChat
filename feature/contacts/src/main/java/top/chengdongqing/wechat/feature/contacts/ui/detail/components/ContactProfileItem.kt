@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.model.Contact
 
 @Composable
@@ -40,13 +39,13 @@ fun ContactProfileItem(
     ) {
         ProfileTitleRow(contact)
 
-        if (contact.signature?.isNotBlank().isTrue()) {
+        if (contact.signature?.isNotBlank() == true) {
             ProfileInfoRow(
                 label = stringResource(R.string.contact_profile_signature),
                 value = contact.signature ?: ""
             )
         }
-        if (contact.note?.isNotEmpty().isTrue()) {
+        if (contact.note?.isNotEmpty() == true) {
             ProfileInfoRow(
                 label = stringResource(R.string.contact_profile_label_note),
                 value = contact.note!!

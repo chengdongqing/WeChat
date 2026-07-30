@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.util.onTap
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 
 /**
  * 统一的通话控制按钮

@@ -33,6 +33,7 @@ include(":benchmark")
 
 // Core modules
 include(":core:model")
+include(":core:util")
 include(":core:navigation")
 include(":core:database")
 include(":core:designsystem")

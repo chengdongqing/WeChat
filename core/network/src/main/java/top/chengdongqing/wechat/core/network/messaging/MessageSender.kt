@@ -12,8 +12,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.di.IoScope
-import top.chengdongqing.wechat.core.common.util.extractExtension
-import top.chengdongqing.wechat.core.common.util.toSHA256Hex
+import top.chengdongqing.wechat.core.common.file.extractExtension
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageQuote
@@ -44,6 +43,7 @@ import top.chengdongqing.wechat.core.network.model.PacketType
 import top.chengdongqing.wechat.core.network.security.KeyStoreManager
 import top.chengdongqing.wechat.core.network.transfer.TransferManager
 import top.chengdongqing.wechat.core.network.transfer.WiFiLockManager
+import top.chengdongqing.wechat.core.util.toSHA256Hex
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel

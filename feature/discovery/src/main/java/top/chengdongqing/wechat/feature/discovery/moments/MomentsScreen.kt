@@ -69,8 +69,8 @@ import top.chengdongqing.wechat.core.common.media.preview.WeMediaPreview
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
-import top.chengdongqing.wechat.core.designsystem.util.StatusBarVisibilityEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarVisibilityEffect
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -270,30 +270,36 @@ private fun MomentsHeader(
         } ?: false
     }
     Box(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .height(headerHeight)
-            .background(Color(0xFF3D4652)).clickable(onClick = onCoverClick)
+            .background(Color(0xFF3D4652))
+            .clickable(onClick = onCoverClick)
     ) {
         if (cover != null) {
             if (expanded && isLandscape) {
                 AsyncImage(
                     model = cover,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize().blur(34.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(34.dp),
                     contentScale = ContentScale.Crop,
                     alpha = 0.72f
                 )
                 Box(
-                    Modifier.fillMaxSize().background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color.Black.copy(alpha = 0.42f),
-                                Color.Transparent,
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.46f)
+                    Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(
+                                    Color.Black.copy(alpha = 0.42f),
+                                    Color.Transparent,
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.46f)
+                                )
                             )
                         )
-                    )
                 )
             }
             AsyncImage(
@@ -309,7 +315,9 @@ private fun MomentsHeader(
                 colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                     containerColor = Color(0xB3333333)
                 ),
-                modifier = Modifier.align(Alignment.BottomEnd).padding(18.dp)
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(18.dp)
             ) {
                 androidx.compose.material3.Icon(
                     painter = painterResource(R.drawable.ic_camera_filled),
@@ -336,7 +344,9 @@ private fun MomentsHeader(
                 AsyncImage(
                     model = avatar ?: R.drawable.img_avatar_placeholder,
                     contentDescription = null,
-                    modifier = Modifier.size(74.dp).clip(RoundedCornerShape(6.dp))
+                    modifier = Modifier
+                        .size(74.dp)
+                        .clip(RoundedCornerShape(6.dp))
                         .background(Color.LightGray),
                     contentScale = ContentScale.Crop
                 )
@@ -356,11 +366,15 @@ private fun MomentItem(
     onImageClick: (Int) -> Unit
 ) {
     var actionsExpanded by remember(moment.id) { mutableStateOf(false) }
-    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 14.dp)) {
+    Row(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 12.dp, vertical = 14.dp)) {
         AsyncImage(
             model = moment.authorAvatar ?: R.drawable.img_avatar_placeholder,
             contentDescription = null,
-            modifier = Modifier.size(44.dp).clip(RoundedCornerShape(4.dp)),
+            modifier = Modifier
+                .size(44.dp)
+                .clip(RoundedCornerShape(4.dp)),
             contentScale = ContentScale.Crop
         )
         Spacer(Modifier.width(10.dp))
@@ -374,9 +388,11 @@ private fun MomentItem(
             }
             moment.video?.let { video ->
                 Box(
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier
+                        .padding(top = 8.dp)
                         .size(width = 210.dp, height = 280.dp)
-                        .clip(RoundedCornerShape(3.dp)).background(Color.Black)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(Color.Black)
                         .clickable(onClick = onVideoClick),
                     contentAlignment = Alignment.Center
                 ) {
@@ -391,13 +407,17 @@ private fun MomentItem(
                         formatDuration(video.duration),
                         color = Color.White,
                         fontSize = 12.sp,
-                        modifier = Modifier.align(Alignment.BottomEnd)
-                            .background(Color(0x66000000)).padding(6.dp, 3.dp)
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .background(Color(0x66000000))
+                            .padding(6.dp, 3.dp)
                     )
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(formatTime(moment.createdAt), color = Color.Gray, fontSize = 12.sp)
@@ -412,26 +432,31 @@ private fun MomentItem(
                     exit = shrinkHorizontally(shrinkTowards = Alignment.End) + fadeOut()
                 ) {
                     Row(
-                        modifier = Modifier.clip(RoundedCornerShape(4.dp))
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
                             .background(Color(0xFF4C5154))
                     ) {
                         Text(
                             if (moment.likes.any { it.userId == myId }) "♡ 取消" else "♡ 赞",
                             color = Color.White,
-                            modifier = Modifier.clickable {
-                                actionsExpanded = false
-                                onLike()
-                            }.padding(14.dp, 8.dp),
+                            modifier = Modifier
+                                .clickable {
+                                    actionsExpanded = false
+                                    onLike()
+                                }
+                                .padding(14.dp, 8.dp),
                             fontSize = 13.sp
                         )
                         Text("│", color = Color(0xFF73787B), modifier = Modifier.padding(vertical = 8.dp))
                         Text(
                             "◌ 评论",
                             color = Color.White,
-                            modifier = Modifier.clickable {
-                                actionsExpanded = false
-                                onComment()
-                            }.padding(14.dp, 8.dp),
+                            modifier = Modifier
+                                .clickable {
+                                    actionsExpanded = false
+                                    onComment()
+                                }
+                                .padding(14.dp, 8.dp),
                             fontSize = 13.sp
                         )
                     }
@@ -441,7 +466,9 @@ private fun MomentItem(
                     painter = painterResource(R.drawable.ic_more_outlined),
                     contentDescription = "赞和评论",
                     tint = Color(0xFF576B95),
-                    modifier = Modifier.size(30.dp).clip(RoundedCornerShape(4.dp))
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(4.dp))
                         .background(Color(0xFFF3F3F5))
                         .clickable { actionsExpanded = !actionsExpanded }
                         .padding(5.dp)
@@ -449,8 +476,11 @@ private fun MomentItem(
             }
             if (moment.likes.isNotEmpty() || moment.comments.isNotEmpty()) {
                 Column(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                        .background(Color(0xFFF3F3F5)).padding(9.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .background(Color(0xFFF3F3F5))
+                        .padding(9.dp)
                 ) {
                     if (moment.likes.isNotEmpty()) {
                         Text("♥  " + moment.likes.joinToString("，") { it.userName },

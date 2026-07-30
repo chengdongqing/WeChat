@@ -19,7 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.util.onTap
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 
 /**
  * 通话顶部栏

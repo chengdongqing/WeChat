@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.core.data.model
 
-import top.chengdongqing.wechat.core.common.util.isWithinSeconds
+import top.chengdongqing.wechat.core.common.time.isWithinSeconds
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.core.model.SendError
 

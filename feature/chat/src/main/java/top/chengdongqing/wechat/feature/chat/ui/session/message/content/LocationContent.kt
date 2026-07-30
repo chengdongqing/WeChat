@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
+import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
 
 @Composable
 fun LocationContent(content: MessageContent.Location) {

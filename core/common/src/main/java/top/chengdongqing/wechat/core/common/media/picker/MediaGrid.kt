@@ -27,14 +27,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import top.chengdongqing.wechat.core.common.file.loadMediaThumbnail
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.common.media.preview.previewMedias
-import top.chengdongqing.wechat.core.common.util.format
-import top.chengdongqing.wechat.core.common.util.loadMediaThumbnail
-import top.chengdongqing.wechat.core.common.util.showToast
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.onTap
-import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.util.format
+import top.chengdongqing.wechat.core.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable

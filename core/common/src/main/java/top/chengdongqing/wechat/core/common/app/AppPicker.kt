@@ -38,7 +38,6 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.app.model.AppItem
 import top.chengdongqing.wechat.core.common.app.model.AppResult
-import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -47,9 +46,10 @@ import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.onTap
-import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable

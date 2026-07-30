@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.util.rememberScreenFractionWidth
+import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 

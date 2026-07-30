@@ -28,11 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
-import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 enum class InformationBarType {
     WarnStrong,

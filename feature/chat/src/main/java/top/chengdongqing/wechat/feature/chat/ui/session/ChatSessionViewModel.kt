@@ -41,8 +41,6 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
 import top.chengdongqing.wechat.core.common.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
-import top.chengdongqing.wechat.core.common.util.randomUUID
-import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -67,6 +65,8 @@ import top.chengdongqing.wechat.core.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.core.network.connection.bluetooth.BluetoothBondManager
 import top.chengdongqing.wechat.core.network.crypto.E2ESessionManager
 import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
+import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiEngine
 import top.chengdongqing.wechat.feature.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMediaItem

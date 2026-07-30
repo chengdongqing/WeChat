@@ -8,7 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.util.showToast
+import top.chengdongqing.wechat.core.util.showToast
 import java.io.File
 
 /**

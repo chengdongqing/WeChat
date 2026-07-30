@@ -2,8 +2,8 @@ package top.chengdongqing.wechat.core.network.crypto
 
 import android.util.Base64
 import android.util.LruCache
-import top.chengdongqing.wechat.core.common.util.getOrPut
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
+import top.chengdongqing.wechat.core.util.getOrPut
 import java.security.KeyFactory
 import java.security.PrivateKey
 import java.security.PublicKey

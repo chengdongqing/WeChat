@@ -36,10 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.util.onTap
 import top.chengdongqing.wechat.core.location.WeMap
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.model.MapType

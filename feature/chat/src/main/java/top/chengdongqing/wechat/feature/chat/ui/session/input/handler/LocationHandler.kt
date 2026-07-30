@@ -7,7 +7,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.util.deleteFileByUri
+import top.chengdongqing.wechat.core.common.file.deleteFileByUri
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.picker.rememberPickLocationLauncher

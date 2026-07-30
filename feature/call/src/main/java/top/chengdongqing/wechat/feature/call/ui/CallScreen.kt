@@ -39,9 +39,9 @@ import kotlinx.coroutines.launch
 import org.webrtc.EglBase
 import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
-import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
-import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
-import top.chengdongqing.wechat.core.designsystem.util.onTap
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.model.CallState
 import top.chengdongqing.wechat.feature.call.domain.model.CallUiState
 import top.chengdongqing.wechat.feature.call.ui.components.CallBackground

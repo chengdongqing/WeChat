@@ -28,13 +28,13 @@ import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDial
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.runtime.rememberBluetoothEnabled
+import top.chengdongqing.wechat.core.designsystem.runtime.rememberWifiConnected
+import top.chengdongqing.wechat.core.designsystem.runtime.rememberWifiEnabled
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.rememberBluetoothEnabled
-import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.util.rememberWifiConnected
-import top.chengdongqing.wechat.core.designsystem.util.rememberWifiEnabled
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.ChatSession
 

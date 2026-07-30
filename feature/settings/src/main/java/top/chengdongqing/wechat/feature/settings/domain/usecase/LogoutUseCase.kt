@@ -12,9 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.core.common.cache.clearAllCaches
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.security.AppLockManager
-import top.chengdongqing.wechat.core.common.util.clearAllCaches
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.network.connection.ConnectionManager
 import top.chengdongqing.wechat.core.network.crypto.E2ESessionManager

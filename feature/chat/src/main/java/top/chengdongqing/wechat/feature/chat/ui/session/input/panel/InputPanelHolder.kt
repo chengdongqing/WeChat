@@ -16,10 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import top.chengdongqing.wechat.core.common.util.rememberKeyboardHeight
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
+import top.chengdongqing.wechat.core.designsystem.runtime.DpSaver
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.DpSaver
+import top.chengdongqing.wechat.core.designsystem.window.rememberKeyboardHeight
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarActions
 

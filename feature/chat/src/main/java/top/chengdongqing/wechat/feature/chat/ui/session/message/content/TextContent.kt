@@ -40,8 +40,8 @@ import androidx.core.net.toUri
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.components.chat.WeMessageText
-import top.chengdongqing.wechat.core.designsystem.util.parseRichText
-import top.chengdongqing.wechat.core.designsystem.util.rememberEmojiInlineContent
+import top.chengdongqing.wechat.core.designsystem.text.parseRichText
+import top.chengdongqing.wechat.core.designsystem.text.rememberEmojiInlineContent
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 import kotlin.math.roundToInt

@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.common.cropper.ImageCropperActivity.Companion.EXTRA_URI
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.ImmersiveSystemBars
+import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
 
 @AndroidEntryPoint
 class ImageCropperActivity : ComponentActivity() {

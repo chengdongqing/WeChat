@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
-import top.chengdongqing.wechat.core.designsystem.util.onTap
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 
 @Composable
 fun PlayButton(isPlaying: Boolean, onClick: () -> Unit) {

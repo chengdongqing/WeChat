@@ -6,7 +6,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import top.chengdongqing.wechat.core.common.util.randomUUID
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.dao.GroupDao
@@ -17,6 +16,7 @@ import top.chengdongqing.wechat.core.network.crypto.PacketSigner
 import top.chengdongqing.wechat.core.network.model.Packet
 import top.chengdongqing.wechat.core.network.model.PacketType
 import top.chengdongqing.wechat.core.network.security.KeyStoreManager
+import top.chengdongqing.wechat.core.util.randomUUID
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
-import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
-import top.chengdongqing.wechat.core.designsystem.util.onTap
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
 
 @Composable
 fun GuideScreen(

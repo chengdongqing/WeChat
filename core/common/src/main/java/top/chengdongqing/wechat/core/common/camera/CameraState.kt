@@ -40,9 +40,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.common.file.getFileProviderUri
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.common.util.getFileProviderUri
-import top.chengdongqing.wechat.core.common.util.rememberSingleThreadExecutor
+import top.chengdongqing.wechat.core.common.runtime.rememberSingleThreadExecutor
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit

@@ -41,7 +41,7 @@ import me.saket.telephoto.zoomable.ZoomableState
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
-import top.chengdongqing.wechat.core.common.util.MotionPhotoExtractor
+import top.chengdongqing.wechat.core.common.media.motionphoto.MotionPhotoExtractor
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.VideoPlayerDefaults
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
 import top.chengdongqing.wechat.core.designsystem.components.videoplayer.rememberVideoPlayerState

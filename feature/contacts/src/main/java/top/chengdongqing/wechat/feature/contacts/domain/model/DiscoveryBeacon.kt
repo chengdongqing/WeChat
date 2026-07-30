@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.feature.contacts.domain.model
 
-import top.chengdongqing.wechat.core.common.util.toMD5Bytes
+import top.chengdongqing.wechat.core.util.toMD5Bytes
 import java.nio.ByteBuffer
 
 /**

@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.app.model.AppItem
 import top.chengdongqing.wechat.core.common.app.model.AppResult
 import top.chengdongqing.wechat.core.common.app.repository.AppRepository
-import top.chengdongqing.wechat.core.common.util.getInitial
+import top.chengdongqing.wechat.core.util.getInitial
 import javax.inject.Inject
 
 @HiltViewModel

@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
-import top.chengdongqing.wechat.core.designsystem.util.format
-import top.chengdongqing.wechat.core.designsystem.util.onTap
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.util.format
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 

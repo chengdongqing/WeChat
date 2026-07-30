@@ -46,8 +46,8 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.remembe
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
+import top.chengdongqing.wechat.core.designsystem.components.permission.RequestMediaPermission
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.RequestMediaPermission
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable

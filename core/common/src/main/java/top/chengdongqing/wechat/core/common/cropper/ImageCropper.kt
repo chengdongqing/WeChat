@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.toIntSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.util.createImageUri
+import top.chengdongqing.wechat.core.common.file.createImageUri
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import kotlin.time.Duration

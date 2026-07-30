@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.onTap
 
 /**
  * 顶部导航栏

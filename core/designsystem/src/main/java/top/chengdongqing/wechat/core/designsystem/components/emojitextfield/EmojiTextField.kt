@@ -34,9 +34,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.graphics.withTranslation
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
+import top.chengdongqing.wechat.core.designsystem.text.EmojiRenderer
 import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.EmojiRenderer
 
 /**
  * 配置常量

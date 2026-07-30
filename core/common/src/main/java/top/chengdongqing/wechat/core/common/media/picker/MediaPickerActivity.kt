@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.common.media.picker.MediaPickerActivity.Companion.EXTRA_MEDIA_LIST
 import top.chengdongqing.wechat.core.common.media.picker.MediaPickerActivity.Companion.EXTRA_MERGE_MEDIA
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @AndroidEntryPoint

@@ -7,10 +7,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
+import top.chengdongqing.wechat.core.common.file.shareUri
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
-import top.chengdongqing.wechat.core.common.util.shareUri
-import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.util.showToast
 import javax.inject.Inject
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 

@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.util.showToast
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
+import top.chengdongqing.wechat.core.util.showToast
 import javax.inject.Inject
 
 @HiltViewModel

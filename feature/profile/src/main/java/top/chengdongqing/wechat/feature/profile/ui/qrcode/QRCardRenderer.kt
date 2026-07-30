@@ -31,7 +31,6 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.qrcode.generator.QRCodeState
 import top.chengdongqing.wechat.core.common.qrcode.generator.drawQrCode
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
 import top.chengdongqing.wechat.core.model.UserProfile
 
 /**
@@ -122,7 +121,7 @@ class QrCardRenderer(
                 color = Color(0xE6000000)
             )
         )
-        if (profile.signature?.isNotBlank().isTrue()) {
+        if (profile.signature?.isNotBlank() == true) {
             drawText(
                 textMeasurer = textMeasurer,
                 text = profile.signature!!,

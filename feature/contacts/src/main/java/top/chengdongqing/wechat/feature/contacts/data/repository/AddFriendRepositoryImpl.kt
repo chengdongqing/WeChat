@@ -6,13 +6,13 @@ import androidx.collection.LruCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.util.toMD5Hex
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.ContactAddSource
 import top.chengdongqing.wechat.core.model.ProfileBeacon
 import top.chengdongqing.wechat.core.network.ble.BLEConnectionManager
+import top.chengdongqing.wechat.core.util.toMD5Hex
 import top.chengdongqing.wechat.feature.contacts.domain.model.DiscoveryBeacon
 import javax.inject.Inject
 import javax.inject.Singleton

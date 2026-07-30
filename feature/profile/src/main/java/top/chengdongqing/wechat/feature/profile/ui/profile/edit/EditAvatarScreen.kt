@@ -32,7 +32,7 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileField
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 import java.io.File

@@ -11,11 +11,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.util.randomUUID
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.database.dao.FavoriteDao
 import top.chengdongqing.wechat.core.database.entity.FavoriteEntity
+import top.chengdongqing.wechat.core.util.randomUUID
 import java.io.File
 import javax.inject.Inject
 

@@ -33,16 +33,15 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.util.toChatDisplayTime
+import top.chengdongqing.wechat.core.common.time.toChatDisplayTime
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
+import top.chengdongqing.wechat.core.designsystem.text.RichTextMode
+import top.chengdongqing.wechat.core.designsystem.text.parseRichText
+import top.chengdongqing.wechat.core.designsystem.text.rememberEmojiInlineContent
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.toPreviewText
-import top.chengdongqing.wechat.core.designsystem.util.RichTextMode
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
-import top.chengdongqing.wechat.core.designsystem.util.parseRichText
-import top.chengdongqing.wechat.core.designsystem.util.rememberEmojiInlineContent
 import top.chengdongqing.wechat.core.model.ChatSession
 import top.chengdongqing.wechat.core.model.MessageType
 
@@ -156,7 +155,7 @@ private fun SessionStatus(chat: ChatSession) {
 private fun rememberAnnotatedText(session: ChatSession): AnnotatedString {
     val context = LocalContext.current
     val resources = LocalResources.current
-    val isDraft = session.draftMessage?.isNotBlank().isTrue()
+    val isDraft = session.draftMessage?.isNotBlank() == true
     val draftColor = WeTheme.colorScheme.danger
 
     return remember(session) {

@@ -8,9 +8,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.util.randomUUID
 import top.chengdongqing.wechat.core.database.dao.FavoriteDao
 import top.chengdongqing.wechat.core.database.entity.FavoriteEntity
+import top.chengdongqing.wechat.core.util.randomUUID
 import javax.inject.Inject
 
 data class FavoriteDraft(

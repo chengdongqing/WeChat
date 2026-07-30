@@ -11,9 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.util.randomUUID
-import top.chengdongqing.wechat.core.common.util.toBytes
-import top.chengdongqing.wechat.core.common.util.toSHA256Hex
+import top.chengdongqing.wechat.core.common.file.toBytes
 import top.chengdongqing.wechat.core.data.model.FriendEvent
 import top.chengdongqing.wechat.core.data.model.FriendProtocol
 import top.chengdongqing.wechat.core.data.model.FriendRequestResult
@@ -32,6 +30,8 @@ import top.chengdongqing.wechat.core.model.ContactAddSource
 import top.chengdongqing.wechat.core.model.FriendRequest
 import top.chengdongqing.wechat.core.model.FriendRequestStatus
 import top.chengdongqing.wechat.core.network.ble.BLEConnectionManager
+import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.feature.contacts.data.mapper.toDomain
 import java.io.File
 import javax.inject.Inject

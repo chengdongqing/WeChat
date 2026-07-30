@@ -35,16 +35,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.isTrue
-import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 
 @Composable
 fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit) {
     val chatContext = LocalChatSessionContext.current
-    val isSelf = chatContext?.isSelf.isTrue()
+    val isSelf = chatContext?.isSelf == true
     val isGroup = chatContext?.isGroup == true
 
     val pages = remember(isSelf, isGroup) {

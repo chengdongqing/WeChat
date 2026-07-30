@@ -6,9 +6,9 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.di.IoScope
-import top.chengdongqing.wechat.core.common.util.getLocalIpAddress
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.network.service.ServiceModule
+import top.chengdongqing.wechat.core.util.getLocalIpAddress
 import java.io.File
 import java.io.OutputStream
 import java.net.InetAddress

@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.di.IoScope
-import top.chengdongqing.wechat.core.common.util.toSHA256Hex
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.ReceiptType
@@ -30,6 +29,7 @@ import top.chengdongqing.wechat.core.network.model.FileMetaAck
 import top.chengdongqing.wechat.core.network.model.Packet
 import top.chengdongqing.wechat.core.network.model.PacketType
 import top.chengdongqing.wechat.core.network.transfer.TransferManager
+import top.chengdongqing.wechat.core.util.toSHA256Hex
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream

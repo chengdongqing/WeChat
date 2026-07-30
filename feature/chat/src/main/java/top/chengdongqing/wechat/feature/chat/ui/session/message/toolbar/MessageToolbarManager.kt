@@ -9,12 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.util.copyToClipboard
-import top.chengdongqing.wechat.core.common.util.isWithinSeconds
-import top.chengdongqing.wechat.core.common.util.showToast
+import top.chengdongqing.wechat.core.common.time.isWithinSeconds
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.util.copyToClipboard
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageAction
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageToolbarState
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent

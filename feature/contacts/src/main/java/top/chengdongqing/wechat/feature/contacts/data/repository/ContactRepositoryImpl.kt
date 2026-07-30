@@ -6,9 +6,6 @@ import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.util.downloadAvatar
-import top.chengdongqing.wechat.core.common.util.getOrPutAsync
-import top.chengdongqing.wechat.core.common.util.toSHA256Hex
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
@@ -22,6 +19,9 @@ import top.chengdongqing.wechat.core.database.dao.ContactDao
 import top.chengdongqing.wechat.core.database.entity.ContactEntity
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.network.crypto.PacketSigner
+import top.chengdongqing.wechat.core.util.downloadAvatar
+import top.chengdongqing.wechat.core.util.getOrPutAsync
+import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.feature.contacts.data.mapper.toDomain
 import top.chengdongqing.wechat.feature.contacts.data.mapper.toEntity
 import java.io.File

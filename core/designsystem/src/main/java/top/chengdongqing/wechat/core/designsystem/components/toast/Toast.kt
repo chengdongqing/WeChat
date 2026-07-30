@@ -49,7 +49,7 @@ import androidx.compose.ui.window.PopupPositionProvider
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.theme.Neutral100
-import top.chengdongqing.wechat.core.designsystem.util.rememberStatusBarHeight
+import top.chengdongqing.wechat.core.designsystem.window.rememberStatusBarHeight
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 

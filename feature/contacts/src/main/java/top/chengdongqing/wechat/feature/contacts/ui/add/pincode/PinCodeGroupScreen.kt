@@ -37,10 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
+import top.chengdongqing.wechat.core.designsystem.indication.neon
 import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.util.StatusBarAppearanceEffect
-import top.chengdongqing.wechat.core.designsystem.util.neon
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
 
 @Composable
 fun PinCodeCreateGroupScreen(onBack: () -> Unit) {

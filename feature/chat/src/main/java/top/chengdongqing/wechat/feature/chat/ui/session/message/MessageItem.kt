@@ -38,7 +38,7 @@ import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
-import top.chengdongqing.wechat.core.designsystem.util.onTap
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext

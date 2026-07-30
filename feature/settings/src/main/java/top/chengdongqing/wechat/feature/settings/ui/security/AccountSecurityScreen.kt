@@ -33,7 +33,12 @@ fun AccountSecurityScreen(
     }
 
     Scaffold(
-        topBar = { WeTopAppBar(title = "账号与安全", onBack = onBack) },
+        topBar = {
+            WeTopAppBar(
+                title = stringResource(R.string.settings_account_security),
+                onBack = onBack
+            )
+        },
         containerColor = WeTheme.colorScheme.background
     ) { padding ->
         Column(
