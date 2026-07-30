@@ -4,6 +4,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.feature.contacts.ui.add.AddFriendScreen
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.NFCAddFriendScreen
@@ -75,6 +76,7 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
             onNavigateToSetting = { backStack.add(NavigationKey.ContactSetting(id)) },
             onNavigateToProfile = { backStack.add(NavigationKey.ContactProfile(id)) },
             onNavigateToRequestAdd = { backStack.add(NavigationKey.RequestAddFriend(id)) },
+            isLocalAi = id == LocalAiAssistant.ID,
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }

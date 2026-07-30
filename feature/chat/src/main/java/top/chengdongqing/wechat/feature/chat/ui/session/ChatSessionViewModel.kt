@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.feature.chat.ui.session
 
 import android.app.NotificationManager
 import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextRange
@@ -68,6 +67,7 @@ import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiEngine
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 import top.chengdongqing.wechat.feature.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMediaItem
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
@@ -107,12 +107,6 @@ class ChatSessionViewModel @AssistedInject constructor(
     val localAiState = localAiEngine.state
     private val _streamingAiMessage = MutableStateFlow<StreamingAiMessage?>(null)
     val streamingAiMessage = _streamingAiMessage.asStateFlow()
-
-    fun importLocalAiModel(uri: Uri) {
-        viewModelScope.launch {
-            runCatching { localAiEngine.importModel(uri) }
-        }
-    }
 
     @AssistedFactory
     interface Factory {
@@ -344,13 +338,13 @@ class ChatSessionViewModel @AssistedInject constructor(
                 .combine(profileRepository.observeProfile()) { contact, profile ->
                     val isLocalAi = chatId == LocalAiAssistant.ID
                     _uiState.value.copy(
-                        title = if (isLocalAi) LocalAiAssistant.NAME else contact?.displayName ?: profile?.nickname ?: "",
+                        title = if (isLocalAi) LocalAiAssistant.NAME else contact?.displayName
+                            ?: profile?.nickname ?: "",
                         peerId = if (isLocalAi) LocalAiAssistant.ID else contact?.id,
                         peerAvatar = contact?.avatarPath,
                         myId = profile?.id,
                         myAvatar = profile?.avatarPath,
-                        isSelf = !isLocalAi && contact == null,
-                        isOnline = isLocalAi
+                        isSelf = !isLocalAi && contact == null
                     )
                 }.collect { _uiState.value = it }
         }
@@ -364,7 +358,11 @@ class ChatSessionViewModel @AssistedInject constructor(
                         cur.copy(
                             peerAvatar = session?.contactAvatar ?: cur.peerAvatar,
                             isMuted = session?.isMuted ?: cur.isMuted,
-                            isOnline = if (chatId == LocalAiAssistant.ID) true else session?.isOnline ?: cur.isOnline,
+                            isOnline = if (chatId == LocalAiAssistant.ID) {
+                                localAiEngine.state.value is LocalAiState.Ready
+                            } else {
+                                session?.isOnline ?: cur.isOnline
+                            },
                             draftMessage = session?.draftMessage ?: cur.draftMessage,
                             backgroundPath = session?.backgroundPath ?: bg
                         )

@@ -118,7 +118,6 @@ private fun HomeTabPager(
                 onNavigateToGroups = { backStack.add(NavigationKey.GroupList) },
                 onNavigateToTags = { backStack.add(NavigationKey.ContactTags) },
                 onNavigateToDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
-                onNavigateToChat = { backStack.add(NavigationKey.ChatSession(it)) },
                 onNavigateToProfileEdit = { backStack.add(NavigationKey.EditContactProfile(it)) }
             )
 

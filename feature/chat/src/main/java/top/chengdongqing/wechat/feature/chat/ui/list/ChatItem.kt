@@ -43,6 +43,7 @@ import top.chengdongqing.wechat.core.designsystem.text.rememberEmojiInlineConten
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.toPreviewText
 import top.chengdongqing.wechat.core.model.ChatSession
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
 
 @Composable
@@ -73,7 +74,11 @@ private fun SessionAvatar(chat: ChatSession) {
         offset = badgeOffset
     ) {
         AsyncImage(
-            model = chat.contactAvatar,
+            model = if (chat.id == LocalAiAssistant.ID) {
+                R.drawable.img_logo
+            } else {
+                chat.contactAvatar
+            },
             contentDescription = null,
             error = painterResource(R.drawable.img_avatar_placeholder),
             modifier = Modifier
@@ -96,7 +101,11 @@ private fun RowScope.SessionContent(session: ChatSession) {
             .padding(vertical = 2.dp)
     ) {
         Text(
-            text = session.contactName,
+            text = if (session.id == LocalAiAssistant.ID) {
+                LocalAiAssistant.NAME
+            } else {
+                session.contactName
+            },
             fontSize = 16.sp,
             maxLines = 1,
             color = WeTheme.colorScheme.textPrimary,

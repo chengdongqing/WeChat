@@ -36,8 +36,7 @@ fun ChatSessionTopBar(
     viewModel: ChatSessionViewModel,
     uiState: ChatSessionUiState,
     onBack: () -> Unit,
-    onNavigateToInfo: () -> Unit,
-    onSelectLocalAiModel: () -> Unit
+    onNavigateToInfo: () -> Unit
 ) {
     val isSelectMode = uiState.isSelectMode
     val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle(0)
@@ -59,13 +58,9 @@ fun ChatSessionTopBar(
         if (!isSelectMode) {
             IconButton(
                 icon = R.drawable.ic_more_outlined,
-                description = if (viewModel.isLocalAiSession) {
-                    "选择本地 GGUF 模型"
-                } else {
-                    stringResource(R.string.action_more)
-                }
+                description = stringResource(R.string.action_more)
             ) {
-                if (viewModel.isLocalAiSession) onSelectLocalAiModel() else onNavigateToInfo()
+                onNavigateToInfo()
             }
         }
     }
@@ -96,6 +91,7 @@ private fun ChatSessionTitle(
                 LocalAiState.NoModel -> "选择模型"
                 is LocalAiState.Importing -> "正在导入"
                 LocalAiState.Loading -> "正在加载"
+                LocalAiState.Cancelling -> "正在取消"
                 is LocalAiState.Ready -> "本地"
                 is LocalAiState.Error -> "模型错误"
             }

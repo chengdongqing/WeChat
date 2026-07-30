@@ -21,6 +21,7 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTop
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
 import top.chengdongqing.wechat.feature.contacts.ui.detail.components.ContactDetailContent
+import top.chengdongqing.wechat.feature.contacts.ui.detail.components.LocalAiContactDetailContent
 
 @Composable
 fun ContactDetailScreen(
@@ -30,6 +31,7 @@ fun ContactDetailScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSetting: () -> Unit = {},
     onNavigateToRequestAdd: () -> Unit = {},
+    isLocalAi: Boolean = false,
     viewModel: ContactDetailViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -64,7 +66,7 @@ fun ContactDetailScreen(
     Scaffold(
         topBar = {
             ContactDetailTopBar(
-                showMoreAction = contact?.isFriend ?: false,
+                showMoreAction = !isLocalAi && (contact?.isFriend ?: false),
                 onBack = onBack
             ) {
                 viewModel.handleAction(ContactAction.ShowMore)
@@ -79,11 +81,15 @@ fun ContactDetailScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            contact?.let {
-                ContactDetailContent(
-                    contact = it,
-                    onAction = viewModel::handleAction
-                )
+            if (isLocalAi) {
+                LocalAiContactDetailContent(onSendMessage = onNavigateToChat)
+            } else {
+                contact?.let {
+                    ContactDetailContent(
+                        contact = it,
+                        onAction = viewModel::handleAction
+                    )
+                }
             }
         }
     }

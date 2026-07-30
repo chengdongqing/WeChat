@@ -90,9 +90,9 @@ fun AppLockSettingsScreen(
             )
             if (viewModel.isEnabled && step == PinStep.VerifyOld) {
                 Spacer(Modifier.weight(1f))
-                WeDangerButton("取消启动锁") {
+                WeDangerButton("取消应用锁") {
                     disableAfterVerification = true
-                    error = "请输入当前密码以取消启动锁"
+                    error = "请输入当前密码以取消应用锁"
                 }
             }
         }

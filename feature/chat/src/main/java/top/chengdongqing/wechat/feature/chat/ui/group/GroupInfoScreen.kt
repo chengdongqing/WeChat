@@ -41,8 +41,8 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
-import top.chengdongqing.wechat.feature.chat.ui.info.components.ChatParticipant
-import top.chengdongqing.wechat.feature.chat.ui.info.components.ChatParticipantsBar
+import top.chengdongqing.wechat.feature.chat.ui.group.components.ChatParticipant
+import top.chengdongqing.wechat.feature.chat.ui.group.components.ChatParticipantsBar
 
 @Composable
 fun GroupInfoScreen(
@@ -226,9 +226,12 @@ fun GroupInfoScreen(
                     }) { Text("添加群成员") }
                     state.members.forEach { member ->
                         Row(
-                            Modifier.fillMaxWidth().clickable {
-                                viewModel.removeMember(member.id)
-                            }.padding(vertical = 10.dp),
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.removeMember(member.id)
+                                }
+                                .padding(vertical = 10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(member.name)

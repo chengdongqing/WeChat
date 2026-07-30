@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.feature.chat.ui.info
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,10 +39,13 @@ import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddBut
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
+import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 
 @Composable
 fun ChatInfoScreen(
@@ -51,6 +56,11 @@ fun ChatInfoScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val resources = LocalResources.current
     val dialog = rememberDialogState()
+    val selectAiModel = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let(viewModel::importLocalAiModel)
+    }
 
     Scaffold(
         topBar = {
@@ -71,8 +81,30 @@ fun ChatInfoScreen(
             ContactListBar(
                 name = uiState.contactName,
                 avatarPath = uiState.contactAvatar,
-                onNavigateToContact = { onNavigateToContact() }
+                isLocalAi = uiState.isLocalAi,
+                onNavigateToContact = onNavigateToContact
             )
+
+            if (uiState.isLocalAi) {
+                LocalAiModelSettings(
+                    state = uiState.localAiState,
+                    modelSizeBytes = uiState.modelSizeBytes,
+                    modelInfo = uiState.modelInfo,
+                    onSelectModel = {
+                        selectAiModel.launch(arrayOf("application/octet-stream", "*/*"))
+                    },
+                    onCancelLoading = viewModel::cancelModelLoading,
+                    onUnloadModel = {
+                        dialog.show(
+                            title = "确定卸载模型吗？",
+                            content = "下次使用时可重新导入。",
+                            okText = R.string.action_ok,
+                            okColor = SemanticError,
+                            onOk = viewModel::unloadModel
+                        )
+                    }
+                )
+            }
 
             WeSettingItem(
                 label = stringResource(R.string.chat_info_search),
@@ -134,9 +166,116 @@ fun ChatInfoScreen(
 }
 
 @Composable
+private fun LocalAiModelSettings(
+    state: LocalAiState,
+    modelSizeBytes: Long?,
+    modelInfo: LocalAiModelInfo?,
+    onSelectModel: () -> Unit,
+    onCancelLoading: () -> Unit,
+    onUnloadModel: () -> Unit
+) {
+    val modelName = when (state) {
+        is LocalAiState.Ready -> state.modelName
+        else -> null
+    }
+    val status = when (state) {
+        LocalAiState.NoModel -> "未选择"
+        is LocalAiState.Importing -> "正在导入 ${(state.progressBytes / 1024 / 1024)} MB"
+        LocalAiState.Loading -> "正在加载"
+        LocalAiState.Cancelling -> "正在取消加载"
+        is LocalAiState.Ready -> "已加载"
+        is LocalAiState.Error -> "加载失败：${state.message}"
+    }
+
+    WeSettingGroup {
+        WeSettingItem("本地模型", onClick = onSelectModel) {
+            WeSettingValue(
+                text = modelName ?: "选择 GGUF 模型",
+                modifier = Modifier.widthIn(max = 160.dp)
+            )
+        }
+        if (state !is LocalAiState.NoModel) {
+            WeSettingItem("模型状态", showArrow = false) {
+                WeSettingValue(status)
+            }
+            modelSizeBytes?.let { bytes ->
+                WeSettingItem("文件大小", showArrow = false) {
+                    WeSettingValue("%.2f GB".format(bytes / 1024.0 / 1024.0 / 1024.0))
+                }
+            }
+            modelInfo?.description?.takeIf(String::isNotBlank)?.let { description ->
+                WeSettingItem(
+                    label = "模型描述",
+                    description = description,
+                    showArrow = false
+                )
+            }
+            modelInfo?.architecture?.let { architecture ->
+                WeSettingItem("模型架构", showArrow = false) {
+                    WeSettingValue(architecture)
+                }
+            }
+            modelInfo?.parameterCount?.let { count ->
+                WeSettingItem("参数量", showArrow = false) {
+                    WeSettingValue(formatParameterCount(count))
+                }
+            }
+            modelInfo?.contextLength?.let { length ->
+                WeSettingItem("上下文长度", showArrow = false) {
+                    WeSettingValue("$length tokens")
+                }
+            }
+            modelInfo?.fileType?.let { fileType ->
+                WeSettingItem("GGUF 类型", showArrow = false) {
+                    WeSettingValue(ggufFileTypeLabel(fileType))
+                }
+            }
+            when (state) {
+                is LocalAiState.Importing, LocalAiState.Loading -> WeSettingItem(
+                    label = "取消加载",
+                    showDivider = false,
+                    onClick = onCancelLoading
+                )
+
+                is LocalAiState.Ready -> WeSettingItem(
+                    label = "卸载模型",
+                    showDivider = false,
+                    onClick = onUnloadModel
+                )
+
+                else -> Unit
+            }
+        }
+    }
+}
+
+private fun formatParameterCount(count: Long): String = when {
+    count >= 1_000_000_000 -> "%.1fB".format(count / 1_000_000_000.0)
+    count >= 1_000_000 -> "%.1fM".format(count / 1_000_000.0)
+    else -> count.toString()
+}
+
+private fun ggufFileTypeLabel(type: Int): String = when (type) {
+    0 -> "F32"
+    1 -> "F16"
+    2 -> "Q4_0"
+    3 -> "Q4_1"
+    7 -> "Q8_0"
+    8 -> "Q5_0"
+    9 -> "Q5_1"
+    14 -> "Q6_K"
+    15 -> "Q5_K_M"
+    16 -> "Q4_K_M"
+    17 -> "Q3_K_M"
+    18 -> "Q2_K"
+    else -> "类型 $type"
+}
+
+@Composable
 private fun ContactListBar(
     name: String,
     avatarPath: String?,
+    isLocalAi: Boolean,
     onNavigateToContact: () -> Unit
 ) {
     Row(
@@ -153,7 +292,7 @@ private fun ContactListBar(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = avatarPath,
+                model = if (isLocalAi) R.drawable.img_logo else avatarPath,
                 error = painterResource(R.drawable.img_avatar_placeholder),
                 contentDescription = null,
                 modifier = Modifier
@@ -170,10 +309,12 @@ private fun ContactListBar(
             )
         }
 
-        DashedAddButton(
-            modifier = Modifier.size(64.dp),
-            cornerRadius = 6.dp,
-            color = Color.Gray
-        ) {}
+        if (!isLocalAi) {
+            DashedAddButton(
+                modifier = Modifier.size(64.dp),
+                cornerRadius = 6.dp,
+                color = Color.Gray
+            ) {}
+        }
     }
 }

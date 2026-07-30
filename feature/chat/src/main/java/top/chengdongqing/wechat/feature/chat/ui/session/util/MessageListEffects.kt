@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import kotlin.math.abs
 
@@ -19,12 +20,20 @@ import kotlin.math.abs
 @Composable
 fun MessageDataScrollEffect(
     listState: LazyListState,
-    messages: List<ChatMessage>
+    messages: List<ChatMessage>,
+    transientMessageId: String? = null
 ) {
     val latestMessageId = messages.firstOrNull()?.id
 
-    LaunchedEffect(latestMessageId) {
-        if (latestMessageId != null && listState.firstVisibleItemIndex <= 1) {
+    LaunchedEffect(latestMessageId, transientMessageId) {
+        if (latestMessageId == null && transientMessageId == null) return@LaunchedEffect
+
+        if (transientMessageId != null) {
+            // The local assistant placeholder is inserted before Paging observes it.
+            // Wait for that item to be laid out, then pin the reverse list to index 0.
+            withFrameNanos { }
+            listState.scrollToItem(0)
+        } else if (listState.firstVisibleItemIndex <= 1) {
             listState.animateScrollToItem(0)
         }
     }

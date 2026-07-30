@@ -11,6 +11,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -20,9 +21,13 @@ import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.model.ChatSession
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.toContact
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiEngine
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 
 data class ChatInfoUiState(
     /** 联系人信息 */
@@ -32,7 +37,11 @@ data class ChatInfoUiState(
     /** 会话设置 */
     val isMuted: Boolean = false,
     val isPinned: Boolean = false,
-    val backgroundPath: String? = null
+    val backgroundPath: String? = null,
+    val isLocalAi: Boolean = false,
+    val localAiState: LocalAiState = LocalAiState.NoModel,
+    val modelSizeBytes: Long? = null,
+    val modelInfo: LocalAiModelInfo? = null
 )
 
 @HiltViewModel(assistedFactory = ChatInfoViewModel.Factory::class)
@@ -42,8 +51,10 @@ class ChatInfoViewModel @AssistedInject constructor(
     private val contactRepository: ContactRepository,
     private val profileRepository: ProfileRepository,
     private val privateFileManager: PrivateFileManager,
+    private val localAiEngine: LocalAiEngine,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
+    private var modelImportJob: Job? = null
 
     @AssistedFactory
     interface Factory {
@@ -83,12 +94,14 @@ class ChatInfoViewModel @AssistedInject constructor(
     val uiState = combine(
         profileRepository.observeProfile(),
         chatSessionRepository.observeSession(chatId),
-        contactRepository.observeContact(chatId)
-    ) { myProfile, session, contact ->
+        contactRepository.observeContact(chatId),
+        localAiEngine.state
+    ) { myProfile, session, contact, localAiState ->
         if (myProfile == null || session == null) {
             return@combine ChatInfoUiState()
         }
 
+        val isLocalAi = chatId == LocalAiAssistant.ID
         val isSelf = chatId == myProfile.id
         val finalContact = if (isSelf) {
             myProfile.toContact()
@@ -97,11 +110,16 @@ class ChatInfoViewModel @AssistedInject constructor(
         }
 
         ChatInfoUiState(
-            contactName = finalContact?.displayName ?: session.contactName,
+            contactName = if (isLocalAi) LocalAiAssistant.NAME
+            else finalContact?.displayName ?: session.contactName,
             contactAvatar = finalContact?.avatarPath ?: session.contactAvatar,
             isMuted = session.isMuted,
             isPinned = session.isPinned,
-            backgroundPath = session.backgroundPath
+            backgroundPath = session.backgroundPath,
+            isLocalAi = isLocalAi,
+            localAiState = localAiState,
+            modelSizeBytes = localAiEngine.modelSizeBytes,
+            modelInfo = localAiEngine.modelInfo
         )
     }.stateIn(
         scope = viewModelScope,
@@ -148,6 +166,33 @@ class ChatInfoViewModel @AssistedInject constructor(
     fun clearMessages() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.deleteSession(chatId, false)
+        }
+    }
+
+    fun importLocalAiModel(uri: Uri) {
+        modelImportJob?.cancel()
+        modelImportJob = viewModelScope.launch {
+            runCatching { localAiEngine.importModel(uri) }
+                .onFailure { error ->
+                    if (error !is kotlinx.coroutines.CancellationException) {
+                        context.showToast(error.message ?: "模型导入失败")
+                    }
+                }
+        }
+    }
+
+    fun cancelModelLoading() {
+        modelImportJob?.cancel()
+        viewModelScope.launch {
+            localAiEngine.cancelLoading()
+            context.showToast("已取消模型加载")
+        }
+    }
+
+    fun unloadModel() {
+        viewModelScope.launch {
+            localAiEngine.unloadModel()
+            context.showToast("模型已卸载")
         }
     }
 }

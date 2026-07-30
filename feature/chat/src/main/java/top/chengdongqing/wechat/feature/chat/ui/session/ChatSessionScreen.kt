@@ -1,8 +1,6 @@
 package top.chengdongqing.wechat.feature.chat.ui.session
 
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
@@ -132,11 +130,6 @@ fun ChatSessionScreen(
     val knownMessageIds = remember(chatId) { mutableSetOf<String>() }
     var messageSnapshotInitialized by remember(chatId) { mutableStateOf(false) }
     val launchCall = LocalCallLauncher.current.rememberLauncher(chatId)
-    val selectAiModel = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri?.let(viewModel::importLocalAiModel)
-    }
     val chatContext = rememberChatSessionContext(
         viewModel = viewModel,
         uiState = uiState,
@@ -149,7 +142,11 @@ fun ChatSessionScreen(
     )
 
     KeyboardScrollEffect(listState, lazyMessageItems.itemCount)
-    MessageDataScrollEffect(listState, lazyMessageItems.itemSnapshotList.items)
+    MessageDataScrollEffect(
+        listState = listState,
+        messages = lazyMessageItems.itemSnapshotList.items,
+        transientMessageId = streamingAiMessage?.id
+    )
     LifecycleResumeEffect(chatId) {
         viewModel.onEnterSession()
         viewModel.clearUnreadState()
@@ -254,10 +251,7 @@ fun ChatSessionScreen(
                                         viewModel = viewModel,
                                         uiState = uiState,
                                         onBack = onBack,
-                                        onNavigateToInfo = onNavigateToInfo,
-                                        onSelectLocalAiModel = {
-                                            selectAiModel.launch(arrayOf("application/octet-stream", "*/*"))
-                                        }
+                                        onNavigateToInfo = onNavigateToInfo
                                     )
                                 },
                                 bottomBar = {

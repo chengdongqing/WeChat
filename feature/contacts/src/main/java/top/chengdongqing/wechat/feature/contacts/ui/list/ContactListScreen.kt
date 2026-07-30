@@ -44,7 +44,6 @@ fun ContactListScreen(
     onNavigateToGroups: () -> Unit,
     onNavigateToTags: () -> Unit,
     onNavigateToDetail: (contactId: String) -> Unit,
-    onNavigateToChat: (contactId: String) -> Unit,
     onNavigateToProfileEdit: (contactId: String) -> Unit,
     viewModel: ContactListViewModel = hiltViewModel(),
 ) {
@@ -118,11 +117,7 @@ fun ContactListScreen(
                                     contact = contact,
                                     modifier = Modifier.weContextMenu(
                                         onClick = {
-                                            if (contact.id == LocalAiAssistant.ID) {
-                                                onNavigateToChat(contact.id)
-                                            } else {
-                                                onNavigateToDetail(contact.id)
-                                            }
+                                            onNavigateToDetail(contact.id)
                                         },
                                         onLongClick = { position ->
                                             if (!contact.isSelf && contact.id != LocalAiAssistant.ID) {

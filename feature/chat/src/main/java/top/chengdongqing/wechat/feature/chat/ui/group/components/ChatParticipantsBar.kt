@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.feature.chat.ui.info.components
+package top.chengdongqing.wechat.feature.chat.ui.group.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
