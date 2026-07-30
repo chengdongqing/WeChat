@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,14 +21,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -40,10 +40,10 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
+import top.chengdongqing.wechat.core.designsystem.components.chat.TextMessagePreviewItem
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
 import top.chengdongqing.wechat.core.designsystem.theme.LocalFontScale
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.theme.scaled
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.model.AppFontScale
 
@@ -86,18 +86,33 @@ fun FontScaleSettingScreen(
             ),
             LocalFontScale provides fontScale.value
         ) {
-            FontScalePreview(modifier = Modifier.padding(innerPadding))
+            ChatPreview(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
         }
     }
 }
 
 @Composable
-private fun FontScalePreview(modifier: Modifier) {
-    val messages = listOf(
-        stringResource(R.string.display_font_scale_preview_title),
-        stringResource(R.string.display_font_scale_preview_hint),
-        stringResource(R.string.display_font_scale_preview_desc)
-    )
+private fun ChatPreview(
+    viewModel: DisplaySettingsViewModel,
+    modifier: Modifier
+) {
+    val resources = LocalResources.current
+    val avatarPath by produceState<Any?>(R.drawable.img_logo) {
+        value = viewModel.profileRepository.requireProfile().avatarPath
+    }
+
+    val messages = remember {
+        val texts = listOf(
+            resources.getString(R.string.display_font_scale_preview_title),
+            resources.getString(R.string.display_font_scale_preview_hint),
+            resources.getString(R.string.display_font_scale_preview_desc)
+        )
+        texts
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -108,31 +123,13 @@ private fun FontScalePreview(modifier: Modifier) {
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        messages.forEachIndexed { index, message ->
-            val isOutgoing = index == 0
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = if (isOutgoing) Arrangement.End else Arrangement.Start
-            ) {
-                Text(
-                    text = message,
-                    color = WeTheme.colorScheme.textPrimary,
-                    style = TextStyle(
-                        fontSize = 16.sp.scaled,
-                        lineHeight = 22.sp.scaled
-                    ),
-                    modifier = Modifier
-                        .background(
-                            color = if (isOutgoing) {
-                                WeTheme.colorScheme.surfaceVariant
-                            } else {
-                                WeTheme.colorScheme.surface
-                            },
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(horizontal = 14.dp, vertical = 10.dp)
-                )
-            }
+        messages.forEachIndexed { index, text ->
+            TextMessagePreviewItem(
+                text = text,
+                isFromMe = index == 0,
+                myAvatar = avatarPath,
+                peerAvatar = R.drawable.img_logo
+            )
         }
     }
 }

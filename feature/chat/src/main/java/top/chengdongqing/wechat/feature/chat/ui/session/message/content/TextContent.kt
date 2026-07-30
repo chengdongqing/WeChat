@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.magnifier
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,7 +31,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,7 +39,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.core.net.toUri
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.theme.scaled
+import top.chengdongqing.wechat.core.designsystem.components.chat.WeMessageText
 import top.chengdongqing.wechat.core.designsystem.util.parseRichText
 import top.chengdongqing.wechat.core.designsystem.util.rememberEmojiInlineContent
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
@@ -122,8 +120,13 @@ fun TextContent(
     }
 
     Box(modifier = Modifier.padding(10.dp)) {
-        Text(
+        WeMessageText(
             text = annotatedString,
+            color = if (message.isFromMe) {
+                colors.bubbleTextOutgoing
+            } else {
+                colors.bubbleTextIncoming
+            },
             inlineContent = inlineContent,
             modifier = Modifier
                 .onGloballyPositioned {
@@ -160,15 +163,6 @@ fun TextContent(
                         }
                     }
                 },
-            style = TextStyle(
-                fontSize = 16.sp.scaled,
-                color = if (message.isFromMe) {
-                    colors.bubbleTextOutgoing
-                } else {
-                    colors.bubbleTextIncoming
-                },
-                lineHeight = 22.sp.scaled
-            ),
             onTextLayout = { textLayout = it }
         )
 

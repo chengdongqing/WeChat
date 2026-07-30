@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Canvas
+import android.graphics.drawable.Drawable
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,10 +35,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.graphics.createBitmap
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
@@ -58,8 +55,8 @@ private enum class AppIconColor(
     Red("Red", R.string.app_icon_red)
 }
 
-@Composable
 @OptIn(ExperimentalGridApi::class)
+@Composable
 fun AppIconSettingScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     var selected by remember { mutableStateOf(AppIconManager.current(context)) }
@@ -73,32 +70,27 @@ fun AppIconSettingScreen(onBack: () -> Unit) {
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
-        Column(
+        Grid(
             modifier = Modifier
-                .fillMaxSize()
                 .padding(innerPadding)
+                .fillMaxSize()
+                .padding(12.dp),
+            config = {
+                repeat(3) { column(1.fr) }
+                gap(12.dp)
+            }
         ) {
-            Grid(
-                config = {
-                    repeat(3) { column(1.fr) }
-                    gap(row = 12.dp, column = 8.dp)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp)
-            ) {
-                AppIconColor.entries.forEach { option ->
-                    AppIconOption(
-                        option = option,
-                        selected = option == selected,
-                        onClick = {
-                            if (option != selected) {
-                                AppIconManager.select(context, option)
-                                selected = option
-                            }
+            AppIconColor.entries.forEach { option ->
+                AppIconOption(
+                    option = option,
+                    selected = option == selected,
+                    onClick = {
+                        if (option != selected) {
+                            AppIconManager.select(context, option)
+                            selected = option
                         }
-                    )
-                }
+                    }
+                )
             }
         }
     }
@@ -148,14 +140,6 @@ private fun AppIconOption(
                 }
             }
         }
-        Text(
-            text = stringResource(option.labelRes),
-            color = WeTheme.colorScheme.textPrimary,
-            fontSize = 14.sp,
-            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
-        )
     }
 }
 
@@ -166,7 +150,7 @@ private fun AppIconPreview(
 ) {
     val context = LocalContext.current
     val image = remember(option) {
-        val drawable = AppIconManager.icon(context, option)
+        val drawable = AppIconManager.icon(context, option) ?: return@remember null
         val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 192
         val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 192
         createBitmap(width, height).also { bitmap ->
@@ -175,16 +159,17 @@ private fun AppIconPreview(
         }.asImageBitmap()
     }
 
-    Image(
-        bitmap = image,
-        contentDescription = stringResource(option.labelRes),
-        modifier = modifier
-    )
+    if (image != null) {
+        Image(
+            bitmap = image,
+            contentDescription = stringResource(option.labelRes),
+            modifier = modifier
+        )
+    }
 }
 
 private object AppIconManager {
-    @Suppress("DEPRECATION")
-    fun icon(context: Context, option: AppIconColor) =
+    fun icon(context: Context, option: AppIconColor): Drawable? =
         context.packageManager.getActivityInfo(
             component(context, option),
             PackageManager.MATCH_DISABLED_COMPONENTS
