@@ -10,6 +10,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,6 +43,11 @@ fun HomeDestination(
     val unreadMap by homeViewModel.unreadMap.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { HomeTab.entries.size })
+    val selectedTabPosition by remember {
+        derivedStateOf {
+            pagerState.currentPage + pagerState.currentPageOffsetFraction
+        }
+    }
     val scope = rememberCoroutineScope()
     val currentTab = HomeTab.entries[pagerState.currentPage]
 
@@ -67,6 +73,7 @@ fun HomeDestination(
             WeNavigationBottomBar(
                 tabs = HomeTab.entries,
                 currentTabIndex = pagerState.currentPage,
+                selectedTabPosition = selectedTabPosition,
                 badgeMap = unreadMap,
                 onTabSelected = { index ->
                     if (index != pagerState.currentPage) {
@@ -98,7 +105,9 @@ private fun HomeTabPager(
 ) {
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier.padding(innerPadding).fillMaxSize(),
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
         beyondViewportPageCount = 1
     ) { page ->
         when (HomeTab.entries[page]) {
@@ -111,9 +120,11 @@ private fun HomeTabPager(
                 onNavigateToChat = { backStack.add(NavigationKey.ChatSession(it)) },
                 onNavigateToProfileEdit = { backStack.add(NavigationKey.EditContactProfile(it)) }
             )
+
             HomeTab.Discovery -> DiscoveryScreen {
                 backStack.add(NavigationKey.Moments)
             }
+
             HomeTab.Me -> MeScreen(backStack)
         }
     }

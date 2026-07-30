@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -17,6 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -27,6 +30,7 @@ import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import kotlin.math.abs
 
 interface NavigationTab {
     @get:StringRes
@@ -44,6 +48,7 @@ fun <T : NavigationTab> WeNavigationBottomBar(
     tabs: List<T>,
     badgeMap: Map<T, Int>,
     currentTabIndex: Int,
+    selectedTabPosition: Float = currentTabIndex.toFloat(),
     onTabSelected: (Int) -> Unit
 ) {
     Column(
@@ -64,6 +69,8 @@ fun <T : NavigationTab> WeNavigationBottomBar(
                 TabItem(
                     tab = tab,
                     isSelected = currentTabIndex == index,
+                    selectionProgress = (1f - abs(index - selectedTabPosition))
+                        .coerceIn(0f, 1f),
                     badge = badgeMap[tab] ?: 0,
                     onClick = { onTabSelected(index) })
             }
@@ -75,15 +82,15 @@ fun <T : NavigationTab> WeNavigationBottomBar(
 private fun RowScope.TabItem(
     tab: NavigationTab,
     isSelected: Boolean,
+    selectionProgress: Float,
     badge: Int,
     onClick: () -> Unit
 ) {
-    val currentIcon = if (isSelected) tab.selectedIconRes else tab.iconRes
-    val currentColor = if (isSelected) {
-        WeTheme.colorScheme.primary
-    } else {
-        WeTheme.colorScheme.textPrimary
-    }
+    val currentColor = lerp(
+        WeTheme.colorScheme.textPrimary,
+        WeTheme.colorScheme.primary,
+        selectionProgress
+    )
 
     Column(
         modifier = Modifier
@@ -104,12 +111,24 @@ private fun RowScope.TabItem(
             size = 20.dp,
             offset = DpOffset(x = 12.dp, y = (-2).dp)
         ) {
-            Icon(
-                painter = painterResource(currentIcon),
-                contentDescription = stringResource(tab.labelRes),
-                modifier = Modifier.size(26.dp),
-                tint = currentColor
-            )
+            Box {
+                Icon(
+                    painter = painterResource(tab.iconRes),
+                    contentDescription = stringResource(tab.labelRes),
+                    modifier = Modifier
+                        .size(26.dp)
+                        .alpha(1f - selectionProgress),
+                    tint = currentColor
+                )
+                Icon(
+                    painter = painterResource(tab.selectedIconRes),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(26.dp)
+                        .alpha(selectionProgress),
+                    tint = currentColor
+                )
+            }
         }
 
         Text(
