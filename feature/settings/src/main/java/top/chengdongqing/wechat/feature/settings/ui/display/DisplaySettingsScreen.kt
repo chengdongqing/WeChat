@@ -64,13 +64,19 @@ fun DisplaySettingsScreen(
                 )
                 WeSettingItem(
                     label = stringResource(R.string.display_language),
-                    showDivider = false,
                     onClick = {
                         backStack.add(NavigationKey.LanguageSettings)
                     }
                 ) {
                     WeSettingValue(stringResource(settings.language.labelRes))
                 }
+                WeSettingItem(
+                    label = stringResource(R.string.display_app_icon),
+                    showDivider = false,
+                    onClick = {
+                        backStack.add(NavigationKey.AppIconSettings)
+                    }
+                )
             }
         }
     }

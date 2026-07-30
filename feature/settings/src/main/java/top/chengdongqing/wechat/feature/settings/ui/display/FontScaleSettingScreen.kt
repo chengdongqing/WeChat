@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
 import top.chengdongqing.wechat.core.designsystem.theme.LocalFontScale
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.theme.scaled
 import top.chengdongqing.wechat.core.designsystem.util.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.model.AppFontScale
 
@@ -115,6 +117,10 @@ private fun FontScalePreview(modifier: Modifier) {
                 Text(
                     text = message,
                     color = WeTheme.colorScheme.textPrimary,
+                    style = TextStyle(
+                        fontSize = 16.sp.scaled,
+                        lineHeight = 22.sp.scaled
+                    ),
                     modifier = Modifier
                         .background(
                             color = if (isOutgoing) {

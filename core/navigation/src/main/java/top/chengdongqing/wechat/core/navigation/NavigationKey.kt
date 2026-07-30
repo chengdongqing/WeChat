@@ -84,6 +84,8 @@ sealed interface NavigationKey : NavKey {
     @Serializable data object NotificationSoundSettings : NavigationKey
     @Serializable data object RingtoneSettings : NavigationKey
     @Serializable data object DisplaySettings : NavigationKey
+    @Serializable
+    data object AppIconSettings : NavigationKey
     @Serializable data object ThemeSettings : NavigationKey
     @Serializable data object LanguageSettings : NavigationKey
     @Serializable data object FontScaleSettings : NavigationKey

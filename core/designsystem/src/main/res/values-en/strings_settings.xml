@@ -60,6 +60,15 @@
     <string name="ringtone_mi_remix">Mi Remix</string>
 
     <string name="display_theme">Dark Mode</string>
+    <string name="display_app_icon">Icon Color</string>
+    <string name="app_icon_default">Default</string>
+    <string name="app_icon_black">Black</string>
+    <string name="app_icon_white">White</string>
+    <string name="app_icon_blue">Blue</string>
+    <string name="app_icon_purple">Purple</string>
+    <string name="app_icon_pink">Pink</string>
+    <string name="app_icon_orange">Orange</string>
+    <string name="app_icon_red">Red</string>
     <string name="display_theme_light">Light</string>
     <string name="display_theme_dark">Dark</string>
     <string name="display_theme_follow_system_desc">When enabled, WeChat will switch dark mode on/off to match your system setting.</string>

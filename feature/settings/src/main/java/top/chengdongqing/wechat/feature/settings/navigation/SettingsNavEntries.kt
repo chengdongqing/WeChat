@@ -9,6 +9,7 @@ import top.chengdongqing.wechat.feature.settings.ui.about.AboutScreen
 import top.chengdongqing.wechat.feature.settings.ui.chat.ChatManagementScreen
 import top.chengdongqing.wechat.feature.settings.ui.chat.ChatSettingsScreen
 import top.chengdongqing.wechat.feature.settings.ui.connection.ConnectionModeSettingScreen
+import top.chengdongqing.wechat.feature.settings.ui.display.AppIconSettingScreen
 import top.chengdongqing.wechat.feature.settings.ui.display.DarkModeSettingScreen
 import top.chengdongqing.wechat.feature.settings.ui.display.DisplaySettingsScreen
 import top.chengdongqing.wechat.feature.settings.ui.display.FontScaleSettingScreen
@@ -58,6 +59,7 @@ private fun EntryProviderScope<NavKey>.displayNavEntries(
     onBack: () -> Unit
 ) {
     entry<NavigationKey.DisplaySettings> { DisplaySettingsScreen(backStack, onBack) }
+    entry<NavigationKey.AppIconSettings> { AppIconSettingScreen(onBack) }
     entry<NavigationKey.ThemeSettings> { DarkModeSettingScreen(onBack) }
     entry<NavigationKey.LanguageSettings> { LanguageSettingScreen(onBack) }
     entry<NavigationKey.FontScaleSettings> { FontScaleSettingScreen(onBack) }
