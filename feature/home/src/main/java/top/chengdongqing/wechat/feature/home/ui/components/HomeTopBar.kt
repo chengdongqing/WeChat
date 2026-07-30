@@ -32,6 +32,7 @@ fun HomeTopBar(
     unreadMap: Map<HomeTab, Int>,
     onNavigateToGroupChat: () -> Unit,
     onNavigateToAddFriend: () -> Unit,
+    onNavigateToPayment: () -> Unit,
     onScannedQrCode: (String) -> Unit
 ) {
     when {
@@ -42,6 +43,7 @@ fun HomeTopBar(
                 title = title,
                 onNavigateToGroupChat = onNavigateToGroupChat,
                 onNavigateToAddFriend = onNavigateToAddFriend,
+                onNavigateToPayment = onNavigateToPayment,
                 onScannedQrCode = onScannedQrCode
             )
         }
@@ -66,6 +68,7 @@ private fun TopBarContent(
     title: String,
     onNavigateToGroupChat: () -> Unit,
     onNavigateToAddFriend: () -> Unit,
+    onNavigateToPayment: () -> Unit,
     onScannedQrCode: (String) -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -112,7 +115,7 @@ private fun TopBarContent(
             QuickAction.GroupChat -> onNavigateToGroupChat()
             QuickAction.AddFriend -> onNavigateToAddFriend()
             QuickAction.Scan -> launchScanner()
-            else -> {}
+            QuickAction.Payment -> onNavigateToPayment()
         }
     }
 }

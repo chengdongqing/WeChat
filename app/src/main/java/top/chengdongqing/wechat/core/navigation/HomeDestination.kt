@@ -66,6 +66,7 @@ fun HomeDestination(
                 unreadMap = unreadMap,
                 onNavigateToGroupChat = { backStack.add(NavigationKey.GroupChat("")) },
                 onNavigateToAddFriend = { backStack.add(NavigationKey.AddFriend) },
+                onNavigateToPayment = { backStack.add(NavigationKey.PaymentCode) },
                 onScannedQrCode = profileViewModel::handleScannedQRCode
             )
         },

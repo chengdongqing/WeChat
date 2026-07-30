@@ -106,6 +106,21 @@ class MainActivity : AppCompatActivity() {
             ?.apply { action = Intent.ACTION_MAIN }
             ?: Intent(this, MainActivity::class.java).setAction(Intent.ACTION_MAIN)
 
+        val paymentNav = json.encodeToString<NavigationKey>(NavigationKey.PaymentCode)
+        val paymentShortcut = ShortcutInfo.Builder(this, SHORTCUT_PAYMENT)
+            .setShortLabel("收付款")
+            .setLongLabel("收付款")
+            .setIcon(Icon.createWithResource(this, R.drawable.ic_shortcut_payment))
+            .setIntent(
+                Intent(this, MainActivity::class.java).apply {
+                    action = ACTION_SHORTCUT_PAYMENT
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    putExtra(EXTRA_NAV, paymentNav)
+                }
+            )
+            .setRank(0)
+            .build()
+
         val scanShortcut = ShortcutInfo.Builder(this, SHORTCUT_SCAN)
             .setShortLabel("扫一扫")
             .setLongLabel("扫一扫")
@@ -117,7 +132,7 @@ class MainActivity : AppCompatActivity() {
                     QRCodeScannerActivity.newIntent(this).setAction(ACTION_SHORTCUT_SCAN)
                 )
             )
-            .setRank(0)
+            .setRank(1)
             .build()
 
         val qrCodeNav = json.encodeToString<NavigationKey>(NavigationKey.QrCode)
@@ -132,11 +147,15 @@ class MainActivity : AppCompatActivity() {
                     putExtra(EXTRA_NAV, qrCodeNav)
                 }
             )
-            .setRank(1)
+            .setRank(2)
             .build()
 
         runCatching {
-            shortcutManager.dynamicShortcuts = listOf(scanShortcut, myQrCodeShortcut)
+            shortcutManager.dynamicShortcuts = listOf(
+                paymentShortcut,
+                scanShortcut,
+                myQrCodeShortcut
+            )
         }
     }
 
@@ -144,9 +163,12 @@ class MainActivity : AppCompatActivity() {
         const val EXTRA_NAV = "extra_nav"
         private const val SHORTCUT_SCAN = "scan"
         private const val SHORTCUT_MY_QR_CODE = "my_qr_code"
+        private const val SHORTCUT_PAYMENT = "payment"
         private const val ACTION_SHORTCUT_SCAN =
             "top.chengdongqing.wechat.action.SHORTCUT_SCAN"
         private const val ACTION_SHORTCUT_MY_QR_CODE =
             "top.chengdongqing.wechat.action.SHORTCUT_MY_QR_CODE"
+        private const val ACTION_SHORTCUT_PAYMENT =
+            "top.chengdongqing.wechat.action.SHORTCUT_PAYMENT"
     }
 }
