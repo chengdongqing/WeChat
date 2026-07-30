@@ -77,6 +77,10 @@ sealed interface NavigationKey : NavKey {
     data object PaymentCode : NavigationKey
 
     @Serializable data object Settings : NavigationKey
+    @Serializable
+    data object AccountSecuritySettings : NavigationKey
+    @Serializable
+    data object AppLockSettings : NavigationKey
     @Serializable data object StorageSettings : NavigationKey
     @Serializable data object NotificationSettings : NavigationKey
     @Serializable data object NotificationDisplaySettings : NavigationKey

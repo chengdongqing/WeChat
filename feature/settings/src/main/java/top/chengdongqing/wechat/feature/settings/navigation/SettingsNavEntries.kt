@@ -24,6 +24,8 @@ import top.chengdongqing.wechat.feature.settings.ui.notification.RingtoneSetting
 import top.chengdongqing.wechat.feature.settings.ui.privacy.AddMeMethodSettingScreen
 import top.chengdongqing.wechat.feature.settings.ui.privacy.ContactBlacklistScreen
 import top.chengdongqing.wechat.feature.settings.ui.privacy.PrivacySettingsScreen
+import top.chengdongqing.wechat.feature.settings.ui.security.AccountSecurityScreen
+import top.chengdongqing.wechat.feature.settings.ui.security.AppLockSettingsScreen
 import top.chengdongqing.wechat.feature.settings.ui.storage.StorageSettingsScreen
 
 fun EntryProviderScope<NavKey>.settingsNavEntries(
@@ -31,6 +33,8 @@ fun EntryProviderScope<NavKey>.settingsNavEntries(
     onBack: () -> Unit
 ) {
     entry<NavigationKey.Settings> { SettingsScreen(backStack, onBack) }
+    entry<NavigationKey.AccountSecuritySettings> { AccountSecurityScreen(backStack, onBack) }
+    entry<NavigationKey.AppLockSettings> { AppLockSettingsScreen(onBack) }
     entry<NavigationKey.ConnectionModeSettings> { ConnectionModeSettingScreen(onBack) }
     entry<NavigationKey.ChatSettings> { ChatSettingsScreen(onBack) }
     entry<NavigationKey.ChatManagement> { ChatManagementScreen(onBack) }

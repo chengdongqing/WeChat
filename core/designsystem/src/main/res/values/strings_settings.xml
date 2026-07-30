@@ -2,6 +2,12 @@
     <string name="settings">设置</string>
     <string name="settings_follow_system">跟随系统</string>
 
+    <string name="settings_group_account">账号</string>
+    <string name="settings_account_security">账号安全</string>
+    <string name="settings_app_lock">应用启动锁</string>
+    <string name="settings_app_lock_on">已开启</string>
+    <string name="settings_app_lock_off">未开启</string>
+
     <string name="settings_group_general">通用</string>
     <string name="settings_notifications">通知</string>
     <string name="settings_display">界面与显示</string>

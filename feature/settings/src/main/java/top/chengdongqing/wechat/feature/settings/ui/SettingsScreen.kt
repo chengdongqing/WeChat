@@ -65,6 +65,16 @@ fun SettingsScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            WeSettingGroup(stringResource(R.string.settings_group_account)) {
+                WeSettingItem(
+                    label = stringResource(R.string.settings_account_security),
+                    showDivider = false,
+                    onClick = {
+                        backStack.add(NavigationKey.AccountSecuritySettings)
+                    }
+                )
+            }
+
             WeSettingGroup(stringResource(R.string.settings_group_general)) {
                 WeSettingItem(
                     label = stringResource(R.string.settings_notifications),

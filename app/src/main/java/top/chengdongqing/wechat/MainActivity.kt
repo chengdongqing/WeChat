@@ -1,6 +1,9 @@
 package top.chengdongqing.wechat
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
@@ -13,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -20,11 +24,13 @@ import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.qrcode.scanner.QRCodeScannerActivity
+import top.chengdongqing.wechat.core.common.security.AppLockManager
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.AppNavigation
 import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.core.network.service.P2PService
 import top.chengdongqing.wechat.feature.settings.ui.display.DisplaySettingsViewModel
+import top.chengdongqing.wechat.feature.startup.AppUnlockScreen
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -32,22 +38,41 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var json: Json
 
+    @Inject
+    lateinit var appLockManager: AppLockManager
+
     // 记录待跳转的路由
     private val pendingNavKey = mutableStateOf<NavKey?>(null)
+    private val isAppLocked = mutableStateOf(false)
+    private val screenOffReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == Intent.ACTION_SCREEN_OFF && appLockManager.isEnabled) {
+                isAppLocked.value = true
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        isAppLocked.value = appLockManager.isEnabled
 
         handleIntent(intent)
         initP2PService()
         publishAppShortcuts()
+        ContextCompat.registerReceiver(
+            this,
+            screenOffReceiver,
+            IntentFilter(Intent.ACTION_SCREEN_OFF),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
 
         setContent {
             val backStack = rememberNavBackStack(NavigationKey.Splash)
             val navKey by pendingNavKey
             val displayViewModel: DisplaySettingsViewModel = hiltViewModel()
             val displaySettings by displayViewModel.settings.collectAsState()
+            val locked by isAppLocked
 
             // 响应路由事件
             LaunchedEffect(navKey) {
@@ -60,7 +85,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             WeTheme(settings = displaySettings) {
-                AppNavigation(backStack)
+                if (locked && appLockManager.isEnabled) {
+                    AppUnlockScreen(
+                        verify = appLockManager::verify,
+                        isTemporarilyLocked = { appLockManager.isTemporarilyLocked },
+                        onUnlocked = { isAppLocked.value = false }
+                    )
+                } else {
+                    AppNavigation(backStack)
+                }
             }
 
             // Provides a consistent user-visible startup endpoint for Macrobenchmark.
@@ -73,6 +106,11 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntent(intent)
+    }
+
+    override fun onDestroy() {
+        unregisterReceiver(screenOffReceiver)
+        super.onDestroy()
     }
 
     private fun handleIntent(intent: Intent?) {

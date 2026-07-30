@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
+import top.chengdongqing.wechat.core.common.security.AppLockManager
 import top.chengdongqing.wechat.core.common.util.clearAllCaches
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.network.connection.ConnectionManager
@@ -26,6 +27,7 @@ class LogoutUseCase @Inject constructor(
     private val e2eSessionManager: E2ESessionManager,
     private val privateFileManager: PrivateFileManager,
     private val keyStoreManager: KeyStoreManager,
+    private val appLockManager: AppLockManager,
     @param:ApplicationContext private val context: Context
 ) {
     companion object {
@@ -54,6 +56,9 @@ class LogoutUseCase @Inject constructor(
 
             // 删除密钥
             keyStoreManager.clearIdentity()
+
+            // 启动锁属于当前账号，退出登录时一并清除
+            appLockManager.clear()
         }
     }.onFailure {
         Log.e(TAG, "退出登录失败", it)
