@@ -32,7 +32,10 @@ dependencies {
     implementation(libs.core.ktx)
     implementation(libs.serialization.json)
     implementation(libs.room.runtime)
+    implementation(libs.concentus)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    testImplementation(libs.test.junit)
 }

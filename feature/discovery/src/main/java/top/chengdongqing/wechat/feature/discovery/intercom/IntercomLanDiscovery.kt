@@ -173,7 +173,7 @@ class IntercomLanDiscovery @Inject constructor(
         advertise()
     }
 
-    private suspend fun receiveLoop(receiver: DatagramSocket) {
+    private fun receiveLoop(receiver: DatagramSocket) {
         val buffer = ByteArray(MAX_PACKET_SIZE)
         while (scope.isActive && !receiver.isClosed) {
             try {

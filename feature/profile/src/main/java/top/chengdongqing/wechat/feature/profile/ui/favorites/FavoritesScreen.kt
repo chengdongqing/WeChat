@@ -231,15 +231,13 @@ private fun FavoriteCard(
         },
         modifier = Modifier.fillMaxWidth()
     ) {
-        val paths = item.mediaPaths.lineSequence().filter(String::isNotBlank).toList()
-        val imagePath = paths.firstOrNull { path ->
-            File(path).extension.lowercase() in setOf("jpg", "jpeg", "png", "webp", "gif")
+        val attachments = decodeFavoriteAttachments(item.mediaPaths)
+        val visual = attachments.firstOrNull {
+            it.kind == FavoriteAttachment.Kind.IMAGE || it.kind == FavoriteAttachment.Kind.VIDEO
         }
-        val videoPath = paths.firstOrNull { path ->
-            File(path).extension.lowercase() in setOf("mp4", "mov", "avi", "3gp", "mkv")
-        }
-        val isVideo = item.type == "MEDIA" && videoPath != null
-        val isFile = item.type == "FILE"
+        val location = attachments.firstOrNull { it.kind == FavoriteAttachment.Kind.LOCATION }
+        val audio = attachments.firstOrNull { it.kind == FavoriteAttachment.Kind.AUDIO }
+        val file = attachments.firstOrNull { it.kind == FavoriteAttachment.Kind.FILE }
 
         Row(
             Modifier
@@ -265,7 +263,7 @@ private fun FavoriteCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                if (!isFile && item.content.isNotBlank() && item.content != item.title) {
+                if (file == null && item.content.isNotBlank() && item.content != item.title) {
                     Spacer(Modifier.height(4.dp))
                     Text(
                         item.content.replace('|', ' '),
@@ -295,18 +293,18 @@ private fun FavoriteCard(
                     )
                 }
             }
-            if (imagePath != null || videoPath != null) {
+            if (visual != null) {
                 Spacer(Modifier.width(16.dp))
                 Box(contentAlignment = Alignment.Center) {
                     AsyncImage(
-                        model = File(imagePath ?: videoPath!!),
+                        model = File(visual.path),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(80.dp)
                             .clip(RoundedCornerShape(4.dp))
                     )
-                    if (isVideo) {
+                    if (visual.kind == FavoriteAttachment.Kind.VIDEO) {
                         Icon(
                             painter = painterResource(R.drawable.ic_play_filled),
                             contentDescription = null,
@@ -315,7 +313,40 @@ private fun FavoriteCard(
                         )
                     }
                 }
-            } else if (isFile) {
+            } else if (location != null) {
+                Spacer(Modifier.width(16.dp))
+                Column(
+                    Modifier
+                        .width(92.dp)
+                        .background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp))
+                        .padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_location_filled),
+                        contentDescription = null,
+                        tint = Color(0xFF777777),
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(
+                        location.locationName.ifBlank { "位置" },
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            } else if (audio != null) {
+                Spacer(Modifier.width(16.dp))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_voice_outlined),
+                        contentDescription = null,
+                        tint = Color(0xFF07C160),
+                        modifier = Modifier.size(42.dp)
+                    )
+                    Text("${audio.durationMs / 1000}″", color = Color(0xFF888888), fontSize = 12.sp)
+                }
+            } else if (file != null) {
                 Spacer(Modifier.width(16.dp))
                 Icon(
                     painter = painterResource(R.drawable.ic_file_filled),

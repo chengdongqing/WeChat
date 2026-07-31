@@ -15,10 +15,9 @@ import javax.inject.Inject
 
 data class FavoriteDraft(
     val id: String? = randomUUID(),
-    val type: String = "RICH_TEXT",
     val title: String = "",
     val content: String = "",
-    val mediaPaths: String = "",
+    val attachments: List<FavoriteAttachment> = emptyList(),
     val createdAt: Long = System.currentTimeMillis()
 )
 
@@ -37,7 +36,11 @@ class FavoriteEditorViewModel @Inject constructor(
         viewModelScope.launch {
             dao.observe(id).collect { item ->
                 if (item != null) _draft.value = FavoriteDraft(
-                    item.id, item.type, item.title, item.content, item.mediaPaths, item.createdAt
+                    id = item.id,
+                    title = item.title,
+                    content = item.content,
+                    attachments = decodeFavoriteAttachments(item.mediaPaths),
+                    createdAt = item.createdAt
                 )
             }
         }
@@ -66,15 +69,16 @@ class FavoriteEditorViewModel @Inject constructor(
 
     private suspend fun persist() {
         val value = _draft.value
-        if (value.title.isBlank() && value.content.isBlank() && value.mediaPaths.isBlank()) return
+        if (value.title.isBlank() && value.content.isBlank() && value.attachments.isEmpty()) return
         val now = System.currentTimeMillis()
+        val hasText = value.title.isNotBlank() || value.content.isNotBlank()
         dao.upsert(
             FavoriteEntity(
                 id = value.id ?: randomUUID(),
-                type = value.type,
+                type = value.attachments.primaryType(hasText),
                 title = value.title.trim(),
-                content = value.content.trim(),
-                mediaPaths = value.mediaPaths.trim(),
+                content = value.content,
+                mediaPaths = encodeFavoriteAttachments(value.attachments),
                 createdAt = value.createdAt,
                 updatedAt = now
             )

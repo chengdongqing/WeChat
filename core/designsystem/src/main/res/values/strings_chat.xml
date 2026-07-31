@@ -30,14 +30,6 @@
     <string name="chat_call_voice">语音通话</string>
     <string name="chat_location_send">发送位置</string>
     <string name="chat_location_share">共享实时位置</string>
-    <string name="live_location_title">共享实时位置</string>
-    <string name="live_location_waiting">等待对方加入…</string>
-    <string name="live_location_connected">对方已加入 · 相距 %1$s</string>
-    <string name="live_location_talk">按住说话</string>
-    <string name="live_location_talking">松开结束</string>
-    <string name="live_location_permission">需要麦克风权限才能语音对讲</string>
-    <string name="live_location_locating">定位中</string>
-    <string name="live_location_invitation">我正在共享实时位置，请进入“位置 → 共享实时位置”加入</string>
 
     <string name="sticker_title">表情</string>
     <string name="sticker_custom_title">动图</string>
@@ -125,18 +117,22 @@
     <string name="location_current">当前位置</string>
     <string name="location_navigate">导航</string>
 
-    <string name="message_preview_image">[图片]</string>
-    <string name="message_preview_voice">[语音]</string>
-    <string name="message_preview_video">[视频]</string>
-    <string name="message_preview_file">[文件]</string>
-    <string name="message_preview_location">[位置]</string>
-    <string name="message_preview_live_location">[位置共享]</string>
     <string name="live_location_started_me">我发起了位置共享</string>
     <string name="live_location_started_peer">对方发起了位置共享</string>
     <string name="live_location_ended">位置共享已结束</string>
     <string name="live_location_people">%1$d 人在共享位置</string>
     <string name="live_location_me_sharing">我正在共享位置</string>
     <string name="live_location_peer_sharing">%1$s正在共享位置</string>
+    <string name="live_location_talk">按住说话</string>
+    <string name="live_location_talking">松开结束</string>
+    <string name="live_location_permission">需要麦克风权限才能语音对讲</string>
+
+    <string name="message_preview_image">[图片]</string>
+    <string name="message_preview_voice">[语音]</string>
+    <string name="message_preview_video">[视频]</string>
+    <string name="message_preview_file">[文件]</string>
+    <string name="message_preview_location">[位置]</string>
+    <string name="message_preview_live_location">[位置共享]</string>
     <string name="message_preview_contact_card">[名片]</string>
     <string name="message_preview_sticker">[表情]</string>
     <string name="message_preview_music">[音乐]</string>

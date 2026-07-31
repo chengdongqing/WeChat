@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,6 +61,7 @@ fun LiveLocationScreen(
     viewModel: LiveLocationViewModel
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val controller = rememberMapController()
     val remote by viewModel.remoteLocation.collectAsStateWithLifecycle()
     val remoteBearing by viewModel.remoteBearing.collectAsStateWithLifecycle()
@@ -69,7 +71,7 @@ fun LiveLocationScreen(
     var talking by remember { mutableStateOf(false) }
     var centeredOnMe by remember { mutableStateOf(false) }
     val remoteLocationIcon = remember {
-        BitmapFactory.decodeResource(context.resources, R.drawable.img_your_location)
+        BitmapFactory.decodeResource(resources, R.drawable.img_your_location)
     }
     val microphonePermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -77,7 +79,7 @@ fun LiveLocationScreen(
         if (granted) {
             talking = viewModel.audio.setTransmitting(true)
         } else {
-            context.showToast(context.getString(R.string.live_location_permission))
+            context.showToast(resources.getString(R.string.live_location_permission))
         }
     }
 
@@ -209,7 +211,7 @@ private fun LiveLocationHeader(
             }
         }
         Text(
-            stringResource(R.string.live_location_people, participants.size),
+            text = stringResource(R.string.live_location_people, participants.size),
             modifier = Modifier.padding(top = 9.dp),
             color = Color.White,
             fontSize = 21.sp,
@@ -248,8 +250,11 @@ private fun TalkButton(
             )
         }
         Text(
-            if (talking) stringResource(R.string.live_location_talking)
-            else stringResource(R.string.live_location_talk),
+            text = if (talking) {
+                stringResource(R.string.live_location_talking)
+            } else {
+                stringResource(R.string.live_location_talk)
+            },
             modifier = Modifier.padding(top = 8.dp),
             color = WeTheme.colorScheme.textPrimary,
             fontWeight = FontWeight.Medium

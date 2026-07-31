@@ -34,6 +34,7 @@ room = "3.0.0"
 paging = "3.5.0"
 serialization = "1.11.0"
 webrtc = "144.7559.09"
+concentus = "1.0.2"
 mlkit = "17.3.0"
 zxing = "3.5.4"
 pinyin = "0.4.0"
@@ -99,6 +100,7 @@ media3-transformer = { module = "androidx.media3:media3-transformer", version.re
 media3-effect = { module = "androidx.media3:media3-effect", version.ref = "media3" }
 coil-zoomable = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "coilZoomable" }
 webrtc = { module = "io.github.webrtc-sdk:android", version.ref = "webrtc" }
+concentus = { module = "io.github.jaredmdobson:concentus", version.ref = "concentus" }
 
 # 相机与扫码
 camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera" }

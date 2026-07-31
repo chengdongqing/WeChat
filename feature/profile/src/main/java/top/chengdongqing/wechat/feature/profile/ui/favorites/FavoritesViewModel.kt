@@ -87,28 +87,33 @@ class FavoritesViewModel @Inject constructor(
 }
 
 private fun FavoriteEntity.toMessageContent(): MessageContent {
-    val path = mediaPaths.lineSequence().firstOrNull { it.isNotBlank() }
-    return when (type) {
-        "VOICE" -> if (path != null) MessageContent.Voice(path, content.toLongOrNull() ?: 0L)
-        else MessageContent.Text(title.ifBlank { "[语音收藏]" })
+    val attachment = decodeFavoriteAttachments(mediaPaths).firstOrNull()
+    return when (attachment?.kind) {
+        FavoriteAttachment.Kind.AUDIO ->
+            MessageContent.Voice(attachment.path, attachment.durationMs)
 
-        "LOCATION" -> {
-            val parts = content.split('|')
+        FavoriteAttachment.Kind.LOCATION -> {
             MessageContent.Location(
-                parts.getOrNull(0)?.toDoubleOrNull() ?: 0.0,
-                parts.getOrNull(1)?.toDoubleOrNull() ?: 0.0,
-                parts.getOrNull(2).orEmpty(),
-                title,
-                path
+                attachment.latitude,
+                attachment.longitude,
+                attachment.address,
+                attachment.locationName,
+                attachment.mapUri.takeIf(String::isNotBlank)
             )
         }
 
-        "MEDIA" -> if (path != null) {
-            val file = File(path)
-            MessageContent.File(path, file.name, "application/octet-stream", file.length())
-        } else MessageContent.Text(content)
+        FavoriteAttachment.Kind.IMAGE, FavoriteAttachment.Kind.VIDEO,
+        FavoriteAttachment.Kind.FILE -> {
+            val file = File(attachment.path)
+            MessageContent.File(
+                attachment.path,
+                attachment.displayName.ifBlank { file.name },
+                attachment.mimeType.ifBlank { "application/octet-stream" },
+                file.length()
+            )
+        }
 
-        else -> MessageContent.Text(listOf(title, content).filter { it.isNotBlank() }
+        null -> MessageContent.Text(listOf(title, content).filter { it.isNotBlank() }
             .joinToString("\n"))
     }
 }

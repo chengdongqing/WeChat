@@ -6,7 +6,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.net.wifi.WifiManager
+import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
@@ -19,10 +22,14 @@ import javax.inject.Inject
 class IntercomForegroundService : Service() {
     @Inject
     lateinit var discovery: IntercomLanDiscovery
+
     @Inject
     lateinit var audioEngine: IntercomAudioEngine
 
     private var activeChannel: String? = null
+    private var wakeLock: PowerManager.WakeLock? = null
+    private var wifiLock: WifiManager.WifiLock? = null
+    private var multicastLock: WifiManager.MulticastLock? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -46,17 +53,67 @@ class IntercomForegroundService : Service() {
         discovery.join(channel)
         audioEngine.start(channel, mode)
         startForeground(NOTIFICATION_ID, createNotification(channel))
+        acquireBackgroundLocks(mode)
         return START_REDELIVER_INTENT
     }
 
     override fun onDestroy() {
         audioEngine.stop()
         discovery.leave()
+        releaseBackgroundLocks()
         activeChannel = null
         super.onDestroy()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun acquireBackgroundLocks(mode: ConnectionMode) {
+        if (wakeLock?.isHeld != true) {
+            wakeLock = getSystemService(PowerManager::class.java)
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "$packageName:intercom")
+                .apply {
+                    setReferenceCounted(false)
+                    acquire(10 * 60 * 1000L /*10 minutes*/)
+                }
+        }
+        if (mode != ConnectionMode.WiFiLan) {
+            multicastLock?.takeIf(WifiManager.MulticastLock::isHeld)?.release()
+            wifiLock?.takeIf(WifiManager.WifiLock::isHeld)?.release()
+            multicastLock = null
+            wifiLock = null
+            return
+        }
+        val wifiManager = applicationContext.getSystemService(WifiManager::class.java)
+        if (wifiLock?.isHeld != true) {
+            val lockMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+            } else {
+                @Suppress("DEPRECATION")
+                WifiManager.WIFI_MODE_FULL_HIGH_PERF
+            }
+            wifiLock = wifiManager.createWifiLock(lockMode, "$packageName:intercom-wifi")
+                .apply {
+                    setReferenceCounted(false)
+                    acquire()
+                }
+        }
+        if (multicastLock?.isHeld != true) {
+            multicastLock = wifiManager.createMulticastLock("$packageName:intercom-broadcast")
+                .apply {
+                    setReferenceCounted(false)
+                    acquire()
+                }
+        }
+    }
+
+    private fun releaseBackgroundLocks() {
+        multicastLock?.takeIf(WifiManager.MulticastLock::isHeld)?.release()
+        wifiLock?.takeIf(WifiManager.WifiLock::isHeld)?.release()
+        wakeLock?.takeIf(PowerManager.WakeLock::isHeld)?.release()
+        multicastLock = null
+        wifiLock = null
+        wakeLock = null
+    }
 
     private fun createNotification(channel: String): Notification {
         val contentIntent = packageManager.getLaunchIntentForPackage(packageName)?.let {

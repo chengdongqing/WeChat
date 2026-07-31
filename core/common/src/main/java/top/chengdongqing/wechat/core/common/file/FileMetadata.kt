@@ -79,7 +79,8 @@ suspend fun Context.getFileMetadata(uri: Uri): FileMetadata? =
                     height = h
                 }
             } else if (isVideo) {
-                MediaMetadataRetriever().use { retriever ->
+                val retriever = MediaMetadataRetriever()
+                try {
                     try {
                         retriever.setDataSource(this@getFileMetadata, uri)
 
@@ -112,6 +113,8 @@ suspend fun Context.getFileMetadata(uri: Uri): FileMetadata? =
                     } catch (e: Exception) {
                         Log.e("FileMetadata", "提取视频元数据失败", e)
                     }
+                } finally {
+                    retriever.release()
                 }
             }
 
@@ -202,9 +205,14 @@ suspend fun Context.loadMediaThumbnail(
  *
  * 用于低版本系统
  */
-fun Context.loadVideoThumbnail(uri: Uri): Bitmap? = MediaMetadataRetriever().use { retriever ->
-    runCatching {
+fun Context.loadVideoThumbnail(uri: Uri): Bitmap? {
+    val retriever = MediaMetadataRetriever()
+    return try {
         retriever.setDataSource(this, uri)
         retriever.getFrameAtTime(1, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-    }.getOrNull()
+    } catch (_: Exception) {
+        null
+    } finally {
+        retriever.release()
+    }
 }

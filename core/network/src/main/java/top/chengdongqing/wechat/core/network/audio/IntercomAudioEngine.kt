@@ -12,8 +12,8 @@ import android.media.AudioRecord
 import android.media.AudioTrack
 import android.media.MediaRecorder
 import android.media.audiofx.AcousticEchoCanceler
-import android.media.audiofx.NoiseSuppressor
 import android.os.Build
+import android.os.Process
 import android.util.Log
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,8 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -39,6 +37,7 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.SocketTimeoutException
+import java.util.TreeMap
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
@@ -49,8 +48,8 @@ import kotlin.math.sqrt
 /**
  * Screen-scoped low-latency LAN audio transport.
  *
- * Frames are 16 kHz mono PCM in 20 ms UDP packets. Each sender has a small
- * bounded jitter queue; the playback loop mixes one frame per active sender.
+ * Frames are 16 kHz mono Opus in 20 ms packets. Each sender has an independent
+ * decoder and bounded jitter queue; the playback loop mixes decoded PCM frames.
  */
 @Singleton
 class IntercomAudioEngine @Inject constructor(
@@ -59,7 +58,7 @@ class IntercomAudioEngine @Inject constructor(
     private val realtimePackets: RealtimePacketBus
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val remoteFrames = ConcurrentHashMap<String, Channel<ShortArray>>()
+    private val remoteStreams = ConcurrentHashMap<String, RemoteStream>()
     private val sequence = AtomicInteger()
     private val audioManager = context.getSystemService(AudioManager::class.java)
 
@@ -73,7 +72,7 @@ class IntercomAudioEngine @Inject constructor(
     private var audioTrack: AudioTrack? = null
     private var audioRecord: AudioRecord? = null
     private var echoCanceler: AcousticEchoCanceler? = null
-    private var noiseSuppressor: NoiseSuppressor? = null
+    private var opusEncoder: IntercomOpusEncoder? = null
     private var routingConfigured = false
     private var previousAudioMode = AudioManager.MODE_NORMAL
     private var previousSpeakerphone = false
@@ -130,6 +129,7 @@ class IntercomAudioEngine @Inject constructor(
     @Synchronized
     fun stop() {
         stopCapture()
+        opusEncoder = null
         receiveSocket?.close()
         receiveSocket = null
         sendSocket?.close()
@@ -140,8 +140,7 @@ class IntercomAudioEngine @Inject constructor(
         realtimeJob = null
         playbackJob?.cancel()
         playbackJob = null
-        remoteFrames.values.forEach { it.close() }
-        remoteFrames.clear()
+        remoteStreams.clear()
         runCatching { audioTrack?.pause() }
         runCatching { audioTrack?.flush() }
         runCatching { audioTrack?.release() }
@@ -154,6 +153,7 @@ class IntercomAudioEngine @Inject constructor(
         val socket = DatagramSocket(null).apply {
             reuseAddress = true
             broadcast = true
+            receiveBufferSize = SOCKET_BUFFER_BYTES
             soTimeout = 1_000
             bind(InetSocketAddress(AUDIO_PORT))
         }
@@ -178,18 +178,14 @@ class IntercomAudioEngine @Inject constructor(
         val frame = decodeFrame(bytes, length) ?: return
         if (frame.channel != channelId) return
         if (frame.senderId == profileRepository.requireUserId()) return
-        val queue = remoteFrames.getOrPut(frame.senderId) {
-            Channel(capacity = JITTER_FRAMES)
-        }
-        if (queue.trySend(frame.samples).isFailure) {
-            queue.tryReceive()
-            queue.trySend(frame.samples)
-        }
+        remoteStreams.getOrPut(frame.senderId) {
+            RemoteStream(fecEnabled = usesUnreliableUdp())
+        }.offer(frame)
     }
 
     private fun startPlayback() {
         val minBuffer = AudioTrack.getMinBufferSize(
-            SAMPLE_RATE,
+            IntercomAudioFormat.SAMPLE_RATE,
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT
         )
@@ -202,24 +198,26 @@ class IntercomAudioEngine @Inject constructor(
             )
             .setAudioFormat(
                 AudioFormat.Builder()
-                    .setSampleRate(SAMPLE_RATE)
+                    .setSampleRate(IntercomAudioFormat.SAMPLE_RATE)
                     .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                     .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                     .build()
             )
-            .setBufferSizeInBytes(max(minBuffer, FRAME_BYTES * 8))
+            .setBufferSizeInBytes(max(minBuffer, IntercomAudioFormat.FRAME_BYTES * 8))
             .setTransferMode(AudioTrack.MODE_STREAM)
+            .setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY)
             .build()
         audioTrack = track
         track.play()
         playbackJob = scope.launch {
-            val accumulator = IntArray(FRAME_SAMPLES)
-            val mixed = ShortArray(FRAME_SAMPLES)
+            Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+            val accumulator = IntArray(IntercomAudioFormat.FRAME_SAMPLES)
+            val mixed = ShortArray(IntercomAudioFormat.FRAME_SAMPLES)
             while (isActive) {
                 accumulator.fill(0)
                 var streamCount = 0
-                remoteFrames.values.forEach { queue ->
-                    val samples = queue.tryReceive().getOrNull() ?: return@forEach
+                remoteStreams.values.forEach { stream ->
+                    val samples = stream.poll() ?: return@forEach
                     streamCount++
                     for (index in samples.indices) {
                         accumulator[index] += samples[index].toInt()
@@ -234,10 +232,12 @@ class IntercomAudioEngine @Inject constructor(
                             .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
                             .toShort()
                     }
-                    track.write(mixed, 0, mixed.size, AudioTrack.WRITE_BLOCKING)
                 } else {
-                    delay(FRAME_DURATION_MS)
+                    // Keep AudioTrack clocked even when a network packet is late. Pausing
+                    // writes here causes a hardware-buffer underrun and an audible gap.
+                    mixed.fill(0)
                 }
+                track.write(mixed, 0, mixed.size, AudioTrack.WRITE_BLOCKING)
             }
         }
     }
@@ -245,16 +245,16 @@ class IntercomAudioEngine @Inject constructor(
     @SuppressLint("MissingPermission")
     private fun startCapture() {
         val minBuffer = AudioRecord.getMinBufferSize(
-            SAMPLE_RATE,
+            IntercomAudioFormat.SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT
         )
         val recorder = AudioRecord(
             MediaRecorder.AudioSource.VOICE_COMMUNICATION,
-            SAMPLE_RATE,
+            IntercomAudioFormat.SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
-            max(minBuffer, FRAME_BYTES * 4)
+            max(minBuffer, IntercomAudioFormat.FRAME_BYTES * 4)
         )
         if (recorder.state != AudioRecord.STATE_INITIALIZED) {
             recorder.release()
@@ -265,39 +265,41 @@ class IntercomAudioEngine @Inject constructor(
             echoCanceler =
                 AcousticEchoCanceler.create(recorder.audioSessionId)?.apply { enabled = true }
         }
-        if (NoiseSuppressor.isAvailable()) {
-            noiseSuppressor =
-                NoiseSuppressor.create(recorder.audioSessionId)?.apply { enabled = true }
-        }
         recorder.startRecording()
+        if (opusEncoder == null) {
+            // Keep codec state across push-to-talk bursts so remote decoders remain in sync.
+            opusEncoder = IntercomOpusEncoder(enableFec = usesUnreliableUdp())
+        }
         captureJob = scope.launch {
-            val samples = ShortArray(FRAME_SAMPLES)
+            Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO)
+            val samples = ShortArray(IntercomAudioFormat.FRAME_SAMPLES)
+            var offset = 0
             while (isActive && recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
-                val count = recorder.read(samples, 0, samples.size, AudioRecord.READ_BLOCKING)
-                if (count == samples.size) {
-                    for (index in samples.indices) {
-                        samples[index] = (samples[index] * INPUT_GAIN)
-                            .toInt()
-                            .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
-                            .toShort()
-                    }
+                val count = recorder.read(
+                    samples,
+                    offset,
+                    samples.size - offset,
+                    AudioRecord.READ_BLOCKING
+                )
+                if (count > 0) offset += count
+                if (offset == samples.size) {
                     sendFrame(samples)
+                    offset = 0
                 }
             }
         }
     }
 
-    private fun sendFrame(samples: ShortArray) {
+    private suspend fun sendFrame(samples: ShortArray) {
         val channel = channelId ?: return
+        val payload = opusEncoder?.encode(samples) ?: return
         val bytes = encodeFrame(
             channel = channel,
             senderId = profileRepository.requireUserId(),
             sequence = sequence.incrementAndGet(),
-            samples = samples
+            payload = payload
         )
-        if (transportMode == IntercomTransport.Nearby &&
-            connectionMode == ConnectionMode.WiFiLan
-        ) {
+        if (usesUnreliableUdp()) {
             runCatching {
                 sendSocket?.send(
                     DatagramPacket(
@@ -310,9 +312,9 @@ class IntercomAudioEngine @Inject constructor(
             }.onFailure { Log.w(TAG, "发送对讲音频失败", it) }
         } else {
             val packetType = transportMode.packetType
-            scope.launch {
-                realtimePackets.broadcast(packetType, bytes)
-            }
+            // Capture already runs on Dispatchers.IO. Sending inline preserves frame order
+            // and applies backpressure instead of spawning an unbounded coroutine per frame.
+            realtimePackets.broadcast(packetType, bytes)
         }
     }
 
@@ -322,9 +324,7 @@ class IntercomAudioEngine @Inject constructor(
         captureJob = null
         runCatching { audioRecord?.stop() }
         echoCanceler?.release()
-        noiseSuppressor?.release()
         echoCanceler = null
-        noiseSuppressor = null
         audioRecord?.release()
         audioRecord = null
     }
@@ -332,14 +332,63 @@ class IntercomAudioEngine @Inject constructor(
     private data class AudioFrame(
         val channel: String,
         val senderId: String,
-        val samples: ShortArray
+        val sequence: Int,
+        val payload: ByteArray
     )
+
+    /**
+     * Per-speaker reorder/jitter buffer. A few missing frames are concealed by fading the
+     * last frame instead of inserting hard silence, which is much less noticeable for speech.
+     */
+    private class RemoteStream(private val fecEnabled: Boolean) {
+        private val frames = TreeMap<Int, AudioFrame>()
+        private val decoder = IntercomOpusDecoder()
+        private var started = false
+        private var expectedSequence: Int? = null
+
+        @Synchronized
+        fun offer(frame: AudioFrame) {
+            expectedSequence?.let { if (frame.sequence < it) return }
+            frames.putIfAbsent(frame.sequence, frame)
+            // Retain the frames due to play soonest when the producer gets too far ahead.
+            if (frames.size > JITTER_FRAMES) frames.pollLastEntry()
+        }
+
+        @Synchronized
+        fun poll(): ShortArray? {
+            if (!started) {
+                if (frames.size < JITTER_START_FRAMES) return null
+                started = true
+                expectedSequence = frames.firstKey()
+            }
+            val expected = expectedSequence ?: return null
+            frames.remove(expected)?.let { frame ->
+                expectedSequence = expected + 1
+                return runCatching { decoder.decode(frame.payload) }
+                    .getOrElse { decoder.concealLoss() }
+            }
+
+            val following = frames[expected + 1]
+            if (fecEnabled && following != null) {
+                expectedSequence = expected + 1
+                return runCatching { decoder.decode(following.payload, fec = true) }
+                    .getOrElse { decoder.concealLoss() }
+            }
+            expectedSequence = expected + 1
+            val concealed = runCatching { decoder.concealLoss() }.getOrNull()
+            if (frames.isEmpty()) {
+                started = false
+                expectedSequence = null
+            }
+            return concealed
+        }
+    }
 
     private fun encodeFrame(
         channel: String,
         senderId: String,
         sequence: Int,
-        samples: ShortArray
+        payload: ByteArray
     ): ByteArray = ByteArrayOutputStream(MAX_PACKET_SIZE).use { bytes ->
         DataOutputStream(bytes).use { output ->
             output.writeInt(MAGIC)
@@ -347,8 +396,8 @@ class IntercomAudioEngine @Inject constructor(
             output.writeUTF(channel)
             output.writeUTF(senderId)
             output.writeInt(sequence)
-            output.writeShort(samples.size)
-            samples.forEach { output.writeShort(it.toInt()) }
+            output.writeShort(payload.size)
+            output.write(payload)
         }
         bytes.toByteArray()
     }
@@ -359,13 +408,17 @@ class IntercomAudioEngine @Inject constructor(
             require(input.readUnsignedByte() == PROTOCOL_VERSION)
             val channel = input.readUTF()
             val senderId = input.readUTF()
-            input.readInt() // Sequence is reserved for future loss/reorder metrics.
-            val sampleCount = input.readUnsignedShort()
-            require(sampleCount == FRAME_SAMPLES)
-            val samples = ShortArray(sampleCount) { input.readShort() }
-            AudioFrame(channel, senderId, samples)
+            val sequence = input.readInt()
+            val payloadSize = input.readUnsignedShort()
+            require(payloadSize in 1..IntercomAudioFormat.MAX_ENCODED_FRAME_BYTES)
+            val payload = ByteArray(payloadSize)
+            input.readFully(payload)
+            AudioFrame(channel, senderId, sequence, payload)
         }
     }.getOrNull()
+
+    private fun usesUnreliableUdp(): Boolean =
+        transportMode == IntercomTransport.Nearby && connectionMode == ConnectionMode.WiFiLan
 
     @Suppress("DEPRECATION")
     private fun configureSpeakerRoute() {
@@ -398,17 +451,14 @@ class IntercomAudioEngine @Inject constructor(
     private companion object {
         const val TAG = "IntercomAudio"
         const val MAGIC = 0x57435054 // "WCPT"
-        const val PROTOCOL_VERSION = 1
+        const val PROTOCOL_VERSION = 2
         const val AUDIO_PORT = 52_141
         const val BROADCAST_ADDRESS = "255.255.255.255"
-        const val SAMPLE_RATE = 16_000
-        const val FRAME_DURATION_MS = 20L
-        const val FRAME_SAMPLES = 320
-        const val FRAME_BYTES = FRAME_SAMPLES * 2
-        const val JITTER_FRAMES = 5
+        const val JITTER_FRAMES = 12
+        const val JITTER_START_FRAMES = 5
+        const val SOCKET_BUFFER_BYTES = 256 * 1_024
         const val MAX_PACKET_SIZE = 1_200
-        const val INPUT_GAIN = 1.6f
-        const val OUTPUT_GAIN = 1.25
+        const val OUTPUT_GAIN = 1.0
     }
 }
 
