@@ -21,7 +21,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,11 +48,12 @@ import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchB
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Calendar
 import java.util.Locale
 
-private val FavoritesBackground = Color(0xFFF1F1F1)
-private val CategoryBlue = Color(0xFF526C9A)
+private val FavoritesBackground = Color(0xFFEDEDED)
+private val CategorySelected = Color(0xFF000000)
+private val CategoryUnselected = Color(0xFF888888)
 
 @Composable
 fun FavoritesScreen(
@@ -105,13 +109,11 @@ fun FavoritesScreen(
             backgroundColor = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(54.dp)
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             onChange = { viewModel.query.value = it }
         )
-        Spacer(Modifier.height(18.dp))
         FavoriteCategories(selectedType) { viewModel.selectedType.value = it }
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(10.dp))
 
         if (pagingItems.itemCount == 0) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -138,6 +140,10 @@ fun FavoritesScreen(
                             onLongClick = {
                                 viewModel.enterSelectionMode()
                                 viewModel.toggle(item.id)
+                            },
+                            onDelete = {
+                                viewModel.toggle(item.id)
+                                viewModel.deleteSelected()
                             }
                         )
                     }
@@ -153,33 +159,38 @@ private fun FavoriteCategories(selected: String, onSelect: (String) -> Unit) {
         Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 18.dp),
-        horizontalArrangement = Arrangement.spacedBy(32.dp),
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_tag_filled),
+            contentDescription = "标签",
+            tint = if (selected == "TAG") CategorySelected else CategoryUnselected,
+            modifier = Modifier
+                .size(20.dp)
+                .clickable { onSelect("TAG") }
+        )
+
         listOf(
-            "" to "最近使用",
+            "" to "全部",
             "RICH_TEXT" to "笔记",
             "VOICE" to "语音",
             "LOCATION" to "位置",
-            "MEDIA" to "图片与视频"
+            "MEDIA" to "图片与视频",
+            "LINK" to "链接",
+            "FILE" to "文件"
         ).forEach { (type, label) ->
             Text(
                 label,
-                color = if (selected == type) CategoryBlue else Color(0xFF5E6D86),
-                fontSize = 16.sp,
-                fontWeight = if (selected == type) FontWeight.Bold else FontWeight.Medium,
+                color = if (selected == type) CategorySelected else CategoryUnselected,
+                fontSize = 15.sp,
+                fontWeight = if (selected == type) FontWeight.Bold else FontWeight.Normal,
                 modifier = Modifier
                     .clickable { onSelect(type) }
-                    .padding(vertical = 8.dp)
+                    .padding(vertical = 12.dp)
             )
         }
-        Icon(
-            painterResource(R.drawable.ic_arrow_down_outlined),
-            contentDescription = "更多分类",
-            tint = Color(0xFFBBBBBB),
-            modifier = Modifier.size(22.dp)
-        )
     }
 }
 
@@ -189,82 +200,188 @@ private fun FavoriteCard(
     selected: Boolean,
     selecting: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit
+    onLongClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
-    val paths = item.mediaPaths.lineSequence().filter(String::isNotBlank).toList()
-    val imagePath = paths.firstOrNull { path ->
-        File(path).extension.lowercase() in setOf("jpg", "jpeg", "png", "webp", "gif")
-    }
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(Color.White)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(18.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        if (selecting) {
-            Checkbox(selected, onCheckedChange = { onClick() })
-            Spacer(Modifier.width(8.dp))
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+                true
+            } else {
+                false
+            }
         }
-        Column(Modifier
-            .weight(1f)
-            .height(if (imagePath != null) 116.dp else 128.dp)) {
-            Text(
-                item.title.ifBlank { item.content.lineSequence().firstOrNull().orEmpty() }
-                    .ifBlank { typeLabel(item.type) },
-                color = Color(0xFF171717),
-                fontSize = 18.sp,
-                lineHeight = 26.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (item.content.isNotBlank() && item.content != item.title) {
-                Spacer(Modifier.height(7.dp))
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Red)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Text("删除", color = Color.White, fontSize = 16.sp)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        val paths = item.mediaPaths.lineSequence().filter(String::isNotBlank).toList()
+        val imagePath = paths.firstOrNull { path ->
+            File(path).extension.lowercase() in setOf("jpg", "jpeg", "png", "webp", "gif")
+        }
+        val videoPath = paths.firstOrNull { path ->
+            File(path).extension.lowercase() in setOf("mp4", "mov", "avi", "3gp", "mkv")
+        }
+        val isVideo = item.type == "MEDIA" && videoPath != null
+        val isFile = item.type == "FILE"
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color.White)
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+                .padding(16.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            if (selecting) {
+                Checkbox(selected, onCheckedChange = { onClick() })
+                Spacer(Modifier.width(12.dp))
+            }
+            Column(Modifier.weight(1f)) {
                 Text(
-                    item.content.replace('|', ' '),
-                    color = Color(0xFF777777),
-                    fontSize = 14.sp,
+                    item.title.ifBlank { item.content.lineSequence().firstOrNull().orEmpty() }
+                        .ifBlank { typeLabel(item.type) },
+                    color = Color(0xFF191919),
+                    fontSize = 17.sp,
+                    lineHeight = 24.sp,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (!isFile && item.content.isNotBlank() && item.content != item.title) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        item.content.replace('|', ' '),
+                        color = Color(0xFF888888),
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        (if (item.sourceName.isNotBlank()) "来自: ${item.sourceName}" else typeLabel(
+                            item.type
+                        )),
+                        color = Color(0xFFB1B1B1),
+                        fontSize = 12.sp,
+                        modifier = Modifier.weight(1f, fill = false),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        formatFavoriteDate(item.updatedAt),
+                        color = Color(0xFFB1B1B1),
+                        fontSize = 12.sp
+                    )
+                }
             }
-            Spacer(Modifier.weight(1f))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    item.sourceName.ifBlank { typeLabel(item.type) },
-                    color = Color(0xFFAAAAAA),
-                    fontSize = 13.sp
-                )
-                Text(
-                    formatFavoriteDate(item.updatedAt),
-                    color = Color(0xFFAAAAAA),
-                    fontSize = 13.sp
+            if (imagePath != null || videoPath != null) {
+                Spacer(Modifier.width(16.dp))
+                Box(contentAlignment = Alignment.Center) {
+                    AsyncImage(
+                        model = File(imagePath ?: videoPath!!),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                    )
+                    if (isVideo) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_play_filled),
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.8f),
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+            } else if (isFile) {
+                Spacer(Modifier.width(16.dp))
+                Icon(
+                    painter = painterResource(R.drawable.ic_file_filled),
+                    contentDescription = null,
+                    tint = Color(0xFFC1C1C1),
+                    modifier = Modifier.size(60.dp)
                 )
             }
-        }
-        imagePath?.let {
-            Spacer(Modifier.width(14.dp))
-            AsyncImage(
-                model = File(it),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(92.dp)
-                    .clip(RoundedCornerShape(3.dp))
-            )
         }
     }
 }
 
-private fun formatFavoriteDate(timestamp: Long): String =
-    SimpleDateFormat("M月d日", Locale.CHINA).format(Date(timestamp))
+private fun formatFavoriteDate(timestamp: Long): String {
+    val now = Calendar.getInstance()
+    val target = Calendar.getInstance().apply { timeInMillis = timestamp }
+
+    val diff = now.timeInMillis - target.timeInMillis
+
+    return when {
+        diff < 60 * 1000 -> "刚刚"
+        isSameDay(now, target) -> SimpleDateFormat("HH:mm", Locale.CHINA).format(target.time)
+        isYesterday(now, target) -> "昨天"
+        isSameWeek(now, target) -> getWeekday(target)
+        else -> SimpleDateFormat("M月d日", Locale.CHINA).format(target.time)
+    }
+}
+
+private fun isSameDay(c1: Calendar, c2: Calendar) =
+    c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) && c1.get(Calendar.DAY_OF_YEAR) == c2.get(
+        Calendar.DAY_OF_YEAR
+    )
+
+private fun isYesterday(c1: Calendar, c2: Calendar): Boolean {
+    val yesterday = Calendar.getInstance().apply {
+        timeInMillis = c1.timeInMillis
+        add(Calendar.DAY_OF_YEAR, -1)
+    }
+    return isSameDay(yesterday, c2)
+}
+
+private fun isSameWeek(c1: Calendar, c2: Calendar): Boolean {
+    val weekAgo = Calendar.getInstance().apply {
+        timeInMillis = c1.timeInMillis
+        add(Calendar.DAY_OF_YEAR, -7)
+    }
+    return c2.after(weekAgo) && !isSameDay(c1, c2)
+}
+
+private fun getWeekday(calendar: Calendar): String {
+    return when (calendar.get(Calendar.DAY_OF_WEEK)) {
+        Calendar.SUNDAY -> "星期日"
+        Calendar.MONDAY -> "星期一"
+        Calendar.TUESDAY -> "星期二"
+        Calendar.WEDNESDAY -> "星期三"
+        Calendar.THURSDAY -> "星期四"
+        Calendar.FRIDAY -> "星期五"
+        Calendar.SATURDAY -> "星期六"
+        else -> ""
+    }
+}
 
 private fun typeLabel(type: String) = when (type) {
     "VOICE" -> "语音"
     "LOCATION" -> "位置"
     "MEDIA" -> "图片与视频"
+    "LINK" -> "链接"
+    "FILE" -> "文件"
     else -> "笔记"
 }

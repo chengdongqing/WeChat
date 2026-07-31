@@ -194,7 +194,7 @@ private class LocationPickerStateImpl(
                 mapController.cameraCenter?.let { mapCenterLatLng = it }
             }
         }
-        mapController.setOnLocationChangeListener { point ->
+        mapController.setOnLocationChangeListener { point, _ ->
             // 首次获得定位：移动地图并触发附近搜索
             if (currentLatLng == null && !isSearchMode) {
                 mapController.moveTo(point)

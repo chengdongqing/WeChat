@@ -71,6 +71,7 @@ fun rememberActionHandler(
     pickContact: () -> Unit,
     privateFileManager: PrivateFileManager,
     onPickLocation: () -> Unit,
+    onShareLiveLocation: () -> Unit,
     onLaunchCall: (CallType) -> Unit,
     onSelectMusic: () -> Unit,
     onStartLive: () -> Unit,
@@ -156,7 +157,7 @@ fun rememberActionHandler(
                 actionSheet.show(locationOptions) { index ->
                     when (index) {
                         0 -> onPickLocation()
-                        1 -> {}
+                        1 -> onShareLiveLocation()
                     }
                 }
             },

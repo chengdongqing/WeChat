@@ -71,6 +71,8 @@ import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 import top.chengdongqing.wechat.feature.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMediaItem
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
+import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationRoomState
+import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationSessionRegistry
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageAction
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MultiMessageAction
@@ -95,6 +97,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val bluetoothBondManager: BluetoothBondManager,
     private val activeSessionManager: ActiveSessionManager,
     private val localAiEngine: LocalAiEngine,
+    private val liveLocationRegistry: LiveLocationSessionRegistry,
     e2eSessionManager: E2ESessionManager,
     connectionSettingsRepository: ConnectionSettingsRepository,
     @param:ApplicationContext private val context: Context
@@ -107,6 +110,19 @@ class ChatSessionViewModel @AssistedInject constructor(
     val localAiState = localAiEngine.state
     private val _streamingAiMessage = MutableStateFlow<StreamingAiMessage?>(null)
     val streamingAiMessage = _streamingAiMessage.asStateFlow()
+    val liveLocationRoom = liveLocationRegistry.rooms.map {
+        it[liveLocationRegistry.roomIdFor(chatId)]
+            ?: LiveLocationRoomState(liveLocationRegistry.roomIdFor(chatId))
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        liveLocationRegistry.room(liveLocationRegistry.roomIdFor(chatId))
+    )
+
+    fun createLiveLocationMessage() = MessageContent.LiveLocation(
+        roomId = liveLocationRegistry.roomIdFor(chatId),
+        initiatorId = profileRepository.requireUserId()
+    )
 
     @AssistedFactory
     interface Factory {
@@ -427,6 +443,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         is MessageContent.Media -> "[媒体]"
         is MessageContent.Call -> "[通话]"
         is MessageContent.Location -> "[位置] ${poiName.ifBlank { address }}"
+        is MessageContent.LiveLocation -> "[位置共享]"
         is MessageContent.File -> "[文件] $filename"
         is MessageContent.ContactCard -> "[名片] $nickname"
         is MessageContent.Music -> "[音乐] ${music.title}"
@@ -607,6 +624,11 @@ class ChatSessionViewModel @AssistedInject constructor(
 
             is MessageContent.Call -> emit(MessageUiEvent.LaunchCall(content.type))
             is MessageContent.Location -> openLocationPreview(content)
+            is MessageContent.LiveLocation -> {
+                if (liveLocationRegistry.room(content.roomId).isActive) {
+                    emit(MessageUiEvent.NavigateToLiveLocation)
+                }
+            }
             is MessageContent.ContactCard -> viewModelScope.launch {
                 val userId = content.userId
                 prepareRequestAddFriend(userId = userId, fromContactCard = true)

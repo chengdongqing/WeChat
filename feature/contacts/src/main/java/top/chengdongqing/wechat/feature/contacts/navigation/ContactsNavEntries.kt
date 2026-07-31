@@ -139,7 +139,10 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
     entry<NavigationKey.RequestAddFriend> {
         RequestAddFriendScreen(
             onBack = onBack,
-            onSuccess = { backStack.add(NavigationKey.Home) },
+            onSuccess = {
+                backStack.clear()
+                backStack.add(NavigationKey.Home)
+            },
             viewModel = hiltViewModel { factory: RequestAddFriendViewModel.Factory ->
                 factory.create(it.contactId)
             }
@@ -148,7 +151,10 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
     entry<NavigationKey.AcceptFriendRequest> {
         AcceptFriendRequestScreen(
             onBack = onBack,
-            onSuccess = onBack,
+            onSuccess = {
+                backStack.clear()
+                backStack.add(NavigationKey.Home)
+            },
             viewModel = hiltViewModel { factory: AcceptFriendRequestViewModel.Factory ->
                 factory.create(it.requestId)
             }

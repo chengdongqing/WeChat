@@ -14,6 +14,7 @@ enum class MessageType {
     File,           // 文件
     Sticker,        // 表情
     Location,       // 位置
+    LiveLocation,   // 实时位置共享
     ContactCard,    // 名片
     Music,          // 音乐
     Live,           // 群直播

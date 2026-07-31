@@ -15,6 +15,8 @@ import top.chengdongqing.wechat.feature.chat.ui.info.ChatInfoScreen
 import top.chengdongqing.wechat.feature.chat.ui.info.ChatInfoViewModel
 import top.chengdongqing.wechat.feature.chat.ui.live.LiveRoomScreen
 import top.chengdongqing.wechat.feature.chat.ui.live.LiveRoomViewModel
+import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationScreen
+import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationViewModel
 import top.chengdongqing.wechat.feature.chat.ui.preview.file.FilePreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.preview.music.MusicPreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionScreen
@@ -49,6 +51,9 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                     },
                     onNavigateToLive = { liveId, isHost, hostId ->
                         backStack.add(NavigationKey.LiveRoom(it.groupId, liveId, isHost, hostId))
+                    },
+                    onNavigateToLiveLocation = {
+                        backStack.add(NavigationKey.LiveLocation(it.groupId))
                     },
                     viewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
                         factory.create(it.groupId)
@@ -93,6 +98,9 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                 onNavigateToLive = { liveId, isHost, hostId ->
                     backStack.add(NavigationKey.LiveRoom(chatId, liveId, isHost, hostId))
                 },
+                onNavigateToLiveLocation = {
+                    backStack.add(NavigationKey.LiveLocation(chatId))
+                },
                 viewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
                     factory.create(chatId)
                 }
@@ -107,6 +115,15 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
             onBack = onBack,
             viewModel = hiltViewModel { factory: LiveRoomViewModel.Factory ->
                 factory.create(it.groupId, it.liveId, it.hostId)
+            }
+        )
+    }
+
+    entry<NavigationKey.LiveLocation> {
+        LiveLocationScreen(
+            onBack = onBack,
+            viewModel = hiltViewModel { factory: LiveLocationViewModel.Factory ->
+                factory.create(it.chatId)
             }
         )
     }

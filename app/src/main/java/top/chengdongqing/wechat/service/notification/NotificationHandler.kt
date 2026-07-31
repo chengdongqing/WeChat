@@ -165,6 +165,9 @@ class NotificationHandler @Inject constructor(
     }
 
     private fun resolveContent(message: ChatMessage): String {
+        if (message.content is MessageContent.LiveLocation) {
+            return context.getString(DesignR.string.live_location_started_peer)
+        }
         val textContent = (message.content as? MessageContent.Text)?.text ?: ""
         return message.content.toMessageType().toPreviewText(context, textContent)
     }

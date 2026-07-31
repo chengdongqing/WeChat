@@ -22,6 +22,7 @@ data class ChatSessionContext(
     val onNavigateToContact: (isPeer: Boolean) -> Unit,
     val onNavigateToWebView: (url: String) -> Unit,
     val onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
+    val activeLiveLocationRoomId: String?,
     val onCancelTransfer: (messageId: String) -> Unit,
     val onPauseTransfer: (messageId: String) -> Unit,
     val onResumeTransfer: (messageId: String) -> Unit,
@@ -44,8 +45,9 @@ fun rememberChatSessionContext(
 ): ChatSessionContext {
     val scope = rememberCoroutineScope()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
+    val liveLocationRoom by viewModel.liveLocationRoom.collectAsStateWithLifecycle()
 
-    return remember(playingMessageId, uiState.isSelf) {
+    return remember(playingMessageId, uiState.isSelf, liveLocationRoom) {
         ChatSessionContext(
             title = uiState.title,
             isSelf = uiState.isSelf == true,
@@ -63,6 +65,9 @@ fun rememberChatSessionContext(
             onNavigateToContact = onNavigateToContact,
             onNavigateToWebView = onNavigateToWebView,
             onNavigateToLive = onNavigateToLive,
+            activeLiveLocationRoomId = liveLocationRoom.roomId.takeIf {
+                liveLocationRoom.isActive
+            },
             onCancelTransfer = viewModel::cancelTransfer,
             onPauseTransfer = viewModel::pauseTransfer,
             onResumeTransfer = viewModel::resumeTransfer,

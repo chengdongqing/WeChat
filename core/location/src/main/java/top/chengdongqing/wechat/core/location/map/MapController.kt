@@ -44,6 +44,9 @@ interface MapController {
     /** 当前设备定位坐标，未定位时为 null */
     val currentLocation: GeoPoint?
 
+    /** 当前设备朝向（正北为 0，顺时针角度），不可用时为 null */
+    val currentBearing: Float?
+
     /** 当前地图视野中心坐标 */
     val cameraCenter: GeoPoint?
 
@@ -64,7 +67,11 @@ interface MapController {
      * @param icon 自定义图标 Bitmap，null 时使用默认样式
      * @return 句柄，可调用 [MapMarkerHandle.remove] 移除
      */
-    fun addMarker(point: GeoPoint, icon: Bitmap? = null): MapMarkerHandle
+    fun addMarker(
+        point: GeoPoint,
+        icon: Bitmap? = null,
+        bearing: Float? = null
+    ): MapMarkerHandle
 
     /**
      * 截取当前地图快照。
@@ -78,5 +85,5 @@ interface MapController {
     fun setOnMapClickListener(listener: (GeoPoint) -> Unit)
     fun setOnPoiClickListener(listener: (GeoPoint) -> Unit)
     fun setOnTouchListener(listener: (MotionEvent) -> Unit)
-    fun setOnLocationChangeListener(listener: (GeoPoint) -> Unit)
+    fun setOnLocationChangeListener(listener: (GeoPoint, Float?) -> Unit)
 }

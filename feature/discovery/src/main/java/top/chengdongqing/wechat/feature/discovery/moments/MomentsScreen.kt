@@ -54,7 +54,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -272,80 +275,97 @@ private fun MomentsHeader(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(headerHeight)
-            .background(Color(0xFF3D4652))
+            .height(headerHeight + if (expanded) 0.dp else 24.dp)
+            .background(WeTheme.colorScheme.surface)
             .clickable(onClick = onCoverClick)
     ) {
-        if (cover != null) {
-            if (expanded && isLandscape) {
-                AsyncImage(
-                    model = cover,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(34.dp),
-                    contentScale = ContentScale.Crop,
-                    alpha = 0.72f
-                )
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    Color.Black.copy(alpha = 0.42f),
-                                    Color.Transparent,
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.46f)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(headerHeight)
+                .background(Color(0xFF3D4652))
+        ) {
+            if (cover != null) {
+                if (expanded && isLandscape) {
+                    AsyncImage(
+                        model = cover,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(34.dp),
+                        contentScale = ContentScale.Crop,
+                        alpha = 0.72f
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Black.copy(alpha = 0.42f),
+                                        Color.Transparent,
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.46f)
+                                    )
                                 )
                             )
-                        )
+                    )
+                }
+                AsyncImage(
+                    model = cover,
+                    contentDescription = "朋友圈封面",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = if (expanded) ContentScale.Fit else ContentScale.Crop
                 )
             }
-            AsyncImage(
-                model = cover,
-                contentDescription = "朋友圈封面",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = if (expanded) ContentScale.Fit else ContentScale.Crop
-            )
-        }
-        if (expanded) {
-            Button(
-                onClick = onChangeCover,
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = Color(0xB3333333)
-                ),
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(18.dp)
-            ) {
-                androidx.compose.material3.Icon(
-                    painter = painterResource(R.drawable.ic_camera_filled),
-                    contentDescription = null,
-                    modifier = Modifier.size(19.dp),
-                    tint = Color.White
-                )
-                Spacer(Modifier.width(7.dp))
-                Text("换封面", color = Color.White)
+            if (expanded) {
+                Button(
+                    onClick = onChangeCover,
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color(0xB3333333)
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(18.dp)
+                ) {
+                    androidx.compose.material3.Icon(
+                        painter = painterResource(R.drawable.ic_camera_filled),
+                        contentDescription = null,
+                        modifier = Modifier.size(19.dp),
+                        tint = Color.White
+                    )
+                    Spacer(Modifier.width(7.dp))
+                    Text("换封面", color = Color.White)
+                }
             }
         }
         AnimatedVisibility(
             visible = !expanded,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier.align(Alignment.BottomEnd)
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 0.dp, end = 12.dp)
         ) {
             Row(
-                modifier = Modifier.padding(end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Spacer(Modifier.width(12.dp))
+                Text(
+                    name,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
+                Spacer(Modifier.width(16.dp))
                 AsyncImage(
                     model = avatar ?: R.drawable.img_avatar_placeholder,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(74.dp)
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(WeTheme.colorScheme.surface)
+                        .padding(2.dp)
                         .clip(RoundedCornerShape(6.dp))
                         .background(Color.LightGray),
                     contentScale = ContentScale.Crop
@@ -433,32 +453,63 @@ private fun MomentItem(
                 ) {
                     Row(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Color(0xFF4C5154))
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(Color(0xFF4C5154)),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            if (moment.likes.any { it.userId == myId }) "♡ 取消" else "♡ 赞",
-                            color = Color.White,
+                        Row(
                             modifier = Modifier
                                 .clickable {
                                     actionsExpanded = false
                                     onLike()
                                 }
-                                .padding(14.dp, 8.dp),
-                            fontSize = 13.sp
+                                .padding(horizontal = 18.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            androidx.compose.material3.Icon(
+                                painter = painterResource(R.drawable.ic_like_outlined),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                if (moment.likes.any { it.userId == myId }) "取消" else "赞",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        androidx.compose.material3.VerticalDivider(
+                            modifier = Modifier.height(18.dp),
+                            thickness = 0.5.dp,
+                            color = Color(0xFF383D40)
                         )
-                        Text("│", color = Color(0xFF73787B), modifier = Modifier.padding(vertical = 8.dp))
-                        Text(
-                            "◌ 评论",
-                            color = Color.White,
+                        Row(
                             modifier = Modifier
                                 .clickable {
                                     actionsExpanded = false
                                     onComment()
                                 }
-                                .padding(14.dp, 8.dp),
-                            fontSize = 13.sp
-                        )
+                                .padding(horizontal = 18.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            androidx.compose.material3.Icon(
+                                painter = painterResource(R.drawable.ic_message_outlined),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = Color.White
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "评论",
+                                color = Color.White,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
                 Spacer(Modifier.width(6.dp))
@@ -475,20 +526,71 @@ private fun MomentItem(
                 )
             }
             if (moment.likes.isNotEmpty() || moment.comments.isNotEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp)
-                        .background(Color(0xFFF3F3F5))
-                        .padding(9.dp)
-                ) {
-                    if (moment.likes.isNotEmpty()) {
-                        Text("♥  " + moment.likes.joinToString("，") { it.userName },
-                            color = Color(0xFF576B95), fontSize = 14.sp)
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    androidx.compose.foundation.Canvas(
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .size(12.dp, 6.dp)
+                    ) {
+                        val path = androidx.compose.ui.graphics.Path().apply {
+                            moveTo(size.width / 2f, 0f)
+                            lineTo(0f, size.height)
+                            lineTo(size.width, size.height)
+                            close()
+                        }
+                        drawPath(path, Color(0xFFF3F3F5))
                     }
-                    moment.comments.forEach {
-                        Text("${it.userName}：${it.content}", fontSize = 14.sp,
-                            modifier = Modifier.padding(top = 3.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFF3F3F5), RoundedCornerShape(2.dp))
+                            .padding(horizontal = 10.dp, vertical = 8.dp)
+                    ) {
+                        if (moment.likes.isNotEmpty()) {
+                            Row {
+                                androidx.compose.material3.Icon(
+                                    painter = painterResource(R.drawable.ic_like_outlined),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .padding(top = 2.dp)
+                                        .size(14.dp),
+                                    tint = Color(0xFF576B95)
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    moment.likes.joinToString("，") { it.userName },
+                                    color = Color(0xFF576B95),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    lineHeight = 20.sp
+                                )
+                            }
+                        }
+                        if (moment.likes.isNotEmpty() && moment.comments.isNotEmpty()) {
+                            androidx.compose.material3.HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                thickness = 0.5.dp,
+                                color = Color.LightGray.copy(alpha = 0.3f)
+                            )
+                        }
+                        moment.comments.forEach {
+                            Text(
+                                buildAnnotatedString {
+                                    withStyle(
+                                        SpanStyle(
+                                            color = Color(0xFF576B95),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    ) {
+                                        append(it.userName)
+                                    }
+                                    append("：${it.content}")
+                                },
+                                fontSize = 15.sp,
+                                lineHeight = 20.sp,
+                                modifier = Modifier.padding(vertical = 1.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -503,8 +605,11 @@ private fun MomentImages(
     onImageClick: (Int) -> Unit
 ) {
     val shown = images.take(9)
+    val columns = if (shown.size == 4) 2 else 3
+    val imageSize = if (shown.size == 1) 180.dp else if (shown.size == 4) 110.dp else 90.dp
+
     Column(modifier = Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        shown.withIndex().chunked(3).forEach { row ->
+        shown.withIndex().chunked(columns).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 row.forEach { indexedPath ->
                     val index = indexedPath.index
@@ -514,7 +619,7 @@ private fun MomentImages(
                         contentDescription = null,
                         modifier = Modifier
                             .momentsMediaSharedElement(momentId, index)
-                            .size(if (shown.size == 1) 190.dp else 92.dp)
+                            .size(imageSize)
                             .clip(RoundedCornerShape(2.dp))
                             .clickable { onImageClick(index) },
                         contentScale = ContentScale.Crop

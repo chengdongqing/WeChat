@@ -37,6 +37,10 @@ object PacketType {
     const val FILE_CANCEL: Byte = 0x0C     // 取消文件传输
     const val FILE_PAUSE: Byte = 0x0D      // 暂停文件传输
     const val FILE_RESUME: Byte = 0x0E     // 继续文件传输
+    const val INTERCOM_BEACON: Byte = 0x0F // 语音对讲频道心跳
+    const val INTERCOM_AUDIO: Byte = 0x10  // 语音对讲实时音频帧
+    const val LIVE_LOCATION: Byte = 0x11   // 聊天内实时位置（临时数据）
+    const val LOCATION_INTERCOM_AUDIO: Byte = 0x12 // 实时位置页语音对讲
 
     /** 始终明文传输的类型，不做加密 */
     val PLAINTEXT_TYPES = setOf(

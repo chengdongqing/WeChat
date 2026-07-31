@@ -10,6 +10,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.message.content.CallCont
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.ContactCardContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.FileContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.LiveContent
+import top.chengdongqing.wechat.feature.chat.ui.session.message.content.LiveLocationContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.LocationContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.MediaContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.MusicContent
@@ -49,6 +50,7 @@ fun MessageContent(
         }
         is MessageContent.Call -> CallContent(message)
         is MessageContent.Location -> LocationContent(content)
+        is MessageContent.LiveLocation -> LiveLocationContent(message)
         is MessageContent.File -> FileContent(message)
         is MessageContent.ContactCard -> ContactCardContent(content)
         is MessageContent.Music -> MusicContent(content)

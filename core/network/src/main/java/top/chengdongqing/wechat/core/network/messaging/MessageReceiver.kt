@@ -55,6 +55,7 @@ class MessageReceiver @Inject constructor(
     private val transferManager: TransferManager,
     private val mediaFileDao: MediaFileDao,
     private val messageDao: MessageDao,
+    private val realtimePacketBus: RealtimePacketBus,
     private val json: Json,
     @param:IoScope private val scope: CoroutineScope,
     @param:ApplicationContext private val context: Context
@@ -128,6 +129,10 @@ class MessageReceiver @Inject constructor(
                 PacketType.FILE_RESUME -> handleFileResume(packet.body)
 
                 PacketType.PROFILE_REQUEST -> messageSender.sendProfile(userId)
+                PacketType.INTERCOM_BEACON,
+                PacketType.INTERCOM_AUDIO,
+                PacketType.LIVE_LOCATION,
+                PacketType.LOCATION_INTERCOM_AUDIO -> realtimePacketBus.receive(userId, packet)
 
                 else -> {
                     if (packet.body.isNotEmpty()) {

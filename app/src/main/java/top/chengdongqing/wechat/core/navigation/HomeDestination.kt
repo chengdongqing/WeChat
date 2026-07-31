@@ -121,9 +121,10 @@ private fun HomeTabPager(
                 onNavigateToProfileEdit = { backStack.add(NavigationKey.EditContactProfile(it)) }
             )
 
-            HomeTab.Discovery -> DiscoveryScreen {
-                backStack.add(NavigationKey.Moments)
-            }
+            HomeTab.Discovery -> DiscoveryScreen(
+                onNavigateToMoments = { backStack.add(NavigationKey.Moments) },
+                onNavigateToIntercom = { backStack.add(NavigationKey.IntercomLobby) }
+            )
 
             HomeTab.Me -> MeScreen(backStack)
         }

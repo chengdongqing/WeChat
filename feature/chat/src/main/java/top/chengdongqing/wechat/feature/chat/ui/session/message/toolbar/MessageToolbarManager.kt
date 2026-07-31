@@ -222,6 +222,7 @@ class MessageToolbarManager(
 
                 is MessageContent.ContactCard,
                 is MessageContent.Music,
+                is MessageContent.LiveLocation,
                 is MessageContent.Live -> {
                     add(MessageAction.Forward)
                     add(MessageAction.Quote)

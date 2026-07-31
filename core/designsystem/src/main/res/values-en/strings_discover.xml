@@ -1,4 +1,5 @@
 <resources>
     <string name="discover_menu_moments">Moments</string>
     <string name="discover_menu_search">Search</string>
+    <string name="intercom_title">Voice Intercom</string>
 </resources>

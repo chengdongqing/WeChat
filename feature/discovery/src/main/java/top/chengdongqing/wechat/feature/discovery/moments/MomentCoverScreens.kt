@@ -61,7 +61,9 @@ fun ChangeMomentCoverScreen(
         topBar = { WeTopAppBar(title = "更换相册封面", onBack = onBack) },
         containerColor = WeTheme.colorScheme.background
     ) { padding ->
-        Column(Modifier.padding(padding).padding(top = 10.dp)) {
+        Column(Modifier
+            .padding(padding)
+            .padding(top = 10.dp)) {
             CoverSourceRow("从手机相册选择", R.drawable.ic_album_filled) {
                 album.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
@@ -75,14 +77,36 @@ fun ChangeMomentCoverScreen(
 
 @Composable
 private fun CoverSourceRow(title: String, icon: Int, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().background(WeTheme.colorScheme.surface)
-            .clickable(onClick = onClick).padding(horizontal = 18.dp, vertical = 17.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(painterResource(icon), null, Modifier.size(24.dp), tint = WeTheme.colorScheme.textPrimary)
-        Text(title, Modifier.padding(start = 16.dp).weight(1f), fontSize = 16.sp)
-        Icon(painterResource(R.drawable.ic_right_outlined), null, Modifier.size(20.dp), tint = Color.Gray)
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(WeTheme.colorScheme.surface)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painterResource(icon),
+                null,
+                Modifier.size(24.dp),
+                tint = WeTheme.colorScheme.textPrimary
+            )
+            Text(title, Modifier
+                .padding(start = 16.dp)
+                .weight(1f), fontSize = 16.sp)
+            Icon(
+                painterResource(R.drawable.ic_right_outlined),
+                null,
+                Modifier.size(16.dp),
+                tint = Color.Gray.copy(alpha = 0.6f)
+            )
+        }
+        androidx.compose.material3.HorizontalDivider(
+            modifier = Modifier.padding(start = 60.dp),
+            thickness = 0.5.dp,
+            color = Color.LightGray.copy(alpha = 0.5f)
+        )
     }
 }
 
@@ -106,18 +130,22 @@ fun PhotographerCoversScreen(
         ) {
             items(PHOTOGRAPHER_COVERS) { cover ->
                 Box(
-                    modifier = Modifier.fillMaxWidth().clickable(enabled = !selecting) {
-                        selecting = true
-                        viewModel.setCoverFromUrl(cover.url) { success ->
-                            selecting = false
-                            if (success) onChanged()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = !selecting) {
+                            selecting = true
+                            viewModel.setCoverFromUrl(cover.url) { success ->
+                                selecting = false
+                                if (success) onChanged()
+                            }
                         }
-                    }
                 ) {
                     AsyncImage(
                         model = cover.url,
                         contentDescription = cover.author,
-                        modifier = Modifier.fillMaxWidth().size(220.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .size(220.dp),
                         contentScale = ContentScale.Crop
                     )
                     Text(
@@ -125,8 +153,11 @@ fun PhotographerCoversScreen(
                         color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.align(Alignment.BottomStart)
-                            .background(Color(0x66000000)).fillMaxWidth().padding(8.dp)
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .background(Color(0x66000000))
+                            .fillMaxWidth()
+                            .padding(8.dp)
                     )
                 }
             }

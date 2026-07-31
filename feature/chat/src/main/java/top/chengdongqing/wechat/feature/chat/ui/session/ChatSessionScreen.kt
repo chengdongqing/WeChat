@@ -6,19 +6,26 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.overscroll
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -31,13 +38,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -96,6 +107,7 @@ fun ChatSessionScreen(
     onNavigateToRequestAddFriend: () -> Unit,
     onNavigateToWebView: (url: String) -> Unit,
     onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
+    onNavigateToLiveLocation: () -> Unit,
     onNavigateToFavorites: () -> Unit,
     viewModel: ChatSessionViewModel
 ) {
@@ -119,6 +131,7 @@ fun ChatSessionScreen(
     val streamingAiMessage by viewModel.streamingAiMessage.collectAsStateWithLifecycle()
     val lazyMessageItems = viewModel.messagePagingFlow.collectAsLazyPagingItems()
     val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
+    val liveLocationRoom by viewModel.liveLocationRoom.collectAsStateWithLifecycle()
     val selectingTextMessageId = toolbarState.message
         ?.takeIf { toolbarState.visible && it.content is MessageContent.Text }
         ?.id
@@ -195,6 +208,7 @@ fun ChatSessionScreen(
         onNavigateToContact = onNavigateToContact,
         onNavigateToFilePreview = onNavigateToFilePreview,
         onNavigateToMusicPreview = onNavigateToMusicPreview,
+        onNavigateToLiveLocation = onNavigateToLiveLocation,
         onPreviewMedia = {
             mediaPreviewClosing = false
             mediaPreview = it
@@ -247,12 +261,41 @@ fun ChatSessionScreen(
 
                             Scaffold(
                                 topBar = {
-                                    ChatSessionTopBar(
-                                        viewModel = viewModel,
-                                        uiState = uiState,
-                                        onBack = onBack,
-                                        onNavigateToInfo = onNavigateToInfo
-                                    )
+                                    Column {
+                                        ChatSessionTopBar(
+                                            viewModel = viewModel,
+                                            uiState = uiState,
+                                            onBack = onBack,
+                                            onNavigateToInfo = onNavigateToInfo
+                                        )
+                                        if (liveLocationRoom.isActive) {
+                                            LiveLocationPinnedEntry(
+                                                text = when {
+                                                    liveLocationRoom.participants.size > 1 ->
+                                                        stringResource(
+                                                            R.string.live_location_people,
+                                                            liveLocationRoom.participants.size
+                                                        )
+
+                                                    liveLocationRoom.participants.containsKey(
+                                                        uiState.myId
+                                                    ) ->
+                                                        stringResource(R.string.live_location_me_sharing)
+
+                                                    else -> stringResource(
+                                                        R.string.live_location_peer_sharing,
+                                                        uiState.title
+                                                    )
+                                                },
+                                                avatar = if (
+                                                    liveLocationRoom.participants.containsKey(
+                                                        uiState.myId
+                                                    )
+                                                ) uiState.myAvatar else uiState.peerAvatar,
+                                                onClick = onNavigateToLiveLocation
+                                            )
+                                        }
+                                    }
                                 },
                                 bottomBar = {
                                     if (!uiState.isSelectMode) {
@@ -272,6 +315,10 @@ fun ChatSessionScreen(
                                                     )
                                                 )
                                                 onNavigateToLive(liveId, true, uiState.myId.orEmpty())
+                                            },
+                                            onShareLiveLocation = {
+                                                viewModel.sendMessage(viewModel.createLiveLocationMessage())
+                                                onNavigateToLiveLocation()
                                             },
                                             onOpenFavorites = onNavigateToFavorites
                                         )
@@ -345,6 +392,40 @@ fun ChatSessionScreen(
     LoadingDialog(uiState.isFullscreenLoading)
 }
 
+@Composable
+private fun LiveLocationPinnedEntry(
+    text: String,
+    avatar: Any?,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF4B9B72))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AsyncImage(
+            model = avatar,
+            contentDescription = null,
+            modifier = Modifier
+                .size(30.dp)
+                .clip(androidx.compose.foundation.shape.CircleShape),
+            contentScale = ContentScale.Crop
+        )
+        Text(
+            text = text,
+            modifier = Modifier
+                .padding(start = 10.dp)
+                .weight(1f),
+            color = Color.White,
+            fontSize = 14.sp
+        )
+        Text("›", color = Color.White, fontSize = 24.sp)
+    }
+}
+
 /**
  * 管理点对点连接弹窗的显示逻辑
  */
@@ -402,6 +483,7 @@ private fun ChatSessionUiEventHandler(
     onNavigateToContact: (String) -> Unit,
     onNavigateToFilePreview: (String) -> Unit,
     onNavigateToMusicPreview: (String, String) -> Unit,
+    onNavigateToLiveLocation: () -> Unit,
     onPreviewMedia: (ChatMediaPreviewState) -> Unit,
 ) {
     val resources = LocalResources.current
@@ -445,6 +527,7 @@ private fun ChatSessionUiEventHandler(
 
                 is MessageUiEvent.LaunchCall -> launchCall(event.callType)
                 is MessageUiEvent.NavigateToContact -> onNavigateToContact(event.contactId)
+                MessageUiEvent.NavigateToLiveLocation -> onNavigateToLiveLocation()
                 else -> {}
             }
         }

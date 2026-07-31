@@ -31,15 +31,17 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 fun PinEntry(
     title: String,
     error: String?,
+    modifier: Modifier = Modifier,
     onPinComplete: (String) -> Unit
 ) {
     var pin by remember(title, error) { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
             title,
@@ -47,7 +49,7 @@ fun PinEntry(
             fontWeight = FontWeight.Medium,
             color = WeTheme.colorScheme.textPrimary
         )
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(48.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             repeat(4) { index ->
                 Box(
@@ -64,9 +66,9 @@ fun PinEntry(
                 )
             }
         }
-        Spacer(Modifier.height(16.dp))
-        Text(error.orEmpty(), color = WeTheme.colorScheme.danger, fontSize = 14.sp)
         Spacer(Modifier.height(24.dp))
+        Text(error.orEmpty(), color = WeTheme.colorScheme.danger, fontSize = 14.sp)
+        Spacer(Modifier.height(48.dp))
         NumberPad(
             onDigit = { digit ->
                 if (pin.length < 4) {

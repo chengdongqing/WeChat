@@ -14,7 +14,10 @@ import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun DiscoveryScreen(onNavigateToMoments: () -> Unit = {}) {
+fun DiscoveryScreen(
+    onNavigateToMoments: () -> Unit = {},
+    onNavigateToIntercom: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -31,6 +34,12 @@ fun DiscoveryScreen(onNavigateToMoments: () -> Unit = {}) {
             icon = R.drawable.ic_search_logo_outlined,
             iconColor = SemanticError,
             onClick = {}
+        )
+        WeMenuListItem(
+            label = stringResource(R.string.intercom_title),
+            icon = R.drawable.ic_mic_circle_outlined,
+            iconColor = WeTheme.colorScheme.primary,
+            onClick = onNavigateToIntercom
         )
     }
 }

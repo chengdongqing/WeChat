@@ -20,6 +20,8 @@ sealed interface NavigationKey : NavKey {
     @Serializable data class ChatInfo(val chatId: String) : NavigationKey
     @Serializable data class FilePreview(val messageId: String) : NavigationKey
     @Serializable data class MusicPreview(val messageId: String, val trackName: String) : NavigationKey
+    @Serializable
+    data class LiveLocation(val chatId: String) : NavigationKey
 
     // Social navigation contracts.
     @Serializable data class GroupChat(val groupId: String) : NavigationKey
@@ -36,6 +38,10 @@ sealed interface NavigationKey : NavKey {
     @Serializable data object CreateMoment : NavigationKey
     @Serializable data object ChangeMomentCover : NavigationKey
     @Serializable data object PhotographerCovers : NavigationKey
+    @Serializable
+    data object IntercomLobby : NavigationKey
+    @Serializable
+    data class IntercomRoom(val channel: String) : NavigationKey
 
     @Serializable data object AddFriend : NavigationKey
     @Serializable data object NFCAddFriend : NavigationKey

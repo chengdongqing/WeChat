@@ -72,6 +72,11 @@ sealed class MessageContent(
         val snapshotPath: String?
     ) : MessageContent(isSameBackground = true)
 
+    data class LiveLocation(
+        val roomId: String,
+        val initiatorId: String
+    ) : MessageContent(isSameBackground = true)
+
     data class File(
         val localPath: String,
         val filename: String,

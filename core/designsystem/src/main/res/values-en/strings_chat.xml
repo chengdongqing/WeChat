@@ -30,6 +30,14 @@
     <string name="chat_call_voice">Voice Call</string>
     <string name="chat_location_send">Send Location</string>
     <string name="chat_location_share">Real-time Location</string>
+    <string name="live_location_title">Live Location</string>
+    <string name="live_location_waiting">Waiting for the other person…</string>
+    <string name="live_location_connected">Joined · %1$s away</string>
+    <string name="live_location_talk">Hold to talk</string>
+    <string name="live_location_talking">Release to stop</string>
+    <string name="live_location_permission">Microphone permission is required for intercom</string>
+    <string name="live_location_locating">locating</string>
+    <string name="live_location_invitation">I’m sharing my live location. Open Location → Live Location to join.</string>
 
     <string name="sticker_title">Sticker</string>
     <string name="sticker_custom_title">Custom Sticker</string>
@@ -121,6 +129,13 @@
     <string name="message_preview_video">[Video]</string>
     <string name="message_preview_file">[File]</string>
     <string name="message_preview_location">[Location]</string>
+    <string name="message_preview_live_location">[Live location]</string>
+    <string name="live_location_started_me">You started sharing location</string>
+    <string name="live_location_started_peer">Started sharing location</string>
+    <string name="live_location_ended">Location sharing ended</string>
+    <string name="live_location_people">%1$d people sharing location</string>
+    <string name="live_location_me_sharing">You are sharing location</string>
+    <string name="live_location_peer_sharing">%1$s is sharing location</string>
     <string name="message_preview_contact_card">[Contact]</string>
     <string name="message_preview_sticker">[Sticker]</string>
     <string name="message_preview_music">[Music]</string>

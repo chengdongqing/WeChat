@@ -5,6 +5,11 @@ import android.net.Uri
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -20,9 +25,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -39,15 +47,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.designsystem.R
@@ -65,9 +78,18 @@ fun FavoriteEditorScreen(
     val draft by viewModel.draft.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var showAttachments by remember { mutableStateOf(true) }
+    var showAttachments by remember { mutableStateOf(false) }
     var showFormatting by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
+    var showAutoSaveHint by remember { mutableStateOf(false) }
+
+    LaunchedEffect(draft) {
+        if (draft.title.isNotBlank() || draft.content.isNotBlank() || draft.mediaPaths.isNotBlank()) {
+            showAutoSaveHint = true
+            delay(1500)
+            showAutoSaveHint = false
+        }
+    }
 
     fun importUris(uris: List<Uri>) {
         if (uris.isEmpty()) return
@@ -113,15 +135,44 @@ fun FavoriteEditorScreen(
         .fillMaxSize()
         .background(Color.White)) {
         WeTopAppBar(
-            title = "笔记",
+            title = "",
             containerColor = Color.White,
             onBack = { viewModel.save(onBack) },
             actions = {
-                TextButton("↶")
-                TextButton("↷")
-                TextButton("•••") { showMore = true }
+                val isEnabled = draft.title.isNotBlank() || draft.content.isNotBlank()
+                TextButton(
+                    onClick = { viewModel.save(onBack) },
+                    enabled = isEnabled
+                ) {
+                    Text(
+                        "完成",
+                        color = if (isEnabled) Color(0xFF07C160) else Color(0xFFCCCCCC),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                IconButton(R.drawable.ic_more_outlined) { showMore = true }
             }
         )
+        AnimatedVisibility(
+            visible = showAutoSaveHint,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF7F7F7))
+                    .padding(vertical = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "已自动保存",
+                    color = Color(0xFF999999),
+                    fontSize = 12.sp
+                )
+            }
+        }
         Column(
             Modifier
                 .weight(1f)
@@ -133,17 +184,19 @@ fun FavoriteEditorScreen(
                 onValueChange = { value -> viewModel.update { it.copy(title = value) } },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 20.dp, bottom = 10.dp),
+                    .padding(top = 10.dp, bottom = 16.dp),
                 textStyle = TextStyle(
-                    color = Color(0xFF161616),
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
+                    color = Color(0xFF191919),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 32.sp
                 ),
                 decorationBox = { inner ->
                     if (draft.title.isBlank()) Text(
                         "标题",
-                        color = Color(0xFFBBBBBB),
-                        fontSize = 21.sp
+                        color = Color(0xFFC1C1C1),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
                     )
                     inner()
                 }
@@ -153,17 +206,17 @@ fun FavoriteEditorScreen(
                 onValueChange = { value -> viewModel.update { it.copy(content = value) } },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(460.dp),
+                    .padding(bottom = 20.dp),
                 textStyle = TextStyle(
-                    color = Color(0xFF202020),
-                    fontSize = 18.sp,
+                    color = Color(0xFF191919),
+                    fontSize = 17.sp,
                     lineHeight = 28.sp
                 ),
                 decorationBox = { inner ->
                     if (draft.content.isBlank()) {
                         Text(
-                            "记录文字、图片或录音，内容将自动保存",
-                            color = Color(0xFFBBBBBB),
+                            "记录文字、图片或录音",
+                            color = Color(0xFFC1C1C1),
                             fontSize = 17.sp
                         )
                     }
@@ -237,31 +290,48 @@ private fun NoteFormatBar(onFormat: (String) -> Unit, onAdd: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .height(64.dp)
-            .background(Color(0xFFF8F8F8))
-            .padding(horizontal = 20.dp),
+            .height(54.dp)
+            .background(Color(0xFFF7F7F7))
+            .padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        listOf(
-            "B" to "**加粗**", "▣" to "`文本`", "1☰" to "\n1. 列表项",
-            "•☰" to "\n- 列表项", "☑" to "\n- [ ] 待办事项",
-            "☷" to "\n---\n", "◷" to "\n提醒："
-        ).forEach { (label, syntax) ->
-            Text(
-                label,
-                fontSize = 20.sp,
-                color = Color(0xFF222222),
-                modifier = Modifier
-                    .clickable { onFormat(syntax) }
-                    .padding(5.dp)
-            )
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            listOf(
+                "B" to "**加粗**",
+                "☑" to "\n- [ ] ",
+                "•☰" to "\n- ",
+                "1☰" to "\n1. ",
+                "☷" to "\n---\n"
+            ).forEach { (label, syntax) ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .clickable { onFormat(syntax) }
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        label,
+                        fontSize = 16.sp,
+                        color = Color(0xFF333333),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
-        Text(
-            "⊕",
-            fontSize = 29.sp,
-            color = Color(0xFF222222),
-            modifier = Modifier.clickable(onClick = onAdd)
+        Icon(
+            painter = painterResource(R.drawable.ic_plus_circle_outlined),
+            contentDescription = "更多",
+            tint = Color(0xFF333333),
+            modifier = Modifier
+                .size(36.dp)
+                .clickable(onClick = onAdd)
+                .padding(6.dp)
         )
     }
 }
@@ -286,34 +356,34 @@ private fun AttachmentPanel(
     Column(
         Modifier
             .fillMaxWidth()
-            .background(Color(0xFFF5F5F5))
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+            .background(Color(0xFFF7F7F7))
+            .padding(top = 10.dp, bottom = 30.dp, start = 20.dp, end = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         actions.chunked(4).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 row.forEach { (label, icon, action) ->
                     Column(
                         Modifier
-                            .width(72.dp)
+                            .width(64.dp)
                             .clickable(onClick = action),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(
                             Modifier
-                                .size(62.dp)
-                                .background(Color.White, RoundedCornerShape(10.dp)),
+                                .size(64.dp)
+                                .background(Color.White, RoundedCornerShape(12.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 painterResource(icon),
                                 null,
-                                tint = Color(0xFF4C4C4C),
-                                modifier = Modifier.size(30.dp)
+                                tint = Color(0xFF333333),
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text(label, fontSize = 14.sp, color = Color(0xFF666666))
+                        Text(label, fontSize = 12.sp, color = Color(0xFF888888))
                     }
                 }
             }
@@ -409,28 +479,74 @@ private fun LocationEditor(content: String, onChange: (String) -> Unit) {
 @Composable
 private fun MediaPathList(paths: String, onChange: (String) -> Unit) {
     val items = paths.lineSequence().filter(String::isNotBlank).toList()
-    if (items.isEmpty()) {
-        Text("尚未添加文件", color = WeTheme.colorScheme.textSecondary)
-        return
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    if (items.isEmpty()) return
+
+    Column(
+        modifier = Modifier.padding(vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         items.forEachIndexed { index, path ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    File(path).name,
-                    modifier = Modifier.weight(1f),
-                    color = WeTheme.colorScheme.textPrimary
-                )
-                Text(
-                    "移除",
-                    color = Color(0xFFFA5151),
+            val file = File(path)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF5F5F5))
+            ) {
+                if (path.endsWith(".mp4", ignoreCase = true) ||
+                    path.endsWith(".jpg", ignoreCase = true) ||
+                    path.endsWith(".jpeg", ignoreCase = true) ||
+                    path.endsWith(".png", ignoreCase = true)
+                ) {
+                    AsyncImage(
+                        model = file,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth(),
+                        contentScale = ContentScale.FillWidth
+                    )
+                } else {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_file_filled),
+                            contentDescription = null,
+                            modifier = Modifier.size(40.dp),
+                            tint = Color(0xFF888888)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            file.name,
+                            modifier = Modifier.weight(1f),
+                            color = Color(0xFF333333),
+                            fontSize = 16.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+
+                Box(
                     modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(24.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                         .clickable {
-                            onChange(items.filterIndexed { itemIndex, _ -> itemIndex != index }
-                                .joinToString("\n"))
-                        }
-                        .padding(start = 16.dp)
-                )
+                            onChange(items.filterIndexed { i, _ -> i != index }.joinToString("\n"))
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "删除",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }

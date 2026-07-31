@@ -4,6 +4,8 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.feature.discovery.intercom.IntercomLobbyScreen
+import top.chengdongqing.wechat.feature.discovery.intercom.IntercomRoomScreen
 import top.chengdongqing.wechat.feature.discovery.moments.ChangeMomentCoverScreen
 import top.chengdongqing.wechat.feature.discovery.moments.CreateMomentScreen
 import top.chengdongqing.wechat.feature.discovery.moments.MomentsScreen
@@ -38,5 +40,16 @@ fun EntryProviderScope<NavKey>.momentsNavEntries(
                 backStack.removeLastOrNull()
             }
         )
+    }
+    entry<NavigationKey.IntercomLobby> {
+        IntercomLobbyScreen(
+            onBack = onBack,
+            onJoinChannel = { channel ->
+                backStack.add(NavigationKey.IntercomRoom(channel))
+            }
+        )
+    }
+    entry<NavigationKey.IntercomRoom> { key ->
+        IntercomRoomScreen(channel = key.channel, onBack = onBack)
     }
 }

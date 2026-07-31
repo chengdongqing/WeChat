@@ -115,6 +115,13 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             )
         }
 
+        MessageType.LiveLocation -> {
+            val data = runCatching {
+                json.decodeFromString<LiveLocationContent>(content)
+            }.getOrElse { LiveLocationContent() }
+            MessageContent.LiveLocation(data.roomId, data.initiatorId)
+        }
+
         MessageType.ContactCard -> {
             val cardInfo = runCatching {
                 Json.decodeFromString<ContactCardContent>(content)
@@ -280,6 +287,13 @@ fun MessageContent.toEntity(
                 localPath = content.snapshotPath
             )
 
+        is MessageContent.LiveLocation ->
+            base(
+                contentValue = json.encodeToString(
+                    LiveLocationContent(content.roomId, content.initiatorId)
+                )
+            )
+
         is MessageContent.ContactCard ->
             base(
                 contentValue = json.encodeToString(
@@ -333,6 +347,7 @@ fun MessageContent.toMessageType(): MessageType = when (this) {
     is MessageContent.Sticker -> MessageType.Sticker
     is MessageContent.File -> MessageType.File
     is MessageContent.Location -> MessageType.Location
+    is MessageContent.LiveLocation -> MessageType.LiveLocation
     is MessageContent.Call -> if (type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
     is MessageContent.ContactCard -> MessageType.ContactCard
     is MessageContent.Music -> MessageType.Music
@@ -402,6 +417,12 @@ data class LocationContent(
     val longitude: Double = 0.0,
     val address: String = "",
     val poiName: String = ""
+)
+
+@Serializable
+data class LiveLocationContent(
+    val roomId: String = "",
+    val initiatorId: String = ""
 )
 
 @Serializable

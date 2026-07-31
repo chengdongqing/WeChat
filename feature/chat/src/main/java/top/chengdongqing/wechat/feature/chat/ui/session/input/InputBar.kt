@@ -76,6 +76,7 @@ fun InputBar(
     listState: LazyListState,
     onLaunchCall: (type: CallType) -> Unit,
     onStartLive: () -> Unit,
+    onShareLiveLocation: () -> Unit,
     onOpenFavorites: () -> Unit
 ) {
     val focusRequester = remember { NativeFocusRequester() }
@@ -87,6 +88,7 @@ fun InputBar(
         onSendMessage = viewModel::sendMessage,
         onLaunchCall = onLaunchCall,
         onStartLive = onStartLive,
+        onShareLiveLocation = onShareLiveLocation,
         onOpenFavorites = onOpenFavorites
     )
     var showMentionPicker by remember { mutableStateOf(false) }

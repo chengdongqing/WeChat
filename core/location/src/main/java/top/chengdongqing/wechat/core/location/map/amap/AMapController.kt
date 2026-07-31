@@ -113,6 +113,9 @@ class AMapController(
     override val currentLocation: GeoPoint?
         get() = map.myLocation?.takeIf { it.isValid() }?.toGeoPoint()
 
+    override val currentBearing: Float?
+        get() = map.myLocation?.takeIf { it.isValid() && it.hasBearing() }?.bearing
+
     override val cameraCenter: GeoPoint?
         get() = map.cameraPosition?.target?.toGeoPoint()
 
@@ -122,11 +125,15 @@ class AMapController(
         map.animateCamera(CameraUpdateFactory.newLatLngZoom(point.toLatLng(), zoom))
     }
 
-    override fun addMarker(point: GeoPoint, icon: Bitmap?): MapMarkerHandle {
+    override fun addMarker(point: GeoPoint, icon: Bitmap?, bearing: Float?): MapMarkerHandle {
         val marker = map.addMarker(MarkerOptions().apply {
             position(point.toLatLng())
             icon?.let {
                 icon(BitmapDescriptorFactory.fromBitmap(it))
+            }
+            bearing?.let {
+                anchor(.5f, .5f)
+                rotateAngle(-it)
             }
         })
         return AMapMarkerHandle(marker)
@@ -200,16 +207,25 @@ class AMapController(
         }
     }
 
-    override fun setOnLocationChangeListener(listener: (GeoPoint) -> Unit) {
+    override fun setOnLocationChangeListener(listener: (GeoPoint, Float?) -> Unit) {
         map.setOnMyLocationChangeListener { location ->
             if (location.isValid()) {
-                listener(location.toGeoPoint())
+                listener(
+                    location.toGeoPoint(),
+                    location.bearing.takeIf { location.hasBearing() }
+                )
             }
         }
     }
 }
 
 private class AMapMarkerHandle(private val marker: Marker?) : MapMarkerHandle {
+    override fun update(point: GeoPoint, bearing: Float?) {
+        marker?.position = point.toLatLng()
+        // 高德 Marker 的旋转方向与 Android Location bearing 相反。
+        bearing?.let { marker?.rotateAngle = -it }
+    }
+
     override fun remove() {
         marker?.remove()
     }

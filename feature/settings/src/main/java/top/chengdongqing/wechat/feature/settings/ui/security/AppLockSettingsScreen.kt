@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.feature.settings.ui.security
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -48,48 +49,49 @@ fun AppLockSettingsScreen(
         Column(Modifier
             .fillMaxSize()
             .padding(padding)) {
-            PinEntry(
-                title = title,
-                error = error,
-                onPinComplete = { pin ->
-                    when (step) {
-                        PinStep.VerifyOld -> {
-                            if (!viewModel.verify(pin)) {
-                                error = if (viewModel.isTemporarilyLocked) {
-                                    "尝试次数过多，请稍后重试"
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                PinEntry(
+                    title = title,
+                    error = error,
+                    onPinComplete = { pin ->
+                        when (step) {
+                            PinStep.VerifyOld -> {
+                                if (!viewModel.verify(pin)) {
+                                    error = if (viewModel.isTemporarilyLocked) {
+                                        "尝试次数过多，请稍后重试"
+                                    } else {
+                                        "密码错误"
+                                    }
+                                } else if (disableAfterVerification) {
+                                    viewModel.disable()
+                                    onBack()
                                 } else {
-                                    "密码错误"
+                                    error = null
+                                    step = PinStep.Create
                                 }
-                            } else if (disableAfterVerification) {
-                                viewModel.disable()
-                                onBack()
-                            } else {
-                                error = null
-                                step = PinStep.Create
                             }
-                        }
 
-                        PinStep.Create -> {
-                            firstPin = pin
-                            error = null
-                            step = PinStep.Confirm
-                        }
+                            PinStep.Create -> {
+                                firstPin = pin
+                                error = null
+                                step = PinStep.Confirm
+                            }
 
-                        PinStep.Confirm -> {
-                            if (pin == firstPin) {
-                                viewModel.save(pin)
-                                onBack()
-                            } else {
-                                error = "两次输入不一致，请重新设置"
-                                firstPin = ""
-                                step = PinStep.Create
+                            PinStep.Confirm -> {
+                                if (pin == firstPin) {
+                                    viewModel.save(pin)
+                                    onBack()
+                                } else {
+                                    error = "两次输入不一致，请重新设置"
+                                    firstPin = ""
+                                    step = PinStep.Create
+                                }
                             }
                         }
                     }
-                }
-            )
+                )
+            }
             if (viewModel.isEnabled && step == PinStep.VerifyOld) {
-                Spacer(Modifier.weight(1f))
                 WeDangerButton("取消应用锁") {
                     disableAfterVerification = true
                     error = "请输入当前密码以取消应用锁"

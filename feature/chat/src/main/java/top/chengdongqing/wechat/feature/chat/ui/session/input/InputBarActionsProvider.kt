@@ -33,6 +33,7 @@ fun rememberInputBarActions(
     onSendMessage: (MessageContent) -> Unit,
     onLaunchCall: (CallType) -> Unit,
     onStartLive: () -> Unit,
+    onShareLiveLocation: () -> Unit,
     onOpenFavorites: () -> Unit
 ): InputBarActions {
     val resources = LocalResources.current
@@ -64,6 +65,7 @@ fun rememberInputBarActions(
         privateFileManager = privateFileManager,
         pickContact = { pickContact(1) },
         onPickLocation = onPickLocation,
+        onShareLiveLocation = onShareLiveLocation,
         onLaunchCall = onLaunchCall,
         onSelectMusic = controller::toggleMusic,
         onStartLive = onStartLive,
