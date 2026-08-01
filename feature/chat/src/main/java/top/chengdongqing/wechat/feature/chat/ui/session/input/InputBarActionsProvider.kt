@@ -62,6 +62,7 @@ fun rememberInputBarActions(
     val actionHandler = rememberActionHandler(
         mediaLaunchers = mediaLaunchers,
         fileLauncher = fileLauncher,
+        onOpenFilePicker = fileLauncher.pickFile,
         privateFileManager = privateFileManager,
         pickContact = { pickContact(1) },
         onPickLocation = onPickLocation,

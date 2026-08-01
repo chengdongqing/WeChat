@@ -68,6 +68,7 @@ class ActionHandler(
 fun rememberActionHandler(
     mediaLaunchers: MediaLaunchers,
     fileLauncher: FileLauncher,
+    onOpenFilePicker: () -> Unit,
     pickContact: () -> Unit,
     privateFileManager: PrivateFileManager,
     onPickLocation: () -> Unit,
@@ -161,7 +162,7 @@ fun rememberActionHandler(
                     }
                 }
             },
-            onFile = fileLauncher.pickFile,
+            onFile = onOpenFilePicker,
             onApk = fileLauncher.pickApk,
             onMusic = onSelectMusic,
             onLive = onStartLive,

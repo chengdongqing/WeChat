@@ -1,6 +1,6 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.input.handler
 
-import android.net.Uri
+import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -12,6 +12,7 @@ import top.chengdongqing.wechat.core.common.app.rememberPickAppLauncher
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.handler.FileHandler
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.feature.chat.ui.file.FileSelectionActivity
 
 @Composable
 fun rememberFileHandler(
@@ -31,10 +32,13 @@ fun rememberFileLauncher(
     val scope = rememberCoroutineScope()
 
     val pickFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetMultipleContents()
-    ) { uris: List<Uri> ->
-        scope.launch {
-            fileHandler.handleFileSelection(uris, context)
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uris = FileSelectionActivity.readResult(result.data)
+            scope.launch {
+                fileHandler.handleFileSelection(uris, context)
+            }
         }
     }
 
@@ -46,7 +50,7 @@ fun rememberFileLauncher(
 
     return remember(pickFileLauncher) {
         FileLauncher(
-            pickFile = { pickFileLauncher.launch("*/*") },
+            pickFile = { FileSelectionActivity.launch(context, pickFileLauncher) },
             pickApk = { pickApk(99) }
         )
     }

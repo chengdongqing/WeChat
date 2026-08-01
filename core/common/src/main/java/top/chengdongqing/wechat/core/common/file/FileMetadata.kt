@@ -42,7 +42,9 @@ suspend fun Context.getFileMetadata(uri: Uri): FileMetadata? =
         try {
             val resolver = contentResolver
             val localFile = uri.takeIf { it.scheme == "file" }?.path?.let(::File)
-            var name = localFile?.name ?: "FILE_${System.currentTimeMillis()}"
+            var name = uri.fragment?.takeIf(String::isNotBlank)
+                ?: localFile?.name
+                ?: "FILE_${System.currentTimeMillis()}"
             var size = localFile?.length() ?: 0L
             val mimeType = resolver.getType(uri)
                 ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(
@@ -54,12 +56,14 @@ suspend fun Context.getFileMetadata(uri: Uri): FileMetadata? =
             /**
              * 基础信息查询
              */
-            resolver.query(uri, null, null, null, null)?.use { cursor ->
-                val nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                val sizeIdx = cursor.getColumnIndex(OpenableColumns.SIZE)
-                if (cursor.moveToFirst()) {
-                    if (nameIdx != -1) name = cursor.getString(nameIdx) ?: name
-                    if (sizeIdx != -1) size = cursor.getLong(sizeIdx)
+            if (localFile == null) {
+                resolver.query(uri, null, null, null, null)?.use { cursor ->
+                    val nameIdx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    val sizeIdx = cursor.getColumnIndex(OpenableColumns.SIZE)
+                    if (cursor.moveToFirst()) {
+                        if (nameIdx != -1) name = cursor.getString(nameIdx) ?: name
+                        if (sizeIdx != -1) size = cursor.getLong(sizeIdx)
+                    }
                 }
             }
 

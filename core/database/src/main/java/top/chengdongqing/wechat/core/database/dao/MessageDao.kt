@@ -145,6 +145,9 @@ interface MessageDao : BaseDao<MessageEntity> {
         type: MessageType
     ): List<MessageEntity>
 
+    @Query("SELECT * FROM messages WHERE contentType = :type AND localPath IS NOT NULL AND isRecalled = 0 ORDER BY timestamp DESC")
+    suspend fun getAllByType(type: MessageType): List<MessageEntity>
+
     @Query("SELECT EXISTS(SELECT 1 FROM messages WHERE id = :messageId)")
     suspend fun exists(messageId: String): Boolean
 
