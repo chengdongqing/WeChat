@@ -15,6 +15,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Videocam
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,7 +42,13 @@ import top.chengdongqing.wechat.core.util.showToast
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-internal fun ColumnScope.MediaGrid(state: MediaPickerState) {
+internal fun ColumnScope.MediaGrid(
+    state: MediaPickerState,
+    singleMediaMode: Boolean = false,
+    captureVideo: Boolean = false,
+    onCapture: () -> Unit = {},
+    onSingleMediaSelected: (MediaItem) -> Unit = {}
+) {
     val context = LocalContext.current
     val overscrollEffect = rememberBounceOverscrollEffect()
 
@@ -51,6 +61,11 @@ internal fun ColumnScope.MediaGrid(state: MediaPickerState) {
         verticalArrangement = Arrangement.spacedBy(2.dp),
         overscrollEffect = overscrollEffect
     ) {
+        if (singleMediaMode) {
+            item(key = "capture_media", contentType = "capture_media") {
+                CaptureMediaCell(captureVideo, onCapture)
+            }
+        }
         itemsIndexed(state.mediaList) { index, item ->
             val selectedIndex = state.selectedMediaList.indexOf(item)
             val selected = selectedIndex != -1
@@ -60,8 +75,10 @@ internal fun ColumnScope.MediaGrid(state: MediaPickerState) {
                 selected,
                 selectedIndex,
                 onClick = {
-                    context.previewMedias(state.mediaList, index)
-                }
+                    if (singleMediaMode) onSingleMediaSelected(item)
+                    else context.previewMedias(state.mediaList, index)
+                },
+                showCheckbox = !singleMediaMode
             ) {
                 if (selectedIndex == -1) {
                     if (state.selectedMediaList.size < state.count) {
@@ -83,6 +100,7 @@ private fun MediaGridCell(
     selected: Boolean,
     selectedIndex: Int,
     onClick: () -> Unit,
+    showCheckbox: Boolean = true,
     onSelect: () -> Unit
 ) {
     Box(
@@ -125,7 +143,35 @@ private fun MediaGridCell(
             )
         }
         // 选择框
-        MediaCheckbox(selected, selectedIndex, onSelect)
+        if (showCheckbox) MediaCheckbox(selected, selectedIndex, onSelect)
+    }
+}
+
+@Composable
+private fun CaptureMediaCell(captureVideo: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .background(WeTheme.colorScheme.divider)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.foundation.layout.Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = if (captureVideo) Icons.Outlined.Videocam else Icons.Outlined.PhotoCamera,
+                contentDescription = if (captureVideo) "拍摄视频" else "拍摄照片",
+                tint = WeTheme.colorScheme.textPrimary,
+                modifier = Modifier.size(30.dp)
+            )
+            Text(
+                if (captureVideo) "拍摄视频" else "拍摄照片",
+                color = WeTheme.colorScheme.textPrimary,
+                fontSize = 13.sp
+            )
+        }
     }
 }
 

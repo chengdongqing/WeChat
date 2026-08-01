@@ -21,7 +21,8 @@ class LocalMediaRepositoryImpl(private val context: Context) : LocalMediaReposit
                 MediaStore.Files.FileColumns.MEDIA_TYPE,
                 MediaStore.Files.FileColumns.MIME_TYPE,
                 MediaStore.Files.FileColumns.WIDTH,
-                MediaStore.Files.FileColumns.HEIGHT
+                MediaStore.Files.FileColumns.HEIGHT,
+                MediaStore.Files.FileColumns.SIZE
             )
             val selection =
                 "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (${types.joinToString(separator = ",") { "?" }})"
@@ -49,6 +50,7 @@ class LocalMediaRepositoryImpl(private val context: Context) : LocalMediaReposit
                     cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH)
                 val heightColumn =
                     cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT)
+                val sizeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE)
 
                 while (cursor.moveToNext()) {
                     val fileUri =
@@ -64,7 +66,8 @@ class LocalMediaRepositoryImpl(private val context: Context) : LocalMediaReposit
                             duration = cursor.getLong(durationColumn),
                             date = cursor.getLong(dateColumn),
                             width = cursor.getInt(widthColumn),
-                            height = cursor.getInt(heightColumn)
+                            height = cursor.getInt(heightColumn),
+                            size = cursor.getLong(sizeColumn)
                         )
                     )
                 }

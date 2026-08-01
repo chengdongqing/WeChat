@@ -57,4 +57,6 @@ dependencies {
     implementation(libs.coil.zoomable)
 
     implementation(libs.exifinterface)
+    implementation(libs.media3.transformer)
+    implementation(libs.media3.effect)
 }

@@ -1,14 +1,17 @@
 package top.chengdongqing.wechat.core.common.media.picker
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -19,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDownCircle
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,25 +40,83 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.common.file.createImageUri
+import top.chengdongqing.wechat.core.common.file.createVideoUri
+import top.chengdongqing.wechat.core.common.file.deleteFileByUri
+import top.chengdongqing.wechat.core.common.file.getFileMetadata
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
+import top.chengdongqing.wechat.core.common.media.model.MediaType
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.common.media.preview.previewMedias
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
+import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.components.permission.RequestMediaPermission
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import java.util.Locale
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun WeMediaPicker(
     type: VisualMediaType,
     count: Int,
+    enableMerge: Boolean = false,
     onCancel: () -> Unit,
-    onConfirm: (Array<MediaItem>, merge: Boolean) -> Unit
+    onConfirm: (Array<MediaItem>, merge: Boolean, original: Boolean) -> Unit
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val singleMediaMode = count == 1
+    val captureVideo = type == VisualMediaType.Video
+    var capturedUri by remember { mutableStateOf<Uri?>(null) }
+    fun completeCapturedMedia(success: Boolean, uri: Uri?, mediaType: MediaType) {
+        val actualUri = uri ?: return
+        coroutineScope.launch {
+            if (success) {
+                context.getFileMetadata(actualUri)?.let { metadata ->
+                    onConfirm(
+                        arrayOf(
+                            MediaItem(
+                                uri = actualUri,
+                                filename = metadata.filename,
+                                mediaType = mediaType,
+                                mimeType = metadata.mimeType,
+                                width = metadata.width,
+                                height = metadata.height,
+                                size = metadata.size
+                            )
+                        ),
+                        false,
+                        false
+                    )
+                }
+            } else {
+                context.deleteFileByUri(actualUri)
+            }
+            capturedUri = null
+        }
+    }
+
+    val takePicture =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            completeCapturedMedia(success, capturedUri, MediaType.Image)
+        }
+    val captureVideoLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { success ->
+            completeCapturedMedia(success, capturedUri, MediaType.Video)
+        }
+
+    fun launchCapture() {
+        coroutineScope.launch {
+            capturedUri = if (captureVideo) context.createVideoUri() else context.createImageUri()
+            if (captureVideo) captureVideoLauncher.launch(capturedUri!!)
+            else takePicture.launch(capturedUri!!)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,9 +129,17 @@ fun WeMediaPicker(
             if (state.isLoading) {
                 WeLoadMore()
             } else {
-                MediaGrid(state)
-                BottomBar(state) { merge ->
-                    onConfirm(state.selectedMediaList.toTypedArray(), merge)
+                MediaGrid(
+                    state = state,
+                    singleMediaMode = singleMediaMode,
+                    captureVideo = captureVideo,
+                    onCapture = ::launchCapture,
+                    onSingleMediaSelected = { onConfirm(arrayOf(it), false, false) }
+                )
+                if (!singleMediaMode) {
+                    BottomBar(state, enableMerge) { merge, original ->
+                        onConfirm(state.selectedMediaList.toTypedArray(), merge, original)
+                    }
                 }
             }
         }
@@ -147,12 +215,18 @@ private fun TopBar(
 }
 
 @Composable
-private fun BottomBar(state: MediaPickerState, onConfirm: (Boolean) -> Unit) {
+private fun BottomBar(
+    state: MediaPickerState,
+    enableMerge: Boolean,
+    onConfirm: (Boolean, Boolean) -> Unit
+) {
     val context = LocalContext.current
     val selectedCount = state.selectedMediaList.size
     val countDescription = if (selectedCount > 0) "($selectedCount)" else ""
+    val selectedSize = state.selectedMediaList.sumOf(MediaItem::size)
 
     var merge by remember { mutableStateOf(false) }
+    var original by remember { mutableStateOf(false) }
     if (selectedCount < 3) merge = false
 
     Column(
@@ -161,14 +235,15 @@ private fun BottomBar(state: MediaPickerState, onConfirm: (Boolean) -> Unit) {
             .navigationBarsPadding()
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        if (selectedCount >= 3) {
+        if (enableMerge && selectedCount >= 3) {
             Row(
                 modifier = Modifier
                     .clickable { merge = !merge }
                     .padding(bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Checkbox(checked = merge, onCheckedChange = { merge = it })
+                WeCheckBox(checked = merge)
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "发送后合并展示",
                     color = WeTheme.colorScheme.textPrimary,
@@ -176,28 +251,74 @@ private fun BottomBar(state: MediaPickerState, onConfirm: (Boolean) -> Unit) {
                 )
             }
         }
-        Row(
+        Box(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = "${stringResource(DesignR.string.action_preview)}$countDescription",
                 color = WeTheme.colorScheme.textPrimary,
                 fontSize = 16.sp,
                 modifier = Modifier
+                    .align(Alignment.CenterStart)
                     .alpha(if (selectedCount > 0) 1f else 0.6f)
                     .clickable(enabled = selectedCount > 0) {
                         context.previewMedias(state.selectedMediaList)
                     }
             )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .height(56.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .clickable { original = !original },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    WeCheckBox(checked = original)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("原图", color = WeTheme.colorScheme.textPrimary, fontSize = 16.sp)
+                }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .height(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "共 ${formatFileSize(selectedSize)}",
+                        color = WeTheme.colorScheme.textSecondary,
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        maxLines = 1,
+                        modifier = Modifier.alpha(
+                            if (original && selectedCount > 0) 1f else 0f
+                        )
+                    )
+                }
+            }
             WeButton(
                 text = "${stringResource(DesignR.string.action_ok)}$countDescription",
                 size = ButtonSize.Small,
-                enabled = selectedCount > 0
+                enabled = selectedCount > 0,
+                modifier = Modifier.align(Alignment.CenterEnd)
             ) {
-                onConfirm(merge)
+                onConfirm(merge, original)
             }
         }
     }
+}
+
+private fun formatFileSize(bytes: Long): String {
+    if (bytes < 1024) return "$bytes B"
+    val units = arrayOf("KB", "MB", "GB", "TB")
+    var value = bytes.toDouble()
+    var unitIndex = -1
+    while (value >= 1024 && unitIndex < units.lastIndex) {
+        value /= 1024
+        unitIndex++
+    }
+    val pattern = if (value >= 100 || value % 1.0 == 0.0) "%.0f" else "%.1f"
+    return String.format(Locale.getDefault(), "$pattern %s", value, units[unitIndex])
 }

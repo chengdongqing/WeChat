@@ -31,14 +31,20 @@ class MediaPickerActivity : ComponentActivity() {
         val type = intent.getStringExtra(EXTRA_PICK_TYPE)?.let { VisualMediaType.valueOf(it) }
             ?: VisualMediaType.ImageAndVideo
         val count = intent.getIntExtra(EXTRA_PICK_COUNT, 99)
+        val enableMerge = intent.getBooleanExtra(EXTRA_ENABLE_MERGE, false)
 
         setContent {
             StatusBarAppearanceEffect(isDark = false)
             WeTheme(isDark = true) {
-                WeMediaPicker(type, count, onCancel = { finish() }) { medias, merge ->
+                WeMediaPicker(
+                    type,
+                    count,
+                    enableMerge,
+                    onCancel = { finish() }) { medias, merge, original ->
                     val intent = Intent().apply {
                         putExtra(EXTRA_MEDIA_LIST, medias)
                         putExtra(EXTRA_MERGE_MEDIA, merge)
+                        putExtra(EXTRA_ORIGINAL_MEDIA, original)
                     }
                     setResult(RESULT_OK, intent)
                     finish()
@@ -67,6 +73,8 @@ class MediaPickerActivity : ComponentActivity() {
         const val EXTRA_PICK_COUNT = "extra_pick_count"
         const val EXTRA_MEDIA_LIST = "extra_media_list"
         const val EXTRA_MERGE_MEDIA = "extra_merge_media"
+        const val EXTRA_ORIGINAL_MEDIA = "extra_original_media"
+        const val EXTRA_ENABLE_MERGE = "extra_enable_merge"
 
         fun newIntent(context: Context) = Intent(context, MediaPickerActivity::class.java)
     }
@@ -74,7 +82,8 @@ class MediaPickerActivity : ComponentActivity() {
 
 @Composable
 fun rememberPickMediasLauncher(
-    onResult: (medias: Array<MediaItem>, merge: Boolean) -> Unit
+    enableMerge: Boolean = false,
+    onResult: (medias: Array<MediaItem>, merge: Boolean, original: Boolean) -> Unit
 ): (type: VisualMediaType, count: Int) -> Unit {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
@@ -85,7 +94,8 @@ fun rememberPickMediasLauncher(
                 data.mediaResults?.let {
                     onResult(
                         it,
-                        data.getBooleanExtra(EXTRA_MERGE_MEDIA, false)
+                        data.getBooleanExtra(EXTRA_MERGE_MEDIA, false),
+                        data.getBooleanExtra(MediaPickerActivity.EXTRA_ORIGINAL_MEDIA, false)
                     )
                 }
             }
@@ -96,6 +106,7 @@ fun rememberPickMediasLauncher(
         val intent = MediaPickerActivity.newIntent(context).apply {
             putExtra(MediaPickerActivity.EXTRA_PICK_TYPE, type.toString())
             putExtra(MediaPickerActivity.EXTRA_PICK_COUNT, count)
+            putExtra(MediaPickerActivity.EXTRA_ENABLE_MERGE, enableMerge)
         }
 
         val options = ActivityOptionsCompat.makeCustomAnimation(

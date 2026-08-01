@@ -9,9 +9,11 @@ import android.os.Build
 import android.provider.OpenableColumns
 import android.util.Log
 import android.util.Size
+import android.webkit.MimeTypeMap
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * 文件元数据
@@ -39,9 +41,15 @@ suspend fun Context.getFileMetadata(uri: Uri): FileMetadata? =
     withContext(Dispatchers.IO) {
         try {
             val resolver = contentResolver
-            var name = "FILE_${System.currentTimeMillis()}"
-            var size = 0L
-            val mimeType = resolver.getType(uri) ?: "application/octet-stream"
+            val localFile = uri.takeIf { it.scheme == "file" }?.path?.let(::File)
+            var name = localFile?.name ?: "FILE_${System.currentTimeMillis()}"
+            var size = localFile?.length() ?: 0L
+            val mimeType = resolver.getType(uri)
+                ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                    (localFile?.extension ?: uri.lastPathSegment?.substringAfterLast('.', "")
+                    ?: "").lowercase()
+                )
+                ?: "application/octet-stream"
 
             /**
              * 基础信息查询

@@ -125,7 +125,7 @@ fun FavoriteEditorScreen(
         }
     }
 
-    val pickMedia = rememberPickMediasLauncher { medias, _ ->
+    val pickMedia = rememberPickMediasLauncher { medias, _, _ ->
         importUris(medias.map { it.uri })
     }
     val launchCamera = rememberCameraLauncher { uri, _ -> importUris(listOf(uri)) }

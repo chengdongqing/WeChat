@@ -18,6 +18,7 @@ import top.chengdongqing.wechat.core.common.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.file.deleteFileByUri
 import top.chengdongqing.wechat.core.common.file.getFileMetadata
+import top.chengdongqing.wechat.core.common.media.MediaPrivacyProcessor
 import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.model.MessageType
@@ -43,18 +44,28 @@ class MediaHandler(
         isFromCapture: Boolean = false,
         albumId: String? = null,
         albumIndex: Int = 0,
-        albumSize: Int = 1
+        albumSize: Int = 1,
+        original: Boolean = false
     ) {
-        // 获取元数据
-        val metadata = context.getFileMetadata(uri) ?: return
-        val isImage = metadata.isImage
+        val sourceMetadata = context.getFileMetadata(uri) ?: return
+        val isImage = sourceMetadata.isImage
         val messageType = if (isImage) MessageType.Image else MessageType.Video
+
+        // 原图只跳过压缩；所有模式均生成不含位置、设备、拍摄时间等信息的新文件。
+        val processedFile =
+            MediaPrivacyProcessor(context).process(uri, sourceMetadata.mimeType, original)
+        val processedUri = Uri.fromFile(processedFile)
+        val metadata = context.getFileMetadata(processedUri) ?: run {
+            processedFile.delete()
+            return
+        }
 
         // 拷贝到私有目录持久化保存
         val localPath = privateFileManager.saveMedia(
             messageType = messageType,
-            sourceUri = uri
+            sourceFile = processedFile
         ).getOrThrow()
+        processedFile.delete()
 
         // 清理临时文件
         if (isFromCapture) {
@@ -90,7 +101,7 @@ class MediaHandler(
         onSendMessage(content)
     }
 
-    fun handleMediaSelection(uris: List<Uri>, merge: Boolean = false) {
+    fun handleMediaSelection(uris: List<Uri>, merge: Boolean = false, original: Boolean = false) {
         onModeChange()
         scope.launch {
             val albumId = if (merge && uris.size >= 3) UUID.randomUUID().toString() else null
@@ -99,7 +110,8 @@ class MediaHandler(
                     uri = uri,
                     albumId = albumId,
                     albumIndex = index,
-                    albumSize = if (albumId != null) uris.size else 1
+                    albumSize = if (albumId != null) uris.size else 1,
+                    original = original
                 )
                 if (index < uris.lastIndex) delay(50)
             }
@@ -145,8 +157,9 @@ fun rememberMediaLaunchers(
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
 
     // 媒体选择器
-    val launchMediaPicker = rememberPickMediasLauncher { items, merge ->
-        mediaHandler.handleMediaSelection(items.map { it.uri }, merge)
+    val launchMediaPicker =
+        rememberPickMediasLauncher(enableMerge = true) { items, merge, original ->
+            mediaHandler.handleMediaSelection(items.map { it.uri }, merge, original)
     }
 
     // 系统媒体选择器

@@ -12,6 +12,7 @@ data class MediaItem(
     val mimeType: String,
     val width: Int,
     val height: Int,
+    val size: Long = 0,
     val duration: Long = 0,
     val date: Long = 0
 ) : Parcelable {

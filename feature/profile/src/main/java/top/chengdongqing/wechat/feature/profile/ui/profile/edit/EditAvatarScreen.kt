@@ -56,7 +56,7 @@ fun EditAvatarScreen(
         scope.launch { zoomableState.resetZoom(SnapSpec()) } // 重置缩放，避免被之前的缩放影响
         viewModel.updateField(ProfileField.Avatar(it))
     }
-    val launchAlbum = rememberPickMediasLauncher { medias, _ ->
+    val launchAlbum = rememberPickMediasLauncher { medias, _, _ ->
         launchCropper(medias[0].uri)
     }
     val launchCamera = rememberCameraLauncher { uri, _ ->
