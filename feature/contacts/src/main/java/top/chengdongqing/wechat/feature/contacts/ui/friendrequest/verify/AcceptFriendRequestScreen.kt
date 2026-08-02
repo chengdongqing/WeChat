@@ -9,8 +9,8 @@ import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
-import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.components.ContactHandleBase
-import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.components.FriendActionType
+import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.ContactHandleBase
+import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.FriendActionType
 
 @Composable
 fun AcceptFriendRequestScreen(

@@ -11,9 +11,10 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.metadata
 import androidx.navigation3.ui.NavDisplay
+import top.chengdongqing.wechat.app.shell.MainShellDestination
+import top.chengdongqing.wechat.feature.auth.ui.LoginScreen
 import top.chengdongqing.wechat.feature.common.PlainTextScreen
 import top.chengdongqing.wechat.feature.common.WebViewScreen
-import top.chengdongqing.wechat.feature.profile.ui.login.LoginScreen
 import top.chengdongqing.wechat.feature.startup.GuideScreen
 import top.chengdongqing.wechat.feature.startup.SplashScreen
 
@@ -30,7 +31,7 @@ internal fun EntryProviderScope<NavKey>.commonNavEntries(
         SplashScreen(
             onNavigateToHome = {
                 backStack.clear()
-                backStack.add(NavigationKey.Home)
+                backStack.add(NavigationKey.Main)
             },
             onNavigateToWelcome = {
                 backStack.clear()
@@ -61,13 +62,13 @@ internal fun EntryProviderScope<NavKey>.commonNavEntries(
             onBack = onBack,
             onSetupComplete = {
                 backStack.clear()
-                backStack.add(NavigationKey.Home)
+                backStack.add(NavigationKey.Main)
             }
         )
     }
 
-    // 首页
-    entry<NavigationKey.Home>(
+    // 应用主框架
+    entry<NavigationKey.Main>(
         metadata = metadata {
             put(NavDisplay.TransitionKey) {
                 (fadeIn(animationSpec = tween(300)) +
@@ -78,7 +79,7 @@ internal fun EntryProviderScope<NavKey>.commonNavEntries(
             }
         }
     ) {
-        HomeDestination(backStack)
+        MainShellDestination(backStack)
     }
 
     // 文本预览

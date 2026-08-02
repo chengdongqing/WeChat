@@ -20,8 +20,6 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
-import top.chengdongqing.wechat.feature.contacts.ui.detail.components.ContactDetailContent
-import top.chengdongqing.wechat.feature.contacts.ui.detail.components.LocalAiContactDetailContent
 
 @Composable
 fun ContactDetailScreen(

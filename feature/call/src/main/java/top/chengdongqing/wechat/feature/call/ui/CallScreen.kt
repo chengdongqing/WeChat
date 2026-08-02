@@ -44,10 +44,6 @@ import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.model.CallState
 import top.chengdongqing.wechat.feature.call.domain.model.CallUiState
-import top.chengdongqing.wechat.feature.call.ui.components.CallBackground
-import top.chengdongqing.wechat.feature.call.ui.components.CallControlBar
-import top.chengdongqing.wechat.feature.call.ui.components.CallTopBar
-import top.chengdongqing.wechat.feature.call.ui.components.CallUserInfo
 import kotlin.math.roundToInt
 
 @Composable

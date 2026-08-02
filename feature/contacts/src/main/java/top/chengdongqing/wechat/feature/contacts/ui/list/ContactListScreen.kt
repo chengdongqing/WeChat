@@ -36,7 +36,6 @@ import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
-import top.chengdongqing.wechat.feature.contacts.ui.list.components.TopFunctionList
 
 @Composable
 fun ContactListScreen(

@@ -8,6 +8,5 @@ data class AppItem(
     val packageName: String,
     val versionName: String,
     val lastModified: Long,
-    val apkPath: String,
-    val splitApkPaths: List<String>
+    val apkPath: String
 )

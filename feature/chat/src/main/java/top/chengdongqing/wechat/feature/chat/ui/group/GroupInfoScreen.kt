@@ -41,8 +41,6 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
-import top.chengdongqing.wechat.feature.chat.ui.group.components.ChatParticipant
-import top.chengdongqing.wechat.feature.chat.ui.group.components.ChatParticipantsBar
 
 @Composable
 fun GroupInfoScreen(

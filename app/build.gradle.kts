@@ -19,8 +19,8 @@ android {
         applicationId = "top.chengdongqing.wechat"
         minSdk = 26
         targetSdk = 37
-        versionCode = 20260721
-        versionName = "2026.07.21"
+        versionCode = 20260802
+        versionName = "2026.08.02"
 
         ndk {
             abiFilters.add("arm64-v8a")
@@ -66,11 +66,14 @@ configurations.all {
 dependencies {
     // Feature modules
     implementation(projects.feature.launch)
-    implementation(projects.feature.home)
+    implementation(projects.feature.auth)
     implementation(projects.feature.chat)
     implementation(projects.feature.contacts)
     implementation(projects.feature.discovery)
+    implementation(projects.feature.moments)
+    implementation(projects.feature.intercom)
     implementation(projects.feature.profile)
+    implementation(projects.feature.favorites)
     implementation(projects.feature.call)
     implementation(projects.feature.settings)
     implementation(projects.feature.common)

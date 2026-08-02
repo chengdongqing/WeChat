@@ -28,9 +28,6 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.components.NfcModeSwitch
-import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.components.NfcUnavailable
-import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.components.NfcWaiting
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.util.HcePreferredService
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.util.NfcAvailability
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.util.NfcReaderDispatch

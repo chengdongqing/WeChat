@@ -24,11 +24,6 @@ import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.runtime.LaunchedUpdateEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.domain.model.PeerDevice
-import top.chengdongqing.wechat.feature.chat.ui.session.peer.components.DeviceItem
-import top.chengdongqing.wechat.feature.chat.ui.session.peer.components.EmptyView
-import top.chengdongqing.wechat.feature.chat.ui.session.peer.components.OwnerWaitingView
-import top.chengdongqing.wechat.feature.chat.ui.session.peer.components.ScanningIndicator
-import top.chengdongqing.wechat.feature.chat.ui.session.peer.components.WiFiDirectRoleSelector
 import top.chengdongqing.wechat.feature.chat.ui.session.peer.util.PeerScanEffect
 
 @Composable

@@ -5,8 +5,6 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.NavigationKey
-import top.chengdongqing.wechat.feature.profile.ui.favorites.FavoriteEditorScreen
-import top.chengdongqing.wechat.feature.profile.ui.favorites.FavoritesScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.edit.EditAvatarScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.edit.EditGenderScreen
@@ -55,17 +53,6 @@ fun EntryProviderScope<NavKey>.meNavEntries(
     entry<NavigationKey.EditName> { EditNameScreen(onBack) }
     entry<NavigationKey.EditSignature> { EditSignatureScreen(onBack) }
     entry<NavigationKey.EditGender> { EditGenderScreen(onBack) }
-    entry<NavigationKey.Favorites> {
-        FavoritesScreen(
-            targetChatId = it.targetChatId,
-            onBack = onBack,
-            onCreate = { backStack.add(NavigationKey.FavoriteEditor()) },
-            onOpen = { id -> backStack.add(NavigationKey.FavoriteEditor(id)) }
-        )
-    }
-    entry<NavigationKey.FavoriteEditor> {
-        FavoriteEditorScreen(it.favoriteId, onBack)
-    }
     entry<NavigationKey.Services> {
         ServicesScreen(
             onBack = onBack,

@@ -109,7 +109,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WeChat"
         android:usesCleartextTraffic="true"
-        tools:targetApi="37">
+        tools:targetApi="36">
 
         <!-- 主入口 -->
         <activity

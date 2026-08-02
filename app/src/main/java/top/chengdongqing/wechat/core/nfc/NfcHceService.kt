@@ -4,7 +4,7 @@ import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.feature.profile.domain.repository.ProfileRepository
+import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import javax.inject.Inject
 
 /**

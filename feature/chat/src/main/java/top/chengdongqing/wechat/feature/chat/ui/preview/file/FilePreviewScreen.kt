@@ -74,7 +74,7 @@ fun FilePreviewScreen(file: MessageContent.File, onBack: () -> Unit) {
         onBack = onBack,
         onOpen = {
             runCatching {
-                if (source.extension.equals("apk", true) || source.extension.equals("apks", true)) {
+                if (source.extension.equals("apk", true)) {
                     AppPackageInstaller.launch(context, source)
                 } else context.openFile(source, file.mimeType)
             }.onFailure { context.showToast("没有找到可以打开此文件的应用") }

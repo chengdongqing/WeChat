@@ -32,7 +32,9 @@ import top.chengdongqing.wechat.feature.call.ui.startCall
 import top.chengdongqing.wechat.feature.chat.navigation.chatNavEntries
 import top.chengdongqing.wechat.feature.contacts.navigation.contactsNavEntries
 import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLauncher
-import top.chengdongqing.wechat.feature.discovery.momentsNavEntries
+import top.chengdongqing.wechat.feature.favorites.navigation.favoritesNavEntries
+import top.chengdongqing.wechat.feature.intercom.navigation.intercomNavEntries
+import top.chengdongqing.wechat.feature.moments.navigation.momentsNavEntries
 import top.chengdongqing.wechat.feature.profile.navigation.meNavEntries
 import top.chengdongqing.wechat.feature.settings.navigation.settingsNavEntries
 
@@ -64,6 +66,8 @@ fun AppNavigation(backStack: NavBackStack<NavKey>) {
                 contactsNavEntries(backStack, goBack)
                 meNavEntries(backStack, goBack)
                 momentsNavEntries(backStack, goBack)
+                intercomNavEntries(backStack, goBack)
+                favoritesNavEntries(backStack, goBack)
                 settingsNavEntries(backStack, goBack)
             }
         )

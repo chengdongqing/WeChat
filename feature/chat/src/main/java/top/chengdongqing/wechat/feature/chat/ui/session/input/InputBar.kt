@@ -53,10 +53,10 @@ import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.Nati
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
+import top.chengdongqing.wechat.feature.chat.ui.session.ActionIcon
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionUiState
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionViewModel
-import top.chengdongqing.wechat.feature.chat.ui.session.components.ActionIcon
-import top.chengdongqing.wechat.feature.chat.ui.session.components.CircleActionIcon
+import top.chengdongqing.wechat.feature.chat.ui.session.CircleActionIcon
 import top.chengdongqing.wechat.feature.chat.ui.session.input.music.MusicOverlay
 import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.InputPanelHolder
 import top.chengdongqing.wechat.feature.chat.ui.session.input.text.InputOverlay

@@ -13,9 +13,6 @@ import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.app.model.AppItem
 import top.chengdongqing.wechat.core.common.app.model.AppResult
 import java.io.File
-import java.util.zip.Deflater
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,6 +32,7 @@ class AppRepository @Inject constructor(
             val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
             val packageName = activityInfo.packageName
             val appInfo = activityInfo.applicationInfo
+            if (!appInfo.splitSourceDirs.isNullOrEmpty()) return@mapNotNull null
             val apkPath = appInfo.sourceDir?.takeIf { File(it).isFile }
                 ?: return@mapNotNull null
             val baseApk = File(apkPath)
@@ -45,10 +43,7 @@ class AppRepository @Inject constructor(
                 // 列表不展示版本号；延迟到用户确认选择时再查询。
                 versionName = "",
                 lastModified = baseApk.lastModified(),
-                apkPath = apkPath,
-                splitApkPaths = appInfo.splitSourceDirs
-                    ?.filter { File(it).isFile }
-                    .orEmpty()
+                apkPath = apkPath
             )
         }.sortedByDescending {
             it.lastModified
@@ -65,57 +60,21 @@ class AppRepository @Inject constructor(
     }
 
     /**
-     * 普通 APK 直接分享；Split APK 打包为 .apks，保留 base 与全部 split，
-     * 避免只发送 base.apk 后在接收设备上无法安装。
+     * AppPicker 只展示可直接分享的单 APK 应用。
      */
     suspend fun prepareForSharing(apps: List<AppItem>): List<AppResult> =
         withContext(Dispatchers.IO) {
             apps.map { app ->
                 val versionName = context.packageManager.versionNameOf(app.packageName)
-                if (app.splitApkPaths.isEmpty()) {
-                    val apk = File(app.apkPath)
-                    AppResult(
-                        fileName = "${app.safeFileName}-v$versionName.apk",
-                        filePath = apk.absolutePath,
-                        fileSize = apk.length(),
-                        mimeType = APK_MIME_TYPE
-                    )
-                } else {
-                    createSplitArchive(app, versionName)
-                }
+                val apk = File(app.apkPath)
+                AppResult(
+                    fileName = "${app.safeFileName}-v$versionName.apk",
+                    filePath = apk.absolutePath,
+                    fileSize = apk.length(),
+                    mimeType = APK_MIME_TYPE
+                )
             }
         }
-
-    private fun createSplitArchive(app: AppItem, versionName: String): AppResult {
-        val outputDir = File(context.cacheDir, "shared_apps").apply { mkdirs() }
-        val archive = File(
-            outputDir,
-            "${app.safeFileName}-${app.packageName}-v$versionName.apks"
-        )
-        val sources = listOf(File(app.apkPath)) + app.splitApkPaths.map(::File)
-
-        runCatching {
-            ZipOutputStream(archive.outputStream().buffered()).use { zip ->
-                // APK 本身已经压缩，禁用二次压缩可显著减少点击“完成”后的等待。
-                zip.setLevel(Deflater.NO_COMPRESSION)
-                sources.forEachIndexed { index, source ->
-                    val entryName = if (index == 0) "base.apk" else source.name
-                    zip.putNextEntry(ZipEntry(entryName))
-                    source.inputStream().buffered().use { it.copyTo(zip) }
-                    zip.closeEntry()
-                }
-            }
-        }.onFailure {
-            archive.delete()
-        }.getOrThrow()
-
-        return AppResult(
-            fileName = "${app.safeFileName}-v$versionName.apks",
-            filePath = archive.absolutePath,
-            fileSize = archive.length(),
-            mimeType = APKS_MIME_TYPE
-        )
-    }
 
     private val AppItem.safeFileName: String
         get() = name.replace(Regex("""[\\/:*?"<>|]"""), "_").ifBlank { packageName }
@@ -125,7 +84,6 @@ class AppRepository @Inject constructor(
     private companion object {
         const val ICON_CACHE_ENTRIES = 80
         const val APK_MIME_TYPE = "application/vnd.android.package-archive"
-        const val APKS_MIME_TYPE = "application/zip"
     }
 }
 

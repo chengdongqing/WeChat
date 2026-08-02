@@ -12,7 +12,7 @@ sealed interface NavigationKey : NavKey {
     @Serializable data object Splash : NavigationKey
     @Serializable data object Guide : NavigationKey
     @Serializable data object Login : NavigationKey
-    @Serializable data object Home : NavigationKey
+    @Serializable data object Main : NavigationKey
     @Serializable data class PlainText(val text: String) : NavigationKey
     @Serializable data class WebView(val url: String) : NavigationKey
 

@@ -89,7 +89,7 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
             onBack = onBack,
             onDelete = {
                 backStack.clear()
-                backStack.add(NavigationKey.Home)
+                backStack.add(NavigationKey.Main)
             },
             onNavigateToContactProfile = { backStack.add(NavigationKey.EditContactProfile(id)) },
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
@@ -141,7 +141,7 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
             onBack = onBack,
             onSuccess = {
                 backStack.clear()
-                backStack.add(NavigationKey.Home)
+                backStack.add(NavigationKey.Main)
             },
             viewModel = hiltViewModel { factory: RequestAddFriendViewModel.Factory ->
                 factory.create(it.contactId)
@@ -153,7 +153,7 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
             onBack = onBack,
             onSuccess = {
                 backStack.clear()
-                backStack.add(NavigationKey.Home)
+                backStack.add(NavigationKey.Main)
             },
             viewModel = hiltViewModel { factory: AcceptFriendRequestViewModel.Factory ->
                 factory.create(it.requestId)

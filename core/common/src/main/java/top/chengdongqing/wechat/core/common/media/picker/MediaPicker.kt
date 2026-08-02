@@ -72,6 +72,7 @@ fun WeMediaPicker(
     val singleMediaMode = count == 1
     val captureVideo = type == VisualMediaType.Video
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
+
     fun completeCapturedMedia(success: Boolean, uri: Uri?, mediaType: MediaType) {
         val actualUri = uri ?: return
         coroutineScope.launch {

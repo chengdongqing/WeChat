@@ -95,9 +95,7 @@ class FilePreviewViewModel @AssistedInject constructor(
         val file = File(path)
 
         try {
-            if (file.extension.equals("apk", ignoreCase = true) ||
-                file.extension.equals("apks", ignoreCase = true)
-            ) {
+            if (file.extension.equals("apk", ignoreCase = true)) {
                 AppPackageInstaller.launch(context, file)
             } else {
                 context.openFile(file, state.mimeType)

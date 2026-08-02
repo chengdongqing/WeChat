@@ -1,0 +1,168 @@
+package top.chengdongqing.wechat.feature.chat.ui.session
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
+
+@Composable
+fun ChatSessionTopBar(
+    viewModel: ChatSessionViewModel,
+    uiState: ChatSessionUiState,
+    onBack: () -> Unit,
+    onNavigateToInfo: () -> Unit
+) {
+    val isSelectMode = uiState.isSelectMode
+    val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle()
+
+    WeTopAppBar(
+        titleContent = {
+            ChatSessionTitle(viewModel, uiState)
+        },
+        backText = if (isSelectMode) stringResource(R.string.action_cancel) else null,
+        onBack = {
+            if (isSelectMode) {
+                viewModel.exitSelectMode()
+            } else {
+                onBack()
+            }
+        },
+        unreadCount = unreadCount
+    ) {
+        if (!isSelectMode) {
+            IconButton(
+                icon = R.drawable.ic_more_outlined,
+                description = stringResource(R.string.action_more)
+            ) {
+                onNavigateToInfo()
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatSessionTitle(
+    viewModel: ChatSessionViewModel,
+    uiState: ChatSessionUiState,
+) {
+    val isE2EActive by viewModel.isE2EActive.collectAsStateWithLifecycle()
+    val localAiState by viewModel.localAiState.collectAsStateWithLifecycle()
+    val statusColor = if (uiState.isOnline) {
+        WeTheme.colorScheme.primary
+    } else {
+        WeTheme.colorScheme.divider
+    }
+    val statusDesc = stringResource(
+        if (uiState.isOnline) {
+            R.string.chat_status_online
+        } else {
+            R.string.chat_status_offline
+        }
+    )
+    val title = when {
+        !uiState.isSelectMode && viewModel.isLocalAiSession -> {
+            val status = when (localAiState) {
+                LocalAiState.NoModel -> "选择模型"
+                is LocalAiState.Importing -> "正在导入"
+                LocalAiState.Loading -> "正在加载"
+                LocalAiState.Cancelling -> "正在取消"
+                is LocalAiState.Ready -> "本地"
+                is LocalAiState.Error -> "模型错误"
+            }
+            "${uiState.title} · $status"
+        }
+        !uiState.isSelectMode -> uiState.title
+        uiState.selectedCount > 0 -> stringResource(
+            R.string.chat_selected_count,
+            uiState.selectedCount
+        )
+
+        else -> stringResource(R.string.chat_select_mode)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth(0.7f),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier.fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            // 标题
+            Text(
+                text = title,
+                style = TextStyle(
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = WeTheme.colorScheme.textPrimary
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+
+            // 免打扰
+            if (uiState.isMuted) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_mute_outlined),
+                    contentDescription = stringResource(R.string.chat_muted_desc),
+                    modifier = Modifier.size(16.dp),
+                    tint = WeTheme.colorScheme.textSecondary
+                )
+            }
+            // 通过听筒播放
+            if (!uiState.isSpeakerOn) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_ear_outlined),
+                    contentDescription = stringResource(R.string.chat_earpiece_desc),
+                    modifier = Modifier.size(16.dp),
+                    tint = WeTheme.colorScheme.textSecondary
+                )
+            }
+            if (uiState.isSelf == false) {
+                // 加密锁图标
+                if (isE2EActive) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_lock_filled),
+                        contentDescription = stringResource(R.string.chat_encrypted_desc),
+                        modifier = Modifier.size(16.dp),
+                        tint = WeTheme.colorScheme.textSecondary
+                    )
+                }
+                // 在线状态小圆点
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .semantics { contentDescription = statusDesc }
+                        .background(statusColor, CircleShape)
+                )
+            }
+        }
+    }
+}

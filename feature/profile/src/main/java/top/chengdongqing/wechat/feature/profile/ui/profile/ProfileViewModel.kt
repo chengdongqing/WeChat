@@ -239,7 +239,7 @@ data class ProfileUiState(
  */
 sealed class ProfileField {
     data class Nickname(val value: String) : ProfileField()
-    data class Gender(val value: top.chengdongqing.wechat.feature.profile.domain.model.Gender) :
+    data class Gender(val value: top.chengdongqing.wechat.core.model.Gender) :
         ProfileField()
 
     data class Signature(val value: String) : ProfileField()
