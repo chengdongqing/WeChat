@@ -97,7 +97,7 @@ fun VoiceContent(message: ChatMessage) {
 }
 
 @Composable
-private fun VoiceIcon(
+internal fun VoiceIcon(
     isFromMe: Boolean,
     isPlaying: Boolean,
     color: Color

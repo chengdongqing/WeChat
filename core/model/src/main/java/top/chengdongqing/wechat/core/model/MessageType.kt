@@ -18,6 +18,7 @@ enum class MessageType {
     ContactCard,    // 名片
     Music,          // 音乐
     Live,           // 群直播
+    ChatHistory,    // 合并聊天记录
     VoiceCall,      // 语音通话记录
     VideoCall;      // 视频通话记录
 

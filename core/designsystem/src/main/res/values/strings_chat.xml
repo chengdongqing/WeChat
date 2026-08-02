@@ -66,6 +66,9 @@
     <string name="message_action_quote">引用</string>
     <string name="message_action_download">保存</string>
 
+    <string name="message_forward_separate">逐条转发</string>
+    <string name="message_forward_merged">合并转发</string>
+
     <string name="chat_info">聊天信息</string>
     <string name="chat_info_search">查找聊天记录</string>
     <string name="chat_info_mute">消息免打扰</string>

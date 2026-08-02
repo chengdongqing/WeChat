@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.feature.chat.data.mapper
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.call.CallStatus
+import top.chengdongqing.wechat.core.data.model.ChatHistoryPayload
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.model.MessageQuote
@@ -13,6 +14,8 @@ import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.model.SendStatus
+import top.chengdongqing.wechat.feature.chat.data.resolveChatHistoryAssets
+import java.io.File
 
 fun MessageEntity.toDomain(json: Json): ChatMessage {
     return ChatMessage(
@@ -37,8 +40,16 @@ fun MessageEntity.toDomain(json: Json): ChatMessage {
 
 private fun MessageEntity.toMessageContent(json: Json): MessageContent {
     return when (contentType) {
-        MessageType.Text ->
-            MessageContent.Text(content)
+        MessageType.Text -> MessageContent.Text(content)
+
+        MessageType.ChatHistory -> decodeChatHistory(content, json)
+            ?.let { history ->
+                history.copy(
+                    items = resolveChatHistoryAssets(history.items, localPath),
+                    archivePath = localPath
+                )
+            }
+            ?: MessageContent.ChatHistory("聊天记录", emptyList(), localPath)
 
         MessageType.Voice ->
             MessageContent.Voice(
@@ -327,6 +338,13 @@ fun MessageContent.toEntity(
                 )
             )
 
+        is MessageContent.ChatHistory ->
+            base(
+                contentValue = CHAT_HISTORY_PREFIX + json.encodeToString(content.itemsWithTitle()),
+                localPath = content.archivePath,
+                fileSize = content.archivePath?.let { File(it).length() }
+            )
+
         is MessageContent.Call ->
             base(
                 contentValue = content.status.name,
@@ -352,7 +370,19 @@ fun MessageContent.toMessageType(): MessageType = when (this) {
     is MessageContent.ContactCard -> MessageType.ContactCard
     is MessageContent.Music -> MessageType.Music
     is MessageContent.Live -> MessageType.Live
+    is MessageContent.ChatHistory -> MessageType.ChatHistory
     is MessageContent.Media -> MessageType.Image
+}
+
+private const val CHAT_HISTORY_PREFIX = "wechat://chat-history/"
+
+private fun MessageContent.ChatHistory.itemsWithTitle() = ChatHistoryPayload(title, items)
+
+private fun decodeChatHistory(value: String, json: Json): MessageContent.ChatHistory? {
+    if (!value.startsWith(CHAT_HISTORY_PREFIX)) return null
+    return runCatching {
+        json.decodeFromString<ChatHistoryPayload>(value.removePrefix(CHAT_HISTORY_PREFIX))
+    }.getOrNull()?.let { MessageContent.ChatHistory(it.title, it.items) }
 }
 
 @Serializable

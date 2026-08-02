@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.core.data.model
 
+import kotlinx.serialization.Serializable
 import top.chengdongqing.wechat.core.common.call.CallStatus
 import top.chengdongqing.wechat.core.model.CallType
 
@@ -101,4 +102,38 @@ sealed class MessageContent(
         val targetId: String? = null,
         val payload: String? = null
     ) : MessageContent(showBubbleArrow = false, isSameBackground = true)
+
+    /** 多条消息合并后的聊天记录。条目是发送时的快照，不依赖原会话继续存在。 */
+    data class ChatHistory(
+        val title: String,
+        val items: List<ChatHistoryItem>,
+        /** 附件归档文件；正文 JSON 与附件分开，归档通过现有媒体分片协议传输。 */
+        val archivePath: String? = null
+    ) : MessageContent(isSameBackground = true)
 }
+
+@Serializable
+data class ChatHistoryItem(
+    val senderName: String,
+    val timestamp: Long,
+    val kind: String,
+    val text: String,
+    val localPath: String? = null,
+    val fileSize: Long? = null,
+    val duration: Long? = null,
+    val mimeType: String? = null,
+    val width: Int? = null,
+    val height: Int? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val address: String? = null,
+    val poiName: String? = null,
+    val nestedHistory: ChatHistoryPayload? = null,
+    val music: MusicTrack? = null
+)
+
+@Serializable
+data class ChatHistoryPayload(
+    val title: String,
+    val items: List<ChatHistoryItem>
+)

@@ -448,6 +448,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         is MessageContent.ContactCard -> "[名片] $nickname"
         is MessageContent.Music -> "[音乐] ${music.title}"
         is MessageContent.Live -> "[直播] $title"
+        is MessageContent.ChatHistory -> "[聊天记录] $title"
     }
 
     private fun generateAiReply(prompt: String) {
@@ -635,6 +636,8 @@ class ChatSessionViewModel @AssistedInject constructor(
                     .onSuccess { _uiEvent.emit(MessageUiEvent.NavigateToContact(userId)) }
             }
 
+            is MessageContent.ChatHistory -> emit(MessageUiEvent.OpenChatHistory(content))
+
             else -> {}
         }
     }
@@ -740,6 +743,23 @@ class ChatSessionViewModel @AssistedInject constructor(
         if (ids.isEmpty()) return
         viewModelScope.launch {
             messageRepository.forwardMessages(ids, targetChatIds)
+            context.showToast("已发送")
+        }
+        exitSelectMode()
+    }
+
+    fun forwardMergedMessages(targetChatIds: Set<String>) {
+        val ids = _uiState.value.selectedMessageIds
+        if (ids.isEmpty()) return
+        val title = "${_uiState.value.title}的聊天记录"
+        viewModelScope.launch {
+            messageRepository.forwardMergedMessages(
+                ids = ids,
+                targetChatIds = targetChatIds,
+                historyTitle = title,
+                myName = "我",
+                peerName = _uiState.value.title
+            )
             context.showToast("已发送")
         }
         exitSelectMode()

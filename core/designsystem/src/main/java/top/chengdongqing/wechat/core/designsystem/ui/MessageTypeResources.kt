@@ -16,6 +16,7 @@ fun MessageType.toPreviewText(context: Context, content: String): String = when 
     MessageType.Sticker -> context.getString(R.string.message_preview_sticker)
     MessageType.Music -> context.getString(R.string.message_preview_music)
     MessageType.Live -> context.getString(R.string.message_preview_live)
+    MessageType.ChatHistory -> "[聊天记录]"
     MessageType.VoiceCall -> context.getString(R.string.message_preview_voice_call)
     MessageType.VideoCall -> context.getString(R.string.message_preview_video_call)
 }

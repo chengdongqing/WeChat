@@ -24,7 +24,11 @@ fun Context.navigateToLocation(mapType: MapType, location: GeoPoint, name: Strin
     runCatching {
         val uri = mapType.buildUri(location.latitude, location.longitude, name)
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+            setPackage(mapType.packageName)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        check(intent.resolveActivity(packageManager) != null) {
+            "No navigation app can handle ${mapType.name}"
         }
         startActivity(intent)
     }.onFailure {

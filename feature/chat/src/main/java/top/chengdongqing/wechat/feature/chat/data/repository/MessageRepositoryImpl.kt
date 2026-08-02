@@ -22,6 +22,7 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.time.isWithinSeconds
+import top.chengdongqing.wechat.core.data.model.ChatHistoryItem
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -37,6 +38,7 @@ import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.GroupDao
+import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.database.entity.peerId
@@ -51,6 +53,8 @@ import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
 import top.chengdongqing.wechat.core.network.transfer.TransferManager
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.core.util.toSHA256Hex
+import top.chengdongqing.wechat.feature.chat.data.createChatHistoryArchive
+import top.chengdongqing.wechat.feature.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.feature.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.feature.chat.data.mapper.toEntity
 import java.io.File
@@ -59,6 +63,7 @@ import javax.inject.Inject
 class MessageRepositoryImpl @Inject constructor(
     private val database: WeDatabase,
     private val messageDao: MessageDao,
+    private val mediaFileDao: MediaFileDao,
     private val groupDao: GroupDao,
     private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
@@ -447,12 +452,14 @@ class MessageRepositoryImpl @Inject constructor(
             // 过滤不可转发的消息
             it.contentType.isForwardable
         }
+        val contents = messages.map { entity ->
+            prepareHistoryForForward(entity.toDomain(json).content)
+        }
 
         // 为每个目标会话并行转发
         targetChatIds.map { targetChatId ->
             async {
-                messages.forEach { message ->
-                    val content = message.toDomain(json).content
+                contents.forEach { content ->
                     sendMessage(
                         sessionId = targetChatId,
                         receiverId = targetChatId,
@@ -462,6 +469,69 @@ class MessageRepositoryImpl @Inject constructor(
             }
         }.awaitAll()
 
+        Unit
+    }
+
+    private suspend fun prepareHistoryForForward(content: MessageContent): MessageContent {
+        if (content !is MessageContent.ChatHistory) return content
+        val (items, archivePath) = createDeduplicatedHistoryArchive(content.items)
+        return content.copy(items = items, archivePath = archivePath)
+    }
+
+    private fun newChatHistoryArchiveFile(): File = File(
+        File(context.filesDir, "chat_history").apply { mkdirs() },
+        "history_${randomUUID()}.zip"
+    )
+
+    /** 在消息入库前完成 checksum 去重，避免临时归档先被注册成另一份资源。 */
+    private suspend fun createDeduplicatedHistoryArchive(
+        items: List<top.chengdongqing.wechat.core.data.model.ChatHistoryItem>
+    ): Pair<List<top.chengdongqing.wechat.core.data.model.ChatHistoryItem>, String?> {
+        val archive = newChatHistoryArchiveFile()
+        val archivedItems = createChatHistoryArchive(items, archive)
+        if (archive.length() <= 22L) {
+            archive.delete()
+            return archivedItems to null
+        }
+        val checksum = archive.toSHA256Hex()
+        val existing = mediaFileDao.getByChecksum(checksum)
+            ?.localPath
+            ?.let(::File)
+            ?.takeIf(File::isFile)
+        return if (existing != null) {
+            archive.delete()
+            archivedItems to existing.absolutePath
+        } else {
+            archivedItems to archive.absolutePath
+        }
+    }
+
+    override suspend fun forwardMergedMessages(
+        ids: Set<String>,
+        targetChatIds: Set<String>,
+        historyTitle: String,
+        myName: String,
+        peerName: String
+    ) = withContext(Dispatchers.IO) {
+        val items = messageDao.getByIds(ids)
+            .filter { it.contentType.isForwardable }
+            .sortedBy { it.timestamp }
+            .map { entity ->
+                val message = entity.toDomain(json)
+                message.content.toHistoryItem(
+                    senderName = if (message.isFromMe) myName else peerName,
+                    timestamp = message.timestamp
+                )
+            }
+        if (items.isEmpty()) return@withContext
+
+        val (archivedItems, archivePath) = createDeduplicatedHistoryArchive(items)
+        val history = MessageContent.ChatHistory(historyTitle, archivedItems, archivePath)
+        targetChatIds.map { targetChatId ->
+            async {
+                sendMessage(targetChatId, targetChatId, content = history)
+            }
+        }.awaitAll()
         Unit
     }
 
@@ -556,4 +626,58 @@ class MessageRepositoryImpl @Inject constructor(
 
     private suspend fun msgNotificationEnabled(): Boolean =
         notificationSettingsRepository.msgNotificationEnabled.first()
+}
+
+private fun MessageContent.toHistoryItem(senderName: String, timestamp: Long): ChatHistoryItem {
+    val (kind, preview) = when (this) {
+        is MessageContent.Text -> "text" to text
+        is MessageContent.Image -> "image" to "[图片]"
+        is MessageContent.Video -> "video" to "[视频]"
+        is MessageContent.Voice -> "voice" to "[语音]"
+        is MessageContent.Sticker -> "sticker" to "[表情]"
+        is MessageContent.File -> "file" to filename
+        is MessageContent.Location -> "location" to (poiName.ifBlank { address })
+        is MessageContent.LiveLocation -> "location" to "[位置共享]"
+        is MessageContent.ContactCard -> "contact" to "[名片] $nickname"
+        is MessageContent.Music -> "music" to "[音乐] ${music.name}"
+        is MessageContent.Live -> "live" to "[直播] $title"
+        is MessageContent.Call -> "call" to "[通话]"
+        is MessageContent.ChatHistory -> "history" to title
+        is MessageContent.Media -> "image" to "[图片]"
+    }
+    return ChatHistoryItem(
+        senderName = senderName,
+        timestamp = timestamp,
+        kind = kind,
+        text = preview,
+        localPath = when (this) {
+            is MessageContent.Location -> snapshotPath
+            else -> getLocalPath()
+        },
+        fileSize = when (this) {
+            is MessageContent.File -> size
+            is MessageContent.Media -> size
+            else -> null
+        },
+        duration = when (this) {
+            is MessageContent.Voice -> duration
+            is MessageContent.Video -> duration
+            else -> null
+        },
+        mimeType = when (this) {
+            is MessageContent.Media -> mimeType
+            is MessageContent.File -> mimeType
+            else -> null
+        },
+        width = (this as? MessageContent.Media)?.width,
+        height = (this as? MessageContent.Media)?.height,
+        latitude = (this as? MessageContent.Location)?.latitude,
+        longitude = (this as? MessageContent.Location)?.longitude,
+        address = (this as? MessageContent.Location)?.address,
+        poiName = (this as? MessageContent.Location)?.poiName,
+        nestedHistory = (this as? MessageContent.ChatHistory)?.let {
+            top.chengdongqing.wechat.core.data.model.ChatHistoryPayload(it.title, it.items)
+        },
+        music = (this as? MessageContent.Music)?.music
+    )
 }

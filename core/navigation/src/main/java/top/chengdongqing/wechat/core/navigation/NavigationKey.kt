@@ -19,6 +19,15 @@ sealed interface NavigationKey : NavKey {
     @Serializable data class ChatSession(val chatId: String) : NavigationKey
     @Serializable data class ChatInfo(val chatId: String) : NavigationKey
     @Serializable data class FilePreview(val messageId: String) : NavigationKey
+    @Serializable
+    data class ChatHistory(val payload: String) : NavigationKey
+    @Serializable
+    data class ChatHistoryFile(
+        val path: String,
+        val filename: String,
+        val mimeType: String,
+        val size: Long
+    ) : NavigationKey
     @Serializable data class MusicPreview(val messageId: String, val trackName: String) : NavigationKey
     @Serializable
     data class LiveLocation(val chatId: String) : NavigationKey

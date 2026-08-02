@@ -64,6 +64,8 @@ import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.WeActionSheet
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
@@ -109,6 +111,7 @@ fun ChatSessionScreen(
     onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
     onNavigateToLiveLocation: () -> Unit,
     onNavigateToFavorites: () -> Unit,
+    onNavigateToChatHistory: (MessageContent.ChatHistory) -> Unit,
     viewModel: ChatSessionViewModel
 ) {
     val expandedMediaAlbums = remember(chatId) { mutableStateListOf<String>() }
@@ -212,7 +215,8 @@ fun ChatSessionScreen(
         onPreviewMedia = {
             mediaPreviewClosing = false
             mediaPreview = it
-        }
+        },
+        onOpenChatHistory = onNavigateToChatHistory
     )
 
     CompositionLocalProvider(
@@ -485,14 +489,33 @@ private fun ChatSessionUiEventHandler(
     onNavigateToMusicPreview: (String, String) -> Unit,
     onNavigateToLiveLocation: () -> Unit,
     onPreviewMedia: (ChatMediaPreviewState) -> Unit,
+    onOpenChatHistory: (MessageContent.ChatHistory) -> Unit,
 ) {
     val resources = LocalResources.current
     val dialog = rememberDialogState()
+    var useMergedForward by remember { mutableStateOf(false) }
+    var showForwardTypeDialog by remember { mutableStateOf(false) }
     val pickContact = LocalContactPickerLauncher.current.rememberLauncher { contacts ->
         dialog.show(resources.getString(R.string.msg_confirm_forward, contacts.size)) {
-            viewModel.forwardMessages(contacts.map { it.id }.toSet())
+            val ids = contacts.map { it.id }.toSet()
+            if (useMergedForward) viewModel.forwardMergedMessages(ids)
+            else viewModel.forwardMessages(ids)
         }
     }
+
+    WeActionSheet(
+        visible = showForwardTypeDialog,
+        options = listOf(
+            ActionSheetItem(R.string.message_forward_separate),
+            ActionSheetItem(R.string.message_forward_merged)
+        ),
+        onCancel = { showForwardTypeDialog = false },
+        onTap = { index ->
+            showForwardTypeDialog = false
+            useMergedForward = index == 1
+            pickContact(99)
+        }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -511,7 +534,14 @@ private fun ChatSessionUiEventHandler(
                     okText = R.string.action_save
                 ) { viewModel.saveSelectedMessageFiles() }
 
-                is MessageUiEvent.ForwardMessage -> pickContact(99)
+                is MessageUiEvent.ForwardMessage -> {
+                    if (viewModel.uiState.value.selectedCount > 1) {
+                        showForwardTypeDialog = true
+                    } else {
+                        useMergedForward = false
+                        pickContact(99)
+                    }
+                }
                 is MessageUiEvent.PreviewFile -> onNavigateToFilePreview(event.messageId)
                 is MessageUiEvent.PreviewMusic -> onNavigateToMusicPreview(
                     event.messageId,
@@ -528,6 +558,7 @@ private fun ChatSessionUiEventHandler(
                 is MessageUiEvent.LaunchCall -> launchCall(event.callType)
                 is MessageUiEvent.NavigateToContact -> onNavigateToContact(event.contactId)
                 MessageUiEvent.NavigateToLiveLocation -> onNavigateToLiveLocation()
+                is MessageUiEvent.OpenChatHistory -> onOpenChatHistory(event.content)
                 else -> {}
             }
         }

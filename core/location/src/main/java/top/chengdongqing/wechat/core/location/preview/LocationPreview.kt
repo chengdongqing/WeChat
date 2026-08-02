@@ -46,6 +46,7 @@ import top.chengdongqing.wechat.core.location.model.MapType
 import top.chengdongqing.wechat.core.location.rememberMapController
 import top.chengdongqing.wechat.core.location.util.createIconBitmap
 import top.chengdongqing.wechat.core.location.util.navigateToLocation
+import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
@@ -143,13 +144,19 @@ private fun BottomBar(location: LocationPreviewInfo) {
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(WeTheme.colorScheme.background)
-                    .clickable(enabled = mapOptions.isNotEmpty()) {
-                        actionSheet.show(mapOptions) { index ->
-                            context.navigateToLocation(
-                                MapType.ofIndex(index)!!,
-                                location.coordinate,
-                                location.name
-                            )
+                    .clickable {
+                        if (mapOptions.isEmpty()) {
+                            context.showToast(context.getString(DesignR.string.map_no_navigation_app))
+                        } else {
+                            actionSheet.show(mapOptions) { index ->
+                                installedTypes.getOrNull(index)?.let { mapType ->
+                                    context.navigateToLocation(
+                                        mapType,
+                                        location.coordinate,
+                                        location.name
+                                    )
+                                }
+                            }
                         }
                     },
                 contentAlignment = Alignment.Center

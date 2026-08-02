@@ -14,6 +14,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,11 +29,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.common.app.install.AppPackageInstaller
+import top.chengdongqing.wechat.core.common.file.PublicFileManager
+import top.chengdongqing.wechat.core.common.file.openFile
+import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.util.showToast
+import java.io.File
 
 @Composable
 fun FilePreviewScreen(
@@ -39,6 +51,53 @@ fun FilePreviewScreen(
     }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    FilePreviewPage(uiState, onBack, viewModel::openFile, viewModel::saveFile)
+}
+
+/** 合并聊天记录和普通消息共用同一个文件预览页面。 */
+@Composable
+fun FilePreviewScreen(file: MessageContent.File, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val source = remember(file.localPath) { File(file.localPath) }
+    var saving by remember { mutableStateOf(false) }
+    val state = FilePreviewUiState(
+        filename = file.filename,
+        fileSize = file.size,
+        mimeType = file.mimeType,
+        localPath = file.localPath,
+        isLoading = false,
+        isSaving = saving
+    )
+    FilePreviewPage(
+        uiState = state,
+        onBack = onBack,
+        onOpen = {
+            runCatching {
+                if (source.extension.equals("apk", true) || source.extension.equals("apks", true)) {
+                    AppPackageInstaller.launch(context, source)
+                } else context.openFile(source, file.mimeType)
+            }.onFailure { context.showToast("没有找到可以打开此文件的应用") }
+        },
+        onSave = {
+            scope.launch {
+                saving = true
+                val saved =
+                    PublicFileManager(context).saveMedia(MessageType.File, source, file.filename)
+                context.showToast(if (saved != null) "已保存" else "保存失败")
+                saving = false
+            }
+        }
+    )
+}
+
+@Composable
+private fun FilePreviewPage(
+    uiState: FilePreviewUiState,
+    onBack: () -> Unit,
+    onOpen: () -> Unit,
+    onSave: () -> Unit
+) {
     val context = LocalContext.current
 
     Scaffold(
@@ -104,14 +163,14 @@ fun FilePreviewScreen(
                     type = ButtonType.Plain,
                     enabled = uiState.fileExists
                 ) {
-                    viewModel.openFile()
+                    onOpen()
                 }
                 WeButton(
                     text = stringResource(R.string.action_save),
                     loading = uiState.isSaving,
                     enabled = uiState.fileExists
                 ) {
-                    viewModel.saveFile()
+                    onSave()
                 }
             }
         }

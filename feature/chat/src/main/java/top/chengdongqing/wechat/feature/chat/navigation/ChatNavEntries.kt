@@ -5,6 +5,8 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.data.model.ChatHistoryPayload
+import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.model.MusicTrack
 import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
@@ -21,6 +23,7 @@ import top.chengdongqing.wechat.feature.chat.ui.preview.file.FilePreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.preview.music.MusicPreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionScreen
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionViewModel
+import top.chengdongqing.wechat.feature.chat.ui.session.message.content.ChatHistoryScreen
 
 fun EntryProviderScope<NavKey>.chatNavEntries(
     backStack: NavBackStack<NavKey>,
@@ -48,6 +51,18 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                     onNavigateToWebView = {},
                     onNavigateToFavorites = {
                         backStack.add(NavigationKey.Favorites(it.groupId))
+                    },
+                    onNavigateToChatHistory = { history ->
+                        backStack.add(
+                            NavigationKey.ChatHistory(
+                                Json.encodeToString(
+                                    ChatHistoryPayload(
+                                        history.title,
+                                        history.items
+                                    )
+                                )
+                            )
+                        )
                     },
                     onNavigateToLive = { liveId, isHost, hostId ->
                         backStack.add(NavigationKey.LiveRoom(it.groupId, liveId, isHost, hostId))
@@ -95,6 +110,13 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                 onNavigateToFavorites = {
                     backStack.add(NavigationKey.Favorites(chatId))
                 },
+                onNavigateToChatHistory = { history ->
+                    backStack.add(
+                        NavigationKey.ChatHistory(
+                            Json.encodeToString(ChatHistoryPayload(history.title, history.items))
+                        )
+                    )
+                },
                 onNavigateToLive = { liveId, isHost, hostId ->
                     backStack.add(NavigationKey.LiveRoom(chatId, liveId, isHost, hostId))
                 },
@@ -125,6 +147,52 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
             viewModel = hiltViewModel { factory: LiveLocationViewModel.Factory ->
                 factory.create(it.chatId)
             }
+        )
+    }
+
+    entry<NavigationKey.ChatHistory> { key ->
+        val payload = runCatching { Json.decodeFromString<ChatHistoryPayload>(key.payload) }
+            .getOrDefault(ChatHistoryPayload("聊天记录", emptyList()))
+        ChatHistoryScreen(
+            content = MessageContent.ChatHistory(payload.title, payload.items),
+            onBack = onBack,
+            onOpenHistory = { history ->
+                backStack.add(
+                    NavigationKey.ChatHistory(
+                        Json.encodeToString(ChatHistoryPayload(history.title, history.items))
+                    )
+                )
+            },
+            onOpenFile = { file ->
+                backStack.add(
+                    NavigationKey.ChatHistoryFile(
+                        path = file.localPath.orEmpty(),
+                        filename = file.text,
+                        mimeType = file.mimeType ?: "*/*",
+                        size = file.fileSize ?: 0
+                    )
+                )
+            },
+            onOpenMusic = { music ->
+                backStack.add(
+                    NavigationKey.MusicPreview(
+                        messageId = "",
+                        trackName = Json.encodeToString(music)
+                    )
+                )
+            }
+        )
+    }
+
+    entry<NavigationKey.ChatHistoryFile> { file ->
+        FilePreviewScreen(
+            file = MessageContent.File(
+                localPath = file.path,
+                filename = file.filename,
+                mimeType = file.mimeType,
+                size = file.size
+            ),
+            onBack = onBack
         )
     }
 

@@ -223,7 +223,8 @@ class MessageToolbarManager(
                 is MessageContent.ContactCard,
                 is MessageContent.Music,
                 is MessageContent.LiveLocation,
-                is MessageContent.Live -> {
+                is MessageContent.Live,
+                is MessageContent.ChatHistory -> {
                     add(MessageAction.Forward)
                     add(MessageAction.Quote)
                     add(MessageAction.Remind)

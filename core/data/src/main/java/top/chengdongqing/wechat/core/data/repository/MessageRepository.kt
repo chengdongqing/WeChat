@@ -50,6 +50,13 @@ interface MessageRepository {
     suspend fun recallMessage(messageId: String): Result<Unit>
     suspend fun deleteMessages(ids: Set<String>, sessionId: String)
     suspend fun forwardMessages(ids: Set<String>, targetChatIds: Set<String>)
+    suspend fun forwardMergedMessages(
+        ids: Set<String>,
+        targetChatIds: Set<String>,
+        historyTitle: String,
+        myName: String,
+        peerName: String
+    )
     suspend fun handleIncomingMessage(
         protocol: ChatProtocol,
         entityBuilder: suspend () -> MessageEntity,

@@ -1,4 +1,5 @@
 <resources>
+    <string name="map_no_navigation_app">未安装可用的地图软件</string>
     <string name="app_name" translatable="false">WeChat Lan</string>
     <string name="action_ok">确定</string>
     <string name="action_cancel">取消</string>
