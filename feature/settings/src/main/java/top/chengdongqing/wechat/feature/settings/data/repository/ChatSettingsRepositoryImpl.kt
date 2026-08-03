@@ -20,6 +20,7 @@ class ChatSettingsRepositoryImpl @Inject constructor(
         val SPEAKER_KEY = booleanPreferencesKey("speaker_enabled")
         val SEND_BUTTON_KEY = booleanPreferencesKey("send_button_enabled")
         val E2E_KEY = booleanPreferencesKey("e2e_enabled")
+        val TEMPORARY_CHAT_KEY = booleanPreferencesKey("temporary_chat_enabled")
         val CHAT_BACKGROUND_KEY = stringPreferencesKey("chat_background")
     }
 
@@ -33,6 +34,10 @@ class ChatSettingsRepositoryImpl @Inject constructor(
 
     override val e2eEnabled: Flow<Boolean> = dataStore.data
         .map { it[E2E_KEY] ?: true }
+        .distinctUntilChanged()
+
+    override val temporaryChatEnabled: Flow<Boolean> = dataStore.data
+        .map { it[TEMPORARY_CHAT_KEY] ?: true }
         .distinctUntilChanged()
 
     override val chatBackground: Flow<String?> = dataStore.data
@@ -49,6 +54,10 @@ class ChatSettingsRepositoryImpl @Inject constructor(
 
     override suspend fun toggleE2e(enabled: Boolean) {
         dataStore.edit { it[E2E_KEY] = enabled }
+    }
+
+    override suspend fun toggleTemporaryChat(enabled: Boolean) {
+        dataStore.edit { it[TEMPORARY_CHAT_KEY] = enabled }
     }
 
     override suspend fun setChatBackground(path: String?) {

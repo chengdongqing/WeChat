@@ -151,6 +151,23 @@ sealed class ChatProtocol {
             "$messageId|$senderId|$profile|$timestamp"
     }
 
+    /** 非好友临时聊天邀请。接收方只据此建立短期会话，不建立好友关系。 */
+    @Serializable
+    data class TemporaryChatInvite(
+        override val messageId: String,
+        override val senderId: String,
+        override val signature: String,
+        override val timestamp: Long = System.currentTimeMillis(),
+        val receiverId: String,
+        val nickname: String,
+        val avatarUrl: String? = null,
+        val publicKey: String,
+        val expiresAt: Long
+    ) : ChatProtocol() {
+        override fun signingPayload() =
+            "$messageId|$senderId|$receiverId|$nickname|$avatarUrl|$publicKey|$expiresAt|$timestamp"
+    }
+
     @Serializable
     sealed class Signaling : ChatProtocol() {
 

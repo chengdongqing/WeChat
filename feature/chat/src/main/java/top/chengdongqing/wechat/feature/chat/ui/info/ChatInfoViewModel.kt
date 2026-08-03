@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
@@ -38,6 +39,9 @@ data class ChatInfoUiState(
     val isMuted: Boolean = false,
     val isPinned: Boolean = false,
     val backgroundPath: String? = null,
+    val isTemporary: Boolean = false,
+    val expiresAt: Long? = null,
+    val isFriend: Boolean = false,
     val isLocalAi: Boolean = false,
     val localAiState: LocalAiState = LocalAiState.NoModel,
     val modelSizeBytes: Long? = null,
@@ -67,6 +71,17 @@ class ChatInfoViewModel @AssistedInject constructor(
 
     init {
         ensureSessionExists()
+        promoteWhenFriendAdded()
+    }
+
+    private fun promoteWhenFriendAdded() {
+        viewModelScope.launch(Dispatchers.IO) {
+            contactRepository.observeContact(chatId).collect { contact ->
+                if (contact != null && chatSessionRepository.getSession(chatId)?.isTemporary == true) {
+                    chatSessionRepository.setTemporary(chatId, null)
+                }
+            }
+        }
     }
 
     private fun ensureSessionExists() {
@@ -116,6 +131,9 @@ class ChatInfoViewModel @AssistedInject constructor(
             isMuted = session.isMuted,
             isPinned = session.isPinned,
             backgroundPath = session.backgroundPath,
+            isTemporary = session.isTemporary,
+            expiresAt = session.expiresAt,
+            isFriend = contact != null,
             isLocalAi = isLocalAi,
             localAiState = localAiState,
             modelSizeBytes = localAiEngine.modelSizeBytes,
@@ -136,6 +154,16 @@ class ChatInfoViewModel @AssistedInject constructor(
     fun togglePinned() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.togglePin(chatId, !uiState.value.isPinned)
+        }
+    }
+
+    fun endTemporaryChat(onComplete: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            chatSessionRepository.deleteSession(chatId, shouldHide = true)
+            withContext(Dispatchers.Main) {
+                context.showToast("临时聊天已结束")
+                onComplete()
+            }
         }
     }
 

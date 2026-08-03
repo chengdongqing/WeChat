@@ -10,11 +10,16 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
+import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
+import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.core.model.Contact
+import top.chengdongqing.wechat.core.model.ContactAddSource
+import java.io.File
 
 data class RequestAddFriendUiState(
     val contact: Contact? = null,
@@ -30,7 +35,9 @@ data class RequestAddFriendUiState(
 class RequestAddFriendViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
     private val friendRequestRepository: FriendRequestRepository,
-    private val addFriendRepository: AddFriendRepository
+    private val addFriendRepository: AddFriendRepository,
+    private val contactRepository: ContactRepository,
+    private val chatSessionRepository: ChatSessionRepository
 ) : ViewModel() {
 
     @AssistedFactory
@@ -49,8 +56,27 @@ class RequestAddFriendViewModel @AssistedInject constructor(
     }
 
     private fun loadContact() {
-        val contact = addFriendRepository.getContactFromCache(contactId)
-        _uiState.update { it.copy(contact = contact) }
+        viewModelScope.launch {
+            val contact = addFriendRepository.getContactFromCache(contactId)
+                ?: contactRepository.getContact(contactId)
+                ?: chatSessionRepository.observeSession(contactId).first()
+                    ?.takeIf { it.isTemporary && it.expiresAt?.let { time -> time > System.currentTimeMillis() } == true }
+                    ?.let { session ->
+                        Contact(
+                            id = session.contactId,
+                            nickname = session.contactName,
+                            avatarPath = session.contactAvatar?.takeIf { File(it).isFile },
+                            publicKey = session.temporaryPeerPublicKey,
+                            source = ContactAddSource.Temporary
+                        )
+                    }
+            _uiState.update {
+                it.copy(
+                    contact = contact,
+                    error = if (contact == null) "无法读取对方资料，临时会话可能已过期" else null
+                )
+            }
+        }
     }
 
     fun updateGreeting(text: String) {
@@ -68,7 +94,11 @@ class RequestAddFriendViewModel @AssistedInject constructor(
     fun sendRequest() {
         viewModelScope.launch {
             val state = _uiState.value
-            val contact = state.contact ?: return@launch
+            val contact = state.contact
+            if (contact == null) {
+                _eventFlow.emit(SendEvent.Error(state.error ?: "无法读取对方资料"))
+                return@launch
+            }
 
             _uiState.update { it.copy(isLoading = true) }
 

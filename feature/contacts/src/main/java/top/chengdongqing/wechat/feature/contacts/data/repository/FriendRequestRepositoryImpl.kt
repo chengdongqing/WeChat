@@ -15,6 +15,7 @@ import top.chengdongqing.wechat.core.common.file.toBytes
 import top.chengdongqing.wechat.core.data.model.FriendEvent
 import top.chengdongqing.wechat.core.data.model.FriendProtocol
 import top.chengdongqing.wechat.core.data.model.FriendRequestResult
+import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.core.data.repository.PrivacySettingsRepository
@@ -41,6 +42,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private val database: WeDatabase,
     private val friendRequestDao: FriendRequestDao,
     private val contactRepository: ContactRepository,
+    private val chatSessionRepository: ChatSessionRepository,
     private val profileRepository: ProfileRepository,
     private val privateFileManager: PrivateFileManager,
     private val bleConnectionManager: BLEConnectionManager,
@@ -149,6 +151,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
 
             // 添加对方到通讯录
             addContactFromRequest(request, remark, note)
+            chatSessionRepository.setTemporary(request.userId, null)
 
             // 更新请求状态
             friendRequestDao.update(requestId) {
@@ -226,6 +229,7 @@ class FriendRequestRepositoryImpl @Inject constructor(
     private suspend fun handleAccepted(request: FriendRequestEntity) {
         database.withWriteTransaction {
             addContactFromRequest(request)
+            chatSessionRepository.setTemporary(request.userId, null)
 
             friendRequestDao.update(request.id) {
                 it.copy(status = FriendRequestStatus.Accepted)

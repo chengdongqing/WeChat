@@ -6,9 +6,11 @@ interface ChatSettingsRepository {
     val speakerEnabled: Flow<Boolean>
     val sendButtonEnabled: Flow<Boolean>
     val e2eEnabled: Flow<Boolean>
+    val temporaryChatEnabled: Flow<Boolean>
     val chatBackground: Flow<String?>
     suspend fun toggleSpeaker(enabled: Boolean)
     suspend fun toggleSendButton(enabled: Boolean)
     suspend fun toggleE2e(enabled: Boolean)
+    suspend fun toggleTemporaryChat(enabled: Boolean)
     suspend fun setChatBackground(path: String?)
 }

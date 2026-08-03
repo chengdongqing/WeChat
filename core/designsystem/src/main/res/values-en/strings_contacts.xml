@@ -14,6 +14,7 @@
     <string name="contact_profile_label_note">Note</string>
     <string name="contact_moments_title">Moments</string>
     <string name="contact_action_send_message">Send Message</string>
+    <string name="contact_action_temporary_chat">Temporary Chat</string>
     <string name="contact_action_voice_video_call">Voice or Video Call</string>
     <string name="contact_action_add_to_contacts">Add to Contacts</string>
 
@@ -111,6 +112,7 @@
     <string name="add_source_qrcode">QR Code</string>
     <string name="add_source_bump">Bump to Add</string>
     <string name="add_source_radar">Nearby Radar</string>
+    <string name="add_source_temporary">Temporary Chat</string>
     <string name="add_source_group">Group Chat</string>
     <string name="add_source_card">Business Card</string>
     <string name="add_source_desc_from_me">Added via %s</string>

@@ -206,6 +206,15 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                 backStack.removeIf { key -> key is NavigationKey.ContactDetail }
                 backStack.add(NavigationKey.ContactDetail(id))
             },
+            onRequestAddFriend = {
+                backStack.add(NavigationKey.RequestAddFriend(id))
+            },
+            onEndTemporaryChat = {
+                backStack.removeIf { key ->
+                    key is NavigationKey.ChatInfo ||
+                            (key is NavigationKey.ChatSession && key.chatId == id)
+                }
+            },
             viewModel = hiltViewModel { factory: ChatInfoViewModel.Factory ->
                 factory.create(id)
             }

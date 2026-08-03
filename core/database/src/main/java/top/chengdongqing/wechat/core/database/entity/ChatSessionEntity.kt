@@ -5,7 +5,10 @@ import androidx.room3.Entity
 import androidx.room3.PrimaryKey
 import top.chengdongqing.wechat.core.model.MessageType
 
-@Entity(tableName = "chat_sessions")
+@Entity(
+    tableName = "chat_sessions",
+    indices = [androidx.room3.Index(value = ["isTemporary", "expiresAt"])]
+)
 data class ChatSessionEntity(
     @PrimaryKey
     val id: String,                     // 会话ID
@@ -25,6 +28,9 @@ data class ChatSessionEntity(
     val isPinned: Boolean = false,      // 是否置顶
     val isMuted: Boolean = false,       // 是否免打扰
     val isHidden: Boolean = false,      // 是否隐藏
+    val isTemporary: Boolean = false,   // 是否为临时聊天
+    val expiresAt: Long? = null,        // 临时聊天到期时间
+    val temporaryPeerPublicKey: String? = null, // 陌生人的临时身份公钥
 
     val unreadCount: Int = 0,           // 未读消息数
     val draftMessage: String? = null,   // 草稿消息

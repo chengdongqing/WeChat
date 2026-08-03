@@ -43,6 +43,22 @@ class PacketSigner @Inject constructor() {
     fun verify(packet: ChatProtocol, publicKeyBase64: String): Boolean {
         return runCatching {
             val publicKey = resolvePublicKey(packet.senderId, publicKeyBase64)
+            verifyWithKey(packet, publicKey)
+        }.getOrDefault(false)
+    }
+
+    /** 验证尚未建立信任关系的自报公钥，不写入联系人公钥缓存。 */
+    fun verifyPresentedKey(packet: ChatProtocol, publicKeyBase64: String): Boolean {
+        return runCatching {
+            val bytes = Base64.decode(publicKeyBase64, Base64.NO_WRAP)
+            val publicKey = KeyFactory.getInstance(KEY_ALGORITHM)
+                .generatePublic(X509EncodedKeySpec(bytes))
+            verifyWithKey(packet, publicKey)
+        }.getOrDefault(false)
+    }
+
+    private fun verifyWithKey(packet: ChatProtocol, publicKey: PublicKey): Boolean {
+        return runCatching {
             val verifier = Signature.getInstance(SIGN_ALGORITHM).apply {
                 initVerify(publicKey)
                 update(packet.signingPayload().toByteArray(Charsets.UTF_8))

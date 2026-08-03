@@ -8,6 +8,7 @@ enum class ContactAddSource {
     QRCode,
     Bump,
     Radar,
+    Temporary,
     Group,
     Card;
 }

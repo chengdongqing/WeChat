@@ -28,6 +28,7 @@ fun ChatSettingsScreen(
     val speakerEnabled by viewModel.speakerEnabled.collectAsStateWithLifecycle()
     val sendButtonEnabled by viewModel.sendButtonEnabled.collectAsStateWithLifecycle()
     val e2eEnabled by viewModel.e2eEnabled.collectAsStateWithLifecycle()
+    val temporaryChatEnabled by viewModel.temporaryChatEnabled.collectAsStateWithLifecycle()
     val chatBackground by viewModel.chatBackground.collectAsStateWithLifecycle()
 
     Scaffold(
@@ -71,6 +72,18 @@ fun ChatSettingsScreen(
                         onChange = viewModel::toggleSendButton
                     )
                 }
+            }
+            WeSettingItem(
+                label = stringResource(R.string.chat_settings_temporary_chat),
+                description = stringResource(R.string.chat_settings_temporary_chat_desc),
+                showArrow = false,
+                showDivider = false,
+                height = 68.dp
+            ) {
+                WeSwitch(
+                    checked = temporaryChatEnabled,
+                    onChange = viewModel::toggleTemporaryChat
+                )
             }
             WeSettingItem(
                 label = stringResource(R.string.chat_settings_e2e),

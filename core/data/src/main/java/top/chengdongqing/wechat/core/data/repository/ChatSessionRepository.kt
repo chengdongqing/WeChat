@@ -16,6 +16,8 @@ interface ChatSessionRepository {
     suspend fun togglePin(sessionId: String, isPinned: Boolean)
     suspend fun toggleMute(sessionId: String, isMuted: Boolean)
     suspend fun updateBackground(sessionId: String, backgroundPath: String?)
+    suspend fun setTemporary(sessionId: String, expiresAt: Long?)
+    suspend fun cleanupExpiredTemporarySessions(now: Long = System.currentTimeMillis()): List<String>
     suspend fun hideSession(sessionId: String)
     suspend fun deleteSession(sessionId: String, shouldHide: Boolean = true)
     suspend fun deleteAllSessions()

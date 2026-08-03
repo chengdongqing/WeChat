@@ -65,6 +65,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
     override suspend fun createSession(session: ChatSession) {
         chatSessionDao.insert(session.toEntity())
+        sessionCache.remove(session.id)
     }
 
     override suspend fun clearUnreadCount(sessionId: String) {
@@ -109,6 +110,26 @@ class ChatSessionRepositoryImpl @Inject constructor(
         sessionCache.remove(sessionId)
     }
 
+    override suspend fun setTemporary(sessionId: String, expiresAt: Long?) {
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(
+                isTemporary = expiresAt != null,
+                expiresAt = expiresAt,
+                temporaryPeerPublicKey = if (expiresAt == null) null else session.temporaryPeerPublicKey,
+                isPinned = if (expiresAt != null) false else session.isPinned
+            )
+        }
+        sessionCache.remove(sessionId)
+    }
+
+    override suspend fun cleanupExpiredTemporarySessions(now: Long): List<String> {
+        val expiredIds = chatSessionDao.getExpiredTemporarySessionIds(now)
+        expiredIds.forEach { sessionId ->
+            deleteSession(sessionId, shouldHide = true)
+        }
+        return expiredIds
+    }
+
     override suspend fun hideSession(sessionId: String) {
         chatSessionDao.update(sessionId) { session ->
             session.copy(isHidden = true)
@@ -127,6 +148,13 @@ class ChatSessionRepositoryImpl @Inject constructor(
             chatSessionDao.clearLastMessage(sessionId)
             if (shouldHide) {
                 hideSession(sessionId)
+                chatSessionDao.update(sessionId) { session ->
+                    session.copy(
+                        isTemporary = false,
+                        expiresAt = null,
+                        temporaryPeerPublicKey = null
+                    )
+                }
             }
             messageDao.deleteBySessionId(sessionId)
         }

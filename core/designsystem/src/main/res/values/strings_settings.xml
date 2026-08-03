@@ -150,6 +150,8 @@
     <string name="chat_settings_send_button">使用独立的发送按钮</string>
     <string name="chat_settings_e2e">端到端加密</string>
     <string name="chat_settings_e2e_desc">消息经端到端加密，仅收发双方可读取</string>
+    <string name="chat_settings_temporary_chat">临时聊天</string>
+    <string name="chat_settings_temporary_chat_desc">允许接收临时聊天</string>
 
     <string name="chat_history_title">聊天记录管理</string>
     <string name="chat_history_import_title">导入与导出</string>

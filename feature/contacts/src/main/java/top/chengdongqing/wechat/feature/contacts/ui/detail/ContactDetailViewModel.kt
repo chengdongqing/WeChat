@@ -24,6 +24,7 @@ import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.data.repository.TemporaryChatRepository
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.ContactRelation
@@ -36,6 +37,7 @@ class ContactDetailViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
     private val contactRepository: ContactRepository,
     private val addFriendRepository: AddFriendRepository,
+    private val temporaryChatRepository: TemporaryChatRepository,
     private val messageRepository: MessageRepository,
     private val privateFileManager: PrivateFileManager,
     profileRepository: ProfileRepository,
@@ -97,6 +99,8 @@ class ContactDetailViewModel @AssistedInject constructor(
                     _navigationEvent.emit(NavigationEvent.NavigateToChat)
                 }
 
+                ContactAction.StartTemporaryChat -> startTemporaryChat()
+
                 is ContactAction.VoiceVideoCall -> {
                     _navigationEvent.emit(NavigationEvent.LaunchCall(action.type))
                 }
@@ -118,6 +122,29 @@ class ContactDetailViewModel @AssistedInject constructor(
                 }
             }
         }
+    }
+
+    private suspend fun startTemporaryChat() {
+        val peer = contact.value ?: return
+        val publicKey = peer.publicKey
+        if (publicKey.isNullOrBlank()) {
+            _uiState.update { it.copy(error = "对方身份信息不完整，无法发起临时聊天") }
+            return
+        }
+        temporaryChatRepository.start(
+            peerId = peer.id,
+            peerName = peer.displayName,
+            peerAvatar = peer.avatarPath,
+            peerPublicKey = publicKey
+        )
+            .onSuccess {
+                _navigationEvent.emit(NavigationEvent.NavigateToChat)
+            }
+            .onFailure { error ->
+                _uiState.update {
+                    it.copy(error = error.message ?: "临时聊天邀请发送失败")
+                }
+            }
     }
 
     /**
@@ -187,6 +214,7 @@ sealed class NavigationEvent {
 
 sealed class ContactAction {
     data object SendMessage : ContactAction()
+    data object StartTemporaryChat : ContactAction()
     data class VoiceVideoCall(val type: CallType) : ContactAction()
     data object ViewMoments : ContactAction()
     data object ViewProfile : ContactAction()

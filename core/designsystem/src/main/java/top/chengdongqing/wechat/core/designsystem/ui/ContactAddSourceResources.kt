@@ -12,6 +12,7 @@ val ContactAddSource.labelRes: Int
         ContactAddSource.QRCode -> R.string.add_source_qrcode
         ContactAddSource.Bump -> R.string.add_source_bump
         ContactAddSource.Radar -> R.string.add_source_radar
+        ContactAddSource.Temporary -> R.string.add_source_temporary
         ContactAddSource.Group -> R.string.add_source_group
         ContactAddSource.Card -> R.string.add_source_card
     }

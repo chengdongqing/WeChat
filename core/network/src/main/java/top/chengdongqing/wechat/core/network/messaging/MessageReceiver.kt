@@ -157,7 +157,7 @@ class MessageReceiver @Inject constructor(
             // 回执消息不判断
             protocol is ChatProtocol.MessageReceipt -> Unit
             // 权限校验
-            !permissionChecker.checkAndReply(protocol.senderId, protocol) -> return
+            !permissionChecker.checkAndReply(userId, protocol) -> return
         }
 
         if (protocol is ChatProtocol.GroupTextMessage) {
@@ -182,7 +182,7 @@ class MessageReceiver @Inject constructor(
         }
 
         // 权限校验
-        if (!permissionChecker.checkAndReply(metadata.senderId, metadata)) {
+        if (!permissionChecker.checkAndReply(userId, metadata)) {
             return
         }
 

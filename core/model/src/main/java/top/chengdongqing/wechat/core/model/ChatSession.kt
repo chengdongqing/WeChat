@@ -21,5 +21,8 @@ data class ChatSession(
     val isPinned: Boolean = false,
     val isMuted: Boolean = false,
     val isHidden: Boolean = false,
+    val isTemporary: Boolean = false,
+    val expiresAt: Long? = null,
+    val temporaryPeerPublicKey: String? = null,
     val isOnline: Boolean = false
 )

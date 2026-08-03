@@ -127,6 +127,14 @@ private fun ChatSessionTitle(
                 modifier = Modifier.weight(1f, fill = false)
             )
 
+            if (uiState.isTemporary && !uiState.isSelectMode) {
+                Text(
+                    text = stringResource(R.string.chat_temporary_badge),
+                    fontSize = 10.sp,
+                    color = WeTheme.colorScheme.danger
+                )
+            }
+
             // 免打扰
             if (uiState.isMuted) {
                 Icon(

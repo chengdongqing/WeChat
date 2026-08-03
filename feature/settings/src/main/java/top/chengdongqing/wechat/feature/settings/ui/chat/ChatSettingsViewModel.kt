@@ -37,6 +37,9 @@ class ChatSettingsViewModel @Inject constructor(
     val e2eEnabled = repository.e2eEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val temporaryChatEnabled = repository.temporaryChatEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     val chatBackground = repository.chatBackground
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -50,6 +53,10 @@ class ChatSettingsViewModel @Inject constructor(
 
     fun toggleE2e(enabled: Boolean) {
         viewModelScope.launch { repository.toggleE2e(enabled) }
+    }
+
+    fun toggleTemporaryChat(enabled: Boolean) {
+        viewModelScope.launch { repository.toggleTemporaryChat(enabled) }
     }
 
     fun setChatBackground(uri: Uri?) {

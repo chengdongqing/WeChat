@@ -69,6 +69,12 @@ fun ActionButtonSection(
 
             else -> {
                 ActionButton(
+                    icon = R.drawable.ic_message_outlined,
+                    text = stringResource(R.string.contact_action_temporary_chat),
+                    onClick = { onAction(ContactAction.StartTemporaryChat) }
+                )
+                WeDivider()
+                ActionButton(
                     text = stringResource(R.string.contact_action_add_to_contacts),
                     onClick = { onAction(ContactAction.AddToContacts) }
                 )

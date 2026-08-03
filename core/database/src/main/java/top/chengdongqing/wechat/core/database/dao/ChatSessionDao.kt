@@ -19,6 +19,22 @@ interface ChatSessionDao : BaseDao<ChatSessionEntity> {
     @Query("SELECT * FROM chat_sessions WHERE id = :sessionId")
     suspend fun getById(sessionId: String): ChatSessionEntity?
 
+    @Query(
+        "SELECT id FROM chat_sessions " +
+                "WHERE isTemporary = 1 AND expiresAt IS NOT NULL AND expiresAt <= :now"
+    )
+    suspend fun getExpiredTemporarySessionIds(now: Long): List<String>
+
+    @Query(
+        "UPDATE chat_sessions SET expiresAt = :expiresAt, updatedAt = :now " +
+                "WHERE id = :sessionId AND isTemporary = 1"
+    )
+    suspend fun refreshTemporaryExpiration(
+        sessionId: String,
+        expiresAt: Long,
+        now: Long = System.currentTimeMillis()
+    )
+
     @Transaction
     suspend fun update(sessionId: String, updateBlock: (ChatSessionEntity) -> ChatSessionEntity) {
         val old = getById(sessionId) ?: return

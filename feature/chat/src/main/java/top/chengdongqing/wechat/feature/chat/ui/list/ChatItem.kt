@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -100,17 +101,31 @@ private fun RowScope.SessionContent(session: ChatSession) {
             .weight(1f)
             .padding(vertical = 2.dp)
     ) {
-        Text(
-            text = if (session.id == LocalAiAssistant.ID) {
-                LocalAiAssistant.NAME
-            } else {
-                session.contactName
-            },
-            fontSize = 16.sp,
-            maxLines = 1,
-            color = WeTheme.colorScheme.textPrimary,
-            fontWeight = FontWeight.Medium,
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (session.id == LocalAiAssistant.ID) {
+                    LocalAiAssistant.NAME
+                } else {
+                    session.contactName
+                },
+                modifier = Modifier.weight(1f, fill = false),
+                fontSize = 16.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = WeTheme.colorScheme.textPrimary,
+                fontWeight = FontWeight.Medium,
+            )
+            if (session.isTemporary) {
+                Text(
+                    text = stringResource(R.string.chat_temporary_badge),
+                    fontSize = 10.sp,
+                    color = WeTheme.colorScheme.danger
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(4.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (session.isSending) {

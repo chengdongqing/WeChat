@@ -43,7 +43,7 @@ import top.chengdongqing.wechat.core.database.entity.MessageEntity
         MediaAssetReferenceEntity::class,
         FavoriteEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = true
 )
 @ColumnTypeConverters(DatabaseConverters::class)

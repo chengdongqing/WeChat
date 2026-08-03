@@ -78,6 +78,10 @@ class ChatSessionUpdater @Inject constructor(
             if (shouldIncrementUnread) {
                 chatSessionDao.incrementUnreadCount(message.sessionId)
             }
+            chatSessionDao.refreshTemporaryExpiration(
+                message.sessionId,
+                System.currentTimeMillis() + TEMPORARY_CHAT_IDLE_TIMEOUT_MS
+            )
         } else {
             // 创建新会话
             val (contactName, contactAvatar) = resolveContactInfo(message.peerId, isSelfSession)
@@ -98,6 +102,10 @@ class ChatSessionUpdater @Inject constructor(
                 )
             )
         }
+    }
+
+    private companion object {
+        const val TEMPORARY_CHAT_IDLE_TIMEOUT_MS = 24 * 60 * 60 * 1000L
     }
 
     /**

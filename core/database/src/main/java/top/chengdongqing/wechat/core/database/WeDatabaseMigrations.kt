@@ -167,9 +167,23 @@ object WeDatabaseMigrations {
         }
     }
 
+    private val migration8To9 = object : Migration(8, 9) {
+        override suspend fun migrate(connection: SQLiteConnection) {
+            connection.execSQL(
+                "ALTER TABLE `chat_sessions` ADD COLUMN `isTemporary` INTEGER NOT NULL DEFAULT 0"
+            )
+            connection.execSQL("ALTER TABLE `chat_sessions` ADD COLUMN `expiresAt` INTEGER")
+            connection.execSQL("ALTER TABLE `chat_sessions` ADD COLUMN `temporaryPeerPublicKey` TEXT")
+            connection.execSQL(
+                "CREATE INDEX IF NOT EXISTS `index_chat_sessions_isTemporary_expiresAt` " +
+                        "ON `chat_sessions` (`isTemporary`, `expiresAt`)"
+            )
+        }
+    }
+
     val all: Array<Migration> =
         arrayOf(
             migration1To2, migration2To3, migration3To4, migration4To5,
-            migration5To6, migration6To7, migration7To8
+            migration5To6, migration6To7, migration7To8, migration8To9
         )
 }

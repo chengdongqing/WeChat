@@ -46,6 +46,7 @@ class MessageDispatcher @Inject constructor(
     private val groupDao: GroupDao,
     private val groupChatCoordinator: GroupChatCoordinator,
     private val groupLiveEventBus: GroupLiveEventBus,
+    private val temporaryChatCoordinator: TemporaryChatCoordinator,
     private val chatSessionDao: ChatSessionDao,
     private val database: WeDatabase,
     private val chatSessionUpdater: ChatSessionUpdater
@@ -74,6 +75,7 @@ class MessageDispatcher @Inject constructor(
             is ChatProtocol.MessageReceipt -> handleReceipt(protocol)
             is ChatProtocol.Signaling -> handleSignaling(protocol)
             is ChatProtocol.ProfileResponse -> contactRepository.syncContactProfile(protocol)
+            is ChatProtocol.TemporaryChatInvite -> temporaryChatCoordinator.receive(protocol)
             else -> Unit
         }
     }.onFailure {

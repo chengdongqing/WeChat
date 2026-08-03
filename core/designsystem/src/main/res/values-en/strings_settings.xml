@@ -150,6 +150,8 @@
     <string name="chat_settings_send_button">Show \"Send\" Button</string>
     <string name="chat_settings_e2e">End-to-End Encryption</string>
     <string name="chat_settings_e2e_desc">Your messages are encrypted end-to-end and visible only to you and the recipient.</string>
+    <string name="chat_settings_temporary_chat">Temporary Chats</string>
+    <string name="chat_settings_temporary_chat_desc">Allow temporary chats with people who are not your contacts</string>
 
     <string name="chat_history_title">Chat History</string>
     <string name="chat_history_import_title">Import &amp; Export</string>

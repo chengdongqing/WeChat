@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.core.common.media.repository
 
 import android.content.Context
+import android.os.Build
 import android.provider.MediaStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,8 +25,13 @@ class LocalMediaRepositoryImpl(private val context: Context) : LocalMediaReposit
                 MediaStore.Files.FileColumns.HEIGHT,
                 MediaStore.Files.FileColumns.SIZE
             )
-            val selection =
-                "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (${types.joinToString(separator = ",") { "?" }})"
+            val selection = buildList {
+                add("${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (${types.joinToString(separator = ",") { "?" }})")
+                add("${MediaStore.Files.FileColumns.SIZE} > 0")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    add("${MediaStore.MediaColumns.IS_PENDING} = 0")
+                }
+            }.joinToString(" AND ")
             val selectionArgs = types.map { it.columnType.toString() }.toTypedArray()
             val sortOrder = "${MediaStore.Files.FileColumns.DATE_ADDED} DESC"
             context.contentResolver.query(

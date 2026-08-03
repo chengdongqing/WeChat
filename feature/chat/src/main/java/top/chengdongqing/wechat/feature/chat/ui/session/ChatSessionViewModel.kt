@@ -353,14 +353,15 @@ class ChatSessionViewModel @AssistedInject constructor(
             contactRepository.observeContact(chatId)
                 .combine(profileRepository.observeProfile()) { contact, profile ->
                     val isLocalAi = chatId == LocalAiAssistant.ID
+                    val isSelf = !isLocalAi && chatId == profile?.id
                     _uiState.value.copy(
                         title = if (isLocalAi) LocalAiAssistant.NAME else contact?.displayName
-                            ?: profile?.nickname ?: "",
-                        peerId = if (isLocalAi) LocalAiAssistant.ID else contact?.id,
-                        peerAvatar = contact?.avatarPath,
+                            ?: if (isSelf) profile.nickname else _uiState.value.title,
+                        peerId = if (isLocalAi) LocalAiAssistant.ID else contact?.id ?: chatId,
+                        peerAvatar = contact?.avatarPath ?: _uiState.value.peerAvatar,
                         myId = profile?.id,
                         myAvatar = profile?.avatarPath,
-                        isSelf = !isLocalAi && contact == null
+                        isSelf = isSelf
                     )
                 }.collect { _uiState.value = it }
         }
@@ -372,8 +373,13 @@ class ChatSessionViewModel @AssistedInject constructor(
                 .collect { (session, bg) ->
                     _uiState.update { cur ->
                         cur.copy(
+                            title = session?.contactName?.takeIf { !chatId.startsWith("group_") }
+                                ?: cur.title,
+                            peerId = session?.contactId ?: cur.peerId,
                             peerAvatar = session?.contactAvatar ?: cur.peerAvatar,
+                            isSelf = session?.let { it.contactId == cur.myId } ?: cur.isSelf,
                             isMuted = session?.isMuted ?: cur.isMuted,
+                            isTemporary = session?.isTemporary == true,
                             isOnline = if (chatId == LocalAiAssistant.ID) {
                                 localAiEngine.state.value is LocalAiState.Ready
                             } else {
@@ -477,7 +483,9 @@ class ChatSessionViewModel @AssistedInject constructor(
                         updateSessionPreview = isFirstWrite || isFinal
                     )
                     isFirstWrite = false
-                    if (!isFinal) delay(AI_STREAM_PERSIST_INTERVAL_MS)
+                    if (!isFinal) {
+                        delay(AI_STREAM_PERSIST_INTERVAL_MS)
+                    }
                 }
             }
 

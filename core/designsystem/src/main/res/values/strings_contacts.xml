@@ -14,6 +14,7 @@
     <string name="contact_profile_label_note">备忘</string>
     <string name="contact_moments_title">朋友圈</string>
     <string name="contact_action_send_message">发消息</string>
+    <string name="contact_action_temporary_chat">临时聊天</string>
     <string name="contact_action_voice_video_call">音视频通话</string>
     <string name="contact_action_add_to_contacts">添加到通讯录</string>
 
@@ -111,6 +112,7 @@
     <string name="add_source_qrcode">扫一扫</string>
     <string name="add_source_bump">碰一碰</string>
     <string name="add_source_radar">雷达扫描</string>
+    <string name="add_source_temporary">临时聊天</string>
     <string name="add_source_group">群聊</string>
     <string name="add_source_card">名片分享</string>
     <string name="add_source_desc_from_me">通过%s添加</string>

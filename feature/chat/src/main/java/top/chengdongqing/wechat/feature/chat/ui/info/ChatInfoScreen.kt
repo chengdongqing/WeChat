@@ -51,6 +51,8 @@ import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 fun ChatInfoScreen(
     onBack: () -> Unit,
     onNavigateToContact: () -> Unit,
+    onRequestAddFriend: () -> Unit,
+    onEndTemporaryChat: () -> Unit,
     viewModel: ChatInfoViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -135,6 +137,39 @@ fun ChatInfoScreen(
                     WeSwitch()
                 }
             }
+            if (uiState.isTemporary) {
+                WeSettingGroup {
+                    WeSettingItem(
+                        label = stringResource(R.string.chat_info_temporary),
+                        description = stringResource(R.string.chat_info_temporary_idle_description),
+                        showArrow = false
+                    ) {
+                        uiState.expiresAt?.let {
+                            WeSettingValue(formatTemporaryExpiry(it))
+                        }
+                    }
+                    if (!uiState.isFriend) {
+                        WeSettingItem(
+                            label = stringResource(R.string.chat_info_promote_temporary),
+                            description = stringResource(R.string.chat_info_promote_temporary_description),
+                            onClick = onRequestAddFriend
+                        )
+                    }
+                    WeSettingItem(
+                        label = stringResource(R.string.chat_info_end_temporary),
+                        showDivider = false,
+                        onClick = {
+                            dialog.show(
+                                title = resources.getString(R.string.chat_info_end_temporary_title),
+                                content = resources.getString(R.string.chat_info_end_temporary_content),
+                                okText = R.string.action_ok,
+                                okColor = SemanticError,
+                                onOk = { viewModel.endTemporaryChat(onEndTemporaryChat) }
+                            )
+                        }
+                    )
+                }
+            }
             ChatBackgroundSetting(
                 label = stringResource(R.string.chat_info_background_setting),
                 value = uiState.backgroundPath,
@@ -164,6 +199,10 @@ fun ChatInfoScreen(
         }
     }
 }
+
+private fun formatTemporaryExpiry(timestamp: Long): String =
+    java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
+        .format(java.util.Date(timestamp))
 
 @Composable
 private fun LocalAiModelSettings(

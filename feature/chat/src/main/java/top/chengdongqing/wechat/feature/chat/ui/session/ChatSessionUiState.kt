@@ -15,6 +15,7 @@ data class ChatSessionUiState(
     val hasMoreMessages: Boolean = true,
     val backgroundPath: String? = null,
     val isMuted: Boolean = false,
+    val isTemporary: Boolean = false,
     val isSpeakerOn: Boolean = true,
     val isSendButtonOn: Boolean = true,
     val isOnline: Boolean = false,

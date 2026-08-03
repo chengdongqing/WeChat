@@ -18,6 +18,10 @@ fun ChatSessionEntity.toDomain() = ChatSession(
     isSending = isSending,
     isPinned = isPinned,
     isMuted = isMuted,
+    isHidden = isHidden,
+    isTemporary = isTemporary,
+    expiresAt = expiresAt,
+    temporaryPeerPublicKey = temporaryPeerPublicKey,
     draftMessage = draftMessage,
     backgroundPath = backgroundPath
 )
@@ -37,6 +41,10 @@ fun ChatSession.toEntity() = ChatSessionEntity(
     isSending = isSending,
     isPinned = isPinned,
     isMuted = isMuted,
+    isHidden = isHidden,
+    isTemporary = isTemporary,
+    expiresAt = expiresAt,
+    temporaryPeerPublicKey = temporaryPeerPublicKey,
     draftMessage = draftMessage,
     backgroundPath = backgroundPath
 )

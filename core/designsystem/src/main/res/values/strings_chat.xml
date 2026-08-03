@@ -73,6 +73,16 @@
     <string name="chat_info_search">查找聊天记录</string>
     <string name="chat_info_mute">消息免打扰</string>
     <string name="chat_info_pin">置顶聊天</string>
+    <string name="chat_info_temporary">临时聊天</string>
+    <string name="chat_temporary_badge">临时</string>
+    <string name="chat_info_temporary_idle_description">停止互动24小时后自动清理聊天记录</string>
+    <string name="chat_info_end_temporary">结束临时聊天</string>
+    <string name="chat_info_end_temporary_title">确定结束临时聊天吗？</string>
+    <string name="chat_info_end_temporary_content">聊天记录将立即清理，对方也不能再向你发送临时消息。</string>
+    <string name="chat_info_temporary_description">开启后，聊天记录将在24小时后自动清理</string>
+    <string name="chat_info_temporary_expires">%1$s 自动清理</string>
+    <string name="chat_info_promote_temporary">转为正式聊天</string>
+    <string name="chat_info_promote_temporary_description">添加对方为好友，并保留当前聊天记录</string>
     <string name="chat_info_remind">提醒</string>
     <string name="chat_info_clear_background">清除当前背景</string>
     <string name="chat_info_background_setting">设置当前聊天背景</string>

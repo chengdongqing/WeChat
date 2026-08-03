@@ -73,6 +73,16 @@
     <string name="chat_info_search">Search Chat History</string>
     <string name="chat_info_mute">Mute Notifications</string>
     <string name="chat_info_pin">Sticky on Top</string>
+    <string name="chat_info_temporary">Temporary Chat</string>
+    <string name="chat_temporary_badge">Temporary</string>
+    <string name="chat_info_temporary_idle_description">Messages are cleared after 24 hours without activity</string>
+    <string name="chat_info_end_temporary">End Temporary Chat</string>
+    <string name="chat_info_end_temporary_title">End this temporary chat?</string>
+    <string name="chat_info_end_temporary_content">Messages will be cleared immediately and this person can no longer send temporary messages.</string>
+    <string name="chat_info_temporary_description">Messages will be cleared automatically after 24 hours</string>
+    <string name="chat_info_temporary_expires">Clears automatically at %1$s</string>
+    <string name="chat_info_promote_temporary">Make Chat Permanent</string>
+    <string name="chat_info_promote_temporary_description">Add this person as a friend and keep the current messages</string>
     <string name="chat_info_remind">Alert</string>
     <string name="chat_info_clear_background">Clear Background</string>
     <string name="chat_info_background_setting">Background</string>
