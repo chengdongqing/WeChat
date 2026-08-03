@@ -36,7 +36,8 @@ class MessageToolbarManager(
     private val onToggleSpeaker: () -> Unit,
     private val onSaveFile: (ChatMessage) -> Unit,
     private val onMultiSelect: (String) -> Unit,
-    private val onQuote: (ChatMessage) -> Unit
+    private val onQuote: (ChatMessage) -> Unit,
+    private val onAddSticker: (ChatMessage) -> Unit
 ) {
     private val _state = MutableStateFlow(MessageToolbarState())
     val state = _state.asStateFlow()
@@ -153,6 +154,7 @@ class MessageToolbarManager(
             MessageAction.Download -> onSaveFile(message)
             MessageAction.MultiSelect -> onMultiSelect(message.id)
             MessageAction.Quote -> onQuote(message)
+            MessageAction.AddSticker -> onAddSticker(message)
 
             else -> {}
         }
@@ -206,6 +208,7 @@ class MessageToolbarManager(
                 }
 
                 is MessageContent.Sticker -> {
+                    add(MessageAction.AddSticker)
                     add(MessageAction.Forward)
                     add(deleteOrRecall)
                     add(MessageAction.Quote)

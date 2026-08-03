@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.feature.chat.data.store.AddStickerResult
 import top.chengdongqing.wechat.feature.chat.data.store.ManagedSticker
 import top.chengdongqing.wechat.feature.chat.data.store.StickerStore
 import javax.inject.Inject
@@ -26,7 +27,11 @@ class StickersViewModel @Inject constructor(
 
     fun add(uri: Uri) = viewModelScope.launch {
         privateFileManager.saveMedia(MessageType.Sticker, sourceUri = uri)
-            .onSuccess { store.add(it) }
+            .onSuccess { path ->
+                if (store.add(path) == AddStickerResult.AlreadyExists) {
+                    privateFileManager.deleteFile(path)
+                }
+            }
     }
 
     fun moveToFront(sticker: ManagedSticker) =

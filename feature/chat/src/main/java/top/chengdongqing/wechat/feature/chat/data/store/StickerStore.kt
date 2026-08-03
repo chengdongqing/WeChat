@@ -10,6 +10,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.storage.AssetOwner
@@ -26,6 +28,8 @@ private val Context.stickerDataStore by preferencesDataStore("managed_stickers")
 @Serializable
 data class ManagedSticker(val path: String, val isAsset: Boolean)
 
+enum class AddStickerResult { Added, AlreadyExists }
+
 @Singleton
 class StickerStore @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -35,6 +39,7 @@ class StickerStore @Inject constructor(
     private val customKey = stringPreferencesKey("custom")
     private val hiddenKey = stringPreferencesKey("hidden")
     private val promotedKey = stringPreferencesKey("promoted")
+    private val addMutex = Mutex()
 
     val stickers: Flow<List<ManagedSticker>> = context.stickerDataStore.data.map { prefs ->
         val custom = prefs.readList(customKey)
@@ -50,13 +55,24 @@ class StickerStore @Inject constructor(
         )
     }
 
-    suspend fun add(path: String) {
-        attach(path)
+    suspend fun add(path: String): AddStickerResult = addMutex.withLock {
+        val file = File(path)
+        if (!file.isFile) return@withLock AddStickerResult.AlreadyExists
+        val checksum = file.toSHA256Hex()
+        val custom = context.stickerDataStore.data.first().readList(customKey)
+        val alreadyExists = custom.any { existingPath ->
+            val existingFile = File(existingPath)
+            existingFile.isFile && existingFile.toSHA256Hex() == checksum
+        }
+        if (alreadyExists) return@withLock AddStickerResult.AlreadyExists
+
+        attach(path, checksum)
         context.stickerDataStore.edit { prefs ->
-            val custom = prefs.readList(customKey)
-            prefs[customKey] = json.encodeToString((listOf(path) + custom).distinct())
+            prefs[customKey] =
+                json.encodeToString((listOf(path) + prefs.readList(customKey)).distinct())
             promote(prefs, path)
         }
+        AddStickerResult.Added
     }
 
     suspend fun moveToFront(path: String) = context.stickerDataStore.edit { promote(it, path) }
@@ -88,12 +104,12 @@ class StickerStore @Inject constructor(
         if (path in custom) attach(path)
     }
 
-    private suspend fun attach(path: String) {
+    private suspend fun attach(path: String, checksum: String? = null) {
         val file = File(path)
         if (!file.isFile) return
         assetReferenceManager.attach(
             localPath = path,
-            checksum = file.toSHA256Hex(),
+            checksum = checksum ?: file.toSHA256Hex(),
             owner = AssetOwner(AssetOwnerType.Sticker, path)
         )
     }

@@ -15,6 +15,7 @@ enum class MessageAction(
     Delete(R.drawable.ic_delete_filled, R.string.message_action_delete),
     Cancel(R.drawable.ic_recall_outlined, R.string.message_action_cancel),
     Recall(R.drawable.ic_recall_outlined, R.string.message_action_recall),
+    AddSticker(R.drawable.ic_plus_circle_outlined, R.string.message_action_add_sticker),
     Forward(R.drawable.ic_forward_filled, R.string.message_action_forward),
     Favorite(R.drawable.ic_favorites_filled, R.string.message_action_favorite),
     Remind(R.drawable.ic_bell_filled, R.string.message_action_remind),

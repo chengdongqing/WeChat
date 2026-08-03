@@ -60,6 +60,7 @@
     <string name="message_action_favorite">收藏</string>
     <string name="message_action_remind">提醒</string>
     <string name="message_action_recall">撤回</string>
+    <string name="message_action_add_sticker">添加</string>
     <string name="message_action_multi_select">多选</string>
     <string name="message_action_speaker">扬声器</string>
     <string name="message_action_earpiece">听筒</string>

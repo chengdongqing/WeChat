@@ -10,7 +10,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
 import kotlin.math.PI
 import kotlin.math.cos
@@ -60,7 +62,7 @@ fun FestiveMessageEffect(
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFireworks(
+private fun DrawScope.drawFireworks(
     progress: Float,
     seed: Int
 ) {
@@ -137,7 +139,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFireworks(
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCelebration(
+private fun DrawScope.drawCelebration(
     progress: Float,
     seed: Int
 ) {
@@ -162,7 +164,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCelebration(
             drawRect(
                 color.copy(alpha = (1f - local * .35f).coerceIn(0f, 1f)),
                 topLeft = Offset(x - particleSize, y - particleSize * .35f),
-                size = androidx.compose.ui.geometry.Size(particleSize * 2f, particleSize * .7f)
+                size = Size(particleSize * 2f, particleSize * .7f)
             )
         }
         if (index < 34 && local < .42f) {
@@ -187,7 +189,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCelebration(
     )
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFirecrackers(
+private fun DrawScope.drawFirecrackers(
     progress: Float,
     seed: Int
 ) {
@@ -217,7 +219,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFirecrackers(
                 drawRoundRect(
                     Color(0xFFE3262E),
                     topLeft = Offset(crackerCenter.x - 11f, crackerCenter.y - 25f),
-                    size = androidx.compose.ui.geometry.Size(22f, 50f)
+                    size = Size(22f, 50f)
                 )
                 drawLine(
                     Color(0xFFFFD54F),
@@ -251,7 +253,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFirecrackers(
                         drawRect(
                             Color(0xFFE3262E).copy(alpha = alpha),
                             topLeft = Offset(point.x - 4f, point.y - 8f),
-                            size = androidx.compose.ui.geometry.Size(8f, 16f)
+                            size = Size(8f, 16f)
                         )
                     }
                 }
@@ -268,7 +270,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFirecrackers(
         drawRect(
             if (it % 3 == 0) Color(0xFFFFD740) else Color(0xFFE3262E),
             topLeft = Offset(x, y),
-            size = androidx.compose.ui.geometry.Size(5f, 12f),
+            size = Size(5f, 12f),
             alpha = (1f - progress * .55f).coerceIn(0f, 1f)
         )
     }

@@ -71,6 +71,8 @@ import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 import top.chengdongqing.wechat.feature.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMediaItem
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
+import top.chengdongqing.wechat.feature.chat.data.store.AddStickerResult
+import top.chengdongqing.wechat.feature.chat.data.store.StickerStore
 import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationRoomState
 import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationSessionRegistry
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageAction
@@ -100,6 +102,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val activeSessionManager: ActiveSessionManager,
     private val localAiEngine: LocalAiEngine,
     private val liveLocationRegistry: LiveLocationSessionRegistry,
+    private val stickerStore: StickerStore,
     e2eSessionManager: E2ESessionManager,
     connectionSettingsRepository: ConnectionSettingsRepository,
     @param:ApplicationContext private val context: Context
@@ -240,7 +243,8 @@ class ChatSessionViewModel @AssistedInject constructor(
         onToggleSpeaker = ::toggleSpeaker,
         onSaveFile = ::saveFile,
         onMultiSelect = ::enterSelectMode,
-        onQuote = ::quoteMessage
+        onQuote = ::quoteMessage,
+        onAddSticker = ::addSticker
     )
 
     val toolbarState = toolbarManager.state
@@ -286,6 +290,23 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     fun cancelQuote() {
         _pendingQuote.value = null
+    }
+
+    private fun addSticker(message: ChatMessage) {
+        val path = (message.content as? MessageContent.Sticker)?.localPath ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            if (!File(path).isFile) {
+                withContext(Dispatchers.Main) { context.showToast("表情文件不存在") }
+                return@launch
+            }
+            val result = stickerStore.add(path)
+            withContext(Dispatchers.Main) {
+                context.showToast(
+                    if (result == AddStickerResult.Added) "已添加到表情"
+                    else "该表情已添加"
+                )
+            }
+        }
     }
 
     fun updateTextSelection(selection: TextRange) {

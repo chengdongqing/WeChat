@@ -60,6 +60,7 @@
     <string name="message_action_favorite">Favorite</string>
     <string name="message_action_remind">Reminder</string>
     <string name="message_action_recall">Recall</string>
+    <string name="message_action_add_sticker">Add</string>
     <string name="message_action_multi_select">Select</string>
     <string name="message_action_speaker">Speaker</string>
     <string name="message_action_earpiece">Earpiece</string>
