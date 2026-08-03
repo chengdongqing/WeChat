@@ -12,6 +12,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,13 +34,26 @@ class CameraActivity : ComponentActivity() {
 
         setContent {
             WeTheme {
-                WeCamera(type, onRevoked = { finish() }) { uri, type ->
-                    val intent = Intent().apply {
+                var capturedImage by remember { mutableStateOf<Uri?>(null) }
+
+                fun finishWithMedia(uri: Uri, mediaType: VisualMediaType) {
+                    val result = Intent().apply {
                         putExtra(EXTRA_MEDIA_URI, uri)
-                        putExtra(EXTRA_MEDIA_TYPE, type.name)
+                        putExtra(EXTRA_MEDIA_TYPE, mediaType.name)
                     }
-                    setResult(RESULT_OK, intent)
+                    setResult(RESULT_OK, result)
                     finish()
+                }
+
+                capturedImage?.let { uri ->
+                    CameraImageEditor(
+                        sourceUri = uri,
+                        onCancel = { capturedImage = null },
+                        onConfirm = { finishWithMedia(it, VisualMediaType.Image) }
+                    )
+                } ?: WeCamera(type, onRevoked = { finish() }) { uri, mediaType ->
+                    if (mediaType == VisualMediaType.Image) capturedImage = uri
+                    else finishWithMedia(uri, mediaType)
                 }
             }
         }

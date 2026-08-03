@@ -3,6 +3,8 @@ package top.chengdongqing.wechat.core.common.camera
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
+import android.view.OrientationEventListener
+import android.view.Surface
 import android.view.ViewGroup
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
@@ -46,6 +48,7 @@ import top.chengdongqing.wechat.core.common.runtime.rememberSingleThreadExecutor
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 @Stable
@@ -206,9 +209,12 @@ private class CameraStateImpl(
         private set
 
     override fun updateCamera() {
+        orientationListener.enable()
+
         // 构建预览用例
         val preview = Preview.Builder()
             .setResolutionSelector(resolutionSelector)
+            .setTargetRotation(targetRotation)
             .build()
             .apply {
                 surfaceProvider = previewView.surfaceProvider
@@ -263,6 +269,10 @@ private class CameraStateImpl(
     override fun takePhoto(onError: ((ImageCaptureException) -> Unit)?) {
         val tempFile = File.createTempFile("IMG_", ".jpg")
 
+        // CameraActivity 的界面方向可能尚未随设备旋转完成，拍摄前使用传感器记录的
+        // 最新方向，确保 CameraX 为横拍照片写入正确的像素方向/EXIF 信息。
+        imageCapture.targetRotation = targetRotation
+
         val metadata = ImageCapture.Metadata()
         // 自拍时镜像处理
         metadata.isReversedHorizontal = isUsingFrontCamera
@@ -291,6 +301,7 @@ private class CameraStateImpl(
     @SuppressLint("MissingPermission")
     override fun startRecording(onError: ((Throwable?) -> Unit)?) {
         isRecording = true
+        videoCapture.targetRotation = targetRotation
 
         val milliseconds = maxVideoDuration.seconds.inWholeMilliseconds
         val tempFile = File.createTempFile("VID_", ".mp4")
@@ -385,7 +396,7 @@ private class CameraStateImpl(
         focusPoint = offset
         focusJob?.cancel()
         focusJob = coroutineScope.launch {
-            delay(2000) // 2秒后对焦框消失
+            delay(2000.milliseconds) // 2秒后对焦框消失
             focusPoint = null
         }
     }
@@ -400,6 +411,7 @@ private class CameraStateImpl(
     }
 
     override fun release() {
+        orientationListener.disable()
         try {
             recordingInstance?.stop()
             recordingInstance = null
@@ -411,6 +423,24 @@ private class CameraStateImpl(
 
     private val cameraProvider: ProcessCameraProvider by lazy {
         ProcessCameraProvider.getInstance(context).get()
+    }
+    private var targetRotation = Surface.ROTATION_0
+    private val orientationListener = object : OrientationEventListener(context) {
+        override fun onOrientationChanged(orientation: Int) {
+            if (orientation == ORIENTATION_UNKNOWN) return
+
+            val newRotation = when (orientation) {
+                in 45 until 135 -> Surface.ROTATION_270
+                in 135 until 225 -> Surface.ROTATION_180
+                in 225 until 315 -> Surface.ROTATION_90
+                else -> Surface.ROTATION_0
+            }
+            if (newRotation == targetRotation) return
+
+            targetRotation = newRotation
+            imageCapture.targetRotation = newRotation
+            videoCapture.targetRotation = newRotation
+        }
     }
     private val resolutionSelector = ResolutionSelector.Builder()
         .setAspectRatioStrategy(

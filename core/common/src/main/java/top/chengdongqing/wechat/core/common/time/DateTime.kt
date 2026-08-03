@@ -4,7 +4,6 @@ import android.content.res.Resources
 import top.chengdongqing.wechat.core.model.AppLanguage
 import java.time.DayOfWeek
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -69,7 +68,7 @@ fun Long.toChatDisplayTime(resources: Resources): String {
  */
 fun Long.toYearMonthDisplay(language: AppLanguage): String {
     val targetInstant = Instant.ofEpochMilli(this)
-    val target = LocalDate.ofInstant(targetInstant, ZoneId.systemDefault())
+    val target = targetInstant.atZone(ZoneId.systemDefault()).toLocalDate()
 
     return when (language) {
         AppLanguage.Chinese -> target.format(YearMonthFormatterZh)
