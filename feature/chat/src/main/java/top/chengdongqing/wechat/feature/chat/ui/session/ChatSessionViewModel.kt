@@ -255,9 +255,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun handleToolbarAction(action: MessageAction) {
-        if (action == MessageAction.Forward) {
-            toolbarManager.state.value.message?.id?.let { enterSelectMode(it) }
-        } else if (action == MessageAction.Favorite) {
+        if (action == MessageAction.Favorite) {
             toolbarManager.state.value.message?.let { favoriteMessages(listOf(it)) }
         }
         toolbarManager.onAction(action)
@@ -265,13 +263,25 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     fun dismissToolbar() = toolbarManager.dismiss()
 
-    private fun quoteMessage(message: ChatMessage) {
+    fun quoteMessage(message: ChatMessage) {
         _pendingQuote.value = MessageQuote(
             messageId = message.id,
             senderId = message.senderId,
             messageType = message.content.toMessageType(),
             preview = message.content.quotePreview()
         )
+    }
+
+    fun forwardMessage(message: ChatMessage) {
+        if (!message.content.toMessageType().isForwardable) return
+        emit(MessageUiEvent.ForwardMessage(message.id))
+    }
+
+    fun forwardMessage(messageId: String, targetChatIds: Set<String>) {
+        viewModelScope.launch {
+            messageRepository.forwardMessages(setOf(messageId), targetChatIds)
+            context.showToast("已发送")
+        }
     }
 
     fun cancelQuote() {

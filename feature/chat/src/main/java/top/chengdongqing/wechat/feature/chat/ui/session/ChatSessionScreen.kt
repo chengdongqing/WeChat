@@ -492,11 +492,15 @@ private fun ChatSessionUiEventHandler(
     val dialog = rememberDialogState()
     var useMergedForward by remember { mutableStateOf(false) }
     var showForwardTypeDialog by remember { mutableStateOf(false) }
+    var singleForwardMessageId by remember { mutableStateOf<String?>(null) }
     val pickContact = LocalContactPickerLauncher.current.rememberLauncher { contacts ->
         dialog.show(resources.getString(R.string.msg_confirm_forward, contacts.size)) {
             val ids = contacts.map { it.id }.toSet()
-            if (useMergedForward) viewModel.forwardMergedMessages(ids)
+            val messageId = singleForwardMessageId
+            if (messageId != null) viewModel.forwardMessage(messageId, ids)
+            else if (useMergedForward) viewModel.forwardMergedMessages(ids)
             else viewModel.forwardMessages(ids)
+            singleForwardMessageId = null
         }
     }
 
@@ -532,7 +536,8 @@ private fun ChatSessionUiEventHandler(
                 ) { viewModel.saveSelectedMessageFiles() }
 
                 is MessageUiEvent.ForwardMessage -> {
-                    if (viewModel.uiState.value.selectedCount > 1) {
+                    singleForwardMessageId = event.messageId
+                    if (event.messageId == null && viewModel.uiState.value.selectedCount > 1) {
                         showForwardTypeDialog = true
                     } else {
                         useMergedForward = false
@@ -640,6 +645,7 @@ private fun ChatMessageList(
                 }
                 val phase = (displayMessage.id.hashCode() and 0xFF) / 255f * 6.28f
                 val shake = bombShakeTransform(bombProgress, phase)
+
                 MessageItem(
                     message = displayMessage,
                     albumMessages = albumMessages,
@@ -674,6 +680,8 @@ private fun ChatMessageList(
                             scope.launch { listState.animateScrollToItem(targetIndex) }
                         }
                     },
+                    onSwipeLeft = { viewModel.quoteMessage(displayMessage) },
+                    onSwipeRight = { viewModel.forwardMessage(displayMessage) },
                     onMessageClick = {
                         if (!uiState.isSelectMode) viewModel.handleMessageClick(displayMessage)
                         else viewModel.toggleMessageSelection(displayMessage.id)

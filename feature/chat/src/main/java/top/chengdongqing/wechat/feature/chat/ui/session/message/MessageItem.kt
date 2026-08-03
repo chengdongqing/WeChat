@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.message
 
+import androidx.compose.animation.core.animate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,12 +33,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
@@ -69,6 +73,8 @@ fun MessageItem(
     onTextSelectionBoundsChange: (Offset, Float) -> Unit = { _, _ -> },
     quoteSenderName: String = "",
     onQuoteClick: (String) -> Unit = {},
+    onSwipeLeft: () -> Unit = {},
+    onSwipeRight: () -> Unit = {},
     onMessageClick: () -> Unit = {},
     onMessageLongPress: (bubblePosition: Offset, bubbleHeight: Float) -> Unit = { _, _ -> }
 ) {
@@ -81,6 +87,15 @@ fun MessageItem(
     var bubbleHeight by remember { mutableFloatStateOf(0f) }
     var bubbleWidth by remember { mutableFloatStateOf(0f) }
     var voiceDragFraction by remember(message.id) { mutableFloatStateOf(0f) }
+    var swipeOffsetX by remember(message.id) { mutableFloatStateOf(0f) }
+    val swipeScope = rememberCoroutineScope()
+    val swipeThreshold = with(LocalDensity.current) { 64.dp.toPx() }
+    val maxSwipeOffset = with(LocalDensity.current) { 88.dp.toPx() }
+    val isVoiceSeeking = content is MessageContent.Voice &&
+            chatContext?.voicePlaybackState?.messageId == message.id
+    val swipeDragState = rememberDraggableState { delta ->
+        swipeOffsetX = (swipeOffsetX + delta).coerceIn(-maxSwipeOffset, maxSwipeOffset)
+    }
     val voiceDragState = rememberDraggableState { delta ->
         if (content is MessageContent.Voice && bubbleWidth > 0f) {
             voiceDragFraction = (voiceDragFraction + delta / bubbleWidth).coerceIn(0f, 1f)
@@ -122,7 +137,10 @@ fun MessageItem(
                         Spacer(modifier = Modifier.width(16.dp))
                     }
 
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        modifier = Modifier.graphicsLayer { translationX = swipeOffsetX },
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         /**
                          * 头像
                          */
@@ -169,6 +187,23 @@ fun MessageItem(
                                                 bubblePosition + Offset(bubbleWidth / 2f, 0f),
                                                 bubbleHeight
                                             )
+                                        }
+                                    )
+                                    .draggable(
+                                        state = swipeDragState,
+                                        orientation = Orientation.Horizontal,
+                                        enabled = !isSelectMode && !isVoiceSeeking,
+                                        onDragStopped = {
+                                            when {
+                                                swipeOffsetX <= -swipeThreshold -> onSwipeLeft()
+                                                swipeOffsetX >= swipeThreshold -> onSwipeRight()
+                                            }
+                                            val startOffset = swipeOffsetX
+                                            swipeScope.launch {
+                                                animate(startOffset, 0f) { value, _ ->
+                                                    swipeOffsetX = value
+                                                }
+                                            }
                                         }
                                     )
                                     .then(
