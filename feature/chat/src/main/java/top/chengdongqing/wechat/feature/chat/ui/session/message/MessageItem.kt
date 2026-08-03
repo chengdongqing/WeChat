@@ -3,6 +3,9 @@ package top.chengdongqing.wechat.feature.chat.ui.session.message
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.data.model.ChatMessage
+import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
@@ -70,11 +74,19 @@ fun MessageItem(
 ) {
     val isFromMe = message.isFromMe
     val content = message.content
+    val chatContext = LocalChatSessionContext.current
 
     /* 记录气泡在窗口中的位置和高度 */
     var bubblePosition by remember { mutableStateOf(Offset.Zero) }
     var bubbleHeight by remember { mutableFloatStateOf(0f) }
     var bubbleWidth by remember { mutableFloatStateOf(0f) }
+    var voiceDragFraction by remember(message.id) { mutableFloatStateOf(0f) }
+    val voiceDragState = rememberDraggableState { delta ->
+        if (content is MessageContent.Voice && bubbleWidth > 0f) {
+            voiceDragFraction = (voiceDragFraction + delta / bubbleWidth).coerceIn(0f, 1f)
+            chatContext?.onVoiceSeek(message.id, voiceDragFraction)
+        }
+    }
 
     Column(
         modifier = Modifier.graphicsLayer {
@@ -147,11 +159,34 @@ fun MessageItem(
                                     }
                                     .combinedClickable(
                                         onClick = onMessageClick,
+                                        onDoubleClick = {
+                                            if (content is MessageContent.Voice) {
+                                                chatContext?.onVoiceSpeedToggle(message.id)
+                                            }
+                                        },
                                         onLongClick = {
                                             onMessageLongPress(
                                                 bubblePosition + Offset(bubbleWidth / 2f, 0f),
                                                 bubbleHeight
                                             )
+                                        }
+                                    )
+                                    .then(
+                                        if (content is MessageContent.Voice) {
+                                            Modifier.draggable(
+                                                state = voiceDragState,
+                                                orientation = Orientation.Horizontal,
+                                                enabled = chatContext?.voicePlaybackState?.messageId == message.id,
+                                                onDragStarted = {
+                                                    voiceDragFraction = chatContext
+                                                        ?.voicePlaybackState
+                                                        ?.progress
+                                                        ?.coerceIn(0f, 1f)
+                                                        ?: 0f
+                                                }
+                                            )
+                                        } else {
+                                            Modifier
                                         }
                                     )
                             ) {

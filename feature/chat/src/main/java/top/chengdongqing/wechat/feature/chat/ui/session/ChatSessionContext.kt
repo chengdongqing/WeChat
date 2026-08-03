@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.feature.chat.ui.session.util.VoicePlaybackState
 
 /**
  * 聊天会话上下文
@@ -16,6 +17,9 @@ data class ChatSessionContext(
     val isSelf: Boolean,
     val isGroup: Boolean,
     val playingMessageId: String?,
+    val voicePlaybackState: VoicePlaybackState,
+    val onVoiceSeek: (String, Float) -> Unit,
+    val onVoiceSpeedToggle: (String) -> Unit,
     val onVoiceStop: () -> Unit,
     val onRetrySend: (messageId: String) -> Unit,
     val onNavigateToRequestAddFriend: () -> Unit,
@@ -45,14 +49,18 @@ fun rememberChatSessionContext(
 ): ChatSessionContext {
     val scope = rememberCoroutineScope()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
+    val voicePlaybackState by viewModel.voicePlaybackState.collectAsStateWithLifecycle()
     val liveLocationRoom by viewModel.liveLocationRoom.collectAsStateWithLifecycle()
 
-    return remember(playingMessageId, uiState.isSelf, liveLocationRoom) {
+    return remember(playingMessageId, voicePlaybackState, uiState.isSelf, liveLocationRoom) {
         ChatSessionContext(
             title = uiState.title,
             isSelf = uiState.isSelf == true,
             isGroup = viewModel.isGroupSession,
             playingMessageId = playingMessageId,
+            voicePlaybackState = voicePlaybackState,
+            onVoiceSeek = viewModel::seekVoice,
+            onVoiceSpeedToggle = viewModel::toggleVoiceSpeed,
             onVoiceStop = viewModel::stopVoice,
             onRetrySend = { viewModel.retrySend(it) },
             onNavigateToRequestAddFriend = {

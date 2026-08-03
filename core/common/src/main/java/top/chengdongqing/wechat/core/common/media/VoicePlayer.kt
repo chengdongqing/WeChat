@@ -5,6 +5,7 @@ import android.media.AudioAttributes
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.media.PlaybackParams
 import android.os.Build
 
 /**
@@ -13,6 +14,7 @@ import android.os.Build
  */
 class VoicePlayer(context: Context) {
     private var mediaPlayer: MediaPlayer? = null
+    private var isPrepared = false
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
     /**
@@ -20,6 +22,23 @@ class VoicePlayer(context: Context) {
      */
     private var savedAudioMode = AudioManager.MODE_NORMAL
     private var savedSpeakerState = false
+
+    val isPlaying: Boolean
+        get() = isPrepared && runCatching { mediaPlayer?.isPlaying == true }.getOrDefault(false)
+
+    val currentPosition: Int
+        get() = if (isPrepared) {
+            runCatching { mediaPlayer?.currentPosition ?: 0 }.getOrDefault(0)
+        } else {
+            0
+        }
+
+    val duration: Int
+        get() = if (isPrepared) {
+            runCatching { mediaPlayer?.duration ?: 0 }.getOrDefault(0)
+        } else {
+            0
+        }
 
     /**
      * 播放语音
@@ -31,9 +50,10 @@ class VoicePlayer(context: Context) {
     fun play(
         localPath: String,
         isSpeakerOn: Boolean,
+        speed: Float = 1f,
         onComplete: () -> Unit
     ) {
-        if (mediaPlayer?.isPlaying == true) {
+        if (mediaPlayer != null) {
             stop()
         }
 
@@ -48,13 +68,9 @@ class VoicePlayer(context: Context) {
          * 扬声器模式：MODE_NORMAL，使用外放
          * 听筒模式：MODE_IN_COMMUNICATION，使用听筒
          */
-        audioManager.mode = if (isSpeakerOn) {
-            AudioManager.MODE_NORMAL
-        } else {
-            AudioManager.MODE_IN_COMMUNICATION
-        }
-        setSpeakerphoneOn(isSpeakerOn)
+        setOutputMode(isSpeakerOn)
 
+        isPrepared = false
         mediaPlayer = MediaPlayer().apply {
             try {
                 setDataSource(localPath)
@@ -63,6 +79,7 @@ class VoicePlayer(context: Context) {
                  * 播放完成监听
                  */
                 setOnCompletionListener {
+                    isPrepared = false
                     onComplete()
                     stop()
                 }
@@ -71,6 +88,7 @@ class VoicePlayer(context: Context) {
                  * 错误监听
                  */
                 setOnErrorListener { _, _, _ ->
+                    isPrepared = false
                     onComplete()
                     stop()
                     true
@@ -100,7 +118,13 @@ class VoicePlayer(context: Context) {
                  */
                 prepareAsync()
                 setOnPreparedListener {
+                    isPrepared = true
                     start()
+                    if (speed != 1f) {
+                        runCatching {
+                            playbackParams = playbackParams.setSpeed(speed)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -109,17 +133,50 @@ class VoicePlayer(context: Context) {
         }
     }
 
+    fun pause() {
+        if (isPrepared) {
+            runCatching { if (mediaPlayer?.isPlaying == true) mediaPlayer?.pause() }
+        }
+    }
+
+    fun resume() {
+        if (isPrepared) runCatching { mediaPlayer?.start() }
+    }
+
+    fun seekTo(positionMs: Int) {
+        if (isPrepared) {
+            runCatching { mediaPlayer?.seekTo(positionMs.coerceIn(0, duration)) }
+        }
+    }
+
+    fun setSpeed(speed: Float) {
+        if (isPrepared) runCatching {
+            mediaPlayer?.playbackParams =
+                (mediaPlayer?.playbackParams ?: PlaybackParams()).setSpeed(speed)
+        }
+    }
+
+    /**
+     * 在不打断当前播放进度的情况下切换扬声器/听筒。
+     */
+    fun setOutputMode(isSpeakerOn: Boolean) {
+        audioManager.mode = if (isSpeakerOn) {
+            AudioManager.MODE_NORMAL
+        } else {
+            AudioManager.MODE_IN_COMMUNICATION
+        }
+        setSpeakerphoneOn(isSpeakerOn)
+    }
+
     /**
      * 设置扬声器开关
-     *
-     * @param on true-扬声器模式，false-听筒模式
      */
-    fun setSpeakerphoneOn(on: Boolean) {
+    fun setSpeakerphoneOn(isSpeakerOn: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             /**
              * Android 12+：使用新API设置音频设备
              */
-            val deviceType = if (on) {
+            val deviceType = if (isSpeakerOn) {
                 AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
             } else {
                 AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
@@ -138,7 +195,7 @@ class VoicePlayer(context: Context) {
              * Android 12以下：使用旧API
              */
             @Suppress("DEPRECATION")
-            audioManager.isSpeakerphoneOn = on
+            audioManager.isSpeakerphoneOn = isSpeakerOn
         }
     }
 
@@ -173,9 +230,11 @@ class VoicePlayer(context: Context) {
         /**
          * 释放MediaPlayer资源
          */
+        val canStop = isPrepared
+        isPrepared = false
         mediaPlayer?.run {
             try {
-                if (isPlaying) {
+                if (canStop && isPlaying) {
                     stop()
                 }
             } catch (_: Exception) {

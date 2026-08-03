@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -62,6 +63,10 @@ fun VoiceContent(message: ChatMessage) {
             chatContext?.playingMessageId == message.id
         }
     }
+    val playbackState = chatContext?.voicePlaybackState
+    val isCurrent = playbackState?.messageId == message.id
+    val playbackProgress = if (isCurrent) playbackState.progress.coerceIn(0f, 1f) else 0f
+    val isFast = isCurrent && playbackState.speed == 1.5f
 
     // 时长
     val durationText = remember(content.duration) {
@@ -77,6 +82,14 @@ fun VoiceContent(message: ChatMessage) {
         Row(
             modifier = Modifier
                 .width(targetWidth)
+                .drawBehind {
+                    if (playbackProgress > 0f) {
+                        drawRect(
+                            color = if (isFast) Color(0xFFFFD6D6) else Color(0xFFC6F7D0),
+                            size = size.copy(width = size.width * playbackProgress)
+                        )
+                    }
+                }
                 .padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically

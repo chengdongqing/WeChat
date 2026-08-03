@@ -78,7 +78,9 @@ import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MultiMessageAction
 import top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar.MessageToolbarManager
 import top.chengdongqing.wechat.feature.chat.ui.session.util.AudioPlaybackManager
+import top.chengdongqing.wechat.feature.chat.ui.session.util.VoicePlaybackState
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
@@ -146,6 +148,9 @@ class ChatSessionViewModel @AssistedInject constructor(
     /** 当前正在播放语音的消息 ID */
     private val _playingMessageId = MutableStateFlow<String?>(null)
     val playingMessageId = _playingMessageId.asStateFlow()
+
+    private val _voicePlaybackState = MutableStateFlow(VoicePlaybackState())
+    val voicePlaybackState = _voicePlaybackState.asStateFlow()
 
     /** 在新协程中发射 UI 事件，省去调用侧的样板代码 */
     private fun emit(event: MessageUiEvent) {
@@ -293,7 +298,10 @@ class ChatSessionViewModel @AssistedInject constructor(
         context = context,
         scope = viewModelScope,
         soundTipPlayer = soundTipPlayer,
-        onPlayingStateChanged = { _playingMessageId.value = it },
+        onPlaybackStateChanged = {
+            _voicePlaybackState.value = it
+            _playingMessageId.value = it.messageId.takeIf { _ -> it.isPlaying }
+        },
         onMessagePlayed = ::markAsPlayed
     )
 
@@ -307,12 +315,22 @@ class ChatSessionViewModel @AssistedInject constructor(
     }
 
     fun stopVoice() {
-        if (_playingMessageId.value != null) audioPlaybackManager.stop()
+        if (_voicePlaybackState.value.messageId != null) audioPlaybackManager.stop()
+    }
+
+    fun seekVoice(messageId: String, fraction: Float) {
+        audioPlaybackManager.seekTo(messageId, fraction)
+    }
+
+    fun toggleVoiceSpeed(messageId: String) {
+        audioPlaybackManager.toggleSpeed(messageId)
     }
 
     fun toggleSpeaker() {
+        val isSpeakerOn = !_uiState.value.isSpeakerOn
+        audioPlaybackManager.setSpeakerOn(isSpeakerOn)
         viewModelScope.launch {
-            chatSettingsRepository.toggleSpeaker(!_uiState.value.isSpeakerOn)
+            chatSettingsRepository.toggleSpeaker(isSpeakerOn)
         }
     }
 
@@ -484,7 +502,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                     )
                     isFirstWrite = false
                     if (!isFinal) {
-                        delay(AI_STREAM_PERSIST_INTERVAL_MS)
+                        delay(AI_STREAM_PERSIST_INTERVAL_MS.milliseconds)
                     }
                 }
             }
