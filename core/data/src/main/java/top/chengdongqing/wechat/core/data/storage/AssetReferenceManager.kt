@@ -15,7 +15,10 @@ import javax.inject.Singleton
 enum class AssetOwnerType {
     Message,
     Contact,
-    FriendRequest
+    FriendRequest,
+    ChatSession,
+    Sticker,
+    Music
 }
 
 data class AssetOwner(val type: AssetOwnerType, val id: String) {

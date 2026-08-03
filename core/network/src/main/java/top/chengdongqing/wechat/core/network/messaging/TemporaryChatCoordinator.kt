@@ -29,6 +29,7 @@ class TemporaryChatCoordinator @Inject constructor(
     private val packetSigner: PacketSigner,
     private val keyStoreManager: KeyStoreManager,
     private val avatarServer: AvatarServer,
+    private val temporaryAvatarStore: TemporaryAvatarStore,
     private val json: Json
 ) {
     suspend fun invite(receiverId: String, expiresAt: Long): Result<Unit> = runCatching {
@@ -70,6 +71,9 @@ class TemporaryChatCoordinator @Inject constructor(
         if (existing != null && !existing.isTemporary && contactRepository.exists(invite.senderId)) {
             return
         }
+        val localAvatar = runCatching {
+            temporaryAvatarStore.persist(invite.senderId, invite.avatarUrl)
+        }.getOrNull()
 
         if (existing == null) {
             chatSessionDao.insert(
@@ -77,7 +81,7 @@ class TemporaryChatCoordinator @Inject constructor(
                     id = invite.senderId,
                     contactId = invite.senderId,
                     contactName = invite.nickname.take(MAX_NICKNAME_LENGTH),
-                    contactAvatar = invite.avatarUrl,
+                    contactAvatar = localAvatar ?: invite.avatarUrl,
                     lastMessageId = invite.messageId,
                     lastMessage = INVITATION_PREVIEW,
                     lastMessageType = MessageType.Text,
@@ -93,7 +97,7 @@ class TemporaryChatCoordinator @Inject constructor(
             chatSessionDao.update(
                 existing.copy(
                     contactName = invite.nickname.take(MAX_NICKNAME_LENGTH),
-                    contactAvatar = invite.avatarUrl ?: existing.contactAvatar,
+                    contactAvatar = localAvatar ?: invite.avatarUrl ?: existing.contactAvatar,
                     lastMessageId = invite.messageId,
                     lastMessage = INVITATION_PREVIEW,
                     lastMessageType = MessageType.Text,

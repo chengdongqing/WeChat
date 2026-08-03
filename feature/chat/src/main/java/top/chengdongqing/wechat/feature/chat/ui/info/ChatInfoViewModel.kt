@@ -38,6 +38,7 @@ data class ChatInfoUiState(
     /** 会话设置 */
     val isMuted: Boolean = false,
     val isPinned: Boolean = false,
+    val isBottomed: Boolean = false,
     val backgroundPath: String? = null,
     val isTemporary: Boolean = false,
     val expiresAt: Long? = null,
@@ -130,6 +131,7 @@ class ChatInfoViewModel @AssistedInject constructor(
             contactAvatar = finalContact?.avatarPath ?: session.contactAvatar,
             isMuted = session.isMuted,
             isPinned = session.isPinned,
+            isBottomed = session.isBottomed,
             backgroundPath = session.backgroundPath,
             isTemporary = session.isTemporary,
             expiresAt = session.expiresAt,
@@ -154,6 +156,12 @@ class ChatInfoViewModel @AssistedInject constructor(
     fun togglePinned() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.togglePin(chatId, !uiState.value.isPinned)
+        }
+    }
+
+    fun toggleBottomed() {
+        viewModelScope.launch(Dispatchers.IO) {
+            chatSessionRepository.toggleBottom(chatId, !uiState.value.isBottomed)
         }
     }
 

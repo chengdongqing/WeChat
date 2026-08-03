@@ -6,14 +6,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.MusicTrack
-import top.chengdongqing.wechat.core.database.dao.MessageDao
-import java.io.File
+import top.chengdongqing.wechat.feature.chat.data.store.MusicLibraryStore
 import javax.inject.Inject
 
 @HiltViewModel
 class MusicLibraryViewModel @Inject constructor(
-    private val messageDao: MessageDao
+    private val store: MusicLibraryStore
 ) : ViewModel() {
+
+    fun addFiles(track: MusicTrack) {
+        viewModelScope.launch(Dispatchers.IO) { store.add(track) }
+    }
 
     /**
      * 曲库只拥有自己的文件入口。历史消息仍引用音频时不能物理删除；
@@ -21,10 +24,7 @@ class MusicLibraryViewModel @Inject constructor(
      */
     fun deleteFiles(track: MusicTrack) {
         viewModelScope.launch(Dispatchers.IO) {
-            track.coverPath?.let { File(it).delete() }
-            track.audioPath?.let { path ->
-                if (!messageDao.hasLocalPathReference(path)) File(path).delete()
-            }
+            store.delete(track)
         }
     }
 }

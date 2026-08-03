@@ -108,6 +108,7 @@ fun MusicOverlay(
             if (audioUri != null && coverUri != null) {
                 runCatching { importLocalMusic(context, audioUri, coverUri) }
                     .onSuccess {
+                        libraryViewModel.addFiles(it)
                         localMusic = localMusic + it
                         saveLocalMusic(context, localMusic)
                         musicOrder = musicOrder + it.id
@@ -311,7 +312,9 @@ private fun MusicManagePopover(
                         modifier = Modifier.size(52.dp),
                         contentScale = ContentScale.Crop
                     )
-                    Column(Modifier.padding(start = 10.dp).weight(1f)) {
+                    Column(Modifier
+                        .padding(start = 10.dp)
+                        .weight(1f)) {
                         Text(music.title, color = WeTheme.colorScheme.textPrimary, fontSize = 14.sp)
                         Text(music.artist, color = WeTheme.colorScheme.textSecondary, fontSize = 12.sp)
                     }

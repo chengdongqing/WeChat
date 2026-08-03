@@ -130,6 +130,14 @@ fun ChatInfoScreen(
                     }
                 }
                 WeSettingItem(
+                    label = stringResource(R.string.chat_info_bottom),
+                    showArrow = false
+                ) {
+                    WeSwitch(checked = uiState.isBottomed) {
+                        viewModel.toggleBottomed()
+                    }
+                }
+                WeSettingItem(
                     label = stringResource(R.string.chat_info_remind),
                     showArrow = false,
                     showDivider = false

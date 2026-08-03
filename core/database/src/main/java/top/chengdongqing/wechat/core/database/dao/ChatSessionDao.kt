@@ -10,7 +10,7 @@ import top.chengdongqing.wechat.core.model.MessageType
 @Dao
 interface ChatSessionDao : BaseDao<ChatSessionEntity> {
 
-    @Query("SELECT * FROM chat_sessions WHERE isHidden = 0 ORDER BY isPinned DESC, lastMessageTime DESC")
+    @Query("SELECT * FROM chat_sessions WHERE isHidden = 0 ORDER BY isPinned DESC, isBottomed ASC, lastMessageTime DESC")
     fun observeAll(): Flow<List<ChatSessionEntity>>
 
     @Query("SELECT * FROM chat_sessions WHERE id = :sessionId")

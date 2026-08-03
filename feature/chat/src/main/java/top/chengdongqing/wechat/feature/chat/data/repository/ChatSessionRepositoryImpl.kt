@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
+import top.chengdongqing.wechat.core.data.storage.AssetOwner
 import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
 import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
@@ -14,10 +15,13 @@ import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.model.ChatSession
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.network.messaging.ChunkStorageManager
 import top.chengdongqing.wechat.core.util.getOrPutAsync
 import top.chengdongqing.wechat.feature.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.feature.chat.data.mapper.toEntity
+import top.chengdongqing.wechat.feature.chat.data.store.MusicLibraryStore
+import top.chengdongqing.wechat.feature.chat.data.store.StickerStore
 import javax.inject.Inject
 
 class ChatSessionRepositoryImpl @Inject constructor(
@@ -26,7 +30,9 @@ class ChatSessionRepositoryImpl @Inject constructor(
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
     private val assetReferenceManager: AssetReferenceManager,
-    private val chunkStorageManager: ChunkStorageManager
+    private val chunkStorageManager: ChunkStorageManager,
+    private val stickerStore: StickerStore,
+    private val musicLibraryStore: MusicLibraryStore
 ) : ChatSessionRepository {
 
     // 会话缓存
@@ -91,7 +97,20 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
     override suspend fun togglePin(sessionId: String, isPinned: Boolean) {
         chatSessionDao.update(sessionId) { session ->
-            session.copy(isPinned = isPinned)
+            session.copy(
+                isPinned = isPinned,
+                isBottomed = if (isPinned) false else session.isBottomed
+            )
+        }
+        sessionCache.remove(sessionId)
+    }
+
+    override suspend fun toggleBottom(sessionId: String, isBottomed: Boolean) {
+        chatSessionDao.update(sessionId) { session ->
+            session.copy(
+                isBottomed = isBottomed,
+                isPinned = if (isBottomed) false else session.isPinned
+            )
         }
         sessionCache.remove(sessionId)
     }
@@ -116,7 +135,8 @@ class ChatSessionRepositoryImpl @Inject constructor(
                 isTemporary = expiresAt != null,
                 expiresAt = expiresAt,
                 temporaryPeerPublicKey = if (expiresAt == null) null else session.temporaryPeerPublicKey,
-                isPinned = if (expiresAt != null) false else session.isPinned
+                isPinned = if (expiresAt != null) false else session.isPinned,
+                isBottomed = if (expiresAt != null) false else session.isBottomed
             )
         }
         sessionCache.remove(sessionId)
@@ -138,8 +158,11 @@ class ChatSessionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteSession(sessionId: String, shouldHide: Boolean) {
+        val wasTemporary = chatSessionDao.getById(sessionId)?.isTemporary == true
         // 查询当前会话所有的媒体文件，方便统一删除
         val messageIds = messageDao.getIdsBySessionId(sessionId)
+        messageDao.getByIds(messageIds.toSet())
+            .forEach { preserveLibraryAsset(it.contentType, it.localPath) }
         val transferIds = messageDao.getTransferRelatedIdsBySessionId(sessionId)
 
         // 删除会话，不真正删除这条记录，目的是保留 置顶/免到扰 等设置
@@ -150,6 +173,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
                 hideSession(sessionId)
                 chatSessionDao.update(sessionId) { session ->
                     session.copy(
+                        contactAvatar = if (wasTemporary) null else session.contactAvatar,
                         isTemporary = false,
                         expiresAt = null,
                         temporaryPeerPublicKey = null
@@ -161,6 +185,9 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
         // 清理可能存在的本地文件
         assetReferenceManager.detachAll(AssetOwnerType.Message, messageIds)
+        if (shouldHide) {
+            assetReferenceManager.detach(AssetOwner(AssetOwnerType.ChatSession, sessionId))
+        }
 
         // 清理可能存在的文件分片
         chunkStorageManager.cleanupBatch(transferIds)
@@ -172,6 +199,8 @@ class ChatSessionRepositoryImpl @Inject constructor(
     override suspend fun deleteAllSessions() {
         // 查询所有会话的媒体文件路径
         val messageIds = messageDao.getAllIds()
+        messageDao.getByIds(messageIds.toSet())
+            .forEach { preserveLibraryAsset(it.contentType, it.localPath) }
 
         // 清空所有消息 + 隐藏所有会话（保留置顶/免打扰等设置）
         database.withWriteTransaction {
@@ -204,5 +233,13 @@ class ChatSessionRepositoryImpl @Inject constructor(
 
     override suspend fun preload() {
         observeAllSessions().firstOrNull()
+    }
+
+    private suspend fun preserveLibraryAsset(type: MessageType, path: String?) {
+        when (type) {
+            MessageType.Sticker -> stickerStore.preserveIfManaged(path)
+            MessageType.Music -> musicLibraryStore.preserveIfManaged(path)
+            else -> Unit
+        }
     }
 }

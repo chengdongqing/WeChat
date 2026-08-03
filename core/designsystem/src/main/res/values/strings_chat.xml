@@ -73,6 +73,7 @@
     <string name="chat_info_search">查找聊天记录</string>
     <string name="chat_info_mute">消息免打扰</string>
     <string name="chat_info_pin">置顶聊天</string>
+    <string name="chat_info_bottom">置底聊天</string>
     <string name="chat_info_temporary">临时聊天</string>
     <string name="chat_temporary_badge">临时</string>
     <string name="chat_info_temporary_idle_description">停止互动24小时后自动清理聊天记录</string>

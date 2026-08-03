@@ -19,6 +19,7 @@ data class ChatSession(
     val unreadCount: Int = 0,
     val isSending: Boolean = false,
     val isPinned: Boolean = false,
+    val isBottomed: Boolean = false,
     val isMuted: Boolean = false,
     val isHidden: Boolean = false,
     val isTemporary: Boolean = false,

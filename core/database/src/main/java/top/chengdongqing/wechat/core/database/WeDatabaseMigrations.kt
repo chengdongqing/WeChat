@@ -181,9 +181,17 @@ object WeDatabaseMigrations {
         }
     }
 
+    private val migration9To10 = object : Migration(9, 10) {
+        override suspend fun migrate(connection: SQLiteConnection) {
+            connection.execSQL(
+                "ALTER TABLE `chat_sessions` ADD COLUMN `isBottomed` INTEGER NOT NULL DEFAULT 0"
+            )
+        }
+    }
+
     val all: Array<Migration> =
         arrayOf(
             migration1To2, migration2To3, migration3To4, migration4To5,
-            migration5To6, migration6To7, migration7To8, migration8To9
+            migration5To6, migration6To7, migration7To8, migration8To9, migration9To10
         )
 }

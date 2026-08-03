@@ -90,7 +90,7 @@ fun ChatListScreen(
                 )
                 Box(
                     modifier = Modifier.background(
-                        if (chat.isPinned) {
+                        if (chat.isPinned || chat.isBottomed) {
                             WeTheme.colorScheme.background
                         } else {
                             WeTheme.colorScheme.surface
@@ -136,7 +136,11 @@ private fun ChatListItem(
     Box(
         modifier = modifier
             .background(
-                if (chat.isPinned) WeTheme.colorScheme.background else WeTheme.colorScheme.surface
+                if (chat.isPinned || chat.isBottomed) {
+                    WeTheme.colorScheme.background
+                } else {
+                    WeTheme.colorScheme.surface
+                }
             )
             .weContextMenu(
                 onClick = { onNavigateToDetail(chat.id) },

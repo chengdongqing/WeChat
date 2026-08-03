@@ -109,7 +109,7 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
 
         MessageType.Sticker ->
             MessageContent.Sticker(
-                localPath = localPath!!
+                localPath = localPath ?: ""
             )
 
         MessageType.Location -> {

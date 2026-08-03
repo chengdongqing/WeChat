@@ -14,6 +14,7 @@ interface ChatSessionRepository {
     suspend fun markAsUnread(sessionId: String)
     suspend fun updateDraft(sessionId: String, draft: String?)
     suspend fun togglePin(sessionId: String, isPinned: Boolean)
+    suspend fun toggleBottom(sessionId: String, isBottomed: Boolean)
     suspend fun toggleMute(sessionId: String, isMuted: Boolean)
     suspend fun updateBackground(sessionId: String, backgroundPath: String?)
     suspend fun setTemporary(sessionId: String, expiresAt: Long?)

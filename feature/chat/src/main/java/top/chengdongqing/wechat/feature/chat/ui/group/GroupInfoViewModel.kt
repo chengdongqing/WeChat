@@ -42,6 +42,7 @@ data class GroupInfoUiState(
     val canManageMembers: Boolean = false,
     val isMuted: Boolean = false,
     val isPinned: Boolean = false,
+    val isBottomed: Boolean = false,
     val isFolded: Boolean = false,
     val saveToContacts: Boolean = true,
     val showMemberNicknames: Boolean = true,
@@ -90,6 +91,7 @@ class GroupInfoViewModel @AssistedInject constructor(
             },
             isMuted = session?.isMuted == true,
             isPinned = session?.isPinned == true,
+            isBottomed = session?.isBottomed == true,
             isFolded = group?.isFolded == true,
             saveToContacts = group?.savedToContacts != false,
             showMemberNicknames = group?.showMemberNicknames != false,
@@ -164,6 +166,10 @@ class GroupInfoViewModel @AssistedInject constructor(
 
     fun setPinned(value: Boolean) {
         viewModelScope.launch(Dispatchers.IO) { chatSessionRepository.togglePin(groupId, value) }
+    }
+
+    fun setBottomed(value: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) { chatSessionRepository.toggleBottom(groupId, value) }
     }
 
     fun updateBackground(uri: Uri?) {

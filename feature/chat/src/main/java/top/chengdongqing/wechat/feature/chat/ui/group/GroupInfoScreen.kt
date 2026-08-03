@@ -147,6 +147,9 @@ fun GroupInfoScreen(
                 WeSettingItem("置顶聊天", showArrow = false) {
                     WeSwitch(state.isPinned, onChange = viewModel::setPinned)
                 }
+                WeSettingItem("置底聊天", showArrow = false) {
+                    WeSwitch(state.isBottomed, onChange = viewModel::setBottomed)
+                }
                 WeSettingItem("保存到通讯录", showArrow = false, showDivider = false) {
                     WeSwitch(state.saveToContacts, onChange = viewModel::setSaveToContacts)
                 }

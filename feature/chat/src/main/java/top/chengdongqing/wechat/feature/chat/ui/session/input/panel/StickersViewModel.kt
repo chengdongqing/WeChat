@@ -11,7 +11,6 @@ import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.data.store.ManagedSticker
 import top.chengdongqing.wechat.feature.chat.data.store.StickerStore
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +34,5 @@ class StickersViewModel @Inject constructor(
 
     fun delete(sticker: ManagedSticker) = viewModelScope.launch {
         store.delete(sticker)
-        if (!sticker.isAsset) File(sticker.path).delete()
     }
 }

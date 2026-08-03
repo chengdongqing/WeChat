@@ -26,6 +26,7 @@ data class ChatSessionEntity(
 
     val isSending: Boolean = false,     // 是否发送中
     val isPinned: Boolean = false,      // 是否置顶
+    val isBottomed: Boolean = false,    // 是否置底
     val isMuted: Boolean = false,       // 是否免打扰
     val isHidden: Boolean = false,      // 是否隐藏
     val isTemporary: Boolean = false,   // 是否为临时聊天

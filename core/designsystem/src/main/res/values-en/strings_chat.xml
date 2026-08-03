@@ -73,6 +73,7 @@
     <string name="chat_info_search">Search Chat History</string>
     <string name="chat_info_mute">Mute Notifications</string>
     <string name="chat_info_pin">Sticky on Top</string>
+    <string name="chat_info_bottom">Keep at Bottom</string>
     <string name="chat_info_temporary">Temporary Chat</string>
     <string name="chat_temporary_badge">Temporary</string>
     <string name="chat_info_temporary_idle_description">Messages are cleared after 24 hours without activity</string>

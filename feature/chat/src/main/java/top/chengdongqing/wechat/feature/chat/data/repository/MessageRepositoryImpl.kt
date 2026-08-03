@@ -57,6 +57,8 @@ import top.chengdongqing.wechat.feature.chat.data.createChatHistoryArchive
 import top.chengdongqing.wechat.feature.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.feature.chat.data.mapper.toDomain
 import top.chengdongqing.wechat.feature.chat.data.mapper.toEntity
+import top.chengdongqing.wechat.feature.chat.data.store.MusicLibraryStore
+import top.chengdongqing.wechat.feature.chat.data.store.StickerStore
 import java.io.File
 import javax.inject.Inject
 
@@ -76,6 +78,8 @@ class MessageRepositoryImpl @Inject constructor(
     private val transferManager: TransferManager,
     private val chunkStorageManager: ChunkStorageManager,
     private val notificationSettingsRepository: NotificationSettingsRepository,
+    private val stickerStore: StickerStore,
+    private val musicLibraryStore: MusicLibraryStore,
     private val json: Json,
     @param:ApplicationContext private val context: Context,
     @param:IoScope private val scope: CoroutineScope
@@ -368,6 +372,7 @@ class MessageRepositoryImpl @Inject constructor(
 
         // 删除关联的媒体文件
         message?.let {
+            preserveLibraryAsset(it)
             assetReferenceManager.detach(AssetOwner(AssetOwnerType.Message, it.id))
         }
 
@@ -410,6 +415,7 @@ class MessageRepositoryImpl @Inject constructor(
         }
 
         // 删除可能存在的媒体文件
+        preserveLibraryAsset(message)
         assetReferenceManager.detach(AssetOwner(AssetOwnerType.Message, message.id))
 
         // 清理可能存在的分片
@@ -429,6 +435,8 @@ class MessageRepositoryImpl @Inject constructor(
 
     override suspend fun deleteMessages(ids: Set<String>, sessionId: String) =
         withContext(Dispatchers.IO) {
+            messageDao.getByIds(ids)
+                .forEach { preserveLibraryAsset(it) }
             database.withWriteTransaction {
                 // 批量删除消息记录
                 messageDao.deleteByIds(ids)
@@ -442,6 +450,14 @@ class MessageRepositoryImpl @Inject constructor(
             // 清理可能存在的分片
             ids.forEach { chunkStorageManager.cleanup(it) }
         }
+
+    private suspend fun preserveLibraryAsset(message: MessageEntity) {
+        when (message.contentType) {
+            MessageType.Sticker -> stickerStore.preserveIfManaged(message.localPath)
+            MessageType.Music -> musicLibraryStore.preserveIfManaged(message.localPath)
+            else -> Unit
+        }
+    }
 
     override suspend fun forwardMessages(
         ids: Set<String>,
