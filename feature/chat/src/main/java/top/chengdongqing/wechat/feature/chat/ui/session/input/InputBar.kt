@@ -64,6 +64,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.input.text.SpeechInputBu
 import top.chengdongqing.wechat.feature.chat.ui.session.input.voice.VoiceRecordButton
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.feature.chat.ui.session.util.ScrollToDismissEffect
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 聊天输入栏
@@ -120,7 +121,7 @@ fun InputBar(
     LaunchedEffect(uiState.draftMessage) {
         uiState.draftMessage?.let {
             controller.updateText(it)
-            delay(500)
+            delay(500.milliseconds)
             // 自动弹出键盘
             focusRequester.requestFocus()
         }

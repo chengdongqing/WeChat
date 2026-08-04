@@ -20,6 +20,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberLo
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberLocationLauncher
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberMediaHandler
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberMediaLaunchers
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 输入栏 Actions 组装入口
@@ -102,7 +103,7 @@ fun rememberInputBarActions(
             onSwitchToText = {
                 controller.switchToTextMode()
                 scope.launch {
-                    delay(50)
+                    delay(50.milliseconds)
                     controller.focusRequester.requestFocus()
                 }
             },

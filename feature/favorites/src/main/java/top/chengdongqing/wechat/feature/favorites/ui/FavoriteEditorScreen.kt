@@ -81,6 +81,7 @@ import top.chengdongqing.wechat.core.location.preview.previewLocation
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.feature.favorites.model.FavoriteAttachment
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 private val WeGreen = Color(0xFF07C160)
 private val CardBackground = Color(0xFFF7F7F7)
@@ -643,7 +644,7 @@ private fun AudioCard(attachment: FavoriteAttachment) {
     LaunchedEffect(playing) {
         while (playing) {
             position = player?.currentPosition?.toLong() ?: 0
-            delay(100)
+            delay(100.milliseconds)
         }
     }
     Row(
@@ -710,7 +711,7 @@ private fun RecordingCard(startedAt: Long, onFinish: () -> Unit) {
     LaunchedEffect(startedAt) {
         while (true) {
             elapsed = System.currentTimeMillis() - startedAt
-            delay(200)
+            delay(200.milliseconds)
         }
     }
     Row(

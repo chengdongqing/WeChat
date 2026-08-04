@@ -23,6 +23,7 @@ import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLaunc
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.model.MessageType
 import java.util.UUID
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 媒体处理器
@@ -113,14 +114,18 @@ class MediaHandler(
                     albumSize = if (albumId != null) uris.size else 1,
                     original = original
                 )
-                if (index < uris.lastIndex) delay(50)
+                if (index < uris.lastIndex) {
+                    delay(50.milliseconds)
+                }
             }
         }
     }
 
     fun handleCameraCapture(uri: Uri?) {
         uri?.let {
-            scope.launch { processAndSend(uri, isFromCapture = true) }
+            scope.launch {
+                processAndSend(uri, isFromCapture = true)
+            }
         }
     }
 }
@@ -160,7 +165,7 @@ fun rememberMediaLaunchers(
     val launchMediaPicker =
         rememberPickMediasLauncher(enableMerge = true) { items, merge, original ->
             mediaHandler.handleMediaSelection(items.map { it.uri }, merge, original)
-    }
+        }
 
     // 系统媒体选择器
     val launchSystemMediaPicker = rememberLauncherForActivityResult(
@@ -178,14 +183,18 @@ fun rememberMediaLaunchers(
     val takePicture = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success) mediaHandler.handleCameraCapture(capturedUri)
+        if (success) {
+            mediaHandler.handleCameraCapture(capturedUri)
+        }
     }
 
     // 系统录像启动器
     val captureVideo = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CaptureVideo()
     ) { success ->
-        if (success) mediaHandler.handleCameraCapture(capturedUri)
+        if (success) {
+            mediaHandler.handleCameraCapture(capturedUri)
+        }
     }
 
     return remember(launchMediaPicker, launchCamera, takePicture, captureVideo) {

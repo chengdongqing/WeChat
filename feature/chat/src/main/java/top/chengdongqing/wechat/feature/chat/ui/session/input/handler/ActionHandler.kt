@@ -25,6 +25,7 @@ import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.MoreAction
 import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 更多面板操作路由表
@@ -178,7 +179,7 @@ fun rememberActionHandler(
                 )
 
                 scope.launch {
-                    delay(500)
+                    delay(500.milliseconds)
 
                     val tempFile = File.createTempFile("Dotation_", ".jpg")
                     // 获取表情URI
