@@ -341,10 +341,11 @@ class ChatSessionViewModel @AssistedInject constructor(
         onMessagePlayed = ::markAsPlayed
     )
 
-    fun toggleVoicePlay(messageId: String, localPath: String) {
+    fun toggleVoicePlay(messageId: String, localPath: String, durationMs: Long) {
         audioPlaybackManager.togglePlay(
             messageId = messageId,
             localPath = localPath,
+            expectedDurationMs = durationMs,
             messages = messages.value.filter { it.content is MessageContent.Voice },
             isSpeakerOn = _uiState.value.isSpeakerOn
         )
@@ -743,7 +744,11 @@ class ChatSessionViewModel @AssistedInject constructor(
             is MessageContent.Image,
             is MessageContent.Video -> if (content.localPath.isNotBlank()) openMediaPreview(message)
 
-            is MessageContent.Voice -> toggleVoicePlay(message.id, content.localPath)
+            is MessageContent.Voice -> toggleVoicePlay(
+                message.id,
+                content.localPath,
+                content.duration
+            )
             is MessageContent.File -> emit(MessageUiEvent.PreviewFile(message.id))
             is MessageContent.Music -> emit(
                 MessageUiEvent.PreviewMusic(message.id, Json.encodeToString(content.music))

@@ -32,6 +32,7 @@ class AudioRecorderManager @Inject constructor(
 
     private var trackIndex = -1
     private var muxerStarted = false
+    private var encodedPcmFrames = 0L
 
     @Volatile
     private var isRecording = false
@@ -96,6 +97,7 @@ class AudioRecorderManager @Inject constructor(
             isRecording = true
             muxerStarted = false
             trackIndex = -1
+            encodedPcmFrames = 0L
 
             startRecordingThread()
             Log.i(TAG, "开始录音: ${currentFile?.name}")
@@ -146,11 +148,13 @@ class AudioRecorderManager @Inject constructor(
         runCatching {
             val inputIndex = codec.dequeueInputBuffer(10000)
             if (inputIndex >= 0) {
+                val presentationTimeUs = encodedPcmFrames * 1_000_000L / SAMPLE_RATE
                 codec.getInputBuffer(inputIndex)?.apply {
                     clear()
                     asShortBuffer().put(data, 0, size) // 批量操作性能更优
-                    codec.queueInputBuffer(inputIndex, 0, size * 2, System.nanoTime() / 1000, 0)
+                    codec.queueInputBuffer(inputIndex, 0, size * 2, presentationTimeUs, 0)
                 }
+                encodedPcmFrames += size
             }
         }
 
@@ -243,7 +247,14 @@ class AudioRecorderManager @Inject constructor(
             // 发送 EOS 信号
             val inputIndex = codec.dequeueInputBuffer(1000)
             if (inputIndex >= 0) {
-                codec.queueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                val presentationTimeUs = encodedPcmFrames * 1_000_000L / SAMPLE_RATE
+                codec.queueInputBuffer(
+                    inputIndex,
+                    0,
+                    0,
+                    presentationTimeUs,
+                    MediaCodec.BUFFER_FLAG_END_OF_STREAM
+                )
             }
             // 循环拉取直到收到 EOS 标记
             var eosReceived = false
@@ -291,5 +302,6 @@ class AudioRecorderManager @Inject constructor(
         recordingThread = null
         trackIndex = -1
         muxerStarted = false
+        encodedPcmFrames = 0L
     }
 }

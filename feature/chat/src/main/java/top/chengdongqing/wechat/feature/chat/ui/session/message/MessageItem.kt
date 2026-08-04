@@ -7,6 +7,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,6 +64,7 @@ fun MessageItem(
     myAvatar: Any? = null,
     isSelectMode: Boolean = false,
     isMessageSelected: Boolean = false,
+    isToolbarHighlighted: Boolean = false,
     shakeOffsetX: Float = 0f,
     shakeOffsetY: Float = 0f,
     shakeRotation: Float = 0f,
@@ -89,6 +91,7 @@ fun MessageItem(
     var voiceDragFraction by remember(message.id) { mutableFloatStateOf(0f) }
     var swipeOffsetX by remember(message.id) { mutableFloatStateOf(0f) }
     val swipeScope = rememberCoroutineScope()
+    val bubbleInteractionSource = remember { MutableInteractionSource() }
     val swipeThreshold = with(LocalDensity.current) { 64.dp.toPx() }
     val maxSwipeOffset = with(LocalDensity.current) { 88.dp.toPx() }
     val isVoiceSeeking = content is MessageContent.Voice &&
@@ -164,6 +167,7 @@ fun MessageItem(
                              */
                             ChatBubble(
                                 isFromMe = isFromMe,
+                                isPressed = isToolbarHighlighted,
                                 showArrow = content.showBubbleArrow,
                                 showDot = content.showUnreadDot && !isFromMe,
                                 isSelectMode = isSelectMode,
@@ -176,6 +180,8 @@ fun MessageItem(
                                         bubbleHeight = coordinates.size.height.toFloat()
                                     }
                                     .combinedClickable(
+                                        interactionSource = bubbleInteractionSource,
+                                        indication = null,
                                         onClick = onMessageClick,
                                         onDoubleClick = {
                                             if (content is MessageContent.Voice) {

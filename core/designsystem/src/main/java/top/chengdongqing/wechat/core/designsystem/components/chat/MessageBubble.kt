@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.core.designsystem.components.chat
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,6 +44,7 @@ fun WeMessageBubble(
     isFromMe: Boolean,
     color: Color,
     modifier: Modifier = Modifier,
+    isPressed: Boolean = false,
     maxWidth: Dp = LocalWindowInfo.current.containerDpSize.width - 124.dp,
     showArrow: Boolean = true,
     content: @Composable () -> Unit
@@ -51,9 +54,24 @@ fun WeMessageBubble(
         shape = RoundedCornerShape(4.dp),
         modifier = modifier
             .widthIn(max = maxWidth)
-            .then(if (showArrow) Modifier.drawMessageBubbleArrow(isFromMe, color) else Modifier)
+            .then(
+                if (showArrow) {
+                    Modifier.drawMessageBubbleArrow(isFromMe, color, isPressed)
+                } else {
+                    Modifier
+                }
+            )
     ) {
-        content()
+        Box {
+            content()
+            if (isPressed) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = 0.1f))
+                )
+            }
+        }
     }
 }
 
@@ -89,7 +107,10 @@ fun TextMessagePreviewItem(
             verticalAlignment = Alignment.Top
         ) {
             if (!isFromMe) MessagePreviewAvatar(peerAvatar)
-            WeMessageBubble(isFromMe = isFromMe, color = bubbleColor) {
+            WeMessageBubble(
+                isFromMe = isFromMe,
+                color = bubbleColor
+            ) {
                 WeMessageText(
                     text = AnnotatedString(text),
                     modifier = Modifier.padding(10.dp),
@@ -137,6 +158,7 @@ private fun MessagePreviewAvatar(model: Any?) {
 private fun Modifier.drawMessageBubbleArrow(
     isFromMe: Boolean,
     color: Color,
+    isPressed: Boolean,
     arrowSize: Dp = 8.dp,
     verticalOffset: Dp = 16.dp
 ): Modifier = drawWithCache {
@@ -154,6 +176,14 @@ private fun Modifier.drawMessageBubbleArrow(
                 size = Size(sizePx, sizePx),
                 cornerRadius = CornerRadius(1.5.dp.toPx())
             )
+            if (isPressed) {
+                drawRoundRect(
+                    color = Color.Black.copy(alpha = 0.1f),
+                    topLeft = topLeft,
+                    size = Size(sizePx, sizePx),
+                    cornerRadius = CornerRadius(1.5.dp.toPx())
+                )
+            }
         }
     }
 }

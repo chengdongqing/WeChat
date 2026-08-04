@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.util
 
 import android.content.Context
+import android.os.SystemClock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -28,26 +29,33 @@ class AudioPlaybackManager(
     private val voicePlayer = VoicePlayer(context)
 
     private var currentPlayingId: String? = null
+    private var currentExpectedDurationMs = 0
+    private var logicalPositionMs = 0f
+    private var lastProgressUpdateMs = 0L
     private var progressJob: Job? = null
     private var speed = 1f
 
     fun togglePlay(
         messageId: String,
         localPath: String,
+        expectedDurationMs: Long,
         messages: List<ChatMessage>,
         isSpeakerOn: Boolean
     ) {
         if (currentPlayingId == messageId) {
             if (voicePlayer.isPlaying) {
+                updateLogicalPosition(isPlaying = true)
                 voicePlayer.pause()
             } else {
                 voicePlayer.resume()
             }
+            lastProgressUpdateMs = SystemClock.elapsedRealtime()
             publishState()
         } else {
             startPlaying(
                 messageId = messageId,
                 localPath = localPath,
+                expectedDurationMs = expectedDurationMs,
                 messages = messages,
                 isSpeakerOn = isSpeakerOn,
                 isContinuous = false
@@ -61,20 +69,28 @@ class AudioPlaybackManager(
         voicePlayer.stop()
         audioFocusManager.abandonFocus()
         currentPlayingId = null
+        currentExpectedDurationMs = 0
+        logicalPositionMs = 0f
+        lastProgressUpdateMs = 0L
         speed = 1f
         onPlaybackStateChanged(VoicePlaybackState())
     }
 
     fun seekTo(messageId: String, fraction: Float) {
         if (currentPlayingId != messageId) return
-        voicePlayer.seekTo((voicePlayer.duration * fraction.coerceIn(0f, 1f)).toInt())
+        val safeFraction = fraction.coerceIn(0f, 1f)
+        logicalPositionMs = currentExpectedDurationMs * safeFraction
+        lastProgressUpdateMs = SystemClock.elapsedRealtime()
+        voicePlayer.seekTo((voicePlayer.duration * safeFraction).toInt())
         publishState()
     }
 
     fun toggleSpeed(messageId: String) {
         if (currentPlayingId != messageId || !voicePlayer.isPlaying) return
+        updateLogicalPosition(isPlaying = true)
         speed = if (speed == 1f) 1.5f else 1f
         voicePlayer.setSpeed(speed)
+        lastProgressUpdateMs = SystemClock.elapsedRealtime()
         publishState()
     }
 
@@ -91,6 +107,7 @@ class AudioPlaybackManager(
     private fun startPlaying(
         messageId: String,
         localPath: String,
+        expectedDurationMs: Long,
         messages: List<ChatMessage>,
         isSpeakerOn: Boolean,
         isContinuous: Boolean
@@ -101,8 +118,21 @@ class AudioPlaybackManager(
         }
 
         currentPlayingId = messageId
+        currentExpectedDurationMs = expectedDurationMs.coerceIn(0, Int.MAX_VALUE.toLong()).toInt()
+        logicalPositionMs = 0f
+        lastProgressUpdateMs = SystemClock.elapsedRealtime()
         speed = 1f
-        publishState(isPlaying = true)
+        // 播放器可能仍持有上一条语音结束时的位置，先发布明确的零进度，
+        // 避免新气泡在异步 prepare 完成前短暂显示为 100%。
+        onPlaybackStateChanged(
+            VoicePlaybackState(
+                messageId = messageId,
+                positionMs = 0,
+                durationMs = currentExpectedDurationMs,
+                isPlaying = true,
+                speed = speed
+            )
+        )
         onMessagePlayed(messageId)
 
         voicePlayer.play(localPath, isSpeakerOn, speed) {
@@ -122,15 +152,34 @@ class AudioPlaybackManager(
     }
 
     private fun publishState(isPlaying: Boolean = voicePlayer.isPlaying) {
+        updateLogicalPosition(isPlaying)
+        val positionMs = if (currentExpectedDurationMs > 0) {
+            logicalPositionMs.toInt().coerceAtMost(currentExpectedDurationMs)
+        } else {
+            voicePlayer.currentPosition
+        }
         onPlaybackStateChanged(
             VoicePlaybackState(
                 messageId = currentPlayingId,
-                positionMs = voicePlayer.currentPosition,
-                durationMs = voicePlayer.duration,
+                positionMs = positionMs,
+                durationMs = currentExpectedDurationMs.takeIf { it > 0 }
+                    ?: voicePlayer.duration,
                 isPlaying = isPlaying,
                 speed = speed
             )
         )
+    }
+
+    /**
+     * 部分设备生成的 M4A 可以正常播放，但 MediaPlayer 的时间轴会直接跳到末尾。
+     * 使用单调时钟维护 UI 进度，避免依赖容器时间戳；倍速播放时按速度同步推进。
+     */
+    private fun updateLogicalPosition(isPlaying: Boolean) {
+        val now = SystemClock.elapsedRealtime()
+        if (isPlaying && lastProgressUpdateMs > 0L) {
+            logicalPositionMs += (now - lastProgressUpdateMs) * speed
+        }
+        lastProgressUpdateMs = now
     }
 
     private fun handlePlaybackCompleted(
@@ -151,6 +200,7 @@ class AudioPlaybackManager(
                 startPlaying(
                     messageId = nextVoice.id,
                     localPath = nextVoice.localPath,
+                    expectedDurationMs = nextVoice.durationMs,
                     messages = messages,
                     isSpeakerOn = isSpeakerOn,
                     isContinuous = true
@@ -161,6 +211,9 @@ class AudioPlaybackManager(
             audioFocusManager.abandonFocus()
             progressJob?.cancel()
             currentPlayingId = null
+            currentExpectedDurationMs = 0
+            logicalPositionMs = 0f
+            lastProgressUpdateMs = 0L
             speed = 1f
             onPlaybackStateChanged(VoicePlaybackState())
         }
@@ -178,13 +231,17 @@ class AudioPlaybackManager(
             val message = messages[i]
             val content = message.content
             if (content is MessageContent.Voice && !content.isPlayed) {
-                return VoiceInfo(message.id, content.localPath)
+                return VoiceInfo(message.id, content.localPath, content.duration)
             }
         }
         return null
     }
 
-    private data class VoiceInfo(val id: String, val localPath: String)
+    private data class VoiceInfo(
+        val id: String,
+        val localPath: String,
+        val durationMs: Long
+    )
 }
 
 data class VoicePlaybackState(

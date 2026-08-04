@@ -17,6 +17,7 @@ import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 @Composable
 fun ChatBubble(
     isFromMe: Boolean,
+    isPressed: Boolean,
     showArrow: Boolean,
     showDot: Boolean,
     isSelectMode: Boolean,
@@ -42,6 +43,7 @@ fun ChatBubble(
             isFromMe = isFromMe,
             color = bubbleColor,
             modifier = modifier,
+            isPressed = isPressed,
             maxWidth = maxBubbleWidth,
             showArrow = showArrow
         ) {

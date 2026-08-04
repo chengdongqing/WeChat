@@ -712,6 +712,8 @@ private fun ChatMessageList(
                     myAvatar = uiState.myAvatar,
                     isSelectMode = uiState.isSelectMode,
                     isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(displayMessage.id),
+                    isToolbarHighlighted = toolbarState.visible &&
+                            toolbarState.message?.id == displayMessage.id,
                     shakeOffsetX = shake.x,
                     shakeOffsetY = shake.y,
                     shakeRotation = shake.rotation,
