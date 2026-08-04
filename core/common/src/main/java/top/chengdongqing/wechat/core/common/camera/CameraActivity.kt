@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
+import top.chengdongqing.wechat.core.common.media.editor.ImageEditor
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -46,7 +47,7 @@ class CameraActivity : ComponentActivity() {
                 }
 
                 capturedImage?.let { uri ->
-                    CameraImageEditor(
+                    ImageEditor(
                         sourceUri = uri,
                         onCancel = { capturedImage = null },
                         onConfirm = { finishWithMedia(it, VisualMediaType.Image) }

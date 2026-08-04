@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.common.camera
+package top.chengdongqing.wechat.core.common.media.editor
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -63,6 +63,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -91,7 +92,7 @@ private data class EditorStroke(
 )
 
 @Composable
-internal fun CameraImageEditor(
+fun ImageEditor(
     sourceUri: Uri,
     onCancel: () -> Unit,
     onConfirm: (Uri) -> Unit
@@ -138,7 +139,6 @@ internal fun CameraImageEditor(
                 onConfirm = { cropped ->
                     scope.launch {
                         saving = true
-                        // 同步更新最终返回的 URI，避免完成时仍发送裁剪前的原图。
                         val croppedUri = context.createImageUri(cropped)
                         bitmap = cropped
                         mosaicBitmap = cropped.pixelated()
@@ -188,7 +188,7 @@ internal fun CameraImageEditor(
                 val viewport = imageViewport(source.width, source.height, size)
                 drawImage(
                     image = source.asImageBitmap(),
-                    dstOffset = androidx.compose.ui.unit.IntOffset(
+                    dstOffset = IntOffset(
                         viewport.left.toInt(),
                         viewport.top.toInt()
                     ),
@@ -455,8 +455,9 @@ private fun AndroidPath.toStrokedPath(paint: AndroidPaint) =
     AndroidPath().also { paint.getFillPath(this, it) }
 
 private fun Bitmap.pixelated(): Bitmap {
-    val smallWidth = (width / 64).coerceAtLeast(1)
-    val smallHeight = (height / 64).coerceAtLeast(1)
+    // 保留约 36 个像素块（原为 64），让马赛克块更大、遮挡更明显。
+    val smallWidth = (width / 36).coerceAtLeast(1)
+    val smallHeight = (height / 36).coerceAtLeast(1)
     val small = this.scale(smallWidth, smallHeight, false)
     return small.scale(width, height, false).also { if (it !== small) small.recycle() }
 }

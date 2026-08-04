@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.file.loadMediaThumbnail
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
-import top.chengdongqing.wechat.core.common.media.preview.previewMedias
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -48,7 +47,7 @@ internal fun ColumnScope.MediaGrid(
     singleMediaMode: Boolean = false,
     captureVideo: Boolean = false,
     onCapture: () -> Unit = {},
-    onSingleMediaSelected: (MediaItem) -> Unit = {}
+    onMediaPreview: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val overscrollEffect = rememberBounceOverscrollEffect()
@@ -76,8 +75,7 @@ internal fun ColumnScope.MediaGrid(
                 selected,
                 selectedIndex,
                 onClick = {
-                    if (singleMediaMode) onSingleMediaSelected(item)
-                    else context.previewMedias(state.mediaList, index)
+                    onMediaPreview(index)
                 },
                 showCheckbox = !singleMediaMode
             ) {

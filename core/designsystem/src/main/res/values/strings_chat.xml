@@ -58,6 +58,7 @@
     <string name="message_action_cancel">取消</string>
     <string name="message_action_forward">转发</string>
     <string name="message_action_favorite">收藏</string>
+    <string name="message_action_edit">编辑</string>
     <string name="message_action_remind">提醒</string>
     <string name="message_action_recall">撤回</string>
     <string name="message_action_add_sticker">添加</string>
@@ -66,6 +67,9 @@
     <string name="message_action_earpiece">听筒</string>
     <string name="message_action_quote">引用</string>
     <string name="message_action_download">保存</string>
+    <string name="edited_image_send_to_friend">发送给朋友</string>
+    <string name="edited_image_favorite">收藏</string>
+    <string name="edited_image_save">保存图片</string>
 
     <string name="message_forward_separate">逐条转发</string>
     <string name="message_forward_merged">合并转发</string>

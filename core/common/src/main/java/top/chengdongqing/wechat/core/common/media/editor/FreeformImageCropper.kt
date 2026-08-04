@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.common.camera
+package top.chengdongqing.wechat.core.common.media.editor
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -43,11 +43,11 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -59,6 +59,14 @@ internal fun FreeformImageCropper(
     onCancel: () -> Unit,
     onConfirm: (Bitmap) -> Unit
 ) {
+    val density = LocalDensity.current
+    // 框外保留较大热区，框内只占少量空间，避免抢占整体移动手势。
+    val outerTouchRadius = with(density) { 40.dp.toPx() }
+    val innerTouchRadius = with(density) { 14.dp.toPx() }
+    val cornerTouchRadius = with(density) { 32.dp.toPx() }
+    val minimumCropSize = with(density) { 72.dp.toPx() }
+    val handleLength = with(density) { 18.dp.toPx() }
+    val handleWidth = with(density) { 3.dp.toPx() }
     var displayed by remember(source) { mutableStateOf(source) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     var cropRect by remember { mutableStateOf(Rect.Zero) }
@@ -85,19 +93,35 @@ internal fun FreeformImageCropper(
             Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(bottom = 154.dp)
+                // 不让初始裁剪边框贴住屏幕物理边缘，避免被系统返回手势抢占。
+                .padding(start = 20.dp, end = 20.dp, bottom = 154.dp)
                 // 裁剪需要从屏幕边缘开始拖动，阻止左右滑动被系统返回手势抢占。
                 .systemGestureExclusion()
                 .onSizeChanged { canvasSize = it }
-                .pointerInput(displayed, canvasSize) {
+                .pointerInput(
+                    displayed,
+                    canvasSize,
+                    outerTouchRadius,
+                    innerTouchRadius,
+                    cornerTouchRadius
+                ) {
                     var handle: CropHandle? = null
                     detectDragGestures(
-                        onDragStart = { handle = cropRect.hitHandle(it) },
+                        onDragStart = {
+                            handle = cropRect.hitHandle(
+                                point = it,
+                                outerRadius = outerTouchRadius,
+                                innerRadius = innerTouchRadius,
+                                cornerRadius = cornerTouchRadius
+                            )
+                        },
                         onDragEnd = { handle = null },
                         onDragCancel = { handle = null }
                     ) { change, drag ->
                         change.consume()
-                        handle?.let { cropRect = cropRect.drag(it, drag, viewport) }
+                        handle?.let {
+                            cropRect = cropRect.drag(it, drag, viewport, minimumCropSize)
+                        }
                     }
                 }
         ) {
@@ -139,8 +163,6 @@ internal fun FreeformImageCropper(
             }
 
             val handleColor = Color.White
-            val handleLength = 28f
-            val handleWidth = 5f
             listOf(
                 cropRect.topLeft,
                 cropRect.topRight,
@@ -249,26 +271,43 @@ private fun cropViewport(imageWidth: Int, imageHeight: Int, canvas: Size): Rect 
     )
 }
 
-private fun Rect.hitHandle(point: Offset): CropHandle? {
-    // 命中区向选区内部扩展，用户无需从屏幕物理边缘起手。
-    val cornerRadius = 96f
-    fun near(a: Offset) = (point - a).getDistance() <= cornerRadius
+private fun Rect.hitHandle(
+    point: Offset,
+    outerRadius: Float,
+    innerRadius: Float,
+    cornerRadius: Float
+): CropHandle? {
+    // 角点优先；边框热区主要向外扩展，框内大部分区域保留给 Move。
+    val effectiveCornerRadius = min(cornerRadius, min(width, height) / 4f)
+    fun near(a: Offset) = (point - a).getDistance() <= effectiveCornerRadius
     return when {
         near(topLeft) -> CropHandle.TopLeft
         near(topRight) -> CropHandle.TopRight
         near(bottomLeft) -> CropHandle.BottomLeft
         near(bottomRight) -> CropHandle.BottomRight
-        abs(point.x - left) <= 96f && point.y in top..bottom -> CropHandle.Left
-        abs(point.x - right) <= 96f && point.y in top..bottom -> CropHandle.Right
-        abs(point.y - top) <= 96f && point.x in left..right -> CropHandle.Top
-        abs(point.y - bottom) <= 96f && point.x in left..right -> CropHandle.Bottom
+        point.x in (left - outerRadius)..(left + innerRadius) &&
+                point.y in (top + effectiveCornerRadius)..(bottom - effectiveCornerRadius) -> CropHandle.Left
+
+        point.x in (right - innerRadius)..(right + outerRadius) &&
+                point.y in (top + effectiveCornerRadius)..(bottom - effectiveCornerRadius) -> CropHandle.Right
+
+        point.y in (top - outerRadius)..(top + innerRadius) &&
+                point.x in (left + effectiveCornerRadius)..(right - effectiveCornerRadius) -> CropHandle.Top
+
+        point.y in (bottom - innerRadius)..(bottom + outerRadius) &&
+                point.x in (left + effectiveCornerRadius)..(right - effectiveCornerRadius) -> CropHandle.Bottom
+
         contains(point) -> CropHandle.Move
         else -> null
     }
 }
 
-private fun Rect.drag(handle: CropHandle, delta: Offset, bounds: Rect): Rect {
-    val minimum = 96f
+private fun Rect.drag(
+    handle: CropHandle,
+    delta: Offset,
+    bounds: Rect,
+    minimum: Float
+): Rect {
     var l = left
     var t = top
     var r = right

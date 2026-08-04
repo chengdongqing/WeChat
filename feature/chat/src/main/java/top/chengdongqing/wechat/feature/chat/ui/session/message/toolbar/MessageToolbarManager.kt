@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar
 
 import android.content.Context
+import android.net.Uri
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextRange
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +19,7 @@ import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageAction
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageToolbarState
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
+import java.io.File
 
 /**
  * 消息工具条状态管理器
@@ -145,6 +147,15 @@ class MessageToolbarManager(
                 }
             }
 
+            MessageAction.Edit -> {
+                val path = (message.content as? MessageContent.Image)?.localPath
+                if (!path.isNullOrBlank()) {
+                    scope.launch {
+                        uiEvent.emit(MessageUiEvent.EditImage(Uri.fromFile(File(path))))
+                    }
+                }
+            }
+
             MessageAction.Recall -> onRecallMessage(message.id)
             MessageAction.Cancel -> onCancelMessage(message.id)
 
@@ -235,7 +246,17 @@ class MessageToolbarManager(
                     add(MessageAction.MultiSelect)
                 }
 
-                is MessageContent.Image,
+                is MessageContent.Image -> {
+                    add(MessageAction.Forward)
+                    add(MessageAction.Favorite)
+                    add(MessageAction.Edit)
+                    if (message.isProgressing) add(MessageAction.Cancel) else add(deleteOrRecall)
+                    add(MessageAction.MultiSelect)
+                    add(MessageAction.Quote)
+                    add(MessageAction.Remind)
+                    add(MessageAction.Download)
+                }
+
                 is MessageContent.Video,
                 is MessageContent.Location,
                 is MessageContent.File -> {

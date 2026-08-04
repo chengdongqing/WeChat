@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.message
 
+import android.net.Uri
+
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.model.CallType
@@ -16,6 +18,9 @@ sealed class MessageUiEvent {
 
     /** 转发消息 */
     data class ForwardMessage(val messageId: String? = null) : MessageUiEvent()
+
+    /** 使用公共图片编辑器编辑消息图片。 */
+    data class EditImage(val uri: Uri) : MessageUiEvent()
 
     /** 重新编辑消息 */
     data class ReeditMessage(val text: String) : MessageUiEvent()

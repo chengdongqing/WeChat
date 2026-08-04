@@ -47,7 +47,6 @@ import top.chengdongqing.wechat.core.common.file.getFileMetadata
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.common.media.model.MediaType
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.common.media.preview.previewMedias
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
@@ -72,6 +71,8 @@ fun WeMediaPicker(
     val singleMediaMode = count == 1
     val captureVideo = type == VisualMediaType.Video
     var capturedUri by remember { mutableStateOf<Uri?>(null) }
+    var previewIndex by remember { mutableStateOf<Int?>(null) }
+    var original by remember { mutableStateOf(false) }
 
     fun completeCapturedMedia(success: Boolean, uri: Uri?, mediaType: MediaType) {
         val actualUri = uri ?: return
@@ -126,6 +127,21 @@ fun WeMediaPicker(
         RequestMediaPermission(onRevoked = onCancel) {
             val state = rememberMediaPickerState(type, count)
 
+            previewIndex?.let { index ->
+                PickerMediaPreview(
+                    medias = state.mediaList,
+                    initialIndex = index.coerceIn(0, state.mediaList.lastIndex.coerceAtLeast(0)),
+                    state = state,
+                    original = original,
+                    onOriginalChange = { original = it },
+                    onDismiss = { previewIndex = null },
+                    onConfirm = {
+                        onConfirm(state.selectedMediaList.toTypedArray(), false, original)
+                    }
+                )
+                return@RequestMediaPermission
+            }
+
             TopBar(state, onCancel)
             if (state.isLoading) {
                 WeLoadMore()
@@ -135,10 +151,16 @@ fun WeMediaPicker(
                     singleMediaMode = singleMediaMode,
                     captureVideo = captureVideo,
                     onCapture = ::launchCapture,
-                    onSingleMediaSelected = { onConfirm(arrayOf(it), false, false) }
+                    onMediaPreview = { previewIndex = it }
                 )
                 if (!singleMediaMode) {
-                    BottomBar(state, enableMerge) { merge, original ->
+                    BottomBar(
+                        state = state,
+                        enableMerge = enableMerge,
+                        original = original,
+                        onOriginalChange = { original = it },
+                        onPreview = { previewIndex = it }
+                    ) { merge ->
                         onConfirm(state.selectedMediaList.toTypedArray(), merge, original)
                     }
                 }
@@ -219,7 +241,10 @@ private fun TopBar(
 private fun BottomBar(
     state: MediaPickerState,
     enableMerge: Boolean,
-    onConfirm: (Boolean, Boolean) -> Unit
+    original: Boolean,
+    onOriginalChange: (Boolean) -> Unit,
+    onPreview: (Int) -> Unit,
+    onConfirm: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val selectedCount = state.selectedMediaList.size
@@ -227,7 +252,6 @@ private fun BottomBar(
     val selectedSize = state.selectedMediaList.sumOf(MediaItem::size)
 
     var merge by remember { mutableStateOf(false) }
-    var original by remember { mutableStateOf(false) }
     if (selectedCount < 3) merge = false
 
     Column(
@@ -263,7 +287,8 @@ private fun BottomBar(
                     .align(Alignment.CenterStart)
                     .alpha(if (selectedCount > 0) 1f else 0.6f)
                     .clickable(enabled = selectedCount > 0) {
-                        context.previewMedias(state.selectedMediaList)
+                        val firstSelected = state.mediaList.indexOf(state.selectedMediaList.first())
+                        if (firstSelected >= 0) onPreview(firstSelected)
                     }
             )
             Box(
@@ -274,7 +299,7 @@ private fun BottomBar(
                 Row(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .clickable { original = !original },
+                        .clickable { onOriginalChange(!original) },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     WeCheckBox(checked = original)
@@ -305,7 +330,7 @@ private fun BottomBar(
                 enabled = selectedCount > 0,
                 modifier = Modifier.align(Alignment.CenterEnd)
             ) {
-                onConfirm(merge, original)
+                onConfirm(merge)
             }
         }
     }

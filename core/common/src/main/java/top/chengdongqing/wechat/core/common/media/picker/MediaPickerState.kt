@@ -59,6 +59,11 @@ interface MediaPickerState {
     fun removeAt(index: Int)
 
     /**
+     * Replace an item after picker-scoped editing, preserving its selection position.
+     */
+    fun replace(source: MediaItem, edited: MediaItem)
+
+    /**
      * 刷新可选项
      */
     suspend fun refresh(type: VisualMediaType)
@@ -96,6 +101,20 @@ private class MediaPickerStateImpl(
 
     override fun removeAt(index: Int) {
         selectedMediaList.removeAt(index)
+    }
+
+    override fun replace(source: MediaItem, edited: MediaItem) {
+        mediaList = mediaList.map {
+            if (it == source) {
+                edited
+            } else {
+                it
+            }
+        }
+        val selectedIndex = selectedMediaList.indexOf(source)
+        if (selectedIndex >= 0) {
+            selectedMediaList[selectedIndex] = edited
+        }
     }
 
     override suspend fun refresh(type: VisualMediaType) {

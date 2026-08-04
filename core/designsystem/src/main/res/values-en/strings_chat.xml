@@ -58,6 +58,7 @@
     <string name="message_action_cancel">Cancel</string>
     <string name="message_action_forward">Forward</string>
     <string name="message_action_favorite">Favorite</string>
+    <string name="message_action_edit">Edit</string>
     <string name="message_action_remind">Reminder</string>
     <string name="message_action_recall">Recall</string>
     <string name="message_action_add_sticker">Add</string>
@@ -66,6 +67,9 @@
     <string name="message_action_earpiece">Earpiece</string>
     <string name="message_action_quote">Quote</string>
     <string name="message_action_download">Save</string>
+    <string name="edited_image_send_to_friend">Send to Friend</string>
+    <string name="edited_image_favorite">Favorite</string>
+    <string name="edited_image_save">Save Image</string>
 
     <string name="message_forward_separate">Forward Individually</string>
     <string name="message_forward_merged">Forward as Chat History</string>

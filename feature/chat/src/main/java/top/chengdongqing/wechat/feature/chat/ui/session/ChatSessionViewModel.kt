@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.feature.chat.ui.session
 
 import android.app.NotificationManager
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.TextRange
@@ -37,7 +38,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
+import top.chengdongqing.wechat.core.common.file.getFileMetadata
 import top.chengdongqing.wechat.core.common.media.SoundTipPlayer
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.data.model.ChatMessage
@@ -60,6 +63,7 @@ import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.previewLocation
 import top.chengdongqing.wechat.core.model.ChatSession
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
+import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.core.network.connection.bluetooth.BluetoothBondManager
 import top.chengdongqing.wechat.core.network.crypto.E2ESessionManager
@@ -96,6 +100,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private val favoriteDao: FavoriteDao,
     private val addFriendRepository: AddFriendRepository,
     private val publicFileManager: PublicFileManager,
+    private val privateFileManager: PrivateFileManager,
     private val soundTipPlayer: SoundTipPlayer,
     private val chatTransportManager: ChatTransportManager,
     private val bluetoothBondManager: BluetoothBondManager,
@@ -641,6 +646,70 @@ class ChatSessionViewModel @AssistedInject constructor(
             )
             context.showToast(if (saved != null) "已保存到本地" else "保存失败")
         }
+    }
+
+    fun sendEditedImage(uri: Uri, targetChatIds: Set<String>) {
+        if (targetChatIds.isEmpty()) return
+        viewModelScope.launch {
+            val content = persistEditedImage(uri) ?: return@launch
+            val results = targetChatIds.map { targetId ->
+                async {
+                    messageRepository.sendMessage(
+                        sessionId = targetId,
+                        receiverId = targetId,
+                        content = content
+                    )
+                }
+            }.awaitAll()
+            context.showToast(if (results.all { it.isSuccess }) "已发送" else "部分发送失败")
+        }
+    }
+
+    fun favoriteEditedImage(uri: Uri) {
+        viewModelScope.launch {
+            val content = persistEditedImage(uri) ?: return@launch
+            val now = System.currentTimeMillis()
+            favoriteDao.upsert(
+                FavoriteEntity(
+                    id = randomUUID(),
+                    type = "MEDIA",
+                    title = "[图片]",
+                    content = "[图片]",
+                    mediaPaths = content.localPath,
+                    sourceMessageIds = "",
+                    sourceName = _uiState.value.title,
+                    createdAt = now,
+                    updatedAt = now
+                )
+            )
+            context.showToast("已收藏")
+        }
+    }
+
+    fun saveEditedImage(uri: Uri) {
+        viewModelScope.launch {
+            val saved = publicFileManager.saveMedia(MessageType.Image, uri)
+            context.showToast(if (saved != null) "已保存到本地" else "保存失败")
+        }
+    }
+
+    private suspend fun persistEditedImage(uri: Uri): MessageContent.Image? {
+        val metadata = context.getFileMetadata(uri) ?: run {
+            context.showToast("图片处理失败")
+            return null
+        }
+        val localPath = privateFileManager.saveMedia(MessageType.Image, uri).getOrElse {
+            context.showToast("图片处理失败")
+            return null
+        }
+        return MessageContent.Image(
+            localPath = localPath,
+            filename = metadata.filename,
+            mimeType = metadata.mimeType,
+            width = metadata.width,
+            height = metadata.height,
+            size = metadata.size
+        )
     }
 
     fun pauseTransfer(messageId: String) {

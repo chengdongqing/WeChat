@@ -18,6 +18,7 @@ enum class MessageAction(
     AddSticker(R.drawable.ic_plus_circle_outlined, R.string.message_action_add_sticker),
     Forward(R.drawable.ic_forward_filled, R.string.message_action_forward),
     Favorite(R.drawable.ic_favorites_filled, R.string.message_action_favorite),
+    Edit(R.drawable.ic_edit_filled, R.string.message_action_edit),
     Remind(R.drawable.ic_bell_filled, R.string.message_action_remind),
     MultiSelect(R.drawable.ic_multi_select_outlined, R.string.message_action_multi_select),
     SpeakerMode(R.drawable.ic_speaker_filled, R.string.message_action_speaker),

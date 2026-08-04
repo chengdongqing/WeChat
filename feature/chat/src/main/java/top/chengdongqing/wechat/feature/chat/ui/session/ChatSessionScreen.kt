@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.feature.chat.ui.session
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SharedTransitionLayout
@@ -58,6 +59,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.core.common.media.editor.ImageEditor
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.common.media.preview.WeMediaPreview
 import top.chengdongqing.wechat.core.data.model.ChatMessage
@@ -113,6 +115,9 @@ fun ChatSessionScreen(
 ) {
     val expandedMediaAlbums = remember(chatId) { mutableStateListOf<String>() }
     var mediaPreview by remember { mutableStateOf<ChatMediaPreviewState?>(null) }
+    var editingImageUri by remember { mutableStateOf<Uri?>(null) }
+    var editedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showEditedImageActions by remember { mutableStateOf(false) }
     var mediaPreviewClosing by remember { mutableStateOf(false) }
     val mediaPreviewScope = rememberCoroutineScope()
     val closeMediaPreview: () -> Unit = {
@@ -143,6 +148,16 @@ fun ChatSessionScreen(
     val knownMessageIds = remember(chatId) { mutableSetOf<String>() }
     var messageSnapshotInitialized by remember(chatId) { mutableStateOf(false) }
     val launchCall = LocalCallLauncher.current.rememberLauncher(chatId)
+    val sendEditedImageToContacts =
+        LocalContactPickerLauncher.current.rememberLauncher { contacts ->
+            editedImageUri?.let {
+                viewModel.sendEditedImage(
+                    it,
+                    contacts.map { contact -> contact.id }.toSet()
+                )
+            }
+            editedImageUri = null
+        }
     val chatContext = rememberChatSessionContext(
         viewModel = viewModel,
         uiState = uiState,
@@ -213,6 +228,7 @@ fun ChatSessionScreen(
             mediaPreviewClosing = false
             mediaPreview = it
         },
+        onEditImage = { editingImageUri = it },
         onOpenChatHistory = onNavigateToChatHistory
     )
 
@@ -390,6 +406,43 @@ fun ChatSessionScreen(
         }
     }
 
+    editingImageUri?.let { sourceUri ->
+        ImageEditor(
+            sourceUri = sourceUri,
+            onCancel = { editingImageUri = null },
+            onConfirm = { resultUri ->
+                editingImageUri = null
+                editedImageUri = resultUri
+                showEditedImageActions = true
+            }
+        )
+    }
+
+    WeActionSheet(
+        visible = showEditedImageActions,
+        options = listOf(
+            ActionSheetItem(R.string.edited_image_send_to_friend),
+            ActionSheetItem(R.string.edited_image_favorite),
+            ActionSheetItem(R.string.edited_image_save)
+        ),
+        onCancel = { showEditedImageActions = false },
+        onTap = { index ->
+            val uri = editedImageUri ?: return@WeActionSheet
+            when (index) {
+                0 -> sendEditedImageToContacts(99)
+                1 -> {
+                    viewModel.favoriteEditedImage(uri)
+                    editedImageUri = null
+                }
+
+                2 -> {
+                    viewModel.saveEditedImage(uri)
+                    editedImageUri = null
+                }
+            }
+        }
+    )
+
     LoadingDialog(uiState.isFullscreenLoading)
 }
 
@@ -486,6 +539,7 @@ private fun ChatSessionUiEventHandler(
     onNavigateToMusicPreview: (String, String) -> Unit,
     onNavigateToLiveLocation: () -> Unit,
     onPreviewMedia: (ChatMediaPreviewState) -> Unit,
+    onEditImage: (Uri) -> Unit,
     onOpenChatHistory: (MessageContent.ChatHistory) -> Unit,
 ) {
     val resources = LocalResources.current
@@ -556,6 +610,8 @@ private fun ChatSessionUiEventHandler(
                         initialIndex = event.initialIndex
                     )
                 )
+
+                is MessageUiEvent.EditImage -> onEditImage(event.uri)
 
                 is MessageUiEvent.LaunchCall -> launchCall(event.callType)
                 is MessageUiEvent.NavigateToContact -> onNavigateToContact(event.contactId)
