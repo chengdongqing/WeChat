@@ -34,8 +34,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
-import top.chengdongqing.wechat.core.designsystem.components.videoplayer.WeVideoPlayer
-import top.chengdongqing.wechat.core.designsystem.components.videoplayer.rememberVideoPlayerState
+import top.chengdongqing.wechat.core.playback.video.WeVideoPlayer
+import top.chengdongqing.wechat.core.playback.video.rememberVideoPlayerState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

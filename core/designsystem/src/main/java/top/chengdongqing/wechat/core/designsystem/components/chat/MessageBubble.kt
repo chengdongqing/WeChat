@@ -1,21 +1,14 @@
 package top.chengdongqing.wechat.core.designsystem.components.chat
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -29,13 +22,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
-import top.chengdongqing.wechat.core.designsystem.theme.Neutral900
-import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
-import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
-import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.theme.scaled
 import kotlin.math.sqrt
 
@@ -76,53 +62,6 @@ fun WeMessageBubble(
 }
 
 @Composable
-fun TextMessagePreviewItem(
-    text: String,
-    isFromMe: Boolean,
-    myAvatar: Any?,
-    peerAvatar: Any?,
-    modifier: Modifier = Modifier
-) {
-    val isDark = LocalAppearanceSetting.current.isDarkTheme
-    val bubbleColor = when {
-        isFromMe && isDark -> Color(0xFF3DAF72)
-        isFromMe -> Color(0xFF95EC69)
-        isDark -> Neutral900
-        else -> White
-    }
-    val textColor = when {
-        isFromMe -> TextPrimaryLight
-        isDark -> TextPrimaryDark
-        else -> TextPrimaryLight
-    }
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            if (!isFromMe) MessagePreviewAvatar(peerAvatar)
-            WeMessageBubble(
-                isFromMe = isFromMe,
-                color = bubbleColor
-            ) {
-                WeMessageText(
-                    text = AnnotatedString(text),
-                    modifier = Modifier.padding(10.dp),
-                    color = textColor
-                )
-            }
-            if (isFromMe) MessagePreviewAvatar(myAvatar)
-        }
-    }
-}
-
-@Composable
 fun WeMessageText(
     text: AnnotatedString,
     color: Color,
@@ -140,18 +79,6 @@ fun WeMessageText(
             color = color
         ),
         onTextLayout = onTextLayout
-    )
-}
-
-@Composable
-private fun MessagePreviewAvatar(model: Any?) {
-    AsyncImage(
-        model = model,
-        contentDescription = null,
-        error = androidx.compose.ui.res.painterResource(R.drawable.img_avatar_placeholder),
-        modifier = Modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(4.dp))
     )
 }
 

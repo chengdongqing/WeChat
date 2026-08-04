@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,25 +28,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
-import top.chengdongqing.wechat.core.designsystem.components.chat.TextMessagePreviewItem
+import top.chengdongqing.wechat.core.designsystem.components.chat.WeMessageBubble
+import top.chengdongqing.wechat.core.designsystem.components.chat.WeMessageText
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.LocalFontScale
+import top.chengdongqing.wechat.core.designsystem.theme.Neutral900
+import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
+import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.model.AppFontScale
 
 @Composable
@@ -165,6 +177,62 @@ private fun FontScaleSelector(
             }
         }
     }
+}
+
+@Composable
+private fun TextMessagePreviewItem(
+    text: String,
+    isFromMe: Boolean,
+    myAvatar: Any?,
+    peerAvatar: Any?,
+    modifier: Modifier = Modifier
+) {
+    val isDark = LocalAppearanceSetting.current.isDarkTheme
+    val bubbleColor = when {
+        isFromMe && isDark -> Color(0xFF3DAF72)
+        isFromMe -> Color(0xFF95EC69)
+        isDark -> Neutral900
+        else -> White
+    }
+    val textColor = when {
+        isFromMe -> TextPrimaryLight
+        isDark -> TextPrimaryDark
+        else -> TextPrimaryLight
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = if (isFromMe) Arrangement.End else Arrangement.Start
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            if (!isFromMe) MessagePreviewAvatar(peerAvatar)
+            WeMessageBubble(isFromMe = isFromMe, color = bubbleColor) {
+                WeMessageText(
+                    text = AnnotatedString(text),
+                    modifier = Modifier.padding(10.dp),
+                    color = textColor
+                )
+            }
+            if (isFromMe) MessagePreviewAvatar(myAvatar)
+        }
+    }
+}
+
+@Composable
+private fun MessagePreviewAvatar(model: Any?) {
+    AsyncImage(
+        model = model,
+        contentDescription = null,
+        error = androidx.compose.ui.res.painterResource(R.drawable.img_avatar_placeholder),
+        modifier = Modifier
+            .size(40.dp)
+            .clip(RoundedCornerShape(4.dp))
+    )
 }
 
 @Composable

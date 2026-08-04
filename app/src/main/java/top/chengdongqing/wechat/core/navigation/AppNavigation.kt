@@ -24,8 +24,8 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import top.chengdongqing.wechat.core.call.ui.rememberCallLauncher
 import top.chengdongqing.wechat.core.common.permission.CallNotificationPermissionManager
-import top.chengdongqing.wechat.core.designsystem.components.call.rememberCallLauncher
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.ContactResult
 import top.chengdongqing.wechat.feature.call.ui.startCall

@@ -25,7 +25,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.media.RingtoneSound
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -36,6 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.playback.RingtoneSound
 
 /**
  * 个人资料页面

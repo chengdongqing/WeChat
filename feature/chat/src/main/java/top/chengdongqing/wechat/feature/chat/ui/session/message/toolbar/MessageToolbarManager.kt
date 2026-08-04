@@ -221,10 +221,11 @@ class MessageToolbarManager(
                 is MessageContent.Sticker -> {
                     add(MessageAction.AddSticker)
                     add(MessageAction.Forward)
+                    add(MessageAction.Favorite)
                     add(deleteOrRecall)
+                    add(MessageAction.MultiSelect)
                     add(MessageAction.Quote)
                     add(MessageAction.Remind)
-                    add(MessageAction.MultiSelect)
                     add(MessageAction.Download)
                 }
 
@@ -273,11 +274,7 @@ class MessageToolbarManager(
                     add(MessageAction.Download)
                 }
 
-                // Media 是 Image/Video 的抽象基类，正常不会直接出现，
-                // 但 sealed 层次要求显式覆盖，保持编译器穷举检查有效。
-                is MessageContent.Media -> {
-                    add(deleteOrRecall)
-                }
+                else -> {}
             }
         }
     }

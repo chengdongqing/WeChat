@@ -35,6 +35,13 @@ configurations.all {
 dependencies {
     implementation(projects.core.model)
     implementation(projects.core.designsystem)
+    implementation(projects.core.playback)
+    api(projects.core.file)
+    api(projects.core.media)
+    api(projects.core.mediaUi)
+    api(projects.core.camera)
+    implementation(projects.core.proximityUi)
+    api(projects.core.qrcode)
     api(projects.core.util)
 
     implementation(libs.core.ktx)

@@ -17,7 +17,6 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.storage.AssetOwner
 import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
 import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
-import top.chengdongqing.wechat.core.designsystem.model.Stickers
 import top.chengdongqing.wechat.core.util.toSHA256Hex
 import java.io.File
 import javax.inject.Inject
@@ -45,7 +44,7 @@ class StickerStore @Inject constructor(
         val custom = prefs.readList(customKey)
         val hidden = prefs.readList(hiddenKey).toSet()
         val promoted = prefs.readList(promotedKey)
-        val assets = Stickers.all.map { it.localPath }.filterNot(hidden::contains)
+        val assets = BundledStickers.all.map { it.localPath }.filterNot(hidden::contains)
         val all = custom.map { ManagedSticker(it, false) } +
             assets.map { ManagedSticker(it, true) }
         val rank = promoted.withIndex().associate { it.value to it.index }

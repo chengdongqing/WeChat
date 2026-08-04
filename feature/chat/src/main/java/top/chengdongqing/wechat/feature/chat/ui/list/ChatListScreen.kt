@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.core.connectivity.rememberBluetoothEnabled
+import top.chengdongqing.wechat.core.connectivity.rememberWifiConnected
+import top.chengdongqing.wechat.core.connectivity.rememberWifiEnabled
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.ContextMenuState
@@ -29,9 +32,6 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.runtime.rememberBluetoothEnabled
-import top.chengdongqing.wechat.core.designsystem.runtime.rememberWifiConnected
-import top.chengdongqing.wechat.core.designsystem.runtime.rememberWifiEnabled
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme

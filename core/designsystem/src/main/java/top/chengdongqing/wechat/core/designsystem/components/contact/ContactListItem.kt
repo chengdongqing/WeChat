@@ -23,12 +23,12 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.model.ContactItem
-import top.chengdongqing.wechat.core.model.LocalAiAssistant
 
 @Composable
 fun ContactListItem(
-    contact: ContactItem,
+    displayName: String,
+    avatarModel: Any?,
+    note: String? = null,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -41,7 +41,7 @@ fun ContactListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
-            model = if (contact.id == LocalAiAssistant.ID) R.drawable.img_logo else contact.avatarPath,
+            model = avatarModel,
             contentDescription = null,
             error = painterResource(R.drawable.img_avatar_placeholder),
             modifier = Modifier
@@ -51,13 +51,13 @@ fun ContactListItem(
         Spacer(modifier = Modifier.width(12.dp))
         Column {
             Text(
-                text = contact.displayName,
+                text = displayName,
                 color = WeTheme.colorScheme.textPrimary,
                 fontSize = 16.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            contact.note?.let {
+            note?.let {
                 Text(
                     text = it,
                     color = WeTheme.colorScheme.textSecondary,

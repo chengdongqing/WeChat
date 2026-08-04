@@ -23,6 +23,7 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.playback)
     implementation(projects.core.model)
     implementation(projects.core.common)
     implementation(projects.core.database)

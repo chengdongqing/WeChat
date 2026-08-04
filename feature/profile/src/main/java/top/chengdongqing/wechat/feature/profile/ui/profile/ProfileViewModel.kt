@@ -18,13 +18,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
-import top.chengdongqing.wechat.core.common.media.RingtoneSound
 import top.chengdongqing.wechat.core.common.qrcode.QRCodeResult
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.data.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.UserProfile
+import top.chengdongqing.wechat.core.playback.RingtoneSound
 import javax.inject.Inject
 
 /**

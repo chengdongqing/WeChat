@@ -45,8 +45,10 @@ import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.ContactResult
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.toResult
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ContactPicker(
@@ -148,7 +150,15 @@ fun ContactPicker(
                                     ) {
                                         Spacer(modifier = Modifier.width(16.dp))
                                         WeCheckBox(isSelected)
-                                        ContactListItem(contact)
+                                        ContactListItem(
+                                            displayName = contact.displayName,
+                                            avatarModel = if (contact.id == LocalAiAssistant.ID) {
+                                                DesignR.drawable.img_logo
+                                            } else {
+                                                contact.avatarPath
+                                            },
+                                            note = contact.note
+                                        )
                                     }
 
                                     if (index < contacts.lastIndex) {

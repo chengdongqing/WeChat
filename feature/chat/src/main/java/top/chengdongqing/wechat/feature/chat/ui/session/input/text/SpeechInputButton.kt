@@ -23,12 +23,12 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import top.chengdongqing.wechat.core.common.media.SpeechRecognizerManager
-import top.chengdongqing.wechat.core.common.media.SpeechState
-import top.chengdongqing.wechat.core.common.media.SpeechStatus
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.playback.SpeechRecognizerManager
+import top.chengdongqing.wechat.core.playback.SpeechState
+import top.chengdongqing.wechat.core.playback.SpeechStatus
 
 /**
  * 语音输入按钮

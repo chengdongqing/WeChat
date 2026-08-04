@@ -34,6 +34,5 @@ dependencies {
     api(libs.permissions.accompanist)
 
     implementation(libs.bundles.coil)
-    implementation(libs.coil.zoomable)
     implementation(libs.appcompat)
 }

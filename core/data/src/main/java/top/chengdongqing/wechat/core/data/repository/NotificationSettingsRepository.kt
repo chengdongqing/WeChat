@@ -1,9 +1,9 @@
 package top.chengdongqing.wechat.core.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import top.chengdongqing.wechat.core.common.media.RingtoneSound
 import top.chengdongqing.wechat.core.common.notification.NotificationDisplay
 import top.chengdongqing.wechat.core.common.notification.NotificationSound
+import top.chengdongqing.wechat.core.playback.RingtoneSound
 
 interface NotificationSettingsRepository {
     val msgNotificationEnabled: Flow<Boolean>

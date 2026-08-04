@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import top.chengdongqing.wechat.core.common.di.NotificationSettingsDataStore
-import top.chengdongqing.wechat.core.common.media.RingtoneSound
 import top.chengdongqing.wechat.core.common.notification.NotificationDisplay
 import top.chengdongqing.wechat.core.common.notification.NotificationSound
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
+import top.chengdongqing.wechat.core.playback.RingtoneSound
 
 class NotificationSettingsRepositoryImpl @Inject constructor(
     @param:NotificationSettingsDataStore private val dataStore: DataStore<Preferences>

@@ -12,10 +12,10 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.media.RingtoneSound
 import top.chengdongqing.wechat.core.common.notification.NotificationDisplay
 import top.chengdongqing.wechat.core.common.notification.NotificationSound
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
+import top.chengdongqing.wechat.core.playback.RingtoneSound
 
 @HiltViewModel
 class NotificationSettingsViewModel @Inject constructor(

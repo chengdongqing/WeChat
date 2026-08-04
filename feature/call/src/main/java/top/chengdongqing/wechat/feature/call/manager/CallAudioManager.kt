@@ -8,11 +8,11 @@ import android.media.MediaPlayer
 import android.os.Build
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import top.chengdongqing.wechat.core.common.media.RingtoneSound
-import top.chengdongqing.wechat.core.common.media.VibratorHelper
-import top.chengdongqing.wechat.core.common.media.toUri
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.playback.RingtoneSound
+import top.chengdongqing.wechat.core.playback.VibratorHelper
+import top.chengdongqing.wechat.core.playback.toUri
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -40,11 +40,11 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTop
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
-import top.chengdongqing.wechat.core.designsystem.components.permission.RequestAddFriendPermission
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
+import top.chengdongqing.wechat.core.proximity.ui.RequestAddFriendPermission
 import top.chengdongqing.wechat.feature.contacts.domain.model.AddContactOption
 
 @Composable

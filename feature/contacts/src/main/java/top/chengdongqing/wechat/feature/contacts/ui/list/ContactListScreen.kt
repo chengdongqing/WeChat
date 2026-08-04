@@ -36,6 +36,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ContactListScreen(
@@ -113,7 +114,13 @@ fun ContactListScreen(
                                 modifier = Modifier.background(WeTheme.colorScheme.surface)
                             ) {
                                 ContactListItem(
-                                    contact = contact,
+                                    displayName = contact.displayName,
+                                    avatarModel = if (contact.id == LocalAiAssistant.ID) {
+                                        DesignR.drawable.img_logo
+                                    } else {
+                                        contact.avatarPath
+                                    },
+                                    note = contact.note,
                                     modifier = Modifier.weContextMenu(
                                         onClick = {
                                             onNavigateToDetail(contact.id)

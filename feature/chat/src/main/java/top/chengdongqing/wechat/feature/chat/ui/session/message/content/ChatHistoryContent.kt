@@ -42,7 +42,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.media.VoicePlayer
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.common.media.model.MediaType
 import top.chengdongqing.wechat.core.common.media.preview.previewMedias
@@ -57,6 +56,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.previewLocation
+import top.chengdongqing.wechat.core.playback.VoicePlayer
 import top.chengdongqing.wechat.core.util.showToast
 import java.io.File
 import java.time.Instant

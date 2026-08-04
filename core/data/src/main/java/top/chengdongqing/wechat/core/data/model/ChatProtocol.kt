@@ -1,11 +1,11 @@
 package top.chengdongqing.wechat.core.data.model
 
 import kotlinx.serialization.Serializable
-import top.chengdongqing.wechat.core.common.media.RingtoneSound
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.HangupReason
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.ProfileBeacon
+import top.chengdongqing.wechat.core.playback.RingtoneSound
 
 @Serializable
 sealed class ChatProtocol {

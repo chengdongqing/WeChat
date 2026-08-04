@@ -50,7 +50,9 @@ fun ContactBlacklistScreen(
                 key = { it.id }
             ) { contact ->
                 ContactListItem(
-                    contact = contact,
+                    displayName = contact.displayName,
+                    avatarModel = contact.avatarPath,
+                    note = contact.note,
                     modifier = Modifier.clickable {
                         onNavigateToContactDetail(contact.id)
                     }

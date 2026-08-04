@@ -30,6 +30,7 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.data)
     implementation(projects.core.common)
+    implementation(projects.core.playback)
     implementation(projects.core.navigation)
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
@@ -41,6 +42,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.datastore.preferences)
+    implementation(libs.coil.compose)
     implementation(libs.room.runtime)
     implementation(libs.appcompat)
 }

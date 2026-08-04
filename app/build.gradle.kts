@@ -81,6 +81,8 @@ dependencies {
     // Core modules
     implementation(projects.core.designsystem)
     implementation(projects.core.common)
+    implementation(projects.core.playback)
+    implementation(projects.core.callUi)
     implementation(projects.core.navigation)
     implementation(projects.core.network)
     implementation(projects.core.data)
