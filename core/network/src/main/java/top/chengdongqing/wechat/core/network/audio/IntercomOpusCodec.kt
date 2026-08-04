@@ -5,8 +5,10 @@ import io.github.jaredmdobson.concentus.OpusDecoder
 import io.github.jaredmdobson.concentus.OpusEncoder
 import io.github.jaredmdobson.concentus.OpusSignal
 
-/** Stateful 16 kHz mono Opus encoder used for one local talk spurt. */
-internal class IntercomOpusEncoder(enableFec: Boolean) {
+/**
+ * Stateful 16 kHz mono Opus encoder used for one local talk spurt.
+ */
+class IntercomOpusEncoder(enableFec: Boolean) {
     private val encoder = OpusEncoder(
         IntercomAudioFormat.SAMPLE_RATE,
         IntercomAudioFormat.CHANNELS,
@@ -37,7 +39,7 @@ internal class IntercomOpusEncoder(enableFec: Boolean) {
 }
 
 /** Stateful decoder; one instance is required for each remote speaker. */
-internal class IntercomOpusDecoder {
+class IntercomOpusDecoder {
     private val decoder = OpusDecoder(
         IntercomAudioFormat.SAMPLE_RATE,
         IntercomAudioFormat.CHANNELS
@@ -71,7 +73,7 @@ internal class IntercomOpusDecoder {
     }
 }
 
-internal object IntercomAudioFormat {
+object IntercomAudioFormat {
     const val SAMPLE_RATE = 16_000
     const val CHANNELS = 1
     const val FRAME_SAMPLES = 320

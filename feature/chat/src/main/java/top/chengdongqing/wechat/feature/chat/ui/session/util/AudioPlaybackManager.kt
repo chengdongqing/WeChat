@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.feature.chat.ui.session.util
 import android.content.Context
 import android.os.SystemClock
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -12,14 +13,16 @@ import top.chengdongqing.wechat.core.common.media.VoicePlayer
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.network.audio.ChatOpusFileWriter
 import top.chengdongqing.wechat.feature.chat.ui.session.input.voice.AudioFocusManager
+import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 音频播放管理器 - 封装所有音频播放相关逻辑
  */
 class AudioPlaybackManager(
-    context: Context,
+    private val context: Context,
     private val scope: CoroutineScope,
     private val soundTipPlayer: SoundTipPlayer,
     private val onPlaybackStateChanged: (VoicePlaybackState) -> Unit,
@@ -33,6 +36,8 @@ class AudioPlaybackManager(
     private var logicalPositionMs = 0f
     private var lastProgressUpdateMs = 0L
     private var progressJob: Job? = null
+    private var prepareJob: Job? = null
+    private var decodedPcmFile: File? = null
     private var speed = 1f
 
     fun togglePlay(
@@ -64,9 +69,13 @@ class AudioPlaybackManager(
     }
 
     fun stop() {
+        prepareJob?.cancel()
+        prepareJob = null
         progressJob?.cancel()
         progressJob = null
         voicePlayer.stop()
+        decodedPcmFile?.delete()
+        decodedPcmFile = null
         audioFocusManager.abandonFocus()
         currentPlayingId = null
         currentExpectedDurationMs = 0
@@ -112,6 +121,14 @@ class AudioPlaybackManager(
         isSpeakerOn: Boolean,
         isContinuous: Boolean
     ) {
+        prepareJob?.cancel()
+        prepareJob = null
+        progressJob?.cancel()
+        progressJob = null
+        voicePlayer.stop()
+        decodedPcmFile?.delete()
+        decodedPcmFile = null
+
         // 首次播放时申请音频焦点
         if (!isContinuous) {
             audioFocusManager.requestFocus()
@@ -135,10 +152,27 @@ class AudioPlaybackManager(
         )
         onMessagePlayed(messageId)
 
-        voicePlayer.play(localPath, isSpeakerOn, speed) {
-            handlePlaybackCompleted(messageId, messages, isSpeakerOn)
+        prepareJob = scope.launch(Dispatchers.IO) {
+            val decoded = File.createTempFile("voice_", ".wav", context.cacheDir)
+            try {
+                ChatOpusFileWriter.decodeToWav(File(localPath), decoded)
+                if (currentPlayingId != messageId) {
+                    decoded.delete()
+                    return@launch
+                }
+                decodedPcmFile?.delete()
+                decodedPcmFile = decoded
+                voicePlayer.play(decoded.absolutePath, isSpeakerOn, speed) {
+                    handlePlaybackCompleted(messageId, messages, isSpeakerOn)
+                }
+                startProgressUpdates()
+            } catch (_: Exception) {
+                decoded.delete()
+                if (currentPlayingId == messageId) {
+                    handlePlaybackCompleted(messageId, messages, isSpeakerOn)
+                }
+            }
         }
-        startProgressUpdates()
     }
 
     private fun startProgressUpdates() {
@@ -171,8 +205,7 @@ class AudioPlaybackManager(
     }
 
     /**
-     * 部分设备生成的 M4A 可以正常播放，但 MediaPlayer 的时间轴会直接跳到末尾。
-     * 使用单调时钟维护 UI 进度，避免依赖容器时间戳；倍速播放时按速度同步推进。
+     * 使用单调时钟维护 UI 进度，避免解码准备阶段影响进度；倍速播放时同步推进。
      */
     private fun updateLogicalPosition(isPlaying: Boolean) {
         val now = SystemClock.elapsedRealtime()
@@ -189,6 +222,9 @@ class AudioPlaybackManager(
     ) {
         progressJob?.cancel()
         progressJob = null
+        prepareJob = null
+        decodedPcmFile?.delete()
+        decodedPcmFile = null
         soundTipPlayer.play(R.raw.tip_voice_played)
 
         val nextVoice = findNextUnreadVoice(messageId, messages)

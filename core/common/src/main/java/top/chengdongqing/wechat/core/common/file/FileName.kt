@@ -22,7 +22,7 @@ fun MessageType.getFileConfig(): FileConfig {
         MessageType.ContactCard -> FileConfig("images", "IMG", "jpg")
 
         MessageType.Video -> FileConfig("videos", "VID", "mp4")
-        MessageType.Voice -> FileConfig("recordings", "RCD", "m4a")
+        MessageType.Voice -> FileConfig("recordings", "RCD", "wopus")
         else -> FileConfig("files", "FILE", "bin")
     }
 }
