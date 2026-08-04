@@ -49,7 +49,7 @@ import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.chat.WeMessageBubble
 import top.chengdongqing.wechat.core.designsystem.components.chat.WeMessageText
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.LocalFontScale
 import top.chengdongqing.wechat.core.designsystem.theme.Neutral900
@@ -130,7 +130,7 @@ private fun ChatPreview(
             .fillMaxSize()
             .verticalScroll(
                 state = rememberScrollState(),
-                overscrollEffect = rememberBounceOverscrollEffect()
+                overscrollEffect = rememberBouncedOverscrollEffect()
             )
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)

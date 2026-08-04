@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -43,7 +43,7 @@ fun ContactBlacklistScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            overscrollEffect = rememberBounceOverscrollEffect()
+            overscrollEffect = rememberBouncedOverscrollEffect()
         ) {
             items(
                 items = contacts,

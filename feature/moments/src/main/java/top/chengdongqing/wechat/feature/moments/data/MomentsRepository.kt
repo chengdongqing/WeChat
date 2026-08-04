@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.feature.moments.model.Moment
 import top.chengdongqing.wechat.feature.moments.model.MomentComment
 import top.chengdongqing.wechat.feature.moments.model.MomentCover
@@ -37,7 +38,7 @@ class MomentsRepository @Inject constructor(
             copy(
                 moments = listOf(
                     Moment(
-                        id = UUID.randomUUID().toString(),
+                        id = randomUUID(),
                         authorId = profile.id,
                         authorName = profile.nickname,
                         authorAvatar = profile.avatarPath,
@@ -71,7 +72,7 @@ class MomentsRepository @Inject constructor(
             copy(
                 moments = listOf(
                     Moment(
-                        id = UUID.randomUUID().toString(),
+                        id = randomUUID(),
                         authorId = profile.id,
                         authorName = profile.nickname,
                         authorAvatar = profile.avatarPath,
@@ -107,7 +108,7 @@ class MomentsRepository @Inject constructor(
             copy(moments = moments.map { moment ->
                 if (moment.id != momentId) moment else moment.copy(
                     comments = moment.comments + MomentComment(
-                        UUID.randomUUID().toString(),
+                        randomUUID(),
                         profile.id,
                         profile.nickname,
                         text.trim(),

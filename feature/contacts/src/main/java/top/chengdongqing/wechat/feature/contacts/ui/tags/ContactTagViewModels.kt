@@ -21,7 +21,7 @@ import top.chengdongqing.wechat.core.database.dao.ContactTagDao
 import top.chengdongqing.wechat.core.database.dao.ContactTagSummary
 import top.chengdongqing.wechat.core.database.entity.ContactEntity
 import top.chengdongqing.wechat.core.database.entity.ContactTagEntity
-import java.util.UUID
+import top.chengdongqing.wechat.core.util.randomUUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -97,7 +97,7 @@ class ContactTagEditorViewModel @AssistedInject constructor(
         viewModelScope.launch {
             _state.update { it.copy(saving = true) }
             runCatching {
-                val id = tagId ?: UUID.randomUUID().toString()
+                val id = tagId ?: randomUUID()
                 if (tagId == null) tagDao.insertTag(ContactTagEntity(id, name))
                 else tagDao.rename(id, name)
                 tagDao.replaceMembers(id, state.value.selectedIds)

@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDial
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -51,7 +51,7 @@ fun ChatListScreen(
             else -> 140.dp
         }
     )
-    val overscrollEffect = rememberBounceOverscrollEffect()
+    val overscrollEffect = rememberBouncedOverscrollEffect()
 
     /**
      * 注册当前是否在聊天列表的状态

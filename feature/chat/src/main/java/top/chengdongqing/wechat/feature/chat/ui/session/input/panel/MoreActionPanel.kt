@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
@@ -57,7 +57,7 @@ fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
     }
 
     val pagerState = rememberPagerState { pages.size }
-    val overscrollEffect = rememberBounceOverscrollEffect(Orientation.Horizontal)
+    val overscrollEffect = rememberBouncedOverscrollEffect(Orientation.Horizontal)
 
     Column(
         modifier = Modifier

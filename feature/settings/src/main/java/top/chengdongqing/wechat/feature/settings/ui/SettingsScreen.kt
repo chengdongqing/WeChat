@@ -29,7 +29,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.NavigationKey
@@ -60,7 +60,7 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(
                     state = rememberScrollState(),
-                    overscrollEffect = rememberBounceOverscrollEffect()
+                    overscrollEffect = rememberBouncedOverscrollEffect()
                 )
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)

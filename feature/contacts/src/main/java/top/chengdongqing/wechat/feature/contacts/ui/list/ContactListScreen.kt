@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weConte
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.AppLanguage
@@ -50,7 +50,7 @@ fun ContactListScreen(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val overscrollEffect = rememberBounceOverscrollEffect()
+    val overscrollEffect = rememberBouncedOverscrollEffect()
 
     Box(
         modifier = Modifier

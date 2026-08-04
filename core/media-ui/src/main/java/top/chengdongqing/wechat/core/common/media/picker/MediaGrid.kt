@@ -35,7 +35,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.file.loadMediaThumbnail
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.core.util.showToast
@@ -50,7 +50,7 @@ internal fun ColumnScope.MediaGrid(
     onMediaPreview: (Int) -> Unit
 ) {
     val context = LocalContext.current
-    val overscrollEffect = rememberBounceOverscrollEffect()
+    val overscrollEffect = rememberBouncedOverscrollEffect()
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(4),

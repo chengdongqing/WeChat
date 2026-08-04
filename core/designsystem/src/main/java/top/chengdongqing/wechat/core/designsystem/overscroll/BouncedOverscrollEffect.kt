@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 /**
  * 带回弹感的滚动效果
  */
-class BounceOverscrollEffect(
+class BouncedOverscrollEffect(
     private val scope: CoroutineScope,
     private val orientation: Orientation = Orientation.Vertical
 ) : OverscrollEffect {
@@ -126,11 +126,12 @@ class BounceOverscrollEffect(
  * 创建并记住一个带回弹感的滚动效果
  */
 @Composable
-fun rememberBounceOverscrollEffect(
+fun rememberBouncedOverscrollEffect(
     orientation: Orientation = Orientation.Vertical
-): BounceOverscrollEffect {
+): BouncedOverscrollEffect {
     val scope = rememberCoroutineScope()
+
     return remember {
-        BounceOverscrollEffect(scope, orientation)
+        BouncedOverscrollEffect(scope, orientation)
     }
 }

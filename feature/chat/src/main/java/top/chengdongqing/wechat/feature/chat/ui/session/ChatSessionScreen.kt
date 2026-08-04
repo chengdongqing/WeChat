@@ -72,7 +72,7 @@ import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDial
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.CallType
@@ -80,6 +80,7 @@ import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.BombMessageEffect
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveEffectEvent
@@ -95,7 +96,6 @@ import top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar.MessageT
 import top.chengdongqing.wechat.feature.chat.ui.session.peer.PeerDeviceOverlay
 import top.chengdongqing.wechat.feature.chat.ui.session.util.KeyboardScrollEffect
 import top.chengdongqing.wechat.feature.chat.ui.session.util.MessageDataScrollEffect
-import java.util.UUID
 
 @Composable
 fun ChatSessionScreen(
@@ -322,7 +322,7 @@ fun ChatSessionScreen(
                                             listState,
                                             launchCall,
                                             onStartLive = {
-                                                val liveId = UUID.randomUUID().toString()
+                                                val liveId = randomUUID()
                                                 viewModel.sendMessage(
                                                     MessageContent.Live(
                                                         liveId = liveId,
@@ -643,7 +643,7 @@ private fun ChatMessageList(
     innerPadding: PaddingValues,
     bombProgress: Float
 ) {
-    val overscrollEffect = rememberBounceOverscrollEffect()
+    val overscrollEffect = rememberBouncedOverscrollEffect()
     val scope = rememberCoroutineScope()
     val streamingMessageInPaging = streamingAiMessage?.let { streaming ->
         lazyMessageItems.itemSnapshotList.items.any { it.id == streaming.id }

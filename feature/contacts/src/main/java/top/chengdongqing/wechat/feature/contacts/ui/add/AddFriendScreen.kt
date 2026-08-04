@@ -40,7 +40,7 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTop
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
@@ -110,7 +110,7 @@ fun AddFriendScreen(
                     .fillMaxSize()
                     .verticalScroll(
                         state = rememberScrollState(),
-                        overscrollEffect = rememberBounceOverscrollEffect()
+                        overscrollEffect = rememberBouncedOverscrollEffect()
                     )
             ) {
                 AddFriendOptionsList(handleAction)

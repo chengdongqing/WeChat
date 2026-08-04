@@ -28,9 +28,9 @@ import top.chengdongqing.wechat.core.network.crypto.PacketSigner
 import top.chengdongqing.wechat.core.network.model.Packet
 import top.chengdongqing.wechat.core.network.model.PacketType
 import top.chengdongqing.wechat.core.network.security.KeyStoreManager
+import top.chengdongqing.wechat.core.util.randomUUID
 import java.io.File
 import java.io.FileOutputStream
-import java.util.UUID
 
 @Singleton
 class GroupChatCoordinator @Inject constructor(
@@ -49,7 +49,7 @@ class GroupChatCoordinator @Inject constructor(
             val me = profileRepository.requireProfile()
             val selectedMembers = selected.distinctBy { it.id }.filterNot { it.id == me.id }
             require(selectedMembers.isNotEmpty()) { "请至少选择一位联系人" }
-            val groupId = "group_${UUID.randomUUID().toString().replace("-", "")}"
+            val groupId = "group_${randomUUID()}"
             val members = buildList {
                 add(GroupMemberEntity(groupId, me.id, me.nickname, me.avatarPath, GroupMemberRole.Owner))
                 selectedMembers.forEach {
@@ -98,7 +98,7 @@ class GroupChatCoordinator @Inject constructor(
     ) {
         val me = profileRepository.requireProfile()
         val unsigned = ChatProtocol.GroupSnapshot(
-            messageId = UUID.randomUUID().toString(),
+            messageId = randomUUID(),
             senderId = me.id,
             signature = "",
             groupId = group.id,

@@ -78,7 +78,7 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.core.designsystem.modifier.repeatingClickable
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.data.store.ManagedSticker
@@ -239,7 +239,7 @@ private fun BuiltInEmojiGrid(
     onBackspace: () -> Unit,
     topPadding: Dp = 8.dp
 ) {
-    val overscrollEffect = rememberBounceOverscrollEffect()
+    val overscrollEffect = rememberBouncedOverscrollEffect()
 
     Box(contentAlignment = Alignment.BottomEnd) {
         LazyVerticalGrid(
@@ -450,7 +450,7 @@ private fun StickerGrid(
     topPadding: Dp = 12.dp,
     viewModel: StickersViewModel = hiltViewModel()
 ) {
-    val overscrollEffect = rememberBounceOverscrollEffect()
+    val overscrollEffect = rememberBouncedOverscrollEffect()
     val stickers by viewModel.stickers.collectAsStateWithLifecycle()
     val addSticker =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->

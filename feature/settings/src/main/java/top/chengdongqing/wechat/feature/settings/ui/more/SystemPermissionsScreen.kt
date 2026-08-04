@@ -31,7 +31,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.navigateToAppSettings
 import top.chengdongqing.wechat.feature.settings.domain.model.RequiredPermission
@@ -74,7 +74,7 @@ fun SystemPermissionSettingsScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .verticalScroll(
                     state = rememberScrollState(),
-                    overscrollEffect = rememberBounceOverscrollEffect()
+                    overscrollEffect = rememberBouncedOverscrollEffect()
                 )
                 .padding(innerPadding)
         ) {

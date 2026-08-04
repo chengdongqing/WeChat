@@ -27,7 +27,7 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTop
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.radio.WeRadioGroup
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -69,7 +69,7 @@ fun NotificationSoundSettingScreen(
                 .fillMaxSize()
                 .verticalScroll(
                     state = rememberScrollState(),
-                    overscrollEffect = rememberBounceOverscrollEffect()
+                    overscrollEffect = rememberBouncedOverscrollEffect()
                 )
                 .padding(innerPadding)
         ) {

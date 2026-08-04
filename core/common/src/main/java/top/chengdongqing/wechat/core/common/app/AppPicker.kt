@@ -47,7 +47,7 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -63,7 +63,7 @@ fun AppPicker(
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val overscrollEffect = rememberBounceOverscrollEffect()
+    val overscrollEffect = rememberBouncedOverscrollEffect()
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

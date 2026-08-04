@@ -17,20 +17,6 @@ import top.chengdongqing.wechat.core.database.dao.MessageDao
 import java.io.File
 import javax.inject.Inject
 
-data class StorageUiState(
-    val loading: Boolean = true,
-    val totalBytes: Long = 0,
-    val freeBytes: Long = 0,
-    val appBytes: Long = 0,
-    val cacheBytes: Long = 0,
-    val chatBytes: Long = 0,
-    val resourceBytes: Long = 0,
-    val necessaryBytes: Long = 0,
-    val cleaning: StorageCategory? = null
-)
-
-enum class StorageCategory { Cache, Chats, Resources }
-
 @HiltViewModel
 class StorageSettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -40,16 +26,19 @@ class StorageSettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(StorageUiState())
     val uiState = _uiState.asStateFlow()
 
-    init { refresh() }
+    init {
+        refresh()
+    }
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = calculate().copy(loading = false)
+            _uiState.value = calculate()
         }
     }
 
     fun clean(category: StorageCategory) {
         if (_uiState.value.cleaning != null) return
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(cleaning = category)
             withContext(Dispatchers.IO) {
@@ -58,6 +47,7 @@ class StorageSettingsViewModel @Inject constructor(
                         context.cacheDir.deleteChildren()
                         context.codeCacheDir.deleteChildren()
                     }
+
                     StorageCategory.Chats -> {
                         assetReferenceManager.detachAll(
                             AssetOwnerType.Message,
@@ -65,12 +55,13 @@ class StorageSettingsViewModel @Inject constructor(
                         )
                         messageDao.clearAllLocalPaths()
                     }
+
                     StorageCategory.Resources -> RESOURCE_DIRS.forEach {
                         File(context.filesDir, it).deleteChildren()
                     }
                 }
             }
-            _uiState.value = calculate().copy(loading = false)
+            _uiState.value = calculate()
         }
     }
 
@@ -87,6 +78,7 @@ class StorageSettingsViewModel @Inject constructor(
         val preferences = File(context.applicationInfo.dataDir, "shared_prefs").sizeRecursively()
         val apk = File(context.applicationInfo.sourceDir).length()
         val necessary = (files - chat - resources).coerceAtLeast(0) + databases + preferences + apk
+
         StorageUiState(
             loading = false,
             totalBytes = total,
@@ -114,3 +106,17 @@ class StorageSettingsViewModel @Inject constructor(
         val RESOURCE_DIRS = listOf("stickers", "music")
     }
 }
+
+data class StorageUiState(
+    val loading: Boolean = true,
+    val totalBytes: Long = 0,
+    val freeBytes: Long = 0,
+    val appBytes: Long = 0,
+    val cacheBytes: Long = 0,
+    val chatBytes: Long = 0,
+    val resourceBytes: Long = 0,
+    val necessaryBytes: Long = 0,
+    val cleaning: StorageCategory? = null
+)
+
+enum class StorageCategory { Cache, Chats, Resources }

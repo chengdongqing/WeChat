@@ -15,7 +15,7 @@ import top.chengdongqing.wechat.core.network.http.AvatarServer
 import top.chengdongqing.wechat.core.network.model.Packet
 import top.chengdongqing.wechat.core.network.model.PacketType
 import top.chengdongqing.wechat.core.network.security.KeyStoreManager
-import java.util.UUID
+import top.chengdongqing.wechat.core.util.randomUUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,7 +41,7 @@ class TemporaryChatCoordinator @Inject constructor(
         ) { "临时聊天有效期无效" }
         val publicKey = requireNotNull(profile.publicKey) { "本机身份公钥不可用" }
         val unsigned = ChatProtocol.TemporaryChatInvite(
-            messageId = UUID.randomUUID().toString(),
+            messageId = randomUUID(),
             senderId = profile.id,
             receiverId = receiverId,
             nickname = profile.nickname,

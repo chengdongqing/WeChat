@@ -25,7 +25,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
-import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBounceOverscrollEffect
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.core.util.navigateToAppSettings
@@ -58,7 +58,7 @@ fun NotificationSettingsScreen(
                 .fillMaxSize()
                 .verticalScroll(
                     state = rememberScrollState(),
-                    overscrollEffect = rememberBounceOverscrollEffect()
+                    overscrollEffect = rememberBouncedOverscrollEffect()
                 )
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)

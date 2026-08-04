@@ -22,7 +22,7 @@ import top.chengdongqing.wechat.core.common.media.MediaPrivacyProcessor
 import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLauncher
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.model.MessageType
-import java.util.UUID
+import top.chengdongqing.wechat.core.util.randomUUID
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -105,7 +105,7 @@ class MediaHandler(
     fun handleMediaSelection(uris: List<Uri>, merge: Boolean = false, original: Boolean = false) {
         onModeChange()
         scope.launch {
-            val albumId = if (merge && uris.size >= 3) UUID.randomUUID().toString() else null
+            val albumId = if (merge && uris.size >= 3) randomUUID() else null
             uris.forEachIndexed { index, uri ->
                 processAndSend(
                     uri = uri,

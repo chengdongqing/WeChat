@@ -23,14 +23,18 @@ import top.chengdongqing.wechat.core.designsystem.R
  *
  * @param size 大小
  * @param color 颜色
- * @param isRotating 是否旋转
+ * @param isRunning 是否旋转
  */
 @Composable
-fun WeLoading(size: Dp = 16.dp, color: Color = Color.Unspecified, isRotating: Boolean = true) {
+fun WeLoading(
+    size: Dp = 16.dp,
+    color: Color = Color.Unspecified,
+    isRunning: Boolean = true
+) {
     val transition = rememberInfiniteTransition(label = "")
     val angle by transition.animateFloat(
         initialValue = 0f,
-        targetValue = if (isRotating) 360f else 0f,
+        targetValue = if (isRunning) 360f else 0f,
         animationSpec = infiniteRepeatable(
             tween(durationMillis = 1000, easing = LinearEasing),
             RepeatMode.Restart

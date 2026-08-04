@@ -60,11 +60,11 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.playback.MusicPlayer
+import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarActions
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarState
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.util.UUID
 
 @Composable
 fun MusicOverlay(
@@ -419,7 +419,7 @@ private fun prepareForSend(track: MusicTrack): MusicTrack {
 }
 
 private fun importLocalMusic(context: Context, audioUri: Uri, coverUri: Uri): MusicTrack {
-    val id = UUID.randomUUID().toString()
+    val id = randomUUID()
     val directory = File(context.filesDir, "music").apply { mkdirs() }
     val mimeType = context.contentResolver.getType(audioUri) ?: "audio/*"
     val audioExtension = android.webkit.MimeTypeMap.getSingleton()
