@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,7 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,9 +36,16 @@ fun PinEntry(
     title: String,
     error: String?,
     modifier: Modifier = Modifier,
+    pinLength: Int = 4,
     onPinComplete: (String) -> Unit
 ) {
     var pin by remember(title, error) { mutableStateOf("") }
+
+    LaunchedEffect(error) {
+        if (!error.isNullOrEmpty()) {
+            pin = ""
+        }
+    }
 
     Column(
         modifier = modifier
@@ -44,14 +55,16 @@ fun PinEntry(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            title,
+            text = title,
             fontSize = 22.sp,
             fontWeight = FontWeight.Medium,
             color = WeTheme.colorScheme.textPrimary
         )
         Spacer(Modifier.height(48.dp))
+
+        // 指示灯圆点
         Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            repeat(4) { index ->
+            repeat(pinLength) { index ->
                 Box(
                     Modifier
                         .size(14.dp)
@@ -67,56 +80,111 @@ fun PinEntry(
             }
         }
         Spacer(Modifier.height(24.dp))
-        Text(error.orEmpty(), color = WeTheme.colorScheme.danger, fontSize = 14.sp)
+
+        Text(
+            text = error.orEmpty(),
+            color = WeTheme.colorScheme.danger,
+            fontSize = 14.sp
+        )
         Spacer(Modifier.height(48.dp))
+
         NumberPad(
             onDigit = { digit ->
-                if (pin.length < 4) {
-                    pin += digit
-                    if (pin.length == 4) {
-                        val completed = pin
-                        pin = ""
-                        onPinComplete(completed)
+                if (pin.length < pinLength) {
+                    val newPin = pin + digit
+                    pin = newPin
+                    if (newPin.length == pinLength) {
+                        onPinComplete(newPin)
                     }
                 }
             },
-            onDelete = { if (pin.isNotEmpty()) pin = pin.dropLast(1) }
+            onDelete = {
+                if (pin.isNotEmpty()) {
+                    pin = pin.dropLast(1)
+                }
+            }
         )
     }
 }
 
 @Composable
-private fun NumberPad(onDigit: (String) -> Unit, onDelete: () -> Unit) {
-    val rows = listOf(listOf("1", "2", "3"), listOf("4", "5", "6"), listOf("7", "8", "9"))
+private fun NumberPad(
+    onDigit: (String) -> Unit,
+    onDelete: () -> Unit
+) {
+    val keys = remember {
+        listOf(
+            listOf("1", "2", "3"),
+            listOf("4", "5", "6"),
+            listOf("7", "8", "9"),
+            listOf("", "0", "backspace")
+        )
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        rows.forEach { row ->
+        keys.forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                row.forEach { digit -> NumberKey(digit) { onDigit(digit) } }
+                row.forEach { key ->
+                    when (key) {
+                        "backspace" -> DeleteKey(onDelete)
+                        "" -> KeyPlaceholder()
+                        else -> NumberKey(key) { onDigit(key) }
+                    }
+                }
             }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            Spacer(Modifier.size(72.dp))
-            NumberKey("0") { onDigit("0") }
-            NumberKey("⌫", onDelete)
         }
     }
 }
 
 @Composable
-private fun NumberKey(text: String, onClick: () -> Unit) {
+private fun NumberKey(
+    digit: String,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .size(72.dp)
             .clip(CircleShape)
-            .background(Color.White)
-            .clickable(onClick = onClick),
+            .background(WeTheme.colorScheme.surface)
+            .clickable(
+                role = Role.Button,
+                onClickLabel = digit,
+                onClick = onClick
+            ),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text,
-            fontSize = if (text == "⌫") 21.sp else 29.sp,
-            fontWeight = if (text == "⌫") FontWeight.Normal else FontWeight.Light,
+            text = digit,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Medium,
             color = WeTheme.colorScheme.textPrimary
         )
     }
+}
+
+@Composable
+private fun DeleteKey(onDelete: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(72.dp)
+            .clip(CircleShape)
+            .clickable(
+                role = Role.Button,
+                onClickLabel = "退格",
+                onClick = onDelete
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.Backspace,
+            contentDescription = null,
+            tint = WeTheme.colorScheme.textPrimary,
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+private fun KeyPlaceholder() {
+    Box(modifier = Modifier.size(72.dp))
 }

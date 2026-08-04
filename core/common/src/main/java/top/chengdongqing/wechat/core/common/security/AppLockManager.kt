@@ -20,7 +20,6 @@ class AppLockManager @Inject constructor(
         get() = preferences.contains(KEY_HASH) && preferences.contains(KEY_SALT)
 
     fun setPin(pin: String) {
-        require(pin.matches(PIN_REGEX)) { "PIN must contain exactly four digits" }
         val salt = ByteArray(SALT_SIZE).also(SecureRandom()::nextBytes)
         preferences.edit {
             putString(KEY_SALT, salt.encode())
@@ -30,7 +29,6 @@ class AppLockManager @Inject constructor(
 
     fun verify(pin: String): Boolean {
         if (isTemporarilyLocked) return false
-        if (!pin.matches(PIN_REGEX)) return false
         val salt = preferences.getString(KEY_SALT, null)?.decode() ?: return false
         val expected = preferences.getString(KEY_HASH, null)?.decode() ?: return false
         val matches = MessageDigest.isEqual(expected, hash(pin, salt))
@@ -80,6 +78,5 @@ class AppLockManager @Inject constructor(
         const val HASH_ROUNDS = 10_000
         const val MAX_ATTEMPTS = 5
         const val LOCKOUT_MILLIS = 30_000L
-        val PIN_REGEX = Regex("\\d{4}")
     }
 }

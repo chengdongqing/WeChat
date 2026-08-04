@@ -46,10 +46,15 @@ fun AppLockSettingsScreen(
         },
         containerColor = WeTheme.colorScheme.background
     ) { padding ->
-        Column(Modifier
-            .fillMaxSize()
-            .padding(padding)) {
-            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
                 PinEntry(
                     title = title,
                     error = error,
@@ -91,6 +96,7 @@ fun AppLockSettingsScreen(
                     }
                 )
             }
+
             if (viewModel.isEnabled && step == PinStep.VerifyOld) {
                 WeDangerButton("取消应用锁") {
                     disableAfterVerification = true
