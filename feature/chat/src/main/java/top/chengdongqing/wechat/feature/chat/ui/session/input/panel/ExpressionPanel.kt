@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -89,34 +90,37 @@ import java.io.File
  * 表情面板
  */
 @Composable
-fun EmojiPanel(
+fun ExpressionPanel(
     recentEmojis: List<Emoji>,
     onEmojiSelect: (Emoji) -> Unit,
     onStickerSelect: ((MessageContent.Sticker) -> Unit)? = null,
-    onBackspace: () -> Unit
+    onBackspace: () -> Unit,
+    resizeHandle: (@Composable () -> Unit)? = null
 ) {
     if (onStickerSelect == null) {
-        EmojiGrid(
+        BuiltInEmojiGrid(
             recentEmojis = recentEmojis,
             onSelect = onEmojiSelect,
             onBackspace = onBackspace
         )
     } else {
-        FullEmojiPanel(
+        EmojiStickerPicker(
             recentEmojis = recentEmojis,
             onEmojiSelect = onEmojiSelect,
             onStickerSelect = onStickerSelect,
-            onBackspace = onBackspace
+            onBackspace = onBackspace,
+            resizeHandle = resizeHandle
         )
     }
 }
 
 @Composable
-private fun FullEmojiPanel(
+private fun EmojiStickerPicker(
     recentEmojis: List<Emoji>,
     onEmojiSelect: (Emoji) -> Unit,
     onStickerSelect: ((MessageContent.Sticker) -> Unit)?,
-    onBackspace: () -> Unit
+    onBackspace: () -> Unit,
+    resizeHandle: (@Composable () -> Unit)?
 ) {
     val pagerState = rememberPagerState(
         initialPage = 0,
@@ -125,7 +129,7 @@ private fun FullEmojiPanel(
     val scope = rememberCoroutineScope()
 
     Column {
-        CategoriesTab(
+        ExpressionCategoryTabs(
             currentTab = pagerState.currentPage,
             onTabChange = { index ->
                 scope.launch {
@@ -136,19 +140,23 @@ private fun FullEmojiPanel(
 
         WeDivider()
 
+        resizeHandle?.invoke()
+
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
             when (page) {
-                0 -> EmojiGrid(
+                0 -> BuiltInEmojiGrid(
                     recentEmojis = recentEmojis,
                     onSelect = onEmojiSelect,
-                    onBackspace = onBackspace
+                    onBackspace = onBackspace,
+                    topPadding = 0.dp
                 )
 
-                1 -> StickersGrid(
-                    onSelect = onStickerSelect ?: {}
+                1 -> StickerGrid(
+                    onSelect = onStickerSelect ?: {},
+                    topPadding = 0.dp
                 )
             }
         }
@@ -159,7 +167,7 @@ private fun FullEmojiPanel(
  * 选项卡导航栏
  */
 @Composable
-private fun CategoriesTab(
+private fun ExpressionCategoryTabs(
     currentTab: Int,
     onTabChange: (index: Int) -> Unit
 ) {
@@ -222,17 +230,14 @@ private fun TabButton(
 }
 
 /**
- * 表情网格
- *
- * @param recentEmojis 最近使用的表情列表
- * @param onSelect 表情选择回调
- * @param onBackspace 退格键回调
+ * 内置表情网格
  */
 @Composable
-private fun EmojiGrid(
+private fun BuiltInEmojiGrid(
     recentEmojis: List<Emoji>,
     onSelect: (Emoji) -> Unit,
-    onBackspace: () -> Unit
+    onBackspace: () -> Unit,
+    topPadding: Dp = 8.dp
 ) {
     val overscrollEffect = rememberBounceOverscrollEffect()
 
@@ -245,7 +250,7 @@ private fun EmojiGrid(
             contentPadding = PaddingValues(
                 start = 8.dp,
                 end = 8.dp,
-                top = 8.dp,
+                top = topPadding,
                 bottom = 80.dp
             ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -404,7 +409,10 @@ private object EmojiPreviewPositionProvider : PopupPositionProvider {
     ): IntOffset {
         val margin = 8
         val x = (anchorBounds.left + anchorBounds.width / 2 - popupContentSize.width / 2)
-            .coerceIn(margin, (windowSize.width - popupContentSize.width - margin).coerceAtLeast(margin))
+            .coerceIn(
+                margin,
+                (windowSize.width - popupContentSize.width - margin).coerceAtLeast(margin)
+            )
         val above = anchorBounds.top - popupContentSize.height - 6
         val y = if (above >= margin) above else anchorBounds.bottom + 6
         return IntOffset(x, y)
@@ -434,25 +442,32 @@ private fun BackspaceButton(onBackspace: () -> Unit) {
 }
 
 /**
- * 贴纸网格
+ * 表情贴纸网格
  */
 @Composable
-private fun StickersGrid(
+private fun StickerGrid(
     onSelect: (MessageContent.Sticker) -> Unit,
+    topPadding: Dp = 12.dp,
     viewModel: StickersViewModel = hiltViewModel()
 ) {
     val overscrollEffect = rememberBounceOverscrollEffect()
     val stickers by viewModel.stickers.collectAsStateWithLifecycle()
-    val addSticker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let(viewModel::add)
-    }
+    val addSticker =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let(viewModel::add)
+        }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(5),
         modifier = Modifier
             .fillMaxSize()
             .overscroll(overscrollEffect),
-        contentPadding = PaddingValues(12.dp),
+        contentPadding = PaddingValues(
+            start = 12.dp,
+            top = topPadding,
+            end = 12.dp,
+            bottom = 12.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         overscrollEffect = overscrollEffect
@@ -476,9 +491,6 @@ private fun StickersGrid(
     }
 }
 
-/**
- * 单个贴纸项
- */
 @Composable
 private fun StickerItem(
     sticker: ManagedSticker,

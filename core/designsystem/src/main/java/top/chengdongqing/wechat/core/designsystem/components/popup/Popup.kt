@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -50,6 +51,7 @@ import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 从底部弹出的弹窗
@@ -60,6 +62,7 @@ import kotlin.math.roundToInt
  * @param exitTransition 收起时的过渡动画
  * @param padding 内边距
  * @param draggable 是否可拖动关闭
+ * @param decorFitsSystemWindows Dialog 内容是否避让系统窗口；关闭后可自行消费 Insets
  * @param onDismiss 关闭事件
  * @param content 内容
  */
@@ -77,6 +80,7 @@ fun WePopup(
     ),
     padding: PaddingValues = PaddingValues(12.dp),
     draggable: Boolean = true,
+    decorFitsSystemWindows: Boolean = true,
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -84,7 +88,7 @@ fun WePopup(
 
     LaunchedEffect(visible) {
         if (!visible) {
-            delay(200)
+            delay(200.milliseconds)
         }
         localVisible = visible
     }
@@ -94,6 +98,7 @@ fun WePopup(
             visible = visible && localVisible,
             enterTransition,
             exitTransition,
+            decorFitsSystemWindows,
             onDismiss
         ) {
             var height by remember { mutableIntStateOf(0) }
@@ -163,22 +168,29 @@ private fun PopupContainer(
     visible: Boolean,
     enterTransition: EnterTransition,
     exitTransition: ExitTransition,
+    decorFitsSystemWindows: Boolean,
     onDismiss: () -> Unit,
     content: @Composable () -> Unit
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = decorFitsSystemWindows
+        )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .onTap {
-                    onDismiss()
-                },
+                .onTap(onClick = onDismiss),
             contentAlignment = Alignment.BottomCenter
         ) {
             AnimatedVisibility(
+                modifier = if (decorFitsSystemWindows) {
+                    Modifier
+                } else {
+                    Modifier.safeDrawingPadding()
+                },
                 visible = visible,
                 enter = enterTransition,
                 exit = exitTransition
