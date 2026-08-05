@@ -27,7 +27,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 
 @Composable
 fun ChatSessionTopBar(
@@ -70,7 +69,6 @@ private fun ChatSessionTitle(
     uiState: ChatSessionUiState,
 ) {
     val isE2EActive by viewModel.isE2EActive.collectAsStateWithLifecycle()
-    val localAiState by viewModel.localAiState.collectAsStateWithLifecycle()
     val statusColor = if (uiState.isOnline) {
         WeTheme.colorScheme.primary
     } else {
@@ -84,17 +82,6 @@ private fun ChatSessionTitle(
         }
     )
     val title = when {
-        !uiState.isSelectMode && viewModel.isLocalAiSession -> {
-            val status = when (localAiState) {
-                LocalAiState.NoModel -> "选择模型"
-                is LocalAiState.Importing -> "正在导入"
-                LocalAiState.Loading -> "正在加载"
-                LocalAiState.Cancelling -> "正在取消"
-                is LocalAiState.Ready -> "本地"
-                is LocalAiState.Error -> "模型错误"
-            }
-            "${uiState.title} · $status"
-        }
         !uiState.isSelectMode -> uiState.title
         uiState.selectedCount > 0 -> stringResource(
             R.string.chat_selected_count,

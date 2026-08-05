@@ -117,7 +117,6 @@ class ChatSessionViewModel @AssistedInject constructor(
     val pendingQuote = _pendingQuote.asStateFlow()
     val isLocalAiSession: Boolean get() = chatId == LocalAiAssistant.ID
     val isGroupSession: Boolean get() = chatId.startsWith("group_")
-    val localAiState = localAiEngine.state
     private val _streamingAiMessage = MutableStateFlow<StreamingAiMessage?>(null)
     val streamingAiMessage = _streamingAiMessage.asStateFlow()
     val liveLocationRoom = liveLocationRegistry.rooms.map {
@@ -384,6 +383,8 @@ class ChatSessionViewModel @AssistedInject constructor(
     // region 会话监听
 
     init {
+        val isLocalAi = chatId == LocalAiAssistant.ID
+
         if (chatId.startsWith("group_")) {
             viewModelScope.launch {
                 groupDao.observeById(chatId)
@@ -407,7 +408,6 @@ class ChatSessionViewModel @AssistedInject constructor(
         viewModelScope.launch {
             contactRepository.observeContact(chatId)
                 .combine(profileRepository.observeProfile()) { contact, profile ->
-                    val isLocalAi = chatId == LocalAiAssistant.ID
                     val isSelf = !isLocalAi && chatId == profile?.id
                     _uiState.value.copy(
                         title = if (isLocalAi) LocalAiAssistant.NAME else contact?.displayName
@@ -428,7 +428,11 @@ class ChatSessionViewModel @AssistedInject constructor(
                 .collect { (session, bg) ->
                     _uiState.update { cur ->
                         cur.copy(
-                            title = session?.contactName?.takeIf { !chatId.startsWith("group_") }
+                            title = if (isLocalAi) LocalAiAssistant.NAME else session?.contactName?.takeIf {
+                                !chatId.startsWith(
+                                    "group_"
+                                )
+                            }
                                 ?: cur.title,
                             peerId = session?.contactId ?: cur.peerId,
                             peerAvatar = session?.contactAvatar ?: cur.peerAvatar,

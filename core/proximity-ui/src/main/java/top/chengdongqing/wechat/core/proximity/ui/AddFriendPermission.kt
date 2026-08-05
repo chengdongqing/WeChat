@@ -134,7 +134,7 @@ fun RequestAddFriendPermission(
     }
 }
 
-val AddFriendPermissions by lazy {
+private val AddFriendPermissions by lazy {
     buildList {
         // 蓝牙+定位权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -156,7 +156,7 @@ val AddFriendPermissions by lazy {
 }
 
 @Composable
-fun BluetoothEnableGuide(onEnableClick: () -> Unit) {
+private fun BluetoothEnableGuide(onEnableClick: () -> Unit) {
     StatusGuideScreen(
         iconRes = R.drawable.ic_bluetooth_outlined,
         title = "需开启蓝牙",
@@ -167,7 +167,7 @@ fun BluetoothEnableGuide(onEnableClick: () -> Unit) {
 }
 
 @Composable
-fun LocationEnableGuide(onEnableClick: () -> Unit) {
+private fun LocationEnableGuide(onEnableClick: () -> Unit) {
     StatusGuideScreen(
         iconRes = R.drawable.ic_location_filled,
         title = "需开启位置服务",
@@ -178,7 +178,7 @@ fun LocationEnableGuide(onEnableClick: () -> Unit) {
 }
 
 @Composable
-fun StatusGuideScreen(
+private fun StatusGuideScreen(
     iconRes: Int,
     title: String,
     desc: String,
