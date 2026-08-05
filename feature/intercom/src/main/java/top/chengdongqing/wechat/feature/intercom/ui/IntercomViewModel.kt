@@ -42,8 +42,8 @@ class IntercomViewModel @Inject constructor(
         }
     }
 
-    fun join(channelId: String, name: String? = null) {
-        discovery.join(channelId, name)
+    fun join(channelId: String) {
+        discovery.join(channelId)
     }
 
     fun setSpeaking(isSpeaking: Boolean): Boolean {

@@ -18,7 +18,9 @@ import top.chengdongqing.wechat.core.network.audio.IntercomAudioEngine
 import top.chengdongqing.wechat.feature.intercom.data.IntercomLanDiscovery
 import javax.inject.Inject
 
-/** Keeps channel discovery and playback alive while the app is backgrounded. */
+/**
+ * Keeps channel discovery and playback alive while the app is backgrounded.
+ */
 @AndroidEntryPoint
 class IntercomForegroundService : Service() {
     @Inject

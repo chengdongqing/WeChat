@@ -43,7 +43,6 @@ sealed interface NavigationKey : NavKey {
         val hostId: String
     ) : NavigationKey
     @Serializable data object Moments : NavigationKey
-    @Serializable data class MomentDetail(val momentId: String) : NavigationKey
     @Serializable data object CreateMoment : NavigationKey
     @Serializable data object ChangeMomentCover : NavigationKey
     @Serializable data object PhotographerCovers : NavigationKey

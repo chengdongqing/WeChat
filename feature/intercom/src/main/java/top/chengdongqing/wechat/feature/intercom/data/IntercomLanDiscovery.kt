@@ -27,6 +27,8 @@ import java.net.InetSocketAddress
 import java.net.SocketTimeoutException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Serializable
 private data class IntercomBeacon(
@@ -100,12 +102,12 @@ class IntercomLanDiscovery @Inject constructor(
         heartbeatJob = scope.launch {
             while (isActive) {
                 advertise()
-                delay(HEARTBEAT_MS)
+                delay(HEARTBEAT_MS.milliseconds)
             }
         }
         cleanupJob = scope.launch {
             while (isActive) {
-                delay(1_000)
+                delay(1.seconds)
                 rebuildChannels()
             }
         }
@@ -134,7 +136,6 @@ class IntercomLanDiscovery @Inject constructor(
         val resolvedName = channelName
             ?.takeIf(String::isNotBlank)
             ?: joinedChannel?.takeIf { it.first == channelId }?.second
-            ?: _channels.value.firstOrNull { it.id == channelId }?.name
             ?: "频道 $channelId"
         joinedChannel = channelId to resolvedName
         advertise()
@@ -230,7 +231,6 @@ class IntercomLanDiscovery @Inject constructor(
                 val newest = seen.maxBy { it.receivedAt }
                 NearbyIntercomChannel(
                     id = channelId,
-                    name = newest.beacon.channelName,
                     memberCount = seen.distinctBy { it.beacon.deviceId }.size,
                     speakingCount = seen.count { it.beacon.isSpeaking },
                     lastSeenAt = newest.receivedAt

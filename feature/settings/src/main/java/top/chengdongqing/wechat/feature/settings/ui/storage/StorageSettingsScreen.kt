@@ -177,7 +177,7 @@ private fun CurrentUsedStorage(state: StorageUiState) {
         )
         Text(
             text = "占手机 $percent% 存储空间",
-            color = WeTheme.colorScheme.textSecondary,
+            color = WeTheme.colorScheme.textTertiary,
             fontSize = 13.sp
         )
     }
@@ -280,7 +280,7 @@ private fun StorageCard(
             )
             Text(
                 text = description,
-                color = WeTheme.colorScheme.textSecondary,
+                color = WeTheme.colorScheme.textTertiary,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 4.dp)
             )

@@ -19,7 +19,10 @@ fun EntryProviderScope<NavKey>.intercomNavEntries(
             }
         )
     }
-    entry<NavigationKey.IntercomRoom> { key ->
-        IntercomRoomScreen(channel = key.channel, onBack = onBack)
+    entry<NavigationKey.IntercomRoom> {
+        IntercomRoomScreen(
+            channel = it.channel,
+            onBack = onBack
+        )
     }
 }
