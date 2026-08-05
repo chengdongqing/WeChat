@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.feature.moments.ui.feed
+package top.chengdongqing.wechat.feature.moments.ui.list
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel

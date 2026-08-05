@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.feature.moments.ui.feed
+package top.chengdongqing.wechat.feature.moments.ui.list
 
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope

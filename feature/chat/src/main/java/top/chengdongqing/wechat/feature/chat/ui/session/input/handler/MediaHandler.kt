@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.common.file.deleteFileByUri
 import top.chengdongqing.wechat.core.common.file.getFileMetadata
 import top.chengdongqing.wechat.core.common.media.MediaPrivacyProcessor
-import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLauncher
+import top.chengdongqing.wechat.core.common.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.randomUUID
@@ -163,7 +163,7 @@ fun rememberMediaLaunchers(
 
     // 媒体选择器
     val launchMediaPicker =
-        rememberPickMediasLauncher(enableMerge = true) { items, merge, original ->
+        rememberMediaPickerLauncher(enableMerge = true) { items, merge, original ->
             mediaHandler.handleMediaSelection(items.map { it.uri }, merge, original)
         }
 

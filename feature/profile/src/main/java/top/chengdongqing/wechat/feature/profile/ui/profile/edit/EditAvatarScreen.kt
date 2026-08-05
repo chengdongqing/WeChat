@@ -23,7 +23,7 @@ import me.saket.telephoto.zoomable.rememberZoomableState
 import top.chengdongqing.wechat.core.common.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.common.cropper.rememberImageCropperLauncher
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLauncher
+import top.chengdongqing.wechat.core.common.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
@@ -56,7 +56,7 @@ fun EditAvatarScreen(
         scope.launch { zoomableState.resetZoom(SnapSpec()) } // 重置缩放，避免被之前的缩放影响
         viewModel.updateField(ProfileField.Avatar(it))
     }
-    val launchAlbum = rememberPickMediasLauncher { medias, _, _ ->
+    val launchAlbum = rememberMediaPickerLauncher { medias, _, _ ->
         launchCropper(medias[0].uri)
     }
     val launchCamera = rememberCameraLauncher { uri, _ ->

@@ -1,0 +1,5 @@
+<resources>
+    <string name="moments_post_camera">拍摄</string>
+    <string name="moments_post_camera_desc">照片或视频</string>
+    <string name="moments_post_gallery">从手机相册选择</string>
+</resources>

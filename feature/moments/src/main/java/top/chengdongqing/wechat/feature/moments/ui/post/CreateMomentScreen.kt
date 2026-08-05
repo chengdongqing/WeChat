@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.feature.moments.ui.create
+package top.chengdongqing.wechat.feature.moments.ui.post
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -51,7 +51,7 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.feature.moments.ui.feed.MomentsViewModel
+import top.chengdongqing.wechat.feature.moments.ui.list.MomentsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

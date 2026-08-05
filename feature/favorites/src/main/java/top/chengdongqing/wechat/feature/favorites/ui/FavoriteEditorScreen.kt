@@ -69,7 +69,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.common.media.picker.rememberPickMediasLauncher
+import top.chengdongqing.wechat.core.common.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
@@ -127,7 +127,7 @@ fun FavoriteEditorScreen(
         }
     }
 
-    val pickMedia = rememberPickMediasLauncher { medias, _, _ ->
+    val pickMedia = rememberMediaPickerLauncher { medias, _, _ ->
         importUris(medias.map { it.uri })
     }
     val launchCamera = rememberCameraLauncher { uri, _ -> importUris(listOf(uri)) }

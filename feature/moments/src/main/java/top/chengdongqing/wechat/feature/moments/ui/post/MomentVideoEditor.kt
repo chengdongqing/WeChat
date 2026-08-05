@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.feature.moments.ui.create
+package top.chengdongqing.wechat.feature.moments.ui.post
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -75,14 +75,18 @@ fun MomentVideoEditor(
         }
     }
 
-    Column(Modifier.fillMaxSize().background(Color.Black)) {
+    Column(Modifier
+        .fillMaxSize()
+        .background(Color.Black)) {
         WeTopAppBar(
             title = "编辑视频",
             onBack = onCancel,
             containerColor = Color.Black,
             contentColor = Color.White
         )
-        WeVideoPlayer(player, Modifier.fillMaxWidth().weight(1f))
+        WeVideoPlayer(player, Modifier
+            .fillMaxWidth()
+            .weight(1f))
         Text(
             "裁剪  ${formatMs(range.start.toLong())} - ${formatMs(range.endInclusive.toLong())}",
             color = Color.White,
@@ -112,7 +116,9 @@ fun MomentVideoEditor(
             }
         }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Button(onClick = {
@@ -141,7 +147,9 @@ fun MomentVideoEditor(
         }
         error?.let { Text(it, color = Color.Red, modifier = Modifier.padding(horizontal = 18.dp)) }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(18.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
         ) {

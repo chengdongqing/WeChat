@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.feature.moments.ui.create
+package top.chengdongqing.wechat.feature.moments.ui.post
 
 import android.content.Context
 import android.net.Uri

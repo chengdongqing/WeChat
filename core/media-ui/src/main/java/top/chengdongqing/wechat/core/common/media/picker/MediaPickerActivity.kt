@@ -81,7 +81,7 @@ class MediaPickerActivity : ComponentActivity() {
 }
 
 @Composable
-fun rememberPickMediasLauncher(
+fun rememberMediaPickerLauncher(
     enableMerge: Boolean = false,
     onResult: (medias: Array<MediaItem>, merge: Boolean, original: Boolean) -> Unit
 ): (type: VisualMediaType, count: Int) -> Unit {

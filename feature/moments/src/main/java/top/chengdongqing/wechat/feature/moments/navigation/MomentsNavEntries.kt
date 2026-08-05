@@ -5,9 +5,9 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.feature.moments.ui.cover.ChangeMomentCoverScreen
-import top.chengdongqing.wechat.feature.moments.ui.cover.PhotographerCoversScreen
-import top.chengdongqing.wechat.feature.moments.ui.create.CreateMomentScreen
-import top.chengdongqing.wechat.feature.moments.ui.feed.MomentsScreen
+import top.chengdongqing.wechat.feature.moments.ui.cover.PhotographerWorksScreen
+import top.chengdongqing.wechat.feature.moments.ui.list.MomentsScreen
+import top.chengdongqing.wechat.feature.moments.ui.post.CreateMomentScreen
 
 fun EntryProviderScope<NavKey>.momentsNavEntries(
     backStack: NavBackStack<NavKey>,
@@ -16,24 +16,24 @@ fun EntryProviderScope<NavKey>.momentsNavEntries(
     entry<NavigationKey.Moments> {
         MomentsScreen(
             onBack = onBack,
-            onCreate = { backStack.add(NavigationKey.CreateMoment) },
-            onChangeCover = { backStack.add(NavigationKey.ChangeMomentCover) }
+            onNavigateToPost = { backStack.add(NavigationKey.CreateMoment) },
+            onNavigateToCover = { backStack.add(NavigationKey.ChangeMomentCover) }
         )
     }
-    entry<NavigationKey.CreateMoment> { CreateMomentScreen(onBack) }
+    entry<NavigationKey.CreateMoment> {
+        CreateMomentScreen(onBack)
+    }
     entry<NavigationKey.ChangeMomentCover> {
         ChangeMomentCoverScreen(
             onBack = onBack,
-            onChanged = { backStack.removeLastOrNull() },
-            onPhotographerWorks = { backStack.add(NavigationKey.PhotographerCovers) }
+            onNavigateToPhotographerWorks = { backStack.add(NavigationKey.PhotographerCovers) }
         )
     }
     entry<NavigationKey.PhotographerCovers> {
-        PhotographerCoversScreen(
+        PhotographerWorksScreen(
             onBack = onBack,
             onChanged = {
-                backStack.removeLastOrNull()
-                backStack.removeLastOrNull()
+                repeat(2) { onBack() }
             }
         )
     }
