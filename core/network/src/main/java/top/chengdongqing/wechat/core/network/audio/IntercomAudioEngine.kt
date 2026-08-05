@@ -111,10 +111,6 @@ class IntercomAudioEngine @Inject constructor(
         ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
                 PackageManager.PERMISSION_GRANTED
 
-    fun setPlaybackEnabled(enabled: Boolean) {
-        audioTrack?.setVolume(if (enabled) 1f else 0f)
-    }
-
     @Synchronized
     fun setTransmitting(enabled: Boolean): Boolean {
         if (!enabled) {
@@ -334,7 +330,29 @@ class IntercomAudioEngine @Inject constructor(
         val senderId: String,
         val sequence: Int,
         val payload: ByteArray
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as AudioFrame
+
+            if (sequence != other.sequence) return false
+            if (channel != other.channel) return false
+            if (senderId != other.senderId) return false
+            if (!payload.contentEquals(other.payload)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = sequence
+            result = 31 * result + channel.hashCode()
+            result = 31 * result + senderId.hashCode()
+            result = 31 * result + payload.contentHashCode()
+            return result
+        }
+    }
 
     /**
      * Per-speaker reorder/jitter buffer. A few missing frames are concealed by fading the

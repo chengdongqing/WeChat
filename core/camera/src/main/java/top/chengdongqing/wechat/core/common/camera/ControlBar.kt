@@ -218,7 +218,7 @@ fun TipText(state: CameraState) {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun CaptureButton(state: CameraState) {
-    val audioPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+    val microphonePermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
 
     Box(
         contentAlignment = Alignment.Center,
@@ -228,10 +228,10 @@ private fun CaptureButton(state: CameraState) {
                 detectTapGestures(
                     onLongPress = {
                         if (state.type != VisualMediaType.Image) {
-                            if (audioPermissionState.status.isGranted) {
+                            if (microphonePermissionState.status.isGranted) {
                                 state.startRecording()
                             } else {
-                                audioPermissionState.launchPermissionRequest()
+                                microphonePermissionState.launchPermissionRequest()
                             }
                         }
                     },

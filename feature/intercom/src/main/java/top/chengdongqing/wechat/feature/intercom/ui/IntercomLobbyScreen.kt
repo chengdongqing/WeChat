@@ -1,5 +1,11 @@
 package top.chengdongqing.wechat.feature.intercom.ui
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -27,8 +34,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,18 +73,18 @@ fun IntercomLobbyScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 18.dp)
+                .padding(horizontal = 16.dp, vertical = 24.dp)
                 .verticalScroll(
                     state = rememberScrollState(),
                     overscrollEffect = rememberBouncedOverscrollEffect()
                 ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            SectionCard("快速加入") {
+            SectionCard {
                 JoinCard(
                     channel = channel,
                     onChannelChanged = {
-                        channel = it.filter(Char::isDigit).take(6)
+                        channel = it.filter(Char::isDigit).take(4)
                     },
                     onJoin = {
                         if (channel.isNotBlank()) {
@@ -111,7 +120,7 @@ fun IntercomLobbyScreen(
 @Composable
 private fun Tips() {
     Text(
-        text = "语音对讲基于局域网内公共广播，不会加密处理，请注意保护隐私。",
+        text = "语音对讲会在局域网内公共广播，不会加密处理，请注意保护隐私。",
         color = WeTheme.colorScheme.textTertiary,
         fontSize = 12.sp,
         modifier = Modifier.padding(horizontal = 4.dp)
@@ -138,7 +147,9 @@ private fun JoinCard(
             label = "#",
             value = channel,
             onValueChange = onChannelChanged,
-            placeholder = "1–9999"
+            placeholder = "1–9999",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            maxLength = 4
         )
         WeButton(
             text = "加入频道",
@@ -210,6 +221,17 @@ private fun NearbyChannelItem(
 
 @Composable
 private fun EmptyNearbyChannels() {
+    val infiniteTransition = rememberInfiniteTransition(label = "RadarRotation")
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "RotationAngle"
+    )
+
     Column(
         modifier = Modifier.padding(vertical = 40.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -224,7 +246,11 @@ private fun EmptyNearbyChannels() {
                 painter = painterResource(R.drawable.ic_radar_outlined),
                 contentDescription = null,
                 tint = WeTheme.colorScheme.textTertiary,
-                modifier = Modifier.size(23.dp)
+                modifier = Modifier
+                    .size(23.dp)
+                    .graphicsLayer {
+                        rotationZ = angle
+                    }
             )
         }
         Spacer(Modifier.height(12.dp))
@@ -245,16 +271,18 @@ private fun EmptyNearbyChannels() {
 
 @Composable
 private fun SectionCard(
-    label: String,
+    label: String? = null,
     content: @Composable () -> Unit
 ) {
     Column {
-        Text(
-            text = label,
-            color = WeTheme.colorScheme.textSecondary,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium
-        )
+        label?.let {
+            Text(
+                text = it,
+                color = WeTheme.colorScheme.textSecondary,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Surface(
             shape = RoundedCornerShape(16.dp),

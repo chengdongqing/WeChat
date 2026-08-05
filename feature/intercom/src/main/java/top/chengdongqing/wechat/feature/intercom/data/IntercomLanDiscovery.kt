@@ -34,7 +34,6 @@ import kotlin.time.Duration.Companion.seconds
 private data class IntercomBeacon(
     val protocol: Int = 1,
     val channelId: String,
-    val channelName: String,
     val deviceId: String,
     val nickname: String,
     val isSpeaking: Boolean,
@@ -70,9 +69,11 @@ class IntercomLanDiscovery @Inject constructor(
     private val members = mutableMapOf<String, SeenMember>()
 
     @Volatile
-    private var joinedChannel: Pair<String, String>? = null
+    private var joinedChannel: String? = null
+
     @Volatile
     private var speaking = false
+
     @Volatile
     private var mode = ConnectionMode.WiFiLan
 
@@ -132,12 +133,8 @@ class IntercomLanDiscovery @Inject constructor(
         _roomState.value = IntercomRoomState()
     }
 
-    fun join(channelId: String, channelName: String? = null) {
-        val resolvedName = channelName
-            ?.takeIf(String::isNotBlank)
-            ?: joinedChannel?.takeIf { it.first == channelId }?.second
-            ?: "频道 $channelId"
-        joinedChannel = channelId to resolvedName
+    fun join(channelId: String) {
+        joinedChannel = channelId
         advertise()
     }
 
@@ -169,13 +166,12 @@ class IntercomLanDiscovery @Inject constructor(
     }
 
     private fun advertise() {
-        val (channelId, channelName) = joinedChannel ?: return
+        val channelId = joinedChannel ?: return
         scope.launch {
             runCatching {
                 val profile = profileRepository.requireProfile()
                 val beacon = IntercomBeacon(
                     channelId = channelId,
-                    channelName = channelName,
                     deviceId = profile.id,
                     nickname = profile.nickname,
                     isSpeaking = speaking,
@@ -241,10 +237,9 @@ class IntercomLanDiscovery @Inject constructor(
         if (active != null) {
             val myId = runCatching { profileRepository.requireUserId() }.getOrNull()
             _roomState.value = IntercomRoomState(
-                channelId = active.first,
-                channelName = active.second,
+                channelId = active,
                 members = snapshot
-                    .filter { it.beacon.channelId == active.first }
+                    .filter { it.beacon.channelId == active }
                     .distinctBy { it.beacon.deviceId }
                     .map {
                         IntercomMember(

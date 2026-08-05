@@ -1,14 +1,24 @@
 package top.chengdongqing.wechat.feature.intercom.ui
 
 import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -16,12 +26,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -31,19 +40,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.data.model.ConnectionMode
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.feature.intercom.model.IntercomRoomState
+import top.chengdongqing.wechat.feature.intercom.model.IntercomMember
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun IntercomRoomScreen(
     channel: String,
@@ -51,90 +68,45 @@ fun IntercomRoomScreen(
     viewModel: IntercomViewModel = hiltViewModel()
 ) {
     var isTalking by remember { mutableStateOf(false) }
-    var speakerEnabled by remember { mutableStateOf(true) }
     var showMembers by remember { mutableStateOf(false) }
-    var showSettings by remember { mutableStateOf(false) }
     var microphoneDenied by remember { mutableStateOf(false) }
     val roomState by viewModel.roomState.collectAsStateWithLifecycle()
-    val activeConnectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
-    val microphonePermission = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        microphoneDenied = !granted
-    }
+    val microphonePermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+
     DisposableEffect(channel) {
         viewModel.enterRoom(channel)
         onDispose {
-            // Releasing push-to-talk is screen-scoped, but listening is owned by the
-            // foreground service and must survive lock-screen/activity destruction.
-            viewModel.setSpeaking(false)
+            viewModel.leave()
         }
     }
 
     Scaffold(
-        topBar = {
-            WeTopAppBar(
-                title = roomState.channelName.takeIf { it.isNotBlank() }
-                    ?.let { "$it · #$channel" }
-                    ?: "频道 #$channel",
-                onBack = onBack,
-                containerColor = Color.Transparent,
-                contentColor = Color.White,
-                actions = {
-                    IconButton(onClick = { showSettings = true }) {
-                        Icon(
-                            painterResource(R.drawable.ic_more_outlined),
-                            "频道设置",
-                            tint = Color.White
-                        )
-                    }
-                }
-            )
-        }
+        topBar = { WeTopAppBar(title = "#$channel", onBack = onBack) },
+        containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 22.dp),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                Modifier
-                    .clip(RoundedCornerShape(50))
-                    .background(Color.White.copy(alpha = .07f))
-                    .clickable { showMembers = true }
-                    .padding(horizontal = 13.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    Modifier
-                        .size(7.dp)
-                        .background(Color(0xFF43D17A), CircleShape)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "${roomState.members.size} 人在线",
-                    color = Color.White.copy(alpha = .75f),
-                    fontSize = 12.sp
-                )
-                Spacer(Modifier.width(6.dp))
-                Icon(
-                    painterResource(R.drawable.ic_right_outlined),
-                    null,
-                    tint = Color.White.copy(alpha = .45f),
-                    modifier = Modifier.size(13.dp)
-                )
-            }
+            OnlineMembers(
+                memberCount = roomState.members.size,
+                onClick = { showMembers = true }
+            )
             Spacer(Modifier.height(38.dp))
-            SpeakingStage(isTalking = isTalking, speakers = roomState.speakers)
+            SpeakingStage(
+                isTalking = isTalking,
+                speakers = roomState.speakers
+            )
             Spacer(Modifier.weight(1f))
             Text(
-                when {
+                text = when {
                     isTalking -> "正在发送你的声音…"
-                    roomState.speakers.isEmpty() -> "频道当前安静"
+                    roomState.speakers.isEmpty() -> ""
                     else -> "${roomState.speakers.size} 人正在讲话"
                 },
-                color = if (isTalking) Color(0xFF79E7A7) else Color.White.copy(alpha = .68f),
+                color = if (isTalking) WeTheme.colorScheme.primary else WeTheme.colorScheme.textSecondary,
                 fontSize = 13.sp
             )
             Spacer(Modifier.height(18.dp))
@@ -142,33 +114,25 @@ fun IntercomRoomScreen(
                 isTalking = isTalking,
                 onTalkingChanged = {
                     when {
-                        it && !viewModel.canRecord() -> {
-                            isTalking = false
-                            microphonePermission.launch(Manifest.permission.RECORD_AUDIO)
+                        it && !microphonePermissionState.status.isGranted -> {
+                            microphoneDenied = true
+                            microphonePermissionState.launchPermissionRequest()
                         }
 
                         else -> {
                             isTalking = viewModel.setSpeaking(it) && it
-                            if (it) microphoneDenied = false
+                            if (it) {
+                                microphoneDenied = false
+                            }
                         }
                     }
                 }
             )
             Spacer(Modifier.height(14.dp))
             Text(
-                if (microphoneDenied) "需要麦克风权限才能讲话" else "按住讲话 · 松开发送",
-                color = if (microphoneDenied) Color(0xFFFF8A80) else Color.White.copy(alpha = .42f),
+                text = if (microphoneDenied) "需要麦克风权限才能讲话" else "按住讲话",
+                color = if (microphoneDenied) WeTheme.colorScheme.danger else WeTheme.colorScheme.textSecondary,
                 fontSize = 12.sp
-            )
-            Spacer(Modifier.height(28.dp))
-            RoomControls(
-                speakerEnabled = speakerEnabled,
-                onSpeakerToggle = {
-                    speakerEnabled = !speakerEnabled
-                    viewModel.setPlaybackEnabled(speakerEnabled)
-                },
-                onMembers = { showMembers = true },
-                connectionLabel = activeConnectionMode.shortLabel()
             )
             Spacer(
                 Modifier
@@ -179,91 +143,231 @@ fun IntercomRoomScreen(
     }
 
     if (showMembers) {
-        MembersSheet(members = roomState.members, onDismiss = { showMembers = false })
-    }
-    if (showSettings) {
-        ChannelSettingsDialog(
-            roomState = roomState,
-            connectionMode = activeConnectionMode,
-            onDismiss = { showSettings = false },
-            onLeave = {
-                showSettings = false
-                viewModel.leave()
-                onBack()
-            }
+        MembersSheet(
+            members = roomState.members,
+            onDismiss = { showMembers = false }
         )
     }
 }
 
 @Composable
-private fun ChannelSettingsDialog(
-    roomState: IntercomRoomState,
-    connectionMode: ConnectionMode,
-    onDismiss: () -> Unit,
-    onLeave: () -> Unit
+private fun OnlineMembers(
+    memberCount: Int,
+    onClick: () -> Unit
 ) {
-    AlertDialog(
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(50))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 13.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(7.dp)
+                .background(Color(0xFF43D17A), CircleShape)
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = "$memberCount 人在线",
+            color = WeTheme.colorScheme.textPrimary,
+            fontSize = 12.sp
+        )
+        Spacer(Modifier.width(6.dp))
+        Icon(
+            painter = painterResource(R.drawable.ic_right_outlined),
+            contentDescription = null,
+            tint = WeTheme.colorScheme.textSecondary,
+            modifier = Modifier.size(13.dp)
+        )
+    }
+}
+
+@Composable
+private fun PushToTalkButton(
+    isTalking: Boolean,
+    onTalkingChanged: (Boolean) -> Unit
+) {
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        if (isTalking) .94f else 1f,
+        label = "PushToTalkButtonScale"
+    )
+
+    Box(
+        modifier = Modifier
+            .scale(scale)
+            .size(112.dp)
+            .background(if (isTalking) Color(0xFF19D672) else Color(0xFF07C160), CircleShape)
+            .border(10.dp, Color.White.copy(alpha = .08f), CircleShape)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = {
+                        onTalkingChanged(true)
+                        tryAwaitRelease()
+                        onTalkingChanged(false)
+                    }
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_mic2_filled),
+            contentDescription = "按住讲话",
+            tint = Color.White,
+            modifier = Modifier.size(40.dp)
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MembersSheet(
+    members: List<IntercomMember>,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
         onDismissRequest = onDismiss,
-        title = { Text("频道设置") },
-        text = {
-            Column {
+        containerColor = WeTheme.colorScheme.elevated
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "频道：${roomState.channelName}",
+                    "在线成员",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
                     color = WeTheme.colorScheme.textPrimary,
-                    fontWeight = FontWeight.Medium
+                    modifier = Modifier.weight(1f)
                 )
                 Text(
-                    "在线成员：${roomState.members.size} 人",
+                    "${members.size} 人",
                     color = WeTheme.colorScheme.textSecondary,
-                    fontSize = 13.sp
-                )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    "连接方式：${connectionMode.fullLabel()}",
-                    color = WeTheme.colorScheme.textSecondary,
-                    fontSize = 13.sp
-                )
-                Text(
-                    "语音格式：16 kHz Opus · 24 kbps · 低延迟",
-                    color = WeTheme.colorScheme.textSecondary,
-                    fontSize = 13.sp
-                )
-                Text(
-                    "多人模式：本机实时混音",
-                    color = WeTheme.colorScheme.textSecondary,
-                    fontSize = 13.sp
-                )
-                Text(
-                    if (connectionMode == ConnectionMode.WiFiLan) {
-                        "安全状态：局域网广播当前未加密"
-                    } else {
-                        "安全状态：跟随当前点对点连接的端到端加密设置"
-                    },
-                    color = if (connectionMode == ConnectionMode.WiFiLan) WeTheme.colorScheme.danger else WeTheme.colorScheme.textSecondary,
                     fontSize = 13.sp
                 )
             }
-        },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("完成") } },
-        dismissButton = {
-            TextButton(onClick = onLeave) {
+            Spacer(Modifier.height(16.dp))
+            if (members.isEmpty()) {
                 Text(
-                    "退出频道",
-                    color = WeTheme.colorScheme.danger
+                    "正在同步频道成员…",
+                    color = WeTheme.colorScheme.textTertiary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 28.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+            members.forEach { member ->
+                val displayName = if (member.isMe) "${member.nickname}（你）" else member.nickname
+                val status = if (member.isSpeaking) "正在讲话" else "在线"
+
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        Modifier
+                            .size(42.dp)
+                            .background(
+                                if (member.isSpeaking) WeTheme.colorScheme.primary.copy(alpha = .16f) else WeTheme.colorScheme.surfaceVariant,
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            member.nickname.take(1),
+                            color = if (member.isSpeaking) WeTheme.colorScheme.primary else WeTheme.colorScheme.textSecondary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        displayName,
+                        color = WeTheme.colorScheme.textPrimary,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    AnimatedVisibility(member.isSpeaking, enter = fadeIn(), exit = fadeOut()) {
+                        Icon(
+                            painterResource(R.drawable.ic_voice_outlined),
+                            null,
+                            tint = WeTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        status,
+                        color = if (member.isSpeaking) WeTheme.colorScheme.primary else WeTheme.colorScheme.textTertiary,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+        }
+    }
+}
+
+@Composable
+private fun SpeakingStage(
+    isTalking: Boolean,
+    speakers: List<IntercomMember>
+) {
+    val remoteSpeakers = speakers.filterNot(IntercomMember::isMe)
+    val primarySpeaker = speakers.firstOrNull()
+    val isActive = isTalking || speakers.isNotEmpty()
+    val pulse by rememberInfiniteTransition(label = "speakerPulse").animateFloat(
+        initialValue = 1f,
+        targetValue = 1.12f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "pulse"
+    )
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.size(190.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .size(148.dp)
+                    .graphicsLayer {
+                        scaleX = if (isActive) pulse else 1f
+                        scaleY = if (isActive) pulse else 1f
+                    }
+                    .background(
+                        color = WeTheme.colorScheme.primary.copy(alpha = if (isActive) .18f else .08f),
+                        shape = CircleShape
+                    )
+            )
+            Box(
+                Modifier
+                    .size(116.dp)
+                    .background(WeTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (isTalking) "我" else primarySpeaker?.nickname?.take(1) ?: "—",
+                    color = Color.White,
+                    fontSize = 38.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
-    )
-}
-
-private fun ConnectionMode.shortLabel() = when (this) {
-    ConnectionMode.WiFiLan -> "局域网"
-    ConnectionMode.WiFiDirect -> "直连"
-    ConnectionMode.Bluetooth -> "蓝牙"
-}
-
-private fun ConnectionMode.fullLabel() = when (this) {
-    ConnectionMode.WiFiLan -> "Wi‑Fi 局域网"
-    ConnectionMode.WiFiDirect -> "Wi‑Fi Direct"
-    ConnectionMode.Bluetooth -> "蓝牙 RFCOMM"
+        Spacer(Modifier.height(18.dp))
+        Text(
+            text = when {
+                isTalking -> "你正在讲话"
+                remoteSpeakers.isNotEmpty() -> remoteSpeakers.joinToString("、") { it.nickname }
+                else -> "等待讲话"
+            },
+            color = WeTheme.colorScheme.textPrimary,
+            fontSize = 21.sp,
+            fontWeight = FontWeight.Bold,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1
+        )
+    }
 }

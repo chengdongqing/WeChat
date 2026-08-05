@@ -55,6 +55,7 @@ class IntercomViewModel @Inject constructor(
     fun enterRoom(channelId: String): Boolean {
         discovery.join(channelId)
         audioEngine.start(channelId, connectionMode.value)
+
         ContextCompat.startForegroundService(
             context,
             Intent(context, IntercomForegroundService::class.java)
@@ -66,12 +67,6 @@ class IntercomViewModel @Inject constructor(
                 )
         )
         return true
-    }
-
-    fun canRecord() = audioEngine.canRecord()
-
-    fun setPlaybackEnabled(enabled: Boolean) {
-        audioEngine.setPlaybackEnabled(enabled)
     }
 
     fun leave() {

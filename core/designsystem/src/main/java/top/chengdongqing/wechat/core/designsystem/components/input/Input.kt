@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,6 +42,7 @@ fun WeInput(
     showDivider: Boolean = true,
     activeColor: Color = Color(0xFF07C160),
     inactiveColor: Color = WeTheme.colorScheme.divider,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(),
     onValueChange: (String) -> Unit
 ) {
     var isFocused by remember { mutableStateOf(false) }
@@ -87,6 +89,7 @@ fun WeInput(
                     fontSize = 17.sp,
                     color = WeTheme.colorScheme.textPrimary
                 ),
+                keyboardOptions = keyboardOptions,
                 singleLine = singleLine,
                 maxLines = maxLines,
                 cursorBrush = SolidColor(WeTheme.colorScheme.primary),

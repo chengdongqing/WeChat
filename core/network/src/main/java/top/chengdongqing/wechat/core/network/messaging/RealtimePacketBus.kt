@@ -32,7 +32,9 @@ class RealtimePacketBus @Inject constructor(
     suspend fun broadcast(type: Byte, body: ByteArray): Int {
         markSeen(type, body)
         val targets = connections.connections.keys.toList()
-        return targets.count { transport.send(it, Packet(type, body)).isSuccess }
+        return targets.count {
+            transport.send(it, Packet(type, body)).isSuccess
+        }
     }
 
     internal fun receive(senderId: String, packet: Packet) {
