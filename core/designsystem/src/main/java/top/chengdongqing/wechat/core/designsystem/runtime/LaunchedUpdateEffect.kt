@@ -7,7 +7,10 @@ import androidx.compose.runtime.remember
 import kotlinx.coroutines.CoroutineScope
 
 @Composable
-fun LaunchedUpdateEffect(key: Any?, block: suspend CoroutineScope.() -> Unit) {
+fun LaunchedUpdateEffect(
+    key: Any?,
+    block: suspend CoroutineScope.() -> Unit
+) {
     val updated = remember { mutableStateOf(false) }
 
     LaunchedEffect(key) {

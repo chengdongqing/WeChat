@@ -16,9 +16,9 @@ private val YearMonthFormatterZh = DateTimeFormatter.ofPattern("yyyy年MM月")
 private val YearMonthFormatterEn = DateTimeFormatter.ofPattern("yyyy-MM")
 
 /**
- * 格式化聊天时间
+ * 将时间戳显示为相对时间
  */
-fun Long.toChatDisplayTime(resources: Resources): String {
+fun Long.toRelativeDateTime(resources: Resources): String {
     val targetInstant = Instant.ofEpochMilli(this)
     val target = LocalDateTime.ofInstant(targetInstant, ZoneId.systemDefault())
     val now = LocalDateTime.now()
@@ -64,7 +64,7 @@ fun Long.toChatDisplayTime(resources: Resources): String {
 }
 
 /**
- * 格式化为年月
+ * 将时间戳格式化为年月的形式
  */
 fun Long.toYearMonthDisplay(language: AppLanguage): String {
     val targetInstant = Instant.ofEpochMilli(this)

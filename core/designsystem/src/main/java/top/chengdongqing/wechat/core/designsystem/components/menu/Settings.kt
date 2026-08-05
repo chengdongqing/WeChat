@@ -22,7 +22,10 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun WeSettingGroup(title: String? = null, content: @Composable () -> Unit) {
+fun WeSettingGroup(
+    title: String? = null,
+    content: @Composable () -> Unit
+) {
     Column {
         title?.let {
             Text(
@@ -81,7 +84,10 @@ fun WeSettingValue(
 }
 
 @Composable
-fun WeDangerButton(label: String, onClick: () -> Unit) {
+fun WeDangerButton(
+    label: String,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()

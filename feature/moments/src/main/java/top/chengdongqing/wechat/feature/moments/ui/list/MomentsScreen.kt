@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,10 +27,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -41,16 +40,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,10 +65,12 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.media.model.MediaType
+import top.chengdongqing.wechat.core.common.time.toRelativeDateTime
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -130,7 +139,7 @@ fun MomentsScreen(
             exit = fadeOut() + shrinkVertically(),
             modifier = Modifier.zIndex(1f)
         ) {
-            HeaderBar(
+            TopBar(
                 listState = listState,
                 onBack = onBack,
                 onPost = ::showPostOptions
@@ -138,7 +147,7 @@ fun MomentsScreen(
         }
 
         LazyColumn(state = listState) {
-            item {
+            item(contentType = "moments_hero") {
                 MomentsHero(
                     cover = state.coverFor(viewModel.profile.id),
                     profile = viewModel.profile,
@@ -147,9 +156,13 @@ fun MomentsScreen(
                     onChangeCover = onNavigateToCover,
                     onProfileClick = {}
                 )
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(48.dp))
             }
-            items(state.moments, key = { it.id }) { moment ->
+            items(
+                items = state.moments,
+                key = { it.id },
+                contentType = { "moment_item" }
+            ) { moment ->
                 MomentItem(
                     moment = moment,
                     myId = viewModel.profile.id,
@@ -166,7 +179,7 @@ fun MomentsScreen(
 }
 
 @Composable
-private fun HeaderBar(
+private fun TopBar(
     listState: LazyListState,
     onBack: () -> Unit,
     onPost: () -> Unit
@@ -208,25 +221,40 @@ private fun MomentItem(
     onVideoClick: () -> Unit,
     onImageClick: (Int) -> Unit
 ) {
+    val resources = LocalResources.current
     var actionsExpanded by remember(moment.id) { mutableStateOf(false) }
+    var buttonPosition by remember { mutableStateOf(Offset.Zero) }
+    var buttonSize by remember { mutableStateOf(Size.Zero) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 14.dp)
+            .padding(horizontal = 20.dp, vertical = 14.dp)
     ) {
         AsyncImage(
-            model = moment.authorAvatar ?: R.drawable.img_avatar_placeholder,
+            model = moment.authorAvatar,
             contentDescription = null,
+            error = painterResource(R.drawable.img_avatar_placeholder),
             modifier = Modifier
-                .size(44.dp)
+                .size(38.dp)
                 .clip(RoundedCornerShape(4.dp)),
             contentScale = ContentScale.Crop
         )
         Spacer(Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(moment.authorName, color = Color(0xFF576B95), fontWeight = FontWeight.Bold)
+            Text(
+                text = moment.authorName,
+                color = WeTheme.colorScheme.link,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
             if (moment.content.isNotBlank()) {
-                Text(moment.content, modifier = Modifier.padding(top = 5.dp), fontSize = 16.sp)
+                Text(
+                    text = moment.content,
+                    color = WeTheme.colorScheme.textPrimary,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(vertical = 6.dp)
+                )
             }
             if (moment.images.isNotEmpty()) {
                 MomentImages(moment.id, moment.images, onImageClick)
@@ -265,96 +293,135 @@ private fun MomentItem(
                     .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(formatTime(moment.createdAt), color = Color.Gray, fontSize = 12.sp)
+                Text(
+                    text = moment.createdAt.toRelativeDateTime(resources),
+                    color = WeTheme.colorScheme.textTertiary,
+                    fontSize = 12.sp
+                )
                 if (moment.authorId == myId) {
-                    Text(
-                        "  删除", color = Color(0xFF576B95), fontSize = 12.sp,
-                        modifier = Modifier.clickable(onClick = onDelete)
+                    Spacer(Modifier.width(6.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.ic_delete_filled),
+                        contentDescription = null,
+                        tint = WeTheme.colorScheme.link,
+                        modifier = Modifier
+                            .size(17.dp)
+                            .onTap(
+                                role = Role.Button,
+                                onClickLabel = "删除",
+                                onClick = onDelete
+                            )
                     )
                 }
                 Spacer(Modifier.weight(1f))
-                AnimatedVisibility(
-                    visible = actionsExpanded,
-                    enter = expandHorizontally(expandFrom = Alignment.End) + fadeIn(),
-                    exit = shrinkHorizontally(shrinkTowards = Alignment.End) + fadeOut()
+
+                Popup(
+                    offset = buttonPosition.run {
+                        IntOffset(
+                            (x - buttonSize.width - 460).toInt(),
+                            (y - buttonSize.height / 2).toInt(),
+                        )
+                    },
+                    onDismissRequest = { actionsExpanded = false }
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(5.dp))
-                            .background(Color(0xFF4C5154)),
-                        verticalAlignment = Alignment.CenterVertically
+                    AnimatedVisibility(
+                        visible = actionsExpanded,
+                        enter = expandHorizontally() + fadeIn(),
+                        exit = shrinkHorizontally() + fadeOut()
                     ) {
                         Row(
                             modifier = Modifier
-                                .clickable {
-                                    actionsExpanded = false
-                                    onLike()
-                                }
-                                .padding(horizontal = 18.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                                .clip(RoundedCornerShape(5.dp))
+                                .background(Color(0xFF4C5154)),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_like_outlined),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = Color.White
+                            Row(
+                                modifier = Modifier
+                                    .clickable {
+                                        actionsExpanded = false
+                                        onLike()
+                                    }
+                                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_like_outlined),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = Color.White
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    if (moment.likes.any { it.userId == myId }) "取消" else "赞",
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                            VerticalDivider(
+                                modifier = Modifier.height(18.dp),
+                                thickness = 0.5.dp,
+                                color = Color(0xFF383D40)
                             )
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                if (moment.likes.any { it.userId == myId }) "取消" else "赞",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                        VerticalDivider(
-                            modifier = Modifier.height(18.dp),
-                            thickness = 0.5.dp,
-                            color = Color(0xFF383D40)
-                        )
-                        Row(
-                            modifier = Modifier
-                                .clickable {
-                                    actionsExpanded = false
-                                    onComment()
-                                }
-                                .padding(horizontal = 18.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_message_outlined),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                tint = Color.White
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                "评论",
-                                color = Color.White,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .clickable {
+                                        actionsExpanded = false
+                                        onComment()
+                                    }
+                                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_message_outlined),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    tint = Color.White
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "评论",
+                                    color = Color.White,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
                 }
                 Spacer(Modifier.width(6.dp))
-                Icon(
-                    painter = painterResource(R.drawable.ic_more_outlined),
-                    contentDescription = "赞和评论",
-                    tint = Color(0xFF576B95),
+                Box(
                     modifier = Modifier
-                        .size(30.dp)
+                        .size(width = 32.dp, height = 20.dp)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(Color(0xFFF3F3F5))
-                        .clickable { actionsExpanded = !actionsExpanded }
-                        .padding(5.dp)
-                )
+                        .background(WeTheme.colorScheme.surfaceVariant)
+                        .onGloballyPositioned { coordinates ->
+                            buttonPosition = coordinates.positionInParent()
+                            buttonSize = Size(
+                                width = coordinates.size.width.toFloat(),
+                                height = coordinates.size.height.toFloat()
+                            )
+                        }
+                        .clickable(
+                            role = Role.Button,
+                            onClickLabel = "赞和评论",
+                            onClick = { actionsExpanded = !actionsExpanded }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_more_filled_1),
+                        contentDescription = null,
+                        tint = WeTheme.colorScheme.link,
+                        modifier = Modifier.width(22.dp)
+                    )
+                }
             }
             if (moment.likes.isNotEmpty() || moment.comments.isNotEmpty()) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
-                    androidx.compose.foundation.Canvas(
+                    Canvas(
                         modifier = Modifier
                             .padding(start = 12.dp)
                             .size(12.dp, 6.dp)
@@ -499,29 +566,3 @@ private fun formatTime(time: Long): String =
 
 private fun formatDuration(duration: Long): String =
     "%d:%02d".format(duration / 60_000, duration / 1_000 % 60)
-
-@Composable
-private fun TextInputDialog(
-    title: String,
-    placeholder: String,
-    onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
-) {
-    var text by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            androidx.compose.material3.OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                placeholder = { Text(placeholder) },
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        confirmButton = {
-            TextButton(enabled = text.isNotBlank(), onClick = { onConfirm(text) }) { Text("发表") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("取消") } }
-    )
-}

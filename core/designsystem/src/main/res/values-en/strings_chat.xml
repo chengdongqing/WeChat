@@ -140,11 +140,12 @@
     <string name="message_preview_video">[Video]</string>
     <string name="message_preview_file">[File]</string>
     <string name="message_preview_location">[Location]</string>
-    <string name="message_preview_live_location">[Live location]</string>
+    <string name="message_preview_live_location">[Live Location]</string>
     <string name="message_preview_contact_card">[Contact]</string>
     <string name="message_preview_sticker">[Sticker]</string>
     <string name="message_preview_music">[Music]</string>
     <string name="message_preview_live">[Live]</string>
+    <string name="message_preview_chat_history">[Chat History]</string>
     <string name="message_preview_voice_call">[Voice Call]</string>
     <string name="message_preview_video_call">[Video Call]</string>
     <string name="message_preview_draft">[Draft]</string>

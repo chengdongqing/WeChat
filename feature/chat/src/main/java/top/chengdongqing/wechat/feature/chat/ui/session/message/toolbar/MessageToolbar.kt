@@ -49,6 +49,7 @@ import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageAction
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val ANIM_ENTER_MS = 200
 private const val ANIM_EXIT_MS = 150
@@ -92,11 +93,11 @@ fun MessageToolbar(
     LaunchedEffect(visible) {
         if (visible) {
             shouldShowPopup = true
-            delay(50)
+            delay(50.milliseconds)
             showContent = true
         } else {
             showContent = false
-            delay(ANIM_EXIT_MS.toLong() + 50)
+            delay((ANIM_EXIT_MS.toLong() + 50).milliseconds)
             shouldShowPopup = false
         }
     }
@@ -129,8 +130,6 @@ fun MessageToolbar(
     Popup(
         offset = position.offset,
         onDismissRequest = onDismiss,
-        // 文本选择手柄使用独立 Popup。按下手柄对工具条属于“外部点击”，
-        // 选择过程中不能因此清空工具条和选区。
         properties = PopupProperties(
             focusable = !cached.isTextMessage,
             dismissOnClickOutside = !cached.isTextMessage

@@ -41,6 +41,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.window.rememberKeyboardHeight
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.picker.LocationPickerState
+import kotlin.time.Duration.Companion.milliseconds
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
@@ -160,7 +161,7 @@ private fun SearchingEffect(
 
     LaunchedEffect(keywordFlow) {
         keywordFlow
-            .debounce(300)
+            .debounce(300.milliseconds)
             .filter { it.isNotBlank() }
             .collect { refresh(state, paging, listState, it, currentType) }
     }

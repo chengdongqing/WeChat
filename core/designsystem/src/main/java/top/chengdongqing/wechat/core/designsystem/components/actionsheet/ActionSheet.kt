@@ -34,6 +34,7 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
+@Immutable
 data class ActionSheetItem(
     @get:StringRes val labelRes: Int,
     @get:StringRes val descriptionRes: Int? = null,

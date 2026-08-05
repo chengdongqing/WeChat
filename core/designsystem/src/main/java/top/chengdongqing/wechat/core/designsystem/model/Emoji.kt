@@ -465,4 +465,7 @@ object Emojis {
     }
 }
 
-data class EmojiMatch(val emoji: Emoji, val range: IntRange)
+data class EmojiMatch(
+    val emoji: Emoji,
+    val range: IntRange
+)

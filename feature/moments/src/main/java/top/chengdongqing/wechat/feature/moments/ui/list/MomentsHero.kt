@@ -4,7 +4,6 @@ import android.graphics.BitmapFactory
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.DarkElevated
 import top.chengdongqing.wechat.core.model.UserProfile
 
@@ -64,11 +64,7 @@ internal fun MomentsHero(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(
-                interactionSource = null,
-                indication = null,
-                onClick = onCoverClick
-            )
+            .onTap(onClick = onCoverClick)
     ) {
         Box(
             modifier = Modifier
@@ -106,9 +102,7 @@ private fun CoverButton(onClick: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(bottom = 14.dp)
-            .clickable(
-                interactionSource = null,
-                indication = null,
+            .onTap(
                 role = Role.Button,
                 onClickLabel = "换封面",
                 onClick = onClick
@@ -166,9 +160,7 @@ private fun HeroProfile(
     Row(
         modifier = Modifier
             .offset(y = 20.dp)
-            .clickable(
-                interactionSource = null,
-                indication = null,
+            .onTap(
                 role = Role.Button,
                 onClickLabel = "我的个人资料",
                 onClick = onClick

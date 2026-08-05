@@ -40,6 +40,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 对话框
@@ -250,7 +251,7 @@ private class DialogStateImpl(
 
     override fun hide() {
         scope.launch {
-            delay(100)
+            delay(100.milliseconds)
             visible = false
         }
     }

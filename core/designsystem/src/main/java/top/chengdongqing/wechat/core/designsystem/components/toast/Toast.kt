@@ -92,7 +92,7 @@ fun WeToast(
     }
     LaunchedEffect(visible) {
         if (!visible) {
-            delay(150)
+            delay(150.milliseconds)
         }
         localVisible = visible
     }

@@ -156,6 +156,7 @@
     <string name="message_preview_sticker">[表情]</string>
     <string name="message_preview_music">[音乐]</string>
     <string name="message_preview_live">[直播]</string>
+    <string name="message_preview_chat_history">[聊天记录]</string>
     <string name="message_preview_voice_call">[语音通话]</string>
     <string name="message_preview_video_call">[视频通话]</string>
     <string name="message_preview_draft">[草稿]</string>

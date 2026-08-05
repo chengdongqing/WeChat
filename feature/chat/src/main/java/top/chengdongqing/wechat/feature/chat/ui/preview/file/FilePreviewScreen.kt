@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.app.install.AppPackageInstaller
 import top.chengdongqing.wechat.core.common.file.PublicFileManager
 import top.chengdongqing.wechat.core.common.file.openFile
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -50,11 +49,11 @@ fun FilePreviewScreen(
         factory.create(messageId)
     }
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    FilePreviewPage(uiState, onBack, viewModel::openFile, viewModel::saveFile)
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    FilePreviewPage(state, onBack, viewModel::openFile, viewModel::saveFile)
 }
 
-/** 合并聊天记录和普通消息共用同一个文件预览页面。 */
 @Composable
 fun FilePreviewScreen(file: MessageContent.File, onBack: () -> Unit) {
     val context = LocalContext.current
@@ -69,21 +68,22 @@ fun FilePreviewScreen(file: MessageContent.File, onBack: () -> Unit) {
         isLoading = false,
         isSaving = saving
     )
+
     FilePreviewPage(
         uiState = state,
         onBack = onBack,
         onOpen = {
             runCatching {
-                if (source.extension.equals("apk", true)) {
-                    AppPackageInstaller.launch(context, source)
-                } else context.openFile(source, file.mimeType)
-            }.onFailure { context.showToast("没有找到可以打开此文件的应用") }
+                context.openFile(source, file.mimeType)
+            }.onFailure {
+                context.showToast("没有找到可以打开此文件的应用")
+            }
         },
         onSave = {
             scope.launch {
                 saving = true
-                val saved =
-                    PublicFileManager(context).saveMedia(MessageType.File, source, file.filename)
+                val saved = PublicFileManager(context)
+                    .saveMedia(MessageType.File, source, file.filename)
                 context.showToast(if (saved != null) "已保存" else "保存失败")
                 saving = false
             }

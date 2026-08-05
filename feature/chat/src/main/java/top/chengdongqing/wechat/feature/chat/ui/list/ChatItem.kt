@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.time.toChatDisplayTime
+import top.chengdongqing.wechat.core.common.time.toRelativeDateTime
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
@@ -153,7 +153,7 @@ private fun RowScope.SessionContent(session: ChatSession) {
 @Composable
 private fun SessionStatus(chat: ChatSession) {
     val resources = LocalResources.current
-    val lastMessageTime = chat.lastMessageTime?.toChatDisplayTime(resources) ?: ""
+    val lastMessageTime = chat.lastMessageTime?.toRelativeDateTime(resources) ?: ""
 
     Column(
         horizontalAlignment = Alignment.End,

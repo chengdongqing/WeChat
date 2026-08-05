@@ -3,16 +3,5 @@
 
     <application>
         <activity android:name=".app.AppPickerActivity" />
-        <activity
-            android:name=".app.install.AppInstallActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:theme="@style/Theme.WeChat" />
-        <activity
-            android:name=".app.install.AppInstallResultActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:theme="@style/Theme.WeChat" />
     </application>
 </manifest>
