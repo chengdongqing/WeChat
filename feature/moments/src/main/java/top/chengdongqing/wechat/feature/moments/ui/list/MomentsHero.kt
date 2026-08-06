@@ -1,6 +1,5 @@
 package top.chengdongqing.wechat.feature.moments.ui.list
 
-import android.graphics.BitmapFactory
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -20,7 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import top.chengdongqing.wechat.core.common.media.isLandscape
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.DarkElevated
@@ -54,10 +54,10 @@ internal fun MomentsHero(
         targetValue = if (expanded) containerHeight * 0.8f else 290.dp,
         label = "MomentsCoverHeight"
     )
-    val isLandscape = remember(cover) {
-        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(cover, options)
-        options.outWidth > options.outHeight && options.outHeight > 0
+    val isLandscape by produceState(false, cover) {
+        cover?.let {
+            value = isLandscape(it)
+        }
     }
     BackHandler(expanded, onCoverClick)
 

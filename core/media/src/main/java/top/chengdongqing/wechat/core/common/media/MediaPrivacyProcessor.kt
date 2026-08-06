@@ -9,6 +9,7 @@ import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
 import android.net.Uri
+import androidx.core.graphics.scale
 import androidx.exifinterface.media.ExifInterface
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -31,7 +32,9 @@ import java.nio.ByteBuffer
 import java.util.UUID
 import kotlin.coroutines.resume
 
-/** Produces shareable media with identifying metadata removed. */
+/**
+ * Produces shareable media with identifying metadata removed.
+ */
 class MediaPrivacyProcessor(private val context: Context) {
     suspend fun process(source: Uri, mimeType: String, original: Boolean): File =
         if (mimeType.startsWith("image/")) processImage(source, original)
@@ -61,12 +64,7 @@ class MediaPrivacyProcessor(private val context: Context) {
             val maxSide = maxOf(rotated.width, rotated.height)
             val scaled = if (maxSide > 2560) {
                 val ratio = 2560f / maxSide
-                Bitmap.createScaledBitmap(
-                    rotated,
-                    (rotated.width * ratio).toInt(),
-                    (rotated.height * ratio).toInt(),
-                    true
-                )
+                rotated.scale((rotated.width * ratio).toInt(), (rotated.height * ratio).toInt())
             } else rotated
             FileOutputStream(output).use { scaled.compress(Bitmap.CompressFormat.JPEG, 82, it) }
             if (scaled !== rotated) scaled.recycle()

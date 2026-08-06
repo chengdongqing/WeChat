@@ -16,6 +16,7 @@ val LocalMediaAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilitySco
 fun Modifier.mediaSharedElement(messageId: String): Modifier {
     val sharedScope = LocalMediaSharedTransitionScope.current ?: return this
     val visibilityScope = LocalMediaAnimatedVisibilityScope.current ?: return this
+
     return with(sharedScope) {
         sharedBounds(
             sharedContentState = rememberSharedContentState("chat-media-$messageId"),

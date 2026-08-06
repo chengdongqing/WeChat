@@ -16,11 +16,10 @@ val LocalMomentsAnimatedVisibilityScope = compositionLocalOf<AnimatedVisibilityS
 fun Modifier.momentsMediaSharedElement(momentId: String, imageIndex: Int): Modifier {
     val sharedScope = LocalMomentsSharedTransitionScope.current ?: return this
     val visibilityScope = LocalMomentsAnimatedVisibilityScope.current ?: return this
+
     return with(sharedScope) {
         sharedBounds(
-            sharedContentState = rememberSharedContentState(
-                "moments-media-$momentId-$imageIndex"
-            ),
+            sharedContentState = rememberSharedContentState("moments-media-$momentId-$imageIndex"),
             animatedVisibilityScope = visibilityScope,
             resizeMode = ResizeMode.RemeasureToBounds,
             clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(2.dp))

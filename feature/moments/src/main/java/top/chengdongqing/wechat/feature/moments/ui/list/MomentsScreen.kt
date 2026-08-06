@@ -33,7 +33,6 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionS
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
-import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.moments.model.coverFor
 
@@ -158,15 +157,20 @@ private fun TopBar(
     }
     val isReached = topBarProgress >= 0.55f
     val topBarBackground = WeTheme.colorScheme.background.copy(alpha = topBarProgress)
+    val contentColor = if (isReached) WeTheme.colorScheme.textPrimary else TextPrimaryDark
 
     WeTopAppBar(
         title = if (isReached) "朋友圈" else null,
         onBack = onBack,
         containerColor = topBarBackground,
-        contentColor = if (isReached) TextPrimaryLight else TextPrimaryDark
+        contentColor = contentColor
     ) {
         IconButton(
-            icon = if (isReached) R.drawable.ic_camera_outlined else R.drawable.ic_camera_filled_1,
+            icon = if (isReached) {
+                R.drawable.ic_camera_outlined
+            } else {
+                R.drawable.ic_camera_filled_1
+            },
             description = "发朋友圈",
             onClick = onPost
         )

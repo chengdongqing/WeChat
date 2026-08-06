@@ -34,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -64,15 +65,18 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import coil3.compose.AsyncImage
+import top.chengdongqing.wechat.core.common.media.isLandscape
 import top.chengdongqing.wechat.core.common.time.toRelativeDateTime
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.DividerDark
 import top.chengdongqing.wechat.core.designsystem.theme.Gray
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.feature.moments.model.Moment
 import top.chengdongqing.wechat.feature.moments.model.MomentComment
 import top.chengdongqing.wechat.feature.moments.model.MomentVideo
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 internal fun MomentItem(
@@ -96,7 +100,11 @@ internal fun MomentItem(
 
             when {
                 moment.images.isNotEmpty() -> {
-                    MomentImageGroup(moment.id, moment.images, onImageClick)
+                    if (moment.images.size == 1) {
+                        SingleMomentImage(moment.id, moment.images.first(), onImageClick)
+                    } else {
+                        MomentImageGroup(moment.id, moment.images, onImageClick)
+                    }
                 }
 
                 moment.video != null -> {
@@ -152,6 +160,69 @@ private fun Avatar(moment: Moment) {
 }
 
 @Composable
+private fun SingleMomentImage(
+    momentId: String,
+    imagePath: String,
+    onImageClick: (Int) -> Unit
+) {
+    val isLandscape by produceState(false, imagePath) {
+        value = isLandscape(imagePath)
+    }
+
+    AsyncImage(
+        model = imagePath,
+        contentDescription = null,
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .width(if (isLandscape) 180.dp else 110.dp)
+            .momentsMediaSharedElement(momentId, 0)
+            .clip(RoundedCornerShape(1.dp))
+            .clickable { onImageClick(0) },
+        contentScale = ContentScale.Crop
+    )
+}
+
+@OptIn(ExperimentalGridApi::class)
+@Composable
+private fun MomentImageGroup(
+    momentId: String,
+    images: List<String>,
+    onImageClick: (Int) -> Unit
+) {
+    val shown = images.take(9)
+    val columns = if (shown.size == 4) 2 else 3
+    val imageSize = when (shown.size) {
+        1 -> 180.dp
+        4 -> 110.dp
+        else -> 90.dp
+    }
+    val gap = 3.dp
+    val rows = (shown.size + columns - 1) / columns
+
+    Grid(
+        modifier = Modifier.padding(top = 8.dp),
+        config = {
+            repeat(columns) { column(imageSize) }
+            repeat(rows) { row(imageSize) }
+            columnGap(gap)
+            rowGap(gap)
+        }
+    ) {
+        shown.forEachIndexed { index, path ->
+            AsyncImage(
+                model = path,
+                contentDescription = null,
+                modifier = Modifier
+                    .momentsMediaSharedElement(momentId, index)
+                    .clip(RoundedCornerShape(1.dp))
+                    .clickable { onImageClick(index) },
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
+@Composable
 private fun MomentVideoThumbnail(video: MomentVideo, onClick: () -> Unit) {
     Box(
         modifier = Modifier
@@ -170,7 +241,7 @@ private fun MomentVideoThumbnail(video: MomentVideo, onClick: () -> Unit) {
         )
         Text("▶", color = Color.White, fontSize = 38.sp)
         Text(
-            text = formatDuration(video.duration),
+            text = video.duration.milliseconds.format(),
             color = Color.White,
             fontSize = 12.sp,
             modifier = Modifier
@@ -459,46 +530,3 @@ private fun CommentLine(comment: MomentComment) {
         modifier = Modifier.padding(vertical = 1.dp)
     )
 }
-
-@OptIn(ExperimentalGridApi::class)
-@Composable
-private fun MomentImageGroup(
-    momentId: String,
-    images: List<String>,
-    onImageClick: (Int) -> Unit
-) {
-    val shown = images.take(9)
-    val columns = if (shown.size == 4) 2 else 3
-    val imageSize = when (shown.size) {
-        1 -> 180.dp
-        4 -> 110.dp
-        else -> 90.dp
-    }
-    val gap = 4.dp
-    val rows = (shown.size + columns - 1) / columns
-
-    Grid(
-        modifier = Modifier.padding(top = 8.dp),
-        config = {
-            repeat(columns) { column(imageSize) }
-            repeat(rows) { row(imageSize) }
-            columnGap(gap)
-            rowGap(gap)
-        }
-    ) {
-        shown.forEachIndexed { index, path ->
-            AsyncImage(
-                model = path,
-                contentDescription = null,
-                modifier = Modifier
-                    .momentsMediaSharedElement(momentId, index)
-                    .clip(RoundedCornerShape(2.dp))
-                    .clickable { onImageClick(index) },
-                contentScale = ContentScale.Crop
-            )
-        }
-    }
-}
-
-private fun formatDuration(duration: Long): String =
-    "%d:%02d".format(duration / 60_000, duration / 1_000 % 60)
