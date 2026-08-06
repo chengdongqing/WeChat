@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.core.designsystem.components.popup
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
@@ -29,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,11 +47,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import kotlin.math.roundToInt
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 从底部弹出的弹窗
@@ -84,18 +82,14 @@ fun WePopup(
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    var localVisible by remember { mutableStateOf(false) }
-
+    val visibilityState = remember { MutableTransitionState(false) }
     LaunchedEffect(visible) {
-        if (!visible) {
-            delay(200.milliseconds)
-        }
-        localVisible = visible
+        visibilityState.targetState = visible
     }
 
-    if (visible || localVisible) {
+    if (visibilityState.currentState || visibilityState.targetState) {
         PopupContainer(
-            visible = visible && localVisible,
+            visibilityState = visibilityState,
             enterTransition,
             exitTransition,
             decorFitsSystemWindows,
@@ -165,7 +159,7 @@ fun WePopup(
 
 @Composable
 private fun PopupContainer(
-    visible: Boolean,
+    visibilityState: MutableTransitionState<Boolean>,
     enterTransition: EnterTransition,
     exitTransition: ExitTransition,
     decorFitsSystemWindows: Boolean,
@@ -186,14 +180,14 @@ private fun PopupContainer(
             contentAlignment = Alignment.BottomCenter
         ) {
             AnimatedVisibility(
+                visibleState = visibilityState,
+                enter = enterTransition,
+                exit = exitTransition,
                 modifier = if (decorFitsSystemWindows) {
                     Modifier
                 } else {
                     Modifier.safeDrawingPadding()
                 },
-                visible = visible,
-                enter = enterTransition,
-                exit = exitTransition
             ) {
                 content()
             }

@@ -116,7 +116,6 @@
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.WeChat"
             android:windowSoftInputMode="adjustResize" />
 
         <activity-alias

@@ -10,6 +10,7 @@ val LinkBlue = Color(0xFF576B95)
 // --- 基础色 ---
 val White = Color(0xFFFFFFFF)
 val Black = Color(0xFF000000)
+val Gray = Color(0xFF4C4C4C)
 
 val Neutral50 = Color(0xFFF7F7F7)
 val Neutral100 = Color(0xFFEDEDED)

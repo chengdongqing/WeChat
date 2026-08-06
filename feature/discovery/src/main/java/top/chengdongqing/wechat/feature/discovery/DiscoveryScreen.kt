@@ -36,7 +36,7 @@ fun DiscoveryScreen(
             onClick = {}
         )
         WeMenuListItem(
-            label = stringResource(R.string.intercom_title),
+            label = stringResource(R.string.discover_menu_intercom),
             icon = R.drawable.ic_mic2_filled,
             iconColor = WeTheme.colorScheme.primary,
             onClick = onNavigateToIntercom

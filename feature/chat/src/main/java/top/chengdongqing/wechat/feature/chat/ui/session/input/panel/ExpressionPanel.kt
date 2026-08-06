@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
@@ -628,7 +629,7 @@ private object StickerPreviewPositionProvider : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
-        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        layoutDirection: LayoutDirection,
         popupContentSize: IntSize
     ): IntOffset {
         val x = (anchorBounds.left + anchorBounds.width / 2 - popupContentSize.width / 2)

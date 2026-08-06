@@ -12,6 +12,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -46,6 +48,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.Gray
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.model.AppLanguage
 
@@ -75,8 +78,6 @@ fun QuickActionsMenu(
         visibilityState.targetState = expanded
     }
 
-    if (!visibilityState.currentState && !visibilityState.targetState) return
-
     val menuWidth = when (LocalAppearanceSetting.current.appLanguage) {
         AppLanguage.English -> 180.dp
         else -> 160.dp
@@ -91,49 +92,49 @@ fun QuickActionsMenu(
         }
     }
 
-    val backgroundColor = Color(0xFF4C4C4C)
-
-    Popup(
-        offset = popupOffset,
-        onDismissRequest = onDismiss,
-        properties = PopupProperties(focusable = true)
-    ) {
-        val pivotX = 0.9f
-        val pivotY = 0f
-        val animationSpec = tween<Float>(durationMillis = 150, easing = LinearOutSlowInEasing)
-
-        AnimatedVisibility(
-            visibleState = visibilityState,
-            enter = scaleIn(
-                initialScale = 0.8f,
-                transformOrigin = TransformOrigin(pivotX, pivotY),
-                animationSpec = tween(180, easing = LinearOutSlowInEasing)
-            ) + fadeIn(animationSpec),
-            exit = scaleOut(
-                targetScale = 0.8f,
-                transformOrigin = TransformOrigin(pivotX, pivotY),
-                animationSpec = tween(150)
-            ) + fadeOut(animationSpec)
+    if (visibilityState.currentState || visibilityState.targetState) {
+        Popup(
+            offset = popupOffset,
+            onDismissRequest = onDismiss,
+            properties = PopupProperties(focusable = true)
         ) {
-            Column(
-                modifier = Modifier
-                    .width(menuWidth)
-                    .padding(top = 8.dp)
-                    .drawMenuArrow(backgroundColor)
-                    .background(backgroundColor, RoundedCornerShape(4.dp))
-            ) {
-                val actions = QuickAction.entries
-                actions.forEachIndexed { index, action ->
-                    ActionItem(action) {
-                        onDismiss()
-                        onAction(action)
-                    }
+            val pivotX = 0.9f
+            val pivotY = 0f
+            val animationSpec = tween<Float>(durationMillis = 150, easing = LinearOutSlowInEasing)
 
-                    if (index < actions.lastIndex) {
-                        WeDivider(
-                            modifier = Modifier.padding(start = 56.dp),
-                            color = Color(0xFF666666)
-                        )
+            AnimatedVisibility(
+                visibleState = visibilityState,
+                enter = scaleIn(
+                    initialScale = 0.8f,
+                    transformOrigin = TransformOrigin(pivotX, pivotY),
+                    animationSpec = tween(180, easing = LinearOutSlowInEasing)
+                ) + fadeIn(animationSpec),
+                exit = scaleOut(
+                    targetScale = 0.8f,
+                    transformOrigin = TransformOrigin(pivotX, pivotY),
+                    animationSpec = tween(150)
+                ) + fadeOut(animationSpec)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .width(menuWidth)
+                        .padding(top = 8.dp)
+                        .drawMenuArrow(Gray)
+                        .background(Gray, RoundedCornerShape(4.dp))
+                ) {
+                    val actions = QuickAction.entries
+                    actions.forEachIndexed { index, action ->
+                        ActionItem(action) {
+                            onDismiss()
+                            onAction(action)
+                        }
+
+                        if (index < actions.lastIndex) {
+                            WeDivider(
+                                modifier = Modifier.padding(start = 56.dp),
+                                color = Color(0xFF666666)
+                            )
+                        }
                     }
                 }
             }
@@ -149,7 +150,11 @@ private fun ActionItem(action: QuickAction, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(55.dp)
-            .clickable(onClick = onClick)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(color = Color.White),
+                onClick = onClick
+            )
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
