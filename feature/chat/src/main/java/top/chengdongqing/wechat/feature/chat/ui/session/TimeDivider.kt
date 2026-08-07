@@ -15,15 +15,21 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.core.common.time.toFullDateTime
 import top.chengdongqing.wechat.core.common.time.toRelativeDateTime
 import top.chengdongqing.wechat.core.data.model.ChatMessage
+import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 
 @Composable
 fun TimeDivider(
     messages: List<ChatMessage>,
-    index: Int
+    index: Int,
+    showFullFormat: Boolean,
+    onToggleFormat: () -> Unit
 ) {
     val resources = LocalResources.current
+    val language = LocalAppearanceSetting.current.appLanguage
 
     // 是否显示时间
     val shouldShow by remember(index, messages.size) {
@@ -43,19 +49,27 @@ fun TimeDivider(
     if (shouldShow) {
         val message = messages[index]
         // 时间格式化
-        val time = remember(message.timestamp) {
-            message.timestamp.toRelativeDateTime(resources)
+        val time = remember(message.timestamp, showFullFormat, language) {
+            if (showFullFormat) {
+                message.timestamp.toFullDateTime(language)
+            } else {
+                message.timestamp.toRelativeDateTime(resources)
+            }
         }
 
-        TimeText(time)
+        TimeText(time, onToggleFormat)
     }
 }
 
 @Composable
-private fun TimeText(text: String) {
+private fun TimeText(
+    text: String,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .onTap(onClick = onClick)
             .padding(vertical = 12.dp, horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {

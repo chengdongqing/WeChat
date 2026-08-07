@@ -196,10 +196,11 @@ fun ChatSessionScreen(
             if (freshMessages.any { it.isBombMessage() }) {
                 bombTrigger++
             }
-            freshMessages.asReversed().firstNotNullOfOrNull { it.festiveEffectType() }?.let { type ->
-                festiveSerial++
-                festiveEvent = FestiveEffectEvent(festiveSerial, type)
-            }
+            freshMessages.asReversed().firstNotNullOfOrNull { it.festiveEffectType() }
+                ?.let { type ->
+                    festiveSerial++
+                    festiveEvent = FestiveEffectEvent(festiveSerial, type)
+                }
         }
     }
     LaunchedEffect(lazyMessageItems.itemSnapshotList, streamingAiMessage) {
@@ -331,7 +332,11 @@ fun ChatSessionScreen(
                                                         actorId = uiState.myId
                                                     )
                                                 )
-                                                onNavigateToLive(liveId, true, uiState.myId.orEmpty())
+                                                onNavigateToLive(
+                                                    liveId,
+                                                    true,
+                                                    uiState.myId.orEmpty()
+                                                )
                                             },
                                             onShareLiveLocation = {
                                                 viewModel.sendMessage(viewModel.createLiveLocationMessage())
@@ -598,11 +603,13 @@ private fun ChatSessionUiEventHandler(
                         pickContact(99)
                     }
                 }
+
                 is MessageUiEvent.PreviewFile -> onNavigateToFilePreview(event.messageId)
                 is MessageUiEvent.PreviewMusic -> onNavigateToMusicPreview(
                     event.messageId,
                     event.trackName
                 )
+
                 is MessageUiEvent.PreviewMedia -> onPreviewMedia(
                     ChatMediaPreviewState(
                         medias = event.medias,
@@ -645,6 +652,7 @@ private fun ChatMessageList(
 ) {
     val overscrollEffect = rememberBouncedOverscrollEffect()
     val scope = rememberCoroutineScope()
+    var showFullFormatTime by remember { mutableStateOf(false) }
     val streamingMessageInPaging = streamingAiMessage?.let { streaming ->
         lazyMessageItems.itemSnapshotList.items.any { it.id == streaming.id }
     } == true
@@ -711,7 +719,9 @@ private fun ChatMessageList(
                     } else uiState.peerAvatar,
                     myAvatar = uiState.myAvatar,
                     isSelectMode = uiState.isSelectMode,
-                    isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(displayMessage.id),
+                    isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(
+                        displayMessage.id
+                    ),
                     isToolbarHighlighted = toolbarState.visible &&
                             toolbarState.message?.id == displayMessage.id,
                     shakeOffsetX = shake.x,
@@ -748,7 +758,12 @@ private fun ChatMessageList(
                         viewModel.handleMessageLongPress(displayMessage, pos, height)
                     }
                 )
-                TimeDivider(lazyMessageItems.itemSnapshotList.items, index)
+                TimeDivider(
+                    messages = lazyMessageItems.itemSnapshotList.items,
+                    index = index,
+                    showFullFormat = showFullFormatTime,
+                    onToggleFormat = { showFullFormatTime = !showFullFormatTime }
+                )
             }
         }
 

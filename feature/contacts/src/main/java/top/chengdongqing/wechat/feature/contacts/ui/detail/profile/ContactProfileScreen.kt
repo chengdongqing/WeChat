@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.common.time.toYearMonthDisplay
+import top.chengdongqing.wechat.core.common.time.toYearMonthDate
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -164,7 +164,7 @@ private fun ContactProfileContent(
                     label = stringResource(R.string.contact_profile_added_at),
                     trailing = {
                         val result =
-                            it.toYearMonthDisplay(LocalAppearanceSetting.current.appLanguage)
+                            it.toYearMonthDate(LocalAppearanceSetting.current.appLanguage)
                         WeSettingValue(result)
                     },
                     showArrow = false,

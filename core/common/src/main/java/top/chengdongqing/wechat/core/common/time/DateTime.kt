@@ -7,6 +7,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 private val TimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
@@ -14,13 +15,23 @@ private val MonthDayFormatter = DateTimeFormatter.ofPattern("M月d日 HH:mm")
 private val YearMonthDayFormatter = DateTimeFormatter.ofPattern("yyyy年M月d日 HH:mm")
 private val YearMonthFormatterZh = DateTimeFormatter.ofPattern("yyyy年MM月")
 private val YearMonthFormatterEn = DateTimeFormatter.ofPattern("yyyy-MM")
+private val FullDateTimeFormatterZh =
+    DateTimeFormatter.ofPattern("yyyy年M月d日 EEE HH:mm", Locale.CHINESE)
+private val FullDateTimeFormatterEn =
+    DateTimeFormatter.ofPattern("EEE, M/d/yy HH:mm", Locale.ENGLISH)
 
 /**
  * 将时间戳显示为相对时间
+ *
+ * 例：
+ * 当天：14:23
+ * 昨天：昨天 14:23
+ * 一周内：星期二 14:23
+ * 今年：8月6日 14:23
+ * 往年：2026年8月6日 14:23
  */
 fun Long.toRelativeDateTime(resources: Resources): String {
-    val targetInstant = Instant.ofEpochMilli(this)
-    val target = LocalDateTime.ofInstant(targetInstant, ZoneId.systemDefault())
+    val target = this.asLocalDateTime()
     val now = LocalDateTime.now()
     val targetDate = target.toLocalDate()
     val nowDate = now.toLocalDate()
@@ -65,14 +76,40 @@ fun Long.toRelativeDateTime(resources: Resources): String {
 
 /**
  * 将时间戳格式化为年月的形式
+ *
+ * 例：
+ * 中文：2026年08月
+ * 英文：2026-08
  */
-fun Long.toYearMonthDisplay(language: AppLanguage): String {
-    val targetInstant = Instant.ofEpochMilli(this)
-    val target = targetInstant.atZone(ZoneId.systemDefault()).toLocalDate()
+fun Long.toYearMonthDate(language: AppLanguage): String {
+    val target = this.asLocalDateTime().toLocalDate()
 
     return when (language) {
         AppLanguage.Chinese -> target.format(YearMonthFormatterZh)
         else -> target.format(YearMonthFormatterEn)
+    }
+}
+
+/**
+ * 将时间戳格式化为完整的日期时间形式
+ *
+ * 例：
+ * 今年：8月6日 周四 14:23 / Thu, 8/6 14:23
+ * 往年：2025年8月6日 周四 14:23 / Thu, 8/6/25 14:23
+ */
+fun Long.toFullDateTime(language: AppLanguage): String {
+    val target = this.asLocalDateTime()
+
+    return when (language) {
+        AppLanguage.Chinese -> {
+            val formatter = FullDateTimeFormatterZh
+            target.format(formatter)
+        }
+
+        else -> {
+            val formatter = FullDateTimeFormatterEn
+            target.format(formatter)
+        }
     }
 }
 
@@ -84,3 +121,6 @@ fun Long.isWithinSeconds(seconds: Int = 5 * 60): Boolean {
     val threshold = seconds * 1000L
     return diff in 0..threshold
 }
+
+private fun Long.asLocalDateTime(): LocalDateTime =
+    LocalDateTime.ofInstant(Instant.ofEpochMilli(this), ZoneId.systemDefault())
