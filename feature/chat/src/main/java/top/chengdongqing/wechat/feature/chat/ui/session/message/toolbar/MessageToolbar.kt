@@ -90,9 +90,9 @@ fun MessageToolbar(
     var cached by remember { mutableStateOf(CachedToolbarParams()) }
     var measuredHeight by remember { mutableFloatStateOf(0f) }
 
-    val visibilityState = remember { MutableTransitionState(false) }
+    val visibleState = remember { MutableTransitionState(false) }
     LaunchedEffect(visible, temporarilyHidden) {
-        visibilityState.targetState = visible && !temporarilyHidden
+        visibleState.targetState = visible && !temporarilyHidden
     }
 
     LaunchedEffect(visible, bubblePosition, bubbleHeight, isTextMessage, actions) {
@@ -109,7 +109,7 @@ fun MessageToolbar(
     val density = LocalDensity.current
     val containerSize = LocalWindowInfo.current.containerSize
 
-    if (visibilityState.currentState || visibilityState.targetState) {
+    if (visibleState.currentState || visibleState.targetState) {
         val position = remember(cached, measuredHeight, containerSize) {
             computeToolbarPosition(
                 params = cached,
@@ -128,7 +128,7 @@ fun MessageToolbar(
             )
         ) {
             AnimatedVisibility(
-                visibleState = visibilityState,
+                visibleState = visibleState,
                 enter = fadeIn(tween(ANIM_ENTER_MS)) + scaleIn(
                     initialScale = 0.8f,
                     transformOrigin = position.transformOrigin,

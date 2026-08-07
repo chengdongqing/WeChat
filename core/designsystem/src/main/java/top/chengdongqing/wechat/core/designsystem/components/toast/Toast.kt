@@ -64,7 +64,7 @@ enum class ToastIcon {
 /**
  * 弹出式提示框
  *
- * @param visible 是否显示
+ * @param visibleState 是否显示
  * @param title 标题
  * @param icon 图标
  * @param duration 显示的时长
@@ -73,7 +73,7 @@ enum class ToastIcon {
  */
 @Composable
 fun WeToast(
-    visible: Boolean,
+    visibleState: MutableTransitionState<Boolean>,
     title: String,
     icon: ToastIcon = ToastIcon.None,
     duration: Duration = 1500.milliseconds,
@@ -81,13 +81,9 @@ fun WeToast(
     onDismiss: () -> Unit
 ) {
     val hasIcon = icon != ToastIcon.None
-    val visibilityState = remember { MutableTransitionState(false) }
-    LaunchedEffect(visible) {
-        visibilityState.targetState = visible
-    }
 
-    LaunchedEffect(visible, duration, title) {
-        if (visible && duration != Duration.INFINITE) {
+    LaunchedEffect(visibleState.targetState, duration, title) {
+        if (visibleState.targetState && duration != Duration.INFINITE) {
             delay(duration)
             onDismiss()
         }
@@ -95,7 +91,7 @@ fun WeToast(
 
     val statusBarHeight = rememberStatusBarHeight()
 
-    if (visibilityState.currentState || visibilityState.targetState) {
+    if (visibleState.currentState || visibleState.targetState) {
         Popup(popupPositionProvider = ToastPositionProvider) {
             Box(
                 modifier = if (mask) {
@@ -108,7 +104,7 @@ fun WeToast(
                 contentAlignment = Alignment.Center
             ) {
                 AnimatedVisibility(
-                    visibleState = visibilityState,
+                    visibleState = visibleState,
                     enter = fadeIn() + scaleIn(tween(100), initialScale = 0.8f),
                     exit = fadeOut() + scaleOut(tween(100), targetScale = 0.8f)
                 ) {
@@ -190,7 +186,7 @@ interface ToastState {
     /**
      * 是否显示
      */
-    val visible: Boolean
+    val visibleState: MutableTransitionState<Boolean>
 
     /**
      * 显示提示框
@@ -214,7 +210,7 @@ fun rememberToastState(): ToastState {
 
     state.props?.let { props ->
         WeToast(
-            visible = state.visible,
+            visibleState = state.visibleState,
             title = props.title,
             icon = props.icon,
             duration = props.duration,
@@ -228,17 +224,17 @@ fun rememberToastState(): ToastState {
 }
 
 private class ToastStateImpl : ToastState {
-    override var visible by mutableStateOf(false)
+    override val visibleState = MutableTransitionState(false)
     var props by mutableStateOf<ToastProps?>(null)
         private set
 
     override fun show(title: String, icon: ToastIcon, duration: Duration, mask: Boolean) {
         props = ToastProps(title, icon, duration, mask)
-        visible = true
+        visibleState.targetState = true
     }
 
     override fun hide() {
-        visible = false
+        visibleState.targetState = false
     }
 }
 

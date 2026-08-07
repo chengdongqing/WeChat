@@ -73,6 +73,7 @@ fun MusicOverlay(
     libraryViewModel: MusicLibraryViewModel = hiltViewModel()
 ) {
     val onDismiss = actions.onToggleMusic
+    val context = LocalContext.current
 
     WePopup(
         visible = state.isMusicOpen,
@@ -80,7 +81,6 @@ fun MusicOverlay(
         title = stringResource(R.string.music_select_title),
         onDismiss = onDismiss
     ) {
-        val context = LocalContext.current
         val player = remember { MusicPlayer(context) }
         var currentMusic by remember { mutableStateOf<MusicTrack?>(null) }
         var localMusic by remember {

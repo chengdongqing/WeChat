@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,16 +60,11 @@ fun WeContextMenu(
 
     val density = LocalDensity.current
     val containerSize = LocalWindowInfo.current.containerSize
-    val layout = remember(state.visible) {
+    val layout = remember(state.visibleState) {
         state.calculateLayout(density, containerSize)
     }
 
-    val visibilityState = remember { MutableTransitionState(false) }
-    LaunchedEffect(state.visible) {
-        visibilityState.targetState = state.visible
-    }
-
-    if (visibilityState.currentState || visibilityState.targetState) {
+    if (state.visibleState.currentState || state.visibleState.targetState) {
         Popup(
             offset = layout.offset,
             onDismissRequest = { state.hide() },
@@ -79,7 +73,7 @@ fun WeContextMenu(
             val animationSpec = tween<Float>(durationMillis = 150, easing = LinearOutSlowInEasing)
 
             AnimatedVisibility(
-                visibleState = visibilityState,
+                visibleState = state.visibleState,
                 enter = scaleIn(
                     initialScale = 0.4f,
                     transformOrigin = layout.pivot,
@@ -137,17 +131,17 @@ fun rememberContextMenuState(itemWidthDp: Dp = 140.dp, itemHeightDp: Dp = 50.dp)
 
 @Stable
 class ContextMenuState(val itemWidthDp: Dp, val itemHeightDp: Dp) {
-    var visible by mutableStateOf(false)
+    val visibleState = MutableTransitionState(false)
     var props by mutableStateOf<ContextMenuProps?>(null)
         private set
 
     fun show(position: IntOffset, options: List<String>, listIndex: Int) {
         props = ContextMenuProps(position, options, listIndex)
-        visible = true
+        visibleState.targetState = true
     }
 
     fun hide() {
-        visible = false
+        visibleState.targetState = false
     }
 
     /**

@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.app.shell
 
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,7 +70,7 @@ private fun TopBarContent(
     onNavigateToPayment: () -> Unit,
     onScannedQrCode: (String) -> Unit
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
+    val menuExpanded = remember { MutableTransitionState(false) }
     var anchorPosition by remember { mutableStateOf(Offset.Zero) }
     var anchorSize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -78,7 +79,7 @@ private fun TopBarContent(
     }
 
     val handleDismiss = {
-        menuExpanded = false
+        menuExpanded.targetState = false
     }
 
     Column {
@@ -96,7 +97,7 @@ private fun TopBarContent(
                 icon = R.drawable.ic_plus_circle_outlined,
                 description = stringResource(R.string.action_more)
             ) {
-                menuExpanded = true
+                menuExpanded.targetState = true
             }
         }
 
@@ -104,7 +105,7 @@ private fun TopBarContent(
     }
 
     QuickActionsMenu(
-        expanded = menuExpanded,
+        visibleState = menuExpanded,
         anchorPosition = anchorPosition,
         anchorSize = anchorSize,
         onDismiss = handleDismiss

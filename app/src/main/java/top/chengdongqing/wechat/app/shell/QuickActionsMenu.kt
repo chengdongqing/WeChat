@@ -26,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,17 +66,12 @@ enum class QuickAction(
 
 @Composable
 fun QuickActionsMenu(
-    expanded: Boolean,
+    visibleState: MutableTransitionState<Boolean>,
     anchorPosition: Offset,
     anchorSize: IntSize,
     onDismiss: () -> Unit,
     onAction: (QuickAction) -> Unit
 ) {
-    val visibilityState = remember { MutableTransitionState(false) }
-    LaunchedEffect(expanded) {
-        visibilityState.targetState = expanded
-    }
-
     val menuWidth = when (LocalAppearanceSetting.current.appLanguage) {
         AppLanguage.English -> 180.dp
         else -> 160.dp
@@ -92,7 +86,7 @@ fun QuickActionsMenu(
         }
     }
 
-    if (visibilityState.currentState || visibilityState.targetState) {
+    if (visibleState.currentState || visibleState.targetState) {
         Popup(
             offset = popupOffset,
             onDismissRequest = onDismiss,
@@ -103,7 +97,7 @@ fun QuickActionsMenu(
             val animationSpec = tween<Float>(durationMillis = 150, easing = LinearOutSlowInEasing)
 
             AnimatedVisibility(
-                visibleState = visibilityState,
+                visibleState = visibleState,
                 enter = scaleIn(
                     initialScale = 0.8f,
                     transformOrigin = TransformOrigin(pivotX, pivotY),

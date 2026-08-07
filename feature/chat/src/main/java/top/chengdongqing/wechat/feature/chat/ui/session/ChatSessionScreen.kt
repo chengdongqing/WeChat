@@ -67,7 +67,7 @@ import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.WeActionSheet
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
 import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
@@ -117,7 +117,6 @@ fun ChatSessionScreen(
     var mediaPreview by remember { mutableStateOf<ChatMediaPreviewState?>(null) }
     var editingImageUri by remember { mutableStateOf<Uri?>(null) }
     var editedImageUri by remember { mutableStateOf<Uri?>(null) }
-    var showEditedImageActions by remember { mutableStateOf(false) }
     var mediaPreviewClosing by remember { mutableStateOf(false) }
     val mediaPreviewScope = rememberCoroutineScope()
     val closeMediaPreview: () -> Unit = {
@@ -411,6 +410,7 @@ fun ChatSessionScreen(
         }
     }
 
+    val actionSheet = rememberActionSheetState()
     editingImageUri?.let { sourceUri ->
         ImageEditor(
             sourceUri = sourceUri,
@@ -418,35 +418,32 @@ fun ChatSessionScreen(
             onConfirm = { resultUri ->
                 editingImageUri = null
                 editedImageUri = resultUri
-                showEditedImageActions = true
+
+                actionSheet.show(
+                    options = listOf(
+                        ActionSheetItem(R.string.edited_image_send_to_friend),
+                        ActionSheetItem(R.string.edited_image_favorite),
+                        ActionSheetItem(R.string.edited_image_save)
+                    ),
+                    onChange = { index ->
+                        val uri = editedImageUri ?: return@show
+                        when (index) {
+                            0 -> sendEditedImageToContacts(99)
+                            1 -> {
+                                viewModel.favoriteEditedImage(uri)
+                                editedImageUri = null
+                            }
+
+                            2 -> {
+                                viewModel.saveEditedImage(uri)
+                                editedImageUri = null
+                            }
+                        }
+                    }
+                )
             }
         )
     }
-
-    WeActionSheet(
-        visible = showEditedImageActions,
-        options = listOf(
-            ActionSheetItem(R.string.edited_image_send_to_friend),
-            ActionSheetItem(R.string.edited_image_favorite),
-            ActionSheetItem(R.string.edited_image_save)
-        ),
-        onCancel = { showEditedImageActions = false },
-        onTap = { index ->
-            val uri = editedImageUri ?: return@WeActionSheet
-            when (index) {
-                0 -> sendEditedImageToContacts(99)
-                1 -> {
-                    viewModel.favoriteEditedImage(uri)
-                    editedImageUri = null
-                }
-
-                2 -> {
-                    viewModel.saveEditedImage(uri)
-                    editedImageUri = null
-                }
-            }
-        }
-    )
 
     LoadingDialog(uiState.isFullscreenLoading)
 }
@@ -550,7 +547,6 @@ private fun ChatSessionUiEventHandler(
     val resources = LocalResources.current
     val dialog = rememberDialogState()
     var useMergedForward by remember { mutableStateOf(false) }
-    var showForwardTypeDialog by remember { mutableStateOf(false) }
     var singleForwardMessageId by remember { mutableStateOf<String?>(null) }
     val pickContact = LocalContactPickerLauncher.current.rememberLauncher { contacts ->
         dialog.show(resources.getString(R.string.msg_confirm_forward, contacts.size)) {
@@ -562,20 +558,7 @@ private fun ChatSessionUiEventHandler(
             singleForwardMessageId = null
         }
     }
-
-    WeActionSheet(
-        visible = showForwardTypeDialog,
-        options = listOf(
-            ActionSheetItem(R.string.message_forward_separate),
-            ActionSheetItem(R.string.message_forward_merged)
-        ),
-        onCancel = { showForwardTypeDialog = false },
-        onTap = { index ->
-            showForwardTypeDialog = false
-            useMergedForward = index == 1
-            pickContact(99)
-        }
-    )
+    val actionSheet = rememberActionSheetState()
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
@@ -597,7 +580,16 @@ private fun ChatSessionUiEventHandler(
                 is MessageUiEvent.ForwardMessage -> {
                     singleForwardMessageId = event.messageId
                     if (event.messageId == null && viewModel.uiState.value.selectedCount > 1) {
-                        showForwardTypeDialog = true
+                        actionSheet.show(
+                            options = listOf(
+                                ActionSheetItem(R.string.message_forward_separate),
+                                ActionSheetItem(R.string.message_forward_merged)
+                            ),
+                            onChange = { index ->
+                                useMergedForward = index == 1
+                                pickContact(99)
+                            }
+                        )
                     } else {
                         useMergedForward = false
                         pickContact(99)

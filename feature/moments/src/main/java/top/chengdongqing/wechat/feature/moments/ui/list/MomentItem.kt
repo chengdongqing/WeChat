@@ -31,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -272,7 +271,7 @@ private fun MomentFooter(
     onComment: () -> Unit,
     onDelete: () -> Unit
 ) {
-    var actionsExpanded by remember(moment.id) { mutableStateOf(false) }
+    val actionsExpanded = remember { MutableTransitionState(false) }
     var buttonCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val resources = LocalResources.current
     val density = LocalDensity.current
@@ -314,7 +313,7 @@ private fun MomentFooter(
                 .clickable(
                     role = Role.Button,
                     onClickLabel = stringResource(R.string.moment_action_comment),
-                    onClick = { actionsExpanded = !actionsExpanded }
+                    onClick = { actionsExpanded.targetState = !actionsExpanded.targetState }
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -326,14 +325,7 @@ private fun MomentFooter(
             )
         }
 
-        val visibilityState = remember {
-            MutableTransitionState(false)
-        }
-        LaunchedEffect(actionsExpanded) {
-            visibilityState.targetState = actionsExpanded
-        }
-
-        if (visibilityState.currentState || visibilityState.targetState) {
+        if (actionsExpanded.currentState || actionsExpanded.targetState) {
             Popup(
                 popupPositionProvider = remember(buttonCoordinates) {
                     val gapPx = with(density) { 6.dp.roundToPx() }
@@ -343,10 +335,10 @@ private fun MomentFooter(
                     focusable = true,
                     usePlatformDefaultWidth = false
                 ),
-                onDismissRequest = { actionsExpanded = false }
+                onDismissRequest = { actionsExpanded.targetState = false }
             ) {
                 AnimatedVisibility(
-                    visibleState = visibilityState,
+                    visibleState = actionsExpanded,
                     enter = expandHorizontally() + fadeIn(),
                     exit = shrinkHorizontally() + fadeOut()
                 ) {
@@ -355,11 +347,11 @@ private fun MomentFooter(
                             moment.likes.any { it.userId == myId }
                         },
                         onLike = {
-                            actionsExpanded = false
+                            actionsExpanded.targetState = false
                             onLike()
                         },
                         onComment = {
-                            actionsExpanded = false
+                            actionsExpanded.targetState = false
                             onComment()
                         }
                     )

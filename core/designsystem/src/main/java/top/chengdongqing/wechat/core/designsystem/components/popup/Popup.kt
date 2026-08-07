@@ -82,14 +82,14 @@ fun WePopup(
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val visibilityState = remember { MutableTransitionState(false) }
+    val visibleState = remember { MutableTransitionState(false) }
     LaunchedEffect(visible) {
-        visibilityState.targetState = visible
+        visibleState.targetState = visible
     }
 
-    if (visibilityState.currentState || visibilityState.targetState) {
+    if (visibleState.currentState || visibleState.targetState) {
         PopupContainer(
-            visibilityState = visibilityState,
+            visibilityState = visibleState,
             enterTransition,
             exitTransition,
             decorFitsSystemWindows,

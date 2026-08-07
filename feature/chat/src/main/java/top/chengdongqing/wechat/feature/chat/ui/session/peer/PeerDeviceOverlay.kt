@@ -32,7 +32,7 @@ fun PeerDeviceOverlay(
     userId: String,
     mode: ConnectionMode,
     onConnected: () -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val viewModel: PeerDeviceViewModel = when (mode) {
         ConnectionMode.Bluetooth -> hiltViewModel<BluetoothPeerViewModel>()
