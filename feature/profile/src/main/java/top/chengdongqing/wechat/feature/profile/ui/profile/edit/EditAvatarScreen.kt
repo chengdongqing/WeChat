@@ -26,10 +26,10 @@ import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.common.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
@@ -47,8 +47,6 @@ fun EditAvatarScreen(
 
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
-    val toast = rememberToastState()
-    val actionSheet = rememberActionSheetState()
     val zoomableState = rememberZoomableState()
     val state = rememberZoomableImageState(zoomableState)
 
@@ -69,7 +67,7 @@ fun EditAvatarScreen(
             val uri = File(localPath).toUri()
             val success = viewModel.saveImage(uri)
 
-            toast.show(
+            ToastManager.show(
                 title = resources.getString(if (success) R.string.msg_save_success else R.string.msg_save_failed),
                 icon = if (success) ToastIcon.Success else ToastIcon.Fail
             )
@@ -91,7 +89,7 @@ fun EditAvatarScreen(
                 icon = R.drawable.ic_more_outlined,
                 description = stringResource(R.string.action_more)
             ) {
-                actionSheet.show(MenuOptions) { index ->
+                ActionSheetManager.show(MenuOptions) { index ->
                     when (index) {
                         0 -> launchCamera(VisualMediaType.Image)
                         1 -> launchAlbum(VisualMediaType.Image, 1)

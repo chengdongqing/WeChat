@@ -135,8 +135,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 注册系统桌面长按菜单。动态快捷方式可以直接携带现有 NavigationKey，
-     * 因而无需为快捷入口维护另一套页面或深链路由。
+     * 注册系统桌面长按显示的快捷菜单
      */
     private fun publishAppShortcuts() {
         val shortcutManager = getSystemService(ShortcutManager::class.java)

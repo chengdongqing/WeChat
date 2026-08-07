@@ -39,7 +39,7 @@ import top.chengdongqing.wechat.core.common.cropper.rememberImageCropperLauncher
 import top.chengdongqing.wechat.core.common.file.createImageUri
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -57,7 +57,6 @@ fun AvatarSelector(
 ) {
     val selectorState = rememberAvatarSelectorState(onAvatarChange)
     val scope = rememberCoroutineScope()
-    val actionSheet = rememberActionSheetState()
     val options = remember {
         listOf(
             ActionSheetItem(R.string.action_take_photo),
@@ -67,7 +66,7 @@ fun AvatarSelector(
 
     val handleShowMenu = {
         if (enabled) {
-            actionSheet.show(options) { index ->
+            ActionSheetManager.show(options) { index ->
                 if (index == 0) {
                     scope.launch {
                         selectorState.handleCameraAction()

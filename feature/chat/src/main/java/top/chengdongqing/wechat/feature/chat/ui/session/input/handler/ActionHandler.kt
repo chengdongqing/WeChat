@@ -19,7 +19,7 @@ import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
@@ -83,7 +83,6 @@ fun rememberActionHandler(
     val context = LocalContext.current
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
-    val actionSheet = rememberActionSheetState()
     val chatContext = LocalChatSessionContext.current
     val isSelf = chatContext?.isSelf == true
 
@@ -134,7 +133,7 @@ fun rememberActionHandler(
             onCamera = { isLongClick ->
                 if (isLongClick) {
                     // 长按：显示系统相机选项
-                    actionSheet.show(
+                    ActionSheetManager.show(
                         options = CameraOptions,
                         title = R.string.chat_camera_title
                     ) { index ->
@@ -151,12 +150,12 @@ fun rememberActionHandler(
                 }
             },
             onVideoCall = {
-                actionSheet.show(CallOptions) { index ->
+                ActionSheetManager.show(CallOptions) { index ->
                     onLaunchCall(if (index == 0) CallType.Video else CallType.Voice)
                 }
             },
             onLocation = {
-                actionSheet.show(locationOptions) { index ->
+                ActionSheetManager.show(locationOptions) { index ->
                     when (index) {
                         0 -> onPickLocation()
                         1 -> onShareLiveLocation()

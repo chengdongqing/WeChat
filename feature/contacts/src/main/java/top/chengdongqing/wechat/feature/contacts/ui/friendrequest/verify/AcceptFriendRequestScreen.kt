@@ -7,10 +7,10 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.ContactHandleBase
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.FriendActionType
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun AcceptFriendRequestScreen(
@@ -19,23 +19,19 @@ fun AcceptFriendRequestScreen(
     viewModel: AcceptFriendRequestViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val toast = rememberToastState()
     val resources = LocalResources.current
 
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collect { event ->
             when (event) {
                 is AcceptFriendRequestEvent.AcceptSuccess -> {
-                    toast.show(
-                        title = resources.getString(R.string.contact_msg_friend_added),
-                        icon = ToastIcon.Success
-                    )
-                    delay(1000)
+                    ToastManager.show(resources.getString(R.string.contact_msg_friend_added))
+                    delay(1.seconds)
                     onSuccess()
                 }
 
                 is AcceptFriendRequestEvent.ShowError -> {
-                    toast.show(event.message, icon = ToastIcon.Fail)
+                    ToastManager.fail(event.message)
                 }
             }
         }

@@ -47,8 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
@@ -76,11 +75,10 @@ fun RadarScanAddFriendScreen(
         }
     }
 
-    val toast = rememberToastState()
     // 错误提示
     LaunchedEffect(error) {
         error?.let {
-            toast.show(title = it, icon = ToastIcon.Fail)
+            ToastManager.fail(it)
             viewModel.onErrorConsumed()
         }
     }

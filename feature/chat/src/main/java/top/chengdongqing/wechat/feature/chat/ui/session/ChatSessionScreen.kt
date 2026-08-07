@@ -67,8 +67,8 @@ import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
@@ -118,11 +118,11 @@ fun ChatSessionScreen(
     var editingImageUri by remember { mutableStateOf<Uri?>(null) }
     var editedImageUri by remember { mutableStateOf<Uri?>(null) }
     var mediaPreviewClosing by remember { mutableStateOf(false) }
-    val mediaPreviewScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     val closeMediaPreview: () -> Unit = {
         if (!mediaPreviewClosing) {
             mediaPreviewClosing = true
-            mediaPreviewScope.launch {
+            scope.launch {
                 // 先让视频 Surface 被封面替换并至少完成一次绘制，再触发共享元素退出。
                 withFrameNanos { }
                 withFrameNanos { }
@@ -410,7 +410,6 @@ fun ChatSessionScreen(
         }
     }
 
-    val actionSheet = rememberActionSheetState()
     editingImageUri?.let { sourceUri ->
         ImageEditor(
             sourceUri = sourceUri,
@@ -419,13 +418,13 @@ fun ChatSessionScreen(
                 editingImageUri = null
                 editedImageUri = resultUri
 
-                actionSheet.show(
+                ActionSheetManager.show(
                     options = listOf(
                         ActionSheetItem(R.string.edited_image_send_to_friend),
                         ActionSheetItem(R.string.edited_image_favorite),
                         ActionSheetItem(R.string.edited_image_save)
                     ),
-                    onChange = { index ->
+                    onAction = { index ->
                         val uri = editedImageUri ?: return@show
                         when (index) {
                             0 -> sendEditedImageToContacts(99)
@@ -545,11 +544,10 @@ private fun ChatSessionUiEventHandler(
     onOpenChatHistory: (MessageContent.ChatHistory) -> Unit,
 ) {
     val resources = LocalResources.current
-    val dialog = rememberDialogState()
     var useMergedForward by remember { mutableStateOf(false) }
     var singleForwardMessageId by remember { mutableStateOf<String?>(null) }
     val pickContact = LocalContactPickerLauncher.current.rememberLauncher { contacts ->
-        dialog.show(resources.getString(R.string.msg_confirm_forward, contacts.size)) {
+        DialogManager.show(resources.getString(R.string.msg_confirm_forward, contacts.size)) {
             val ids = contacts.map { it.id }.toSet()
             val messageId = singleForwardMessageId
             if (messageId != null) viewModel.forwardMessage(messageId, ids)
@@ -558,12 +556,11 @@ private fun ChatSessionUiEventHandler(
             singleForwardMessageId = null
         }
     }
-    val actionSheet = rememberActionSheetState()
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is MessageUiEvent.ShowDeleteConfirm -> dialog.show(
+                is MessageUiEvent.ShowDeleteConfirm -> DialogManager.show(
                     title = resources.getString(R.string.msg_confirm_delete),
                     okText = R.string.action_delete,
                     okColor = SemanticError
@@ -572,7 +569,7 @@ private fun ChatSessionUiEventHandler(
                     else viewModel.deleteSelectedMessages()
                 }
 
-                is MessageUiEvent.ShowDownloadConfirm -> dialog.show(
+                is MessageUiEvent.ShowDownloadConfirm -> DialogManager.show(
                     title = resources.getString(R.string.msg_confirm_save),
                     okText = R.string.action_save
                 ) { viewModel.saveSelectedMessageFiles() }
@@ -580,16 +577,15 @@ private fun ChatSessionUiEventHandler(
                 is MessageUiEvent.ForwardMessage -> {
                     singleForwardMessageId = event.messageId
                     if (event.messageId == null && viewModel.uiState.value.selectedCount > 1) {
-                        actionSheet.show(
+                        ActionSheetManager.show(
                             options = listOf(
                                 ActionSheetItem(R.string.message_forward_separate),
                                 ActionSheetItem(R.string.message_forward_merged)
-                            ),
-                            onChange = { index ->
-                                useMergedForward = index == 1
-                                pickContact(99)
-                            }
-                        )
+                            )
+                        ) { index ->
+                            useMergedForward = index == 1
+                            pickContact(99)
+                        }
                     } else {
                         useMergedForward = false
                         pickContact(99)

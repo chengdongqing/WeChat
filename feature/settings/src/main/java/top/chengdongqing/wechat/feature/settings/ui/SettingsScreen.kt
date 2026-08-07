@@ -24,7 +24,7 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -160,7 +160,6 @@ private fun LogoutButton(
     backStack: NavBackStack<NavKey>,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val dialog = rememberDialogState()
     val resources = LocalResources.current
     val context = LocalContext.current
 
@@ -178,7 +177,7 @@ private fun LogoutButton(
     }
 
     val showDialog = {
-        dialog.show(
+        DialogManager.show(
             title = resources.getString(R.string.settings_logout_title),
             content = resources.getString(R.string.settings_logout_content),
             okColor = SemanticError,

@@ -36,7 +36,7 @@ import top.chengdongqing.wechat.core.common.background.ChatBackgroundSetting
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
@@ -58,7 +58,6 @@ fun ChatInfoScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val resources = LocalResources.current
-    val dialog = rememberDialogState()
     val selectAiModel = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -101,7 +100,7 @@ fun ChatInfoScreen(
                     },
                     onCancelLoading = viewModel::cancelModelLoading,
                     onUnloadModel = {
-                        dialog.show(
+                        DialogManager.show(
                             title = "确定卸载模型吗？",
                             content = "下次使用时可重新导入。",
                             okText = R.string.action_ok,
@@ -171,7 +170,7 @@ fun ChatInfoScreen(
                         label = stringResource(R.string.chat_info_end_temporary),
                         showDivider = false,
                         onClick = {
-                            dialog.show(
+                            DialogManager.show(
                                 title = resources.getString(R.string.chat_info_end_temporary_title),
                                 content = resources.getString(R.string.chat_info_end_temporary_content),
                                 okText = R.string.action_ok,
@@ -192,7 +191,7 @@ fun ChatInfoScreen(
                 label = stringResource(R.string.chat_info_clear),
                 showDivider = false,
                 onClick = {
-                    dialog.show(
+                    DialogManager.show(
                         title = resources.getString(
                             R.string.chat_info_clear_title,
                             uiState.contactName

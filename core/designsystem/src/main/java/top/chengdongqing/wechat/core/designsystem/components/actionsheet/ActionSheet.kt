@@ -96,7 +96,6 @@ fun WeActionSheet(
                         .then(
                             if (!item.disabled) {
                                 Modifier.clickable {
-                                    onCancel()
                                     onTap(index)
                                 }
                             } else Modifier)
@@ -165,7 +164,8 @@ interface ActionSheetState {
     fun show(
         options: List<ActionSheetItem>,
         @StringRes title: Int? = null,
-        onChange: (index: Int) -> Unit
+        onCancel: (() -> Unit)? = null,
+        onAction: (index: Int) -> Unit
     )
 
     /**
@@ -183,8 +183,14 @@ fun rememberActionSheetState(): ActionSheetState {
             visible = state.visible,
             title = props.title?.let { stringResource(it) },
             options = props.options,
-            onCancel = { state.hide() },
-            onTap = props.onChange
+            onCancel = {
+                props.onCancel?.invoke()
+                state.hide()
+            },
+            onTap = { index ->
+                props.onAction(index)
+                state.hide()
+            }
         )
     }
 
@@ -199,9 +205,10 @@ private class ActionSheetStateImpl : ActionSheetState {
     override fun show(
         options: List<ActionSheetItem>,
         @StringRes title: Int?,
-        onChange: (index: Int) -> Unit
+        onCancel: (() -> Unit)?,
+        onAction: (index: Int) -> Unit
     ) {
-        props = ActionSheetProps(options, title, onChange)
+        props = ActionSheetProps(options, title, onCancel, onAction)
         visible = true
     }
 
@@ -214,5 +221,6 @@ private class ActionSheetStateImpl : ActionSheetState {
 private data class ActionSheetProps(
     val options: List<ActionSheetItem>,
     @get:StringRes val title: Int? = null,
-    val onChange: (index: Int) -> Unit
+    val onCancel: (() -> Unit)? = null,
+    val onAction: (index: Int) -> Unit
 )

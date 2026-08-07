@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
@@ -82,7 +82,6 @@ fun ChatManagementScreen(
 
 @Composable
 private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
-    val dialog = rememberDialogState()
     val resources = LocalResources.current
 
     Text(
@@ -93,7 +92,7 @@ private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
             .align(Alignment.BottomCenter)
             .padding(bottom = 40.dp)
             .onTap {
-                dialog.show(
+                DialogManager.show(
                     title = resources.getString(R.string.chat_history_clear_title),
                     content = resources.getString(R.string.chat_history_clear_content),
                     okText = R.string.action_clear,

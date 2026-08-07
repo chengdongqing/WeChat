@@ -27,7 +27,7 @@ import top.chengdongqing.wechat.core.designsystem.components.contextmenu.Context
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeContextMenu
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.rememberContextMenuState
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.weContextMenu
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.InformationBarType
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
@@ -167,7 +167,6 @@ private fun ChatContextMenuHandler(
     chats: List<ChatSession>,
     viewModel: ChatListViewModel
 ) {
-    val dialog = rememberDialogState()
     val hideTitle = stringResource(R.string.chat_hide_hint_title)
     val hideContent = stringResource(R.string.chat_hide_hint_content)
     val deleteHint = stringResource(R.string.chat_delete_hint)
@@ -178,14 +177,14 @@ private fun ChatContextMenuHandler(
         when (menuIndex) {
             0 -> viewModel.toggleReadStatus(chat.id, chat.unreadCount > 0)
             1 -> viewModel.stickToTop(chat.id, chat.isPinned)
-            2 -> dialog.show(
+            2 -> DialogManager.show(
                 title = hideTitle,
                 content = hideContent,
                 okText = R.string.action_got_it,
                 onCancel = null
             ) { viewModel.hideChat(chat.id) }
 
-            3 -> dialog.show(
+            3 -> DialogManager.show(
                 title = deleteHint,
                 okText = R.string.action_delete,
                 okColor = SemanticError

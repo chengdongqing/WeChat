@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -82,10 +82,9 @@ private fun ContactSettingContent(
     viewModel: ContactDetailViewModel,
     onNavigateToContactProfile: () -> Unit
 ) {
-    val dialog = rememberDialogState()
     val resources = LocalResources.current
     val pickContact = rememberPickContactLauncher { contacts ->
-        dialog.show(
+        DialogManager.show(
             title = resources.getString(R.string.msg_confirm_send),
             okText = R.string.action_send
         ) {
@@ -153,11 +152,10 @@ private fun ContactSettingContent(
 
 @Composable
 private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
-    val dialog = rememberDialogState()
     val resources = LocalResources.current
 
     val showDialog = {
-        dialog.show(
+        DialogManager.show(
             title = resources.getString(R.string.contact_delete_title, contact.displayName),
             content = resources.getString(R.string.contact_delete_content),
             okColor = SemanticError,

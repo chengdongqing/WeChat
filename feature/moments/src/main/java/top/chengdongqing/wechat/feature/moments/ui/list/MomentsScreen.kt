@@ -30,7 +30,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -47,9 +47,8 @@ fun MomentsScreen(
     var coverExpanded by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
-    val actionSheet = rememberActionSheetState()
     fun showPostOptions() {
-        actionSheet.show(
+        ActionSheetManager.show(
             options = listOf(
                 ActionSheetItem(
                     labelRes = R.string.moments_post_camera,

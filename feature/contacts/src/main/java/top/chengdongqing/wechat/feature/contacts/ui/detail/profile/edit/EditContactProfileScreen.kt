@@ -37,8 +37,7 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTop
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -54,7 +53,6 @@ fun EditContactProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val contact = uiState.contact
-    val toast = rememberToastState()
 
     // 监听保存事件
     LaunchedEffect(Unit) {
@@ -65,7 +63,7 @@ fun EditContactProfileScreen(
                 }
 
                 is EditProfileEvent.SaveError -> {
-                    toast.show(title = event.message, icon = ToastIcon.Fail)
+                    ToastManager.fail(event.message)
                 }
             }
         }

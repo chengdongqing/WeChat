@@ -29,13 +29,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -100,7 +101,7 @@ private fun TopBar(onBack: () -> Unit) {
 @Composable
 private fun BottomBar(location: LocationPreviewInfo) {
     val context = LocalContext.current
-    val actionSheet = rememberActionSheetState()
+    val resources = LocalResources.current
     val installedTypes = remember(context) {
         MapType.entries.filter { mapType ->
             runCatching {
@@ -146,9 +147,9 @@ private fun BottomBar(location: LocationPreviewInfo) {
                     .background(WeTheme.colorScheme.background)
                     .clickable {
                         if (mapOptions.isEmpty()) {
-                            context.showToast(context.getString(DesignR.string.map_no_navigation_app))
+                            context.showToast(resources.getString(DesignR.string.map_no_navigation_app))
                         } else {
-                            actionSheet.show(mapOptions) { index ->
+                            ActionSheetManager.show(mapOptions) { index ->
                                 installedTypes.getOrNull(index)?.let { mapType ->
                                     context.navigateToLocation(
                                         mapType,

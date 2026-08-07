@@ -35,7 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTop
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -74,8 +74,6 @@ private fun StorageSettingsContent(
     state: StorageUiState,
     viewModel: StorageSettingsViewModel
 ) {
-    val dialog = rememberDialogState()
-
     fun handleClean(category: StorageCategory) {
         val label = when (category) {
             StorageCategory.Cache -> "缓存"
@@ -83,7 +81,7 @@ private fun StorageSettingsContent(
             StorageCategory.Resources -> "资源文件"
         }
 
-        dialog.show(
+        DialogManager.show(
             title = "确定清理${label}吗？",
             onOk = {
                 viewModel.clean(category)

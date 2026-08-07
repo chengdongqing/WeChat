@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.core.connectivity
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
@@ -36,8 +37,8 @@ fun rememberBluetoothEnabled(): Boolean {
     }.value
 }
 
+@SuppressLint("MissingPermission")
 @Composable
-@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 fun rememberWifiConnected(): Boolean {
     val context = LocalContext.current
 

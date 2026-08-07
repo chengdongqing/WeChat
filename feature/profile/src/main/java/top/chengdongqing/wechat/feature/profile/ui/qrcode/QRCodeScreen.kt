@@ -64,8 +64,7 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTop
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastState
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -75,7 +74,7 @@ import top.chengdongqing.wechat.core.proximity.ui.RequestAddFriendPermission
 import top.chengdongqing.wechat.feature.profile.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 import java.io.File
-import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun QRCodeScreen(
@@ -107,7 +106,6 @@ fun QRCodeScreen(
 
         val targetWidth = rememberScreenFractionWidth(0.65f)
         val scope = rememberCoroutineScope()
-        val toast = rememberToastState()
 
         // QR 码样式状态
         val styleIndex = uiState.qrCodeStyleIndex
@@ -152,7 +150,6 @@ fun QRCodeScreen(
                         cardRenderer = cardRenderer,
                         density = density,
                         context = context,
-                        toast = toast,
                         scope = scope,
                         viewModel = viewModel
                     )
@@ -343,16 +340,10 @@ private fun handleSaveToAlbum(
     cardRenderer: QrCardRenderer,
     density: Density,
     context: Context,
-    toast: ToastState,
     scope: CoroutineScope,
     viewModel: ProfileViewModel
 ) {
-    toast.show(
-        title = context.getString(R.string.msg_processing),
-        icon = ToastIcon.Loading,
-        duration = Duration.INFINITE,
-        mask = true
-    )
+    ToastManager.loading(context.getString(R.string.msg_processing))
 
     scope.launch {
         try {
@@ -360,11 +351,9 @@ private fun handleSaveToAlbum(
             val uri = context.createImageUri(bitmap)
             val success = viewModel.saveImage(uri)
 
-            delay(200)
-            toast.hide()
-            delay(200)
+            delay(500.milliseconds)
 
-            toast.show(
+            ToastManager.show(
                 title = if (success) {
                     context.getString(R.string.msg_save_success)
                 } else {
@@ -373,11 +362,7 @@ private fun handleSaveToAlbum(
                 icon = if (success) ToastIcon.Success else ToastIcon.Fail
             )
         } catch (e: Exception) {
-            toast.hide()
-            toast.show(
-                title = "${context.getString(R.string.msg_save_failed)}: ${e.message}",
-                icon = ToastIcon.Fail
-            )
+            ToastManager.fail("${context.getString(R.string.msg_save_failed)}: ${e.message}")
         }
     }
 }

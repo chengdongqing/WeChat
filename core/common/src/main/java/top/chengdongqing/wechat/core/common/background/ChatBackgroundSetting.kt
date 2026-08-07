@@ -21,8 +21,8 @@ import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.common.file.createImageUri
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -35,8 +35,6 @@ fun ChatBackgroundSetting(
 ) {
     val selectorState = rememberBackgroundSelectorState(onChange)
     val scope = rememberCoroutineScope()
-    val dialog = rememberDialogState()
-    val actionSheet = rememberActionSheetState()
     val resources = LocalResources.current
 
     val options = remember(value) {
@@ -56,12 +54,12 @@ fun ChatBackgroundSetting(
     }
 
     val handleShowMenu = {
-        actionSheet.show(options) { index ->
+        ActionSheetManager.show(options) { index ->
             when (index) {
                 0 -> scope.launch { selectorState.handleCameraAction() }
                 1 -> selectorState.pickVisualMedia()
                 2 -> {
-                    dialog.show(resources.getString(DesignR.string.chat_info_background_clear_title)) {
+                    DialogManager.show(resources.getString(DesignR.string.chat_info_background_clear_title)) {
                         onChange(null)
                     }
                 }

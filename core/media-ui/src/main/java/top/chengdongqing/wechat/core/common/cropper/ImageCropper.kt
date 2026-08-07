@@ -31,9 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.common.file.createImageUri
-import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
-import top.chengdongqing.wechat.core.designsystem.components.toast.rememberToastState
-import kotlin.time.Duration
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 
 @Composable
 fun WeImageCropper(
@@ -44,7 +42,6 @@ fun WeImageCropper(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val toast = rememberToastState()
     val imageBitmap by context.loadImageBitmap(uri)
 
     // 当图片或容器尺寸变化时，同步状态
@@ -117,16 +114,12 @@ fun WeImageCropper(
             onCancel = onCancel,
             onConfirm = {
                 imageBitmap?.let { bitmap ->
-                    toast.show(
-                        "处理中...",
-                        ToastIcon.Loading,
-                        duration = Duration.INFINITE,
-                        mask = true
-                    )
-
                     scope.launch {
+                        ToastManager.loading("处理中...")
                         val bitmap = bitmap.asAndroidBitmap().crop(state)
-                        onConfirm(context.createImageUri(bitmap))
+                        val uri = context.createImageUri(bitmap)
+                        ToastManager.hide()
+                        onConfirm(uri)
                     }
                 }
             }

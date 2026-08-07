@@ -13,6 +13,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.Density
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.WeActionSheetHost
+import top.chengdongqing.wechat.core.designsystem.components.dialog.WeDialogHost
+import top.chengdongqing.wechat.core.designsystem.components.toast.WeToastHost
 import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.AppTheme
@@ -121,7 +124,16 @@ fun WeTheme(
         )
     ) {
         content()
+
+        FeedbackHosts()
     }
+}
+
+@Composable
+private fun FeedbackHosts() {
+    WeToastHost()
+    WeDialogHost()
+    WeActionSheetHost()
 }
 
 object WeTheme {

@@ -48,7 +48,7 @@ import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.common.media.model.MediaType
 import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
@@ -174,8 +174,7 @@ private fun TopBar(
     state: MediaPickerState,
     onCancel: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val actionSheet = rememberActionSheetState()
+    val scope = rememberCoroutineScope()
     val typeOptions = remember {
         listOf(
             ActionSheetItem(DesignR.string.media_select_image, value = VisualMediaType.Image),
@@ -208,8 +207,8 @@ private fun TopBar(
                 .clip(RoundedCornerShape(20.dp))
                 .background(WeTheme.colorScheme.divider)
                 .clickable(enabled = state.isTypeEnabled) {
-                    actionSheet.show(typeOptions) { index ->
-                        coroutineScope.launch {
+                    ActionSheetManager.show(typeOptions) { index ->
+                        scope.launch {
                             state.refresh(typeOptions[index].value as VisualMediaType)
                         }
                     }
@@ -246,7 +245,6 @@ private fun BottomBar(
     onPreview: (Int) -> Unit,
     onConfirm: (Boolean) -> Unit
 ) {
-    val context = LocalContext.current
     val selectedCount = state.selectedMediaList.size
     val countDescription = if (selectedCount > 0) "($selectedCount)" else ""
     val selectedSize = state.selectedMediaList.sumOf(MediaItem::size)

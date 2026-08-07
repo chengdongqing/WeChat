@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.call.ui.CallOptions
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.components.actionsheet.rememberActionSheetState
+import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.CallType
@@ -39,9 +39,9 @@ fun ActionButtonSection(
     contact: Contact,
     onAction: (ContactAction) -> Unit
 ) {
-    val actionSheet = rememberActionSheetState()
-
-    Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
+    Column(
+        modifier = Modifier.background(WeTheme.colorScheme.surface)
+    ) {
         when {
             contact.isSelf || contact.isFriend -> {
                 ActionButton(
@@ -55,7 +55,7 @@ fun ActionButtonSection(
                         icon = R.drawable.ic_voice_video_outlined,
                         text = stringResource(R.string.contact_action_voice_video_call),
                         onClick = {
-                            actionSheet.show(CallOptions) { index ->
+                            ActionSheetManager.show(CallOptions) { index ->
                                 val callType = when (index) {
                                     0 -> CallType.Video
                                     else -> CallType.Voice

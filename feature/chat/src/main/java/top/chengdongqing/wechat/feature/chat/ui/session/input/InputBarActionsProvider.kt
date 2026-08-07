@@ -9,7 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.components.dialog.rememberDialogState
+import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
@@ -39,7 +39,6 @@ fun rememberInputBarActions(
 ): InputBarActions {
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
-    val dialog = rememberDialogState()
     val privateFileManager = hiltViewModel<InputBarViewModel>().privateFileManager
 
     // --- handlers ---
@@ -86,7 +85,7 @@ fun rememberInputBarActions(
                     onSendMessage(MessageContent.Text(inputText))
                     controller.clearInput()
                 } else {
-                    dialog.show(
+                    DialogManager.show(
                         title = resources.getString(R.string.msg_empty_message_title),
                         content = resources.getString(R.string.msg_empty_message_content),
                         onCancel = null
