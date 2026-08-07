@@ -19,11 +19,11 @@ import top.chengdongqing.wechat.feature.chat.ui.live.LiveRoomScreen
 import top.chengdongqing.wechat.feature.chat.ui.live.LiveRoomViewModel
 import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationScreen
 import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationViewModel
+import top.chengdongqing.wechat.feature.chat.ui.preview.chathistory.ChatHistoryScreen
 import top.chengdongqing.wechat.feature.chat.ui.preview.file.FilePreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.preview.music.MusicPreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionScreen
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionViewModel
-import top.chengdongqing.wechat.feature.chat.ui.session.message.content.ChatHistoryScreen
 
 fun EntryProviderScope<NavKey>.chatNavEntries(
     backStack: NavBackStack<NavKey>,
@@ -153,6 +153,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     entry<NavigationKey.ChatHistory> { key ->
         val payload = runCatching { Json.decodeFromString<ChatHistoryPayload>(key.payload) }
             .getOrDefault(ChatHistoryPayload("聊天记录", emptyList()))
+
         ChatHistoryScreen(
             content = MessageContent.ChatHistory(payload.title, payload.items),
             onBack = onBack,
@@ -228,8 +229,8 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
             onExitGroup = {
                 backStack.removeIf { key ->
                     key is NavigationKey.GroupInfo ||
-                        (key is NavigationKey.GroupChat && key.groupId == groupId) ||
-                        (key is NavigationKey.ChatSession && key.chatId == groupId)
+                            (key is NavigationKey.GroupChat && key.groupId == groupId) ||
+                            (key is NavigationKey.ChatSession && key.chatId == groupId)
                 }
             },
             viewModel = hiltViewModel { factory: GroupInfoViewModel.Factory ->

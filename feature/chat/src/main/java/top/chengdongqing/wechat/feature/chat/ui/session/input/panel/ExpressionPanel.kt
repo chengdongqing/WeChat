@@ -405,7 +405,7 @@ private object EmojiPreviewPositionProvider : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
-        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        layoutDirection: LayoutDirection,
         popupContentSize: IntSize
     ): IntOffset {
         val margin = 8
@@ -569,13 +569,12 @@ private fun StickerPressPreview(
 ) {
     val model = if (sticker.isAsset) sticker.path.asAssetPath else sticker.path
     val popoverColor = WeTheme.colorScheme.surface
+
     Popup(
         popupPositionProvider = StickerPreviewPositionProvider,
         onDismissRequest = onDismiss,
         properties = PopupProperties(
             focusable = true,
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true,
             clippingEnabled = false
         )
     ) {

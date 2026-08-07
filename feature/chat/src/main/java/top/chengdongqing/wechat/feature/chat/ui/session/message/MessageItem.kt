@@ -84,7 +84,6 @@ fun MessageItem(
     val content = message.content
     val chatContext = LocalChatSessionContext.current
 
-    /* 记录气泡在窗口中的位置和高度 */
     var bubblePosition by remember { mutableStateOf(Offset.Zero) }
     var bubbleHeight by remember { mutableFloatStateOf(0f) }
     var bubbleWidth by remember { mutableFloatStateOf(0f) }

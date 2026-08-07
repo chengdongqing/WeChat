@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -69,6 +70,9 @@ import top.chengdongqing.wechat.core.common.media.isLandscape
 import top.chengdongqing.wechat.core.common.time.toRelativeDateTime
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.designsystem.text.RichTextMode
+import top.chengdongqing.wechat.core.designsystem.text.parseRichText
+import top.chengdongqing.wechat.core.designsystem.text.rememberEmojiInlineContent
 import top.chengdongqing.wechat.core.designsystem.theme.DividerDark
 import top.chengdongqing.wechat.core.designsystem.theme.Gray
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -137,12 +141,20 @@ private fun AuthorAndContent(moment: Moment) {
     )
 
     if (moment.content.isNotBlank()) {
-        Text(
-            text = moment.content,
-            color = WeTheme.colorScheme.textPrimary,
-            fontSize = 16.sp,
-            modifier = Modifier.padding(vertical = 6.dp)
-        )
+        val annotatedText = remember(moment.content) {
+            moment.content.parseRichText(mode = RichTextMode.EmojiOnly)
+        }
+        val inlineContent = rememberEmojiInlineContent(annotatedText, emojiSize = 22.sp)
+
+        SelectionContainer {
+            Text(
+                text = annotatedText,
+                color = WeTheme.colorScheme.textPrimary,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(vertical = 6.dp),
+                inlineContent = inlineContent,
+            )
+        }
     }
 }
 

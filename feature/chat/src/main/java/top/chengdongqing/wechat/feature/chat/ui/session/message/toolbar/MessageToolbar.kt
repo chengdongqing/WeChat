@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -9,6 +10,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -21,6 +23,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,10 +49,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
+import top.chengdongqing.wechat.core.designsystem.theme.Gray
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageAction
-import kotlin.time.Duration.Companion.milliseconds
 
 private const val ANIM_ENTER_MS = 200
 private const val ANIM_EXIT_MS = 150
@@ -85,21 +87,12 @@ fun MessageToolbar(
     onActionClick: (MessageAction) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var showContent by remember { mutableStateOf(false) }
-    var shouldShowPopup by remember { mutableStateOf(false) }
     var cached by remember { mutableStateOf(CachedToolbarParams()) }
     var measuredHeight by remember { mutableFloatStateOf(0f) }
 
-    LaunchedEffect(visible) {
-        if (visible) {
-            shouldShowPopup = true
-            delay(50.milliseconds)
-            showContent = true
-        } else {
-            showContent = false
-            delay((ANIM_EXIT_MS.toLong() + 50).milliseconds)
-            shouldShowPopup = false
-        }
+    val visibilityState = remember { MutableTransitionState(false) }
+    LaunchedEffect(visible, temporarilyHidden) {
+        visibilityState.targetState = visible && !temporarilyHidden
     }
 
     LaunchedEffect(visible, bubblePosition, bubbleHeight, isTextMessage, actions) {
@@ -113,51 +106,51 @@ fun MessageToolbar(
         }
     }
 
-    if (!shouldShowPopup) return
-
     val density = LocalDensity.current
     val containerSize = LocalWindowInfo.current.containerSize
 
-    val position = remember(cached, measuredHeight, containerSize) {
-        computeToolbarPosition(
-            params = cached,
-            measuredHeight = measuredHeight,
-            screenWidth = containerSize.width.toFloat(),
-            density = density.density
-        )
-    }
+    if (visibilityState.currentState || visibilityState.targetState) {
+        val position = remember(cached, measuredHeight, containerSize) {
+            computeToolbarPosition(
+                params = cached,
+                measuredHeight = measuredHeight,
+                screenWidth = containerSize.width.toFloat(),
+                density = density.density
+            )
+        }
 
-    Popup(
-        offset = position.offset,
-        onDismissRequest = onDismiss,
-        properties = PopupProperties(
-            focusable = !cached.isTextMessage,
-            dismissOnClickOutside = !cached.isTextMessage
-        )
-    ) {
-        AnimatedVisibility(
-            visible = showContent && !temporarilyHidden,
-            enter = fadeIn(tween(ANIM_ENTER_MS)) + scaleIn(
-                initialScale = 0.8f,
-                transformOrigin = position.transformOrigin,
-                animationSpec = tween(ANIM_ENTER_MS)
-            ),
-            exit = fadeOut(tween(ANIM_EXIT_MS)) + scaleOut(
-                targetScale = 0.8f,
-                transformOrigin = position.transformOrigin,
-                animationSpec = tween(ANIM_EXIT_MS)
+        Popup(
+            offset = position.offset,
+            onDismissRequest = onDismiss,
+            properties = PopupProperties(
+                focusable = !cached.isTextMessage,
+                dismissOnClickOutside = !cached.isTextMessage
             )
         ) {
-            ActionButtonGroup(
-                actions = cached.actions,
-                showBelow = position.showBelow,
-                arrowCenterX = position.arrowCenterX,
-                onActionClick = {
-                    onActionClick(it)
-                    onDismiss()
-                },
-                onHeightMeasured = { measuredHeight = it }
-            )
+            AnimatedVisibility(
+                visibleState = visibilityState,
+                enter = fadeIn(tween(ANIM_ENTER_MS)) + scaleIn(
+                    initialScale = 0.8f,
+                    transformOrigin = position.transformOrigin,
+                    animationSpec = tween(ANIM_ENTER_MS)
+                ),
+                exit = fadeOut(tween(ANIM_EXIT_MS)) + scaleOut(
+                    targetScale = 0.8f,
+                    transformOrigin = position.transformOrigin,
+                    animationSpec = tween(ANIM_EXIT_MS)
+                )
+            ) {
+                ActionButtonGroup(
+                    actions = cached.actions,
+                    showBelow = position.showBelow,
+                    arrowCenterX = position.arrowCenterX,
+                    onActionClick = {
+                        onActionClick(it)
+                        onDismiss()
+                    },
+                    onHeightMeasured = { measuredHeight = it }
+                )
+            }
         }
     }
 }
@@ -255,7 +248,7 @@ private fun ActionButtonGroup(
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFF525252))
+                .background(Gray)
         ) {
             rows.forEachIndexed { rowIndex, rowActions ->
                 Row(
@@ -318,7 +311,7 @@ private fun ToolbarArrow(
             }
             close()
         }
-        drawPath(path, Color(0xFF525252))
+        drawPath(path, Gray)
     }
 }
 
@@ -333,7 +326,11 @@ private fun ActionButton(
     Column(
         modifier = Modifier
             .widthIn(min = 60.dp)
-            .clickable(onClick = onClick)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = ripple(color = Color.White),
+                onClick = onClick
+            )
             .padding(horizontal = 4.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
