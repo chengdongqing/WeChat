@@ -30,7 +30,12 @@ android {
 dependencies {
     implementation(projects.core.model)
     implementation(projects.core.data)
-    implementation(projects.core.common)
+    implementation(projects.core.runtime)
+    implementation(projects.core.file)
+    implementation(projects.core.media)
+    implementation(projects.core.mediaUi)
+    implementation(projects.core.camera)
+    implementation(projects.core.qrcode)
     implementation(projects.core.playback)
     implementation(projects.core.proximityUi)
     implementation(projects.core.navigation)

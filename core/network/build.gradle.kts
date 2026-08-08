@@ -25,7 +25,9 @@ android {
 
 dependencies {
     implementation(projects.core.model)
-    implementation(projects.core.common)
+    implementation(projects.core.runtime)
+    implementation(projects.core.file)
+    implementation(projects.core.util)
     implementation(projects.core.database)
     implementation(projects.core.data)
 

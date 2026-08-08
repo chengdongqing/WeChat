@@ -27,4 +27,7 @@ android {
 
 dependencies {
     implementation(projects.core.designsystem)
+    implementation(projects.core.file)
+    implementation(libs.compose.activity)
+    implementation(libs.permissions.accompanist)
 }

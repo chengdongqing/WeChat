@@ -66,7 +66,7 @@ import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.media.isLandscape
-import top.chengdongqing.wechat.core.common.time.toRelativeDateTime
+import top.chengdongqing.wechat.core.datetime.toRelativeDateTime
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.text.RichTextMode

@@ -21,8 +21,11 @@ android {
 dependencies {
     implementation(projects.core.model)
     implementation(projects.core.data)
-    implementation(projects.core.common)
+    implementation(projects.core.camera)
+    implementation(projects.core.media)
+    implementation(projects.core.mediaUi)
     implementation(projects.core.playback)
+    implementation(projects.core.datetime)
     implementation(projects.core.designsystem)
     implementation(projects.core.navigation)
     implementation(projects.core.network)

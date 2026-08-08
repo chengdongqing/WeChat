@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import top.chengdongqing.wechat.core.common.security.AppLockManager
+import top.chengdongqing.wechat.core.security.AppLockManager
 
 @HiltViewModel
 class AppLockViewModel @Inject constructor(

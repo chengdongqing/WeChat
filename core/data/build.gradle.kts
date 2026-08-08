@@ -23,10 +23,15 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.appPicker)
+    implementation(projects.core.file)
+    implementation(projects.core.qrcode)
+    implementation(projects.core.util)
     implementation(projects.core.playback)
     implementation(projects.core.model)
-    implementation(projects.core.common)
     implementation(projects.core.database)
+    implementation(projects.core.notification)
+    implementation(projects.core.datetime)
 
     implementation(libs.core.ktx)
     implementation(libs.datastore.preferences)

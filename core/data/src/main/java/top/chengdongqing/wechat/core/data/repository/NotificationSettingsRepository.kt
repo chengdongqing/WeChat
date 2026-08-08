@@ -1,8 +1,8 @@
 package top.chengdongqing.wechat.core.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import top.chengdongqing.wechat.core.common.notification.NotificationDisplay
-import top.chengdongqing.wechat.core.common.notification.NotificationSound
+import top.chengdongqing.wechat.core.notification.NotificationDisplay
+import top.chengdongqing.wechat.core.notification.NotificationSound
 import top.chengdongqing.wechat.core.playback.RingtoneSound
 
 interface NotificationSettingsRepository {

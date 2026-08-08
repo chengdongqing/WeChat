@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.common.background.ChatBackgroundSetting
 import top.chengdongqing.wechat.core.common.qrcode.QRCodeFormat
 import top.chengdongqing.wechat.core.common.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.core.common.qrcode.generator.rememberQRCodeState
@@ -41,6 +40,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
+import top.chengdongqing.wechat.feature.common.background.ChatBackgroundSetting
 
 @Composable
 fun GroupInfoScreen(

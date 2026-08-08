@@ -2,13 +2,13 @@ package top.chengdongqing.wechat.feature.chat.data.mapper
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.call.CallStatus
 import top.chengdongqing.wechat.core.data.model.ChatHistoryPayload
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.model.MessageQuote
 import top.chengdongqing.wechat.core.data.model.MusicTrack
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
+import top.chengdongqing.wechat.core.model.CallStatus
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.core.model.MessageType

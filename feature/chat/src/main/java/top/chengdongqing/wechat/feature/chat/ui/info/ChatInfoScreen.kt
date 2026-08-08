@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.background.ChatBackgroundSetting
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
@@ -47,6 +46,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
+import top.chengdongqing.wechat.feature.common.background.ChatBackgroundSetting
 
 @Composable
 fun ChatInfoScreen(

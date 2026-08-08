@@ -14,7 +14,6 @@ import org.webrtc.IceCandidate
 import org.webrtc.PeerConnection
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
-import top.chengdongqing.wechat.core.common.call.CallStatus
 import top.chengdongqing.wechat.core.common.di.MainScope
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
@@ -25,6 +24,7 @@ import top.chengdongqing.wechat.core.data.repository.NotificationSettingsReposit
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.model.CallState
+import top.chengdongqing.wechat.core.model.CallStatus
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.HangupReason
 import top.chengdongqing.wechat.core.model.HangupResult

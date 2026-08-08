@@ -29,12 +29,20 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.appPicker)
     implementation(projects.core.model)
     implementation(projects.core.data)
-    implementation(projects.core.common)
+    implementation(projects.core.runtime)
+    implementation(projects.core.file)
+    implementation(projects.core.media)
+    implementation(projects.core.mediaUi)
+    implementation(projects.core.camera)
+    implementation(projects.core.qrcode)
+    implementation(projects.feature.common)
     implementation(projects.core.playback)
     implementation(projects.core.connectivity)
     implementation(projects.core.callUi)
+    implementation(projects.core.datetime)
     implementation(projects.core.navigation)
     implementation(projects.core.designsystem)
     implementation(projects.core.network)

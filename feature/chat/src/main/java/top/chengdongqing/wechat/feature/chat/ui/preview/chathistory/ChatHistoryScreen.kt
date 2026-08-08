@@ -45,9 +45,9 @@ import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.common.media.model.MediaItem
 import top.chengdongqing.wechat.core.common.media.model.MediaType
 import top.chengdongqing.wechat.core.common.media.preview.previewMedias
-import top.chengdongqing.wechat.core.common.time.toFullDateTime
 import top.chengdongqing.wechat.core.data.model.ChatHistoryItem
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.datetime.toFullDateTime
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.text.RichTextMode

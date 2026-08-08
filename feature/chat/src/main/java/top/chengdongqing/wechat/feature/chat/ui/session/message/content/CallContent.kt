@@ -20,11 +20,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.common.call.CallStatus
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
+import top.chengdongqing.wechat.core.model.CallStatus
 import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import kotlin.time.Duration.Companion.seconds
@@ -46,7 +46,7 @@ fun CallContent(message: ChatMessage) {
                 )
             }
         }
-        resources.getString(if (isFromMe) status.descriptionForMeRes else status.descriptionRes)
+        resources.getString(status.descriptionRes(isFromMe))
     }
 
     val colors = ChatTheme.colorScheme
@@ -75,4 +75,12 @@ fun CallContent(message: ChatMessage) {
             )
         }
     }
+}
+
+private fun CallStatus.descriptionRes(isFromMe: Boolean): Int = when (this) {
+    CallStatus.Cancelled -> if (isFromMe) R.string.call_status_cancelled else R.string.call_status_cancelled_by_me
+    CallStatus.Declined -> if (isFromMe) R.string.call_status_declined_by_me else R.string.call_status_declined
+    CallStatus.Finished -> R.string.call_status_finished
+    CallStatus.Missed -> if (isFromMe) R.string.call_status_missed_by_me else R.string.call_status_missed
+    CallStatus.Failed -> R.string.call_status_failed
 }

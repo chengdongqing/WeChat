@@ -29,12 +29,15 @@ android {
 dependencies {
     implementation(projects.core.model)
     implementation(projects.core.data)
-    implementation(projects.core.common)
+    implementation(projects.feature.common)
     implementation(projects.core.playback)
     implementation(projects.core.navigation)
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
     implementation(projects.core.database)
+    implementation(projects.core.file)
+    implementation(projects.core.notification)
+    implementation(projects.core.security)
 
     implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)

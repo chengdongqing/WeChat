@@ -19,8 +19,8 @@ android {
         applicationId = "top.chengdongqing.wechat"
         minSdk = 26
         targetSdk = 37
-        versionCode = 20260802
-        versionName = "2026.08.02"
+        versionCode = 20260807
+        versionName = "2026.08.07"
 
         ndk {
             abiFilters.add("arm64-v8a")
@@ -80,9 +80,14 @@ dependencies {
 
     // Core modules
     implementation(projects.core.designsystem)
-    implementation(projects.core.common)
+    implementation(projects.core.runtime)
+    implementation(projects.core.nfc)
+    implementation(projects.core.qrcode)
     implementation(projects.core.playback)
     implementation(projects.core.callUi)
+    implementation(projects.core.file)
+    implementation(projects.core.notification)
+    implementation(projects.core.security)
     implementation(projects.core.navigation)
     implementation(projects.core.network)
     implementation(projects.core.data)

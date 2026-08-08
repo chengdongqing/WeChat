@@ -24,11 +24,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.common.qrcode.scanner.QRCodeScannerActivity
-import top.chengdongqing.wechat.core.common.security.AppLockManager
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.AppNavigation
 import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.core.network.service.P2PService
+import top.chengdongqing.wechat.core.security.AppLockManager
 import top.chengdongqing.wechat.feature.settings.ui.display.DisplaySettingsViewModel
 import top.chengdongqing.wechat.feature.startup.AppUnlockScreen
 

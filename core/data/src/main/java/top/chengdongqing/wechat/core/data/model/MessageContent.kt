@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.core.data.model
 
 import kotlinx.serialization.Serializable
-import top.chengdongqing.wechat.core.common.call.CallStatus
+import top.chengdongqing.wechat.core.model.CallStatus
 import top.chengdongqing.wechat.core.model.CallType
 
 sealed class MessageContent(
