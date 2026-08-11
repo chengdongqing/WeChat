@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="intercom_title">Voice Intercom</string>
+    <string name="intercom_nearby_channels">Nearby Channels</string>
+    <string name="intercom_channel_input_title">Enter Channel ID</string>
+    <string name="intercom_join_channel">Join Channel</string>
+    <string name="intercom_privacy_notice">Voice intercom is broadcast publicly over the local network and is not encrypted. Please protect your privacy.</string>
+    <string name="intercom_channel_quiet">Quiet</string>
+    <string name="intercom_scanning_channels">Scanning for nearby channels&#8230;</string>
+    <string name="intercom_same_wifi_hint">Please ensure all devices are on the same Wi-Fi network</string>
+    <plurals name="intercom_people_online">
+        <item quantity="one">%d member online</item>
+        <item quantity="other">%d members online</item>
+    </plurals>
+    <plurals name="intercom_people_speaking">
+        <item quantity="one">%d person speaking</item>
+        <item quantity="other">%d people speaking</item>
+    </plurals>
+    <string name="intercom_sending_voice">Sending your voice&#8230;</string>
+    <string name="intercom_microphone_permission_denied">Microphone permission required to speak</string>
+    <string name="intercom_push_to_talk">Hold to speak</string>
+    <string name="intercom_online_members_title">Online Members</string>
+    <plurals name="intercom_people_count">
+        <item quantity="one">%d person</item>
+        <item quantity="other">%d people</item>
+    </plurals>
+    <string name="intercom_syncing_members">Syncing channel members&#8230;</string>
+    <string name="intercom_nickname_me">%s (You)</string>
+    <string name="intercom_status_speaking">Speaking</string>
+    <string name="intercom_status_online">Online</string>
+    <string name="intercom_you_are_speaking">You are speaking</string>
+    <string name="intercom_waiting_to_speak">Waiting to speak</string>
+    <string name="intercom_me_short">Me</string>
+</resources>

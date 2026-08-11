@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="intercom_title">语音对讲</string>
+    <string name="intercom_nearby_channels">附近频道</string>
+    <string name="intercom_channel_input_title">输入频道号</string>
+    <string name="intercom_join_channel">加入频道</string>
+    <string name="intercom_privacy_notice">语音对讲会在局域网内公共广播，不会加密处理，请注意保护隐私。</string>
+    <string name="intercom_channel_quiet">安静</string>
+    <string name="intercom_scanning_channels">正在扫描附近频道</string>
+    <string name="intercom_same_wifi_hint">请确认设备处于同一 Wi-Fi 下</string>
+    <plurals name="intercom_people_online">
+        <item quantity="other">%d 人在线</item>
+    </plurals>
+    <plurals name="intercom_people_speaking">
+        <item quantity="other">%d 人正在讲话</item>
+    </plurals>
+    <string name="intercom_sending_voice">正在发送你的声音&#8230;</string>
+    <string name="intercom_microphone_permission_denied">需要麦克风权限才能讲话</string>
+    <string name="intercom_push_to_talk">按住讲话</string>
+    <string name="intercom_online_members_title">在线成员</string>
+    <plurals name="intercom_people_count">
+        <item quantity="other">%d 人</item>
+    </plurals>
+    <string name="intercom_syncing_members">正在同步频道成员&#8230;</string>
+    <string name="intercom_nickname_me">%s（你）</string>
+    <string name="intercom_status_speaking">正在讲话</string>
+    <string name="intercom_status_online">在线</string>
+    <string name="intercom_you_are_speaking">你正在讲话</string>
+    <string name="intercom_waiting_to_speak">等待讲话</string>
+    <string name="intercom_me_short">我</string>
+</resources>

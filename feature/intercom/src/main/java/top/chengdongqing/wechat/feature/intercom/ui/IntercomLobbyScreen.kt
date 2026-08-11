@@ -36,6 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
@@ -43,14 +45,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.intercom.R
 import top.chengdongqing.wechat.feature.intercom.model.NearbyIntercomChannel
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun IntercomLobbyScreen(
@@ -68,7 +71,12 @@ fun IntercomLobbyScreen(
 
     Scaffold(
         containerColor = WeTheme.colorScheme.background,
-        topBar = { WeTopAppBar(title = "语音对讲", onBack = onBack) }
+        topBar = {
+            WeTopAppBar(
+                title = stringResource(R.string.intercom_title),
+                onBack = onBack
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -94,7 +102,7 @@ fun IntercomLobbyScreen(
                 )
             }
 
-            SectionCard("附近频道") {
+            SectionCard(stringResource(R.string.intercom_nearby_channels)) {
                 if (nearbyChannels.isEmpty()) {
                     EmptyNearbyChannels()
                 } else {
@@ -112,15 +120,15 @@ fun IntercomLobbyScreen(
                 }
             }
 
-            Tips()
+            PrivacyNotice()
         }
     }
 }
 
 @Composable
-private fun Tips() {
+private fun PrivacyNotice() {
     Text(
-        text = "语音对讲会在局域网内公共广播，不会加密处理，请注意保护隐私。",
+        text = stringResource(R.string.intercom_privacy_notice),
         color = WeTheme.colorScheme.textTertiary,
         fontSize = 12.sp,
         modifier = Modifier.padding(horizontal = 4.dp)
@@ -138,7 +146,7 @@ private fun JoinChannel(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Text(
-            text = "输入频道号",
+            text = stringResource(R.string.intercom_channel_input_title),
             color = WeTheme.colorScheme.textPrimary,
             fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp
@@ -152,7 +160,7 @@ private fun JoinChannel(
             maxLength = 4
         )
         WeButton(
-            text = "加入频道",
+            text = stringResource(R.string.intercom_join_channel),
             width = Dp.Unspecified,
             modifier = Modifier.fillMaxWidth(),
             enabled = channel.isNotBlank(),
@@ -166,6 +174,16 @@ private fun NearbyChannelItem(
     channel: NearbyIntercomChannel,
     onClick: () -> Unit
 ) {
+    val speakingStatus = if (channel.speakingCount == 0) {
+        stringResource(R.string.intercom_channel_quiet)
+    } else {
+        pluralStringResource(
+            R.plurals.intercom_people_speaking,
+            channel.speakingCount,
+            channel.speakingCount
+        )
+    }
+
     Row(
         modifier = Modifier
             .clickable(onClick = onClick)
@@ -182,7 +200,7 @@ private fun NearbyChannelItem(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_radar_outlined),
+                painter = painterResource(DesignR.drawable.ic_radar_outlined),
                 contentDescription = null,
                 tint = WeTheme.colorScheme.primary,
                 modifier = Modifier.size(22.dp)
@@ -197,18 +215,18 @@ private fun NearbyChannelItem(
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "${channel.memberCount} 人在线",
+                text = pluralStringResource(
+                    R.plurals.intercom_people_online,
+                    channel.memberCount,
+                    channel.memberCount
+                ),
                 color = WeTheme.colorScheme.textTertiary,
                 fontSize = 12.sp
             )
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = if (channel.speakingCount == 0) {
-                    "安静"
-                } else {
-                    "${channel.speakingCount} 人正在讲话"
-                },
+                text = speakingStatus,
                 color = if (channel.speakingCount == 0) {
                     WeTheme.colorScheme.textTertiary
                 } else {
@@ -218,7 +236,7 @@ private fun NearbyChannelItem(
             )
             Spacer(Modifier.height(5.dp))
             Icon(
-                painter = painterResource(R.drawable.ic_right_outlined),
+                painter = painterResource(DesignR.drawable.ic_right_outlined),
                 contentDescription = null,
                 tint = WeTheme.colorScheme.textTertiary,
                 modifier = Modifier.size(16.dp)
@@ -251,7 +269,7 @@ private fun EmptyNearbyChannels() {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_radar_outlined),
+                painter = painterResource(DesignR.drawable.ic_radar_outlined),
                 contentDescription = null,
                 tint = WeTheme.colorScheme.textTertiary,
                 modifier = Modifier
@@ -263,14 +281,14 @@ private fun EmptyNearbyChannels() {
         }
         Spacer(Modifier.height(12.dp))
         Text(
-            text = "正在扫描附近频道",
+            text = stringResource(R.string.intercom_scanning_channels),
             color = WeTheme.colorScheme.textPrimary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = "请确认设备处于同一 Wi‑Fi 下",
+            text = stringResource(R.string.intercom_same_wifi_hint),
             color = WeTheme.colorScheme.textTertiary,
             fontSize = 12.sp
         )

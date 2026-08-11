@@ -278,7 +278,7 @@ private fun StorageCard(
             )
             Text(
                 text = description,
-                color = WeTheme.colorScheme.textTertiary,
+                color = WeTheme.colorScheme.textSecondary,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -290,7 +290,7 @@ private fun StorageCard(
                 size = ButtonSize.Small,
                 type = if (emphasized) ButtonType.Primary else ButtonType.Plain,
                 loading = cleaning == category,
-                enabled = cleaning == null && bytes > 0,
+                enabled = bytes > 0,
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {
                 onClean(category)

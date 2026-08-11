@@ -1,6 +1,7 @@
 package top.chengdongqing.wechat.feature.intercom.ui
 
 import android.Manifest
+import android.icu.text.ListFormatter
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -45,7 +46,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -56,10 +60,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.intercom.R
 import top.chengdongqing.wechat.feature.intercom.model.IntercomMember
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -103,9 +108,13 @@ fun IntercomRoomScreen(
             Spacer(Modifier.weight(1f))
             Text(
                 text = when {
-                    isTalking -> "正在发送你的声音…"
+                    isTalking -> stringResource(R.string.intercom_sending_voice)
                     roomState.speakers.isEmpty() -> ""
-                    else -> "${roomState.speakers.size} 人正在讲话"
+                    else -> pluralStringResource(
+                        R.plurals.intercom_people_speaking,
+                        roomState.speakers.size,
+                        roomState.speakers.size
+                    )
                 },
                 color = if (isTalking) {
                     WeTheme.colorScheme.primary
@@ -135,7 +144,11 @@ fun IntercomRoomScreen(
             )
             Spacer(Modifier.height(14.dp))
             Text(
-                text = if (microphoneDenied) "需要麦克风权限才能讲话" else "按住讲话",
+                text = if (microphoneDenied) {
+                    stringResource(R.string.intercom_microphone_permission_denied)
+                } else {
+                    stringResource(R.string.intercom_push_to_talk)
+                },
                 color = if (microphoneDenied) {
                     WeTheme.colorScheme.danger
                 } else {
@@ -178,13 +191,17 @@ private fun OnlineMembers(
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            text = "$memberCount 人在线",
+            text = pluralStringResource(
+                R.plurals.intercom_people_online,
+                memberCount,
+                memberCount
+            ),
             color = WeTheme.colorScheme.textPrimary,
             fontSize = 12.sp
         )
         Spacer(Modifier.width(6.dp))
         Icon(
-            painter = painterResource(R.drawable.ic_right_outlined),
+            painter = painterResource(DesignR.drawable.ic_right_outlined),
             contentDescription = null,
             tint = WeTheme.colorScheme.textSecondary,
             modifier = Modifier.size(13.dp)
@@ -220,8 +237,8 @@ private fun PushToTalkButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_mic2_filled),
-            contentDescription = "按住讲话",
+            painter = painterResource(DesignR.drawable.ic_mic2_filled),
+            contentDescription = stringResource(R.string.intercom_push_to_talk),
             tint = Color.White,
             modifier = Modifier.size(40.dp)
         )
@@ -246,14 +263,18 @@ private fun MembersSheet(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "在线成员",
+                    stringResource(R.string.intercom_online_members_title),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = WeTheme.colorScheme.textPrimary,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    "${members.size} 人",
+                    pluralStringResource(
+                        R.plurals.intercom_people_count,
+                        members.size,
+                        members.size
+                    ),
                     color = WeTheme.colorScheme.textSecondary,
                     fontSize = 13.sp
                 )
@@ -261,7 +282,7 @@ private fun MembersSheet(
             Spacer(Modifier.height(16.dp))
             if (members.isEmpty()) {
                 Text(
-                    "正在同步频道成员…",
+                    stringResource(R.string.intercom_syncing_members),
                     color = WeTheme.colorScheme.textTertiary,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -270,8 +291,16 @@ private fun MembersSheet(
                 )
             }
             members.forEach { member ->
-                val displayName = if (member.isMe) "${member.nickname}（你）" else member.nickname
-                val status = if (member.isSpeaking) "正在讲话" else "在线"
+                val displayName = if (member.isMe) {
+                    stringResource(R.string.intercom_nickname_me, member.nickname)
+                } else {
+                    member.nickname
+                }
+                val status = if (member.isSpeaking) {
+                    stringResource(R.string.intercom_status_speaking)
+                } else {
+                    stringResource(R.string.intercom_status_online)
+                }
 
                 Row(
                     Modifier
@@ -303,7 +332,7 @@ private fun MembersSheet(
                     )
                     AnimatedVisibility(member.isSpeaking, enter = fadeIn(), exit = fadeOut()) {
                         Icon(
-                            painterResource(R.drawable.ic_voice_outlined),
+                            painterResource(DesignR.drawable.ic_voice_outlined),
                             null,
                             tint = WeTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
@@ -337,6 +366,12 @@ private fun SpeakingStage(
         label = "pulse"
     )
 
+    val locale = LocalConfiguration.current.locales[0]
+    val speakerNames = remember(remoteSpeakers, locale) {
+        ListFormatter.getInstance(locale)
+            .format(remoteSpeakers.map { it.nickname })
+    }
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(Modifier.size(190.dp), contentAlignment = Alignment.Center) {
             Box(
@@ -358,7 +393,11 @@ private fun SpeakingStage(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isTalking) "我" else primarySpeaker?.nickname?.take(1) ?: "—",
+                    text = if (isTalking) {
+                        stringResource(R.string.intercom_me_short)
+                    } else {
+                        primarySpeaker?.nickname?.take(1) ?: "—"
+                    },
                     color = Color.White,
                     fontSize = 38.sp,
                     fontWeight = FontWeight.Bold
@@ -368,9 +407,9 @@ private fun SpeakingStage(
         Spacer(Modifier.height(18.dp))
         Text(
             text = when {
-                isTalking -> "你正在讲话"
-                remoteSpeakers.isNotEmpty() -> remoteSpeakers.joinToString("、") { it.nickname }
-                else -> "等待讲话"
+                isTalking -> stringResource(R.string.intercom_you_are_speaking)
+                remoteSpeakers.isNotEmpty() -> speakerNames
+                else -> stringResource(R.string.intercom_waiting_to_speak)
             },
             color = WeTheme.colorScheme.textPrimary,
             fontSize = 21.sp,
