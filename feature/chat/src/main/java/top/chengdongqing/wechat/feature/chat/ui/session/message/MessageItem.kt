@@ -48,8 +48,8 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.MessageSendStatus
-import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 
 /**
@@ -242,12 +242,12 @@ fun MessageItem(
                                         ) {
                                             Text(
                                                 text = quoteSenderName,
-                                                color = ChatTheme.colorScheme.timestamp,
+                                                color = WeTheme.colorScheme.textSecondary,
                                                 fontSize = 12.sp
                                             )
                                             Text(
                                                 text = quote.preview,
-                                                color = ChatTheme.colorScheme.timestamp,
+                                                color = WeTheme.colorScheme.textSecondary,
                                                 fontSize = 12.sp,
                                                 maxLines = 2
                                             )

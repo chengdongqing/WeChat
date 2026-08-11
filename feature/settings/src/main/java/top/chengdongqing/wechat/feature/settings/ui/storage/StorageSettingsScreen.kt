@@ -26,11 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
@@ -48,7 +50,12 @@ fun StorageSettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = { WeTopAppBar(title = "存储空间", onBack = onBack) },
+        topBar = {
+            WeTopAppBar(
+                title = stringResource(R.string.settings_storage),
+                onBack = onBack
+            )
+        },
         containerColor = WeTheme.colorScheme.background
     ) { padding ->
         Box(
@@ -74,15 +81,21 @@ private fun StorageSettingsContent(
     state: StorageUiState,
     viewModel: StorageSettingsViewModel
 ) {
+    val cacheLabel = stringResource(R.string.storage_cache)
+    val chatMediaLabel = stringResource(R.string.storage_chat_media)
+    val resourcesLabel = stringResource(R.string.storage_resources)
+    val cleanConfirmation = stringResource(R.string.storage_clean_confirmation)
+    val colors = storageColors()
+
     fun handleClean(category: StorageCategory) {
         val label = when (category) {
-            StorageCategory.Cache -> "缓存"
-            StorageCategory.Chats -> "聊天记录中的媒体文件"
-            StorageCategory.Resources -> "资源文件"
+            StorageCategory.Cache -> cacheLabel
+            StorageCategory.Chats -> chatMediaLabel
+            StorageCategory.Resources -> resourcesLabel
         }
 
         DialogManager.show(
-            title = "确定清理${label}吗？",
+            title = cleanConfirmation.format(label),
             onOk = {
                 viewModel.clean(category)
             }
@@ -100,9 +113,9 @@ private fun StorageSettingsContent(
     ) {
         Column {
             Spacer(Modifier.height(12.dp))
-            StorageBar(state)
+            StorageBar(state, colors)
             Spacer(Modifier.height(6.dp))
-            StorageLegend()
+            StorageLegend(colors)
         }
         CurrentUsedStorage(state)
 
@@ -110,34 +123,34 @@ private fun StorageSettingsContent(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             StorageCard(
-                title = "缓存",
+                title = stringResource(R.string.storage_cache),
                 bytes = state.cacheBytes,
-                description = "缓存是使用微信过程中产生的临时数据，清理缓存不会影响微信的正常使用。",
+                description = stringResource(R.string.storage_cache_desc),
                 category = StorageCategory.Cache,
                 cleaning = state.cleaning,
                 emphasized = true,
                 onClean = ::handleClean
             )
             StorageCard(
-                title = "聊天记录",
+                title = stringResource(R.string.storage_chats),
                 bytes = state.chatBytes,
-                description = "可清理聊天记录里的图片、视频和文件，文字消息会继续保留。",
+                description = stringResource(R.string.storage_chats_desc),
                 category = StorageCategory.Chats,
                 cleaning = state.cleaning,
                 onClean = ::handleClean
             )
             StorageCard(
-                title = "资源文件",
+                title = stringResource(R.string.storage_resources),
                 bytes = state.resourceBytes,
-                description = "包含部分功能运行时所需、可重新生成或下载的资源文件。",
+                description = stringResource(R.string.storage_resources_desc),
                 category = StorageCategory.Resources,
                 cleaning = state.cleaning,
                 onClean = ::handleClean
             )
             StorageCard(
-                title = "必要文件",
+                title = stringResource(R.string.storage_essential_files),
                 bytes = state.necessaryBytes,
-                description = "包含微信运行所需的必要文件，该类别的大小因当前使用状态而异。",
+                description = stringResource(R.string.storage_essential_files_desc),
                 category = null,
                 cleaning = state.cleaning,
                 onClean = {}
@@ -153,8 +166,8 @@ private fun CurrentUsedStorage(state: StorageUiState) {
 
     val percent = remember(state.totalBytes, state.appBytes) {
         when {
-            state.totalBytes == 0L -> 0
-            else -> (state.appBytes * 100 / state.totalBytes).coerceIn(0, 100)
+            state.totalBytes == 0L -> 0f
+            else -> (state.appBytes.toFloat() * 100 / state.totalBytes).coerceIn(0f, 100f)
         }
     }
 
@@ -162,7 +175,7 @@ private fun CurrentUsedStorage(state: StorageUiState) {
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(
-            text = "微信已用空间",
+            text = stringResource(R.string.storage_wechat_used_space),
             color = WeTheme.colorScheme.textPrimary,
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium
@@ -174,15 +187,18 @@ private fun CurrentUsedStorage(state: StorageUiState) {
             fontWeight = FontWeight.Medium
         )
         Text(
-            text = "占手机 $percent% 存储空间",
-            color = WeTheme.colorScheme.textTertiary,
+            text = stringResource(R.string.storage_device_percentage, percent),
+            color = WeTheme.colorScheme.textSecondary,
             fontSize = 13.sp
         )
     }
 }
 
 @Composable
-private fun StorageBar(state: StorageUiState) {
+private fun StorageBar(
+    state: StorageUiState,
+    colors: StorageColors
+) {
     val total = state.totalBytes.coerceAtLeast(1)
     val appFraction = (state.appBytes.toFloat() / total).coerceIn(0f, 1f)
     val deviceUsed = (total - state.freeBytes).coerceAtLeast(state.appBytes)
@@ -190,14 +206,11 @@ private fun StorageBar(state: StorageUiState) {
         .coerceIn(0f, 1f - appFraction)
     val remainingFraction = (1f - appFraction - otherFraction)
 
-    val primaryColor = WeTheme.colorScheme.primary
-    val chartItems = remember(appFraction, otherFraction, remainingFraction) {
-        listOf(
-            Pair(appFraction, primaryColor),
-            Pair(otherFraction, OtherAppsYellow),
-            Pair(remainingFraction, RemainingGray)
-        )
-    }
+    val chartItems = listOf(
+        Pair(appFraction, colors.wechat),
+        Pair(otherFraction, colors.otherApps),
+        Pair(remainingFraction, colors.available)
+    )
 
     Row(
         modifier = Modifier
@@ -216,19 +229,24 @@ private fun StorageBar(state: StorageUiState) {
 }
 
 @Composable
-private fun StorageLegend() {
+private fun StorageLegend(
+    colors: StorageColors
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        LegendItem(WeTheme.colorScheme.primary, "微信已用")
-        LegendItem(OtherAppsYellow, "其他App已用")
-        LegendItem(RemainingGray, "手机剩余可用")
+        LegendItem(colors.wechat, stringResource(R.string.storage_legend_wechat))
+        LegendItem(colors.otherApps, stringResource(R.string.storage_legend_other_apps))
+        LegendItem(colors.available, stringResource(R.string.storage_legend_available))
     }
 }
 
 @Composable
-private fun LegendItem(color: Color, label: String) {
+private fun LegendItem(
+    color: Color,
+    label: String
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             Modifier
@@ -286,7 +304,7 @@ private fun StorageCard(
 
         if (category != null) {
             WeButton(
-                text = "清理",
+                text = stringResource(R.string.storage_clean),
                 size = ButtonSize.Small,
                 type = if (emphasized) ButtonType.Primary else ButtonType.Plain,
                 loading = cleaning == category,
@@ -299,5 +317,15 @@ private fun StorageCard(
     }
 }
 
-private val OtherAppsYellow = Color(0xFFFFB900)
-private val RemainingGray = Color(0xFFD5D5D5)
+private data class StorageColors(
+    val wechat: Color,
+    val otherApps: Color,
+    val available: Color
+)
+
+@Composable
+private fun storageColors() = StorageColors(
+    wechat = WeTheme.colorScheme.primary,
+    otherApps = Color(0xFFFFB900),
+    available = Color(0xFFD5D5D5)
+)

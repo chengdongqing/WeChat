@@ -15,6 +15,23 @@
     <string name="settings_storage">存储空间</string>
     <string name="settings_more">更多</string>
 
+    <string name="storage_cache">缓存</string>
+    <string name="storage_chat_media">聊天记录中的媒体文件</string>
+    <string name="storage_chats">聊天记录</string>
+    <string name="storage_resources">资源文件</string>
+    <string name="storage_essential_files">必要文件</string>
+    <string name="storage_clean_confirmation">确定清理%1$s吗？</string>
+    <string name="storage_cache_desc">缓存是使用微信过程中产生的临时数据，清理缓存不会影响微信的正常使用。</string>
+    <string name="storage_chats_desc">可清理聊天记录里的图片、视频和文件，文字消息会继续保留。</string>
+    <string name="storage_resources_desc">包含部分功能运行时所需、可重新生成或下载的资源文件。</string>
+    <string name="storage_essential_files_desc">包含微信运行所需的必要文件，该类别的大小因当前使用状态而异。</string>
+    <string name="storage_wechat_used_space">微信已用空间</string>
+    <string name="storage_device_percentage">占手机 %1$.1f%% 存储空间</string>
+    <string name="storage_legend_wechat">微信已用</string>
+    <string name="storage_legend_other_apps">其他 App 已用</string>
+    <string name="storage_legend_available">手机剩余可用</string>
+    <string name="storage_clean">清理</string>
+
     <string name="settings_group_features">功能</string>
     <string name="settings_connection">连接模式</string>
     <string name="settings_chat">聊天</string>

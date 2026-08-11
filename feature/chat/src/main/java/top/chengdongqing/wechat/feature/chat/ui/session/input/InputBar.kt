@@ -50,6 +50,7 @@ import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.EmojiTextField
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
@@ -162,11 +163,11 @@ fun InputBar(
                 Column(Modifier.weight(1f)) {
                     Text(
                         text = if (quote.senderId == uiState.myId) "我" else uiState.title,
-                        color = ChatTheme.colorScheme.timestamp
+                        color = WeTheme.colorScheme.textSecondary
                     )
                     Text(
                         text = quote.preview,
-                        color = ChatTheme.colorScheme.timestamp,
+                        color = WeTheme.colorScheme.textSecondary,
                         maxLines = 2
                     )
                 }

@@ -12,8 +12,6 @@ import top.chengdongqing.wechat.core.designsystem.theme.Neutral950
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryLight
-import top.chengdongqing.wechat.core.designsystem.theme.TextSecondaryDark
-import top.chengdongqing.wechat.core.designsystem.theme.TextSecondaryLight
 import top.chengdongqing.wechat.core.designsystem.theme.White
 
 @Immutable
@@ -25,9 +23,6 @@ data class ChatColorScheme(
     val bubbleTextIncoming: Color,
     val textSelectionBackground: Color,
     val textSelectionHandle: Color,
-
-    // 时间戳
-    val timestamp: Color,
 
     // 底栏
     val bottomBarBackground: Color,
@@ -50,7 +45,6 @@ private val ChatLightColors = ChatColorScheme(
     bubbleTextIncoming = TextPrimaryLight,
     textSelectionBackground = Color(0xB35DBF67),
     textSelectionHandle = Color(0xFF07C160),
-    timestamp = TextSecondaryLight,
     bottomBarBackground = Neutral50,
     textField = White,
 
@@ -69,7 +63,6 @@ private val ChatDarkColors = ChatColorScheme(
     bubbleTextIncoming = TextPrimaryDark,
     textSelectionBackground = Color(0xB35DBF7A),
     textSelectionHandle = Color(0xFF3DAF72),
-    timestamp = TextSecondaryDark,
     bottomBarBackground = Neutral950,
     textField = Color(0xFF282828),
 

@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
@@ -23,6 +24,7 @@ class StorageSettingsViewModel @Inject constructor(
     private val messageDao: MessageDao,
     private val assetReferenceManager: AssetReferenceManager
 ) : ViewModel() {
+
     private val _uiState = MutableStateFlow(StorageUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -32,7 +34,7 @@ class StorageSettingsViewModel @Inject constructor(
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = calculate()
+            _uiState.update { calculate() }
         }
     }
 
@@ -40,7 +42,8 @@ class StorageSettingsViewModel @Inject constructor(
         if (_uiState.value.cleaning != null) return
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(cleaning = category)
+            _uiState.update { it.copy(cleaning = category) }
+
             withContext(Dispatchers.IO) {
                 when (category) {
                     StorageCategory.Cache -> {
@@ -61,7 +64,8 @@ class StorageSettingsViewModel @Inject constructor(
                     }
                 }
             }
-            _uiState.value = calculate()
+
+            _uiState.update { calculate() }
         }
     }
 

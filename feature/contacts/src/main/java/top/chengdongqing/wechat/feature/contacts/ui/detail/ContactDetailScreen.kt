@@ -63,8 +63,8 @@ fun ContactDetailScreen(
 
     Scaffold(
         topBar = {
-            ContactDetailTopBar(
-                showMoreAction = !isLocalAi && (contact?.isFriend ?: false),
+            TopBar(
+                moreActionVisible = !isLocalAi && (contact?.isFriend ?: false),
                 onBack = onBack
             ) {
                 viewModel.handleAction(ContactAction.ShowMore)
@@ -94,8 +94,8 @@ fun ContactDetailScreen(
 }
 
 @Composable
-private fun ContactDetailTopBar(
-    showMoreAction: Boolean,
+private fun TopBar(
+    moreActionVisible: Boolean,
     onBack: () -> Unit,
     onMoreClick: () -> Unit
 ) {
@@ -103,7 +103,7 @@ private fun ContactDetailTopBar(
         containerColor = WeTheme.colorScheme.surface,
         onBack = onBack
     ) {
-        if (showMoreAction) {
+        if (moreActionVisible) {
             IconButton(
                 icon = R.drawable.ic_more_outlined,
                 description = stringResource(R.string.action_more),
