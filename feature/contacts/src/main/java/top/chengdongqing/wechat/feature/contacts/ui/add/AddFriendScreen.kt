@@ -51,12 +51,12 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun AddFriendScreen(
     onBack: () -> Unit,
-    onNavigateToNFC: () -> Unit,
-    onNavigateToRadar: () -> Unit,
-    onNavigateToGroup: () -> Unit,
-    onNavigateToContactDetail: (contactId: String) -> Unit,
-    onNavigateToPlainText: (text: String) -> Unit,
-    onNavigateToWebView: (url: String) -> Unit,
+    onNFC: () -> Unit,
+    onRadar: () -> Unit,
+    onGroup: () -> Unit,
+    onContactDetail: (contactId: String) -> Unit,
+    onPlainText: (text: String) -> Unit,
+    onWebView: (url: String) -> Unit,
     viewModel: AddFriendViewModel = hiltViewModel()
 ) {
     RequestAddFriendPermission(onRevoked = onBack) {
@@ -76,9 +76,9 @@ fun AddFriendScreen(
         LaunchedEffect(viewModel) {
             viewModel.events.collect { event ->
                 when (event) {
-                    is AddFriendEvent.NavigateToContact -> onNavigateToContactDetail(event.contactId)
-                    is AddFriendEvent.ShowText -> onNavigateToPlainText(event.text)
-                    is AddFriendEvent.OpenUrl -> onNavigateToWebView(event.url)
+                    is AddFriendEvent.NavigateToContact -> onContactDetail(event.contactId)
+                    is AddFriendEvent.ShowText -> onPlainText(event.text)
+                    is AddFriendEvent.OpenUrl -> onWebView(event.url)
                     is AddFriendEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
                 }
             }
@@ -88,9 +88,9 @@ fun AddFriendScreen(
         val handleAction = { option: AddContactOption ->
             when (option) {
                 AddContactOption.Scan -> launchScanner()
-                AddContactOption.Nfc -> onNavigateToNFC()
-                AddContactOption.Radar -> onNavigateToRadar()
-                AddContactOption.FaceToFaceGroup -> onNavigateToGroup()
+                AddContactOption.Nfc -> onNFC()
+                AddContactOption.Radar -> onRadar()
+                AddContactOption.FaceToFaceGroup -> onGroup()
             }
         }
 

@@ -51,9 +51,9 @@ fun MainShellDestination(
     HandleProfileNavigationEvents(
         viewModel = profileViewModel,
         snackbarHostState = snackbarHostState,
-        onNavigateToContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
-        onNavigateToPlainText = { backStack.add(NavigationKey.PlainText(it)) },
-        onNavigateToWebView = { backStack.add(NavigationKey.WebView(it)) }
+        onContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
+        onPlainText = { backStack.add(NavigationKey.PlainText(it)) },
+        onWebView = { backStack.add(NavigationKey.WebView(it)) }
     )
 
     Scaffold(
@@ -61,9 +61,9 @@ fun MainShellDestination(
             MainTopBar(
                 currentTab = currentTab,
                 unreadMap = unreadMap,
-                onNavigateToGroupChat = { backStack.add(NavigationKey.GroupChat("")) },
-                onNavigateToAddFriend = { backStack.add(NavigationKey.AddFriend) },
-                onNavigateToPayment = { backStack.add(NavigationKey.PaymentCode) },
+                onGroupChat = { backStack.add(NavigationKey.GroupChat("")) },
+                onAddFriend = { backStack.add(NavigationKey.AddFriend) },
+                onPayment = { backStack.add(NavigationKey.PaymentCode) },
                 onScannedQrCode = profileViewModel::handleScannedQRCode
             )
         },
@@ -111,16 +111,16 @@ private fun MainTabPager(
         when (MainTab.entries[page]) {
             MainTab.Chats -> ChatListScreen { backStack.add(NavigationKey.ChatSession(it)) }
             MainTab.Contacts -> ContactListScreen(
-                onNavigateToNewFriends = { backStack.add(NavigationKey.NewFriends) },
-                onNavigateToGroups = { backStack.add(NavigationKey.GroupList) },
-                onNavigateToTags = { backStack.add(NavigationKey.ContactTags) },
-                onNavigateToDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
-                onNavigateToProfileEdit = { backStack.add(NavigationKey.EditContactProfile(it)) }
+                onNewFriends = { backStack.add(NavigationKey.NewFriends) },
+                onGroups = { backStack.add(NavigationKey.GroupList) },
+                onTags = { backStack.add(NavigationKey.ContactTags) },
+                onDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
+                onProfileEdit = { backStack.add(NavigationKey.EditContactProfile(it)) }
             )
 
             MainTab.Discovery -> DiscoveryScreen(
-                onNavigateToMoments = { backStack.add(NavigationKey.Moments) },
-                onNavigateToIntercom = { backStack.add(NavigationKey.IntercomLobby) }
+                onMoments = { backStack.add(NavigationKey.Moments) },
+                onIntercom = { backStack.add(NavigationKey.IntercomLobby) }
             )
 
             MainTab.Me -> MeScreen(backStack)

@@ -45,21 +45,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
 import top.chengdongqing.wechat.core.model.UserProfile
+import top.chengdongqing.wechat.feature.contacts.R
 import kotlin.math.cos
 import kotlin.math.sin
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun RadarScanAddFriendScreen(
     onBack: () -> Unit,
-    onNavigateToContact: (id: String) -> Unit,
+    onContact: (id: String) -> Unit,
     viewModel: RadarScanAddFriendViewModel = hiltViewModel()
 ) {
     val radarUsers by viewModel.radarUsers.collectAsStateWithLifecycle()
@@ -71,7 +71,7 @@ fun RadarScanAddFriendScreen(
     // 跳转联系人详情
     LaunchedEffect(navigateToContact) {
         navigateToContact?.let {
-            onNavigateToContact(it.id)
+            onContact(it.id)
             viewModel.onNavigateConsumed()
         }
     }

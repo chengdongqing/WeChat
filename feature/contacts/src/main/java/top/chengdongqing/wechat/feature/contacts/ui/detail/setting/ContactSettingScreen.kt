@@ -1,7 +1,5 @@
 package top.chengdongqing.wechat.feature.contacts.ui.detail.setting
 
-import top.chengdongqing.wechat.feature.contacts.R as ContactsR
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,8 +15,6 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
@@ -29,15 +25,18 @@ import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.Contact
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailViewModel
 import top.chengdongqing.wechat.feature.contacts.ui.detail.NavigationEvent
 import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLauncher
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R as ContactsR
 
 @Composable
 fun ContactSettingScreen(
     onBack: () -> Unit,
     onDelete: () -> Unit,
-    onNavigateToContactProfile: () -> Unit,
+    onContactProfile: () -> Unit,
     viewModel: ContactDetailViewModel
 ) {
     val contact by viewModel.contact.collectAsStateWithLifecycle()
@@ -72,7 +71,7 @@ fun ContactSettingScreen(
                 ContactSettingContent(
                     contact = it,
                     viewModel = viewModel,
-                    onNavigateToContactProfile = onNavigateToContactProfile
+                    onContactProfile = onContactProfile
                 )
             }
         }
@@ -83,7 +82,7 @@ fun ContactSettingScreen(
 private fun ContactSettingContent(
     contact: Contact,
     viewModel: ContactDetailViewModel,
-    onNavigateToContactProfile: () -> Unit
+    onContactProfile: () -> Unit
 ) {
     val resources = LocalResources.current
     val pickContact = rememberPickContactLauncher { contacts ->
@@ -98,7 +97,7 @@ private fun ContactSettingContent(
     WeSettingGroup {
         WeSettingItem(
             label = stringResource(R.string.contact_settings_profile),
-            onClick = onNavigateToContactProfile
+            onClick = onContactProfile
         ) {
             WeSettingValue(contact.displayName)
         }

@@ -16,8 +16,8 @@ fun EntryProviderScope<NavKey>.momentsNavEntries(
     entry<NavigationKey.Moments> {
         MomentsScreen(
             onBack = onBack,
-            onNavigateToPost = { backStack.add(NavigationKey.CreateMoment) },
-            onNavigateToCover = { backStack.add(NavigationKey.ChangeMomentCover) }
+            onPost = { backStack.add(NavigationKey.CreateMoment) },
+            onCover = { backStack.add(NavigationKey.ChangeMomentCover) }
         )
     }
     entry<NavigationKey.CreateMoment> {
@@ -26,7 +26,7 @@ fun EntryProviderScope<NavKey>.momentsNavEntries(
     entry<NavigationKey.ChangeMomentCover> {
         ChangeMomentCoverScreen(
             onBack = onBack,
-            onNavigateToPhotographerWorks = { backStack.add(NavigationKey.PhotographerCovers) }
+            onPhotographerWorks = { backStack.add(NavigationKey.PhotographerCovers) }
         )
     }
     entry<NavigationKey.PhotographerCovers> {

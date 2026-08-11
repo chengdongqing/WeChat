@@ -65,10 +65,8 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.media.isLandscape
 import top.chengdongqing.wechat.core.datetime.toRelativeDateTime
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.feature.moments.R as FeatureR
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.text.RichTextMode
 import top.chengdongqing.wechat.core.designsystem.text.parseRichText
@@ -76,11 +74,13 @@ import top.chengdongqing.wechat.core.designsystem.text.rememberEmojiInlineConten
 import top.chengdongqing.wechat.core.designsystem.theme.DividerDark
 import top.chengdongqing.wechat.core.designsystem.theme.Gray
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.media.isLandscape
 import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.feature.moments.model.Moment
 import top.chengdongqing.wechat.feature.moments.model.MomentComment
 import top.chengdongqing.wechat.feature.moments.model.MomentVideo
 import kotlin.time.Duration.Companion.milliseconds
+import top.chengdongqing.wechat.feature.moments.R as FeatureR
 
 @Composable
 internal fun MomentItem(
@@ -408,7 +408,7 @@ private fun MomentActionsPopup(
         verticalAlignment = Alignment.CenterVertically
     ) {
         PopupActionItem(
-            iconRes = R.drawable.ic_like_outlined,
+            icon = R.drawable.ic_like_outlined,
             label = if (isLiked) {
                 stringResource(FeatureR.string.moment_action_unlike)
             } else {
@@ -422,7 +422,7 @@ private fun MomentActionsPopup(
             color = DividerDark
         )
         PopupActionItem(
-            iconRes = R.drawable.ic_message_outlined,
+            icon = R.drawable.ic_message_outlined,
             label = stringResource(FeatureR.string.moment_action_comment),
             onClick = onComment
         )
@@ -430,7 +430,7 @@ private fun MomentActionsPopup(
 }
 
 @Composable
-private fun PopupActionItem(iconRes: Int, label: String, onClick: () -> Unit) {
+private fun PopupActionItem(icon: Int, label: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clickable(
@@ -443,7 +443,7 @@ private fun PopupActionItem(iconRes: Int, label: String, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.Center
     ) {
         Icon(
-            painter = painterResource(iconRes),
+            painter = painterResource(icon),
             contentDescription = null,
             modifier = Modifier.size(18.dp),
             tint = Color.White

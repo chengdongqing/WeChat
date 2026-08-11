@@ -19,11 +19,10 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.datetime.isWithinSeconds
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.messageRes
 import top.chengdongqing.wechat.core.model.SendError
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 
 /**
@@ -89,7 +88,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                     resources.getString(R.string.chat_action_send_verify) to LinkAnnotation.Clickable(
                         tag = "verify",
                         styles = linkStyles,
-                        linkInteractionListener = { chatContext?.onNavigateToRequestAddFriend() }
+                        linkInteractionListener = { chatContext?.onRequestAddFriend() }
                     )
                 }
 

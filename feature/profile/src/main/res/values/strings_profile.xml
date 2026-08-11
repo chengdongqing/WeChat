@@ -1,5 +1,14 @@
 <resources>
     <string name="me_menu_service">服务</string>
+    <string name="services_title">服务</string>
+    <string name="services_more">更多</string>
+    <string name="services_payments">收付款</string>
+    <string name="services_wallet">钱包</string>
+    <string name="services_life">生活服务</string>
+    <string name="services_utilities">生活缴费</string>
+    <string name="services_transport">交通出行</string>
+    <string name="services_tickets">火车票机票</string>
+    <string name="services_hotels">酒店民宿</string>
     <string name="me_menu_favorites">收藏</string>
     <string name="me_menu_moments">朋友圈</string>
     <string name="me_menu_stickers">表情</string>

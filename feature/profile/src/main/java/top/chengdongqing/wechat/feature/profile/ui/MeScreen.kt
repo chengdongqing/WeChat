@@ -37,15 +37,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun MeScreen(
@@ -64,10 +64,10 @@ fun MeScreen(
         Column {
             UserInfoSection(
                 profile = uiState.profile,
-                onNavigateToProfile = {
+                onProfile = {
                     backStack.add(NavigationKey.Profile)
                 },
-                onNavigateToQRCode = {
+                onQRCode = {
                     backStack.add(NavigationKey.QrCode)
                 }
             )
@@ -114,14 +114,14 @@ fun MeScreen(
 @Composable
 fun UserInfoSection(
     profile: UserProfile?,
-    onNavigateToProfile: () -> Unit,
-    onNavigateToQRCode: () -> Unit,
+    onProfile: () -> Unit,
+    onQRCode: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(WeTheme.colorScheme.surface)
-            .onTap { onNavigateToProfile() }
+            .onTap { onProfile() }
             .padding(start = 24.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -152,7 +152,7 @@ fun UserInfoSection(
                     contentDescription = null,
                     modifier = Modifier
                         .size(20.dp)
-                        .onTap { onNavigateToQRCode() },
+                        .onTap { onQRCode() },
                     tint = Color(0xFF456F6F)
                 )
             }

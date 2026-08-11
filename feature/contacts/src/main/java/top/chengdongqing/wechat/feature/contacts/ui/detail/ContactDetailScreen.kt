@@ -24,11 +24,11 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun ContactDetailScreen(
     onBack: () -> Unit,
-    onNavigateToChat: () -> Unit = {},
-    onNavigateToMoments: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {},
-    onNavigateToSetting: () -> Unit = {},
-    onNavigateToRequestAdd: () -> Unit = {},
+    onChat: () -> Unit = {},
+    onMoments: () -> Unit = {},
+    onProfile: () -> Unit = {},
+    onSetting: () -> Unit = {},
+    onRequestAdd: () -> Unit = {},
     isAiAssistant: Boolean = false,
     viewModel: ContactDetailViewModel
 ) {
@@ -43,12 +43,12 @@ fun ContactDetailScreen(
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { event ->
             when (event) {
-                is NavigationEvent.NavigateToChat -> onNavigateToChat()
+                is NavigationEvent.NavigateToChat -> onChat()
                 is NavigationEvent.LaunchCall -> currentLaunchCall(event.type)
-                is NavigationEvent.NavigateToMoments -> onNavigateToMoments()
-                is NavigationEvent.NavigateToProfile -> onNavigateToProfile()
-                is NavigationEvent.ShowMoreOptions -> onNavigateToSetting()
-                is NavigationEvent.NavigateToRequestAdd -> onNavigateToRequestAdd()
+                is NavigationEvent.NavigateToMoments -> onMoments()
+                is NavigationEvent.NavigateToProfile -> onProfile()
+                is NavigationEvent.ShowMoreOptions -> onSetting()
+                is NavigationEvent.NavigateToRequestAdd -> onRequestAdd()
                 else -> {}
             }
         }

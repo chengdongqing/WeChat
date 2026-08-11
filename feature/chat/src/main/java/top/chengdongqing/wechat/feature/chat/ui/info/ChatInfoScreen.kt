@@ -53,7 +53,7 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun ChatInfoScreen(
     onBack: () -> Unit,
-    onNavigateToContact: () -> Unit,
+    onContact: () -> Unit,
     onRequestAddFriend: () -> Unit,
     onEndTemporaryChat: () -> Unit,
     viewModel: ChatInfoViewModel
@@ -89,7 +89,7 @@ fun ChatInfoScreen(
                 name = uiState.contactName,
                 avatarPath = uiState.contactAvatar,
                 isAiAssistant = uiState.isAiAssistant,
-                onNavigateToContact = onNavigateToContact
+                onContact = onContact
             )
 
             if (uiState.isAiAssistant) {
@@ -332,7 +332,7 @@ private fun ContactListBar(
     name: String,
     avatarPath: String?,
     isAiAssistant: Boolean,
-    onNavigateToContact: () -> Unit
+    onContact: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -344,7 +344,7 @@ private fun ContactListBar(
         Column(
             modifier = Modifier
                 .widthIn(max = 80.dp)
-                .onTap { onNavigateToContact() },
+                .onTap { onContact() },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(

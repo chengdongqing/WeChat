@@ -1,8 +1,10 @@
 package top.chengdongqing.wechat.feature.contacts.ui.list
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -16,12 +18,14 @@ import top.chengdongqing.wechat.core.model.ContactItem
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.toContact
 import javax.inject.Inject
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @HiltViewModel
 class ContactListViewModel @Inject constructor(
     contactRepository: ContactRepository,
     profileRepository: ProfileRepository,
-    friendRequestRepository: FriendRequestRepository
+    friendRequestRepository: FriendRequestRepository,
+    @ApplicationContext context: Context
 ) : ViewModel() {
     /**
      * 组合多个数据流
@@ -33,7 +37,10 @@ class ContactListViewModel @Inject constructor(
     ) { contacts, myProfile, unreadCount ->
         // 将自己插入到联系人列表
         val allContacts = if (myProfile != null) {
-            contacts + myProfile.toContact() + LocalAiAssistant.toContact()
+            contacts + myProfile.toContact() + LocalAiAssistant.toContact(
+                name = context.getString(DesignR.string.local_ai_assistant_name),
+                signature = context.getString(DesignR.string.local_ai_assistant_signature)
+            )
         } else {
             contacts
         }

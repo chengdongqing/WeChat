@@ -29,9 +29,9 @@ import top.chengdongqing.wechat.core.qrcode.scanner.rememberScanCodeLauncher
 fun MainTopBar(
     currentTab: MainTab,
     unreadMap: Map<MainTab, Int>,
-    onNavigateToGroupChat: () -> Unit,
-    onNavigateToAddFriend: () -> Unit,
-    onNavigateToPayment: () -> Unit,
+    onGroupChat: () -> Unit,
+    onAddFriend: () -> Unit,
+    onPayment: () -> Unit,
     onScannedQrCode: (String) -> Unit
 ) {
     when {
@@ -40,9 +40,9 @@ fun MainTopBar(
 
             TopBarContent(
                 title = title,
-                onNavigateToGroupChat = onNavigateToGroupChat,
-                onNavigateToAddFriend = onNavigateToAddFriend,
-                onNavigateToPayment = onNavigateToPayment,
+                onGroupChat = onGroupChat,
+                onAddFriend = onAddFriend,
+                onPayment = onPayment,
                 onScannedQrCode = onScannedQrCode
             )
         }
@@ -65,9 +65,9 @@ fun MainTopBar(
 @Composable
 private fun TopBarContent(
     title: String,
-    onNavigateToGroupChat: () -> Unit,
-    onNavigateToAddFriend: () -> Unit,
-    onNavigateToPayment: () -> Unit,
+    onGroupChat: () -> Unit,
+    onAddFriend: () -> Unit,
+    onPayment: () -> Unit,
     onScannedQrCode: (String) -> Unit
 ) {
     val menuExpanded = remember { MutableTransitionState(false) }
@@ -111,17 +111,17 @@ private fun TopBarContent(
         onDismiss = handleDismiss
     ) { action ->
         when (action) {
-            QuickAction.GroupChat -> onNavigateToGroupChat()
-            QuickAction.AddFriend -> onNavigateToAddFriend()
+            QuickAction.GroupChat -> onGroupChat()
+            QuickAction.AddFriend -> onAddFriend()
             QuickAction.Scan -> launchScanner()
-            QuickAction.Payment -> onNavigateToPayment()
+            QuickAction.Payment -> onPayment()
         }
     }
 }
 
 @Composable
 private fun MainTab.getDisplayTitle(unreadMap: Map<MainTab, Int>): String {
-    val tabLabel = stringResource(labelRes)
+    val tabLabel = stringResource(label)
 
     return when {
         this == MainTab.Chats -> {

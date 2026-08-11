@@ -108,7 +108,7 @@ private fun RowScope.SessionContent(session: ChatSession) {
         ) {
             Text(
                 text = if (session.id == LocalAiAssistant.ID) {
-                    LocalAiAssistant.NAME
+                    stringResource(DesignR.string.local_ai_assistant_name)
                 } else {
                     session.contactName
                 },

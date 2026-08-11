@@ -9,18 +9,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import top.chengdongqing.wechat.core.camera.rememberCameraLauncher
-import top.chengdongqing.wechat.core.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.feature.moments.ui.list.MomentsViewModel
 
 @Composable
 fun ChangeMomentCoverScreen(
     onBack: () -> Unit,
-    onNavigateToPhotographerWorks: () -> Unit,
+    onPhotographerWorks: () -> Unit,
     viewModel: MomentsViewModel = hiltViewModel()
 ) {
     val mediaPickerLauncher = rememberMediaPickerLauncher { medias, _, _ ->
@@ -62,7 +62,7 @@ fun ChangeMomentCoverScreen(
                     description = "从摄影师的作品中挑选图片",
                     showDivider = false,
                     height = 62.dp,
-                    onClick = onNavigateToPhotographerWorks
+                    onClick = onPhotographerWorks
                 )
             }
         }

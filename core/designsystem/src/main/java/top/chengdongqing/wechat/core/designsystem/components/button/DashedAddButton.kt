@@ -36,7 +36,7 @@ fun DashedAddButton(
     strokeWidth: Dp = 1.dp,
     cornerRadius: Dp = 10.dp,
     iconSize: Dp = 30.dp,
-    @DrawableRes iconRes: Int = R.drawable.ic_plus_outlined,
+    @DrawableRes icon: Int = R.drawable.ic_plus_outlined,
     onClick: () -> Unit
 ) {
     Box(
@@ -53,7 +53,7 @@ fun DashedAddButton(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(id = iconRes),
+            painter = painterResource(id = icon),
             contentDescription = "Add Item",
             modifier = Modifier.size(iconSize),
             tint = color

@@ -25,8 +25,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -37,6 +35,8 @@ import top.chengdongqing.wechat.core.designsystem.ui.labelRes
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.core.playback.RingtoneSound
+import top.chengdongqing.wechat.feature.profile.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 个人资料页面
@@ -64,25 +64,25 @@ fun ProfileScreen(
                 modifier = Modifier.padding(innerPadding),
                 profile = uiState.profile,
                 ringtone = ringtone,
-                onNavigateToAvatarEdit = {
+                onAvatarEdit = {
                     backStack.add(NavigationKey.EditAvatar)
                 },
-                onNavigateToNameEdit = {
+                onNameEdit = {
                     backStack.add(NavigationKey.EditName)
                 },
-                onNavigateToGenderEdit = {
+                onGenderEdit = {
                     backStack.add(NavigationKey.EditGender)
                 },
-                onNavigateToIdView = {
+                onIdView = {
                     backStack.add(NavigationKey.EditId)
                 },
-                onNavigateToQRCode = {
+                onQRCode = {
                     backStack.add(NavigationKey.QrCode)
                 },
-                onNavigateToSignatureEdit = {
+                onSignatureEdit = {
                     backStack.add(NavigationKey.EditSignature)
                 },
-                onNavigateToRingtoneSetting = {
+                onRingtoneSetting = {
                     backStack.add(NavigationKey.RingtoneSettings)
                 }
             )
@@ -98,13 +98,13 @@ private fun ProfileContent(
     modifier: Modifier = Modifier,
     profile: UserProfile?,
     ringtone: RingtoneSound,
-    onNavigateToAvatarEdit: () -> Unit,
-    onNavigateToNameEdit: () -> Unit,
-    onNavigateToGenderEdit: () -> Unit,
-    onNavigateToIdView: () -> Unit,
-    onNavigateToQRCode: () -> Unit,
-    onNavigateToSignatureEdit: () -> Unit,
-    onNavigateToRingtoneSetting: () -> Unit,
+    onAvatarEdit: () -> Unit,
+    onNameEdit: () -> Unit,
+    onGenderEdit: () -> Unit,
+    onIdView: () -> Unit,
+    onQRCode: () -> Unit,
+    onSignatureEdit: () -> Unit,
+    onRingtoneSetting: () -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -120,7 +120,7 @@ private fun ProfileContent(
             // 头像
             WeSettingItem(
                 label = stringResource(DesignR.string.me_profile_avatar),
-                onClick = onNavigateToAvatarEdit
+                onClick = onAvatarEdit
             ) {
                 AvatarContent(profile?.avatarPath)
             }
@@ -128,7 +128,7 @@ private fun ProfileContent(
             // 名字
             WeSettingItem(
                 label = stringResource(R.string.me_profile_name),
-                onClick = onNavigateToNameEdit
+                onClick = onNameEdit
             ) {
                 WeSettingValue(profile?.nickname)
             }
@@ -136,7 +136,7 @@ private fun ProfileContent(
             // 性别
             WeSettingItem(
                 label = stringResource(R.string.me_profile_gender),
-                onClick = onNavigateToGenderEdit
+                onClick = onGenderEdit
             ) {
                 WeSettingValue(profile?.gender?.labelRes?.let { stringResource(it) })
             }
@@ -144,7 +144,7 @@ private fun ProfileContent(
             // 微信号
             WeSettingItem(
                 label = stringResource(R.string.me_profile_wechat_id),
-                onClick = onNavigateToIdView
+                onClick = onIdView
             ) {
                 WeSettingValue(profile?.id)
             }
@@ -152,7 +152,7 @@ private fun ProfileContent(
             // 二维码
             WeSettingItem(
                 label = stringResource(R.string.me_profile_qrcode),
-                onClick = onNavigateToQRCode
+                onClick = onQRCode
             ) {
                 QRCodeContent()
             }
@@ -161,7 +161,7 @@ private fun ProfileContent(
             WeSettingItem(
                 label = stringResource(R.string.me_profile_bio),
                 showDivider = false,
-                onClick = onNavigateToSignatureEdit
+                onClick = onSignatureEdit
             ) {
                 WeSettingValue(
                     text = profile?.signature,
@@ -174,7 +174,7 @@ private fun ProfileContent(
         WeSettingItem(
             label = stringResource(R.string.me_profile_ringtone),
             showDivider = false,
-            onClick = onNavigateToRingtoneSetting
+            onClick = onRingtoneSetting
         ) {
             WeSettingValue(stringResource(ringtone.labelRes))
         }

@@ -81,7 +81,7 @@ fun ChatParticipantsBar(
                 modifier = Modifier.size(52.dp),
                 cornerRadius = 6.dp,
                 color = Color.Gray,
-                iconRes = DesignR.drawable.ic_minus_outlined,
+                icon = DesignR.drawable.ic_minus_outlined,
                 onClick = it
             )
         }

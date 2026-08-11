@@ -5,28 +5,28 @@ import top.chengdongqing.wechat.core.designsystem.components.appbar.bottombar.Na
 import top.chengdongqing.wechat.R as AppR
 
 enum class MainTab(
-    override val labelRes: Int,
-    override val iconRes: Int,
-    override val selectedIconRes: Int
+    override val label: Int,
+    override val icon: Int,
+    override val selectedIcon: Int
 ) : NavigationTab {
     Chats(
-        labelRes = AppR.string.home_tab_wechat,
-        iconRes = R.drawable.ic_tab_chats_outlined,
-        selectedIconRes = R.drawable.ic_tab_chats_filled
+        label = AppR.string.home_tab_wechat,
+        icon = R.drawable.ic_tab_chats_outlined,
+        selectedIcon = R.drawable.ic_tab_chats_filled
     ),
     Contacts(
-        labelRes = AppR.string.home_tab_contacts,
-        iconRes = R.drawable.ic_tab_contacts_outlined,
-        selectedIconRes = R.drawable.ic_tab_contacts_filled
+        label = AppR.string.home_tab_contacts,
+        icon = R.drawable.ic_tab_contacts_outlined,
+        selectedIcon = R.drawable.ic_tab_contacts_filled
     ),
     Discovery(
-        labelRes = AppR.string.home_tab_discovery,
-        iconRes = R.drawable.ic_tab_discover_outlined,
-        selectedIconRes = R.drawable.ic_tab_discover_filled
+        label = AppR.string.home_tab_discovery,
+        icon = R.drawable.ic_tab_discover_outlined,
+        selectedIcon = R.drawable.ic_tab_discover_filled
     ),
     Me(
-        labelRes = AppR.string.home_tab_me,
-        iconRes = R.drawable.ic_tab_me_outlined,
-        selectedIconRes = R.drawable.ic_tab_me_filled
+        label = AppR.string.home_tab_me,
+        icon = R.drawable.ic_tab_me_outlined,
+        selectedIcon = R.drawable.ic_tab_me_filled
     )
 }

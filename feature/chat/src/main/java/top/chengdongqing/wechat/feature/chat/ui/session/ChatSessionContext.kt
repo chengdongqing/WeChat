@@ -22,10 +22,10 @@ data class ChatSessionContext(
     val onVoiceSpeedToggle: (String) -> Unit,
     val onVoiceStop: () -> Unit,
     val onRetrySend: (messageId: String) -> Unit,
-    val onNavigateToRequestAddFriend: () -> Unit,
-    val onNavigateToContact: (isPeer: Boolean) -> Unit,
-    val onNavigateToWebView: (url: String) -> Unit,
-    val onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
+    val onRequestAddFriend: () -> Unit,
+    val onContact: (isPeer: Boolean) -> Unit,
+    val onWebView: (url: String) -> Unit,
+    val onLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
     val activeLiveLocationRoomId: String?,
     val onCancelTransfer: (messageId: String) -> Unit,
     val onPauseTransfer: (messageId: String) -> Unit,
@@ -42,10 +42,10 @@ val LocalChatSessionContext = compositionLocalOf<ChatSessionContext?> { null }
 fun rememberChatSessionContext(
     viewModel: ChatSessionViewModel,
     uiState: ChatSessionUiState,
-    onNavigateToContact: (isPeer: Boolean) -> Unit,
-    onNavigateToRequestAddFriend: () -> Unit,
-    onNavigateToWebView: (url: String) -> Unit,
-    onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit
+    onContact: (isPeer: Boolean) -> Unit,
+    onRequestAddFriend: () -> Unit,
+    onWebView: (url: String) -> Unit,
+    onLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit
 ): ChatSessionContext {
     val scope = rememberCoroutineScope()
     val playingMessageId by viewModel.playingMessageId.collectAsStateWithLifecycle()
@@ -63,16 +63,16 @@ fun rememberChatSessionContext(
             onVoiceSpeedToggle = viewModel::toggleVoiceSpeed,
             onVoiceStop = viewModel::stopVoice,
             onRetrySend = { viewModel.retrySend(it) },
-            onNavigateToRequestAddFriend = {
+            onRequestAddFriend = {
                 scope.launch {
                     viewModel.prepareRequestAddFriend().onSuccess {
-                        onNavigateToRequestAddFriend()
+                        onRequestAddFriend()
                     }
                 }
             },
-            onNavigateToContact = onNavigateToContact,
-            onNavigateToWebView = onNavigateToWebView,
-            onNavigateToLive = onNavigateToLive,
+            onContact = onContact,
+            onWebView = onWebView,
+            onLive = onLive,
             activeLiveLocationRoomId = liveLocationRoom.roomId.takeIf {
                 liveLocationRoom.isActive
             },

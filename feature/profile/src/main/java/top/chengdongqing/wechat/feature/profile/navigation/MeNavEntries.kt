@@ -34,13 +34,13 @@ fun EntryProviderScope<NavKey>.meNavEntries(
         WeTheme(isDark = false) {
             QRCodeScreen(
                 onBack = onBack,
-                onNavigateToContactDetail = { id ->
+                onContactDetail = { id ->
                     backStack.add(NavigationKey.ContactDetail(id))
                 },
-                onNavigateToPlainText = { text ->
+                onPlainText = { text ->
                     backStack.add(NavigationKey.PlainText(text))
                 },
-                onNavigateToWebView = { url ->
+                onWebView = { url ->
                     backStack.add(NavigationKey.WebView(url))
                 }
             )

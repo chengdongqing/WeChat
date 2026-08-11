@@ -16,8 +16,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.datetime.toYearMonthDate
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -27,12 +25,13 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.getDescription
 import top.chengdongqing.wechat.core.designsystem.ui.safePronounRes
 import top.chengdongqing.wechat.core.model.Contact
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailViewModel
 
 @Composable
 fun ContactProfileScreen(
     onBack: () -> Unit,
-    onNavigateToEdit: () -> Unit,
+    onEdit: () -> Unit,
     viewModel: ContactDetailViewModel
 ) {
     val contact by viewModel.contact.collectAsStateWithLifecycle()
@@ -56,7 +55,7 @@ fun ContactProfileScreen(
             contact?.let {
                 ContactProfileContent(
                     contact = it,
-                    onNavigateToEdit = onNavigateToEdit
+                    onEdit = onEdit
                 )
             }
         }
@@ -66,7 +65,7 @@ fun ContactProfileScreen(
 @Composable
 private fun ContactProfileContent(
     contact: Contact,
-    onNavigateToEdit: () -> Unit
+    onEdit: () -> Unit
 ) {
     val resources = LocalResources.current
 
@@ -79,15 +78,15 @@ private fun ContactProfileContent(
                     modifier = Modifier.widthIn(max = 200.dp)
                 )
             },
-            onClick = onNavigateToEdit
+            onClick = onEdit
         )
         WeSettingItem(
             label = stringResource(R.string.contact_profile_remark_phone),
-            onClick = onNavigateToEdit
+            onClick = onEdit
         )
         WeSettingItem(
             label = stringResource(R.string.contact_profile_remark_tags),
-            onClick = onNavigateToEdit
+            onClick = onEdit
         )
         WeSettingItem(
             label = stringResource(R.string.contact_profile_remark_note),
@@ -97,12 +96,12 @@ private fun ContactProfileContent(
                     modifier = Modifier.widthIn(max = 200.dp)
                 )
             },
-            onClick = onNavigateToEdit
+            onClick = onEdit
         )
         WeSettingItem(
             label = stringResource(R.string.contact_profile_remark_photos),
             showDivider = false,
-            onClick = onNavigateToEdit
+            onClick = onEdit
         )
     }
 

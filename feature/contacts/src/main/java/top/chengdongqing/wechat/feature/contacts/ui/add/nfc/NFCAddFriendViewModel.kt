@@ -10,10 +10,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.model.ContactAddSource
 import javax.inject.Inject
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @HiltViewModel
 class NFCAddFriendViewModel @Inject constructor(
@@ -24,12 +23,12 @@ class NFCAddFriendViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(NFCAddFriendUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun handleNfcDetected(userId: String, onNavigateToContact: () -> Unit) {
+    fun handleNfcDetected(userId: String, onContact: () -> Unit) {
         _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch {
             addFriendRepository.fetchProfile(userId, ContactAddSource.Bump)?.let {
-                onNavigateToContact()
+                onContact()
 
                 _uiState.update { it.copy(isLoading = false) }
             } ?: _uiState.update {

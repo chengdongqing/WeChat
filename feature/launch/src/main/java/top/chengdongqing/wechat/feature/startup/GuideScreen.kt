@@ -21,15 +21,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.feature.launch.R as LaunchR
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.feature.launch.R as LaunchR
 
 @Composable
 fun GuideScreen(
-    onNavigateToSetup: () -> Unit,
-    onNavigateToLanguage: () -> Unit
+    onSetup: () -> Unit,
+    onLanguage: () -> Unit
 ) {
     StatusBarAppearanceEffect(isDark = isSystemInDarkTheme())
 
@@ -56,7 +56,7 @@ fun GuideScreen(
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 15.sp,
                 modifier = Modifier.onTap {
-                    onNavigateToLanguage()
+                    onLanguage()
                 }
             )
         }
@@ -71,7 +71,7 @@ fun GuideScreen(
             horizontalArrangement = Arrangement.Center
         ) {
             WeButton(stringResource(LaunchR.string.get_started)) {
-                onNavigateToSetup()
+                onSetup()
             }
         }
     }

@@ -29,19 +29,19 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.feature.moments.R as FeatureR
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.moments.model.coverFor
+import top.chengdongqing.wechat.feature.moments.R as FeatureR
 
 @Composable
 fun MomentsScreen(
     onBack: () -> Unit,
-    onNavigateToPost: () -> Unit,
-    onNavigateToCover: () -> Unit,
+    onPost: () -> Unit,
+    onCover: () -> Unit,
     viewModel: MomentsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -62,7 +62,7 @@ fun MomentsScreen(
         ) { index ->
             when (index) {
                 0 -> {}
-                1 -> onNavigateToPost()
+                1 -> onPost()
             }
         }
     }
@@ -114,7 +114,7 @@ fun MomentsScreen(
                     profile = viewModel.profile,
                     expanded = coverExpanded,
                     onCoverClick = { coverExpanded = !coverExpanded },
-                    onChangeCover = onNavigateToCover,
+                    onChangeCover = onCover,
                     onProfileClick = {}
                 )
                 Spacer(Modifier.height(48.dp))

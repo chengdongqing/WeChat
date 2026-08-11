@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 // --- 品牌核心色 ---
 val BrandPrimary = Color(0xFF07C160)
+val GreenPressed = Color(0xFF06AD56)
 val SemanticError = Color(0xFFFA5151)
 val LinkBlue = Color(0xFF576B95)
 

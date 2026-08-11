@@ -24,20 +24,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.util.HcePreferredService
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.util.NfcAvailability
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.util.NfcReaderDispatch
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.util.rememberNfcAvailability
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun NFCAddFriendScreen(
     onBack: () -> Unit,
-    onNavigateToContact: (id: String) -> Unit,
+    onContact: (id: String) -> Unit,
     viewModel: NFCAddFriendViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -52,7 +52,7 @@ fun NFCAddFriendScreen(
         HcePreferredService()
         NfcReaderDispatch(isReaderMode) { userId ->
             viewModel.handleNfcDetected(userId) {
-                onNavigateToContact(userId)
+                onContact(userId)
             }
         }
     }

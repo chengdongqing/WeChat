@@ -80,9 +80,9 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun QRCodeScreen(
     onBack: () -> Unit,
-    onNavigateToContactDetail: (String) -> Unit,
-    onNavigateToPlainText: (String) -> Unit,
-    onNavigateToWebView: (String) -> Unit,
+    onContactDetail: (String) -> Unit,
+    onPlainText: (String) -> Unit,
+    onWebView: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     RequestAddFriendPermission(onRevoked = onBack) {
@@ -100,9 +100,9 @@ fun QRCodeScreen(
         HandleProfileNavigationEvents(
             viewModel = viewModel,
             snackbarHostState = snackbarHostState,
-            onNavigateToContactDetail = onNavigateToContactDetail,
-            onNavigateToPlainText = onNavigateToPlainText,
-            onNavigateToWebView = onNavigateToWebView
+            onContactDetail = onContactDetail,
+            onPlainText = onPlainText,
+            onWebView = onWebView
         )
 
         val targetWidth = rememberScreenFractionWidth(0.65f)

@@ -36,13 +36,13 @@ import kotlin.math.abs
 @Stable
 interface NavigationTab {
     @get:StringRes
-    val labelRes: Int
+    val label: Int
 
     @get:DrawableRes
-    val iconRes: Int
+    val icon: Int
 
     @get:DrawableRes
-    val selectedIconRes: Int
+    val selectedIcon: Int
 }
 
 @Composable
@@ -115,15 +115,15 @@ private fun RowScope.TabItem(
         ) {
             Box {
                 Icon(
-                    painter = painterResource(tab.iconRes),
-                    contentDescription = stringResource(tab.labelRes),
+                    painter = painterResource(tab.icon),
+                    contentDescription = stringResource(tab.label),
                     modifier = Modifier
                         .size(26.dp)
                         .alpha(1f - selectionProgress),
                     tint = currentColor
                 )
                 Icon(
-                    painter = painterResource(tab.selectedIconRes),
+                    painter = painterResource(tab.selectedIcon),
                     contentDescription = null,
                     modifier = Modifier
                         .size(26.dp)
@@ -134,7 +134,7 @@ private fun RowScope.TabItem(
         }
 
         Text(
-            text = stringResource(tab.labelRes),
+            text = stringResource(tab.label),
             fontSize = 12.sp,
             color = currentColor
         )

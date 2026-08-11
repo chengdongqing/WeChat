@@ -29,11 +29,11 @@ internal fun EntryProviderScope<NavKey>.commonNavEntries(
         }
     ) {
         SplashScreen(
-            onNavigateToHome = {
+            onHome = {
                 backStack.clear()
                 backStack.add(NavigationKey.Main)
             },
-            onNavigateToWelcome = {
+            onWelcome = {
                 backStack.clear()
                 backStack.add(NavigationKey.Guide)
             }
@@ -47,10 +47,10 @@ internal fun EntryProviderScope<NavKey>.commonNavEntries(
         }
     ) {
         GuideScreen(
-            onNavigateToSetup = {
+            onSetup = {
                 backStack.add(NavigationKey.Login)
             },
-            onNavigateToLanguage = {
+            onLanguage = {
                 backStack.add(NavigationKey.LanguageSettings)
             }
         )

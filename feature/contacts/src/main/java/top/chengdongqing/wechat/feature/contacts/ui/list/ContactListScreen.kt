@@ -41,11 +41,11 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ContactListScreen(
-    onNavigateToNewFriends: () -> Unit,
-    onNavigateToGroups: () -> Unit,
-    onNavigateToTags: () -> Unit,
-    onNavigateToDetail: (contactId: String) -> Unit,
-    onNavigateToProfileEdit: (contactId: String) -> Unit,
+    onNewFriends: () -> Unit,
+    onGroups: () -> Unit,
+    onTags: () -> Unit,
+    onDetail: (contactId: String) -> Unit,
+    onProfileEdit: (contactId: String) -> Unit,
     viewModel: ContactListViewModel = hiltViewModel(),
 ) {
     val scope = rememberCoroutineScope()
@@ -67,9 +67,9 @@ fun ContactListScreen(
             item {
                 TopFunctionList(
                     pendingCount = state.unreadCount,
-                    onNavigateToNewFriends = onNavigateToNewFriends,
-                    onNavigateToGroups = onNavigateToGroups,
-                    onNavigateToTags = onNavigateToTags
+                    onNewFriends = onNewFriends,
+                    onGroups = onGroups,
+                    onTags = onTags
                 )
             }
 
@@ -124,7 +124,7 @@ fun ContactListScreen(
                                     note = contact.note,
                                     modifier = Modifier.weContextMenu(
                                         onClick = {
-                                            onNavigateToDetail(contact.id)
+                                            onDetail(contact.id)
                                         },
                                         onLongClick = { position ->
                                             if (!contact.isSelf && contact.id != LocalAiAssistant.ID) {
@@ -139,7 +139,7 @@ fun ContactListScreen(
                                 )
 
                                 WeContextMenu(contextMenuState) { _, _ ->
-                                    onNavigateToProfileEdit(contact.id)
+                                    onProfileEdit(contact.id)
                                 }
 
                                 WeDivider(modifier = Modifier.padding(start = 68.dp))

@@ -33,24 +33,24 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
     entry<NavigationKey.AddFriend> {
         AddFriendScreen(
             onBack = onBack,
-            onNavigateToNFC = { backStack.add(NavigationKey.NFCAddFriend) },
-            onNavigateToRadar = { backStack.add(NavigationKey.RadarScanAddFriend) },
-            onNavigateToGroup = { backStack.add(NavigationKey.PinCodeCreateGroup) },
-            onNavigateToContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
-            onNavigateToPlainText = { backStack.add(NavigationKey.PlainText(it)) },
-            onNavigateToWebView = { backStack.add(NavigationKey.WebView(it)) }
+            onNFC = { backStack.add(NavigationKey.NFCAddFriend) },
+            onRadar = { backStack.add(NavigationKey.RadarScanAddFriend) },
+            onGroup = { backStack.add(NavigationKey.PinCodeCreateGroup) },
+            onContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
+            onPlainText = { backStack.add(NavigationKey.PlainText(it)) },
+            onWebView = { backStack.add(NavigationKey.WebView(it)) }
         )
     }
     entry<NavigationKey.NFCAddFriend> {
         NFCAddFriendScreen(
             onBack = onBack,
-            onNavigateToContact = { backStack.add(NavigationKey.ContactDetail(it)) }
+            onContact = { backStack.add(NavigationKey.ContactDetail(it)) }
         )
     }
     entry<NavigationKey.RadarScanAddFriend> {
         RadarScanAddFriendScreen(
             onBack = onBack,
-            onNavigateToContact = { backStack.add(NavigationKey.ContactDetail(it)) }
+            onContact = { backStack.add(NavigationKey.ContactDetail(it)) }
         )
     }
     entry<NavigationKey.PinCodeCreateGroup> {
@@ -69,13 +69,13 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
 
         ContactDetailScreen(
             onBack = onBack,
-            onNavigateToChat = {
+            onChat = {
                 backStack.removeIf { key -> key is NavigationKey.ChatSession }
                 backStack.add(NavigationKey.ChatSession(id))
             },
-            onNavigateToSetting = { backStack.add(NavigationKey.ContactSetting(id)) },
-            onNavigateToProfile = { backStack.add(NavigationKey.ContactProfile(id)) },
-            onNavigateToRequestAdd = { backStack.add(NavigationKey.RequestAddFriend(id)) },
+            onSetting = { backStack.add(NavigationKey.ContactSetting(id)) },
+            onProfile = { backStack.add(NavigationKey.ContactProfile(id)) },
+            onRequestAdd = { backStack.add(NavigationKey.RequestAddFriend(id)) },
             isAiAssistant = id == LocalAiAssistant.ID,
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
@@ -91,7 +91,7 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
                 backStack.clear()
                 backStack.add(NavigationKey.Main)
             },
-            onNavigateToContactProfile = { backStack.add(NavigationKey.EditContactProfile(id)) },
+            onContactProfile = { backStack.add(NavigationKey.EditContactProfile(id)) },
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }
@@ -102,7 +102,7 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
 
         ContactProfileScreen(
             onBack = onBack,
-            onNavigateToEdit = { backStack.add(NavigationKey.EditContactProfile(id)) },
+            onEdit = { backStack.add(NavigationKey.EditContactProfile(id)) },
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }
@@ -163,8 +163,8 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
     entry<NavigationKey.NewFriends> {
         NewFriendsScreen(
             onBack = onBack,
-            onNavigateToAdd = { backStack.add(NavigationKey.AddFriend) },
-            onNavigateToVerify = { backStack.add(NavigationKey.AcceptFriendRequest(it)) }
+            onAdd = { backStack.add(NavigationKey.AddFriend) },
+            onVerify = { backStack.add(NavigationKey.AcceptFriendRequest(it)) }
         )
     }
 }

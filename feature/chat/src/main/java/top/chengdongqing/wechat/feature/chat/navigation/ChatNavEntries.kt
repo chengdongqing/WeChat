@@ -43,16 +43,16 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                 ChatSessionScreen(
                     chatId = it.groupId,
                     onBack = onBack,
-                    onNavigateToInfo = { backStack.add(NavigationKey.GroupInfo(it.groupId)) },
-                    onNavigateToContact = {},
-                    onNavigateToFilePreview = {},
-                    onNavigateToMusicPreview = { _, _ -> },
-                    onNavigateToRequestAddFriend = {},
-                    onNavigateToWebView = {},
-                    onNavigateToFavorites = {
+                    onInfo = { backStack.add(NavigationKey.GroupInfo(it.groupId)) },
+                    onContact = {},
+                    onFilePreview = {},
+                    onMusicPreview = { _, _ -> },
+                    onRequestAddFriend = {},
+                    onWebView = {},
+                    onFavorites = {
                         backStack.add(NavigationKey.Favorites(it.groupId))
                     },
-                    onNavigateToChatHistory = { history ->
+                    onChatHistory = { history ->
                         backStack.add(
                             NavigationKey.ChatHistory(
                                 Json.encodeToString(
@@ -64,10 +64,10 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                             )
                         )
                     },
-                    onNavigateToLive = { liveId, isHost, hostId ->
+                    onLive = { liveId, isHost, hostId ->
                         backStack.add(NavigationKey.LiveRoom(it.groupId, liveId, isHost, hostId))
                     },
-                    onNavigateToLiveLocation = {
+                    onLiveLocation = {
                         backStack.add(NavigationKey.LiveLocation(it.groupId))
                     },
                     viewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
@@ -86,18 +86,18 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
             ChatSessionScreen(
                 chatId = chatId,
                 onBack = onBack,
-                onNavigateToInfo = {
+                onInfo = {
                     backStack.add(
                         if (chatId.startsWith("group_")) NavigationKey.GroupInfo(chatId)
                         else NavigationKey.ChatInfo(chatId)
                     )
                 },
-                onNavigateToContact = { id ->
+                onContact = { id ->
                     backStack.removeIf { key -> key is NavigationKey.ContactDetail }
                     backStack.add(NavigationKey.ContactDetail(id))
                 },
-                onNavigateToFilePreview = { id -> backStack.add(NavigationKey.FilePreview(id)) },
-                onNavigateToMusicPreview = { id, name ->
+                onFilePreview = { id -> backStack.add(NavigationKey.FilePreview(id)) },
+                onMusicPreview = { id, name ->
                     backStack.add(
                         NavigationKey.MusicPreview(
                             messageId = id,
@@ -105,22 +105,22 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                         )
                     )
                 },
-                onNavigateToRequestAddFriend = { backStack.add(NavigationKey.RequestAddFriend(chatId)) },
-                onNavigateToWebView = { url -> backStack.add(NavigationKey.WebView(url)) },
-                onNavigateToFavorites = {
+                onRequestAddFriend = { backStack.add(NavigationKey.RequestAddFriend(chatId)) },
+                onWebView = { url -> backStack.add(NavigationKey.WebView(url)) },
+                onFavorites = {
                     backStack.add(NavigationKey.Favorites(chatId))
                 },
-                onNavigateToChatHistory = { history ->
+                onChatHistory = { history ->
                     backStack.add(
                         NavigationKey.ChatHistory(
                             Json.encodeToString(ChatHistoryPayload(history.title, history.items))
                         )
                     )
                 },
-                onNavigateToLive = { liveId, isHost, hostId ->
+                onLive = { liveId, isHost, hostId ->
                     backStack.add(NavigationKey.LiveRoom(chatId, liveId, isHost, hostId))
                 },
-                onNavigateToLiveLocation = {
+                onLiveLocation = {
                     backStack.add(NavigationKey.LiveLocation(chatId))
                 },
                 viewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
@@ -203,7 +203,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
 
         ChatInfoScreen(
             onBack = onBack,
-            onNavigateToContact = {
+            onContact = {
                 backStack.removeIf { key -> key is NavigationKey.ContactDetail }
                 backStack.add(NavigationKey.ContactDetail(id))
             },

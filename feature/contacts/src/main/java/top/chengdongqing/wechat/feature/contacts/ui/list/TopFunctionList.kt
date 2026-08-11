@@ -27,19 +27,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.contacts.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun TopFunctionList(
     pendingCount: Int,
-    onNavigateToNewFriends: () -> Unit,
-    onNavigateToGroups: () -> Unit,
-    onNavigateToTags: () -> Unit
+    onNewFriends: () -> Unit,
+    onGroups: () -> Unit,
+    onTags: () -> Unit
 ) {
     val functions = remember(pendingCount) {
         listOf(
@@ -48,19 +48,19 @@ fun TopFunctionList(
                 icon = DesignR.drawable.ic_add_friends_filled,
                 badge = pendingCount,
                 containerColor = Color(0xFFFA9D3B),
-                onClick = onNavigateToNewFriends
+                onClick = onNewFriends
             ),
             TopFunction(
                 title = R.string.contacts_menu_group_chat,
                 icon = DesignR.drawable.ic_group_chat_filled,
                 containerColor = Color(0xFF07C160),
-                onClick = onNavigateToGroups
+                onClick = onGroups
             ),
             TopFunction(
                 title = R.string.contacts_menu_tags,
                 icon = DesignR.drawable.ic_tag_filled,
                 containerColor = Color(0xFF2782D7),
-                onClick = onNavigateToTags
+                onClick = onTags
             ),
             TopFunction(
                 title = R.string.contacts_menu_official_accounts,

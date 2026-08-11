@@ -158,7 +158,7 @@ private val AddFriendPermissions by lazy {
 @Composable
 private fun BluetoothEnableGuide(onEnableClick: () -> Unit) {
     StatusGuideScreen(
-        iconRes = R.drawable.ic_bluetooth_outlined,
+        icon = R.drawable.ic_bluetooth_outlined,
         title = "需开启蓝牙",
         desc = "添加好友依赖蓝牙功能搜索附近的设备，请在设置中开启。",
         buttonText = "去开启",
@@ -169,7 +169,7 @@ private fun BluetoothEnableGuide(onEnableClick: () -> Unit) {
 @Composable
 private fun LocationEnableGuide(onEnableClick: () -> Unit) {
     StatusGuideScreen(
-        iconRes = R.drawable.ic_location_filled,
+        icon = R.drawable.ic_location_filled,
         title = "需开启位置服务",
         desc = "Android 系统要求在搜索蓝牙设备时必须开启位置服务总开关。",
         buttonText = "去设置",
@@ -179,7 +179,7 @@ private fun LocationEnableGuide(onEnableClick: () -> Unit) {
 
 @Composable
 private fun StatusGuideScreen(
-    iconRes: Int,
+    icon: Int,
     title: String,
     desc: String,
     buttonText: String,
@@ -194,7 +194,7 @@ private fun StatusGuideScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            painter = painterResource(iconRes),
+            painter = painterResource(icon),
             contentDescription = null,
             modifier = Modifier.size(64.dp),
             tint = Color.White

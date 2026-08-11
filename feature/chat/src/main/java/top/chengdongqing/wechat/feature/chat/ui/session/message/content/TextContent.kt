@@ -66,7 +66,7 @@ fun TextContent(
     /* 解析富文本（URL、电话高亮+点击） */
     val annotatedString = remember(content.text) {
         content.text.parseRichText(
-            onUrlClick = { url -> chatContext?.onNavigateToWebView(url) },
+            onUrlClick = { url -> chatContext?.onWebView(url) },
             onPhoneClick = { phone ->
                 val intent = Intent(Intent.ACTION_DIAL, "tel:$phone".toUri())
                 context.startActivity(intent)

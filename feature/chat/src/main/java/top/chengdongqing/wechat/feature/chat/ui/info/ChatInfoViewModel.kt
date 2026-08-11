@@ -32,6 +32,7 @@ import top.chengdongqing.wechat.feature.chat.ai.LocalAiError
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 import top.chengdongqing.wechat.feature.chat.ai.getLocalAiErrorMessage
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 data class ChatInfoUiState(
     /** 联系人信息 */
@@ -124,7 +125,10 @@ class ChatInfoViewModel @AssistedInject constructor(
         val isAi = chatId == LocalAiAssistant.ID
         val finalContact = when {
             isSelf -> myProfile.toContact()
-            isAi -> LocalAiAssistant.toContact()
+            isAi -> LocalAiAssistant.toContact(
+                name = context.getString(DesignR.string.local_ai_assistant_name),
+                signature = context.getString(DesignR.string.local_ai_assistant_signature)
+            )
             else -> contact
         }
 

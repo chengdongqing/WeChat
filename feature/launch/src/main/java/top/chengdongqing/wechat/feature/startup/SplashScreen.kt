@@ -20,8 +20,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SplashScreen(
-    onNavigateToHome: () -> Unit,
-    onNavigateToWelcome: () -> Unit,
+    onHome: () -> Unit,
+    onWelcome: () -> Unit,
     startupViewModel: SplashViewModel = hiltViewModel()
 ) {
     val startupState by startupViewModel.state.collectAsStateWithLifecycle()
@@ -31,8 +31,8 @@ fun SplashScreen(
         delay(500.milliseconds)
 
         when (startupState) {
-            LoginState.ReadyForHome -> onNavigateToHome()
-            LoginState.NeedLogin -> onNavigateToWelcome()
+            LoginState.ReadyForHome -> onHome()
+            LoginState.NeedLogin -> onWelcome()
             else -> Unit
         }
     }

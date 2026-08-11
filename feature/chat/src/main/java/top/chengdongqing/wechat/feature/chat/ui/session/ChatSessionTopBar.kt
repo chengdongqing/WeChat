@@ -24,17 +24,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.chat.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ChatSessionTopBar(
     viewModel: ChatSessionViewModel,
     uiState: ChatSessionUiState,
     onBack: () -> Unit,
-    onNavigateToInfo: () -> Unit
+    onInfo: () -> Unit
 ) {
     val isSelectMode = uiState.isSelectMode
     val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle()
@@ -58,7 +58,7 @@ fun ChatSessionTopBar(
                 icon = DesignR.drawable.ic_more_outlined,
                 description = stringResource(DesignR.string.action_more)
             ) {
-                onNavigateToInfo()
+                onInfo()
             }
         }
     }

@@ -59,14 +59,9 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.media.editor.ImageEditor
-import top.chengdongqing.wechat.core.media.model.MediaItem
-import top.chengdongqing.wechat.core.media.preview.WeMediaPreview
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
@@ -76,12 +71,16 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.media.editor.ImageEditor
+import top.chengdongqing.wechat.core.media.model.MediaItem
+import top.chengdongqing.wechat.core.media.preview.WeMediaPreview
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
 import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.BombMessageEffect
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveEffectEvent
@@ -97,21 +96,22 @@ import top.chengdongqing.wechat.feature.chat.ui.session.message.toolbar.MessageT
 import top.chengdongqing.wechat.feature.chat.ui.session.peer.PeerDeviceOverlay
 import top.chengdongqing.wechat.feature.chat.ui.session.util.KeyboardScrollEffect
 import top.chengdongqing.wechat.feature.chat.ui.session.util.MessageDataScrollEffect
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ChatSessionScreen(
     chatId: String,
     onBack: () -> Unit,
-    onNavigateToInfo: () -> Unit,
-    onNavigateToContact: (id: String) -> Unit,
-    onNavigateToFilePreview: (messageId: String) -> Unit,
-    onNavigateToMusicPreview: (messageId: String, trackName: String) -> Unit,
-    onNavigateToRequestAddFriend: () -> Unit,
-    onNavigateToWebView: (url: String) -> Unit,
-    onNavigateToLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
-    onNavigateToLiveLocation: () -> Unit,
-    onNavigateToFavorites: () -> Unit,
-    onNavigateToChatHistory: (MessageContent.ChatHistory) -> Unit,
+    onInfo: () -> Unit,
+    onContact: (id: String) -> Unit,
+    onFilePreview: (messageId: String) -> Unit,
+    onMusicPreview: (messageId: String, trackName: String) -> Unit,
+    onRequestAddFriend: () -> Unit,
+    onWebView: (url: String) -> Unit,
+    onLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
+    onLiveLocation: () -> Unit,
+    onFavorites: () -> Unit,
+    onChatHistory: (MessageContent.ChatHistory) -> Unit,
     viewModel: ChatSessionViewModel
 ) {
     val expandedMediaAlbums = remember(chatId) { mutableStateListOf<String>() }
@@ -161,12 +161,12 @@ fun ChatSessionScreen(
     val chatContext = rememberChatSessionContext(
         viewModel = viewModel,
         uiState = uiState,
-        onNavigateToContact = { isPeer ->
-            onNavigateToContact(if (isPeer) uiState.peerId!! else uiState.myId!!)
+        onContact = { isPeer ->
+            onContact(if (isPeer) uiState.peerId!! else uiState.myId!!)
         },
-        onNavigateToRequestAddFriend = onNavigateToRequestAddFriend,
-        onNavigateToWebView = onNavigateToWebView,
-        onNavigateToLive = onNavigateToLive
+        onRequestAddFriend = onRequestAddFriend,
+        onWebView = onWebView,
+        onLive = onLive
     )
 
     KeyboardScrollEffect(listState, lazyMessageItems.itemCount)
@@ -221,16 +221,16 @@ fun ChatSessionScreen(
     ChatSessionUiEventHandler(
         viewModel = viewModel,
         launchCall = launchCall,
-        onNavigateToContact = onNavigateToContact,
-        onNavigateToFilePreview = onNavigateToFilePreview,
-        onNavigateToMusicPreview = onNavigateToMusicPreview,
-        onNavigateToLiveLocation = onNavigateToLiveLocation,
+        onContact = onContact,
+        onFilePreview = onFilePreview,
+        onMusicPreview = onMusicPreview,
+        onLiveLocation = onLiveLocation,
         onPreviewMedia = {
             mediaPreviewClosing = false
             mediaPreview = it
         },
         onEditImage = { editingImageUri = it },
-        onOpenChatHistory = onNavigateToChatHistory
+        onOpenChatHistory = onChatHistory
     )
 
     CompositionLocalProvider(
@@ -284,7 +284,7 @@ fun ChatSessionScreen(
                                             viewModel = viewModel,
                                             uiState = uiState,
                                             onBack = onBack,
-                                            onNavigateToInfo = onNavigateToInfo
+                                            onInfo = onInfo
                                         )
                                         if (liveLocationRoom.isActive) {
                                             LiveLocationPinnedEntry(
@@ -310,7 +310,7 @@ fun ChatSessionScreen(
                                                         uiState.myId
                                                     )
                                                 ) uiState.myAvatar else uiState.peerAvatar,
-                                                onClick = onNavigateToLiveLocation
+                                                onClick = onLiveLocation
                                             )
                                         }
                                     }
@@ -332,7 +332,7 @@ fun ChatSessionScreen(
                                                         actorId = uiState.myId
                                                     )
                                                 )
-                                                onNavigateToLive(
+                                                onLive(
                                                     liveId,
                                                     true,
                                                     uiState.myId.orEmpty()
@@ -340,9 +340,9 @@ fun ChatSessionScreen(
                                             },
                                             onShareLiveLocation = {
                                                 viewModel.sendMessage(viewModel.createLiveLocationMessage())
-                                                onNavigateToLiveLocation()
+                                                onLiveLocation()
                                             },
-                                            onOpenFavorites = onNavigateToFavorites
+                                            onOpenFavorites = onFavorites
                                         )
                                     } else {
                                         MultiSelectBottomBar(
@@ -536,10 +536,10 @@ private fun PeerConnectionOverlay(
 private fun ChatSessionUiEventHandler(
     viewModel: ChatSessionViewModel,
     launchCall: (CallType) -> Unit,
-    onNavigateToContact: (String) -> Unit,
-    onNavigateToFilePreview: (String) -> Unit,
-    onNavigateToMusicPreview: (String, String) -> Unit,
-    onNavigateToLiveLocation: () -> Unit,
+    onContact: (String) -> Unit,
+    onFilePreview: (String) -> Unit,
+    onMusicPreview: (String, String) -> Unit,
+    onLiveLocation: () -> Unit,
     onPreviewMedia: (ChatMediaPreviewState) -> Unit,
     onEditImage: (Uri) -> Unit,
     onOpenChatHistory: (MessageContent.ChatHistory) -> Unit,
@@ -593,8 +593,8 @@ private fun ChatSessionUiEventHandler(
                     }
                 }
 
-                is MessageUiEvent.PreviewFile -> onNavigateToFilePreview(event.messageId)
-                is MessageUiEvent.PreviewMusic -> onNavigateToMusicPreview(
+                is MessageUiEvent.PreviewFile -> onFilePreview(event.messageId)
+                is MessageUiEvent.PreviewMusic -> onMusicPreview(
                     event.messageId,
                     event.trackName
                 )
@@ -610,8 +610,8 @@ private fun ChatSessionUiEventHandler(
                 is MessageUiEvent.EditImage -> onEditImage(event.uri)
 
                 is MessageUiEvent.LaunchCall -> launchCall(event.callType)
-                is MessageUiEvent.NavigateToContact -> onNavigateToContact(event.contactId)
-                MessageUiEvent.NavigateToLiveLocation -> onNavigateToLiveLocation()
+                is MessageUiEvent.NavigateToContact -> onContact(event.contactId)
+                MessageUiEvent.NavigateToLiveLocation -> onLiveLocation()
                 is MessageUiEvent.OpenChatHistory -> onOpenChatHistory(event.content)
                 else -> {}
             }

@@ -15,18 +15,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.settings.R
 
 @Composable
 fun ContactBlacklistScreen(
     onBack: () -> Unit,
-    onNavigateToContactDetail: (contactId: String) -> Unit,
+    onContactDetail: (contactId: String) -> Unit,
     viewModel: ContactBlacklistViewModel = hiltViewModel()
 ) {
     val contacts by viewModel.blockedContacts.collectAsStateWithLifecycle()
@@ -55,7 +54,7 @@ fun ContactBlacklistScreen(
                     avatarModel = contact.avatarPath,
                     note = contact.note,
                     modifier = Modifier.clickable {
-                        onNavigateToContactDetail(contact.id)
+                        onContactDetail(contact.id)
                     }
                 )
                 WeDivider(modifier = Modifier.padding(start = 68.dp))

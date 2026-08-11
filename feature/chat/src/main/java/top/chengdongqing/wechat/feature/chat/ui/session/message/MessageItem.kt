@@ -44,14 +44,13 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 消息项组件
@@ -315,7 +314,7 @@ private fun Avatar(model: Any?, isPeer: Boolean) {
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))
             .onTap {
-                chatContext?.onNavigateToContact(isPeer)
+                chatContext?.onContact(isPeer)
             })
 }
 

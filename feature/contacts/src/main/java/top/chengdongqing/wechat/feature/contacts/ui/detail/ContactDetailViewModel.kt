@@ -32,6 +32,7 @@ import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.toContact
 import top.chengdongqing.wechat.core.model.toResult
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @HiltViewModel(assistedFactory = ContactDetailViewModel.Factory::class)
 class ContactDetailViewModel @AssistedInject constructor(
@@ -65,7 +66,10 @@ class ContactDetailViewModel @AssistedInject constructor(
             // 自己
             isSelf -> myProfile.toContact()
             // AI 助手
-            isAi -> LocalAiAssistant.toContact()
+            isAi -> LocalAiAssistant.toContact(
+                name = context.getString(DesignR.string.local_ai_assistant_name),
+                signature = context.getString(DesignR.string.local_ai_assistant_signature)
+            )
             // 朋友（从数据库）
             contact != null -> contact.copy(relation = ContactRelation.Friend)
             // 陌生人（从缓存）

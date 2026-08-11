@@ -116,6 +116,9 @@ class ChatSessionViewModel @AssistedInject constructor(
     connectionSettingsRepository: ConnectionSettingsRepository,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
+    private val localAiAssistantName: String
+        get() = context.getString(DesignR.string.local_ai_assistant_name)
+
     private var aiGenerationJob: Job? = null
     private val _pendingQuote = MutableStateFlow<MessageQuote?>(null)
     val pendingQuote = _pendingQuote.asStateFlow()
@@ -414,7 +417,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                 .combine(profileRepository.observeProfile()) { contact, profile ->
                     val isSelf = !isLocalAi && chatId == profile?.id
                     _uiState.value.copy(
-                        title = if (isLocalAi) LocalAiAssistant.NAME else contact?.displayName
+                        title = if (isLocalAi) localAiAssistantName else contact?.displayName
                             ?: if (isSelf) profile.nickname else _uiState.value.title,
                         peerId = if (isLocalAi) LocalAiAssistant.ID else contact?.id ?: chatId,
                         peerAvatar = contact?.avatarPath ?: _uiState.value.peerAvatar,
@@ -432,7 +435,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                 .collect { (session, bg) ->
                     _uiState.update { cur ->
                         cur.copy(
-                            title = if (isLocalAi) LocalAiAssistant.NAME else session?.contactName?.takeIf {
+                            title = if (isLocalAi) localAiAssistantName else session?.contactName?.takeIf {
                                 !chatId.startsWith(
                                     "group_"
                                 )
@@ -482,7 +485,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                     ChatSession(
                         id = chatId,
                         contactId = chatId,
-                        contactName = LocalAiAssistant.NAME
+                        contactName = localAiAssistantName
                     )
                 )
             }

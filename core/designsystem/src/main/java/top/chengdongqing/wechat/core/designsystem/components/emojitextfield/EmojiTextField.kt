@@ -189,7 +189,11 @@ private const val TAG_IGNORE_UPDATE = "IGNORE_UPDATE"
  * @param cursorWidth 光标宽度（px）
  * @param maxH 最大高度（px），null 表示不限制
  */
-private fun AppCompatEditText.setupConfig(fontSizeSp: Int, cursorWidth: Int, maxH: Int?) {
+private fun AppCompatEditText.setupConfig(
+    fontSizeSp: Int,
+    cursorWidth: Int,
+    maxH: Int?
+) {
     background = null
     textSize = fontSizeSp.toFloat()
     gravity = Gravity.TOP or Gravity.START

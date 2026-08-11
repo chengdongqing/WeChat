@@ -42,7 +42,7 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun ChatListScreen(
     viewModel: ChatListViewModel = hiltViewModel(),
-    onNavigateToDetail: (sessionId: String) -> Unit
+    onDetail: (sessionId: String) -> Unit
 ) {
     val chats by viewModel.chats.collectAsStateWithLifecycle()
 
@@ -83,7 +83,7 @@ fun ChatListScreen(
 
                 ChatListItem(
                     chat = chat,
-                    onNavigateToDetail = onNavigateToDetail,
+                    onDetail = onDetail,
                     onShowMenu = { position ->
                         contextMenuState.show(position, menus, chats.indexOf(chat))
                     },
@@ -130,7 +130,7 @@ private fun ConnectionErrorBar(viewModel: ChatListViewModel) {
 @Composable
 private fun ChatListItem(
     chat: ChatSession,
-    onNavigateToDetail: (String) -> Unit,
+    onDetail: (String) -> Unit,
     onShowMenu: (IntOffset) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -144,7 +144,7 @@ private fun ChatListItem(
                 }
             )
             .weContextMenu(
-                onClick = { onNavigateToDetail(chat.id) },
+                onClick = { onDetail(chat.id) },
                 onLongClick = { position -> onShowMenu(position) }
             )
     ) {

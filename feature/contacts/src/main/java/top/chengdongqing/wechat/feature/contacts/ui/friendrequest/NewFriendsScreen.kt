@@ -33,8 +33,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
@@ -49,13 +47,15 @@ import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOver
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.FriendRequest
 import top.chengdongqing.wechat.core.model.FriendRequestStatus
+import top.chengdongqing.wechat.feature.contacts.R
 import kotlin.time.Duration.Companion.days
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun NewFriendsScreen(
     onBack: () -> Unit,
-    onNavigateToAdd: () -> Unit,
-    onNavigateToVerify: (requestId: String) -> Unit,
+    onAdd: () -> Unit,
+    onVerify: (requestId: String) -> Unit,
     viewModel: NewFriendsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -73,7 +73,7 @@ fun NewFriendsScreen(
         topBar = {
             NewFriendsTopBar(
                 onBack = onBack,
-                onNavigateToAdd = onNavigateToAdd,
+                onAdd = onAdd,
                 pendingCount = uiState.pendingCount
             )
         },
@@ -120,7 +120,7 @@ fun NewFriendsScreen(
                     title = resources.getString(R.string.new_contacts_section_recent),
                     list = recent,
                     viewModel = viewModel,
-                    onVerify = { onNavigateToVerify(it) }
+                    onVerify = { onVerify(it) }
                 )
             }
             // 三天前
@@ -129,7 +129,7 @@ fun NewFriendsScreen(
                     title = resources.getString(R.string.new_contacts_section_older),
                     list = older,
                     viewModel = viewModel,
-                    onVerify = { onNavigateToVerify(it) }
+                    onVerify = { onVerify(it) }
                 )
             }
         }
@@ -139,7 +139,7 @@ fun NewFriendsScreen(
 @Composable
 private fun NewFriendsTopBar(
     onBack: () -> Unit,
-    onNavigateToAdd: () -> Unit,
+    onAdd: () -> Unit,
     pendingCount: Int
 ) {
     WeTopAppBar(
@@ -152,7 +152,7 @@ private fun NewFriendsTopBar(
         actions = {
             TextButton(
                 text = stringResource(R.string.new_contacts_action_add),
-                onClick = onNavigateToAdd
+                onClick = onAdd
             )
         }
     )

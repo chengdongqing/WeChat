@@ -16,15 +16,15 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.file.PrivateFileManager
-import top.chengdongqing.wechat.core.file.PublicFileManager
-import top.chengdongqing.wechat.core.qrcode.QRCodeResult
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.data.usecase.QRCodeUseCase
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.PublicFileManager
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.core.playback.RingtoneSound
+import top.chengdongqing.wechat.core.qrcode.QRCodeResult
 import javax.inject.Inject
 
 /**
@@ -284,31 +284,31 @@ fun ProfileEventEffect(
  *
  * @param viewModel ProfileViewModel 实例
  * @param snackbarHostState Snackbar 宿主状态
- * @param onNavigateToContactDetail 导航到联系人详情回调
- * @param onNavigateToPlainText 导航到纯文本页面回调
- * @param onNavigateToWebView 导航到 WebView 回调
+ * @param onContactDetail 导航到联系人详情回调
+ * @param onPlainText 导航到纯文本页面回调
+ * @param onWebView 导航到 WebView 回调
  */
 @Composable
 fun HandleProfileNavigationEvents(
     viewModel: ProfileViewModel,
     snackbarHostState: SnackbarHostState,
-    onNavigateToContactDetail: (String) -> Unit,
-    onNavigateToPlainText: (String) -> Unit,
-    onNavigateToWebView: (String) -> Unit
+    onContactDetail: (String) -> Unit,
+    onPlainText: (String) -> Unit,
+    onWebView: (String) -> Unit
 ) {
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collect { event ->
             when (event) {
                 is ProfileUiEvent.NavigateToContactDetail -> {
-                    onNavigateToContactDetail(event.contactId)
+                    onContactDetail(event.contactId)
                 }
 
                 is ProfileUiEvent.NavigateToPlainText -> {
-                    onNavigateToPlainText(event.text)
+                    onPlainText(event.text)
                 }
 
                 is ProfileUiEvent.OpenUrl -> {
-                    onNavigateToWebView(event.url)
+                    onWebView(event.url)
                 }
 
                 is ProfileUiEvent.ShowError -> {

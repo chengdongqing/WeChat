@@ -9,15 +9,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.feature.discovery.R as FeatureR
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.discovery.R as FeatureR
 
 @Composable
 fun DiscoveryScreen(
-    onNavigateToMoments: () -> Unit = {},
-    onNavigateToIntercom: () -> Unit = {}
+    onMoments: () -> Unit = {},
+    onIntercom: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -28,7 +28,7 @@ fun DiscoveryScreen(
         WeMenuListItem(
             label = stringResource(FeatureR.string.discover_menu_moments),
             icon = R.drawable.ic_moments_outlined_colorful,
-            onClick = onNavigateToMoments
+            onClick = onMoments
         )
         WeMenuListItem(
             label = stringResource(FeatureR.string.discover_menu_search),
@@ -40,7 +40,7 @@ fun DiscoveryScreen(
             label = stringResource(FeatureR.string.discover_menu_intercom),
             icon = R.drawable.ic_mic2_filled,
             iconColor = WeTheme.colorScheme.primary,
-            onClick = onNavigateToIntercom
+            onClick = onIntercom
         )
     }
 }

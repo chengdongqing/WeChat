@@ -78,7 +78,7 @@ private fun EntryProviderScope<NavKey>.privacyNavEntries(
     entry<NavigationKey.ContactBlacklist> {
         ContactBlacklistScreen(
             onBack = onBack,
-            onNavigateToContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) }
+            onContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) }
         )
     }
 }

@@ -50,7 +50,7 @@ fun LiveContent(message: ChatMessage) {
         Modifier.width(235.dp)
             .background(Color(0xFF242424), RoundedCornerShape(8.dp))
             .clickable(enabled = content.status == "live") {
-                context?.onNavigateToLive(
+                context?.onLive(
                     content.liveId,
                     message.isFromMe,
                     content.actorId ?: message.senderId
