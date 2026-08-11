@@ -76,7 +76,7 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
             onNavigateToSetting = { backStack.add(NavigationKey.ContactSetting(id)) },
             onNavigateToProfile = { backStack.add(NavigationKey.ContactProfile(id)) },
             onNavigateToRequestAdd = { backStack.add(NavigationKey.RequestAddFriend(id)) },
-            isLocalAi = id == LocalAiAssistant.ID,
+            isAiAssistant = id == LocalAiAssistant.ID,
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }

@@ -38,7 +38,7 @@ fun LiveLocationContent(message: ChatMessage) {
         Text(
             text = if (!active) stringResource(R.string.live_location_ended)
             else if (message.isFromMe) stringResource(R.string.live_location_started_me)
-            else stringResource(DesignR.string.live_location_started_peer),
+            else stringResource(R.string.live_location_started_peer),
             modifier = Modifier.padding(start = 9.dp),
             color = if (active) Color.Unspecified else Color.Gray
         )

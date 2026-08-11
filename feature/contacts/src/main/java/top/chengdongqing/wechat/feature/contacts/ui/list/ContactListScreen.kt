@@ -17,13 +17,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.contact.ContactListItem
 import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeContextMenu
@@ -37,6 +36,9 @@ import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
+import top.chengdongqing.wechat.feature.contacts.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+
 @Composable
 fun ContactListScreen(
     onNavigateToNewFriends: () -> Unit,
@@ -175,7 +177,7 @@ private fun ContactFooter(count: Int) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = stringResource(R.string.contacts_count, count),
+            text = pluralStringResource(R.plurals.contacts_count, count, count),
             color = WeTheme.colorScheme.textSecondary
         )
     }

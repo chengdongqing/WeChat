@@ -26,9 +26,12 @@ import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.toContact
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiEngine
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiError
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
+import top.chengdongqing.wechat.feature.chat.ai.getLocalAiErrorMessage
 
 data class ChatInfoUiState(
     /** 联系人信息 */
@@ -43,7 +46,7 @@ data class ChatInfoUiState(
     val isTemporary: Boolean = false,
     val expiresAt: Long? = null,
     val isFriend: Boolean = false,
-    val isLocalAi: Boolean = false,
+    val isAiAssistant: Boolean = false,
     val localAiState: LocalAiState = LocalAiState.NoModel,
     val modelSizeBytes: Long? = null,
     val modelInfo: LocalAiModelInfo? = null
@@ -117,17 +120,16 @@ class ChatInfoViewModel @AssistedInject constructor(
             return@combine ChatInfoUiState()
         }
 
-        val isLocalAi = chatId == LocalAiAssistant.ID
         val isSelf = chatId == myProfile.id
-        val finalContact = if (isSelf) {
-            myProfile.toContact()
-        } else {
-            contact
+        val isAi = chatId == LocalAiAssistant.ID
+        val finalContact = when {
+            isSelf -> myProfile.toContact()
+            isAi -> LocalAiAssistant.toContact()
+            else -> contact
         }
 
         ChatInfoUiState(
-            contactName = if (isLocalAi) LocalAiAssistant.NAME
-            else finalContact?.displayName ?: session.contactName,
+            contactName = finalContact?.displayName ?: session.contactName,
             contactAvatar = finalContact?.avatarPath ?: session.contactAvatar,
             isMuted = session.isMuted,
             isPinned = session.isPinned,
@@ -136,7 +138,7 @@ class ChatInfoViewModel @AssistedInject constructor(
             isTemporary = session.isTemporary,
             expiresAt = session.expiresAt,
             isFriend = contact != null,
-            isLocalAi = isLocalAi,
+            isAiAssistant = isAi,
             localAiState = localAiState,
             modelSizeBytes = localAiEngine.modelSizeBytes,
             modelInfo = localAiEngine.modelInfo
@@ -211,7 +213,9 @@ class ChatInfoViewModel @AssistedInject constructor(
             runCatching { localAiEngine.importModel(uri) }
                 .onFailure { error ->
                     if (error !is kotlinx.coroutines.CancellationException) {
-                        context.showToast(error.message ?: "模型导入失败")
+                        context.showToast(
+                            context.getLocalAiErrorMessage(error, LocalAiError.MODEL_IMPORT_FAILED)
+                        )
                     }
                 }
         }
@@ -221,7 +225,7 @@ class ChatInfoViewModel @AssistedInject constructor(
         modelImportJob?.cancel()
         viewModelScope.launch {
             localAiEngine.cancelLoading()
-            context.showToast("已取消模型加载")
+            context.showToast(context.getString(R.string.local_ai_error_loading_cancelled))
         }
     }
 

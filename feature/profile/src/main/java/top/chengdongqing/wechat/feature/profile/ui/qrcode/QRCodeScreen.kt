@@ -54,13 +54,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.file.createImageUri
-import top.chengdongqing.wechat.core.common.qrcode.generator.QRCodeState
-import top.chengdongqing.wechat.core.common.qrcode.generator.WeQRCode
-import top.chengdongqing.wechat.core.common.qrcode.generator.rememberQRCodeState
-import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
@@ -70,12 +63,19 @@ import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
+import top.chengdongqing.wechat.core.file.createImageUri
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.core.proximity.ui.RequestAddFriendPermission
+import top.chengdongqing.wechat.core.qrcode.generator.QRCodeState
+import top.chengdongqing.wechat.core.qrcode.generator.WeQRCode
+import top.chengdongqing.wechat.core.qrcode.generator.rememberQRCodeState
+import top.chengdongqing.wechat.core.qrcode.scanner.rememberScanCodeLauncher
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.feature.profile.ui.profile.HandleProfileNavigationEvents
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun QRCodeScreen(

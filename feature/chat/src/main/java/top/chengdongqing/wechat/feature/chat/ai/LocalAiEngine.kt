@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.chengdongqing.wechat.feature.chat.R
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,8 +30,30 @@ sealed interface LocalAiState {
     data object Loading : LocalAiState
     data object Cancelling : LocalAiState
     data class Ready(val modelName: String) : LocalAiState
-    data class Error(val message: String) : LocalAiState
+    data class Error(val error: LocalAiError) : LocalAiState
 }
+
+enum class LocalAiError {
+    MODEL_LOAD_FAILED,
+    MODEL_IMPORT_FAILED,
+    CANNOT_READ_MODEL,
+    LOADING_CANCELLED,
+    FILE_TOO_SMALL,
+    INVALID_GGUF_FILE,
+    MODEL_BACKUP_FAILED,
+    MODEL_SAVE_FAILED,
+    MODEL_IS_CANCELLING,
+    MODEL_NOT_SELECTED,
+    INFERENCE_FAILED
+}
+
+class LocalAiException(
+    val error: LocalAiError,
+    cause: Throwable? = null
+) : IllegalStateException(error.name, cause)
+
+fun Throwable.localAiError(fallback: LocalAiError): LocalAiError =
+    (this as? LocalAiException)?.error ?: fallback
 
 interface LocalAiEngine {
     val state: StateFlow<LocalAiState>
@@ -51,10 +74,11 @@ class LlamaCppLocalAiEngine @Inject constructor(
     private val nameFile = File(modelDirectory, "xiaowei.name")
     private val inference by lazy { AiChat.getInferenceEngine(context) }
     private val engineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val _state = MutableStateFlow<LocalAiState>(
+    private val _state = MutableStateFlow(
         if (modelFile.isFile) LocalAiState.Loading else LocalAiState.NoModel
     )
     override val state: StateFlow<LocalAiState> = _state
+
     @Volatile
     private var cancelLoadingRequested = false
 
@@ -72,7 +96,10 @@ class LlamaCppLocalAiEngine @Inject constructor(
         if (modelFile.isFile) {
             engineScope.launch {
                 runCatching { loadModel() }
-                    .onFailure { _state.value = LocalAiState.Error(it.message ?: "模型加载失败") }
+                    .onFailure {
+                        _state.value =
+                            LocalAiState.Error(it.localAiError(LocalAiError.MODEL_LOAD_FAILED))
+                    }
             }
         }
     }
@@ -104,12 +131,14 @@ class LlamaCppLocalAiEngine @Inject constructor(
         runCatching {
             var copied = 0L
             context.contentResolver.openInputStream(uri).use { input ->
-                requireNotNull(input) { "无法读取所选模型" }
+                input ?: throw LocalAiException(LocalAiError.CANNOT_READ_MODEL)
                 temporary.outputStream().buffered().use { output ->
                     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                     while (true) {
                         currentCoroutineContext().ensureActive()
-                        check(!cancelLoadingRequested) { "已取消模型加载" }
+                        if (cancelLoadingRequested) {
+                            throw LocalAiException(LocalAiError.LOADING_CANCELLED)
+                        }
                         val count = input.read(buffer)
                         if (count < 0) break
                         output.write(buffer, 0, count)
@@ -118,22 +147,26 @@ class LlamaCppLocalAiEngine @Inject constructor(
                     }
                 }
             }
-            require(temporary.length() > 4L * 1024 * 1024) { "文件太小，不是有效的 GGUF 模型" }
+            if (temporary.length() <= 4L * 1024 * 1024) {
+                throw LocalAiException(LocalAiError.FILE_TOO_SMALL)
+            }
             val header = temporary.inputStream().use {
                 ByteArray(4).also(it::read)
             }.decodeToString()
-            require(header == "GGUF") { "所选文件不是 GGUF 模型" }
+            if (header != "GGUF") throw LocalAiException(LocalAiError.INVALID_GGUF_FILE)
 
             val backup = File(modelDirectory, "xiaowei.backup")
             if (backup.exists()) backup.delete()
             if (modelFile.exists()) {
-                require(modelFile.renameTo(backup)) { "无法备份当前模型" }
+                if (!modelFile.renameTo(backup)) {
+                    throw LocalAiException(LocalAiError.MODEL_BACKUP_FAILED)
+                }
             }
             if (!temporary.renameTo(modelFile)) {
                 backup.renameTo(modelFile)
-                error("保存模型失败")
+                throw LocalAiException(LocalAiError.MODEL_SAVE_FAILED)
             }
-            val displayName = uri.lastPathSegment?.substringAfterLast('/') ?: "本地模型"
+            val displayName = uri.lastPathSegment?.substringAfterLast('/') ?: modelFile.name
             nameFile.writeText(displayName)
             runCatching { loadModel(forceReload = true) }
                 .onFailure {
@@ -149,7 +182,7 @@ class LlamaCppLocalAiEngine @Inject constructor(
                 deleteStoredModel()
                 LocalAiState.NoModel
             } else {
-                LocalAiState.Error(it.message ?: "模型导入失败")
+                LocalAiState.Error(it.localAiError(LocalAiError.MODEL_IMPORT_FAILED))
             }
             throw it
         }.getOrThrow()
@@ -175,8 +208,7 @@ class LlamaCppLocalAiEngine @Inject constructor(
                 return
             }
             engine.setSystemPrompt(
-                "你是小微同学，一个友好、简洁、可靠的中文私人助手。" +
-                    "所有推理都在用户设备本地完成。"
+                context.getString(R.string.local_ai_system_prompt)
             )
         }
         _state.value = LocalAiState.Ready(
@@ -204,7 +236,7 @@ class LlamaCppLocalAiEngine @Inject constructor(
         cancelLoadingRequested = true
         val inferenceState = inference.state.value
         if (inferenceState.isModelLoaded || inferenceState is InferenceEngine.State.Error) {
-            // cleanUp marks an active generation as cancelled, waits for the llama
+            // cleanUp marks an active generation as canceled, waits for the llama
             // dispatcher, then invokes the native unload routine.
             inference.cleanUp()
         }
@@ -213,23 +245,35 @@ class LlamaCppLocalAiEngine @Inject constructor(
     }
 
     override fun generate(prompt: String): Flow<String> = flow {
-        check(_state.value !is LocalAiState.Cancelling) { "模型正在取消加载，请稍候" }
-        check(_state.value !is LocalAiState.NoModel) { "请先选择一个 GGUF 模型" }
+        if (_state.value is LocalAiState.Cancelling) {
+            throw LocalAiException(LocalAiError.MODEL_IS_CANCELLING)
+        }
+        if (_state.value is LocalAiState.NoModel) {
+            throw LocalAiException(LocalAiError.MODEL_NOT_SELECTED)
+        }
         if (_state.value is LocalAiState.Loading) {
             val loadedState = state.first {
                 it is LocalAiState.Ready ||
                         it is LocalAiState.Error ||
                         it is LocalAiState.NoModel
             }
-            check(loadedState is LocalAiState.Ready) {
-                (loadedState as? LocalAiState.Error)?.message ?: "模型加载失败"
+            if (loadedState !is LocalAiState.Ready) {
+                throw LocalAiException(
+                    (loadedState as? LocalAiState.Error)?.error ?: LocalAiError.MODEL_LOAD_FAILED
+                )
             }
         }
         if (_state.value !is LocalAiState.Ready) {
-            require(modelFile.isFile) { "请先选择一个 GGUF 模型" }
+            if (!modelFile.isFile) throw LocalAiException(LocalAiError.MODEL_NOT_SELECTED)
             cancelLoadingRequested = false
             loadModel()
         }
-        inference.sendUserPrompt(prompt, predictLength = 512).collect { emit(it) }
+        try {
+            inference.sendUserPrompt(prompt, predictLength = 512).collect { emit(it) }
+        } catch (error: LocalAiException) {
+            throw error
+        } catch (error: Throwable) {
+            throw LocalAiException(LocalAiError.INFERENCE_FAILED, error)
+        }
     }
 }

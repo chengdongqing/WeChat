@@ -33,26 +33,13 @@ class ContactListViewModel @Inject constructor(
     ) { contacts, myProfile, unreadCount ->
         // 将自己插入到联系人列表
         val allContacts = if (myProfile != null) {
-            contacts + myProfile.toContact()
+            contacts + myProfile.toContact() + LocalAiAssistant.toContact()
         } else {
             contacts
         }
 
         // 根据首字母分组
-        val groups = allContacts.groupByInitial().toMutableMap().apply {
-            put(
-                '★',
-                listOf(
-                    ContactItem(
-                        id = LocalAiAssistant.ID,
-                        displayName = LocalAiAssistant.NAME,
-                        nickname = LocalAiAssistant.NAME,
-                        note = LocalAiAssistant.SIGNATURE,
-                        initial = '★'
-                    )
-                ) + get('★').orEmpty()
-            )
-        }
+        val groups = allContacts.groupByInitial()
         // 计算索引映射
         val indexMap = calculateIndexMap(groups)
 

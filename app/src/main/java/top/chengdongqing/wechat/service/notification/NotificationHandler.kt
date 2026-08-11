@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.R
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.FriendEvent
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -29,6 +28,7 @@ import top.chengdongqing.wechat.core.notification.NotificationDisplay
 import top.chengdongqing.wechat.core.notification.NotificationSound
 import top.chengdongqing.wechat.core.notification.toUri
 import top.chengdongqing.wechat.core.playback.VibratorHelper
+import top.chengdongqing.wechat.core.runtime.IoScope
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
 import javax.inject.Inject
 import top.chengdongqing.wechat.R as AppR

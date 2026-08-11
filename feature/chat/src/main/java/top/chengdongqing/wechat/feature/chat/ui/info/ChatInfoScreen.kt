@@ -46,6 +46,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
+import top.chengdongqing.wechat.feature.chat.ai.messageRes
 import top.chengdongqing.wechat.feature.common.background.ChatBackgroundSetting
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
@@ -87,11 +88,11 @@ fun ChatInfoScreen(
             ContactListBar(
                 name = uiState.contactName,
                 avatarPath = uiState.contactAvatar,
-                isLocalAi = uiState.isLocalAi,
+                isAiAssistant = uiState.isAiAssistant,
                 onNavigateToContact = onNavigateToContact
             )
 
-            if (uiState.isLocalAi) {
+            if (uiState.isAiAssistant) {
                 LocalAiModelSettings(
                     state = uiState.localAiState,
                     modelSizeBytes = uiState.modelSizeBytes,
@@ -102,8 +103,8 @@ fun ChatInfoScreen(
                     onCancelLoading = viewModel::cancelModelLoading,
                     onUnloadModel = {
                         DialogManager.show(
-                            title = "确定卸载模型吗？",
-                            content = "下次使用时可重新导入。",
+                            title = resources.getString(R.string.chat_info_ai_unload_model_title),
+                            content = resources.getString(R.string.chat_info_ai_unload_model_content),
                             okText = DesignR.string.action_ok,
                             okColor = SemanticError,
                             onOk = viewModel::unloadModel
@@ -230,66 +231,69 @@ private fun LocalAiModelSettings(
         else -> null
     }
     val status = when (state) {
-        LocalAiState.NoModel -> "未选择"
-        is LocalAiState.Importing -> "正在导入 ${(state.progressBytes / 1024 / 1024)} MB"
-        LocalAiState.Loading -> "正在加载"
-        LocalAiState.Cancelling -> "正在取消加载"
-        is LocalAiState.Ready -> "已加载"
-        is LocalAiState.Error -> "加载失败：${state.message}"
+        LocalAiState.NoModel -> stringResource(R.string.chat_info_ai_status_not_selected)
+        is LocalAiState.Importing -> stringResource(R.string.chat_info_ai_status_importing, state.progressBytes / 1024 / 1024)
+        LocalAiState.Loading -> stringResource(R.string.chat_info_ai_status_loading)
+        LocalAiState.Cancelling -> stringResource(R.string.chat_info_ai_status_cancelling)
+        is LocalAiState.Ready -> stringResource(R.string.chat_info_ai_status_loaded)
+        is LocalAiState.Error -> stringResource(
+            R.string.chat_info_ai_status_error,
+            stringResource(state.error.messageRes)
+        )
     }
 
     WeSettingGroup {
-        WeSettingItem("本地模型", onClick = onSelectModel) {
+        WeSettingItem(stringResource(R.string.chat_info_ai_local_model), onClick = onSelectModel) {
             WeSettingValue(
-                text = modelName ?: "选择 GGUF 模型",
+                text = modelName ?: stringResource(R.string.chat_info_ai_select_model),
                 modifier = Modifier.widthIn(max = 160.dp)
             )
         }
         if (state !is LocalAiState.NoModel) {
-            WeSettingItem("模型状态", showArrow = false) {
+            WeSettingItem(stringResource(R.string.chat_info_ai_model_status), showArrow = false) {
                 WeSettingValue(status)
             }
             modelSizeBytes?.let { bytes ->
-                WeSettingItem("文件大小", showArrow = false) {
+                WeSettingItem(stringResource(R.string.chat_info_ai_file_size), showArrow = false) {
                     WeSettingValue("%.2f GB".format(bytes / 1024.0 / 1024.0 / 1024.0))
                 }
             }
             modelInfo?.description?.takeIf(String::isNotBlank)?.let { description ->
                 WeSettingItem(
-                    label = "模型描述",
+                    label = stringResource(R.string.chat_info_ai_model_description),
                     description = description,
                     showArrow = false
                 )
             }
             modelInfo?.architecture?.let { architecture ->
-                WeSettingItem("模型架构", showArrow = false) {
+                WeSettingItem(stringResource(R.string.chat_info_ai_model_architecture), showArrow = false) {
                     WeSettingValue(architecture)
                 }
             }
             modelInfo?.parameterCount?.let { count ->
-                WeSettingItem("参数量", showArrow = false) {
+                WeSettingItem(stringResource(R.string.chat_info_ai_parameter_count), showArrow = false) {
                     WeSettingValue(formatParameterCount(count))
                 }
             }
             modelInfo?.contextLength?.let { length ->
-                WeSettingItem("上下文长度", showArrow = false) {
-                    WeSettingValue("$length tokens")
+                WeSettingItem(stringResource(R.string.chat_info_ai_context_length), showArrow = false) {
+                    WeSettingValue(stringResource(R.string.chat_info_ai_token_count, length))
                 }
             }
             modelInfo?.fileType?.let { fileType ->
-                WeSettingItem("GGUF 类型", showArrow = false) {
+                WeSettingItem(stringResource(R.string.chat_info_ai_gguf_type), showArrow = false) {
                     WeSettingValue(ggufFileTypeLabel(fileType))
                 }
             }
             when (state) {
                 is LocalAiState.Importing, LocalAiState.Loading -> WeSettingItem(
-                    label = "取消加载",
+                    label = stringResource(R.string.chat_info_ai_cancel_loading),
                     showDivider = false,
                     onClick = onCancelLoading
                 )
 
                 is LocalAiState.Ready -> WeSettingItem(
-                    label = "卸载模型",
+                    label = stringResource(R.string.chat_info_ai_unload_model),
                     showDivider = false,
                     onClick = onUnloadModel
                 )
@@ -306,6 +310,7 @@ private fun formatParameterCount(count: Long): String = when {
     else -> count.toString()
 }
 
+@Composable
 private fun ggufFileTypeLabel(type: Int): String = when (type) {
     0 -> "F32"
     1 -> "F16"
@@ -319,14 +324,14 @@ private fun ggufFileTypeLabel(type: Int): String = when (type) {
     16 -> "Q4_K_M"
     17 -> "Q3_K_M"
     18 -> "Q2_K"
-    else -> "类型 $type"
+    else -> stringResource(R.string.chat_info_ai_unknown_gguf_type, type)
 }
 
 @Composable
 private fun ContactListBar(
     name: String,
     avatarPath: String?,
-    isLocalAi: Boolean,
+    isAiAssistant: Boolean,
     onNavigateToContact: () -> Unit
 ) {
     Row(
@@ -343,7 +348,7 @@ private fun ContactListBar(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = if (isLocalAi) DesignR.drawable.img_logo else avatarPath,
+                model = if (isAiAssistant) DesignR.drawable.img_logo else avatarPath,
                 error = painterResource(DesignR.drawable.img_avatar_placeholder),
                 contentDescription = null,
                 modifier = Modifier
@@ -360,7 +365,7 @@ private fun ContactListBar(
             )
         }
 
-        if (!isLocalAi) {
+        if (!isAiAssistant) {
             DashedAddButton(
                 modifier = Modifier.size(64.dp),
                 cornerRadius = 6.dp,

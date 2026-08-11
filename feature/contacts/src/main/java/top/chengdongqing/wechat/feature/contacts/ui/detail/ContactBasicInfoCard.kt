@@ -31,14 +31,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.Gender
+import top.chengdongqing.wechat.feature.contacts.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ContactBasicInfoCard(
@@ -61,16 +61,20 @@ fun ContactBasicInfoCard(
 @Composable
 private fun ContactAvatar(contact: Contact) {
     var dialogVisible by remember { mutableStateOf(false) }
-    val close = { dialogVisible = false }
+    val avatarPath = if (contact.isAI) DesignR.drawable.img_logo else contact.avatarPath
+
+    fun handleClose() {
+        dialogVisible = false
+    }
 
     AsyncImage(
-        model = contact.avatarPath,
+        model = avatarPath,
         contentDescription = stringResource(R.string.contact_avatar_description),
         error = painterResource(DesignR.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(64.dp)
             .clip(RoundedCornerShape(6.dp))
-            .onTap(enabled = contact.isFriend || contact.isSelf) {
+            .onTap(enabled = avatarPath != null) {
                 dialogVisible = true
             }
     )
@@ -80,19 +84,19 @@ private fun ContactAvatar(contact: Contact) {
      */
     if (dialogVisible) {
         Dialog(
-            onDismissRequest = close,
+            onDismissRequest = ::handleClose,
             properties = DialogProperties(
                 usePlatformDefaultWidth = false,
                 decorFitsSystemWindows = false
             )
         ) {
             ZoomableAsyncImage(
-                model = contact.avatarPath,
+                model = avatarPath,
                 contentDescription = stringResource(DesignR.string.me_profile_avatar),
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Black),
-                onClick = { close() }
+                onClick = { handleClose() }
             )
         }
     }
@@ -121,7 +125,7 @@ private fun ContactBasicInfo(
             }
         }
 
-        if (!contact.isSelf) {
+        if (contact.isFriend || contact.isStranger) {
             InfoText(
                 label = stringResource(R.string.contact_label_nickname),
                 value = contact.nickname,

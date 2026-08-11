@@ -14,10 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.ContactResult
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @AndroidEntryPoint
 class ContactPickerActivity : ComponentActivity() {
@@ -88,7 +87,7 @@ fun rememberPickContactLauncher(
         val options = ActivityOptionsCompat.makeCustomAnimation(
             context,
             DesignR.anim.slide_in_up,
-            android.DesignR.anim.fade_out
+            android.R.anim.fade_out
         )
 
         launcher.launch(intent, options)

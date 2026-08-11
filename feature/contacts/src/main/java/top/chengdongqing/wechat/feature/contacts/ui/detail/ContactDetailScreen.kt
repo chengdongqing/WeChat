@@ -16,11 +16,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ContactDetailScreen(
@@ -30,7 +29,7 @@ fun ContactDetailScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToSetting: () -> Unit = {},
     onNavigateToRequestAdd: () -> Unit = {},
-    isLocalAi: Boolean = false,
+    isAiAssistant: Boolean = false,
     viewModel: ContactDetailViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -65,7 +64,7 @@ fun ContactDetailScreen(
     Scaffold(
         topBar = {
             TopBar(
-                moreActionVisible = !isLocalAi && (contact?.isFriend ?: false),
+                moreActionVisible = !isAiAssistant && (contact?.isFriend ?: false),
                 onBack = onBack
             ) {
                 viewModel.handleAction(ContactAction.ShowMore)
@@ -80,15 +79,11 @@ fun ContactDetailScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            if (isLocalAi) {
-                LocalAiContactDetailContent(onSendMessage = onNavigateToChat)
-            } else {
-                contact?.let {
-                    ContactDetailContent(
-                        contact = it,
-                        onAction = viewModel::handleAction
-                    )
-                }
+            contact?.let {
+                ContactDetailContent(
+                    contact = it,
+                    onAction = viewModel::handleAction
+                )
             }
         }
     }

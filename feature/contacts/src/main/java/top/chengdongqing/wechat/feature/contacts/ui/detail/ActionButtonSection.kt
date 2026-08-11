@@ -23,13 +23,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.call.ui.CallOptions
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.Contact
+import top.chengdongqing.wechat.feature.contacts.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 操作按钮板块
@@ -44,7 +44,7 @@ fun ActionButtonSection(
         modifier = Modifier.background(WeTheme.colorScheme.surface)
     ) {
         when {
-            contact.isSelf || contact.isFriend -> {
+            !contact.isStranger -> {
                 ActionButton(
                     icon = DesignR.drawable.ic_message_outlined,
                     text = stringResource(R.string.contact_action_send_message),

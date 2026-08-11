@@ -38,10 +38,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.file.PrivateFileManager
-import top.chengdongqing.wechat.core.file.PublicFileManager
-import top.chengdongqing.wechat.core.file.getFileMetadata
-import top.chengdongqing.wechat.core.media.model.MediaItem
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -56,12 +52,13 @@ import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.dao.FavoriteDao
 import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.entity.FavoriteEntity
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.core.playback.R as PlaybackR
-import top.chengdongqing.wechat.feature.chat.R
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.PublicFileManager
+import top.chengdongqing.wechat.core.file.getFileMetadata
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.previewLocation
+import top.chengdongqing.wechat.core.media.model.MediaItem
 import top.chengdongqing.wechat.core.model.ChatSession
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
@@ -72,8 +69,11 @@ import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
 import top.chengdongqing.wechat.core.playback.SoundTipPlayer
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiEngine
+import top.chengdongqing.wechat.feature.chat.ai.LocalAiError
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
+import top.chengdongqing.wechat.feature.chat.ai.getLocalAiErrorMessage
 import top.chengdongqing.wechat.feature.chat.data.mapper.getLocalPath
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMediaItem
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
@@ -89,6 +89,8 @@ import top.chengdongqing.wechat.feature.chat.ui.session.util.AudioPlaybackManage
 import top.chengdongqing.wechat.feature.chat.ui.session.util.VoicePlaybackState
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.playback.R as PlaybackR
 
 @HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
 class ChatSessionViewModel @AssistedInject constructor(
@@ -580,11 +582,12 @@ class ChatSessionViewModel @AssistedInject constructor(
                 }
                 throw error
             } catch (error: Throwable) {
-                val text = error.message ?: "本地模型推理失败"
+                val text = context.getLocalAiErrorMessage(error, LocalAiError.INFERENCE_FAILED)
                 if (response.isEmpty()) {
                     response.append(text)
                 } else {
-                    response.append("\n\n生成中断：").append(text)
+                    response.append("\n\n")
+                        .append(context.getString(R.string.local_ai_generation_interrupted, text))
                 }
                 _streamingAiMessage.update { current ->
                     current?.takeIf { it.id == messageId }?.copy(text = response.toString())

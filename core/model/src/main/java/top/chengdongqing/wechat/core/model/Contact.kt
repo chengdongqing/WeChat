@@ -21,5 +21,7 @@ data class Contact(
 ) {
     val displayName: String get() = remarkName ?: nickname
     val isFriend: Boolean get() = relation == ContactRelation.Friend
+    val isStranger: Boolean get() = relation == ContactRelation.NotFriend
     val isSelf: Boolean get() = relation == ContactRelation.Myself
+    val isAI: Boolean get() = relation == ContactRelation.AIAssistant
 }

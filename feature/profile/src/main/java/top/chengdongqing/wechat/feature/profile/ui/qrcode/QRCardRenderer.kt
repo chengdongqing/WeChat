@@ -28,11 +28,10 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.qrcode.generator.QRCodeState
-import top.chengdongqing.wechat.core.common.qrcode.generator.drawQrCode
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.model.UserProfile
+import top.chengdongqing.wechat.core.qrcode.generator.QRCodeState
+import top.chengdongqing.wechat.core.qrcode.generator.drawQrCode
+import top.chengdongqing.wechat.feature.profile.R
 
 /**
  * 二维码卡片渲染器

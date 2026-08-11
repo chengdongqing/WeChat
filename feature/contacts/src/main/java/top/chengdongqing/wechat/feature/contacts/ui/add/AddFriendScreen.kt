@@ -31,12 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.common.qrcode.generator.QrDotStyle
-import top.chengdongqing.wechat.core.common.qrcode.generator.WeQRCode
-import top.chengdongqing.wechat.core.common.qrcode.generator.rememberQRCodeState
-import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
@@ -46,7 +40,13 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.proximity.ui.RequestAddFriendPermission
+import top.chengdongqing.wechat.core.qrcode.generator.QrDotStyle
+import top.chengdongqing.wechat.core.qrcode.generator.WeQRCode
+import top.chengdongqing.wechat.core.qrcode.generator.rememberQRCodeState
+import top.chengdongqing.wechat.core.qrcode.scanner.rememberScanCodeLauncher
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.feature.contacts.domain.model.AddContactOption
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun AddFriendScreen(

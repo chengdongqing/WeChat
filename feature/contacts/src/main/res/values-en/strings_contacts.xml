@@ -5,7 +5,10 @@
     <string name="contacts_menu_official_accounts">Official Accounts</string>
 
     <string name="contacts_action_edit_profile">Edit friend profile</string>
-    <string name="contacts_count">%d friend(s)</string>
+    <plurals name="contacts_count">
+        <item quantity="one">$d friend</item>
+        <item quantity="other">%d friends</item>
+    </plurals>
 
     <string name="contact_avatar_description">Avatar</string>
     <string name="contact_label_nickname">Name: </string>
@@ -17,6 +20,7 @@
     <string name="contact_action_temporary_chat">Temporary Chat</string>
     <string name="contact_action_voice_video_call">Voice or Video Call</string>
     <string name="contact_action_add_to_contacts">Add to Contacts</string>
+    <string name="contact_ai_assistant_description">Xiaowei is an on-device AI assistant. The model and all conversation inference remain on your device.</string>
 
     <string name="contact_profile_section_remark">Alias</string>
     <string name="contact_profile_remark_name">Alias</string>

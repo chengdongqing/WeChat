@@ -90,6 +90,7 @@ fun WeTheme(
         isDarkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+    val rippleColor = if(isDarkTheme) White else Color.Unspecified
     // 语言配置
     val appLanguage = remember(settings.language) {
         when (settings.language) {
@@ -116,7 +117,7 @@ fun WeTheme(
 
     CompositionLocalProvider(
         LocalDensity provides scaledDensity,
-        LocalIndication provides ripple(),
+        LocalIndication provides ripple(color = rippleColor),
         LocalAppearanceSetting provides AppearanceSetting(
             isDarkTheme = isDarkTheme,
             colorScheme = colorScheme,

@@ -18,16 +18,17 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.handler.FileHandler
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.data.repository.TemporaryChatRepository
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.ContactRelation
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.toContact
 import top.chengdongqing.wechat.core.model.toResult
 import top.chengdongqing.wechat.core.util.showToast
@@ -58,25 +59,18 @@ class ContactDetailViewModel @AssistedInject constructor(
         }
 
         val isSelf = contactId == myProfile.id
+        val isAi = contactId == LocalAiAssistant.ID
 
-        val finalContact = when {
-            isSelf -> {
-                // 自己
-                myProfile.toContact()
-            }
-
-            contact != null -> {
-                // 朋友（从数据库）
-                contact.copy(relation = ContactRelation.Friend)
-            }
-
-            else -> {
-                // 陌生人（从缓存）
-                addFriendRepository.getContactFromCache(contactId)
-            }
+        when {
+            // 自己
+            isSelf -> myProfile.toContact()
+            // AI 助手
+            isAi -> LocalAiAssistant.toContact()
+            // 朋友（从数据库）
+            contact != null -> contact.copy(relation = ContactRelation.Friend)
+            // 陌生人（从缓存）
+            else -> addFriendRepository.getContactFromCache(contactId)
         }
-
-        finalContact
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
