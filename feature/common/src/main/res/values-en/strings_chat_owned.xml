@@ -1,0 +1,4 @@
+<resources>
+    <string name='chat_info_clear_background'>Clear Background</string>
+    <string name='chat_info_background_clear_title'>Clear current chat background?</string>
+</resources>

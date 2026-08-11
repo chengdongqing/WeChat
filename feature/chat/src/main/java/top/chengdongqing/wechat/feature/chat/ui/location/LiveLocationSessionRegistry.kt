@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.network.messaging.RealtimePacketBus
 import top.chengdongqing.wechat.core.network.model.PacketType
+import top.chengdongqing.wechat.core.runtime.IoScope
 import javax.inject.Inject
 import javax.inject.Singleton
 

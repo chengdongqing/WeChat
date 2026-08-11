@@ -38,8 +38,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.feature.chat.R
 
 @Composable
 fun VinylRecord(albumArt: Any, isPlaying: Boolean) {

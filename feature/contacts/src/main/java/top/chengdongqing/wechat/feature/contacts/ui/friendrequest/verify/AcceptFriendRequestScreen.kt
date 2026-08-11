@@ -6,7 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalResources
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.ContactHandleBase
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.FriendActionType

@@ -35,7 +35,8 @@ import top.chengdongqing.wechat.core.common.qrcode.generator.QrDotStyle
 import top.chengdongqing.wechat.core.common.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.core.common.qrcode.generator.rememberQRCodeState
 import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
@@ -154,7 +155,7 @@ private fun QrCodeSection(
 ) {
     val qrCodeState = rememberQRCodeState(
         content = qrContent,
-        logoPainter = painterResource(R.drawable.img_logo_outlined),
+        logoPainter = painterResource(DesignR.drawable.img_logo_outlined),
         dotStyle = QrDotStyle.Circle
     )
     val targetWidth = rememberScreenFractionWidth(0.4f)

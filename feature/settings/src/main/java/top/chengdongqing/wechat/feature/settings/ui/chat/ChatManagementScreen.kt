@@ -28,7 +28,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
@@ -62,13 +63,13 @@ fun ChatManagementScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ChatHandleCard(
-                    icon = R.drawable.ic_import_export,
+                    icon = DesignR.drawable.ic_import_export,
                     title = stringResource(R.string.chat_history_import_title),
                     description = stringResource(R.string.chat_history_import_desc),
                     onClick = {}
                 )
                 ChatHandleCard(
-                    icon = R.drawable.ic_backup_restore,
+                    icon = DesignR.drawable.ic_backup_restore,
                     title = stringResource(R.string.chat_history_backup_title),
                     description = stringResource(R.string.chat_history_backup_desc),
                     onClick = {}
@@ -95,7 +96,7 @@ private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
                 DialogManager.show(
                     title = resources.getString(R.string.chat_history_clear_title),
                     content = resources.getString(R.string.chat_history_clear_content),
-                    okText = R.string.action_clear,
+                    okText = DesignR.string.action_clear,
                     okColor = SemanticError,
                     onOk = viewModel::deleteAllSessions
                 )
@@ -144,7 +145,7 @@ private fun ChatHandleCard(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
-                painter = painterResource(R.drawable.ic_right_outlined),
+                painter = painterResource(DesignR.drawable.ic_right_outlined),
                 contentDescription = null,
                 tint = WeTheme.colorScheme.textSecondary,
                 modifier = Modifier

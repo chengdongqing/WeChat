@@ -11,11 +11,11 @@ enum class RingtoneSound(
     val ringtoneRes: Int?
 ) {
     FollowSystem(DesignR.string.settings_follow_system, null),
-    Default(DesignR.string.ringtone_default, DesignR.raw.ringtone_default),
-    Mi(DesignR.string.ringtone_mi, DesignR.raw.ringtone_mi),
-    MiJazz(DesignR.string.ringtone_mi_jazz, DesignR.raw.ringtone_mi_jazz),
-    MiHouse(DesignR.string.ringtone_mi_house, DesignR.raw.ringtone_mi_house),
-    MiRemix(DesignR.string.ringtone_mi_remix, DesignR.raw.ringtone_mi_remix);
+    Default(DesignR.string.ringtone_default, R.raw.ringtone_default),
+    Mi(DesignR.string.ringtone_mi, R.raw.ringtone_mi),
+    MiJazz(DesignR.string.ringtone_mi_jazz, R.raw.ringtone_mi_jazz),
+    MiHouse(DesignR.string.ringtone_mi_house, R.raw.ringtone_mi_house),
+    MiRemix(DesignR.string.ringtone_mi_remix, R.raw.ringtone_mi_remix);
 }
 
 fun RingtoneSound.toUri(context: Context): Uri =

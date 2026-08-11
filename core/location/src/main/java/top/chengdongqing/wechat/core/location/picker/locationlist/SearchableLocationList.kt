@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.location.picker.LocationPickerState
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.location.R as LocationR
 
 @Composable
 fun SearchableLocationList(state: LocationPickerState, listState: LazyListState) {
@@ -114,7 +114,7 @@ private fun SearchInput(state: LocationPickerState) {
     WeSearchBar(
         value = "",
         modifier = Modifier.padding(16.dp),
-        placeholder = stringResource(DesignR.string.location_search_placeholder),
+        placeholder = stringResource(LocationR.string.location_search_placeholder),
         disabled = true,
         onClick = { state.isSearchMode = true }
     ) {}

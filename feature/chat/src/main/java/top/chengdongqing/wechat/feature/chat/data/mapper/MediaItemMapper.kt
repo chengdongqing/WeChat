@@ -1,9 +1,9 @@
 package top.chengdongqing.wechat.feature.chat.data.mapper
 
 import androidx.core.net.toUri
-import top.chengdongqing.wechat.core.common.media.model.MediaItem
-import top.chengdongqing.wechat.core.common.media.model.MediaType
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.media.model.MediaItem
+import top.chengdongqing.wechat.core.media.model.MediaType
 import java.io.File
 
 fun MessageContent.Media.toMediaItem() = MediaItem(

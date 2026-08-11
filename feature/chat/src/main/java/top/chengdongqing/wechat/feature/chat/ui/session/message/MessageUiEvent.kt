@@ -2,7 +2,7 @@ package top.chengdongqing.wechat.feature.chat.ui.session.message
 
 import android.net.Uri
 
-import top.chengdongqing.wechat.core.common.media.model.MediaItem
+import top.chengdongqing.wechat.core.media.model.MediaItem
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.model.CallType
 

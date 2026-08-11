@@ -24,7 +24,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
@@ -42,7 +43,7 @@ fun ChatSessionTopBar(
         titleContent = {
             ChatSessionTitle(viewModel, uiState)
         },
-        backText = if (isSelectMode) stringResource(R.string.action_cancel) else null,
+        backText = if (isSelectMode) stringResource(DesignR.string.action_cancel) else null,
         onBack = {
             if (isSelectMode) {
                 viewModel.exitSelectMode()
@@ -54,8 +55,8 @@ fun ChatSessionTopBar(
     ) {
         if (!isSelectMode) {
             IconButton(
-                icon = R.drawable.ic_more_outlined,
-                description = stringResource(R.string.action_more)
+                icon = DesignR.drawable.ic_more_outlined,
+                description = stringResource(DesignR.string.action_more)
             ) {
                 onNavigateToInfo()
             }
@@ -125,7 +126,7 @@ private fun ChatSessionTitle(
             // 免打扰
             if (uiState.isMuted) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_mute_outlined),
+                    painter = painterResource(DesignR.drawable.ic_mute_outlined),
                     contentDescription = stringResource(R.string.chat_muted_desc),
                     modifier = Modifier.size(16.dp),
                     tint = WeTheme.colorScheme.textSecondary
@@ -134,7 +135,7 @@ private fun ChatSessionTitle(
             // 通过听筒播放
             if (!uiState.isSpeakerOn) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_ear_outlined),
+                    painter = painterResource(DesignR.drawable.ic_ear_outlined),
                     contentDescription = stringResource(R.string.chat_earpiece_desc),
                     modifier = Modifier.size(16.dp),
                     tint = WeTheme.colorScheme.textSecondary
@@ -144,7 +145,7 @@ private fun ChatSessionTitle(
                 // 加密锁图标
                 if (isE2EActive) {
                     Icon(
-                        painter = painterResource(R.drawable.ic_lock_filled),
+                        painter = painterResource(DesignR.drawable.ic_lock_filled),
                         contentDescription = stringResource(R.string.chat_encrypted_desc),
                         modifier = Modifier.size(16.dp),
                         tint = WeTheme.colorScheme.textSecondary

@@ -1,0 +1,6 @@
+<resources>
+    <string name='scan_hint'>Scan QR / Barcode</string>
+    <string name='scan_tool_flash'>Flash</string>
+    <string name='scan_tool_album'>Album</string>
+    <string name='scan_recognize_failed'>Recognition failed</string>
+</resources>

@@ -42,13 +42,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.media.model.MediaItem
-import top.chengdongqing.wechat.core.common.media.model.MediaType
-import top.chengdongqing.wechat.core.common.media.preview.previewMedias
 import top.chengdongqing.wechat.core.data.model.ChatHistoryItem
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.datetime.toFullDateTime
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.text.RichTextMode
 import top.chengdongqing.wechat.core.designsystem.text.parseRichText
@@ -58,14 +54,19 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.previewLocation
+import top.chengdongqing.wechat.core.media.model.MediaItem
+import top.chengdongqing.wechat.core.media.model.MediaType
+import top.chengdongqing.wechat.core.media.preview.previewMedias
 import top.chengdongqing.wechat.core.playback.VoicePlayer
 import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.ChatHistoryContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.MusicContent
 import top.chengdongqing.wechat.feature.chat.ui.session.message.content.VoiceIcon
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ChatHistoryScreen(
@@ -139,7 +140,7 @@ private fun ChatHistoryRow(
                     )
                     if (item.kind == "video") {
                         Icon(
-                            painter = painterResource(R.drawable.ic_play_filled),
+                            painter = painterResource(DesignR.drawable.ic_play_filled),
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier
@@ -186,7 +187,7 @@ private fun ChatHistoryRow(
                         )
                     }
                 }
-                Image(painterResource(R.drawable.ic_file_filled), null, Modifier.size(48.dp))
+                Image(painterResource(DesignR.drawable.ic_file_filled), null, Modifier.size(48.dp))
             }
 
             "location" -> HistoryLocation(item)

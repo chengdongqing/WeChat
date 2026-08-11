@@ -22,9 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.preview.music.MusicBackground
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun MusicContent(content: MessageContent.Music) {
@@ -64,8 +65,8 @@ fun MusicContent(content: MessageContent.Music) {
             }
             Box(modifier = Modifier.padding(end = 8.dp)) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_play_filled),
-                    contentDescription = stringResource(R.string.action_play),
+                    painter = painterResource(DesignR.drawable.ic_play_filled),
+                    contentDescription = stringResource(DesignR.string.action_play),
                     tint = White,
                     modifier = Modifier.size(22.dp)
                 )

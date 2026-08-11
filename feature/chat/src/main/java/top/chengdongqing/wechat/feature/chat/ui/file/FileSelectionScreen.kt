@@ -64,12 +64,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.file.FileMetadata
-import top.chengdongqing.wechat.core.common.file.getFileMetadata
-import top.chengdongqing.wechat.core.common.media.model.MediaItem
-import top.chengdongqing.wechat.core.common.media.model.MediaType
-import top.chengdongqing.wechat.core.common.media.preview.previewMedias
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
@@ -78,6 +72,12 @@ import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.permission.RequestMediaPermission
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.file.FileMetadata
+import top.chengdongqing.wechat.core.file.getFileMetadata
+import top.chengdongqing.wechat.core.media.model.MediaItem
+import top.chengdongqing.wechat.core.media.model.MediaType
+import top.chengdongqing.wechat.core.media.preview.previewMedias
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -208,7 +208,7 @@ private fun Header(
         onBack = onCancel
     ) {
         if (search) {
-            IconButton(R.drawable.ic_search_outlined)
+            IconButton(DesignR.drawable.ic_search_outlined)
         }
     }
 }
@@ -442,7 +442,7 @@ private fun FileRow(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_file_filled),
+                painter = painterResource(DesignR.drawable.ic_file_filled),
                 contentDescription = null,
                 modifier = Modifier.size(34.dp),
                 tint = WeTheme.colorScheme.divider
@@ -503,7 +503,7 @@ private fun SelectionBar(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_arrow_down_outlined),
+                painter = painterResource(DesignR.drawable.ic_arrow_down_outlined),
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
                 tint = WeTheme.colorScheme.textSecondary

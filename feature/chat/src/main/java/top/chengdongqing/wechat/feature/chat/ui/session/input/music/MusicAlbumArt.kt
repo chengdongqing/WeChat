@@ -26,9 +26,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.data.model.MusicTrack
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun MusicAlbumArt(music: MusicTrack, isPlaying: Boolean) {
@@ -56,7 +56,7 @@ fun MusicAlbumArt(music: MusicTrack, isPlaying: Boolean) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_play_filled),
+                    painter = painterResource(DesignR.drawable.ic_play_filled),
                     contentDescription = "播放",
                     tint = White,
                     modifier = Modifier
@@ -82,7 +82,7 @@ fun MusicAlbumArt(music: MusicTrack, isPlaying: Boolean) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_music_filled),
+                    painter = painterResource(DesignR.drawable.ic_music_filled),
                     contentDescription = "播放",
                     modifier = Modifier
                         .size(16.dp)

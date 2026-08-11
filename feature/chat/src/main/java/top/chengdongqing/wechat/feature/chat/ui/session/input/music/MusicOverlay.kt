@@ -55,16 +55,17 @@ import coil3.compose.AsyncImage
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.model.MusicTrack
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.playback.MusicPlayer
 import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarActions
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarState
 import java.io.ByteArrayOutputStream
 import java.io.File
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun MusicOverlay(
@@ -270,7 +271,7 @@ private fun MusicItem(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(R.string.action_send),
+                text = stringResource(DesignR.string.action_send),
                 color = WeTheme.colorScheme.link,
                 fontSize = 15.sp
             )

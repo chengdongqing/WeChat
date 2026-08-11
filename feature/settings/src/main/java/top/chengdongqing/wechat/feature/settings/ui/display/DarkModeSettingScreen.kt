@@ -16,7 +16,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -52,7 +53,7 @@ fun DarkModeSettingScreen(
                 onBack = onBack
             ) {
                 WeButton(
-                    text = stringResource(R.string.action_done),
+                    text = stringResource(DesignR.string.action_done),
                     size = ButtonSize.Small,
                     enabled = hasChanged
                 ) {
@@ -70,7 +71,7 @@ fun DarkModeSettingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             WeSettingItem(
-                label = stringResource(R.string.settings_follow_system),
+                label = stringResource(DesignR.string.settings_follow_system),
                 description = stringResource(R.string.display_theme_follow_system_desc),
                 showArrow = false,
                 showDivider = false,

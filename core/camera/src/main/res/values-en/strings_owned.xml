@@ -1,0 +1,5 @@
+<resources>
+    <string name='camera_tip_photo'>Tap to take photo</string>
+    <string name='camera_tip_video'>Hold to record video</string>
+    <string name='camera_flash_toggle'>Toggle Flash</string>
+</resources>

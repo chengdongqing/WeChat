@@ -1,0 +1,21 @@
+<resources>
+    <string name="settings_follow_system">Automatic</string>
+    <string name="notification_display_hidden_all">Show \"You have 1 new message\" only</string>
+    <string name="notification_display_sender_only">Show sender name only</string>
+    <string name="notification_display_sender_and_content">Show sender name and message content</string>
+    <string name="notification_sound_blocks">Toys</string>
+    <string name="notification_sound_cute">Cupid</string>
+    <string name="notification_sound_ethereal">Celestial</string>
+    <string name="notification_sound_playful">Delight</string>
+    <string name="notification_sound_crisp">Crystals</string>
+    <string name="notification_sound_nimble">Fairy</string>
+    <string name="ringtone_default">WeChat</string>
+    <string name="ringtone_mi">Mi</string>
+    <string name="ringtone_mi_jazz">Mi Jazz</string>
+    <string name="ringtone_mi_house">Mi House</string>
+    <string name="ringtone_mi_remix">Mi Remix</string>
+    <string name="display_theme_light">Light</string>
+    <string name="display_theme_dark">Dark</string>
+    <string name="display_language_chinese">简体中文</string>
+    <string name="display_language_english">English</string>
+</resources>

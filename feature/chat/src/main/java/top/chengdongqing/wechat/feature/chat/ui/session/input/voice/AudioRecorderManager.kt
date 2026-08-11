@@ -7,7 +7,7 @@ import android.media.MediaRecorder
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.network.audio.ChatOpusFileWriter
 import top.chengdongqing.wechat.core.network.audio.IntercomAudioFormat

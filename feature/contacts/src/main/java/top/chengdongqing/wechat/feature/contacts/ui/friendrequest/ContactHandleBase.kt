@@ -33,7 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
@@ -119,9 +120,9 @@ fun ContactHandleBase(
             // 确认按钮
             ConfirmButton(
                 text = if (type.isApply) {
-                    stringResource(R.string.action_send)
+                    stringResource(DesignR.string.action_send)
                 } else {
-                    stringResource(R.string.action_done)
+                    stringResource(DesignR.string.action_done)
                 },
                 onClick = onComplete
             )
@@ -204,7 +205,7 @@ private fun LinkedRow(label: String, onClick: () -> Unit) {
     ) {
         Text(text = label, color = LinkBlue, fontSize = 16.sp)
         Icon(
-            painter = painterResource(R.drawable.ic_right_outlined),
+            painter = painterResource(DesignR.drawable.ic_right_outlined),
             contentDescription = null,
             tint = Color.Gray,
             modifier = Modifier.size(24.dp)

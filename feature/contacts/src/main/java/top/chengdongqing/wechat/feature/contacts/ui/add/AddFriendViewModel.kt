@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.qrcode.QRCodeResult
+import top.chengdongqing.wechat.core.qrcode.QRCodeResult
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.data.usecase.QRCodeUseCase
 import top.chengdongqing.wechat.core.model.UserProfile

@@ -1,0 +1,29 @@
+<resources>
+    <string name="me_menu_service">Pay and Services</string>
+    <string name="me_menu_favorites">Favorites</string>
+    <string name="me_menu_moments">My Posts</string>
+    <string name="me_menu_stickers">Sticker Gallery</string>
+    <string name="me_menu_settings">Settings</string>
+
+    <string name="me_id">ID</string>
+    <string name="me_status">Status</string>
+
+    <string name="me_profile">Profile</string>
+    <string name="me_profile_name">Name</string>
+    <string name="me_profile_gender">Gender</string>
+    <string name="me_profile_wechat_id">WeChat ID</string>
+    <string name="me_profile_qrcode">My QR Code</string>
+    <string name="me_profile_bio">What\'s Up</string>
+    <string name="me_profile_ringtone">Ringtone for Incoming Calls</string>
+
+    <string name="me_edit_name">Edit Name</string>
+    <string name="me_edit_name_hint">Pick a name friends will remember.</string>
+    <string name="me_edit_bio">What\'s Up</string>
+    <string name="me_edit_gender">Set Gender</string>
+    <string name="me_edit_id_hint">As there is no central server, the WeChat ID cannot be changed to ensure device uniqueness.</string>
+
+    <string name="me_qrcode_hint">Scan the QR code to add me as friend.</string>
+    <string name="me_qrcode_scan">Scan</string>
+    <string name="me_qrcode_change_style">Change Style</string>
+    <string name="me_qrcode_save">Save Image</string>
+</resources>

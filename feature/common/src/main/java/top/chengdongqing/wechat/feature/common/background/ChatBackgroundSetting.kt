@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.feature.common.background
 
+import top.chengdongqing.wechat.feature.common.R as CommonFeatureR
+
 import android.Manifest
 import android.content.Context
 import android.net.Uri
@@ -19,7 +21,7 @@ import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.file.createImageUri
+import top.chengdongqing.wechat.core.file.createImageUri
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
@@ -45,7 +47,7 @@ fun ChatBackgroundSetting(
         if (value != null) {
             list.add(
                 ActionSheetItem(
-                    labelRes = DesignR.string.chat_info_clear_background,
+                    labelRes = CommonFeatureR.string.chat_info_clear_background,
                     color = SemanticError
                 )
             )
@@ -59,7 +61,7 @@ fun ChatBackgroundSetting(
                 0 -> scope.launch { selectorState.handleCameraAction() }
                 1 -> selectorState.pickVisualMedia()
                 2 -> {
-                    DialogManager.show(resources.getString(DesignR.string.chat_info_background_clear_title)) {
+                    DialogManager.show(resources.getString(CommonFeatureR.string.chat_info_background_clear_title)) {
                         onChange(null)
                     }
                 }

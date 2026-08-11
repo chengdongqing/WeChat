@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
-        <activity android:name="top.chengdongqing.wechat.core.common.cropper.ImageCropperActivity" />
-        <activity android:name="top.chengdongqing.wechat.core.common.media.preview.MediaPreviewActivity" />
-        <activity android:name="top.chengdongqing.wechat.core.common.media.picker.MediaPickerActivity" />
+        <activity android:name="top.chengdongqing.wechat.core.cropper.ImageCropperActivity" />
+        <activity android:name="top.chengdongqing.wechat.core.media.preview.MediaPreviewActivity" />
+        <activity android:name="top.chengdongqing.wechat.core.media.picker.MediaPickerActivity" />
     </application>
 </manifest>

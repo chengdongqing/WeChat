@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.datetime.toRelativeDateTime
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.text.RichTextMode
@@ -46,6 +45,8 @@ import top.chengdongqing.wechat.core.designsystem.ui.toPreviewText
 import top.chengdongqing.wechat.core.model.ChatSession
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.feature.chat.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ChatItem(chat: ChatSession) {
@@ -76,12 +77,12 @@ private fun SessionAvatar(chat: ChatSession) {
     ) {
         AsyncImage(
             model = if (chat.id == LocalAiAssistant.ID) {
-                R.drawable.img_logo
+                DesignR.drawable.img_logo
             } else {
                 chat.contactAvatar
             },
             contentDescription = null,
-            error = painterResource(R.drawable.img_avatar_placeholder),
+            error = painterResource(DesignR.drawable.img_avatar_placeholder),
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(4.dp)),
@@ -130,7 +131,7 @@ private fun RowScope.SessionContent(session: ChatSession) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (session.isSending) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_sending_filled),
+                    painter = painterResource(DesignR.drawable.ic_sending_filled),
                     contentDescription = null,
                     modifier = Modifier
                         .size(24.dp)
@@ -165,7 +166,7 @@ private fun SessionStatus(chat: ChatSession) {
             color = WeTheme.colorScheme.textSecondary.copy(alpha = 0.4f)
         )
         Icon(
-            painter = painterResource(R.drawable.ic_mute_outlined),
+            painter = painterResource(DesignR.drawable.ic_mute_outlined),
             contentDescription = null,
             modifier = Modifier
                 .size(14.dp)

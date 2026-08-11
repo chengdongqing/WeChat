@@ -24,7 +24,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -83,7 +84,7 @@ fun NFCAddFriendScreen(
                     NfcUnavailable(
                         title = stringResource(R.string.nfc_not_supported_title),
                         description = stringResource(R.string.nfc_not_supported_description),
-                        actionLabel = stringResource(R.string.action_back),
+                        actionLabel = stringResource(DesignR.string.action_back),
                         onAction = onBack
                     )
 

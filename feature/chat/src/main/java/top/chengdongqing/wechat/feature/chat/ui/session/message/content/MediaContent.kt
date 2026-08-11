@@ -34,15 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.file.loadMediaThumbnail
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
+import top.chengdongqing.wechat.core.file.loadMediaThumbnail
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.core.util.format
 import top.chengdongqing.wechat.core.util.toPercent
@@ -50,6 +49,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 import top.chengdongqing.wechat.feature.chat.ui.session.mediaSharedElement
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun MediaContent(message: ChatMessage) {
@@ -135,7 +135,7 @@ private fun BoxScope.VideoOverlay(
     val chatContext = LocalChatSessionContext.current
     val isPaused = message.sendStatus is MessageSendStatus.Paused
 
-    val icon = if (isPaused) R.drawable.ic_play_filled else R.drawable.ic_pause_filled
+    val icon = if (isPaused) DesignR.drawable.ic_play_filled else DesignR.drawable.ic_pause_filled
 
     // 进度显示层
     if (message.isProgressing) {
@@ -168,7 +168,7 @@ private fun BoxScope.VideoOverlay(
         }
     } else {
         Icon(
-            painter = painterResource(R.drawable.ic_play_filled),
+            painter = painterResource(DesignR.drawable.ic_play_filled),
             contentDescription = null,
             tint = Color.White,
             modifier = Modifier

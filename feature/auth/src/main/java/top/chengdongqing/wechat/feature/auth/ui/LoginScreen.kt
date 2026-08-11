@@ -35,6 +35,7 @@ import top.chengdongqing.wechat.core.designsystem.components.informationbar.Info
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
 import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.auth.R as AuthR
 
 @Composable
 fun LoginScreen(
@@ -49,7 +50,7 @@ fun LoginScreen(
     Scaffold(
         topBar = {
             WeTopAppBar(
-                title = stringResource(R.string.setup_title),
+                title = stringResource(AuthR.string.setup_title),
                 onBack = onBack,
                 backIconResId = R.drawable.ic_close_outlined,
                 containerColor = WeTheme.colorScheme.surface
@@ -111,8 +112,8 @@ private fun LoginContent(
 
             WeInput(
                 value = uiState.nickname,
-                label = stringResource(R.string.setup_nickname_label),
-                placeholder = stringResource(R.string.setup_nickname_placeholder),
+                label = stringResource(AuthR.string.setup_nickname_label),
+                placeholder = stringResource(AuthR.string.setup_nickname_placeholder),
                 activeColor = WeTheme.colorScheme.divider,
                 maxLength = 17,
                 enabled = !uiState.isLoading,
@@ -120,7 +121,7 @@ private fun LoginContent(
             )
 
             Text(
-                text = stringResource(R.string.setup_nickname_hint),
+                text = stringResource(AuthR.string.setup_nickname_hint),
                 fontSize = 13.sp,
                 color = WeTheme.colorScheme.textSecondary,
                 modifier = Modifier

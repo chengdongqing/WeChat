@@ -24,8 +24,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.network.service.addfriend.BLEAddFriendHandler
+import top.chengdongqing.wechat.core.runtime.IoScope
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton

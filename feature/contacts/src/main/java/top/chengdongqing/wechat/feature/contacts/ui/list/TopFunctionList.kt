@@ -27,7 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
@@ -44,26 +45,26 @@ fun TopFunctionList(
         listOf(
             TopFunction(
                 title = R.string.contacts_menu_new_friends,
-                icon = R.drawable.ic_add_friends_filled,
+                icon = DesignR.drawable.ic_add_friends_filled,
                 badge = pendingCount,
                 containerColor = Color(0xFFFA9D3B),
                 onClick = onNavigateToNewFriends
             ),
             TopFunction(
                 title = R.string.contacts_menu_group_chat,
-                icon = R.drawable.ic_group_chat_filled,
+                icon = DesignR.drawable.ic_group_chat_filled,
                 containerColor = Color(0xFF07C160),
                 onClick = onNavigateToGroups
             ),
             TopFunction(
                 title = R.string.contacts_menu_tags,
-                icon = R.drawable.ic_tag_filled,
+                icon = DesignR.drawable.ic_tag_filled,
                 containerColor = Color(0xFF2782D7),
                 onClick = onNavigateToTags
             ),
             TopFunction(
                 title = R.string.contacts_menu_official_accounts,
-                icon = R.drawable.ic_officical_account_filled,
+                icon = DesignR.drawable.ic_officical_account_filled,
                 containerColor = Color(0xFF2782D7),
                 onClick = {}
             )

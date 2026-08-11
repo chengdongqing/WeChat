@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun LiveContent(message: ChatMessage) {
@@ -62,7 +62,7 @@ fun LiveContent(message: ChatMessage) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painterResource(R.drawable.ic_video_filled),
+                painterResource(DesignR.drawable.ic_video_filled),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(42.dp)

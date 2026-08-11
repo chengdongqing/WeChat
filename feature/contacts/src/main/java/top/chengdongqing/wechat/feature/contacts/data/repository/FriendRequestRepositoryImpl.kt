@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.file.toBytes
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.toBytes
 import top.chengdongqing.wechat.core.data.model.FriendEvent
 import top.chengdongqing.wechat.core.data.model.FriendProtocol
 import top.chengdongqing.wechat.core.data.model.FriendRequestResult

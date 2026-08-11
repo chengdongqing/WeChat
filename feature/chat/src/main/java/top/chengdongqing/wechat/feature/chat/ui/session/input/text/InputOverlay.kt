@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.EmojiTextField
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
@@ -37,6 +36,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarController
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarState
 import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.InputPanelHolder
 import top.chengdongqing.wechat.feature.chat.ui.session.input.rememberInputBarController
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun InputOverlay(
@@ -142,7 +142,7 @@ private fun InputActionBar(
                 .background(if (speechState.isListening) WeTheme.colorScheme.primary else Color.Unspecified)
         ) {
             ActionIcon(
-                icon = R.drawable.ic_mic_circle_outlined,
+                icon = DesignR.drawable.ic_mic_circle_outlined,
                 tint = if (speechState.isListening) Color.White else WeTheme.colorScheme.textPrimary,
                 description = "语音输入"
             ) {
@@ -155,9 +155,9 @@ private fun InputActionBar(
         // 切换表情按键
         ActionIcon(
             icon = if (isEmojiMode) {
-                R.drawable.ic_keyboard_outlined
+                DesignR.drawable.ic_keyboard_outlined
             } else {
-                R.drawable.ic_emoji_outlined
+                DesignR.drawable.ic_emoji_outlined
             }, description = "切换面板", onClick = onToggleMode
         )
     }
@@ -171,7 +171,7 @@ private fun InputTopBar(onDismiss: () -> Unit) {
             .padding(16.dp), horizontalArrangement = Arrangement.Start
     ) {
         CircleActionIcon(
-            icon = R.drawable.ic_arrow_down_outlined, onClick = onDismiss
+            icon = DesignR.drawable.ic_arrow_down_outlined, onClick = onDismiss
         )
     }
 }

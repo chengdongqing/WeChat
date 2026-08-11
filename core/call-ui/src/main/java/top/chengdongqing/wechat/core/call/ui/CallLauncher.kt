@@ -19,6 +19,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.CallType
+import top.chengdongqing.wechat.core.call.ui.R as CallUiR
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -67,7 +68,7 @@ fun rememberCallLauncher(
 
 val CallOptions = listOf(
     ActionSheetItem(
-        labelRes = R.string.chat_call_video,
+        labelRes = CallUiR.string.chat_call_video,
         icon = {
             Icon(
                 painter = painterResource(R.drawable.ic_video_filled),
@@ -78,7 +79,7 @@ val CallOptions = listOf(
         }
     ),
     ActionSheetItem(
-        labelRes = R.string.chat_call_voice,
+        labelRes = CallUiR.string.chat_call_voice,
         icon = {
             Icon(
                 painter = painterResource(R.drawable.ic_call_filled),

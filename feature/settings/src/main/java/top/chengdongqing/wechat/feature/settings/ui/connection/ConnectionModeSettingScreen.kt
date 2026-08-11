@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -52,7 +53,7 @@ fun ConnectionModeSettingScreen(
                 onBack = onBack
             ) {
                 WeButton(
-                    text = stringResource(R.string.action_done),
+                    text = stringResource(DesignR.string.action_done),
                     size = ButtonSize.Small,
                     enabled = hasChanged
                 ) {

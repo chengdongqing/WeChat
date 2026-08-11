@@ -34,7 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -93,13 +94,13 @@ private fun AboutHeader() {
 
     Spacer(modifier = Modifier.height(40.dp))
     Image(
-        painter = painterResource(id = R.drawable.img_logo),
+        painter = painterResource(id = DesignR.drawable.img_logo),
         contentDescription = "Logo",
         modifier = Modifier.size(60.dp)
     )
     Spacer(modifier = Modifier.height(22.dp))
     Text(
-        text = stringResource(R.string.app_name),
+        text = stringResource(DesignR.string.app_name),
         style = TextStyle(
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold,

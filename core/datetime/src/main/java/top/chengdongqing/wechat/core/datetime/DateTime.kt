@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.datetime.R as DateTimeR
 
 private val TimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val MonthDayFormatter = DateTimeFormatter.ofPattern("M月d日 HH:mm")
@@ -44,20 +44,20 @@ fun Long.toRelativeDateTime(resources: Resources): String {
 
         // 昨天
         targetDate.isEqual(nowDate.minusDays(1)) -> {
-            "${resources.getString(DesignR.string.time_yesterday)} ${target.format(TimeFormatter)}"
+            "${resources.getString(DateTimeR.string.time_yesterday)} ${target.format(TimeFormatter)}"
         }
 
         // 一周内 (2-7天前)
         targetDate.isAfter(nowDate.minusDays(7)) -> {
             val weekDayRes = when (target.dayOfWeek) {
-                DayOfWeek.MONDAY -> DesignR.string.time_monday
-                DayOfWeek.TUESDAY -> DesignR.string.time_tuesday
-                DayOfWeek.WEDNESDAY -> DesignR.string.time_wednesday
-                DayOfWeek.THURSDAY -> DesignR.string.time_thursday
-                DayOfWeek.FRIDAY -> DesignR.string.time_friday
-                DayOfWeek.SATURDAY -> DesignR.string.time_saturday
-                DayOfWeek.SUNDAY -> DesignR.string.time_sunday
-                else -> DesignR.string.time_monday
+                DayOfWeek.MONDAY -> DateTimeR.string.time_monday
+                DayOfWeek.TUESDAY -> DateTimeR.string.time_tuesday
+                DayOfWeek.WEDNESDAY -> DateTimeR.string.time_wednesday
+                DayOfWeek.THURSDAY -> DateTimeR.string.time_thursday
+                DayOfWeek.FRIDAY -> DateTimeR.string.time_friday
+                DayOfWeek.SATURDAY -> DateTimeR.string.time_saturday
+                DayOfWeek.SUNDAY -> DateTimeR.string.time_sunday
+                else -> DateTimeR.string.time_monday
             }
             "${resources.getString(weekDayRes)} ${target.format(TimeFormatter)}"
         }

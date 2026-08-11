@@ -23,7 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.call.ui.CallOptions
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -45,14 +46,14 @@ fun ActionButtonSection(
         when {
             contact.isSelf || contact.isFriend -> {
                 ActionButton(
-                    icon = R.drawable.ic_message_outlined,
+                    icon = DesignR.drawable.ic_message_outlined,
                     text = stringResource(R.string.contact_action_send_message),
                     onClick = { onAction(ContactAction.SendMessage) }
                 )
                 if (contact.isFriend && !contact.isBlocked) {
                     WeDivider()
                     ActionButton(
-                        icon = R.drawable.ic_voice_video_outlined,
+                        icon = DesignR.drawable.ic_voice_video_outlined,
                         text = stringResource(R.string.contact_action_voice_video_call),
                         onClick = {
                             ActionSheetManager.show(CallOptions) { index ->
@@ -69,7 +70,7 @@ fun ActionButtonSection(
 
             else -> {
                 ActionButton(
-                    icon = R.drawable.ic_message_outlined,
+                    icon = DesignR.drawable.ic_message_outlined,
                     text = stringResource(R.string.contact_action_temporary_chat),
                     onClick = { onAction(ContactAction.StartTemporaryChat) }
                 )

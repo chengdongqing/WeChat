@@ -32,7 +32,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import top.chengdongqing.wechat.core.database.dao.GroupDao
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -64,7 +65,7 @@ fun GroupListScreen(
                     ) {
                         AsyncImage(
                             model = group.avatarPath,
-                            error = painterResource(R.drawable.img_avatar_placeholder),
+                            error = painterResource(DesignR.drawable.img_avatar_placeholder),
                             contentDescription = null,
                             modifier = Modifier.size(44.dp).clip(RoundedCornerShape(5.dp))
                         )

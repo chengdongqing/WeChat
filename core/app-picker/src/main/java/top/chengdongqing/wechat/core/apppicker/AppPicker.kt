@@ -51,6 +51,7 @@ import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.core.apppicker.R as AppPickerR
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
@@ -250,7 +251,7 @@ private fun TopBar(
     }
 
     WeTopAppBar(
-        title = stringResource(DesignR.string.app_select_title),
+        title = stringResource(AppPickerR.string.app_select_title),
         onBack = onBack
     ) {
         WeButton(

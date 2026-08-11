@@ -10,22 +10,24 @@ import androidx.compose.ui.platform.LocalResources
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.call.ui.CallOptions
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.file.copyResourceToUri
-import top.chengdongqing.wechat.core.common.file.createImageUri
-import top.chengdongqing.wechat.core.common.file.createVideoUri
-import top.chengdongqing.wechat.core.common.file.deleteFileByUri
-import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.copyResourceToUri
+import top.chengdongqing.wechat.core.file.createImageUri
+import top.chengdongqing.wechat.core.file.createVideoUri
+import top.chengdongqing.wechat.core.file.deleteFileByUri
+import top.chengdongqing.wechat.core.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.MoreAction
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.chat.R as ChatR
 
 /**
  * 更多面板操作路由表
@@ -171,8 +173,8 @@ fun rememberActionHandler(
                 onSendMessage(
                     MessageContent.Text(
                         resources.getString(
-                            R.string.donate_description,
-                            resources.getString(R.string.app_name)
+                            ChatR.string.donate_description,
+                            resources.getString(DesignR.string.app_name)
                         )
                     )
                 )
@@ -183,7 +185,7 @@ fun rememberActionHandler(
                     val tempFile = File.createTempFile("Dotation_", ".jpg")
                     // 获取表情URI
                     val uri = context.copyResourceToUri(
-                        resId = R.drawable.img_donation,
+                        resId = ChatR.drawable.img_donation,
                         targetFile = tempFile
                     ) ?: return@launch
                     // 拷贝到私有目录持久化保存

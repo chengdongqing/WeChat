@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
@@ -44,9 +43,11 @@ import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 import top.chengdongqing.wechat.feature.common.background.ChatBackgroundSetting
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ChatInfoScreen(
@@ -103,7 +104,7 @@ fun ChatInfoScreen(
                         DialogManager.show(
                             title = "确定卸载模型吗？",
                             content = "下次使用时可重新导入。",
-                            okText = R.string.action_ok,
+                            okText = DesignR.string.action_ok,
                             okColor = SemanticError,
                             onOk = viewModel::unloadModel
                         )
@@ -173,7 +174,7 @@ fun ChatInfoScreen(
                             DialogManager.show(
                                 title = resources.getString(R.string.chat_info_end_temporary_title),
                                 content = resources.getString(R.string.chat_info_end_temporary_content),
-                                okText = R.string.action_ok,
+                                okText = DesignR.string.action_ok,
                                 okColor = SemanticError,
                                 onOk = { viewModel.endTemporaryChat(onEndTemporaryChat) }
                             )
@@ -196,7 +197,7 @@ fun ChatInfoScreen(
                             R.string.chat_info_clear_title,
                             uiState.contactName
                         ),
-                        okText = R.string.action_clear,
+                        okText = DesignR.string.action_clear,
                         okColor = SemanticError,
                         onOk = { viewModel.clearMessages() }
                     )
@@ -342,8 +343,8 @@ private fun ContactListBar(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = if (isLocalAi) R.drawable.img_logo else avatarPath,
-                error = painterResource(R.drawable.img_avatar_placeholder),
+                model = if (isLocalAi) DesignR.drawable.img_logo else avatarPath,
+                error = painterResource(DesignR.drawable.img_avatar_placeholder),
                 contentDescription = null,
                 modifier = Modifier
                     .size(60.dp)

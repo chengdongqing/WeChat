@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import top.chengdongqing.wechat.core.designsystem.runtime.LaunchedUpdateEffect
+import top.chengdongqing.wechat.core.designsystem.compose.LaunchedUpdateEffect
 import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
 
 @OptIn(ExperimentalPermissionsApi::class)

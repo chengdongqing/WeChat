@@ -1,0 +1,7 @@
+<resources>
+    <string name='map_no_navigation_app'>未安装可用的地图软件</string>
+    <string name='map_amap'>高德地图</string>
+    <string name='map_baidu'>百度地图</string>
+    <string name='map_tencent'>腾讯地图</string>
+    <string name='map_google'>谷歌地图</string>
+</resources>

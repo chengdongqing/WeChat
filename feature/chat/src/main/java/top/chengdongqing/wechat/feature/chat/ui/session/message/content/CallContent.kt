@@ -22,12 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
 import top.chengdongqing.wechat.core.model.CallStatus
 import top.chengdongqing.wechat.core.util.format
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import kotlin.time.Duration.Companion.seconds
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun CallContent(message: ChatMessage) {
@@ -60,7 +61,7 @@ fun CallContent(message: ChatMessage) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(if (isVideoCall) R.drawable.ic_video_outlined else R.drawable.ic_hangup_outlined),
+                painter = painterResource(if (isVideoCall) DesignR.drawable.ic_video_outlined else DesignR.drawable.ic_hangup_outlined),
                 contentDescription = stringResource(content.type.labelRes),
                 tint = color,
                 modifier = Modifier

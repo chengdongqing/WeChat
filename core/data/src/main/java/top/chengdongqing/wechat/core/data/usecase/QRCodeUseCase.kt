@@ -2,10 +2,10 @@ package top.chengdongqing.wechat.core.data.usecase
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.qrcode.QRCodeFormat
-import top.chengdongqing.wechat.core.common.qrcode.QRCodeResult
-import top.chengdongqing.wechat.core.common.qrcode.QRCodeType
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
+import top.chengdongqing.wechat.core.qrcode.QRCodeFormat
+import top.chengdongqing.wechat.core.qrcode.QRCodeResult
+import top.chengdongqing.wechat.core.qrcode.QRCodeType
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -16,7 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -48,7 +49,7 @@ fun EditNameScreen(
                 onBack = onBack
             ) {
                 WeButton(
-                    text = stringResource(R.string.action_save),
+                    text = stringResource(DesignR.string.action_save),
                     size = ButtonSize.Small,
                     enabled = nickname != uiState.profile?.nickname
                             && UserProfile.isValidName(nickname)

@@ -8,11 +8,11 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.file.cache.clearAllCaches
 import top.chengdongqing.wechat.core.network.transfer.TransferSanitizer
+import top.chengdongqing.wechat.core.runtime.IoScope
 
 @HiltAndroidApp
 class WeChatApplication : Application() {

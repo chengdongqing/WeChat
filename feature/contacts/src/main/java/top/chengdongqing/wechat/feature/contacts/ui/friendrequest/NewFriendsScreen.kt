@@ -33,7 +33,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
@@ -107,7 +108,7 @@ fun NewFriendsScreen(
                 item {
                     WeMenuListItem(
                         label = stringResource(R.string.new_contacts_menu_add_phone),
-                        icon = R.drawable.ic_call_filled,
+                        icon = DesignR.drawable.ic_call_filled,
                         iconColor = WeTheme.colorScheme.primary
                     )
                 }
@@ -208,7 +209,7 @@ private fun FriendRequestItem(
             .weContextMenu { position ->
                 contextMenuState.show(
                     position = position,
-                    options = listOf(resources.getString(R.string.action_delete)),
+                    options = listOf(resources.getString(DesignR.string.action_delete)),
                     listIndex = 0
                 )
             }
@@ -254,9 +255,9 @@ private fun FriendRequestItem(
 @Composable
 private fun RequestAvatar(url: String?) {
     AsyncImage(
-        model = url ?: R.drawable.img_avatar_placeholder,
+        model = url ?: DesignR.drawable.img_avatar_placeholder,
         contentDescription = stringResource(R.string.new_contacts_avatar_desc),
-        error = painterResource(R.drawable.img_avatar_placeholder),
+        error = painterResource(DesignR.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(48.dp)
             .clip(RoundedCornerShape(6.dp))
@@ -299,7 +300,7 @@ private fun RequestStatusHandler(
         FriendRequestStatus.Pending -> {
             if (!request.isFromMe) {
                 WeButton(
-                    text = stringResource(R.string.action_view),
+                    text = stringResource(DesignR.string.action_view),
                     type = ButtonType.Plain,
                     size = ButtonSize.Small,
                     onClick = onVerify

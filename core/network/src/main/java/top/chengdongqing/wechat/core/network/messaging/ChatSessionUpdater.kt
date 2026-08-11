@@ -4,7 +4,6 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
@@ -16,6 +15,7 @@ import top.chengdongqing.wechat.core.model.CallStatus
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
+import top.chengdongqing.wechat.core.runtime.IoScope
 
 /**
  * 会话状态更新器

@@ -29,6 +29,7 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.feature.moments.R as FeatureR
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
@@ -51,11 +52,11 @@ fun MomentsScreen(
         ActionSheetManager.show(
             options = listOf(
                 ActionSheetItem(
-                    labelRes = R.string.moments_post_camera,
-                    descriptionRes = R.string.moments_post_camera_desc
+                    labelRes = FeatureR.string.moments_post_camera,
+                    descriptionRes = FeatureR.string.moments_post_camera_desc
                 ),
                 ActionSheetItem(
-                    labelRes = R.string.moments_post_gallery,
+                    labelRes = FeatureR.string.moments_post_gallery,
                 )
             )
         ) { index ->

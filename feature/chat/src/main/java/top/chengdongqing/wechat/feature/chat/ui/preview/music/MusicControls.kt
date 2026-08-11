@@ -25,9 +25,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun PlayButton(isPlaying: Boolean, onClick: () -> Unit) {
@@ -43,16 +43,16 @@ fun PlayButton(isPlaying: Boolean, onClick: () -> Unit) {
             Icon(
                 painter = painterResource(
                     if (isPlaying) {
-                        R.drawable.ic_pause_filled
+                        DesignR.drawable.ic_pause_filled
                     } else {
-                        R.drawable.ic_play_filled
+                        DesignR.drawable.ic_play_filled
                     }
                 ),
                 contentDescription = stringResource(
                     if (isPlaying) {
-                        R.string.action_play
+                        DesignR.string.action_play
                     } else {
-                        R.string.action_pause
+                        DesignR.string.action_pause
                     }
                 ),
                 modifier = Modifier.fillMaxSize(),

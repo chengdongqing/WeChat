@@ -8,10 +8,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberActionHandler
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberFileHandler

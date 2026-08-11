@@ -2,11 +2,11 @@ package top.chengdongqing.wechat.core.network.transfer
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.network.messaging.ChunkStorageManager
+import top.chengdongqing.wechat.core.runtime.IoScope
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -49,6 +49,7 @@ import top.chengdongqing.wechat.core.location.util.createIconBitmap
 import top.chengdongqing.wechat.core.location.util.navigateToLocation
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.location.R as LocationR
 
 @Composable
 fun WeLocationPreview(location: LocationPreviewInfo, onBack: () -> Unit) {
@@ -147,7 +148,7 @@ private fun BottomBar(location: LocationPreviewInfo) {
                     .background(WeTheme.colorScheme.background)
                     .clickable {
                         if (mapOptions.isEmpty()) {
-                            context.showToast(resources.getString(DesignR.string.map_no_navigation_app))
+                            context.showToast(resources.getString(LocationR.string.map_no_navigation_app))
                         } else {
                             ActionSheetManager.show(mapOptions) { index ->
                                 installedTypes.getOrNull(index)?.let { mapType ->
@@ -171,7 +172,7 @@ private fun BottomBar(location: LocationPreviewInfo) {
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = stringResource(DesignR.string.location_navigate),
+                text = stringResource(LocationR.string.location_navigate),
                 color = WeTheme.colorScheme.textSecondary,
                 fontSize = 14.sp
             )

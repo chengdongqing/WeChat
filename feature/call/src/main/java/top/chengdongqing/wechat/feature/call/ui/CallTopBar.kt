@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
+import top.chengdongqing.wechat.feature.call.R as CallR
 
 /**
  * 通话顶部栏
@@ -76,7 +77,7 @@ private fun MinimizeButton(
 ) {
     Icon(
         painter = painterResource(R.drawable.ic_minimize_outlined),
-        contentDescription = stringResource(R.string.call_control_minimize),
+        contentDescription = stringResource(CallR.string.call_control_minimize),
         modifier = modifier
             .size(32.dp)
             .offset(x = 14.dp)

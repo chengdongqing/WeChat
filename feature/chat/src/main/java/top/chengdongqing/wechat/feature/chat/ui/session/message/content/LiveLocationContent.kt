@@ -15,8 +15,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun LiveLocationContent(message: ChatMessage) {
@@ -29,7 +30,7 @@ fun LiveLocationContent(message: ChatMessage) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painterResource(R.drawable.ic_location_filled),
+            painterResource(DesignR.drawable.ic_location_filled),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
             tint = if (active) Color(0xFF07C160) else Color.Gray
@@ -37,7 +38,7 @@ fun LiveLocationContent(message: ChatMessage) {
         Text(
             text = if (!active) stringResource(R.string.live_location_ended)
             else if (message.isFromMe) stringResource(R.string.live_location_started_me)
-            else stringResource(R.string.live_location_started_peer),
+            else stringResource(DesignR.string.live_location_started_peer),
             modifier = Modifier.padding(start = 9.dp),
             color = if (active) Color.Unspecified else Color.Gray
         )

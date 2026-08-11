@@ -1,0 +1,28 @@
+<resources>
+    <string name='call_control_mic'>Mic</string>
+    <string name='call_control_speaker'>Speaker</string>
+    <string name='call_control_camera'>Camera</string>
+    <string name='call_control_flip'>Flip</string>
+    <string name='call_control_cancel'>Cancel</string>
+    <string name='call_control_hangup'>Hang Up</string>
+    <string name='call_control_decline'>Decline</string>
+    <string name='call_control_accept'>Accept</string>
+    <string name='call_control_minimize'>Minimize</string>
+    <string name='call_control_status_on'>%s On</string>
+    <string name='call_control_status_off'>%s Off</string>
+    <string name='call_state_outgoing'>Awaiting response…</string>
+    <string name='call_state_incoming_video'>Invites you to a video call…</string>
+    <string name='call_state_incoming_voice'>Invites you to a voice call…</string>
+    <string name='call_state_connecting'>Connecting…</string>
+    <string name='call_state_ended_normal_by_me'>Call ended</string>
+    <string name='call_state_ended_normal_by_other'>Call ended by other user</string>
+    <string name='call_state_ended_declined_by_me'>You declined the call</string>
+    <string name='call_state_ended_declined_by_other'>Call request declined</string>
+    <string name='call_state_ended_cancelled_by_me'>Call cancelled</string>
+    <string name='call_state_ended_cancelled_by_other'>Call ended by other user</string>
+    <string name='call_state_ended_timeout'>No answer</string>
+    <string name='call_state_ended_busy'>Other user is busy</string>
+    <string name='call_state_ended_offline'>Other user is offline</string>
+    <string name='call_state_ended_error'>Connection failed</string>
+    <string name='call_state_ended'>Call ended</string>
+</resources>

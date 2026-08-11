@@ -1,7 +1,7 @@
 package top.chengdongqing.wechat.feature.call.domain.model
 
 import android.content.Context
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.feature.call.R as CallR
 
 /**
  * 通话 UI 状态
@@ -54,24 +54,24 @@ data class CallUiState(
     val canToggleControls: Boolean get() = isVideoCallActive
 
     fun getStatusText(context: Context): String? = when (callState) {
-        CallState.Outgoing -> context.getString(R.string.call_state_outgoing)
+        CallState.Outgoing -> context.getString(CallR.string.call_state_outgoing)
         CallState.Incoming -> context.getString(
-            if (isVideoCall) R.string.call_state_incoming_video
-            else R.string.call_state_incoming_voice
+            if (isVideoCall) CallR.string.call_state_incoming_video
+            else CallR.string.call_state_incoming_voice
         )
 
-        CallState.Connecting -> context.getString(R.string.call_state_connecting)
+        CallState.Connecting -> context.getString(CallR.string.call_state_connecting)
         CallState.Connected -> formatDuration(duration)
         CallState.Ended -> context.getString(
             when (hangupResult?.reason) {
-                HangupReason.Normal -> if (hangupResult.isFromMe) R.string.call_state_ended_normal_by_me else R.string.call_state_ended_normal_by_other
-                HangupReason.Declined -> if (isOutgoing) R.string.call_state_ended_declined_by_other else R.string.call_state_ended_declined_by_me
-                HangupReason.Cancelled -> if (isOutgoing) R.string.call_state_ended_cancelled_by_me else R.string.call_state_ended_cancelled_by_other
-                HangupReason.Timeout -> R.string.call_state_ended_timeout
-                HangupReason.Busy -> R.string.call_state_ended_busy
-                HangupReason.Offline -> R.string.call_state_ended_offline
-                HangupReason.Error -> R.string.call_state_ended_error
-                else -> R.string.call_state_ended
+                HangupReason.Normal -> if (hangupResult.isFromMe) CallR.string.call_state_ended_normal_by_me else CallR.string.call_state_ended_normal_by_other
+                HangupReason.Declined -> if (isOutgoing) CallR.string.call_state_ended_declined_by_other else CallR.string.call_state_ended_declined_by_me
+                HangupReason.Cancelled -> if (isOutgoing) CallR.string.call_state_ended_cancelled_by_me else CallR.string.call_state_ended_cancelled_by_other
+                HangupReason.Timeout -> CallR.string.call_state_ended_timeout
+                HangupReason.Busy -> CallR.string.call_state_ended_busy
+                HangupReason.Offline -> CallR.string.call_state_ended_offline
+                HangupReason.Error -> CallR.string.call_state_ended_error
+                else -> CallR.string.call_state_ended
             }
         )
 

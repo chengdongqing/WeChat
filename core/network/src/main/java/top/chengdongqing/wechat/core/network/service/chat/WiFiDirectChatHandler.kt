@@ -14,7 +14,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.entity.ConnectionInfoEntity
@@ -24,6 +23,7 @@ import top.chengdongqing.wechat.core.network.connection.wifi.TcpSocketServer
 import top.chengdongqing.wechat.core.network.messaging.MessageReceiver
 import top.chengdongqing.wechat.core.network.service.ServiceModule
 import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
+import top.chengdongqing.wechat.core.runtime.IoScope
 import javax.inject.Inject
 import javax.inject.Singleton
 

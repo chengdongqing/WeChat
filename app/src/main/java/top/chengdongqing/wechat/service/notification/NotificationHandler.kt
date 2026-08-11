@@ -11,6 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
+import top.chengdongqing.wechat.R
 import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.FriendEvent
@@ -30,7 +31,7 @@ import top.chengdongqing.wechat.core.notification.toUri
 import top.chengdongqing.wechat.core.playback.VibratorHelper
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
 import javax.inject.Inject
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.R as AppR
 
 @Singleton
 class NotificationHandler @Inject constructor(
@@ -106,13 +107,13 @@ class NotificationHandler @Inject constructor(
         when (event) {
             is FriendEvent.FriendRequest -> notificationHelper.showFriendNotification(
                 title = event.nickname,
-                content = context.getString(DesignR.string.contact_notification_request_content),
+                content = context.getString(R.string.contact_notification_request_content),
             )
 
             is FriendEvent.Added -> notificationHelper.showFriendNotification(
-                title = context.getString(DesignR.string.contact_notification_auto_added_title),
+                title = context.getString(R.string.contact_notification_auto_added_title),
                 content = context.getString(
-                    DesignR.string.contact_notification_auto_added_content,
+                    R.string.contact_notification_auto_added_content,
                     event.nickname
                 ),
                 contactId = event.contactId
@@ -132,7 +133,7 @@ class NotificationHandler @Inject constructor(
             val contact = contactRepository.getContact(message.senderId)
             // 联系人名字
             val sender = contact?.displayName
-                ?: context.getString(DesignR.string.chat_notification_contact_unknown)
+                ?: context.getString(AppR.string.chat_notification_contact_unknown)
             // 未读数
             val unreadCount = chatSessionDao.getById(message.senderId)?.unreadCount ?: 0
             // 消息内容
@@ -166,7 +167,7 @@ class NotificationHandler @Inject constructor(
 
     private fun resolveContent(message: ChatMessage): String {
         if (message.content is MessageContent.LiveLocation) {
-            return context.getString(DesignR.string.live_location_started_peer)
+            return context.getString(AppR.string.live_location_started_peer)
         }
         val textContent = (message.content as? MessageContent.Text)?.text ?: ""
         return message.content.toMessageType().toPreviewText(context, textContent)
@@ -181,12 +182,12 @@ class NotificationHandler @Inject constructor(
         return when (notificationDisplay()) {
             NotificationDisplay.HiddenAll -> Pair(
                 null,
-                prefix + context.getString(DesignR.string.chat_notification_hidden)
+                prefix + context.getString(AppR.string.chat_notification_hidden)
             )
 
             NotificationDisplay.SenderOnly -> Pair(
                 sender,
-                prefix + context.getString(DesignR.string.chat_notification_sender_only)
+                prefix + context.getString(AppR.string.chat_notification_sender_only)
             )
 
             NotificationDisplay.SenderAndContent -> Pair(

@@ -9,12 +9,12 @@ import android.os.Build
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.playback.RingtoneSound
 import top.chengdongqing.wechat.core.playback.VibratorHelper
 import top.chengdongqing.wechat.core.playback.toUri
 import javax.inject.Inject
 import javax.inject.Singleton
+import top.chengdongqing.wechat.core.playback.R as PlaybackR
 
 /**
  * 通话音频管理器
@@ -182,7 +182,7 @@ class CallAudioManager @Inject constructor(
      * @param onComplete 播放完成回调
      */
     fun playHangupTone(onComplete: () -> Unit) {
-        MediaPlayer.create(context, R.raw.tip_call_end)?.apply {
+        MediaPlayer.create(context, PlaybackR.raw.tip_call_end)?.apply {
             setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)

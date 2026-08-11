@@ -48,8 +48,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.webrtc.RendererCommon
 import org.webrtc.SurfaceViewRenderer
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.feature.chat.service.LiveScreenCaptureService
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun LiveRoomScreen(
@@ -161,7 +161,7 @@ fun LiveRoomScreen(
                 } else {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            painterResource(R.drawable.ic_video_filled),
+                            painterResource(DesignR.drawable.ic_video_filled),
                             contentDescription = null,
                             tint = Color.White.copy(alpha = .72f),
                             modifier = Modifier.size(72.dp)
@@ -193,23 +193,23 @@ fun LiveRoomScreen(
                         .padding(horizontal = 16.dp, vertical = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(22.dp)
                 ) {
-                    LiveControl(if (micOn) "静音" else "开启麦克风", R.drawable.ic_mic2_filled) {
+                    LiveControl(if (micOn) "静音" else "开启麦克风", DesignR.drawable.ic_mic2_filled) {
                         micOn = !micOn
                         viewModel.webRtcManager.setMicEnabled(micOn)
                     }
                     LiveControl(
                         if (cameraOn) "关闭镜头" else "开启镜头",
-                        R.drawable.ic_video_filled
+                        DesignR.drawable.ic_video_filled
                     ) {
                         cameraOn = !cameraOn
                         viewModel.webRtcManager.setCameraEnabled(cameraOn)
                     }
-                    LiveControl("翻转镜头", R.drawable.ic_camera_filled) {
+                    LiveControl("翻转镜头", DesignR.drawable.ic_camera_filled) {
                         viewModel.webRtcManager.switchCamera()
                     }
                     LiveControl(
                         if (screenSharing) "停止共享" else "共享屏幕",
-                        R.drawable.ic_import_export
+                        DesignR.drawable.ic_import_export
                     ) {
                         if (screenSharing) {
                             screenSharing = false
@@ -227,7 +227,7 @@ fun LiveRoomScreen(
                             beautyStrength < .75f -> "美颜自然"
                             else -> "美颜增强"
                         },
-                        R.drawable.ic_emoji_outlined
+                        DesignR.drawable.ic_emoji_outlined
                     ) {
                         beautyStrength = when {
                             beautyStrength <= 0f -> .5f

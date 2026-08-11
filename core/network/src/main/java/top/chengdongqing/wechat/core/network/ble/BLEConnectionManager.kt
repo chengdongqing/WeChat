@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.model.FriendProtocol
 import top.chengdongqing.wechat.core.model.ProfileBeacon
+import top.chengdongqing.wechat.core.runtime.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Hex
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject

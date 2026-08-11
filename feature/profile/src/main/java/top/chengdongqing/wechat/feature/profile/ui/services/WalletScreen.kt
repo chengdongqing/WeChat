@@ -24,7 +24,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
@@ -41,7 +42,7 @@ fun WalletScreen(
         WeTopAppBar(
             title = "钱包",
             onBack = onBack,
-            actions = { IconButton(R.drawable.ic_more_outlined, description = "更多") }
+            actions = { IconButton(DesignR.drawable.ic_more_outlined, description = "更多") }
         )
         Column(
             Modifier.padding(horizontal = 12.dp),
@@ -56,7 +57,7 @@ fun WalletScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
-                    painterResource(R.drawable.ic_pay_logo_outlined), null,
+                    painterResource(DesignR.drawable.ic_pay_logo_outlined), null,
                     tint = Color.White, modifier = Modifier.size(42.dp)
                 )
                 Spacer(Modifier.height(14.dp))
@@ -83,18 +84,18 @@ fun WalletScreen(
                     .clip(RoundedCornerShape(10.dp))
                     .background(WeTheme.colorScheme.surface)
             ) {
-                WalletRow("银行卡", "添加银行卡", R.drawable.ic_pay_vendor_filled, onCards)
-                WalletRow("支付账单", "查看全部交易记录", R.drawable.ic_file_filled, onBills)
-                WalletRow("亲属卡", "为家人提供支付额度", R.drawable.ic_person_filled)
-                WalletRow("支付分", "先享后付，信用生活", R.drawable.ic_check)
+                WalletRow("银行卡", "添加银行卡", DesignR.drawable.ic_pay_vendor_filled, onCards)
+                WalletRow("支付账单", "查看全部交易记录", DesignR.drawable.ic_file_filled, onBills)
+                WalletRow("亲属卡", "为家人提供支付额度", DesignR.drawable.ic_person_filled)
+                WalletRow("支付分", "先享后付，信用生活", DesignR.drawable.ic_check)
             }
             Column(
                 Modifier
                     .clip(RoundedCornerShape(10.dp))
                     .background(WeTheme.colorScheme.surface)
             ) {
-                WalletRow("消费者保护", "支付安全与服务保障", R.drawable.ic_lock_filled)
-                WalletRow("支付设置", "实名认证、扣款顺序", R.drawable.ic_settings_outlined)
+                WalletRow("消费者保护", "支付安全与服务保障", DesignR.drawable.ic_lock_filled)
+                WalletRow("支付设置", "实名认证、扣款顺序", DesignR.drawable.ic_settings_outlined)
             }
         }
     }
@@ -126,7 +127,7 @@ private fun WalletRow(
             Text(subtitle, fontSize = 12.sp, color = WeTheme.colorScheme.textSecondary)
         }
         Icon(
-            painterResource(R.drawable.ic_right_outlined), null,
+            painterResource(DesignR.drawable.ic_right_outlined), null,
             tint = WeTheme.colorScheme.textSecondary, modifier = Modifier.size(20.dp)
         )
     }
@@ -152,7 +153,7 @@ fun WalletSubScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                painterResource(R.drawable.ic_pay_logo_outlined), null,
+                painterResource(DesignR.drawable.ic_pay_logo_outlined), null,
                 tint = Color(0xFF19A76F), modifier = Modifier.size(48.dp)
             )
             Spacer(Modifier.height(18.dp))

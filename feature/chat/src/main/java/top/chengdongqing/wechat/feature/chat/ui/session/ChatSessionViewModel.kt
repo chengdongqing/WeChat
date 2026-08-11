@@ -38,10 +38,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.file.PublicFileManager
-import top.chengdongqing.wechat.core.common.file.getFileMetadata
-import top.chengdongqing.wechat.core.common.media.model.MediaItem
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.PublicFileManager
+import top.chengdongqing.wechat.core.file.getFileMetadata
+import top.chengdongqing.wechat.core.media.model.MediaItem
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -56,7 +56,9 @@ import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.dao.FavoriteDao
 import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.entity.FavoriteEntity
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.playback.R as PlaybackR
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.previewLocation
@@ -490,7 +492,7 @@ class ChatSessionViewModel @AssistedInject constructor(
             ).onSuccess {
                 _pendingQuote.value = null
                 if (content is MessageContent.Voice) {
-                    soundTipPlayer.play(R.raw.tip_after_upload_voice)
+                    soundTipPlayer.play(PlaybackR.raw.tip_after_upload_voice)
                 }
                 if (chatId == LocalAiAssistant.ID && content is MessageContent.Text) {
                     generateAiReply(content.text)
@@ -634,7 +636,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun recallMessage(messageId: String) {
         viewModelScope.launch {
             messageRepository.recallMessage(messageId).onFailure {
-                context.showToast(it.message ?: context.getString(R.string.msg_process_failed))
+                context.showToast(it.message ?: context.getString(DesignR.string.msg_process_failed))
             }
         }
     }
@@ -720,7 +722,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun pauseTransfer(messageId: String) {
         viewModelScope.launch {
             messageRepository.pauseTransfer(messageId).onFailure {
-                context.showToast(context.getString(R.string.msg_process_failed))
+                context.showToast(context.getString(DesignR.string.msg_process_failed))
             }
         }
     }
@@ -728,7 +730,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     fun resumeTransfer(messageId: String) {
         viewModelScope.launch {
             messageRepository.resumeTransfer(messageId).onFailure {
-                context.showToast(context.getString(R.string.msg_process_failed))
+                context.showToast(context.getString(DesignR.string.msg_process_failed))
             }
         }
     }
@@ -975,7 +977,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         _uiState.update { it.copy(isFullscreenLoading = true) }
         return runCatching {
             if (addFriendRepository.fetchProfile(userId) == null) {
-                context.showToast(context.getString(R.string.add_contact_fetch_profile_failed))
+                context.showToast(context.getString(DesignR.string.add_contact_fetch_profile_failed))
                 error("failed to fetch profile for $userId")
             }
         }.also {

@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.feature.contacts.ui.picker
 
+import top.chengdongqing.wechat.feature.contacts.R as ContactsR
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -31,7 +33,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -48,8 +51,6 @@ import top.chengdongqing.wechat.core.model.ContactResult
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.toResult
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-
 @Composable
 fun ContactPicker(
     count: Int,
@@ -138,7 +139,7 @@ fun ContactPicker(
                                             if (uiState.selectedCount >= count && !isSelected) {
                                                 context.showToast(
                                                     resources.getString(
-                                                        R.string.msg_max_select_limit,
+                                                        DesignR.string.msg_max_select_limit,
                                                         count
                                                     )
                                                 )
@@ -200,7 +201,7 @@ private fun GroupChatEntry() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = stringResource(R.string.group_chat_select_title),
+            text = stringResource(ContactsR.string.group_chat_select_title),
             fontSize = 15.sp,
             color = WeTheme.colorScheme.textPrimary
         )
@@ -216,11 +217,11 @@ private fun TopBar(
     val isEnabled = uiState.selectedCount > 0
     val buttonText = run {
         val suffix = if (isEnabled) "(${uiState.selectedCount})" else ""
-        "${stringResource(R.string.action_done)}$suffix"
+        "${stringResource(DesignR.string.action_done)}$suffix"
     }
 
     WeTopAppBar(
-        title = stringResource(R.string.contact_select_title),
+        title = stringResource(ContactsR.string.contact_select_title),
         onBack = onBack
     ) {
         WeButton(

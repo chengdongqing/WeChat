@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.repository.ChatSettingsRepository
 import top.chengdongqing.wechat.core.network.connection.bluetooth.BluetoothChatTransport
@@ -18,6 +17,7 @@ import top.chengdongqing.wechat.core.network.connection.wifi.WiFiDirectChatTrans
 import top.chengdongqing.wechat.core.network.connection.wifi.WiFiLanChatTransport
 import top.chengdongqing.wechat.core.network.crypto.EncryptingPacketWriter
 import top.chengdongqing.wechat.core.network.model.Packet
+import top.chengdongqing.wechat.core.runtime.IoScope
 
 /**
  * 传输层路由器，根据当前 [ConnectionMode] 将收发请求分发给对应的 [ChatTransport]。

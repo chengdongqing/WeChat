@@ -1,0 +1,7 @@
+<resources>
+    <string name='map_no_navigation_app'>No supported map app is installed</string>
+    <string name='map_amap'>Amap</string>
+    <string name='map_baidu'>Baidu Maps</string>
+    <string name='map_tencent'>Tencent Maps</string>
+    <string name='map_google'>Google Maps</string>
+</resources>

@@ -1,0 +1,5 @@
+<resources>
+    <string name='camera_tip_photo'>轻触拍照</string>
+    <string name='camera_tip_video'>长按摄像</string>
+    <string name='camera_flash_toggle'>开关闪光灯</string>
+</resources>

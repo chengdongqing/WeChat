@@ -1,0 +1,4 @@
+<resources>
+    <string name='nfc_hce_description'>微信碰一碰</string>
+    <string name='nfc_hce_aid_description'>微信碰一碰加好友</string>
+</resources>

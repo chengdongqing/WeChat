@@ -35,14 +35,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import top.chengdongqing.wechat.core.designsystem.components.searchbar.WeSearchBar
+import top.chengdongqing.wechat.core.designsystem.compose.LaunchedUpdateEffect
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.runtime.LaunchedUpdateEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.window.rememberKeyboardHeight
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.picker.LocationPickerState
 import kotlin.time.Duration.Companion.milliseconds
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.location.R as LocationR
 
 @Composable
 fun SearchPanel(state: LocationPickerState) {
@@ -100,8 +100,8 @@ private fun TypeTabRow(type: Int, onChange: (Int) -> Unit) {
     val resources = LocalResources.current
     val options = remember {
         listOf(
-            resources.getString(DesignR.string.location_tab_nearby),
-            resources.getString(DesignR.string.location_tab_all)
+            resources.getString(LocationR.string.location_tab_nearby),
+            resources.getString(LocationR.string.location_tab_all)
         )
     }
     val density = LocalDensity.current

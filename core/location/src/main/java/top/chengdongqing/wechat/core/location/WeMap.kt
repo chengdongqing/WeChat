@@ -40,7 +40,7 @@ import top.chengdongqing.wechat.core.location.map.MapController
 import top.chengdongqing.wechat.core.location.map.createMapController
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.util.showToast
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.location.R as LocationR
 
 /**
  * 创建并记住地图控制器
@@ -119,7 +119,7 @@ fun BoxScope.LocationControl(
     ) {
         Icon(
             imageVector = Icons.Outlined.MyLocation,
-            contentDescription = stringResource(DesignR.string.location_current),
+            contentDescription = stringResource(LocationR.string.location_current),
             tint = WeTheme.colorScheme.textPrimary,
             modifier = Modifier.size(26.dp)
         )

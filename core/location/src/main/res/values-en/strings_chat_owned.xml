@@ -1,0 +1,7 @@
+<resources>
+    <string name='location_search_placeholder'>Search location</string>
+    <string name='location_tab_nearby'>Nearby</string>
+    <string name='location_tab_all'>All</string>
+    <string name='location_current'>My Location</string>
+    <string name='location_navigate'>Go</string>
+</resources>

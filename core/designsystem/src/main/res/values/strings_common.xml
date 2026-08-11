@@ -1,5 +1,4 @@
 <resources>
-    <string name="map_no_navigation_app">未安装可用的地图软件</string>
     <string name="app_name" translatable="false">WeChat Lan</string>
     <string name="action_ok">确定</string>
     <string name="action_cancel">取消</string>
@@ -23,50 +22,18 @@
     <string name="action_exit">退出</string>
     <string name="action_view">查看</string>
 
-    <string name="msg_wifi_disabled">Wi-Fi 未开启</string>
-    <string name="msg_wifi_disconnected">Wi-Fi 未连接</string>
-    <string name="msg_bluetooth_disabled">蓝牙未开启</string>
-
-    <string name="msg_processing">处理中…</string>
     <string name="msg_save_success">保存成功</string>
     <string name="msg_save_failed">保存失败</string>
     <string name="msg_process_failed">操作失败</string>
-    <string name="msg_copied">已复制</string>
     <string name="msg_max_select_limit">你最多只能选择%1$d个</string>
 
-    <string name="map_amap">高德地图</string>
-    <string name="map_baidu">百度地图</string>
-    <string name="map_tencent">腾讯地图</string>
-    <string name="map_google">谷歌地图</string>
 
-    <string name="media_select_image">选择图片</string>
-    <string name="media_select_video">选择视频</string>
-    <string name="media_select_all">图片和视频</string>
 
-    <string name="camera_tip_photo">轻触拍照</string>
-    <string name="camera_tip_video">长按摄像</string>
-    <string name="camera_flash_toggle">开关闪光灯</string>
     <string name="camera_switch">切换相机</string>
     <string name="separator">，</string>
 
-    <string name="time_yesterday">昨天</string>
-    <string name="time_monday">周一</string>
-    <string name="time_tuesday">周二</string>
-    <string name="time_wednesday">周三</string>
-    <string name="time_thursday">周四</string>
-    <string name="time_friday">周五</string>
-    <string name="time_saturday">周六</string>
-    <string name="time_sunday">周日</string>
 
-    <string name="scan_hint">扫二维码 / 条码</string>
-    <string name="scan_tool_flash">闪光灯</string>
-    <string name="scan_tool_album">相册</string>
-    <string name="scan_recognize_failed">识别失败</string>
 
-    <string name="nfc_hce_description">微信碰一碰</string>
-    <string name="nfc_hce_aid_description">微信碰一碰加好友</string>
 
-    <string name="donate_description">%s 是一个完全免费且开源的尝试。如果你喜欢这个项目，还请多多支持作者，谢谢！</string>
 
-    <string name="p2p_service_content">通信服务运行中</string>
 </resources>

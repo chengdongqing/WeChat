@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.repository.ConnectionSettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
@@ -31,6 +30,7 @@ import top.chengdongqing.wechat.core.network.service.chat.BtChatHandler
 import top.chengdongqing.wechat.core.network.service.chat.WiFiDirectChatHandler
 import top.chengdongqing.wechat.core.network.service.chat.WiFiLanChatHandler
 import top.chengdongqing.wechat.core.network.service.notification.NotificationServiceModule
+import top.chengdongqing.wechat.core.runtime.IoScope
 import javax.inject.Inject
 
 @AndroidEntryPoint

@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.feature.chat.ui.session.input.handler
 import android.net.Uri
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
-import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.model.VisualMediaType
 
 /**
  * 媒体启动器集合

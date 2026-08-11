@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.di.IoScope
+import top.chengdongqing.wechat.core.runtime.IoScope
 import top.chengdongqing.wechat.core.data.model.RadarBeacon
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.network.http.AvatarServer

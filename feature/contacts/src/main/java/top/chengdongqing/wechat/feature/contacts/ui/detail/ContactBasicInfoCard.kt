@@ -31,7 +31,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -65,7 +66,7 @@ private fun ContactAvatar(contact: Contact) {
     AsyncImage(
         model = contact.avatarPath,
         contentDescription = stringResource(R.string.contact_avatar_description),
-        error = painterResource(R.drawable.img_avatar_placeholder),
+        error = painterResource(DesignR.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(64.dp)
             .clip(RoundedCornerShape(6.dp))
@@ -87,7 +88,7 @@ private fun ContactAvatar(contact: Contact) {
         ) {
             ZoomableAsyncImage(
                 model = contact.avatarPath,
-                contentDescription = stringResource(R.string.me_profile_avatar),
+                contentDescription = stringResource(DesignR.string.me_profile_avatar),
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Black),
@@ -143,8 +144,8 @@ private fun GenderIcon(
     modifier: Modifier = Modifier
 ) {
     val (icon, tint) = when (gender) {
-        Gender.Female -> R.drawable.ic_female_filled to Color(0xFFFF5252)
-        Gender.Male -> R.drawable.ic_male_filled to Color(0xFF2196F3)
+        Gender.Female -> DesignR.drawable.ic_female_filled to Color(0xFFFF5252)
+        Gender.Male -> DesignR.drawable.ic_male_filled to Color(0xFF2196F3)
     }
 
     Icon(

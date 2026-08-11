@@ -45,7 +45,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.database.entity.ContactEntity
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
@@ -66,7 +67,7 @@ fun ContactTagsScreen(
             WeTopAppBar(title = "标签", onBack = onBack) {
                 IconButton(onClick = onCreate) {
                     Icon(
-                        painterResource(R.drawable.ic_plus_outlined),
+                        painterResource(DesignR.drawable.ic_plus_outlined),
                         contentDescription = "新建标签",
                         tint = WeTheme.colorScheme.textPrimary
                     )
@@ -114,7 +115,7 @@ fun ContactTagsScreen(
                         )
                         Spacer(Modifier.width(8.dp))
                         Icon(
-                            painterResource(R.drawable.ic_right_outlined),
+                            painterResource(DesignR.drawable.ic_right_outlined),
                             null,
                             tint = WeTheme.colorScheme.textSecondary,
                             modifier = Modifier.size(20.dp)
@@ -293,7 +294,7 @@ private fun ContactCheckList(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = contact.avatarPath ?: R.drawable.img_avatar_placeholder,
+                    model = contact.avatarPath ?: DesignR.drawable.img_avatar_placeholder,
                     contentDescription = null,
                     modifier = Modifier.size(42.dp).clip(RoundedCornerShape(4.dp)),
                     contentScale = ContentScale.Crop

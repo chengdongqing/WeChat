@@ -1,0 +1,12 @@
+<resources>
+    <string name="add_contact_fetch_profile_failed">Failed to fetch the other person\'s profile</string>
+    <string name="add_source_search">Account Search</string>
+    <string name="add_source_qrcode">QR Code</string>
+    <string name="add_source_bump">Bump to Add</string>
+    <string name="add_source_radar">Nearby Radar</string>
+    <string name="add_source_temporary">Temporary Chat</string>
+    <string name="add_source_group">Group Chat</string>
+    <string name="add_source_card">Business Card</string>
+    <string name="add_source_desc_from_me">Added via %s</string>
+    <string name="add_source_desc_from_other">Added you via %s</string>
+</resources>

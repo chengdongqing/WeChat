@@ -59,13 +59,14 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.media.editor.ImageEditor
-import top.chengdongqing.wechat.core.common.media.model.MediaItem
-import top.chengdongqing.wechat.core.common.media.preview.WeMediaPreview
+import top.chengdongqing.wechat.core.media.editor.ImageEditor
+import top.chengdongqing.wechat.core.media.model.MediaItem
+import top.chengdongqing.wechat.core.media.preview.WeMediaPreview
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
@@ -562,7 +563,7 @@ private fun ChatSessionUiEventHandler(
             when (event) {
                 is MessageUiEvent.ShowDeleteConfirm -> DialogManager.show(
                     title = resources.getString(R.string.msg_confirm_delete),
-                    okText = R.string.action_delete,
+                    okText = DesignR.string.action_delete,
                     okColor = SemanticError
                 ) {
                     if (event.messageId != null) viewModel.deleteMessage(event.messageId)
@@ -571,7 +572,7 @@ private fun ChatSessionUiEventHandler(
 
                 is MessageUiEvent.ShowDownloadConfirm -> DialogManager.show(
                     title = resources.getString(R.string.msg_confirm_save),
-                    okText = R.string.action_save
+                    okText = DesignR.string.action_save
                 ) { viewModel.saveSelectedMessageFiles() }
 
                 is MessageUiEvent.ForwardMessage -> {
@@ -664,7 +665,7 @@ private fun ChatMessageList(
                 MessageItem(
                     message = streamingAiMessage.toChatMessage(uiState.peerId.orEmpty()),
                     peerAvatar = if (viewModel.isLocalAiSession) {
-                        R.drawable.img_logo
+                        DesignR.drawable.img_logo
                     } else uiState.peerAvatar,
                     myAvatar = uiState.myAvatar,
                     isSelectMode = false,
@@ -703,7 +704,7 @@ private fun ChatMessageList(
                     albumMessages = albumMessages,
                     onAlbumMediaClick = viewModel::handleMessageClick,
                     peerAvatar = if (viewModel.isLocalAiSession) {
-                        R.drawable.img_logo
+                        DesignR.drawable.img_logo
                     } else uiState.peerAvatar,
                     myAvatar = uiState.myAvatar,
                     isSelectMode = uiState.isSelectMode,

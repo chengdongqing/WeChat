@@ -18,10 +18,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.popup.WePopup
-import top.chengdongqing.wechat.core.designsystem.runtime.LaunchedUpdateEffect
+import top.chengdongqing.wechat.core.designsystem.compose.LaunchedUpdateEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.domain.model.PeerDevice
 import top.chengdongqing.wechat.feature.chat.ui.session.peer.util.PeerScanEffect

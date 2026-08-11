@@ -23,12 +23,12 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.playback.SpeechRecognizerManager
 import top.chengdongqing.wechat.core.playback.SpeechState
 import top.chengdongqing.wechat.core.playback.SpeechStatus
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 语音输入按钮
@@ -49,7 +49,7 @@ fun SpeechInputButton(
     ) {
         if (speechState.isListening) {
             Icon(
-                painter = painterResource(R.drawable.ic_mic_circle_outlined),
+                painter = painterResource(DesignR.drawable.ic_mic_circle_outlined),
                 contentDescription = "语音输入",
                 tint = Color.White,
                 modifier = Modifier
@@ -59,7 +59,7 @@ fun SpeechInputButton(
             )
         } else {
             Icon(
-                painter = painterResource(R.drawable.ic_mic_outlined),
+                painter = painterResource(DesignR.drawable.ic_mic_outlined),
                 contentDescription = "语音输入",
                 tint = WeTheme.colorScheme.textSecondary,
                 modifier = Modifier.size(22.dp)

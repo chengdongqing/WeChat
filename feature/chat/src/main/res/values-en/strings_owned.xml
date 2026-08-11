@@ -1,0 +1,7 @@
+<resources>
+    <string name="msg_wifi_disabled">Wi-Fi is off.</string>
+    <string name="msg_wifi_disconnected">Wi-Fi is not connected.</string>
+    <string name="msg_bluetooth_disabled">Bluetooth is off.</string>
+    <string name="msg_copied">Copied</string>
+    <string name='donate_description'>%s is a free and open-source project. If you like the project, please consider supporting the author. Thank you!</string>
+</resources>

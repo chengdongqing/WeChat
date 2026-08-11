@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.file.FileMetadata
-import top.chengdongqing.wechat.core.common.media.model.MediaType
-import top.chengdongqing.wechat.core.common.media.repository.LocalMediaRepositoryImpl
 import top.chengdongqing.wechat.core.database.dao.MessageDao
+import top.chengdongqing.wechat.core.file.FileMetadata
+import top.chengdongqing.wechat.core.media.model.MediaType
+import top.chengdongqing.wechat.core.media.repository.LocalMediaRepositoryImpl
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.data.mapper.FileContent
 import java.io.File

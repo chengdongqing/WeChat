@@ -26,7 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -93,7 +94,7 @@ fun SystemPermissionSettingsScreen(onBack: () -> Unit) {
                     ) {
                         if (isGranted) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_check),
+                                painter = painterResource(DesignR.drawable.ic_check),
                                 contentDescription = stringResource(R.string.permission_enabled),
                                 tint = WeTheme.colorScheme.primary,
                                 modifier = Modifier.size(20.dp)
@@ -146,7 +147,7 @@ fun SystemPermissionSettingsScreen(onBack: () -> Unit) {
 @Composable
 private fun PermissionEnabledIcon() {
     Icon(
-        painter = painterResource(R.drawable.ic_check),
+        painter = painterResource(DesignR.drawable.ic_check),
         contentDescription = stringResource(R.string.permission_enabled),
         tint = WeTheme.colorScheme.primary,
         modifier = Modifier.size(20.dp)

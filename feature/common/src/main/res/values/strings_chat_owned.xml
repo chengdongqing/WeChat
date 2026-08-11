@@ -1,0 +1,4 @@
+<resources>
+    <string name='chat_info_clear_background'>清除当前背景</string>
+    <string name='chat_info_background_clear_title'>确定清除当前聊天背景吗？</string>
+</resources>

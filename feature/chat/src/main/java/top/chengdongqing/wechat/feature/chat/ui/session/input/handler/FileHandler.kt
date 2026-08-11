@@ -9,9 +9,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.apppicker.rememberPickAppLauncher
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.handler.FileHandler
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.feature.chat.ui.file.FileSelectionActivity
 
 @Composable

@@ -45,7 +45,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
@@ -117,7 +118,7 @@ private fun BackButton(onBack: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 6.dp)
     ) {
         Text(
-            text = stringResource(R.string.action_exit),
+            text = stringResource(DesignR.string.action_exit),
             color = Color.Gray
         )
     }
@@ -135,7 +136,7 @@ private fun BoxScope.MyAvatar(myProfile: UserProfile?) {
     ) {
         AsyncImage(
             model = myProfile?.avatarPath,
-            error = painterResource(R.drawable.img_avatar_placeholder),
+            error = painterResource(DesignR.drawable.img_avatar_placeholder),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -236,7 +237,7 @@ private fun UserAvatar(
         ) {
             AsyncImage(
                 model = user.avatarUrl,
-                error = painterResource(R.drawable.img_avatar_placeholder),
+                error = painterResource(DesignR.drawable.img_avatar_placeholder),
                 contentDescription = user.nickname,
                 modifier = Modifier.fillMaxSize()
             )

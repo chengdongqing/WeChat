@@ -48,8 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.camera.rememberCameraLauncher
-import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.camera.rememberCameraLauncher
+import top.chengdongqing.wechat.core.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.feature.moments.ui.list.MomentsViewModel
 

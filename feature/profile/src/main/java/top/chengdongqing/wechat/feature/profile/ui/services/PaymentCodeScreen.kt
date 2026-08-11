@@ -38,7 +38,8 @@ import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import java.security.SecureRandom
 
@@ -65,7 +66,7 @@ fun PaymentCodeScreen(onBack: () -> Unit) {
             containerColor = PayGreen,
             contentColor = Color.White,
             onBack = onBack,
-            actions = { IconButton(R.drawable.ic_more_outlined, description = "更多") }
+            actions = { IconButton(DesignR.drawable.ic_more_outlined, description = "更多") }
         )
         Row(
             Modifier
@@ -181,7 +182,7 @@ private fun RefreshCode(onRefresh: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painterResource(R.drawable.ic_backup_restore), null,
+            painterResource(DesignR.drawable.ic_backup_restore), null,
             tint = PayGreen, modifier = Modifier.size(18.dp)
         )
         Text(" 刷新二维码", color = PayGreen, fontSize = 14.sp)
@@ -199,7 +200,7 @@ private fun PaymentMethodRow() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painterResource(R.drawable.ic_pay_logo_outlined), null,
+            painterResource(DesignR.drawable.ic_pay_logo_outlined), null,
             tint = PayGreen, modifier = Modifier.size(24.dp)
         )
         Column(Modifier
@@ -209,7 +210,7 @@ private fun PaymentMethodRow() {
             Text("优先使用此支付方式", fontSize = 11.sp, color = Color(0xFF999999))
         }
         Icon(
-            painterResource(R.drawable.ic_right_outlined), null,
+            painterResource(DesignR.drawable.ic_right_outlined), null,
             tint = Color(0xFFAAAAAA), modifier = Modifier.size(18.dp)
         )
     }

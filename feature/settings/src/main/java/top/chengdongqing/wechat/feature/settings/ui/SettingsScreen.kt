@@ -22,7 +22,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
@@ -171,7 +172,7 @@ private fun LogoutButton(
                 backStack.add(NavigationKey.Guide)
             }.onFailure {
                 // 提示失败
-                context.showToast(resources.getString(R.string.msg_process_failed))
+                context.showToast(resources.getString(DesignR.string.msg_process_failed))
             }
         }
     }

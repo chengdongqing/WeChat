@@ -13,11 +13,11 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
 import top.chengdongqing.wechat.core.model.CallState
 import top.chengdongqing.wechat.core.network.model.NotificationId
 import top.chengdongqing.wechat.core.network.service.call.CallServiceModule
+import top.chengdongqing.wechat.core.runtime.IoScope
 import top.chengdongqing.wechat.feature.call.manager.CallAudioManager
 import top.chengdongqing.wechat.feature.call.manager.CallManager
 import top.chengdongqing.wechat.feature.call.manager.SystemTelecomController
@@ -25,7 +25,7 @@ import top.chengdongqing.wechat.feature.call.ui.CallActivity
 import top.chengdongqing.wechat.service.notification.NotificationHelper
 import javax.inject.Inject
 import javax.inject.Singleton
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.R as AppR
 
 /**
  * 通话模块
@@ -95,8 +95,8 @@ class CallProtocolHandler @Inject constructor(
                         notificationHelper.showIncomingNotification(
                             title = state.peerName,
                             text = context.getString(
-                                if (state.isVideoCall) DesignR.string.call_notification_incoming_video
-                                else DesignR.string.call_notification_incoming_voice
+                                if (state.isVideoCall) AppR.string.call_notification_incoming_video
+                                else AppR.string.call_notification_incoming_voice
                             ),
                             isVideo = state.isVideoCall
                         )
@@ -116,7 +116,7 @@ class CallProtocolHandler @Inject constructor(
                     CallState.Outgoing -> {
                         notificationHelper.showOngoingNotification(
                             context.getString(
-                                DesignR.string.call_notification_outgoing,
+                                AppR.string.call_notification_outgoing,
                                 state.peerName
                             ),
                             peerName = state.peerName,
@@ -133,7 +133,7 @@ class CallProtocolHandler @Inject constructor(
                         callAudioManager.stopRingtone()
 
                         notificationHelper.showOngoingNotification(
-                            context.getString(DesignR.string.call_notification_connecting),
+                            context.getString(AppR.string.call_notification_connecting),
                             peerName = state.peerName,
                             isMuted = !state.isMicOn,
                             isVideo = state.isVideoCall
@@ -153,7 +153,7 @@ class CallProtocolHandler @Inject constructor(
 
                         notificationHelper.showOngoingNotification(
                             context.getString(
-                                DesignR.string.call_notification_ongoing,
+                                AppR.string.call_notification_ongoing,
                                 state.peerName
                             ),
                             peerName = state.peerName,

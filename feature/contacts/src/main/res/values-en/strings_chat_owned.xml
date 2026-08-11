@@ -1,0 +1,7 @@
+<resources>
+    <string name='msg_confirm_send'>Send？</string>
+    <string name='contact_delete_title'>Deleting the contact \"%s\"?</string>
+    <string name='contact_delete_content'>After deletion, the user won\'t receive a notification.</string>
+    <string name='contact_select_title'>Select Contact</string>
+    <string name='group_chat_select_title'>Select Group Chat</string>
+</resources>

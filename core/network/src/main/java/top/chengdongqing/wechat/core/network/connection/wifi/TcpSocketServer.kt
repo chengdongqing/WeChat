@@ -5,7 +5,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.di.IoScope
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.entity.ConnectionInfoEntity
 import top.chengdongqing.wechat.core.network.config.TransferConfig
@@ -15,6 +14,7 @@ import top.chengdongqing.wechat.core.network.connection.PeerConnection
 import top.chengdongqing.wechat.core.network.connection.PeerHandshakeHandler
 import top.chengdongqing.wechat.core.network.model.PacketReader
 import top.chengdongqing.wechat.core.network.model.PacketWriter
+import top.chengdongqing.wechat.core.runtime.IoScope
 import java.net.ServerSocket
 import java.net.Socket
 import javax.inject.Inject

@@ -10,14 +10,13 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.di.IoScope
-import top.chengdongqing.wechat.core.common.file.toBytes
 import top.chengdongqing.wechat.core.data.model.FriendEvent
 import top.chengdongqing.wechat.core.data.model.FriendProtocol
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.FriendRequestRepository
 import top.chengdongqing.wechat.core.data.repository.PrivacySettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
+import top.chengdongqing.wechat.core.file.toBytes
 import top.chengdongqing.wechat.core.model.toBeacon
 import top.chengdongqing.wechat.core.network.ble.BLEConfig
 import top.chengdongqing.wechat.core.network.ble.BLEPacket
@@ -25,6 +24,7 @@ import top.chengdongqing.wechat.core.network.ble.BLEPacketType
 import top.chengdongqing.wechat.core.network.ble.BLEServer
 import top.chengdongqing.wechat.core.network.ble.ServerPacketEvent
 import top.chengdongqing.wechat.core.network.service.ServiceModule
+import top.chengdongqing.wechat.core.runtime.IoScope
 import top.chengdongqing.wechat.core.util.toMD5Bytes
 import java.io.ByteArrayOutputStream
 import java.io.File

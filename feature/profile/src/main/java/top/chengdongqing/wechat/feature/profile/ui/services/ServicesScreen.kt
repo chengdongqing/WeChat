@@ -27,7 +27,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
@@ -46,20 +47,20 @@ fun ServicesScreen(
     onBills: () -> Unit
 ) {
     val finance = listOf(
-        ServiceItem("信用卡还款", R.drawable.ic_pay_vendor_filled, Color(0xFF3A78D0)),
-        ServiceItem("手机充值", R.drawable.ic_call_filled, Color(0xFF23A96E)),
-        ServiceItem("理财通", R.drawable.ic_import_export, Color(0xFFE7A536)),
-        ServiceItem("保险服务", R.drawable.ic_lock_filled, Color(0xFF3A78D0))
+        ServiceItem("信用卡还款", DesignR.drawable.ic_pay_vendor_filled, Color(0xFF3A78D0)),
+        ServiceItem("手机充值", DesignR.drawable.ic_call_filled, Color(0xFF23A96E)),
+        ServiceItem("理财通", DesignR.drawable.ic_import_export, Color(0xFFE7A536)),
+        ServiceItem("保险服务", DesignR.drawable.ic_lock_filled, Color(0xFF3A78D0))
     )
     val life = listOf(
-        ServiceItem("生活缴费", R.drawable.ic_pay_vendor_filled, Color(0xFF2F83D0)),
-        ServiceItem("城市服务", R.drawable.ic_location_filled, Color(0xFFEC8A32)),
-        ServiceItem("医疗健康", R.drawable.ic_favorites_filled, Color(0xFF29A967)),
-        ServiceItem("出行服务", R.drawable.ic_radar_outlined, Color(0xFF397ACD)),
-        ServiceItem("公益", R.drawable.ic_favorites_filled, Color(0xFFE46B6B)),
-        ServiceItem("电影演出", R.drawable.ic_video_filled, Color(0xFF8A67C7)),
-        ServiceItem("酒店", R.drawable.ic_location_filled, Color(0xFFDF8D37)),
-        ServiceItem("购物", R.drawable.ic_tag_filled, Color(0xFFE25A50))
+        ServiceItem("生活缴费", DesignR.drawable.ic_pay_vendor_filled, Color(0xFF2F83D0)),
+        ServiceItem("城市服务", DesignR.drawable.ic_location_filled, Color(0xFFEC8A32)),
+        ServiceItem("医疗健康", DesignR.drawable.ic_favorites_filled, Color(0xFF29A967)),
+        ServiceItem("出行服务", DesignR.drawable.ic_radar_outlined, Color(0xFF397ACD)),
+        ServiceItem("公益", DesignR.drawable.ic_favorites_filled, Color(0xFFE46B6B)),
+        ServiceItem("电影演出", DesignR.drawable.ic_video_filled, Color(0xFF8A67C7)),
+        ServiceItem("酒店", DesignR.drawable.ic_location_filled, Color(0xFFDF8D37)),
+        ServiceItem("购物", DesignR.drawable.ic_tag_filled, Color(0xFFE25A50))
     )
 
     Column(Modifier
@@ -68,7 +69,7 @@ fun ServicesScreen(
         WeTopAppBar(
             title = "服务",
             onBack = onBack,
-            actions = { IconButton(R.drawable.ic_more_outlined, description = "更多") }
+            actions = { IconButton(DesignR.drawable.ic_more_outlined, description = "更多") }
         )
         Column(Modifier
             .fillMaxSize()
@@ -81,13 +82,13 @@ fun ServicesScreen(
                     .height(116.dp)
             ) {
                 ServiceHeroItem(
-                    "收付款", "二维码收款与付款", R.drawable.ic_qrcode_outlined,
+                    "收付款", "二维码收款与付款", DesignR.drawable.ic_qrcode_outlined,
                     Modifier
                         .weight(1f)
                         .clickable(onClick = onPaymentCode)
                 )
                 ServiceHeroItem(
-                    "钱包", "余额、银行卡与账单", R.drawable.ic_pay_logo_outlined,
+                    "钱包", "余额、银行卡与账单", DesignR.drawable.ic_pay_logo_outlined,
                     Modifier
                         .weight(1f)
                         .clickable(onClick = onWallet)

@@ -10,7 +10,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.playback.R as PlaybackR
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.network.audio.ChatOpusFileWriter
 import top.chengdongqing.wechat.core.playback.SoundTipPlayer
 import top.chengdongqing.wechat.core.playback.VoicePlayer
@@ -225,7 +227,7 @@ class AudioPlaybackManager(
         prepareJob = null
         decodedPcmFile?.delete()
         decodedPcmFile = null
-        soundTipPlayer.play(R.raw.tip_voice_played)
+        soundTipPlayer.play(PlaybackR.raw.tip_voice_played)
 
         val nextVoice = findNextUnreadVoice(messageId, messages)
         if (nextVoice != null) {

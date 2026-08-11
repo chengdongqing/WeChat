@@ -20,11 +20,11 @@ import kotlinx.coroutines.launch
 import me.saket.telephoto.zoomable.coil3.ZoomableAsyncImage
 import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
-import top.chengdongqing.wechat.core.common.camera.rememberCameraLauncher
-import top.chengdongqing.wechat.core.common.cropper.rememberImageCropperLauncher
-import top.chengdongqing.wechat.core.common.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.common.media.picker.rememberMediaPickerLauncher
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.camera.rememberCameraLauncher
+import top.chengdongqing.wechat.core.cropper.rememberImageCropperLauncher
+import top.chengdongqing.wechat.core.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
@@ -68,7 +68,7 @@ fun EditAvatarScreen(
             val success = viewModel.saveImage(uri)
 
             ToastManager.show(
-                title = resources.getString(if (success) R.string.msg_save_success else R.string.msg_save_failed),
+                title = resources.getString(if (success) DesignR.string.msg_save_success else DesignR.string.msg_save_failed),
                 icon = if (success) ToastIcon.Success else ToastIcon.Fail
             )
         }
@@ -77,7 +77,7 @@ fun EditAvatarScreen(
     StatusBarAppearanceEffect(isDark = false)
     Box(modifier = Modifier.background(Black)) {
         WeTopAppBar(
-            title = stringResource(R.string.me_profile_avatar),
+            title = stringResource(DesignR.string.me_profile_avatar),
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .zIndex(1f),
@@ -86,8 +86,8 @@ fun EditAvatarScreen(
             onBack = onBack
         ) {
             IconButton(
-                icon = R.drawable.ic_more_outlined,
-                description = stringResource(R.string.action_more)
+                icon = DesignR.drawable.ic_more_outlined,
+                description = stringResource(DesignR.string.action_more)
             ) {
                 ActionSheetManager.show(MenuOptions) { index ->
                     when (index) {
@@ -102,7 +102,7 @@ fun EditAvatarScreen(
         ZoomableAsyncImage(
             state = state,
             model = profile?.avatarPath,
-            contentDescription = stringResource(R.string.me_profile_avatar),
+            contentDescription = stringResource(DesignR.string.me_profile_avatar),
             modifier = Modifier.fillMaxSize()
         )
     }
@@ -110,8 +110,8 @@ fun EditAvatarScreen(
 
 private val MenuOptions by lazy {
     listOf(
-        ActionSheetItem(R.string.action_take_photo),
-        ActionSheetItem(R.string.action_select_from_gallery),
-        ActionSheetItem(R.string.action_save_to_phone)
+        ActionSheetItem(DesignR.string.action_take_photo),
+        ActionSheetItem(DesignR.string.action_select_from_gallery),
+        ActionSheetItem(DesignR.string.action_save_to_phone)
     )
 }

@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.model.ContactAddSource
 import javax.inject.Inject
 
@@ -34,7 +35,7 @@ class NFCAddFriendViewModel @Inject constructor(
             } ?: _uiState.update {
                 it.copy(
                     isLoading = false,
-                    error = context.getString(R.string.add_contact_fetch_profile_failed)
+                    error = context.getString(DesignR.string.add_contact_fetch_profile_failed)
                 )
             }
         }

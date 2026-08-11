@@ -5,10 +5,10 @@ import androidx.core.net.toUri
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.storage.AssetOwner
 import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
 import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.util.downloadAvatar
 import top.chengdongqing.wechat.core.util.toSHA256Hex
 import java.io.File

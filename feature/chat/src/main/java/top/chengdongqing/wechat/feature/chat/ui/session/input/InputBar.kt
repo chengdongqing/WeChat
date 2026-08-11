@@ -45,7 +45,6 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterIsInstance
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.EmojiTextField
@@ -66,6 +65,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.input.voice.VoiceRecordB
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
 import top.chengdongqing.wechat.feature.chat.ui.session.util.ScrollToDismissEffect
 import kotlin.time.Duration.Companion.milliseconds
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 聊天输入栏
@@ -172,7 +172,7 @@ fun InputBar(
                     )
                 }
                 ActionIcon(
-                    icon = R.drawable.ic_close_outlined,
+                    icon = DesignR.drawable.ic_close_outlined,
                     onClick = viewModel::cancelQuote
                 )
             }
@@ -240,7 +240,7 @@ private fun MentionPickerItem(name: String, avatarPath: String?, onClick: () -> 
     ) {
         AsyncImage(
             model = avatarPath,
-            error = painterResource(R.drawable.img_avatar_placeholder),
+            error = painterResource(DesignR.drawable.img_avatar_placeholder),
             contentDescription = null,
             modifier = Modifier
                 .size(40.dp)
@@ -279,15 +279,15 @@ private fun VoiceModeToggle(state: InputBarState, actions: InputBarActions) {
     ) {
         if (state.shouldShowExpandButton) {
             CircleActionIcon(
-                icon = R.drawable.ic_expend_outlined,
+                icon = DesignR.drawable.ic_expend_outlined,
                 onClick = actions.onToggleExpand
             )
         }
         ActionIcon(
             icon = if (state.inputMode.isVoice) {
-                R.drawable.ic_keyboard_outlined
+                DesignR.drawable.ic_keyboard_outlined
             } else {
-                R.drawable.ic_voice_circle_outlined
+                DesignR.drawable.ic_voice_circle_outlined
             }
         ) {
             if (state.inputMode.isVoice) actions.onSwitchToText()
@@ -354,9 +354,9 @@ private fun EmojiToggle(
 ) {
     ActionIcon(
         icon = if (inputMode.isEmoji) {
-            R.drawable.ic_keyboard_outlined
+            DesignR.drawable.ic_keyboard_outlined
         } else {
-            R.drawable.ic_emoji_outlined
+            DesignR.drawable.ic_emoji_outlined
         }
     ) {
         if (!inputMode.isEmoji) {
@@ -380,13 +380,13 @@ private fun SendOrMoreToggle(
         if (shouldShow) {
             Box(modifier = Modifier.height(40.dp), contentAlignment = Alignment.Center) {
                 WeButton(
-                    text = stringResource(R.string.action_send),
+                    text = stringResource(DesignR.string.action_send),
                     size = ButtonSize.Small,
                     onClick = actions.onSendText
                 )
             }
         } else {
-            ActionIcon(icon = R.drawable.ic_plus_circle_outlined) {
+            ActionIcon(icon = DesignR.drawable.ic_plus_circle_outlined) {
                 if (!state.inputMode.isMore) {
                     actions.onSwitchMode(InputMode.More)
                 } else {

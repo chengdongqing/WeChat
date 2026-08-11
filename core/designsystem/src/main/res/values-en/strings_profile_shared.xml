@@ -1,0 +1,7 @@
+<resources>
+    <string name="me_profile_avatar">Photo</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="gender_male_pronoun">He</string>
+    <string name="gender_female_pronoun">She</string>
+</resources>

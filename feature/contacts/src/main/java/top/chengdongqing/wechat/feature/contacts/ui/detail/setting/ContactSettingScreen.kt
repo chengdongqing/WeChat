@@ -1,5 +1,7 @@
 package top.chengdongqing.wechat.feature.contacts.ui.detail.setting
 
+import top.chengdongqing.wechat.feature.contacts.R as ContactsR
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,7 +17,8 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
@@ -85,8 +88,8 @@ private fun ContactSettingContent(
     val resources = LocalResources.current
     val pickContact = rememberPickContactLauncher { contacts ->
         DialogManager.show(
-            title = resources.getString(R.string.msg_confirm_send),
-            okText = R.string.action_send
+            title = resources.getString(ContactsR.string.msg_confirm_send),
+            okText = DesignR.string.action_send
         ) {
             viewModel.sendContactCard(contacts.first().id)
         }
@@ -156,16 +159,16 @@ private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
 
     val showDialog = {
         DialogManager.show(
-            title = resources.getString(R.string.contact_delete_title, contact.displayName),
-            content = resources.getString(R.string.contact_delete_content),
+            title = resources.getString(ContactsR.string.contact_delete_title, contact.displayName),
+            content = resources.getString(ContactsR.string.contact_delete_content),
             okColor = SemanticError,
-            okText = R.string.action_delete,
+            okText = DesignR.string.action_delete,
             onOk = onDelete
         )
     }
 
     WeDangerButton(
-        label = stringResource(R.string.action_delete),
+        label = stringResource(DesignR.string.action_delete),
         onClick = showDialog
     )
 }

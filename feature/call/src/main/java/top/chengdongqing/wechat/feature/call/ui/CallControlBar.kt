@@ -35,6 +35,7 @@ import top.chengdongqing.wechat.core.model.CallState
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.feature.call.domain.model.CallActions
 import top.chengdongqing.wechat.feature.call.domain.model.CallUiState
+import top.chengdongqing.wechat.feature.call.R as CallR
 
 @Composable
 fun CallControlBar(state: CallUiState, actions: CallActions) {
@@ -129,7 +130,7 @@ private fun MicToggle(state: CallUiState, actions: CallActions) {
     val context = LocalContext.current
     ControlToggle(
         icon = if (state.isMicOn) R.drawable.ic_mic_filled else R.drawable.ic_mic_off_filled,
-        label = state.isMicOn.toStatusLabel(context, R.string.call_control_mic),
+        label = state.isMicOn.toStatusLabel(context, CallR.string.call_control_mic),
         onClick = actions.onToggleMic,
         isActive = state.isMicOn
     )
@@ -140,7 +141,7 @@ private fun SpeakerToggle(state: CallUiState, actions: CallActions) {
     val context = LocalContext.current
     ControlToggle(
         icon = if (state.isSpeakerOn) R.drawable.ic_speaker_filled else R.drawable.ic_speaker_off_filled,
-        label = state.isSpeakerOn.toStatusLabel(context, R.string.call_control_speaker),
+        label = state.isSpeakerOn.toStatusLabel(context, CallR.string.call_control_speaker),
         onClick = actions.onToggleSpeaker,
         isActive = state.isSpeakerOn
     )
@@ -163,7 +164,7 @@ private fun VideoToggle(state: CallUiState, actions: CallActions) {
 
     ControlToggle(
         icon = if (state.isVideoOn) R.drawable.ic_video_filled else R.drawable.ic_video_off_filled,
-        label = state.isVideoOn.toStatusLabel(context, R.string.call_control_camera),
+        label = state.isVideoOn.toStatusLabel(context, CallR.string.call_control_camera),
         onClick = {
             if (cameraPermission.status.isGranted) actions.onToggleVideo()
             else cameraPermission.launchPermissionRequest()
@@ -180,7 +181,7 @@ private fun CameraSwitchToggle(
     showBackground: Boolean = true
 ) = ControlToggle(
     icon = R.drawable.ic_camera_switch_filled,
-    label = if (showLabel) stringResource(R.string.call_control_flip) else null,
+    label = if (showLabel) stringResource(CallR.string.call_control_flip) else null,
     enabled = enabled,
     backgroundColor = if (showBackground) Color.White.copy(alpha = 0.2f) else Color.Unspecified,
     onClick = actions.onSwitchCamera
@@ -189,7 +190,7 @@ private fun CameraSwitchToggle(
 @Composable
 private fun CancelButton(actions: CallActions, showLabel: Boolean = false) = ControlToggle(
     icon = R.drawable.ic_hangup_filled,
-    label = if (showLabel) stringResource(R.string.call_control_cancel) else null,
+    label = if (showLabel) stringResource(CallR.string.call_control_cancel) else null,
     onClick = actions.onCancel,
     backgroundColor = SemanticError
 )
@@ -201,7 +202,7 @@ private fun HangupButton(
     showLabel: Boolean = false
 ) = ControlToggle(
     icon = R.drawable.ic_hangup_filled,
-    label = if (showLabel) stringResource(R.string.call_control_hangup) else null,
+    label = if (showLabel) stringResource(CallR.string.call_control_hangup) else null,
     onClick = actions.onHangup,
     backgroundColor = backgroundColor
 )
@@ -209,7 +210,7 @@ private fun HangupButton(
 @Composable
 private fun DeclineButton(actions: CallActions, showLabel: Boolean = false) = ControlToggle(
     icon = R.drawable.ic_hangup_filled,
-    label = if (showLabel) stringResource(R.string.call_control_decline) else null,
+    label = if (showLabel) stringResource(CallR.string.call_control_decline) else null,
     onClick = actions.onDecline,
     backgroundColor = SemanticError
 )
@@ -244,7 +245,7 @@ private fun AcceptButton(type: CallType, actions: CallActions, showLabel: Boolea
 
     ControlToggle(
         icon = R.drawable.ic_call_filled,
-        label = if (showLabel) stringResource(R.string.call_control_accept) else null,
+        label = if (showLabel) stringResource(CallR.string.call_control_accept) else null,
         onClick = {
             if (permissionsState.allPermissionsGranted) {
                 actions.onAccept()
@@ -262,6 +263,6 @@ private fun AcceptButton(type: CallType, actions: CallActions, showLabel: Boolea
  */
 private fun Boolean.toStatusLabel(context: Context, @StringRes labelRes: Int): String {
     val label = context.getString(labelRes)
-    val template = if (this) R.string.call_control_status_on else R.string.call_control_status_off
+    val template = if (this) CallR.string.call_control_status_on else CallR.string.call_control_status_off
     return context.getString(template, label)
 }

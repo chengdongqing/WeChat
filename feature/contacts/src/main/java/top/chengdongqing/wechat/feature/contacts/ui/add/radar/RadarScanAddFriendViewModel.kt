@@ -17,7 +17,8 @@ import top.chengdongqing.wechat.core.data.model.RadarBeacon
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.data.repository.RadarDiscoveryRepository
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.ContactAddSource
 
@@ -76,7 +77,7 @@ class RadarScanAddFriendViewModel @Inject constructor(
             if (contact != null) {
                 _navigateToContact.value = contact
             } else {
-                _error.value = context.getString(R.string.add_contact_fetch_profile_failed)
+                _error.value = context.getString(DesignR.string.add_contact_fetch_profile_failed)
             }
 
             _loadingUserId.value = null

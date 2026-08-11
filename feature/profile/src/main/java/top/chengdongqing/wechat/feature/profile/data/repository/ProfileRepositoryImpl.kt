@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.di.IoScope
+import top.chengdongqing.wechat.core.runtime.IoScope
 import top.chengdongqing.wechat.core.common.di.ProfileDataStore
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao

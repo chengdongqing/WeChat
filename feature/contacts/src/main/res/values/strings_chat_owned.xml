@@ -1,0 +1,7 @@
+<resources>
+    <string name='msg_confirm_send'>确定发送吗？</string>
+    <string name='contact_delete_title'>即将删除联系人\"%s\"</string>
+    <string name='contact_delete_content'>删除后对方不会收到通知</string>
+    <string name='contact_select_title'>选择联系人</string>
+    <string name='group_chat_select_title'>选择群聊</string>
+</resources>

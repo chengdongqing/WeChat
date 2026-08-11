@@ -15,14 +15,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.file.PublicFileManager
-import top.chengdongqing.wechat.core.common.file.openFile
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.file.PublicFileManager
+import top.chengdongqing.wechat.core.file.openFile
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.showToast
 import java.io.File
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 data class FilePreviewUiState(
     val filename: String = "",
@@ -115,9 +115,9 @@ class FilePreviewViewModel @AssistedInject constructor(
             )
 
             if (res != null) {
-                context.showToast(context.getString(R.string.msg_save_success))
+                context.showToast(context.getString(DesignR.string.msg_save_success))
             } else {
-                context.showToast(context.getString(R.string.msg_save_failed))
+                context.showToast(context.getString(DesignR.string.msg_save_failed))
             }
             _uiState.update {
                 it.copy(isSaving = false)

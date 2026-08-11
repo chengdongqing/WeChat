@@ -1,0 +1,18 @@
+<resources>
+    <string name="storage_cache">Cache</string>
+    <string name="storage_chat_media">media from chat history</string>
+    <string name="storage_chats">Chat History</string>
+    <string name="storage_resources">Resource Files</string>
+    <string name="storage_essential_files">Essential Files</string>
+    <string name="storage_clean_confirmation">Clear %1$s?</string>
+    <string name="storage_cache_desc">Cache is temporary data created while using WeChat. Clearing it won\'t affect normal use of WeChat.</string>
+    <string name="storage_chats_desc">You can clear photos, videos, and files from chat history. Text messages will be kept.</string>
+    <string name="storage_resources_desc">Files required by some features that can be regenerated or downloaded again.</string>
+    <string name="storage_essential_files_desc">Files required for WeChat to run. Their size varies depending on current usage.</string>
+    <string name="storage_wechat_used_space">Space Used by WeChat</string>
+    <string name="storage_device_percentage">%1$.1f%% of device storage</string>
+    <string name="storage_legend_wechat">WeChat</string>
+    <string name="storage_legend_other_apps">Other Apps</string>
+    <string name="storage_legend_available">Available</string>
+    <string name="storage_clean">Clear</string>
+</resources>

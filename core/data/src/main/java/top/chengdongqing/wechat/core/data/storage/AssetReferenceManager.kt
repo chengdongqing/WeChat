@@ -3,12 +3,12 @@ package top.chengdongqing.wechat.core.data.storage
 import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.MediaAssetReferenceDao
 import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.entity.MediaAssetReferenceEntity
 import top.chengdongqing.wechat.core.database.entity.MediaFileEntity
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import javax.inject.Inject
 import javax.inject.Singleton
 

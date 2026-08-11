@@ -1,7 +1,8 @@
 package top.chengdongqing.wechat.feature.settings.domain.model
 
 import androidx.annotation.StringRes
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 
 /**
  * 系统权限

@@ -16,7 +16,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
@@ -105,8 +106,8 @@ private fun TopBar(
     ) {
         if (moreActionVisible) {
             IconButton(
-                icon = R.drawable.ic_more_outlined,
-                description = stringResource(R.string.action_more),
+                icon = DesignR.drawable.ic_more_outlined,
+                description = stringResource(DesignR.string.action_more),
                 onClick = onMoreClick
             )
         }

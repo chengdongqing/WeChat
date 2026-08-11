@@ -1,0 +1,4 @@
+<resources>
+    <string name='chat_call_video'>Video Call</string>
+    <string name='chat_call_voice'>Voice Call</string>
+</resources>

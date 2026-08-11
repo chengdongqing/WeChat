@@ -1,0 +1,11 @@
+<resources>
+    <string name='live_location_started_peer'>对方发起了位置共享</string>
+    <string name='call_notification_incoming_video'>视频通话 来电</string>
+    <string name='call_notification_incoming_voice'>语音通话 来电</string>
+    <string name='call_notification_outgoing'>正在呼叫 %s…</string>
+    <string name='call_notification_connecting'>连接中…</string>
+    <string name='call_notification_ongoing'>通话中 - %s</string>
+    <string name='chat_notification_hidden'>你收到了1条消息</string>
+    <string name='chat_notification_sender_only'>给你发来了1条消息</string>
+    <string name='chat_notification_contact_unknown'>未知联系人</string>
+</resources>

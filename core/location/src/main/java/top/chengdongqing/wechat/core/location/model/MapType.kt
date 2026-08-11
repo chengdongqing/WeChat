@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.core.net.toUri
 import java.net.URLEncoder
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.core.location.R as LocationR
 
 /**
  * 第三方地图服务商类型及其协议适配
@@ -13,23 +13,23 @@ enum class MapType(
     @get:StringRes val labelRes: Int,
     val packageName: String
 ) {
-    AMap(DesignR.string.map_amap, "com.autonavi.minimap") {
+    AMap(LocationR.string.map_amap, "com.autonavi.minimap") {
         override fun buildUri(lat: Double, lng: Double, name: String): Uri {
             return "amapuri://route/plan?dlat=$lat&dlon=$lng&dname=$name&t=0".toUri()
         }
     },
-    Baidu(DesignR.string.map_baidu, "com.baidu.BaiduMap") {
+    Baidu(LocationR.string.map_baidu, "com.baidu.BaiduMap") {
         override fun buildUri(lat: Double, lng: Double, name: String): Uri {
             val encodedName = URLEncoder.encode(name, "UTF-8")
             return "baidumap://map/direction?destination=latlng:$lat,$lng|name:$encodedName&coord_type=gcj02&mode=driving".toUri()
         }
     },
-    Tencent(DesignR.string.map_tencent, "com.tencent.map") {
+    Tencent(LocationR.string.map_tencent, "com.tencent.map") {
         override fun buildUri(lat: Double, lng: Double, name: String): Uri {
             return "qqmap://map/routeplan?to=$name&tocoord=$lat,$lng&type=drive".toUri()
         }
     },
-    Google(DesignR.string.map_google, "com.google.android.apps.maps") {
+    Google(LocationR.string.map_google, "com.google.android.apps.maps") {
         override fun buildUri(lat: Double, lng: Double, name: String): Uri {
             return "google.navigation:q=$lat,$lng".toUri()
         }

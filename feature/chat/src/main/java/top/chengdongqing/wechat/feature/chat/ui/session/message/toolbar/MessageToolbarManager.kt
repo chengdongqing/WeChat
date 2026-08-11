@@ -13,9 +13,9 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.datetime.isWithinSeconds
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.util.copyToClipboard
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageAction
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageToolbarState
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent

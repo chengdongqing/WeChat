@@ -47,13 +47,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.location.WeMap
 import top.chengdongqing.wechat.core.location.heading.rememberDeviceHeading
 import top.chengdongqing.wechat.core.location.map.MapMarkerHandle
 import top.chengdongqing.wechat.core.location.rememberMapController
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.feature.chat.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun LiveLocationScreen(
@@ -187,7 +188,7 @@ private fun LiveLocationHeader(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painterResource(R.drawable.ic_close_outlined),
+                    painterResource(DesignR.drawable.ic_close_outlined),
                     contentDescription = null,
                     tint = Color(0xFF35DB87),
                     modifier = Modifier.size(25.dp)
@@ -201,7 +202,7 @@ private fun LiveLocationHeader(
                     AsyncImage(
                         model = participant.avatarPath,
                         contentDescription = participant.name,
-                        error = painterResource(R.drawable.img_avatar_placeholder),
+                        error = painterResource(DesignR.drawable.img_avatar_placeholder),
                         modifier = Modifier
                             .size(56.dp)
                             .clip(CircleShape),
@@ -243,7 +244,7 @@ private fun TalkButton(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painterResource(R.drawable.ic_mic2_filled),
+                painterResource(DesignR.drawable.ic_mic2_filled),
                 contentDescription = null,
                 tint = Color.White,
                 modifier = Modifier.size(34.dp)

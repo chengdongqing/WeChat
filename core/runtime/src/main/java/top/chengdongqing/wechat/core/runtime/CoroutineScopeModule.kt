@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.core.common.di
+package top.chengdongqing.wechat.core.runtime
 
 import dagger.Module
 import dagger.Provides

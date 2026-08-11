@@ -22,10 +22,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 data class ChatParticipant(val id: String, val name: String, val avatarPath: String?)
 
@@ -54,7 +54,7 @@ fun ChatParticipantsBar(
             ) {
                 AsyncImage(
                     model = participant.avatarPath,
-                    error = painterResource(R.drawable.img_avatar_placeholder),
+                    error = painterResource(DesignR.drawable.img_avatar_placeholder),
                     contentDescription = participant.name,
                     modifier = Modifier
                         .size(52.dp)
@@ -81,7 +81,7 @@ fun ChatParticipantsBar(
                 modifier = Modifier.size(52.dp),
                 cornerRadius = 6.dp,
                 color = Color.Gray,
-                iconRes = R.drawable.ic_minus_outlined,
+                iconRes = DesignR.drawable.ic_minus_outlined,
                 onClick = it
             )
         }

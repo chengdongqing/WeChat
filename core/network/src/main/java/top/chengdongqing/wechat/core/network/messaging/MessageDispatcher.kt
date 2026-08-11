@@ -5,7 +5,6 @@ import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.ReceiptType
@@ -24,6 +23,7 @@ import top.chengdongqing.wechat.core.database.entity.GroupEntity
 import top.chengdongqing.wechat.core.database.entity.GroupMemberEntity
 import top.chengdongqing.wechat.core.database.entity.GroupMemberRole
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.core.model.SendStatus

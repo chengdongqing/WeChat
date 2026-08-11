@@ -54,12 +54,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import top.chengdongqing.wechat.core.common.file.createImageUri
+import top.chengdongqing.wechat.core.file.createImageUri
 import top.chengdongqing.wechat.core.common.qrcode.generator.QRCodeState
 import top.chengdongqing.wechat.core.common.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.core.common.qrcode.generator.rememberQRCodeState
 import top.chengdongqing.wechat.core.common.qrcode.scanner.rememberScanCodeLauncher
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
@@ -113,7 +114,7 @@ fun QRCodeScreen(
             ?: 0
         val qrCodeState = rememberQRCodeState(
             content = uiState.qrCode,
-            logoPainter = painterResource(R.drawable.img_logo_outlined),
+            logoPainter = painterResource(DesignR.drawable.img_logo_outlined),
             brush = QR_CODE_STYLES[styleIndex]
         )
         LaunchedEffect(styleIndex, qrCodeState) {
@@ -355,14 +356,14 @@ private fun handleSaveToAlbum(
 
             ToastManager.show(
                 title = if (success) {
-                    context.getString(R.string.msg_save_success)
+                    context.getString(DesignR.string.msg_save_success)
                 } else {
-                    context.getString(R.string.msg_save_failed)
+                    context.getString(DesignR.string.msg_save_failed)
                 },
                 icon = if (success) ToastIcon.Success else ToastIcon.Fail
             )
         } catch (e: Exception) {
-            ToastManager.fail("${context.getString(R.string.msg_save_failed)}: ${e.message}")
+            ToastManager.fail("${context.getString(DesignR.string.msg_save_failed)}: ${e.message}")
         }
     }
 }

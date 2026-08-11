@@ -42,7 +42,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -75,7 +76,7 @@ fun FontScaleSettingScreen(
                 onBack = onBack
             ) {
                 WeButton(
-                    text = stringResource(R.string.action_done),
+                    text = stringResource(DesignR.string.action_done),
                     size = ButtonSize.Small,
                     enabled = hasChanged
                 ) {
@@ -112,7 +113,7 @@ private fun ChatPreview(
     modifier: Modifier
 ) {
     val resources = LocalResources.current
-    val avatarPath by produceState<Any?>(R.drawable.img_logo) {
+    val avatarPath by produceState<Any?>(DesignR.drawable.img_logo) {
         value = viewModel.profileRepository.requireProfile().avatarPath
     }
 
@@ -140,7 +141,7 @@ private fun ChatPreview(
                 text = text,
                 isFromMe = index == 0,
                 myAvatar = avatarPath,
-                peerAvatar = R.drawable.img_logo
+                peerAvatar = DesignR.drawable.img_logo
             )
         }
     }
@@ -228,7 +229,7 @@ private fun MessagePreviewAvatar(model: Any?) {
     AsyncImage(
         model = model,
         contentDescription = null,
-        error = androidx.compose.ui.res.painterResource(R.drawable.img_avatar_placeholder),
+        error = androidx.compose.ui.res.painterResource(DesignR.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))

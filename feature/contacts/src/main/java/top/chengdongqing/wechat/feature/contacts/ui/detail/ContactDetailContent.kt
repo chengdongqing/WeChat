@@ -27,7 +27,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.Contact
@@ -78,7 +79,7 @@ fun LocalAiContactDetailContent(onSendMessage: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = R.drawable.img_logo,
+                model = DesignR.drawable.img_logo,
                 contentDescription = null,
                 modifier = Modifier
                     .size(64.dp)
@@ -125,7 +126,7 @@ fun LocalAiContactDetailContent(onSendMessage: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_message_outlined),
+                painter = painterResource(DesignR.drawable.ic_message_outlined),
                 contentDescription = null,
                 tint = androidx.compose.ui.graphics.Color(0xFF576B95),
                 modifier = Modifier.size(24.dp)

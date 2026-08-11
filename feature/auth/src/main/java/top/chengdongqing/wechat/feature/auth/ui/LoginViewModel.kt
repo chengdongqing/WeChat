@@ -12,12 +12,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.core.network.security.KeyStoreManager
+import top.chengdongqing.wechat.feature.auth.R
 import javax.inject.Inject
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 data class LoginUiState(
     val nickname: String = "",
@@ -97,7 +98,7 @@ class LoginViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "${context.getString(R.string.msg_save_failed)}: ${e.message}"
+                        errorMessage = "${context.getString(DesignR.string.msg_save_failed)}: ${e.message}"
                     )
                 }
             }

@@ -25,7 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -118,7 +119,7 @@ private fun ProfileContent(
         WeSettingGroup {
             // 头像
             WeSettingItem(
-                label = stringResource(R.string.me_profile_avatar),
+                label = stringResource(DesignR.string.me_profile_avatar),
                 onClick = onNavigateToAvatarEdit
             ) {
                 AvatarContent(profile?.avatarPath)
@@ -188,7 +189,7 @@ private fun AvatarContent(avatarPath: String?) {
     AsyncImage(
         model = avatarPath,
         contentDescription = "头像",
-        error = painterResource(R.drawable.img_avatar_placeholder),
+        error = painterResource(DesignR.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(32.dp)
             .clip(RoundedCornerShape(4.dp)),
@@ -202,7 +203,7 @@ private fun AvatarContent(avatarPath: String?) {
 @Composable
 private fun QRCodeContent() {
     Icon(
-        painter = painterResource(R.drawable.ic_qrcode_outlined),
+        painter = painterResource(DesignR.drawable.ic_qrcode_outlined),
         contentDescription = "二维码",
         modifier = Modifier.size(24.dp),
         tint = WeTheme.colorScheme.textSecondary

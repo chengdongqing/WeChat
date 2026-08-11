@@ -26,11 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.MessageSendStatus
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun FileContent(message: ChatMessage) {
@@ -38,9 +38,9 @@ fun FileContent(message: ChatMessage) {
     val content = message.content as MessageContent.File
 
     val icon = if (message.isProgressing) {
-        R.drawable.ic_file_placeholder_filled
+        DesignR.drawable.ic_file_placeholder_filled
     } else {
-        R.drawable.ic_file_filled
+        DesignR.drawable.ic_file_filled
     }
 
     Row(
@@ -83,7 +83,7 @@ fun ControlWithProgress(message: ChatMessage) {
     val chatContext = LocalChatSessionContext.current
     val isPaused = message.sendStatus is MessageSendStatus.Paused
 
-    val icon = if (isPaused) R.drawable.ic_play_filled else R.drawable.ic_pause_filled
+    val icon = if (isPaused) DesignR.drawable.ic_play_filled else DesignR.drawable.ic_pause_filled
 
     Box(
         modifier = Modifier

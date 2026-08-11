@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
-            android:name="top.chengdongqing.wechat.core.common.qrcode.scanner.QRCodeScannerActivity"
+            android:name=".scanner.QRCodeScannerActivity"
             android:exported="true" />
     </application>
 </manifest>

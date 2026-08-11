@@ -37,7 +37,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
@@ -74,35 +75,35 @@ fun MeScreen(
         }
         WeMenuListItem(
             label = stringResource(R.string.me_menu_service),
-            icon = R.drawable.ic_pay_logo_outlined,
+            icon = DesignR.drawable.ic_pay_logo_outlined,
             iconColor = Color(0xFF07C160),
             onClick = { backStack.add(NavigationKey.Services) }
         )
         Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
             WeMenuListItem(
                 label = stringResource(R.string.me_menu_favorites),
-                icon = R.drawable.ic_favorites_outlined_colorful,
+                icon = DesignR.drawable.ic_favorites_outlined_colorful,
                 iconColor = Color.Unspecified,
                 onClick = { backStack.add(NavigationKey.Favorites()) }
             )
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             WeMenuListItem(
                 label = stringResource(R.string.me_menu_moments),
-                icon = R.drawable.ic_album_outlined,
+                icon = DesignR.drawable.ic_album_outlined,
                 iconColor = Color(0xFF2782D7),
                 onClick = {}
             )
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             WeMenuListItem(
                 label = stringResource(R.string.me_menu_stickers),
-                icon = R.drawable.ic_emoji_outlined,
+                icon = DesignR.drawable.ic_emoji_outlined,
                 iconColor = Color(0xFFF9C018),
                 onClick = {}
             )
         }
         WeMenuListItem(
             label = stringResource(R.string.me_menu_settings),
-            icon = R.drawable.ic_settings_outlined,
+            icon = DesignR.drawable.ic_settings_outlined,
             iconColor = Color(0xFF2782D7)
         ) {
             backStack.add(NavigationKey.Settings)
@@ -127,7 +128,7 @@ fun UserInfoSection(
         AsyncImage(
             model = profile?.avatarPath,
             contentDescription = "头像",
-            error = painterResource(R.drawable.img_avatar_placeholder),
+            error = painterResource(DesignR.drawable.img_avatar_placeholder),
             modifier = Modifier
                 .size(64.dp)
                 .clip(RoundedCornerShape(6.dp))
@@ -147,7 +148,7 @@ fun UserInfoSection(
                     overflow = TextOverflow.Ellipsis
                 )
                 Icon(
-                    painter = painterResource(R.drawable.ic_qrcode_outlined),
+                    painter = painterResource(DesignR.drawable.ic_qrcode_outlined),
                     contentDescription = null,
                     modifier = Modifier
                         .size(20.dp)
@@ -168,7 +169,7 @@ fun UserInfoSection(
                     overflow = TextOverflow.Ellipsis
                 )
                 Icon(
-                    painter = painterResource(R.drawable.ic_right_outlined),
+                    painter = painterResource(DesignR.drawable.ic_right_outlined),
                     contentDescription = null,
                     modifier = Modifier
                         .size(24.dp)
@@ -198,7 +199,7 @@ fun StatusSection() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_plus_outlined),
+                painter = painterResource(DesignR.drawable.ic_plus_outlined),
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
                 tint = WeTheme.colorScheme.textSecondary

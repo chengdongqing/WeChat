@@ -1,7 +1,8 @@
 package top.chengdongqing.wechat.feature.settings.domain.model
 
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.settings.R
 
 val ConnectionMode.labelRes: Int
     get() = when (this) {

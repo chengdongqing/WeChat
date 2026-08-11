@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.feature.launch.R as LaunchR
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
@@ -51,7 +52,7 @@ fun GuideScreen(
             horizontalArrangement = Arrangement.End
         ) {
             Text(
-                text = stringResource(R.string.action_language),
+                text = stringResource(LaunchR.string.action_language),
                 color = Color.White.copy(alpha = 0.9f),
                 fontSize = 15.sp,
                 modifier = Modifier.onTap {
@@ -69,7 +70,7 @@ fun GuideScreen(
                 .padding(40.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            WeButton(stringResource(R.string.get_started)) {
+            WeButton(stringResource(LaunchR.string.get_started)) {
                 onNavigateToSetup()
             }
         }

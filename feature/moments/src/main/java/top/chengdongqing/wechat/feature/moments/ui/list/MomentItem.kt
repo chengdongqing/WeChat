@@ -65,9 +65,10 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
 import coil3.compose.AsyncImage
-import top.chengdongqing.wechat.core.common.media.isLandscape
+import top.chengdongqing.wechat.core.media.isLandscape
 import top.chengdongqing.wechat.core.datetime.toRelativeDateTime
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.feature.moments.R as FeatureR
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.text.RichTextMode
 import top.chengdongqing.wechat.core.designsystem.text.parseRichText
@@ -312,7 +313,7 @@ private fun MomentFooter(
                 .onGloballyPositioned { buttonCoordinates = it }
                 .clickable(
                     role = Role.Button,
-                    onClickLabel = stringResource(R.string.moment_action_comment),
+                    onClickLabel = stringResource(FeatureR.string.moment_action_comment),
                     onClick = { actionsExpanded.targetState = !actionsExpanded.targetState }
                 ),
             contentAlignment = Alignment.Center
@@ -409,9 +410,9 @@ private fun MomentActionsPopup(
         PopupActionItem(
             iconRes = R.drawable.ic_like_outlined,
             label = if (isLiked) {
-                stringResource(R.string.moment_action_unlike)
+                stringResource(FeatureR.string.moment_action_unlike)
             } else {
-                stringResource(R.string.moment_action_like)
+                stringResource(FeatureR.string.moment_action_like)
             },
             onClick = onLike
         )
@@ -422,7 +423,7 @@ private fun MomentActionsPopup(
         )
         PopupActionItem(
             iconRes = R.drawable.ic_message_outlined,
-            label = stringResource(R.string.moment_action_comment),
+            label = stringResource(FeatureR.string.moment_action_comment),
             onClick = onComment
         )
     }

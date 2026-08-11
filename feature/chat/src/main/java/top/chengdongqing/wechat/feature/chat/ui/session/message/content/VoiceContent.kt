@@ -38,10 +38,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun VoiceContent(message: ChatMessage) {
@@ -131,7 +131,7 @@ internal fun VoiceIcon(
     }
 
     val maskPath = remember { Path() }
-    val painter = painterResource(id = R.drawable.ic_voice_outlined)
+    val painter = painterResource(id = DesignR.drawable.ic_voice_outlined)
 
     Box(
         modifier = Modifier

@@ -19,8 +19,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.common.di.IoScope
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.model.ChatHistoryItem
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
@@ -42,6 +40,7 @@ import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.database.entity.peerId
 import top.chengdongqing.wechat.core.datetime.isWithinSeconds
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.SendError
@@ -51,6 +50,7 @@ import top.chengdongqing.wechat.core.network.messaging.ChunkStorageManager
 import top.chengdongqing.wechat.core.network.messaging.MessageSender
 import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
 import top.chengdongqing.wechat.core.network.transfer.TransferManager
+import top.chengdongqing.wechat.core.runtime.IoScope
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.core.util.toSHA256Hex
 import top.chengdongqing.wechat.feature.chat.data.createChatHistoryArchive

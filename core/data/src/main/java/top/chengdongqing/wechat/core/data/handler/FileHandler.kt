@@ -4,9 +4,9 @@ import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.apppicker.model.AppResult
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.file.getFileMetadata
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.getFileMetadata
 import top.chengdongqing.wechat.core.model.ContactResult
 import top.chengdongqing.wechat.core.model.MessageType
 import java.io.File

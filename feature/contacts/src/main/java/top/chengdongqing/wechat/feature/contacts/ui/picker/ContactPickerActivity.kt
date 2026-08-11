@@ -14,7 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.ContactResult
 
@@ -47,11 +48,11 @@ class ContactPickerActivity : ComponentActivity() {
             overrideActivityTransition(
                 OVERRIDE_TRANSITION_CLOSE,
                 android.R.anim.fade_in,
-                R.anim.slide_out_down
+                DesignR.anim.slide_out_down
             )
         } else {
             @Suppress("DEPRECATION")
-            overridePendingTransition(android.R.anim.fade_in, R.anim.slide_out_down)
+            overridePendingTransition(android.R.anim.fade_in, DesignR.anim.slide_out_down)
         }
     }
 
@@ -86,8 +87,8 @@ fun rememberPickContactLauncher(
 
         val options = ActivityOptionsCompat.makeCustomAnimation(
             context,
-            R.anim.slide_in_up,
-            android.R.anim.fade_out
+            DesignR.anim.slide_in_up,
+            android.DesignR.anim.fade_out
         )
 
         launcher.launch(intent, options)

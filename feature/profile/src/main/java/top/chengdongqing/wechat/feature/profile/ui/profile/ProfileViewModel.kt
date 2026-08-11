@@ -16,9 +16,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.file.PrivateFileManager
-import top.chengdongqing.wechat.core.common.file.PublicFileManager
-import top.chengdongqing.wechat.core.common.qrcode.QRCodeResult
+import top.chengdongqing.wechat.core.file.PrivateFileManager
+import top.chengdongqing.wechat.core.file.PublicFileManager
+import top.chengdongqing.wechat.core.qrcode.QRCodeResult
 import top.chengdongqing.wechat.core.data.repository.NotificationSettingsRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.data.usecase.QRCodeUseCase

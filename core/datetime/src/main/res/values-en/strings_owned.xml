@@ -1,0 +1,10 @@
+<resources>
+    <string name='time_yesterday'>Yesterday</string>
+    <string name='time_monday'>Mon</string>
+    <string name='time_tuesday'>Tue</string>
+    <string name='time_wednesday'>Wed</string>
+    <string name='time_thursday'>Thu</string>
+    <string name='time_friday'>Fri</string>
+    <string name='time_saturday'>Sat</string>
+    <string name='time_sunday'>Sun</string>
+</resources>

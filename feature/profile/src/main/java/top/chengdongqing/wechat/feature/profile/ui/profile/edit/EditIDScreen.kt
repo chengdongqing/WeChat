@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -75,7 +76,7 @@ fun EditIDScreen(
             )
             Spacer(modifier = Modifier.weight(1f))
             WeButton(
-                text = stringResource(R.string.action_back),
+                text = stringResource(DesignR.string.action_back),
                 type = ButtonType.Plain,
                 onClick = onBack
             )

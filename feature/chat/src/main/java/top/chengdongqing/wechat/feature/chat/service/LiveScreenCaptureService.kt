@@ -12,7 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 群直播屏幕采集服务。
@@ -63,7 +63,7 @@ class LiveScreenCaptureService : Service() {
 
     private fun buildNotification(): Notification =
         NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_video_filled)
+            .setSmallIcon(DesignR.drawable.ic_video_filled)
             .setContentTitle("正在共享屏幕")
             .setContentText("群直播正在采集屏幕内容")
             .setOngoing(true)

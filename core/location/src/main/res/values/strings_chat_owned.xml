@@ -1,0 +1,7 @@
+<resources>
+    <string name='location_search_placeholder'>搜索地点</string>
+    <string name='location_tab_nearby'>附近</string>
+    <string name='location_tab_all'>不限</string>
+    <string name='location_current'>当前位置</string>
+    <string name='location_navigate'>导航</string>
+</resources>

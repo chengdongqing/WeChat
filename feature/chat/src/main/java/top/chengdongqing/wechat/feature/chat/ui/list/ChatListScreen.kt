@@ -22,7 +22,6 @@ import top.chengdongqing.wechat.core.connectivity.rememberBluetoothEnabled
 import top.chengdongqing.wechat.core.connectivity.rememberWifiConnected
 import top.chengdongqing.wechat.core.connectivity.rememberWifiEnabled
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.ContextMenuState
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.WeContextMenu
 import top.chengdongqing.wechat.core.designsystem.components.contextmenu.rememberContextMenuState
@@ -37,6 +36,8 @@ import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.ChatSession
+import top.chengdongqing.wechat.feature.chat.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ChatListScreen(
@@ -180,13 +181,13 @@ private fun ChatContextMenuHandler(
             2 -> DialogManager.show(
                 title = hideTitle,
                 content = hideContent,
-                okText = R.string.action_got_it,
+                okText = DesignR.string.action_got_it,
                 onCancel = null
             ) { viewModel.hideChat(chat.id) }
 
             3 -> DialogManager.show(
                 title = deleteHint,
-                okText = R.string.action_delete,
+                okText = DesignR.string.action_delete,
                 okColor = SemanticError
             ) { viewModel.deleteChat(chat.id) }
         }

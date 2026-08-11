@@ -30,17 +30,18 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.file.PublicFileManager
-import top.chengdongqing.wechat.core.common.file.openFile
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.file.PublicFileManager
+import top.chengdongqing.wechat.core.file.openFile
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.feature.chat.R
 import java.io.File
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun FilePreviewScreen(
@@ -119,7 +120,7 @@ private fun FilePreviewPage(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_file_filled),
+                    painter = painterResource(DesignR.drawable.ic_file_filled),
                     contentDescription = null,
                     modifier = Modifier.size(68.dp)
                 )
@@ -159,14 +160,14 @@ private fun FilePreviewPage(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 WeButton(
-                    text = stringResource(R.string.action_open),
+                    text = stringResource(DesignR.string.action_open),
                     type = ButtonType.Plain,
                     enabled = uiState.fileExists
                 ) {
                     onOpen()
                 }
                 WeButton(
-                    text = stringResource(R.string.action_save),
+                    text = stringResource(DesignR.string.action_save),
                     loading = uiState.isSaving,
                     enabled = uiState.fileExists
                 ) {

@@ -1,0 +1,12 @@
+<resources>
+    <string name="add_contact_fetch_profile_failed">获取对方资料失败</string>
+    <string name="add_source_search">搜索账号</string>
+    <string name="add_source_qrcode">扫一扫</string>
+    <string name="add_source_bump">碰一碰</string>
+    <string name="add_source_radar">雷达扫描</string>
+    <string name="add_source_temporary">临时聊天</string>
+    <string name="add_source_group">群聊</string>
+    <string name="add_source_card">名片分享</string>
+    <string name="add_source_desc_from_me">通过%s添加</string>
+    <string name="add_source_desc_from_other">对方通过%s添加</string>
+</resources>

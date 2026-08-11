@@ -69,11 +69,7 @@ import coil3.compose.AsyncImage
 import coil3.decode.StaticImageDecoder
 import coil3.request.ImageRequest
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.common.file.asAssetPath
-import top.chengdongqing.wechat.core.common.file.copyAssetToUri
-import top.chengdongqing.wechat.core.common.file.deleteFileByUri
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
@@ -81,11 +77,16 @@ import top.chengdongqing.wechat.core.designsystem.model.Emojis
 import top.chengdongqing.wechat.core.designsystem.modifier.repeatingClickable
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.file.asAssetPath
+import top.chengdongqing.wechat.core.file.copyAssetToUri
+import top.chengdongqing.wechat.core.file.deleteFileByUri
 import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.data.store.ManagedSticker
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBarViewModel
 import java.io.File
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
  * 表情面板
@@ -175,10 +176,10 @@ private fun ExpressionCategoryTabs(
     val resources = LocalResources.current
     val tabs = remember {
         listOf(
-            TabItem(0, R.drawable.ic_emoji_outlined, resources.getString(R.string.sticker_title)),
+            TabItem(0, DesignR.drawable.ic_emoji_outlined, resources.getString(R.string.sticker_title)),
             TabItem(
                 1,
-                R.drawable.ic_like_outlined,
+                DesignR.drawable.ic_like_outlined,
                 resources.getString(R.string.sticker_custom_title)
             )
         )

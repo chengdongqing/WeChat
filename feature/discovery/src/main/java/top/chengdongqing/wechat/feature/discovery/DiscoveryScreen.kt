@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.feature.discovery.R as FeatureR
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -25,18 +26,18 @@ fun DiscoveryScreen(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         WeMenuListItem(
-            label = stringResource(R.string.discover_menu_moments),
+            label = stringResource(FeatureR.string.discover_menu_moments),
             icon = R.drawable.ic_moments_outlined_colorful,
             onClick = onNavigateToMoments
         )
         WeMenuListItem(
-            label = stringResource(R.string.discover_menu_search),
+            label = stringResource(FeatureR.string.discover_menu_search),
             icon = R.drawable.ic_search_logo_outlined,
             iconColor = SemanticError,
             onClick = {}
         )
         WeMenuListItem(
-            label = stringResource(R.string.discover_menu_intercom),
+            label = stringResource(FeatureR.string.discover_menu_intercom),
             icon = R.drawable.ic_mic2_filled,
             iconColor = WeTheme.colorScheme.primary,
             onClick = onNavigateToIntercom

@@ -28,10 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.common.qrcode.QRCodeFormat
-import top.chengdongqing.wechat.core.common.qrcode.generator.WeQRCode
-import top.chengdongqing.wechat.core.common.qrcode.generator.rememberQRCodeState
-import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
@@ -40,7 +36,11 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
+import top.chengdongqing.wechat.core.qrcode.QRCodeFormat
+import top.chengdongqing.wechat.core.qrcode.generator.WeQRCode
+import top.chengdongqing.wechat.core.qrcode.generator.rememberQRCodeState
 import top.chengdongqing.wechat.feature.common.background.ChatBackgroundSetting
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun GroupInfoScreen(
@@ -74,7 +74,7 @@ fun GroupInfoScreen(
                 onBack = onBack,
                 actions = {
                     IconButton(
-                        icon = R.drawable.ic_search_outlined,
+                        icon = DesignR.drawable.ic_search_outlined,
                         description = "搜索",
                         onClick = {}
                     )
@@ -108,7 +108,7 @@ fun GroupInfoScreen(
                 }
                 WeSettingItem("群二维码", onClick = { showQrCode = true }) {
                     Icon(
-                        painterResource(R.drawable.ic_qrcode_outlined),
+                        painterResource(DesignR.drawable.ic_qrcode_outlined),
                         contentDescription = null,
                         modifier = Modifier.size(22.dp),
                         tint = WeTheme.colorScheme.textSecondary

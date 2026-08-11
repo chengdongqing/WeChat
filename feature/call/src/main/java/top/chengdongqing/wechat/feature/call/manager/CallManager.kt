@@ -14,7 +14,6 @@ import org.webrtc.IceCandidate
 import org.webrtc.PeerConnection
 import org.webrtc.SessionDescription
 import org.webrtc.SurfaceViewRenderer
-import top.chengdongqing.wechat.core.common.di.MainScope
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -36,6 +35,7 @@ import top.chengdongqing.wechat.core.network.crypto.PacketSigner
 import top.chengdongqing.wechat.core.network.messaging.MessageDispatcher
 import top.chengdongqing.wechat.core.network.security.KeyStoreManager
 import top.chengdongqing.wechat.core.playback.RingtoneSound
+import top.chengdongqing.wechat.core.runtime.MainScope
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.feature.call.domain.model.CallUiState
 import javax.inject.Inject

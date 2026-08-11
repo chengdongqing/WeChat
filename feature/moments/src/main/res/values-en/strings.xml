@@ -1,0 +1,9 @@
+<resources>
+    <string name="moments_post_camera">Camera</string>
+    <string name="moments_post_camera_desc">Take a photo or video</string>
+    <string name="moments_post_gallery">Choose from gallery</string>
+
+    <string name="moment_action_like">Like</string>
+    <string name="moment_action_unlike">Unlike</string>
+    <string name="moment_action_comment">Comment</string>
+</resources>

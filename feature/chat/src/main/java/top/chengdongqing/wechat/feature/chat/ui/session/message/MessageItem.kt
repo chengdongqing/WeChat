@@ -44,7 +44,8 @@ import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.components.checkbox.WeCheckBox
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
@@ -309,7 +310,7 @@ private fun Avatar(model: Any?, isPeer: Boolean) {
     AsyncImage(
         model = model,
         contentDescription = null,
-        error = painterResource(R.drawable.img_avatar_placeholder),
+        error = painterResource(DesignR.drawable.img_avatar_placeholder),
         modifier = Modifier
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))
@@ -331,7 +332,7 @@ private fun StatusIndicator(message: ChatMessage) {
         }
 
         message.isFailed -> Image(
-            painter = painterResource(R.drawable.ic_error_circle_filled),
+            painter = painterResource(DesignR.drawable.ic_error_circle_filled),
             contentDescription = "错误",
             modifier = Modifier.size(24.dp)
         )

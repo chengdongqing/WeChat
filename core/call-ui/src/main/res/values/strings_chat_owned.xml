@@ -1,0 +1,4 @@
+<resources>
+    <string name='chat_call_video'>视频通话</string>
+    <string name='chat_call_voice'>语音通话</string>
+</resources>

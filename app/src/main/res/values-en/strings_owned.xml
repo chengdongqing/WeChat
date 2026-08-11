@@ -1,0 +1,4 @@
+<resources>
+    <string name='nfc_hce_description'>WeChat Bump</string>
+    <string name='nfc_hce_aid_description'>Add friends via WeChat Bump</string>
+</resources>

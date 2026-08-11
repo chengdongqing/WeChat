@@ -32,7 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -73,11 +74,11 @@ fun EditContactProfileScreen(
         topBar = {
             WeTopAppBar(
                 onBack = onBack,
-                backText = stringResource(R.string.action_cancel),
+                backText = stringResource(DesignR.string.action_cancel),
                 containerColor = WeTheme.colorScheme.surface
             ) {
                 WeButton(
-                    text = stringResource(R.string.action_done),
+                    text = stringResource(DesignR.string.action_done),
                     size = ButtonSize.Small,
                     loading = uiState.isSaving
                 ) {
@@ -200,7 +201,7 @@ private fun LinkedRow(
     ) {
         Text(text = label, color = LinkBlue, fontSize = 16.sp)
         Icon(
-            painter = painterResource(R.drawable.ic_right_outlined),
+            painter = painterResource(DesignR.drawable.ic_right_outlined),
             contentDescription = null,
             tint = Color.Gray,
             modifier = Modifier.size(24.dp)
@@ -219,7 +220,7 @@ private fun PhotoSection() {
             .background(WeTheme.colorScheme.surfaceVariant)
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_plus_circle_outlined),
+            painter = painterResource(DesignR.drawable.ic_plus_circle_outlined),
             contentDescription = null,
             tint = LinkBlue,
             modifier = Modifier.size(32.dp)

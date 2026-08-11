@@ -1,0 +1,5 @@
+<resources>
+    <string name='media_select_image'>Select Photo</string>
+    <string name='media_select_video'>Select Video</string>
+    <string name='media_select_all'>Photos &amp; Videos</string>
+</resources>
