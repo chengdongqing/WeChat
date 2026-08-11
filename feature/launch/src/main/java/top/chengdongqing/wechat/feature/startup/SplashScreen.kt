@@ -16,6 +16,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.R
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun SplashScreen(
@@ -27,7 +28,7 @@ fun SplashScreen(
 
     // 判断导航目标
     LaunchedEffect(startupState) {
-        delay(500)
+        delay(500.milliseconds)
 
         when (startupState) {
             LoginState.ReadyForHome -> onNavigateToHome()

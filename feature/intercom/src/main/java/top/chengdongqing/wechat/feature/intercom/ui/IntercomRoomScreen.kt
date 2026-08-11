@@ -4,6 +4,7 @@ import android.Manifest
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -106,7 +107,11 @@ fun IntercomRoomScreen(
                     roomState.speakers.isEmpty() -> ""
                     else -> "${roomState.speakers.size} 人正在讲话"
                 },
-                color = if (isTalking) WeTheme.colorScheme.primary else WeTheme.colorScheme.textSecondary,
+                color = if (isTalking) {
+                    WeTheme.colorScheme.primary
+                } else {
+                    WeTheme.colorScheme.textSecondary
+                },
                 fontSize = 13.sp
             )
             Spacer(Modifier.height(18.dp))
@@ -131,7 +136,11 @@ fun IntercomRoomScreen(
             Spacer(Modifier.height(14.dp))
             Text(
                 text = if (microphoneDenied) "需要麦克风权限才能讲话" else "按住讲话",
-                color = if (microphoneDenied) WeTheme.colorScheme.danger else WeTheme.colorScheme.textSecondary,
+                color = if (microphoneDenied) {
+                    WeTheme.colorScheme.danger
+                } else {
+                    WeTheme.colorScheme.textSecondary
+                },
                 fontSize = 12.sp
             )
             Spacer(
@@ -188,8 +197,8 @@ private fun PushToTalkButton(
     isTalking: Boolean,
     onTalkingChanged: (Boolean) -> Unit
 ) {
-    val scale by androidx.compose.animation.core.animateFloatAsState(
-        if (isTalking) .94f else 1f,
+    val scale by animateFloatAsState(
+        targetValue = if (isTalking) .94f else 1f,
         label = "PushToTalkButtonScale"
     )
 

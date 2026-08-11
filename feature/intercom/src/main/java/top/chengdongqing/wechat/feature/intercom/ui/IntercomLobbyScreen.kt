@@ -81,7 +81,7 @@ fun IntercomLobbyScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             SectionCard {
-                JoinCard(
+                JoinChannel(
                     channel = channel,
                     onChannelChanged = {
                         channel = it.filter(Char::isDigit).take(4)
@@ -128,7 +128,7 @@ private fun Tips() {
 }
 
 @Composable
-private fun JoinCard(
+private fun JoinChannel(
     channel: String,
     onChannelChanged: (String) -> Unit,
     onJoin: () -> Unit
@@ -138,7 +138,7 @@ private fun JoinCard(
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Text(
-            "输入频道号",
+            text = "输入频道号",
             color = WeTheme.colorScheme.textPrimary,
             fontWeight = FontWeight.SemiBold,
             fontSize = 15.sp
@@ -204,8 +204,16 @@ private fun NearbyChannelItem(
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(
-                text = if (channel.speakingCount == 0) "安静" else "${channel.speakingCount} 人正在讲话",
-                color = if (channel.speakingCount == 0) WeTheme.colorScheme.textTertiary else WeTheme.colorScheme.primary,
+                text = if (channel.speakingCount == 0) {
+                    "安静"
+                } else {
+                    "${channel.speakingCount} 人正在讲话"
+                },
+                color = if (channel.speakingCount == 0) {
+                    WeTheme.colorScheme.textTertiary
+                } else {
+                    WeTheme.colorScheme.primary
+                },
                 fontSize = 11.sp
             )
             Spacer(Modifier.height(5.dp))
@@ -255,14 +263,14 @@ private fun EmptyNearbyChannels() {
         }
         Spacer(Modifier.height(12.dp))
         Text(
-            "正在扫描附近频道",
+            text = "正在扫描附近频道",
             color = WeTheme.colorScheme.textPrimary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            "请确认设备处于同一 Wi‑Fi 下",
+            text = "请确认设备处于同一 Wi‑Fi 下",
             color = WeTheme.colorScheme.textTertiary,
             fontSize = 12.sp
         )

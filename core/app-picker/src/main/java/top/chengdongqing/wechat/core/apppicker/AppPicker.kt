@@ -46,6 +46,7 @@ import top.chengdongqing.wechat.core.designsystem.components.contact.GroupTitle
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.indexer.AlphabetIndexer
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
+import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -64,20 +65,25 @@ fun AppPicker(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val overscrollEffect = rememberBouncedOverscrollEffect()
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    fun handleConfirm() {
+        scope.launch {
+            runCatching { viewModel.prepareSelectedApps() }
+                .onSuccess(onSelect)
+                .onFailure {
+                    ToastManager.fail(it.message ?: "应用文件准备失败")
+                }
+        }
+    }
 
     Scaffold(
         topBar = {
-            TopBar(uiState, onBack = onCancel) {
-                scope.launch {
-                    runCatching { viewModel.prepareSelectedApps() }
-                        .onSuccess(onSelect)
-                        .onFailure {
-                            context.showToast(it.message ?: "应用文件准备失败")
-                        }
-                }
-            }
+            TopBar(
+                uiState = uiState,
+                onBack = onCancel,
+                onConfirm = ::handleConfirm
+            )
         },
         containerColor = WeTheme.colorScheme.background
     ) { innerPadding ->
@@ -235,7 +241,7 @@ private fun ApkListItem(
 private fun TopBar(
     uiState: AppPickerUiState,
     onBack: () -> Unit,
-    onOk: () -> Unit
+    onConfirm: () -> Unit
 ) {
     val isEnabled = uiState.selectedCount > 0 && !uiState.isPreparing
     val buttonText = run {
@@ -251,7 +257,7 @@ private fun TopBar(
             text = buttonText,
             size = ButtonSize.Small,
             enabled = isEnabled,
-            onClick = onOk
+            onClick = onConfirm
         )
     }
 }
