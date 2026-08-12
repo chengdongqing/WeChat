@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
-import top.chengdongqing.wechat.core.designsystem.theme.GreenPressed
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -71,7 +70,7 @@ fun ServicesScreen(
                     .fillMaxWidth()
                     .height(140.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(GreenPressed)
+                    .background(WeTheme.colorScheme.primarySecondary)
                     .padding(vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
@@ -211,7 +210,7 @@ private fun SmallService(
             painter = painterResource(icon),
             contentDescription = null,
             tint = WeTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(30.dp)
         )
         Spacer(Modifier.height(12.dp))
         Text(

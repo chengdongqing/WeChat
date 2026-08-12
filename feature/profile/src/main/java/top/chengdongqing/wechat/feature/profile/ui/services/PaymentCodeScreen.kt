@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,17 +34,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.createBitmap
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.delay
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import java.security.SecureRandom
-
-private val PayGreen = Color(0xFF17AD73)
+import kotlin.time.Duration.Companion.minutes
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun PaymentCodeScreen(onBack: () -> Unit) {
@@ -54,49 +55,52 @@ fun PaymentCodeScreen(onBack: () -> Unit) {
     }
 
     LaunchedEffect(generation, receiveMode) {
-        delay(60_000)
+        delay(1.minutes)
         generation++
     }
 
-    Column(Modifier
-        .fillMaxSize()
-        .background(PayGreen)) {
-        WeTopAppBar(
-            title = if (receiveMode) "二维码收款" else "向商家付款",
-            containerColor = PayGreen,
-            contentColor = Color.White,
-            onBack = onBack,
-            actions = { IconButton(DesignR.drawable.ic_more_outlined, description = "更多") }
-        )
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            ModeButton("付款码", !receiveMode) { receiveMode = false }
-            ModeButton("收款码", receiveMode) { receiveMode = true }
-        }
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(start = 18.dp, end = 18.dp, bottom = 28.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.White)
-        ) {
-            if (receiveMode) {
-                ReceiveCodeContent(token) { generation++ }
-            } else {
-                PayCodeContent(token) { generation++ }
-            }
-            Text(
-                "离线演示码，不代表真实货币",
-                color = Color(0xFFAAAAAA),
-                fontSize = 11.sp,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 18.dp)
+    Scaffold(
+        topBar = {
+            WeTopAppBar(
+                title = "收付款",
+                containerColor = WeTheme.colorScheme.primarySecondary,
+                contentColor = Color.White,
+                onBack = onBack
             )
+        },
+        containerColor = WeTheme.colorScheme.primarySecondary
+    ) { innerPadding ->
+        Column(modifier = Modifier.padding(innerPadding)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                ModeButton("付款码", !receiveMode) { receiveMode = false }
+                ModeButton("收款码", receiveMode) { receiveMode = true }
+            }
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(start = 18.dp, end = 18.dp, bottom = 28.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White)
+            ) {
+                if (receiveMode) {
+                    ReceiveCodeContent(token) { generation++ }
+                } else {
+                    PayCodeContent(token) { generation++ }
+                }
+                Text(
+                    "离线演示码，不代表真实货币",
+                    color = Color(0xFFAAAAAA),
+                    fontSize = 11.sp,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 18.dp)
+                )
+            }
         }
     }
 }
@@ -121,6 +125,7 @@ private fun PayCodeContent(token: String, onRefresh: () -> Unit) {
     val number = remember(token) { token.filter(Char::isDigit).takeLast(18).padStart(18, '0') }
     val barcode = remember(token) { encodeBitmap(number, BarcodeFormat.CODE_128, 900, 230) }
     val qrCode = remember(token) { encodeBitmap(token, BarcodeFormat.QR_CODE, 560, 560) }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -165,7 +170,12 @@ private fun ReceiveCodeContent(token: String, onRefresh: () -> Unit) {
         Spacer(Modifier.height(26.dp))
         Image(qrCode.asImageBitmap(), "收款二维码", modifier = Modifier.size(270.dp))
         Spacer(Modifier.height(20.dp))
-        Text("设置金额", color = PayGreen, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+        Text(
+            "设置金额",
+            color = WeTheme.colorScheme.primarySecondary,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium
+        )
         Spacer(Modifier.height(22.dp))
         RefreshCode(onRefresh)
         Spacer(Modifier.height(28.dp))
@@ -182,10 +192,10 @@ private fun RefreshCode(onRefresh: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painterResource(DesignR.drawable.ic_backup_restore), null,
-            tint = PayGreen, modifier = Modifier.size(18.dp)
+            painter = painterResource(DesignR.drawable.ic_backup_restore), null,
+            tint = WeTheme.colorScheme.primarySecondary, modifier = Modifier.size(18.dp)
         )
-        Text(" 刷新二维码", color = PayGreen, fontSize = 14.sp)
+        Text(" 刷新二维码", color = WeTheme.colorScheme.primarySecondary, fontSize = 14.sp)
     }
 }
 
@@ -200,17 +210,19 @@ private fun PaymentMethodRow() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painterResource(DesignR.drawable.ic_pay_logo_outlined), null,
-            tint = PayGreen, modifier = Modifier.size(24.dp)
+            painter = painterResource(DesignR.drawable.ic_pay_logo_outlined), null,
+            tint = WeTheme.colorScheme.primarySecondary, modifier = Modifier.size(24.dp)
         )
-        Column(Modifier
-            .weight(1f)
-            .padding(horizontal = 12.dp)) {
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp)
+        ) {
             Text("零钱", fontSize = 15.sp, color = Color(0xFF222222))
             Text("优先使用此支付方式", fontSize = 11.sp, color = Color(0xFF999999))
         }
         Icon(
-            painterResource(DesignR.drawable.ic_right_outlined), null,
+            painter = painterResource(DesignR.drawable.ic_right_outlined), null,
             tint = Color(0xFFAAAAAA), modifier = Modifier.size(18.dp)
         )
     }
@@ -245,7 +257,7 @@ private fun encodeBitmap(
             else android.graphics.Color.WHITE
         }
     }
-    return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+    return createBitmap(width, height).apply {
         setPixels(pixels, 0, width, 0, 0, width, height)
     }
 }

@@ -25,6 +25,7 @@ import java.util.Locale
 @Immutable
 data class WeColorScheme(
     val primary: Color = BrandPrimary,
+    val primarySecondary: Color = GreenPressed,
     val danger: Color = SemanticError,
     val link: Color = LinkBlue,
     // 背景层级（从低到高）

@@ -60,4 +60,7 @@ dependencies {
     implementation(libs.bundles.coil)
     implementation(libs.coil.zoomable)
     implementation(libs.zxing.core)
+
+    implementation(libs.compose.ui.tooling.preview)
+    debugImplementation(libs.compose.ui.tooling)
 }
