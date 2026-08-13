@@ -163,8 +163,12 @@ fun rememberMediaLaunchers(
 
     // 媒体选择器
     val launchMediaPicker =
-        rememberMediaPickerLauncher(enableMerge = true) { items, merge, original ->
-            mediaHandler.handleMediaSelection(items.map { it.uri }, merge, original)
+        rememberMediaPickerLauncher { result ->
+            mediaHandler.handleMediaSelection(
+                result.items.map { it.uri },
+                result.merge,
+                result.original
+            )
         }
 
     // 系统媒体选择器

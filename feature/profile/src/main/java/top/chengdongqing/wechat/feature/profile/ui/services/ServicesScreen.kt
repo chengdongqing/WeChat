@@ -76,13 +76,13 @@ fun ServicesScreen(
             ) {
                 HeroService(
                     title = stringResource(R.string.services_payments),
-                    icon = R.drawable.ic_services_payment,
+                    icon = R.drawable.ic_pay_vendor,
                     onClick = onPaymentCode
                 )
                 HeroService(
                     title = stringResource(R.string.services_wallet),
                     subtitle = "*****",
-                    icon = R.drawable.ic_services_wallet,
+                    icon = R.drawable.ic_wallet,
                     onClick = onWallet
                 )
             }

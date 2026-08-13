@@ -68,8 +68,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.chengdongqing.wechat.core.camera.rememberCameraLauncher
-import top.chengdongqing.wechat.core.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
@@ -78,6 +76,9 @@ import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.picker.rememberPickLocationLauncher
 import top.chengdongqing.wechat.core.location.preview.previewLocation
+import top.chengdongqing.wechat.core.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.picker.MediaPickerRequest
+import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.core.util.randomUUID
 import top.chengdongqing.wechat.feature.favorites.model.FavoriteAttachment
 import java.io.File
@@ -127,8 +128,8 @@ fun FavoriteEditorScreen(
         }
     }
 
-    val pickMedia = rememberMediaPickerLauncher { medias, _, _ ->
-        importUris(medias.map { it.uri })
+    val pickMedia = rememberMediaPickerLauncher { result ->
+        importUris(result.items.map { it.uri })
     }
     val launchCamera = rememberCameraLauncher { uri, _ -> importUris(listOf(uri)) }
     val pickFile = rememberLauncherForActivityResult(
@@ -302,7 +303,14 @@ fun FavoriteEditorScreen(
             )
             if (attachmentsOpen) {
                 AttachmentPanel(
-                    onPhoto = { pickMedia(VisualMediaType.ImageAndVideo, 99) },
+                    onPhoto = {
+                        pickMedia.launch(
+                            MediaPickerRequest(
+                                mediaType = VisualMediaType.ImageAndVideo,
+                                maxSelection = 99
+                            )
+                        )
+                    },
                     onCamera = { launchCamera(VisualMediaType.ImageAndVideo) },
                     onLocation = pickLocation,
                     onFile = { pickFile.launch(arrayOf("*/*")) },

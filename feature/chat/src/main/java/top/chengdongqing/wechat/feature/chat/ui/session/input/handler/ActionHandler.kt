@@ -19,6 +19,7 @@ import top.chengdongqing.wechat.core.file.createImageUri
 import top.chengdongqing.wechat.core.file.createVideoUri
 import top.chengdongqing.wechat.core.file.deleteFileByUri
 import top.chengdongqing.wechat.core.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.picker.MediaPickerRequest
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.R
@@ -126,9 +127,12 @@ fun rememberActionHandler(
                     )
                 } else {
                     // 短按：打开内置图库
-                    mediaLaunchers.launchMediaPicker(
-                        VisualMediaType.ImageAndVideo,
-                        99
+                    mediaLaunchers.launchMediaPicker.launch(
+                        MediaPickerRequest(
+                            mediaType = VisualMediaType.ImageAndVideo,
+                            maxSelection = 99,
+                            enableMerge = true
+                        )
                     )
                 }
             },

@@ -2,6 +2,14 @@
     <string name="moments_post_camera">拍摄</string>
     <string name="moments_post_camera_desc">照片或视频</string>
     <string name="moments_post_gallery">从手机相册选择</string>
+    <string name="moments_post_publish">发表</string>
+    <string name="moments_post_hint">这一刻的想法…</string>
+    <string name="moments_post_add_media">添加照片或视频</string>
+    <string name="moments_post_remove_media">移除</string>
+    <string name="moments_post_location">所在位置</string>
+    <string name="moments_post_mention">提醒谁看</string>
+    <string name="moments_post_visibility">谁可以看</string>
+    <string name="moments_post_public">公开</string>
 
     <string name="moment_action_like">赞</string>
     <string name="moment_action_unlike">取消点赞</string>

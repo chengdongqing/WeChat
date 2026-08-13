@@ -14,6 +14,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.picker.MediaPickerRequest
 import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.feature.moments.ui.list.MomentsViewModel
 
@@ -23,8 +24,8 @@ fun ChangeMomentCoverScreen(
     onPhotographerWorks: () -> Unit,
     viewModel: MomentsViewModel = hiltViewModel()
 ) {
-    val mediaPickerLauncher = rememberMediaPickerLauncher { medias, _, _ ->
-        viewModel.setCover(medias.first().uri)
+    val mediaPicker = rememberMediaPickerLauncher { result ->
+        viewModel.setCover(result.items.first().uri)
         onBack()
     }
     val cameraLauncher = rememberCameraLauncher { uri, _ ->
@@ -45,7 +46,7 @@ fun ChangeMomentCoverScreen(
                 WeSettingItem(
                     label = "从手机相册选择",
                     height = 56.dp,
-                    onClick = { mediaPickerLauncher(VisualMediaType.Image, 1) }
+                    onClick = { mediaPicker.launch(MediaPickerRequest.singleImage()) }
                 )
                 WeSettingItem(
                     label = "拍一个",

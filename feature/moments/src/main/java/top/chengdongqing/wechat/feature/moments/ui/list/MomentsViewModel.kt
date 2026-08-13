@@ -25,8 +25,6 @@ class MomentsViewModel @Inject constructor(
         lanSync.start()
     }
 
-    fun publish(content: String, images: List<Uri>) = repository.publish(content, images)
-    fun publishVideo(content: String, video: Uri) = repository.publishVideo(content, video)
     fun toggleLike(id: String) = repository.toggleLike(id)
     fun comment(id: String, text: String) = repository.comment(id, text)
     fun delete(id: String) = repository.delete(id)

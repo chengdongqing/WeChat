@@ -31,9 +31,10 @@ class MomentsRepository @Inject constructor(
     val state = _state.asStateFlow()
     var onLocalChange: ((MomentsState) -> Unit)? = null
 
-    fun publish(content: String, imageUris: List<Uri>) {
+    fun publish(content: String, imageUris: List<Uri>): Boolean {
         val profile = profileRepository.requireProfile()
         val images = imageUris.mapNotNull { persistImage(it, "post") }
+        if (imageUris.isNotEmpty() && images.isEmpty()) return false
         mutate {
             copy(
                 moments = listOf(
@@ -50,11 +51,12 @@ class MomentsRepository @Inject constructor(
                 ) + moments
             )
         }
+        return true
     }
 
-    fun publishVideo(content: String, videoUri: Uri) {
+    fun publishVideo(content: String, videoUri: Uri): Boolean {
         val profile = profileRepository.requireProfile()
-        val path = persistMedia(videoUri, "video", "mp4") ?: return
+        val path = persistMedia(videoUri, "video", "mp4") ?: return false
         val metadata = android.media.MediaMetadataRetriever()
         val video = runCatching {
             metadata.setDataSource(path)
@@ -67,7 +69,7 @@ class MomentsRepository @Inject constructor(
                 duration = metadata.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
                     ?.toLongOrNull() ?: 0
             )
-        }.also { metadata.release() }.getOrNull() ?: return
+        }.also { metadata.release() }.getOrNull() ?: return false
         mutate {
             copy(
                 moments = listOf(
@@ -83,6 +85,7 @@ class MomentsRepository @Inject constructor(
                 ) + moments
             )
         }
+        return true
     }
 
     fun toggleLike(momentId: String) {

@@ -22,9 +22,6 @@ import me.saket.telephoto.zoomable.rememberZoomableImageState
 import me.saket.telephoto.zoomable.rememberZoomableState
 import top.chengdongqing.wechat.core.camera.rememberCameraLauncher
 import top.chengdongqing.wechat.core.cropper.rememberImageCropperLauncher
-import top.chengdongqing.wechat.core.media.model.VisualMediaType
-import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
@@ -33,9 +30,13 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.picker.MediaPickerRequest
+import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileField
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 import java.io.File
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun EditAvatarScreen(
@@ -54,8 +55,8 @@ fun EditAvatarScreen(
         scope.launch { zoomableState.resetZoom(SnapSpec()) } // 重置缩放，避免被之前的缩放影响
         viewModel.updateField(ProfileField.Avatar(it))
     }
-    val launchAlbum = rememberMediaPickerLauncher { medias, _, _ ->
-        launchCropper(medias[0].uri)
+    val mediaPicker = rememberMediaPickerLauncher { result ->
+        launchCropper(result.items.first().uri)
     }
     val launchCamera = rememberCameraLauncher { uri, _ ->
         launchCropper(uri)
@@ -92,7 +93,7 @@ fun EditAvatarScreen(
                 ActionSheetManager.show(MenuOptions) { index ->
                     when (index) {
                         0 -> launchCamera(VisualMediaType.Image)
-                        1 -> launchAlbum(VisualMediaType.Image, 1)
+                        1 -> mediaPicker.launch(MediaPickerRequest.singleImage())
                         2 -> saveAvatar()
                     }
                 }

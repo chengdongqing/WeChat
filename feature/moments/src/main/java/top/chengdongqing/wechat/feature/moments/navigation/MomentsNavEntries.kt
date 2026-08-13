@@ -7,7 +7,7 @@ import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.feature.moments.ui.cover.ChangeMomentCoverScreen
 import top.chengdongqing.wechat.feature.moments.ui.cover.PhotographerWorksScreen
 import top.chengdongqing.wechat.feature.moments.ui.list.MomentsScreen
-import top.chengdongqing.wechat.feature.moments.ui.post.CreateMomentScreen
+import top.chengdongqing.wechat.feature.moments.ui.post.PostMomentRoute
 
 fun EntryProviderScope<NavKey>.momentsNavEntries(
     backStack: NavBackStack<NavKey>,
@@ -16,12 +16,12 @@ fun EntryProviderScope<NavKey>.momentsNavEntries(
     entry<NavigationKey.Moments> {
         MomentsScreen(
             onBack = onBack,
-            onPost = { backStack.add(NavigationKey.CreateMoment) },
+            onPost = { backStack.add(NavigationKey.PostMoment) },
             onCover = { backStack.add(NavigationKey.ChangeMomentCover) }
         )
     }
-    entry<NavigationKey.CreateMoment> {
-        CreateMomentScreen(onBack)
+    entry<NavigationKey.PostMoment> {
+        PostMomentRoute(onBack)
     }
     entry<NavigationKey.ChangeMomentCover> {
         ChangeMomentCoverScreen(

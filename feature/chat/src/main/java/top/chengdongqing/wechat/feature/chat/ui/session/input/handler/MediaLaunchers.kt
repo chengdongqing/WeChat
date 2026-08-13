@@ -4,12 +4,13 @@ import android.net.Uri
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import top.chengdongqing.wechat.core.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.picker.MediaPickerLauncher
 
 /**
  * 媒体启动器集合
  */
 data class MediaLaunchers(
-    val launchMediaPicker: (VisualMediaType, Int) -> Unit,
+    val launchMediaPicker: MediaPickerLauncher,
     val launchSystemMediaPicker: ManagedActivityResultLauncher<PickVisualMediaRequest, List<Uri>>,
     val launchCamera: (VisualMediaType) -> Unit,
     val takePicture: ManagedActivityResultLauncher<Uri, Boolean>,

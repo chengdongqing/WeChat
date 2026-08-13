@@ -31,7 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.media.model.VisualMediaType
+import top.chengdongqing.wechat.core.media.picker.MediaPickerRequest
 import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
 import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.core.qrcode.R as QRCodeR
@@ -41,8 +41,8 @@ internal fun BoxScope.ScannerTools(state: ScannerState) {
     val context = LocalContext.current
     val resources = LocalResources.current
 
-    val pickMedia = rememberMediaPickerLauncher { medias, _, _ ->
-        state.scanPhoto(medias.first().uri) {
+    val pickMedia = rememberMediaPickerLauncher { result ->
+        state.scanPhoto(result.items.first().uri) {
             context.showToast(resources.getString(QRCodeR.string.scan_recognize_failed))
         }
     }
@@ -65,7 +65,7 @@ internal fun BoxScope.ScannerTools(state: ScannerState) {
             label = stringResource(QRCodeR.string.scan_tool_album),
             icon = Icons.Filled.Image
         ) {
-            pickMedia(VisualMediaType.Image, 1)
+            pickMedia.launch(MediaPickerRequest.singleImage())
             if (state.isFlashOn) {
                 state.toggleFlashState()
             }

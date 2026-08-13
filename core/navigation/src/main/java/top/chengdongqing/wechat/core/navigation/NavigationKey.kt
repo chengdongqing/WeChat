@@ -74,7 +74,7 @@ sealed interface NavigationKey : NavKey {
     data object Moments : NavigationKey
 
     @Serializable
-    data object CreateMoment : NavigationKey
+    data object PostMoment : NavigationKey
 
     @Serializable
     data object ChangeMomentCover : NavigationKey
