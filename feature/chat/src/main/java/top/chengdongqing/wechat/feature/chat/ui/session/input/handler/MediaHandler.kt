@@ -179,8 +179,8 @@ fun rememberMediaLaunchers(
     }
 
     // 相机启动器
-    val launchCamera = rememberCameraLauncher { uri, _ ->
-        mediaHandler.handleCameraCapture(uri)
+    val launchCamera = rememberCameraLauncher { result ->
+        mediaHandler.handleCameraCapture(result.uri)
     }
 
     // 系统拍照启动器

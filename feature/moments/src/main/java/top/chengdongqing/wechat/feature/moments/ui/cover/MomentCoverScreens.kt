@@ -28,8 +28,8 @@ fun ChangeMomentCoverScreen(
         viewModel.setCover(result.items.first().uri)
         onBack()
     }
-    val cameraLauncher = rememberCameraLauncher { uri, _ ->
-        viewModel.setCover(uri)
+    val cameraLauncher = rememberCameraLauncher { result ->
+        viewModel.setCover(result.uri)
         onBack()
     }
 
@@ -53,7 +53,7 @@ fun ChangeMomentCoverScreen(
                     showDivider = false,
                     height = 56.dp,
                     onClick = {
-                        cameraLauncher(VisualMediaType.Image)
+                        cameraLauncher.launch(VisualMediaType.Image)
                     }
                 )
             }

@@ -63,8 +63,8 @@ fun PostMomentRoute(
     val mediaPicker = rememberMediaPickerLauncher { result ->
         viewModel.addSelectedMedia(result.items)
     }
-    val camera = rememberCameraLauncher { uri, type ->
-        viewModel.addCapturedMedia(uri, type == VisualMediaType.Image)
+    val camera = rememberCameraLauncher { result ->
+        viewModel.addCapturedMedia(result.uri, result.mediaType == VisualMediaType.Image)
     }
     val mediaOptions = remember {
         listOf(
@@ -99,7 +99,7 @@ fun PostMomentRoute(
         onAddMedia = {
             ActionSheetManager.show(mediaOptions) { index ->
                 when (index) {
-                    0 -> camera(VisualMediaType.ImageAndVideo)
+                    0 -> camera.launch(VisualMediaType.ImageAndVideo)
                     1 -> mediaPicker.launch(
                         MediaPickerRequest(
                             mediaType = VisualMediaType.ImageAndVideo,

@@ -10,7 +10,7 @@ import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.file.deleteFileByUri
 import top.chengdongqing.wechat.core.location.model.LocationInfo
-import top.chengdongqing.wechat.core.location.picker.rememberPickLocationLauncher
+import top.chengdongqing.wechat.core.location.picker.rememberLocationPickerLauncher
 import top.chengdongqing.wechat.core.model.MessageType
 
 class LocationHandler(
@@ -60,9 +60,10 @@ fun rememberLocationLauncher(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    return rememberPickLocationLauncher { location ->
+    val locationPicker = rememberLocationPickerLauncher { location ->
         scope.launch {
             locationHandler.handleLocationSelection(location, context)
         }
     }
+    return { locationPicker.launch() }
 }

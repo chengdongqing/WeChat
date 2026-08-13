@@ -64,7 +64,7 @@ internal object MediaPickerProtocol {
         "top.chengdongqing.wechat.core.media.picker.extra.RESULT"
 }
 
-class PickMediaContract : ActivityResultContract<MediaPickerRequest, MediaPickerResult?>() {
+class MediaPickerContract : ActivityResultContract<MediaPickerRequest, MediaPickerResult?>() {
     override fun createIntent(context: Context, input: MediaPickerRequest): Intent =
         Intent(context, MediaPickerActivity::class.java).apply {
             putExtra(MediaPickerProtocol.EXTRA_REQUEST, input)
@@ -153,7 +153,7 @@ fun rememberMediaPickerLauncher(
     onResult: (MediaPickerResult) -> Unit
 ): MediaPickerLauncher {
     val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(PickMediaContract()) { result ->
+    val launcher = rememberLauncherForActivityResult(MediaPickerContract()) { result ->
         result?.let(onResult)
     }
     val options = remember(context) {

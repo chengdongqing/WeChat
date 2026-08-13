@@ -222,7 +222,7 @@ class PrivateFileManager @Inject constructor(
         runCatching {
             val file = File(filePath)
             if (file.exists() && !file.delete()) {
-                throw IOException("无法删除文件: $filePath")
+                Log.w(TAG, "无法删除文件: $filePath")
             }
             Unit
         }

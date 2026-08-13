@@ -43,7 +43,7 @@ import top.chengdongqing.wechat.core.proximity.ui.RequestAddFriendPermission
 import top.chengdongqing.wechat.core.qrcode.generator.QrDotStyle
 import top.chengdongqing.wechat.core.qrcode.generator.WeQRCode
 import top.chengdongqing.wechat.core.qrcode.generator.rememberQRCodeState
-import top.chengdongqing.wechat.core.qrcode.scanner.rememberScanCodeLauncher
+import top.chengdongqing.wechat.core.qrcode.scanner.rememberQrCodeScannerLauncher
 import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.feature.contacts.domain.model.AddContactOption
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -68,7 +68,7 @@ fun AddFriendScreen(
             viewModel.generateMyQrCode()
         }
         // 处理扫码
-        val launchScanner = rememberScanCodeLauncher { qrCodes ->
+        val qrCodeScanner = rememberQrCodeScannerLauncher { qrCodes ->
             qrCodes.firstOrNull()?.let(viewModel::handleScannedQrCode)
         }
 
@@ -87,7 +87,7 @@ fun AddFriendScreen(
         // 处理点击事件
         val handleAction = { option: AddContactOption ->
             when (option) {
-                AddContactOption.Scan -> launchScanner()
+                AddContactOption.Scan -> qrCodeScanner.launch()
                 AddContactOption.Nfc -> onNFC()
                 AddContactOption.Radar -> onRadar()
                 AddContactOption.FaceToFaceGroup -> onGroup()

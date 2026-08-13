@@ -28,7 +28,8 @@ import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailViewModel
 import top.chengdongqing.wechat.feature.contacts.ui.detail.NavigationEvent
-import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLauncher
+import top.chengdongqing.wechat.feature.contacts.ui.picker.ContactPickerRequest
+import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberContactPickerLauncher
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 import top.chengdongqing.wechat.feature.contacts.R as ContactsR
 
@@ -85,7 +86,7 @@ private fun ContactSettingContent(
     onContactProfile: () -> Unit
 ) {
     val resources = LocalResources.current
-    val pickContact = rememberPickContactLauncher { contacts ->
+    val contactPicker = rememberContactPickerLauncher { contacts ->
         DialogManager.show(
             title = resources.getString(ContactsR.string.msg_confirm_send),
             okText = DesignR.string.action_send
@@ -112,7 +113,7 @@ private fun ContactSettingContent(
             WeSettingItem(
                 label = stringResource(R.string.contact_settings_recommend),
                 onClick = {
-                    pickContact(1)
+                    contactPicker.launch(ContactPickerRequest(maxSelection = 1))
                 }
             )
             WeSettingItem(

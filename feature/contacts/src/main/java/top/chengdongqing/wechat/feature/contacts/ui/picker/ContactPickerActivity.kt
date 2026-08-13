@@ -9,8 +9,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,31 +20,56 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.ContactResult
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
+data class ContactPickerRequest(
+    val maxSelection: Int = 99,
+    val excludeSelf: Boolean = false
+) { init {
+    require(maxSelection in 1..99)
+}
+}
+
+internal object ContactPickerProtocol {
+    const val EXTRA_COUNT = "top.chengdongqing.wechat.contacts.picker.extra.COUNT"
+    const val EXTRA_EXCLUDE_SELF = "top.chengdongqing.wechat.contacts.picker.extra.EXCLUDE_SELF"
+    const val EXTRA_RESULT = "top.chengdongqing.wechat.contacts.picker.extra.RESULT"
+}
+
+class ContactPickerContract : ActivityResultContract<ContactPickerRequest, List<ContactResult>?>() {
+    override fun createIntent(context: Context, input: ContactPickerRequest) =
+        Intent(context, ContactPickerActivity::class.java)
+            .putExtra(ContactPickerProtocol.EXTRA_COUNT, input.maxSelection)
+            .putExtra(ContactPickerProtocol.EXTRA_EXCLUDE_SELF, input.excludeSelf)
+
+    override fun parseResult(resultCode: Int, intent: Intent?): List<ContactResult>? =
+        if (resultCode == Activity.RESULT_OK) intent?.contactResults?.toList() else null
+}
+
 @AndroidEntryPoint
 class ContactPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
-        val count = intent.getIntExtra(EXTRA_PICK_COUNT, 99)
-        val excludeSelf = intent.getBooleanExtra(EXTRA_EXCLUDE_SELF, false)
-
+        super.onCreate(savedInstanceState); enableEdgeToEdge()
+        val count = intent.getIntExtra(ContactPickerProtocol.EXTRA_COUNT, 0)
+        if (count !in 1..99) {
+            cancel(); return
+        }
+        val excludeSelf = intent.getBooleanExtra(ContactPickerProtocol.EXTRA_EXCLUDE_SELF, false)
         setContent {
             WeTheme {
-                ContactPicker(count, excludeSelf, onCancel = ::finish) { contacts ->
-                    val intent = Intent().apply {
-                        putExtra(EXTRA_CONTACTS, contacts)
-                    }
-                    setResult(RESULT_OK, intent)
-                    finish()
+                ContactPicker(count, excludeSelf, onCancel = ::cancel) { contacts ->
+                    setResult(
+                        RESULT_OK,
+                        Intent().putExtra(ContactPickerProtocol.EXTRA_RESULT, contacts)
+                    ); finish()
                 }
             }
         }
     }
 
+    private fun cancel() {
+        setResult(RESULT_CANCELED); finish()
+    }
     override fun finish() {
         super.finish()
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(
                 OVERRIDE_TRANSITION_CLOSE,
@@ -50,57 +77,37 @@ class ContactPickerActivity : ComponentActivity() {
                 DesignR.anim.slide_out_down
             )
         } else {
-            @Suppress("DEPRECATION")
-            overridePendingTransition(android.R.anim.fade_in, DesignR.anim.slide_out_down)
+            @Suppress("DEPRECATION") overridePendingTransition(
+                android.R.anim.fade_in,
+                DesignR.anim.slide_out_down
+            )
         }
-    }
-
-    companion object {
-        const val EXTRA_CONTACTS = "extra_contacts"
-        const val EXTRA_PICK_COUNT = "extra_pick_count"
-        const val EXTRA_EXCLUDE_SELF = "extra_exclude_self"
-
-        fun newIntent(context: Context) = Intent(context, ContactPickerActivity::class.java)
     }
 }
 
+class ContactPickerLauncher internal constructor(
+    private val launcher: ActivityResultLauncher<ContactPickerRequest>,
+    private val options: ActivityOptionsCompat
+) {
+    fun launch(request: ContactPickerRequest) = launcher.launch(request, options)
+}
+
 @Composable
-fun rememberPickContactLauncher(
-    excludeSelf: Boolean = false,
-    onResult: (chatIds: Array<ContactResult>) -> Unit
-): (count: Int) -> Unit {
+fun rememberContactPickerLauncher(onResult: (List<ContactResult>) -> Unit): ContactPickerLauncher {
     val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.contactResults?.let(onResult)
-        }
-    }
-
-    return { count ->
-        val intent = ContactPickerActivity.newIntent(context).apply {
-            putExtra(ContactPickerActivity.EXTRA_PICK_COUNT, count)
-            putExtra(ContactPickerActivity.EXTRA_EXCLUDE_SELF, excludeSelf)
-        }
-
-        val options = ActivityOptionsCompat.makeCustomAnimation(
+    val launcher = rememberLauncherForActivityResult(ContactPickerContract()) { it?.let(onResult) }
+    val options = remember(context) {
+        ActivityOptionsCompat.makeCustomAnimation(
             context,
             DesignR.anim.slide_in_up,
             android.R.anim.fade_out
         )
-
-        launcher.launch(intent, options)
     }
+    return remember(launcher, options) { ContactPickerLauncher(launcher, options) }
 }
 
 private val Intent.contactResults: Array<ContactResult>?
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getParcelableArrayExtra(
-            ContactPickerActivity.EXTRA_CONTACTS,
-            ContactResult::class.java
-        )
-    } else {
-        @Suppress("DEPRECATION", "UNCHECKED_CAST")
-        getParcelableArrayExtra(ContactPickerActivity.EXTRA_CONTACTS) as? Array<ContactResult>
-    }
+        getParcelableArrayExtra(ContactPickerProtocol.EXTRA_RESULT, ContactResult::class.java)
+    } else @Suppress("DEPRECATION", "UNCHECKED_CAST")
+    (getParcelableArrayExtra(ContactPickerProtocol.EXTRA_RESULT) as? Array<ContactResult>)

@@ -150,7 +150,7 @@ fun rememberActionHandler(
                     }
                 } else {
                     // 短按：调用内置相机
-                    mediaLaunchers.launchCamera(
+                    mediaLaunchers.launchCamera.launch(
                         VisualMediaType.ImageAndVideo
                     )
                 }

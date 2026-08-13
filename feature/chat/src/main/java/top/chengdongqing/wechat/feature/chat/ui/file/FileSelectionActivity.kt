@@ -1,14 +1,20 @@
 package top.chengdongqing.wechat.feature.chat.ui.file
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -22,7 +28,7 @@ class FileSelectionActivity : ComponentActivity() {
         setContent {
             WeTheme {
                 FileSelectionScreen(
-                    onCancel = ::finish,
+                    onCancel = ::cancel,
                     onConfirm = { uris ->
                         setResult(
                             RESULT_OK,
@@ -33,6 +39,11 @@ class FileSelectionActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    private fun cancel() {
+        setResult(RESULT_CANCELED)
+        finish()
     }
 
     override fun finish() {
@@ -53,20 +64,42 @@ class FileSelectionActivity : ComponentActivity() {
     }
 
     companion object {
-        private const val EXTRA_URIS = "selected_file_uris"
+        internal const val EXTRA_URIS = "top.chengdongqing.wechat.files.extra.URIS"
+    }
+}
 
-        fun launch(context: Context, launcher: ActivityResultLauncher<Intent>) {
-            val options = ActivityOptionsCompat.makeCustomAnimation(
-                context, DesignR.anim.slide_in_up, android.R.anim.fade_out
-            )
-            launcher.launch(Intent(context, FileSelectionActivity::class.java), options)
-        }
+class FilePickerContract : ActivityResultContract<Unit, List<Uri>?>() {
+    override fun createIntent(context: Context, input: Unit) =
+        Intent(context, FileSelectionActivity::class.java)
 
-        fun readResult(intent: Intent?): List<Uri> = if (Build.VERSION.SDK_INT >= 33) {
-            intent?.getParcelableArrayListExtra(EXTRA_URIS, Uri::class.java).orEmpty()
+    override fun parseResult(resultCode: Int, intent: Intent?): List<Uri>? {
+        if (resultCode != Activity.RESULT_OK) return null
+        return if (Build.VERSION.SDK_INT >= 33) {
+            intent?.getParcelableArrayListExtra(FileSelectionActivity.EXTRA_URIS, Uri::class.java)
         } else {
             @Suppress("DEPRECATION")
-            intent?.getParcelableArrayListExtra<Uri>(EXTRA_URIS).orEmpty()
+            intent?.getParcelableArrayListExtra(FileSelectionActivity.EXTRA_URIS)
         }
     }
+}
+
+class FilePickerLauncher internal constructor(
+    private val launcher: ActivityResultLauncher<Unit>,
+    private val options: ActivityOptionsCompat
+) {
+    fun launch() = launcher.launch(Unit, options)
+}
+
+@Composable
+fun rememberFilePickerLauncher(onResult: (List<Uri>) -> Unit): FilePickerLauncher {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(FilePickerContract()) { it?.let(onResult) }
+    val options = remember(context) {
+        ActivityOptionsCompat.makeCustomAnimation(
+            context,
+            DesignR.anim.slide_in_up,
+            android.R.anim.fade_out
+        )
+    }
+    return remember(launcher, options) { FilePickerLauncher(launcher, options) }
 }

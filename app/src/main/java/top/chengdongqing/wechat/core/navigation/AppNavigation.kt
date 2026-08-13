@@ -31,7 +31,8 @@ import top.chengdongqing.wechat.core.notification.CallNotificationPermissionMana
 import top.chengdongqing.wechat.feature.call.ui.startCall
 import top.chengdongqing.wechat.feature.chat.navigation.chatNavEntries
 import top.chengdongqing.wechat.feature.contacts.navigation.contactsNavEntries
-import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberPickContactLauncher
+import top.chengdongqing.wechat.feature.contacts.ui.picker.ContactPickerRequest
+import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberContactPickerLauncher
 import top.chengdongqing.wechat.feature.favorites.navigation.favoritesNavEntries
 import top.chengdongqing.wechat.feature.intercom.navigation.intercomNavEntries
 import top.chengdongqing.wechat.feature.moments.navigation.momentsNavEntries
@@ -79,7 +80,12 @@ private object AppContactPickerLauncher : ContactPickerLauncher {
     override fun rememberLauncher(
         excludeSelf: Boolean,
         onResult: (Array<ContactResult>) -> Unit
-    ) = rememberPickContactLauncher(excludeSelf, onResult)
+    ): (Int) -> Unit {
+        val contactPicker = rememberContactPickerLauncher { onResult(it.toTypedArray()) }
+        return { maxSelection ->
+            contactPicker.launch(ContactPickerRequest(maxSelection, excludeSelf))
+        }
+    }
 }
 
 private class AppCallLauncher(private val context: Context) : CallLauncher {

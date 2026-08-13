@@ -187,12 +187,12 @@ private fun rememberAvatarSelectorState(
 
     val cameraLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) tempUri.value?.let { launchCropper(it) }
+            if (success) tempUri.value?.let { launchCropper.launch(it) }
         }
 
     val mediaPicker =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-            uri?.let { launchCropper(it) }
+            uri?.let { launchCropper.launch(it) }
         }
 
     val cameraPermission = rememberPermissionState(Manifest.permission.CAMERA) { granted ->

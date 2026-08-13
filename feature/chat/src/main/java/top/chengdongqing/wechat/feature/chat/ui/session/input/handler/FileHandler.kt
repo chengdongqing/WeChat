@@ -1,18 +1,16 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.input.handler
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.apppicker.rememberPickAppLauncher
+import top.chengdongqing.wechat.core.apppicker.AppPickerRequest
+import top.chengdongqing.wechat.core.apppicker.rememberAppPickerLauncher
 import top.chengdongqing.wechat.core.data.handler.FileHandler
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.file.PrivateFileManager
-import top.chengdongqing.wechat.feature.chat.ui.file.FileSelectionActivity
+import top.chengdongqing.wechat.feature.chat.ui.file.rememberFilePickerLauncher
 
 @Composable
 fun rememberFileHandler(
@@ -31,27 +29,22 @@ fun rememberFileLauncher(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val pickFileLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val uris = FileSelectionActivity.readResult(result.data)
-            scope.launch {
-                fileHandler.handleFileSelection(uris, context)
-            }
-        }
-    }
-
-    val pickApk = rememberPickAppLauncher { apps ->
+    val filePicker = rememberFilePickerLauncher { uris ->
         scope.launch {
-            fileHandler.handleAppSelection(apps)
+            fileHandler.handleFileSelection(uris, context)
         }
     }
 
-    return remember(pickFileLauncher) {
+    val appPicker = rememberAppPickerLauncher { apps ->
+        scope.launch {
+            fileHandler.handleAppSelection(apps.toTypedArray())
+        }
+    }
+
+    return remember(filePicker, appPicker) {
         FileLauncher(
-            pickFile = { FileSelectionActivity.launch(context, pickFileLauncher) },
-            pickApk = { pickApk(99) }
+            pickFile = { filePicker.launch() },
+            pickApk = { appPicker.launch(AppPickerRequest(maxSelection = 99)) }
         )
     }
 }

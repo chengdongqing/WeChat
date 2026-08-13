@@ -27,7 +27,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.AppNavigation
 import top.chengdongqing.wechat.core.navigation.NavigationKey
 import top.chengdongqing.wechat.core.network.service.P2PService
-import top.chengdongqing.wechat.core.qrcode.scanner.QRCodeScannerActivity
+import top.chengdongqing.wechat.core.qrcode.scanner.QrCodeScannerContract
 import top.chengdongqing.wechat.core.security.AppLockManager
 import top.chengdongqing.wechat.feature.settings.ui.display.DisplaySettingsViewModel
 import top.chengdongqing.wechat.feature.startup.AppUnlockScreen
@@ -166,7 +166,7 @@ class MainActivity : AppCompatActivity() {
             .setIntents(
                 arrayOf(
                     launchIntent,
-                    QRCodeScannerActivity.newIntent(this).setAction(ACTION_SHORTCUT_SCAN)
+                    QrCodeScannerContract().createIntent(this, Unit).setAction(ACTION_SHORTCUT_SCAN)
                 )
             )
             .setRank(1)

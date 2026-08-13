@@ -9,66 +9,56 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import dagger.hilt.android.AndroidEntryPoint
-import top.chengdongqing.wechat.core.cropper.ImageCropperActivity.Companion.EXTRA_URI
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.window.ImmersiveSystemBars
+
+internal const val EXTRA_CROPPER_URI = "top.chengdongqing.wechat.cropper.extra.URI"
+
+class ImageCropperContract : ActivityResultContract<Uri, Uri?>() {
+    override fun createIntent(context: Context, input: Uri) =
+        Intent(context, ImageCropperActivity::class.java).putExtra(EXTRA_CROPPER_URI, input)
+
+    override fun parseResult(resultCode: Int, intent: Intent?): Uri? =
+        if (resultCode == Activity.RESULT_OK) intent?.croppingUri else null
+}
 
 @AndroidEntryPoint
 class ImageCropperActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val source = intent.croppingUri ?: run { cancel(); return }
         setContent {
             ImmersiveSystemBars()
             WeTheme(isDark = true) {
-                intent.croppingUri?.let { uri ->
-                    WeImageCropper(uri, onCancel = { finish() }) {
-                        val intent = Intent().apply {
-                            putExtra(EXTRA_URI, it)
-                        }
-                        setResult(RESULT_OK, intent)
-                        finish()
-                    }
+                WeImageCropper(source, onCancel = ::cancel) { result ->
+                    setResult(RESULT_OK, Intent().putExtra(EXTRA_CROPPER_URI, result)); finish()
                 }
             }
         }
     }
 
-    companion object {
-        const val EXTRA_URI = "extra_uri"
-
-        fun newIntent(context: Context) = Intent(context, ImageCropperActivity::class.java)
+    private fun cancel() {
+        setResult(RESULT_CANCELED); finish()
     }
 }
 
+class ImageCropperLauncher internal constructor(private val launcher: ActivityResultLauncher<Uri>) {
+    fun launch(uri: Uri) = launcher.launch(uri)
+}
 
 @Composable
-fun rememberImageCropperLauncher(onChange: (Uri) -> Unit): (uri: Uri) -> Unit {
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.croppingUri?.let(onChange)
-        }
-    }
-
-    return {
-        val intent = ImageCropperActivity.newIntent(context).apply {
-            putExtra(EXTRA_URI, it)
-        }
-        launcher.launch(intent)
-    }
-}
+fun rememberImageCropperLauncher(onResult: (Uri) -> Unit): ImageCropperLauncher =
+    ImageCropperLauncher(rememberLauncherForActivityResult(ImageCropperContract()) {
+        it?.let(
+            onResult
+        )
+    })
 
 private val Intent.croppingUri: Uri?
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        getParcelableExtra(ImageCropperActivity.EXTRA_URI, Uri::class.java)
-    } else {
-        @Suppress("DEPRECATION")
-        getParcelableExtra(ImageCropperActivity.EXTRA_URI)
-    }
+        getParcelableExtra(EXTRA_CROPPER_URI, Uri::class.java)
+    } else @Suppress("DEPRECATION") getParcelableExtra(EXTRA_CROPPER_URI)

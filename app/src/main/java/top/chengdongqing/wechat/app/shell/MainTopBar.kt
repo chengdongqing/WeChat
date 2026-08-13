@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.qrcode.scanner.rememberScanCodeLauncher
+import top.chengdongqing.wechat.core.qrcode.scanner.rememberQrCodeScannerLauncher
 
 @Composable
 fun MainTopBar(
@@ -74,7 +74,7 @@ private fun TopBarContent(
     var anchorPosition by remember { mutableStateOf(Offset.Zero) }
     var anchorSize by remember { mutableStateOf(IntSize.Zero) }
 
-    val launchScanner = rememberScanCodeLauncher { qrCodes ->
+    val qrCodeScanner = rememberQrCodeScannerLauncher { qrCodes ->
         qrCodes.firstOrNull()?.let(onScannedQrCode)
     }
 
@@ -113,7 +113,7 @@ private fun TopBarContent(
         when (action) {
             QuickAction.GroupChat -> onGroupChat()
             QuickAction.AddFriend -> onAddFriend()
-            QuickAction.Scan -> launchScanner()
+            QuickAction.Scan -> qrCodeScanner.launch()
             QuickAction.Payment -> onPayment()
         }
     }

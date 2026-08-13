@@ -74,7 +74,7 @@ import top.chengdongqing.wechat.core.designsystem.components.slider.WeSlider
 import top.chengdongqing.wechat.core.location.model.GeoPoint
 import top.chengdongqing.wechat.core.location.model.LocationInfo
 import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
-import top.chengdongqing.wechat.core.location.picker.rememberPickLocationLauncher
+import top.chengdongqing.wechat.core.location.picker.rememberLocationPickerLauncher
 import top.chengdongqing.wechat.core.location.preview.previewLocation
 import top.chengdongqing.wechat.core.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.media.picker.MediaPickerRequest
@@ -131,7 +131,7 @@ fun FavoriteEditorScreen(
     val pickMedia = rememberMediaPickerLauncher { result ->
         importUris(result.items.map { it.uri })
     }
-    val launchCamera = rememberCameraLauncher { uri, _ -> importUris(listOf(uri)) }
+    val launchCamera = rememberCameraLauncher { result -> importUris(listOf(result.uri)) }
     val pickFile = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
     ) { importUris(it) }
@@ -190,7 +190,7 @@ fun FavoriteEditorScreen(
     val audioPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { if (it) startRecording() }
-    val pickLocation = rememberPickLocationLauncher { location: LocationInfo ->
+    val locationPicker = rememberLocationPickerLauncher { location: LocationInfo ->
         addAttachment(
             FavoriteAttachment(
                 id = randomUUID(),
@@ -311,8 +311,8 @@ fun FavoriteEditorScreen(
                             )
                         )
                     },
-                    onCamera = { launchCamera(VisualMediaType.ImageAndVideo) },
-                    onLocation = pickLocation,
+                    onCamera = { launchCamera.launch(VisualMediaType.ImageAndVideo) },
+                    onLocation = { locationPicker.launch() },
                     onFile = { pickFile.launch(arrayOf("*/*")) },
                     onRecord = {
                         if (ContextCompat.checkSelfPermission(

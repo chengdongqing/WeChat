@@ -56,10 +56,10 @@ fun EditAvatarScreen(
         viewModel.updateField(ProfileField.Avatar(it))
     }
     val mediaPicker = rememberMediaPickerLauncher { result ->
-        launchCropper(result.items.first().uri)
+        launchCropper.launch(result.items.first().uri)
     }
-    val launchCamera = rememberCameraLauncher { uri, _ ->
-        launchCropper(uri)
+    val launchCamera = rememberCameraLauncher { result ->
+        launchCropper.launch(result.uri)
     }
 
     val saveAvatar = {
@@ -92,7 +92,7 @@ fun EditAvatarScreen(
             ) {
                 ActionSheetManager.show(MenuOptions) { index ->
                     when (index) {
-                        0 -> launchCamera(VisualMediaType.Image)
+                        0 -> launchCamera.launch(VisualMediaType.Image)
                         1 -> mediaPicker.launch(MediaPickerRequest.singleImage())
                         2 -> saveAvatar()
                     }

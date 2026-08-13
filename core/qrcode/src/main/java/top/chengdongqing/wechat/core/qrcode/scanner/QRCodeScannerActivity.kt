@@ -8,57 +8,60 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import dagger.hilt.android.AndroidEntryPoint
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.playback.rememberSoundTipPlayer
 import top.chengdongqing.wechat.core.playback.R as PlaybackR
+
+internal const val EXTRA_QR_CODES = "top.chengdongqing.wechat.qrcode.extra.CODES"
+
+class QrCodeScannerContract : ActivityResultContract<Unit, List<String>?>() {
+    override fun createIntent(context: Context, input: Unit) =
+        Intent(context, QRCodeScannerActivity::class.java)
+
+    override fun parseResult(resultCode: Int, intent: Intent?): List<String>? =
+        if (resultCode == Activity.RESULT_OK) intent?.getStringArrayExtra(EXTRA_QR_CODES)
+            ?.toList() else null
+}
 
 @AndroidEntryPoint
 class QRCodeScannerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         setContent {
             WeTheme {
-                WeQRCodeScanner(
-                    onRevoked = { finish() }
-                ) { codes ->
-                    val intent = Intent().apply {
-                        putExtra(EXTRA_QR_CODES, codes.map { it.rawValue }.toTypedArray())
-                    }
-                    setResult(RESULT_OK, intent)
+                WeQRCodeScanner(onRevoked = ::cancel) { codes ->
+                    setResult(
+                        RESULT_OK,
+                        Intent().putExtra(
+                            EXTRA_QR_CODES,
+                            codes.mapNotNull { it.rawValue }.toTypedArray()
+                        )
+                    )
                     finish()
                 }
             }
         }
     }
 
-    companion object {
-        const val EXTRA_QR_CODES = "extra_qr_codes"
-
-        fun newIntent(context: Context) = Intent(context, QRCodeScannerActivity::class.java)
+    private fun cancel() {
+        setResult(RESULT_CANCELED); finish()
     }
 }
 
+class QrCodeScannerLauncher internal constructor(private val launcher: ActivityResultLauncher<Unit>) {
+    fun launch() = launcher.launch(Unit)
+}
+
 @Composable
-fun rememberScanCodeLauncher(onChange: (Array<String>) -> Unit): () -> Unit {
-    val context = LocalContext.current
+fun rememberQrCodeScannerLauncher(onResult: (List<String>) -> Unit): QrCodeScannerLauncher {
     val soundTipPlayer = rememberSoundTipPlayer()
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            soundTipPlayer.play(PlaybackR.raw.tip_qrcode_completed) // 播放提示音
-            result.data?.getStringArrayExtra(QRCodeScannerActivity.EXTRA_QR_CODES)?.let(onChange)
-        }
+    val launcher = rememberLauncherForActivityResult(QrCodeScannerContract()) { result ->
+        result?.let { soundTipPlayer.play(PlaybackR.raw.tip_qrcode_completed); onResult(it) }
     }
-
-    return {
-        launcher.launch(QRCodeScannerActivity.newIntent(context))
-    }
+    return QrCodeScannerLauncher(launcher)
 }
