@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.app.shell
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,13 +15,16 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.components.appbar.bottombar.WeNavigationBottomBar
+import top.chengdongqing.wechat.core.designsystem.components.appbar.bottombar.WeLiquidNavigationBottomBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.navigation.NavigationKey
@@ -47,6 +51,7 @@ fun MainShellDestination(
     }
     val scope = rememberCoroutineScope()
     val currentTab = MainTab.entries[pagerState.currentPage]
+    val hazeState = rememberHazeState()
 
     HandleProfileNavigationEvents(
         viewModel = profileViewModel,
@@ -67,23 +72,30 @@ fun MainShellDestination(
                 onScannedQrCode = profileViewModel::handleScannedQRCode
             )
         },
-        bottomBar = {
-            WeNavigationBottomBar(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = WeTheme.colorScheme.background
+    ) { innerPadding ->
+        Box {
+            MainTabPager(
+                pagerState = pagerState,
+                innerPadding = innerPadding,
+                backStack = backStack,
+                modifier = Modifier.hazeSource(hazeState),
+            )
+            WeLiquidNavigationBottomBar(
                 tabs = MainTab.entries,
                 currentTabIndex = pagerState.currentPage,
                 selectedTabPosition = selectedTabPosition,
                 badgeMap = unreadMap,
+                hazeState = hazeState,
+                modifier = Modifier.align(Alignment.BottomCenter),
                 onTabSelected = { index ->
                     if (index != pagerState.currentPage) {
                         scope.launch { pagerState.scrollToPage(index) }
                     }
-                }
+                },
             )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = WeTheme.colorScheme.background
-    ) { innerPadding ->
-        MainTabPager(pagerState, innerPadding, backStack)
+        }
     }
 
     ProfileLoadingOverlay(profileViewModel)
@@ -99,13 +111,16 @@ private fun ProfileLoadingOverlay(viewModel: ProfileViewModel) {
 private fun MainTabPager(
     pagerState: PagerState,
     innerPadding: PaddingValues,
-    backStack: NavBackStack<NavKey>
+    backStack: NavBackStack<NavKey>,
+    modifier: Modifier = Modifier,
 ) {
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(
+                top = innerPadding.calculateTopPadding()
+            ),
         beyondViewportPageCount = 1
     ) { page ->
         when (MainTab.entries[page]) {

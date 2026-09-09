@@ -32,6 +32,8 @@ dependencies {
     api(libs.bundles.compose)
     api(libs.compose.icons.extended)
     api(libs.permissions.accompanist)
+    api(libs.haze)
+    api(libs.haze.materials)
 
     implementation(libs.bundles.coil)
     implementation(libs.appcompat)
