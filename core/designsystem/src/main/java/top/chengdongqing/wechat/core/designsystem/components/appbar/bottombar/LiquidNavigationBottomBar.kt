@@ -58,7 +58,7 @@ fun <T : NavigationTab> WeLiquidNavigationBottomBar(
     val glassModifier = if (hazeState != null) {
         Modifier.hazeEffect(hazeState, style = HazeMaterials.ultraThin(WeTheme.colorScheme.surface))
     } else {
-        Modifier.background(Color.White.copy(alpha = 0.72f))
+        Modifier.background(WeTheme.colorScheme.surface.copy(alpha = 0.72f))
     }
 
     BoxWithConstraints(
@@ -73,7 +73,7 @@ fun <T : NavigationTab> WeLiquidNavigationBottomBar(
             )
             .then(glassModifier)
             .clip(shape)
-            .border(1.dp, Color.White.copy(alpha = 0.72f), shape)
+            .border(0.5.dp, WeTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f), shape)
             .height(58.dp),
     ) {
         val itemWidth = maxWidth / tabs.size
@@ -111,7 +111,7 @@ private fun LiquidSelectionPill(itemWidth: Dp, position: Float) {
             .fillMaxHeight()
             .padding(6.dp)
             .clip(RoundedCornerShape(25.dp))
-            .background(Color.Black.copy(alpha = 0.075f)),
+            .background(WeTheme.colorScheme.textPrimary.copy(alpha = 0.075f)),
     )
 }
 
