@@ -32,7 +32,6 @@ class AppRepository @Inject constructor(
             val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
             val packageName = activityInfo.packageName
             val appInfo = activityInfo.applicationInfo
-            if (!appInfo.splitSourceDirs.isNullOrEmpty()) return@mapNotNull null
             val apkPath = appInfo.sourceDir?.takeIf { File(it).isFile }
                 ?: return@mapNotNull null
             val baseApk = File(apkPath)
@@ -43,7 +42,8 @@ class AppRepository @Inject constructor(
                 // 列表不展示版本号；延迟到用户确认选择时再查询。
                 versionName = "",
                 lastModified = baseApk.lastModified(),
-                apkPath = apkPath
+                apkPath = apkPath,
+                hasSplit = !appInfo.splitSourceDirs.isNullOrEmpty()
             )
         }.sortedByDescending {
             it.lastModified

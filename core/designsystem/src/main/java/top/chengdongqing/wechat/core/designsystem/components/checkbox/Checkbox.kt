@@ -15,10 +15,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.designsystem.R
+import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
-fun WeCheckBox(checked: Boolean) {
+fun WeCheckBox(
+    checked: Boolean,
+    enabled: Boolean = true
+) {
+    val bgColor = getBackgroundColor(checked, enabled)
+
     Box(
         modifier = Modifier
             .size(22.dp)
@@ -28,7 +34,7 @@ fun WeCheckBox(checked: Boolean) {
                 color = WeTheme.colorScheme.divider,
                 shape = CircleShape
             )
-            .background(if (checked) WeTheme.colorScheme.primary else Color.Transparent),
+            .background(bgColor),
         contentAlignment = Alignment.Center
     ) {
         Icon(
@@ -37,5 +43,28 @@ fun WeCheckBox(checked: Boolean) {
             modifier = Modifier.size(12.dp),
             tint = if (checked) Color.White else Color.Transparent
         )
+    }
+}
+
+@Composable
+private fun getBackgroundColor(
+    checked: Boolean,
+    enabled: Boolean
+): Color {
+    val isDarkTheme = LocalAppearanceSetting.current.isDarkTheme
+
+    return when (enabled) {
+        true -> if (checked) {
+            WeTheme.colorScheme.primary
+        } else {
+            Color.Transparent
+        }
+
+        else ->
+            if (isDarkTheme) {
+                Color(0xFFBBBBBB).copy(alpha = 0.4f)
+            } else {
+                Color(0xFFBBBBBB)
+            }
     }
 }

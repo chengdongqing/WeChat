@@ -1,6 +1,8 @@
 package top.chengdongqing.wechat.feature.auth.ui
 
+import android.Manifest
 import android.net.Uri
+import android.os.Build
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.R
@@ -35,8 +40,10 @@ import top.chengdongqing.wechat.core.designsystem.components.informationbar.Info
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
 import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import kotlin.time.Duration.Companion.milliseconds
 import top.chengdongqing.wechat.feature.auth.R as AuthR
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun LoginScreen(
     onBack: () -> Unit,
@@ -46,6 +53,27 @@ fun LoginScreen(
     val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    val localNetworkPermissionState =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+            rememberPermissionState(
+                Manifest.permission.ACCESS_LOCAL_NETWORK
+            ) {
+                viewModel.completeSetup(onSetupComplete)
+            }
+        } else null
+
+    fun checkLocalNetworkPermission() {
+        if (localNetworkPermissionState != null) {
+            if (!localNetworkPermissionState.status.isGranted) {
+                localNetworkPermissionState.launchPermissionRequest()
+            } else {
+                viewModel.completeSetup(onSetupComplete)
+            }
+        } else {
+            viewModel.completeSetup(onSetupComplete)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -66,8 +94,8 @@ fun LoginScreen(
             onComplete = {
                 scope.launch {
                     keyboardController?.hide()
-                    delay(300) // 等待键盘收起动画
-                    viewModel.completeSetup(onSetupComplete)
+                    delay(300.milliseconds) // 等待键盘收起动画
+                    checkLocalNetworkPermission()
                 }
             },
             onErrorDismiss = viewModel::clearError

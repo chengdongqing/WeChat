@@ -32,6 +32,7 @@ import top.chengdongqing.wechat.core.network.service.chat.WiFiLanChatHandler
 import top.chengdongqing.wechat.core.network.service.notification.NotificationServiceModule
 import top.chengdongqing.wechat.core.runtime.IoScope
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @AndroidEntryPoint
 class P2PService : Service() {
@@ -138,7 +139,7 @@ class P2PService : Service() {
             runCatching { it.stop() }
         }
 
-        delay(500)
+        delay(500.milliseconds)
 
         when (mode) {
             ConnectionMode.WiFiLan -> lanChatHandler.start()

@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import top.chengdongqing.wechat.core.designsystem.compose.DpSaver
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -154,7 +155,9 @@ private fun ExpressionPanelResizeHandle(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(InputPanelConfig.RESIZE_HANDLE_TOUCH_HEIGHT),
+            .height(InputPanelConfig.RESIZE_HANDLE_TOUCH_HEIGHT)
+            .background(WeTheme.colorScheme.background)
+            .zIndex(1f),
         contentAlignment = Alignment.Center
     ) {
         Box(

@@ -142,6 +142,8 @@ fun AppPicker(
                                 ) {
                                     Row(
                                         modifier = Modifier.onTap {
+                                            if (apk.hasSplit) return@onTap
+
                                             if (uiState.selectedCount >= count && !isSelected) {
                                                 context.showToast(
                                                     resources.getString(
@@ -156,7 +158,7 @@ fun AppPicker(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Spacer(modifier = Modifier.width(16.dp))
-                                        WeCheckBox(isSelected)
+                                        WeCheckBox(isSelected, !apk.hasSplit)
                                         ApkListItem(
                                             apk = apk,
                                             icon = viewModel.iconFor(apk.packageName),

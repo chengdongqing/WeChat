@@ -1,13 +1,15 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.input.handler
 
+import android.Manifest
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
-import kotlinx.coroutines.delay
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.call.ui.CallOptions
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -26,8 +28,6 @@ import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
 import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.MoreAction
 import java.io.File
-import kotlin.time.Duration.Companion.milliseconds
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
 import top.chengdongqing.wechat.feature.chat.R as ChatR
 
 /**
@@ -68,6 +68,7 @@ class ActionHandler(
 /**
  * 在 InputBarActionsProvider 中组装 ActionHandler
  */
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun rememberActionHandler(
     mediaLaunchers: MediaLaunchers,
@@ -84,10 +85,10 @@ fun rememberActionHandler(
     onSendMessage: (MessageContent) -> Unit
 ): ActionHandler {
     val context = LocalContext.current
-    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val chatContext = LocalChatSessionContext.current
     val isSelf = chatContext?.isSelf == true
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
     // 动态生成位置选项
     val locationOptions = remember(isSelf) {
@@ -138,15 +139,19 @@ fun rememberActionHandler(
             },
             onCamera = { isLongClick ->
                 if (isLongClick) {
-                    // 长按：显示系统相机选项
-                    ActionSheetManager.show(
-                        options = CameraOptions,
-                        title = R.string.chat_camera_title
-                    ) { index ->
-                        when (index) {
-                            0 -> launchSystemCamera(false)
-                            1 -> launchSystemCamera(true)
+                    if (cameraPermissionState.status.isGranted) {
+                        // 长按：显示系统相机选项
+                        ActionSheetManager.show(
+                            options = CameraOptions,
+                            title = R.string.chat_camera_title
+                        ) { index ->
+                            when (index) {
+                                0 -> launchSystemCamera(false)
+                                1 -> launchSystemCamera(true)
+                            }
                         }
+                    } else {
+                        cameraPermissionState.launchPermissionRequest()
                     }
                 } else {
                     // 短按：调用内置相机
@@ -174,18 +179,7 @@ fun rememberActionHandler(
             onLive = onStartLive,
             onContactCard = pickContact,
             onTransfer = {
-                onSendMessage(
-                    MessageContent.Text(
-                        resources.getString(
-                            ChatR.string.donate_description,
-                            resources.getString(DesignR.string.app_name)
-                        )
-                    )
-                )
-
                 scope.launch {
-                    delay(500.milliseconds)
-
                     val tempFile = File.createTempFile("Dotation_", ".jpg")
                     // 获取表情URI
                     val uri = context.copyResourceToUri(
