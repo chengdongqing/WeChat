@@ -127,7 +127,10 @@ fun AppPicker(
                                 key = initial,
                                 contentType = "Initial"
                             ) {
-                                GroupTitle(initial, background = WeTheme.colorScheme.surface)
+                                GroupTitle(
+                                    initial.toString(),
+                                    background = WeTheme.colorScheme.surface
+                                )
                             }
 
                             itemsIndexed(

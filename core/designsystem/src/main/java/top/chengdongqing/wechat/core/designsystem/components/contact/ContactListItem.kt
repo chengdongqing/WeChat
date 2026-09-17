@@ -28,8 +28,8 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 fun ContactListItem(
     displayName: String,
     avatarModel: Any?,
+    modifier: Modifier = Modifier,
     note: String? = null,
-    modifier: Modifier = Modifier
 ) {
     Row(
         modifier = Modifier
@@ -72,16 +72,16 @@ fun ContactListItem(
 
 @Composable
 fun GroupTitle(
-    initial: Char,
+    title: String,
     background: Color = WeTheme.colorScheme.background
 ) {
     Text(
-        text = initial.toString(),
+        text = title,
         modifier = Modifier
             .fillMaxWidth()
             .background(background)
             .padding(horizontal = 16.dp, vertical = 4.dp),
         color = Color.Gray,
-        fontSize = 14.sp
+        fontSize = 11.sp
     )
 }

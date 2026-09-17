@@ -3,6 +3,7 @@
     <string name="contacts_menu_group_chat">群聊</string>
     <string name="contacts_menu_tags">标签</string>
     <string name="contacts_menu_official_accounts">公众号</string>
+    <string name="contacts_group_starred">星标朋友</string>
 
     <string name="contacts_action_edit_profile">设置朋友资料</string>
     <plurals name="contacts_count">

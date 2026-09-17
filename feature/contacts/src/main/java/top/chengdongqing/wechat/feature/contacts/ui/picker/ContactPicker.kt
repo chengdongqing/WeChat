@@ -1,7 +1,5 @@
 package top.chengdongqing.wechat.feature.contacts.ui.picker
 
-import top.chengdongqing.wechat.feature.contacts.R as ContactsR
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -33,8 +31,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
@@ -51,6 +47,9 @@ import top.chengdongqing.wechat.core.model.ContactResult
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.toResult
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.contacts.R as ContactsR
+
 @Composable
 fun ContactPicker(
     count: Int,
@@ -121,7 +120,10 @@ fun ContactPicker(
                                 key = initial,
                                 contentType = "Initial"
                             ) {
-                                GroupTitle(initial, background = WeTheme.colorScheme.surface)
+                                GroupTitle(
+                                    initial.toString(),
+                                    background = WeTheme.colorScheme.surface
+                                )
                             }
 
                             itemsIndexed(

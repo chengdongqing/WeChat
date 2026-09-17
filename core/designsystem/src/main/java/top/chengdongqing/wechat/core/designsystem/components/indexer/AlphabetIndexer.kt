@@ -39,13 +39,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun <T> BoxScope.AlphabetIndexer(groups: Map<Char, List<T>>, onSelected: (initial: Char) -> Unit) {
+fun <T> BoxScope.AlphabetIndexer(
+    groups: Map<Char, List<T>>,
+    preAdditions: List<Char> = emptyList(),
+    onSelected: (initial: Char) -> Unit
+) {
     val density = LocalDensity.current
     var heightPerIndex by remember { mutableFloatStateOf(0f) }
     val dpHeightPerIndex = with(density) { heightPerIndex.toDp() }
-    val indexes = remember { ('A'..'Z').toList() + '#' }
+    val indexes = remember(preAdditions) { preAdditions + ('A'..'Z').toList() + '#' }
     var current by remember { mutableStateOf<Pair<Char, Int>?>(null) }
 
     Box(
@@ -110,7 +115,7 @@ private fun IndexItem(
 
     Box(
         modifier = Modifier
-            .size(20.dp)
+            .size(17.dp)
             .background(
                 if (selected) {
                     WeTheme.colorScheme.primary
@@ -136,7 +141,7 @@ private fun IndexItem(
 
                         MotionEvent.ACTION_UP -> {
                             coroutineScope.launch {
-                                delay(300)
+                                delay(300.milliseconds)
                                 setCurrent(null)
                             }
                             true

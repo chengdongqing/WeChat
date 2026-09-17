@@ -95,12 +95,17 @@ fun ContactListScreen(
                             key = initial,
                             contentType = "Initial"
                         ) {
-                            GroupTitle(initial)
+                            val title = if (initial == '☆') {
+                                stringResource(R.string.contacts_group_starred)
+                            } else {
+                                initial.toString()
+                            }
+                            GroupTitle(title)
                         }
 
                         items(
                             items = contacts,
-                            key = { it.id },
+                            key = { initial + "_" + it.id },
                             contentType = { "ContactItem" }
                         ) { contact ->
                             val contextMenuState = rememberContextMenuState(
@@ -157,10 +162,19 @@ fun ContactListScreen(
 
         // 右侧字母索引栏
         if (!state.isLoading && state.groups.isNotEmpty()) {
-            AlphabetIndexer(state.groups) { initial ->
-                state.indexMap[initial]?.let { targetIndex ->
+            AlphabetIndexer(
+                groups = state.groups,
+                preAdditions = listOf('↑', '☆')
+            ) { initial ->
+                if (initial == '↑') {
                     scope.launch {
-                        listState.scrollToItem(targetIndex)
+                        listState.scrollToItem(0)
+                    }
+                } else {
+                    state.indexMap[initial]?.let { targetIndex ->
+                        scope.launch {
+                            listState.scrollToItem(targetIndex)
+                        }
                     }
                 }
             }

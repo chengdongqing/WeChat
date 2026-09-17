@@ -5,7 +5,6 @@ import androidx.core.net.toUri
 import androidx.room3.withWriteTransaction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.data.model.ChatProtocol
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
@@ -17,6 +16,7 @@ import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
 import top.chengdongqing.wechat.core.database.dao.ContactDao
 import top.chengdongqing.wechat.core.database.entity.ContactEntity
+import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.network.crypto.PacketSigner
 import top.chengdongqing.wechat.core.util.downloadAvatar
@@ -43,6 +43,10 @@ class ContactRepositoryImpl @Inject constructor(
 
     override fun observeAllContacts(isBlocked: Boolean): Flow<List<Contact>> {
         return contactDao.observeAll(isBlocked).map { it.toDomain() }
+    }
+
+    override fun observeStarredContacts(): Flow<List<Contact>> {
+        return contactDao.observeStarred().map { it.toDomain() }
     }
 
     override suspend fun getContact(userId: String): Contact? {

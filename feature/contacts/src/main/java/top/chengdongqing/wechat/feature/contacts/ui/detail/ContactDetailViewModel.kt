@@ -194,6 +194,19 @@ class ContactDetailViewModel @AssistedInject constructor(
             }
         }
     }
+
+    /**
+     * 开/关星标
+     */
+    fun toggleStar() {
+        viewModelScope.launch {
+            contactRepository.updateContact(
+                contact.value?.id ?: return@launch
+            ) { contact ->
+                contact.copy(isStarred = !contact.isStarred)
+            }
+        }
+    }
 }
 
 data class ContactDetailUiState(

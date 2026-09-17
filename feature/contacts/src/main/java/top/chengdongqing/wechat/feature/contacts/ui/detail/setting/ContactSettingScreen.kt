@@ -127,7 +127,9 @@ private fun ContactSettingContent(
             showArrow = false,
             showDivider = false
         ) {
-            WeSwitch()
+            WeSwitch(checked = contact.isStarred) {
+                viewModel.toggleStar()
+            }
         }
     }
     WeSettingGroup {

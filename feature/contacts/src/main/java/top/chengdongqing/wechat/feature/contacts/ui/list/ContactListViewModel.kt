@@ -32,9 +32,10 @@ class ContactListViewModel @Inject constructor(
      */
     val state: StateFlow<ContactListUiState> = combine(
         contactRepository.observeAllContacts(),
+        contactRepository.observeStarredContacts(),
         profileRepository.observeProfile(),
         friendRequestRepository.observeUnreadCount()
-    ) { contacts, myProfile, unreadCount ->
+    ) { contacts, starredContacts, myProfile, unreadCount ->
         // 将自己插入到联系人列表
         val allContacts = if (myProfile != null) {
             contacts + myProfile.toContact() + LocalAiAssistant.toContact(
@@ -46,13 +47,28 @@ class ContactListViewModel @Inject constructor(
         }
 
         // 根据首字母分组
-        val groups = allContacts.groupByInitial()
+        val groups = allContacts.groupByInitial().toMutableMap()
+        if (starredContacts.isNotEmpty()) {
+            groups['☆'] = starredContacts.toListItem()
+        }
+
+        // 重新排序，确保星标在最前，#在最后
+        val sortedGroups = groups.toSortedMap { a, b ->
+            when {
+                a == '☆' -> -1
+                b == '☆' -> 1
+                a == '#' -> 1
+                b == '#' -> -1
+                else -> a.compareTo(b)
+            }
+        }
+
         // 计算索引映射
-        val indexMap = calculateIndexMap(groups)
+        val indexMap = calculateIndexMap(sortedGroups)
 
         ContactListUiState(
             isLoading = false,
-            groups = groups,
+            groups = sortedGroups,
             totalCount = allContacts.size + 1,
             indexMap = indexMap,
             unreadCount = unreadCount
@@ -72,6 +88,8 @@ class ContactListViewModel @Inject constructor(
             .groupBy { it.initial }
             .toSortedMap { a, b ->
                 when {
+                    a == '☆' -> -1
+                    b == '☆' -> 1
                     a == '#' -> 1 // # 放最后
                     b == '#' -> -1
                     else -> a.compareTo(b)

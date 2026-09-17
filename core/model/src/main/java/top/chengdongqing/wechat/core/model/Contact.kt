@@ -15,6 +15,7 @@ data class Contact(
     val source: ContactAddSource? = ContactAddSource.QRCode,
     val isFromMe: Boolean = true,
     val isBlocked: Boolean = false,
+    val isStarred: Boolean = false,
     val addedAt: Long? = null,
     val publicKey: String? = null,
     val version: Long = 0

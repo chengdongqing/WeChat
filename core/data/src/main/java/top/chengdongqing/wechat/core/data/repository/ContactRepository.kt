@@ -7,6 +7,7 @@ import top.chengdongqing.wechat.core.model.Contact
 
 interface ContactRepository {
     fun observeAllContacts(isBlocked: Boolean = false): Flow<List<Contact>>
+    fun observeStarredContacts(): Flow<List<Contact>>
     suspend fun getContact(userId: String): Contact?
     fun observeContact(userId: String): Flow<Contact?>
     suspend fun exists(userId: String): Boolean
