@@ -1,6 +1,4 @@
 <resources>
-    <string name="local_ai_assistant_name">Xiaowei</string>
-    <string name="local_ai_assistant_signature">Local AI assistant</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
@@ -28,13 +26,9 @@
     <string name="msg_process_failed">Process Failed</string>
     <string name="msg_max_select_limit">You can select up to %1$d items</string>
 
-
+    <string name="local_ai_assistant_name">Xiaowei</string>
+    <string name="local_ai_assistant_signature">Local AI assistant</string>
 
     <string name="camera_switch">Switch Camera</string>
     <string name="separator">, </string>
-
-
-
-
-
 </resources>

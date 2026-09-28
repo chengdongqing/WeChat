@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -65,6 +66,7 @@ import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
+import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreType
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
@@ -88,6 +90,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveEffectType
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveMessageEffect
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.bombShakeTransform
 import top.chengdongqing.wechat.feature.chat.ui.session.input.InputBar
+import top.chengdongqing.wechat.feature.chat.ui.session.input.rememberInputBarController
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageItem
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageToolbarState
 import top.chengdongqing.wechat.feature.chat.ui.session.message.MessageUiEvent
@@ -101,6 +104,7 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun ChatSessionScreen(
     chatId: String,
+    isSpecialPage: Boolean = false,
     onBack: () -> Unit,
     onInfo: () -> Unit,
     onContact: (id: String) -> Unit,
@@ -112,7 +116,9 @@ fun ChatSessionScreen(
     onLiveLocation: () -> Unit,
     onFavorites: () -> Unit,
     onChatHistory: (MessageContent.ChatHistory) -> Unit,
-    viewModel: ChatSessionViewModel
+    viewModel: ChatSessionViewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
+        factory.create(chatId)
+    }
 ) {
     val expandedMediaAlbums = remember(chatId) { mutableStateListOf<String>() }
     var mediaPreview by remember { mutableStateOf<ChatMediaPreviewState?>(null) }
@@ -168,6 +174,9 @@ fun ChatSessionScreen(
         onWebView = onWebView,
         onLive = onLive
     )
+
+    val focusRequester = remember { NativeFocusRequester() }
+    val controller = rememberInputBarController(focusRequester, uiState.isSendButtonOn)
 
     KeyboardScrollEffect(listState, lazyMessageItems.itemCount)
     MessageDataScrollEffect(
@@ -283,7 +292,17 @@ fun ChatSessionScreen(
                                         ChatSessionTopBar(
                                             viewModel = viewModel,
                                             uiState = uiState,
-                                            onBack = onBack,
+                                            backIconResId = if (isSpecialPage) {
+                                                DesignR.drawable.ic_close_outlined
+                                            } else {
+                                                DesignR.drawable.ic_back_outlined
+                                            },
+                                            onBack = {
+                                                if (isSpecialPage) {
+                                                    controller.dismissAll()
+                                                }
+                                                onBack()
+                                            },
                                             onInfo = onInfo
                                         )
                                         if (liveLocationRoom.isActive) {
@@ -318,6 +337,7 @@ fun ChatSessionScreen(
                                 bottomBar = {
                                     if (!uiState.isSelectMode) {
                                         InputBar(
+                                            controller,
                                             viewModel,
                                             uiState,
                                             listState,

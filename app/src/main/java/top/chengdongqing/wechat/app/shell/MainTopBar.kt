@@ -32,7 +32,8 @@ fun MainTopBar(
     onGroupChat: () -> Unit,
     onAddFriend: () -> Unit,
     onPayment: () -> Unit,
-    onScannedQrCode: (String) -> Unit
+    onScannedQrCode: (String) -> Unit,
+    onChatWithAI: () -> Unit
 ) {
     when {
         currentTab != MainTab.Me -> {
@@ -40,10 +41,12 @@ fun MainTopBar(
 
             TopBarContent(
                 title = title,
+                isChatsTab = currentTab == MainTab.Chats,
                 onGroupChat = onGroupChat,
                 onAddFriend = onAddFriend,
                 onPayment = onPayment,
-                onScannedQrCode = onScannedQrCode
+                onScannedQrCode = onScannedQrCode,
+                onChatWithAI = onChatWithAI
             )
         }
 
@@ -65,10 +68,12 @@ fun MainTopBar(
 @Composable
 private fun TopBarContent(
     title: String,
+    isChatsTab: Boolean,
     onGroupChat: () -> Unit,
     onAddFriend: () -> Unit,
     onPayment: () -> Unit,
-    onScannedQrCode: (String) -> Unit
+    onScannedQrCode: (String) -> Unit,
+    onChatWithAI: () -> Unit
 ) {
     val menuExpanded = remember { MutableTransitionState(false) }
     var anchorPosition by remember { mutableStateOf(Offset.Zero) }
@@ -83,7 +88,11 @@ private fun TopBarContent(
     }
 
     Column {
-        WeTopAppBar(title = title) {
+        WeTopAppBar(
+            title = title,
+            backIconResId = R.drawable.ic_more_filled_1,
+            onBack = if (isChatsTab) onChatWithAI else null
+        ) {
             IconButton(
                 icon = R.drawable.ic_search_outlined,
                 description = stringResource(R.string.action_search)

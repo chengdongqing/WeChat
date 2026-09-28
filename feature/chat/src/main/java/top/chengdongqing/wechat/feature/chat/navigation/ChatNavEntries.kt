@@ -23,7 +23,6 @@ import top.chengdongqing.wechat.feature.chat.ui.preview.chathistory.ChatHistoryS
 import top.chengdongqing.wechat.feature.chat.ui.preview.file.FilePreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.preview.music.MusicPreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionScreen
-import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionViewModel
 
 fun EntryProviderScope<NavKey>.chatNavEntries(
     backStack: NavBackStack<NavKey>,
@@ -69,9 +68,6 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                     },
                     onLiveLocation = {
                         backStack.add(NavigationKey.LiveLocation(it.groupId))
-                    },
-                    viewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
-                        factory.create(it.groupId)
                     }
                 )
             }
@@ -122,9 +118,6 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                 },
                 onLiveLocation = {
                     backStack.add(NavigationKey.LiveLocation(chatId))
-                },
-                viewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
-                    factory.create(chatId)
                 }
             )
         }

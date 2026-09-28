@@ -1,5 +1,6 @@
 package top.chengdongqing.wechat.app.shell
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -19,14 +20,17 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.data.model.ChatHistoryPayload
 import top.chengdongqing.wechat.core.designsystem.components.appbar.bottombar.WeNavigationBottomBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.list.ChatListScreen
+import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionScreen
 import top.chengdongqing.wechat.feature.contacts.ui.list.ContactListScreen
 import top.chengdongqing.wechat.feature.discovery.DiscoveryScreen
 import top.chengdongqing.wechat.feature.profile.ui.MeScreen
@@ -49,7 +53,6 @@ fun MainShellDestination(
     }
     val scope = rememberCoroutineScope()
     val currentTab = MainTab.entries[pagerState.currentPage]
-    val hazeState = rememberHazeState()
 
     HandleProfileNavigationEvents(
         viewModel = profileViewModel,
@@ -59,42 +62,108 @@ fun MainShellDestination(
         onWebView = { backStack.add(NavigationKey.WebView(it)) }
     )
 
-    Scaffold(
-        topBar = {
-            MainTopBar(
-                currentTab = currentTab,
-                unreadMap = unreadMap,
-                onGroupChat = { backStack.add(NavigationKey.GroupChat("")) },
-                onAddFriend = { backStack.add(NavigationKey.AddFriend) },
-                onPayment = { backStack.add(NavigationKey.PaymentCode) },
-                onScannedQrCode = profileViewModel::handleScannedQRCode
-            )
-        },
-        bottomBar = {
-            WeNavigationBottomBar(
-                tabs = MainTab.entries,
-                currentTabIndex = pagerState.currentPage,
-                selectedTabPosition = selectedTabPosition,
-                badgeMap = unreadMap,
-                onTabSelected = { index ->
-                    if (index != pagerState.currentPage) {
-                        scope.launch { pagerState.scrollToPage(index) }
+    val containerPagerState = rememberPagerState(1) { 2 }
+    HorizontalPager(containerPagerState) { page ->
+        when (page) {
+            1 -> {
+                Scaffold(
+                    topBar = {
+                        MainTopBar(
+                            currentTab = currentTab,
+                            unreadMap = unreadMap,
+                            onGroupChat = { backStack.add(NavigationKey.GroupChat("")) },
+                            onAddFriend = { backStack.add(NavigationKey.AddFriend) },
+                            onPayment = { backStack.add(NavigationKey.PaymentCode) },
+                            onScannedQrCode = profileViewModel::handleScannedQRCode,
+                            onChatWithAI = {
+                                scope.launch { containerPagerState.animateScrollToPage(0) }
+                            }
+                        )
+                    },
+                    bottomBar = {
+                        WeNavigationBottomBar(
+                            tabs = MainTab.entries,
+                            currentTabIndex = pagerState.currentPage,
+                            selectedTabPosition = selectedTabPosition,
+                            badgeMap = unreadMap,
+                            onTabSelected = { index ->
+                                if (index != pagerState.currentPage) {
+                                    scope.launch { pagerState.scrollToPage(index) }
+                                }
+                            }
+                        )
+                    },
+                    snackbarHost = { SnackbarHost(snackbarHostState) },
+                    containerColor = WeTheme.colorScheme.background
+                ) { innerPadding ->
+                    MainTabPager(
+                        pagerState = pagerState,
+                        innerPadding = innerPadding,
+                        backStack = backStack,
+                    )
+                }
+
+                ProfileLoadingOverlay(profileViewModel)
+            }
+
+            0 -> {
+                val chatId = LocalAiAssistant.ID
+
+                BackHandler(containerPagerState.currentPage == 0) {
+                    scope.launch {
+                        containerPagerState.animateScrollToPage(1)
                     }
                 }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = WeTheme.colorScheme.background
-    ) { innerPadding ->
-        MainTabPager(
-            pagerState = pagerState,
-            innerPadding = innerPadding,
-            backStack = backStack,
-            modifier = Modifier.hazeSource(hazeState),
-        )
-    }
 
-    ProfileLoadingOverlay(profileViewModel)
+                ChatTheme {
+                    ChatSessionScreen(
+                        chatId = chatId,
+                        isSpecialPage = true,
+                        onBack = {
+                            scope.launch {
+                                containerPagerState.animateScrollToPage(1)
+                            }
+                        },
+                        onInfo = {
+                            backStack.add(NavigationKey.ChatInfo(chatId))
+                        },
+                        onContact = { id ->
+                            backStack.removeIf { key -> key is NavigationKey.ContactDetail }
+                            backStack.add(NavigationKey.ContactDetail(id))
+                        },
+                        onFilePreview = { id -> backStack.add(NavigationKey.FilePreview(id)) },
+                        onMusicPreview = { id, name ->
+                            backStack.add(
+                                NavigationKey.MusicPreview(
+                                    messageId = id,
+                                    trackName = name
+                                )
+                            )
+                        },
+                        onRequestAddFriend = { },
+                        onWebView = { url -> backStack.add(NavigationKey.WebView(url)) },
+                        onFavorites = {
+                            backStack.add(NavigationKey.Favorites(chatId))
+                        },
+                        onChatHistory = { history ->
+                            backStack.add(
+                                NavigationKey.ChatHistory(
+                                    Json.encodeToString(
+                                        ChatHistoryPayload(
+                                            history.title,
+                                            history.items
+                                        )
+                                    )
+                                )
+                            )
+                        },
+                        onLive = { _, _, _ -> },
+                        onLiveLocation = {}
+                    )
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -107,12 +176,11 @@ private fun ProfileLoadingOverlay(viewModel: ProfileViewModel) {
 private fun MainTabPager(
     pagerState: PagerState,
     innerPadding: PaddingValues,
-    backStack: NavBackStack<NavKey>,
-    modifier: Modifier = Modifier,
+    backStack: NavBackStack<NavKey>
 ) {
     HorizontalPager(
         state = pagerState,
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
         beyondViewportPageCount = 1

@@ -73,6 +73,7 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun InputBar(
+    controller: InputBarController,
     viewModel: ChatSessionViewModel,
     uiState: ChatSessionUiState,
     listState: LazyListState,
@@ -81,8 +82,6 @@ fun InputBar(
     onShareLiveLocation: () -> Unit,
     onOpenFavorites: () -> Unit
 ) {
-    val focusRequester = remember { NativeFocusRequester() }
-    val controller = rememberInputBarController(focusRequester, uiState.isSendButtonOn)
     val state by controller.state.collectAsStateWithLifecycle()
     val pendingQuote by viewModel.pendingQuote.collectAsStateWithLifecycle()
     val actions = rememberInputBarActions(
@@ -124,7 +123,7 @@ fun InputBar(
             controller.updateText(it)
             delay(500.milliseconds)
             // 自动弹出键盘
-            focusRequester.requestFocus()
+            controller.focusRequester.requestFocus()
         }
     }
 

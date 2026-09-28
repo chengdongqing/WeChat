@@ -33,6 +33,7 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 fun ChatSessionTopBar(
     viewModel: ChatSessionViewModel,
     uiState: ChatSessionUiState,
+    backIconResId: Int,
     onBack: () -> Unit,
     onInfo: () -> Unit
 ) {
@@ -43,6 +44,7 @@ fun ChatSessionTopBar(
         titleContent = {
             ChatSessionTitle(viewModel, uiState)
         },
+        backIconResId = backIconResId,
         backText = if (isSelectMode) stringResource(DesignR.string.action_cancel) else null,
         onBack = {
             if (isSelectMode) {

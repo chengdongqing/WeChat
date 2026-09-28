@@ -34,6 +34,7 @@ import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionS
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.TextPrimaryDark
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
 import top.chengdongqing.wechat.feature.moments.model.coverFor
 import top.chengdongqing.wechat.feature.moments.R as FeatureR
 
@@ -158,6 +159,8 @@ private fun TopBar(
     val isReached = topBarProgress >= 0.55f
     val topBarBackground = WeTheme.colorScheme.background.copy(alpha = topBarProgress)
     val contentColor = if (isReached) WeTheme.colorScheme.textPrimary else TextPrimaryDark
+
+    StatusBarAppearanceEffect(isDark = isReached)
 
     WeTopAppBar(
         title = if (isReached) "朋友圈" else null,

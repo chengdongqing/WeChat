@@ -1,7 +1,5 @@
 <resources>
-    <string name="local_ai_assistant_name">小微同学</string>
-    <string name="local_ai_assistant_signature">本地 AI 助手</string>
-    <string name="app_name" translatable="false">WeChat Lan</string>
+    <string name="app_name" translatable="false">WeChat</string>
     <string name="action_ok">确定</string>
     <string name="action_cancel">取消</string>
     <string name="action_delete">删除</string>
@@ -29,13 +27,9 @@
     <string name="msg_process_failed">操作失败</string>
     <string name="msg_max_select_limit">你最多只能选择%1$d个</string>
 
-
+    <string name="local_ai_assistant_name">小微同学</string>
+    <string name="local_ai_assistant_signature">本地 AI 助手</string>
 
     <string name="camera_switch">切换相机</string>
     <string name="separator">，</string>
-
-
-
-
-
 </resources>

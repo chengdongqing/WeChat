@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.room)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
-    alias(libs.plugins.androidx.baselineprofile)
     id("kotlin-parcelize")
 }
 
@@ -19,8 +18,8 @@ android {
         applicationId = "top.chengdongqing.wechat"
         minSdk = 26
         targetSdk = 37
-        versionCode = 20260910
-        versionName = "2026.09.10"
+        versionCode = 20260928
+        versionName = "2026.09.28"
 
         ndk {
             abiFilters.add("arm64-v8a")
@@ -31,11 +30,6 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-        }
-        create("benchmark") {
-            initWith(getByName("release"))
-            signingConfig = signingConfigs.getByName("debug")
-            matchingFallbacks += listOf("release")
         }
     }
 
@@ -116,8 +110,6 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-    implementation(libs.profileinstaller)
-    baselineProfile(projects.benchmark)
 
     // 测试相关
     testImplementation(libs.test.junit)
@@ -129,5 +121,4 @@ dependencies {
     // 调试工具
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
-    debugImplementation(libs.leakcanary.android)
 }

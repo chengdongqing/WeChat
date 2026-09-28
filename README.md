@@ -2,7 +2,7 @@
 
 <img height="192" src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp" alt="Logo">
 
-<h1>WeChat Lan</h1>
+<h1>WeChat</h1>
 
 A compact local area network (LAN) communication application that strives to align with WeChat in
 terms of interaction and functionality, while deeply leveraging the underlying capabilities of the
@@ -13,7 +13,7 @@ English · [中文](./README.zh-CN.md)
 
 [![GitHub](https://img.shields.io/badge/GitHub-WeChat-blue?style=flat-square&logo=github)](https://github.com/chengdongqing/WeChat)
 [![Gitee](https://img.shields.io/badge/Gitee-WeChat-red?style=flat-square&logo=gitee)](https://gitee.com/chengdongqing/WeChat)
-[![Demo](https://img.shields.io/badge/Releases-Download-green?style=flat-square&logo=android)](https://gitee.com/chengdongqing/WeChat/releases)
+[![Demo](https://img.shields.io/badge/Releases-Download-green?style=flat-square&logo=android)](https://github.com/chengdongqing/WeChat/releases)
 [![Juejin](https://img.shields.io/badge/掘金社区-white?style=flat-square&logo=juejin)](https://juejin.cn/post/7621443853845594154)
 
 </div>

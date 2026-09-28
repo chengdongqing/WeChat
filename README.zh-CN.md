@@ -2,7 +2,7 @@
 
 <img height="192" src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp" alt="Logo">
 
-<h1>WeChat Lan</h1>
+<h1>WeChat</h1>
 
 一款小巧的设备间直连通信应用，在交互与功能层面尽量对齐微信，同时深度挖掘安卓系统底层能力，利用多种近场通信技术实现设备间的直接高效互联。
 
@@ -10,7 +10,7 @@
 
 [![GitHub](https://img.shields.io/badge/GitHub-WeChat-blue?style=flat-square&logo=github)](https://github.com/chengdongqing/WeChat)
 [![Gitee](https://img.shields.io/badge/Gitee-WeChat-red?style=flat-square&logo=gitee)](https://gitee.com/chengdongqing/WeChat)
-[![Release](https://img.shields.io/badge/Releases-Download-green?style=flat-square&logo=android)](https://gitee.com/chengdongqing/WeChat/releases)
+[![Release](https://img.shields.io/badge/Releases-Download-green?style=flat-square&logo=android)](https://github.com/chengdongqing/WeChat/releases)
 [![Juejin](https://img.shields.io/badge/掘金社区-white?style=flat-square&logo=juejin)](https://juejin.cn/post/7621443853845594154)
 
 </div>
@@ -71,13 +71,16 @@
     * 复制、转发、删除、撤回、下载
     * 多选（批量转发、删除、下载）
     * 切换听筒/扬声器（语音消息）
+  * 左滑消息引用，右滑消息转发
+  * 语音消息支持拖动调整进度，双击倍速播放
 
 * 状态显示
     * 在线状态、加密状态、使用听筒播放语音
 
 * 聊天信息
     * 消息免打扰
-    * 置顶聊天
+  * 置顶聊天
+  * 置底聊天
     * 设置聊天背景
     * 清空聊天记录
 
@@ -127,10 +130,14 @@
 
 #### 6. 其他设置
 
+* 账号安全
+  * 应用锁
+
 * 界面与显示
     * 深色模式（跟随系统/普通/深色）
     * 字体大小（滑块调节、实时预览）
     * 多语言（跟随系统/简体中文/English）
+  * 图标颜色（可将Logo切换为黑色/白色/红色等）
 
 * 朋友权限
     * 加我为朋友时需要验证
@@ -147,6 +154,7 @@
     * 使用听筒播放语音消息
     * 使用独立的发送按钮
     * 端到端加密
+  * 临时聊天
 
 * 聊天记录管理
     * 清空全部聊天记录

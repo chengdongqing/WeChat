@@ -29,7 +29,6 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "WeChat"
 include(":app")
-include(":benchmark")
 
 // Core modules
 include(":core:model")
