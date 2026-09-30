@@ -90,7 +90,7 @@ private fun TopBarContent(
     Column {
         WeTopAppBar(
             title = title,
-            backIconResId = R.drawable.ic_more_filled_1,
+            backIconResId = R.drawable.ic_xiaowei_filled,
             onBack = if (isChatsTab) onChatWithAI else null
         ) {
             IconButton(
