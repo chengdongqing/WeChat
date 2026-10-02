@@ -33,14 +33,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
+import top.chengdongqing.wechat.core.designsystem.theme.Blue60
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.contacts.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 enum class FriendActionType(@get:StringRes val titleRes: Int) {
     Apply(R.string.contact_action_apply),
@@ -203,7 +203,7 @@ private fun LinkedRow(label: String, onClick: () -> Unit) {
             .fillMaxWidth()
             .onTap { onClick() }
     ) {
-        Text(text = label, color = LinkBlue, fontSize = 16.sp)
+        Text(text = label, color = Blue60, fontSize = 16.sp)
         Icon(
             painter = painterResource(DesignR.drawable.ic_right_outlined),
             contentDescription = null,

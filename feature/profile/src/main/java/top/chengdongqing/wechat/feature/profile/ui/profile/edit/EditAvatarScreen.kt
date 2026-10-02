@@ -29,7 +29,7 @@ import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearance
 import top.chengdongqing.wechat.core.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.media.picker.MediaPickerRequest
 import top.chengdongqing.wechat.core.media.picker.rememberMediaPickerLauncher
@@ -75,7 +75,7 @@ fun EditAvatarScreen(
         }
     }
 
-    StatusBarAppearanceEffect(isDark = false)
+    StatusBarAppearance(isDark = false)
     Box(modifier = Modifier.background(Black)) {
         WeTopAppBar(
             title = stringResource(DesignR.string.me_profile_avatar),

@@ -27,10 +27,8 @@ class ContactListViewModel @Inject constructor(
     friendRequestRepository: FriendRequestRepository,
     @ApplicationContext context: Context
 ) : ViewModel() {
-    /**
-     * 组合多个数据流
-     */
-    val state: StateFlow<ContactListUiState> = combine(
+
+    val uiState: StateFlow<ContactListUiState> = combine(
         contactRepository.observeAllContacts(),
         contactRepository.observeStarredContacts(),
         profileRepository.observeProfile(),
@@ -111,12 +109,3 @@ class ContactListViewModel @Inject constructor(
         return indexMap
     }
 }
-
-// UI State
-data class ContactListUiState(
-    val isLoading: Boolean = true,
-    val groups: Map<Char, List<ContactItem>> = emptyMap(),
-    val totalCount: Int = 0,
-    val indexMap: Map<Char, Int> = emptyMap(),
-    val unreadCount: Int = 0
-)

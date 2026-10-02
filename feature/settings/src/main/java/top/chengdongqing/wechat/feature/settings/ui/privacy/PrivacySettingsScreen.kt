@@ -18,15 +18,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
+import top.chengdongqing.wechat.feature.settings.R
 
 @Composable
 fun PrivacySettingsScreen(
@@ -69,7 +68,7 @@ fun PrivacySettingsScreen(
                 label = stringResource(R.string.privacy_add_method),
                 showDivider = false,
                 onClick = {
-                    backStack.add(NavigationKey.AddMeMethodSettings)
+                    backStack.add(ScreenRoute.AddMeMethodSettings)
                 }
             )
             WeSettingGroup(stringResource(R.string.settings_privacy)) {
@@ -99,7 +98,7 @@ fun PrivacySettingsScreen(
                 label = stringResource(R.string.privacy_blacklist),
                 showDivider = false,
                 onClick = {
-                    backStack.add(NavigationKey.ContactBlacklist)
+                    backStack.add(ScreenRoute.ContactBlacklist)
                 }
             )
             Spacer(modifier = Modifier.height(100.dp))

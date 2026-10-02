@@ -40,7 +40,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -161,7 +160,6 @@ private fun JoinChannel(
         )
         WeButton(
             text = stringResource(R.string.intercom_join_channel),
-            width = Dp.Unspecified,
             modifier = Modifier.fillMaxWidth(),
             enabled = channel.isNotBlank(),
             onClick = onJoin

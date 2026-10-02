@@ -10,7 +10,7 @@ interface ChatSessionRepository {
     suspend fun isSessionMuted(sessionId: String): Boolean
     suspend fun exists(sessionId: String): Boolean
     suspend fun createSession(session: ChatSession)
-    suspend fun clearUnreadCount(sessionId: String)
+    suspend fun markAsRead(sessionId: String)
     suspend fun markAsUnread(sessionId: String)
     suspend fun updateDraft(sessionId: String, draft: String?)
     suspend fun togglePin(sessionId: String, isPinned: Boolean)

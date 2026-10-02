@@ -29,10 +29,10 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
-import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
+import top.chengdongqing.wechat.core.designsystem.theme.Blue60
+import top.chengdongqing.wechat.core.designsystem.theme.Green100
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
-import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
+import top.chengdongqing.wechat.core.designsystem.theme.Red100
 
 enum class InformationBarType {
     WarnStrong,
@@ -154,18 +154,18 @@ private fun colorSchemeOf(type: InformationBarType): InformationBarColors {
             } else {
                 Color(1f, 0.945f, 0.957f)
             },
-            iconColor = SemanticError,
+            iconColor = Red100,
             textColor = if (isDarkTheme) {
                 Color(0.922f, 0.627f, 0.651f, 1.0f)
             } else {
                 Color(0f, 0f, 0f, 0.55f)
             },
-            linkColor = LinkBlue,
+            linkColor = Blue60,
             closeIconColor = Color(0f, 0f, 0f, 0.55f)
         )
 
         InformationBarType.Success -> InformationBarColors(
-            backgroundColor = BrandPrimary
+            backgroundColor = Green100
         )
     }
 }

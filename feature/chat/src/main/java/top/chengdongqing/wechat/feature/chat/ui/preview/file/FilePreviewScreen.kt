@@ -168,7 +168,7 @@ private fun FilePreviewPage(
                 }
                 WeButton(
                     text = stringResource(DesignR.string.action_save),
-                    loading = uiState.isSaving,
+                    isLoading = uiState.isSaving,
                     enabled = uiState.fileExists
                 ) {
                     onSave()

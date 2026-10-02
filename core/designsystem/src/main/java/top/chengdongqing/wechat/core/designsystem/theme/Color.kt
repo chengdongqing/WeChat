@@ -2,16 +2,16 @@ package top.chengdongqing.wechat.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 
-// --- 品牌核心色 ---
-val BrandPrimary = Color(0xFF07C160)
-val GreenPressed = Color(0xFF06AD56)
-val SemanticError = Color(0xFFFA5151)
-val LinkBlue = Color(0xFF576B95)
+val Green100 = Color(0xFF07C160)
+val Green150 = Color(0xFF06AD56)
+val Red100 = Color(0xFFFA5151)
+val Blue60 = Color(0xFF576B95)
 
-// --- 基础色 ---
 val White = Color(0xFFFFFFFF)
 val Black = Color(0xFF000000)
 val Gray = Color(0xFF525252)
+
+val Grey68 = Color(0xFF525252)
 
 val Neutral50 = Color(0xFFF7F7F7)
 val Neutral100 = Color(0xFFEDEDED)

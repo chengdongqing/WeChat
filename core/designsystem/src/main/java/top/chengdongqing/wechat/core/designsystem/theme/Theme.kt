@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.core.designsystem.theme
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -16,52 +17,11 @@ import androidx.compose.ui.unit.Density
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.WeActionSheetHost
 import top.chengdongqing.wechat.core.designsystem.components.dialog.WeDialogHost
 import top.chengdongqing.wechat.core.designsystem.components.toast.WeToastHost
-import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearance
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.AppTheme
 import top.chengdongqing.wechat.core.model.DisplaySettings
 import java.util.Locale
-
-@Immutable
-data class WeColorScheme(
-    val primary: Color = BrandPrimary,
-    val primarySecondary: Color = GreenPressed,
-    val danger: Color = SemanticError,
-    val link: Color = LinkBlue,
-    // 背景层级（从低到高）
-    val background: Color,       // 页面底色
-    val surface: Color,          // 卡片/列表容器
-    val surfaceVariant: Color,   // 输入框/次级容器
-    val elevated: Color,         // 浮层/弹窗
-    // 文本层级
-    val textPrimary: Color,
-    val textSecondary: Color,
-    val textTertiary: Color,     // 时间戳、占位符等
-    // 其他
-    val divider: Color,          // 分隔线
-)
-
-private val LightColorScheme = WeColorScheme(
-    background = Neutral100,
-    surface = White,
-    surfaceVariant = Neutral50,
-    elevated = White,
-    textPrimary = TextPrimaryLight,
-    textSecondary = TextSecondaryLight,
-    textTertiary = TextTertiaryLight,
-    divider = DividerLight,
-)
-
-private val DarkColorScheme = WeColorScheme(
-    background = Neutral1000,
-    surface = Neutral950,
-    surfaceVariant = Neutral900,
-    elevated = DarkElevated,
-    textPrimary = TextPrimaryDark,
-    textSecondary = TextSecondaryDark,
-    textTertiary = TextTertiaryDark,
-    divider = DividerDark,
-)
 
 @Immutable
 data class AppearanceSetting(
@@ -91,7 +51,10 @@ fun WeTheme(
         isDarkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-    val rippleColor = if(isDarkTheme) White else Color.Unspecified
+    val rippleColor = when {
+        isDarkTheme -> Color.White
+        else -> Color.Unspecified
+    }
     // 语言配置
     val appLanguage = remember(settings.language) {
         when (settings.language) {
@@ -107,17 +70,17 @@ fun WeTheme(
     }
 
     // 统一在不同屏幕上的显示大小
-    val screenWidthPx = LocalResources.current.displayMetrics.widthPixels
-    val scaledDensity = Density(
-        density = screenWidthPx / designWidth,
+    val displayWidth = LocalResources.current.displayMetrics.widthPixels
+    val density = Density(
+        density = displayWidth / designWidth,
         fontScale = LocalDensity.current.fontScale * settings.fontScale.value
     )
 
     // 设置状态栏文字颜色
-    StatusBarAppearanceEffect(isDark = !isDarkTheme)
+    StatusBarAppearance(!isDarkTheme)
 
     CompositionLocalProvider(
-        LocalDensity provides scaledDensity,
+        LocalDensity provides density,
         LocalIndication provides ripple(color = rippleColor),
         LocalAppearanceSetting provides AppearanceSetting(
             isDarkTheme = isDarkTheme,
@@ -142,4 +105,7 @@ object WeTheme {
     val colorScheme: WeColorScheme
         @Composable
         get() = LocalAppearanceSetting.current.colorScheme
+    val typography: Typography
+        @Composable
+        get() = LocalTypography.current
 }

@@ -74,7 +74,7 @@ class ChatSessionRepositoryImpl @Inject constructor(
         sessionCache.remove(session.id)
     }
 
-    override suspend fun clearUnreadCount(sessionId: String) {
+    override suspend fun markAsRead(sessionId: String) {
         chatSessionDao.update(sessionId) { session ->
             session.copy(unreadCount = 0)
         }

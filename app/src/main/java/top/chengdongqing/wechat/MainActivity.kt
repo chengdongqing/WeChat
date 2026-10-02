@@ -24,8 +24,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import jakarta.inject.Inject
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.navigation.AppNavigation
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.AppNavHost
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.core.network.service.P2PService
 import top.chengdongqing.wechat.core.qrcode.scanner.QrCodeScannerContract
 import top.chengdongqing.wechat.core.security.AppLockManager
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         setContent {
-            val backStack = rememberNavBackStack(NavigationKey.Splash)
+            val backStack = rememberNavBackStack(ScreenRoute.Launch)
             val navKey by pendingNavKey
             val displayViewModel: DisplaySettingsViewModel = hiltViewModel()
             val displaySettings by displayViewModel.settings.collectAsState()
@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                         onUnlocked = { isAppLocked.value = false }
                     )
                 } else {
-                    AppNavigation(backStack)
+                    AppNavHost(backStack)
                 }
             }
 
@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
         val navJson = intent?.getStringExtra(EXTRA_NAV) ?: return
 
         runCatching {
-            json.decodeFromString<NavigationKey>(navJson)
+            json.decodeFromString<ScreenRoute>(navJson)
         }.onSuccess { targetNav ->
             pendingNavKey.value = targetNav
         }.onFailure {
@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity() {
             ?.apply { action = Intent.ACTION_MAIN }
             ?: Intent(this, MainActivity::class.java).setAction(Intent.ACTION_MAIN)
 
-        val paymentNav = json.encodeToString<NavigationKey>(NavigationKey.PaymentCode)
+        val paymentNav = json.encodeToString<ScreenRoute>(ScreenRoute.Money)
         val paymentShortcut = ShortcutInfo.Builder(this, SHORTCUT_PAYMENT)
             .setShortLabel("收付款")
             .setLongLabel("收付款")
@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity() {
             .setRank(1)
             .build()
 
-        val qrCodeNav = json.encodeToString<NavigationKey>(NavigationKey.QrCode)
+        val qrCodeNav = json.encodeToString<ScreenRoute>(ScreenRoute.QrCode)
         val myQrCodeShortcut = ShortcutInfo.Builder(this, SHORTCUT_MY_QR_CODE)
             .setShortLabel("我的二维码")
             .setLongLabel("我的二维码")

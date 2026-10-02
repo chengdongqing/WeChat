@@ -71,7 +71,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadMoreTyp
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoadMore
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
+import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.media.editor.ImageEditor
 import top.chengdongqing.wechat.core.media.model.MediaItem
@@ -584,7 +584,7 @@ private fun ChatSessionUiEventHandler(
                 is MessageUiEvent.ShowDeleteConfirm -> DialogManager.show(
                     title = resources.getString(R.string.msg_confirm_delete),
                     okText = DesignR.string.action_delete,
-                    okColor = SemanticError
+                    okColor = Red100
                 ) {
                     if (event.messageId != null) viewModel.deleteMessage(event.messageId)
                     else viewModel.deleteSelectedMessages()

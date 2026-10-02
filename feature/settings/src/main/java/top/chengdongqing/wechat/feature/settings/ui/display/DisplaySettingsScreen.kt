@@ -14,15 +14,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
+import top.chengdongqing.wechat.feature.settings.R
 
 @Composable
 fun DisplaySettingsScreen(
@@ -51,7 +50,7 @@ fun DisplaySettingsScreen(
                 label = stringResource(R.string.display_theme),
                 showDivider = false,
                 onClick = {
-                    backStack.add(NavigationKey.ThemeSettings)
+                    backStack.add(ScreenRoute.ThemeSettings)
                 }
             ) {
                 WeSettingValue(stringResource(settings.theme.labelRes))
@@ -60,13 +59,13 @@ fun DisplaySettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.display_font_scale),
                     onClick = {
-                        backStack.add(NavigationKey.FontScaleSettings)
+                        backStack.add(ScreenRoute.FontScaleSettings)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.display_language),
                     onClick = {
-                        backStack.add(NavigationKey.LanguageSettings)
+                        backStack.add(ScreenRoute.LanguageSettings)
                     }
                 ) {
                     WeSettingValue(stringResource(settings.language.labelRes))
@@ -75,7 +74,7 @@ fun DisplaySettingsScreen(
                     label = stringResource(R.string.display_app_icon),
                     showDivider = false,
                     onClick = {
-                        backStack.add(NavigationKey.AppIconSettings)
+                        backStack.add(ScreenRoute.AppIconSettings)
                     }
                 )
             }

@@ -12,7 +12,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import top.chengdongqing.wechat.core.designsystem.R
-import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
+import top.chengdongqing.wechat.core.designsystem.theme.Blue60
 
 object DialogManager {
     private val channel = Channel<DialogRequest>(Channel.UNLIMITED)
@@ -23,7 +23,7 @@ object DialogManager {
         content: String? = null,
         @StringRes okText: Int = R.string.action_ok,
         @StringRes cancelText: Int = R.string.action_cancel,
-        okColor: Color = LinkBlue,
+        okColor: Color = Blue60,
         closeOnAction: Boolean = true,
         onCancel: (() -> Unit)? = {},
         onOk: (() -> Unit)? = null

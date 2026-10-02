@@ -19,8 +19,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
@@ -28,8 +26,9 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.core.util.navigateToAppSettings
+import top.chengdongqing.wechat.feature.settings.R
 
 @Composable
 fun NotificationSettingsScreen(
@@ -91,7 +90,7 @@ fun NotificationSettingsScreen(
                 showDivider = false,
                 height = 68.dp,
                 onClick = {
-                    backStack.add(NavigationKey.NotificationDisplaySettings)
+                    backStack.add(ScreenRoute.NotificationDisplaySettings)
                 }
             )
             WeSettingGroup(stringResource(R.string.notification_group_sound)) {
@@ -115,7 +114,7 @@ fun NotificationSettingsScreen(
                     label = stringResource(R.string.notification_in_chat),
                     showDivider = false,
                     onClick = {
-                        backStack.add(NavigationKey.InChatNotificationSettings)
+                        backStack.add(ScreenRoute.InChatNotificationSettings)
                     }
                 )
             }
@@ -123,7 +122,7 @@ fun NotificationSettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.notification_msg_sound),
                     onClick = {
-                        backStack.add(NavigationKey.NotificationSoundSettings)
+                        backStack.add(ScreenRoute.NotificationSoundSettings)
                     }
                 ) {
                     WeSettingValue(stringResource(notificationSound.labelRes))
@@ -131,7 +130,7 @@ fun NotificationSettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.notification_ringtone),
                     onClick = {
-                        backStack.add(NavigationKey.RingtoneSettings)
+                        backStack.add(ScreenRoute.RingtoneSettings)
                     }
                 ) {
                     WeSettingValue(stringResource(ringtone.labelRes))

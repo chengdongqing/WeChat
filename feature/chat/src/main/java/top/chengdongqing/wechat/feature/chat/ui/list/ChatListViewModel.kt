@@ -3,73 +3,90 @@ package top.chengdongqing.wechat.feature.chat.ui.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.repository.ChatSessionRepository
 import top.chengdongqing.wechat.core.data.repository.ConnectionSettingsRepository
+import top.chengdongqing.wechat.core.model.ChatSession
 import top.chengdongqing.wechat.core.network.session.ActiveSessionManager
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatListViewModel @Inject constructor(
     private val chatSessionRepository: ChatSessionRepository,
-    val activeSessionManager: ActiveSessionManager,
+    private val activeSessionManager: ActiveSessionManager,
     connectionSettingsRepository: ConnectionSettingsRepository
 ) : ViewModel() {
 
-    val chats = chatSessionRepository
-        .observeAllSessions()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val _chats: Flow<List<ChatSession>> = chatSessionRepository.observeAllSessions()
+    private val _connectionMode: Flow<ConnectionMode> = connectionSettingsRepository.connectionMode
 
-    val connectionMode = connectionSettingsRepository.connectionMode.stateIn(
+    val uiState: StateFlow<ChatListUiState> = combine(
+        _chats,
+        _connectionMode
+    ) { chats, connectionMode ->
+        ChatListUiState(chats, connectionMode)
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ConnectionMode.WiFiLan
+        initialValue = ChatListUiState()
     )
+
+    fun onIntent(intent: ChatListUiIntent) {
+        when (intent) {
+            is ChatListUiIntent.MarkAsRead -> toggleReadMark(intent.chatId, true)
+            is ChatListUiIntent.MarkAsUnread -> toggleReadMark(intent.chatId, false)
+            is ChatListUiIntent.PinToTop -> togglePin(intent.chatId, true)
+            is ChatListUiIntent.RemoveFromTop -> togglePin(intent.chatId, false)
+            is ChatListUiIntent.HideChat -> hideChat(intent.chatId)
+            is ChatListUiIntent.DeleteChat -> deleteChat(intent.chatId)
+            is ChatListUiIntent.MarkEnterScreen -> activeSessionManager.enterList()
+            is ChatListUiIntent.MarkLeaveScreen -> activeSessionManager.leaveList()
+        }
+    }
 
     /**
      * 标为已读/未读
      */
-    fun toggleReadStatus(sessionId: String, hasUnread: Boolean) {
+    private fun toggleReadMark(chatId: String, isRead: Boolean) {
         viewModelScope.launch {
-            if (hasUnread) {
-                chatSessionRepository.clearUnreadCount(sessionId)
+            if (isRead) {
+                chatSessionRepository.markAsRead(chatId)
             } else {
-                chatSessionRepository.markAsUnread(sessionId)
+                chatSessionRepository.markAsUnread(chatId)
             }
         }
     }
 
     /**
-     * 聊天置顶
+     * 置顶/取消置顶聊天
      */
-    fun stickToTop(sessionId: String, isPinned: Boolean) {
+    private fun togglePin(chatId: String, isPinned: Boolean) {
         viewModelScope.launch {
-            chatSessionRepository.togglePin(sessionId, !isPinned)
+            chatSessionRepository.togglePin(chatId, !isPinned)
         }
     }
 
     /**
      * 隐藏聊天
      */
-    fun hideChat(sessionId: String) {
+    private fun hideChat(chatId: String) {
         viewModelScope.launch {
-            chatSessionRepository.hideSession(sessionId)
+            chatSessionRepository.hideSession(chatId)
         }
     }
 
     /**
      * 删除聊天
      */
-    fun deleteChat(sessionId: String) {
+    private fun deleteChat(chatId: String) {
         viewModelScope.launch {
-            chatSessionRepository.deleteSession(sessionId)
+            chatSessionRepository.deleteSession(chatId)
         }
     }
 }

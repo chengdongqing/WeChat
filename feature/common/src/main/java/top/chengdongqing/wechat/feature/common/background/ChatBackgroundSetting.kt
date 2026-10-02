@@ -1,7 +1,5 @@
 package top.chengdongqing.wechat.feature.common.background
 
-import top.chengdongqing.wechat.feature.common.R as CommonFeatureR
-
 import android.Manifest
 import android.content.Context
 import android.net.Uri
@@ -21,13 +19,14 @@ import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.file.createImageUri
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetItem
 import top.chengdongqing.wechat.core.designsystem.components.actionsheet.ActionSheetManager
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
-import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
+import top.chengdongqing.wechat.core.designsystem.theme.Red100
+import top.chengdongqing.wechat.core.file.createImageUri
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
+import top.chengdongqing.wechat.feature.common.R as CommonFeatureR
 
 @Composable
 fun ChatBackgroundSetting(
@@ -48,7 +47,7 @@ fun ChatBackgroundSetting(
             list.add(
                 ActionSheetItem(
                     labelRes = CommonFeatureR.string.chat_info_clear_background,
-                    color = SemanticError
+                    color = Red100
                 )
             )
         }

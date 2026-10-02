@@ -28,14 +28,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
-import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
+import top.chengdongqing.wechat.core.designsystem.theme.Blue60
+import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.settings.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun ChatManagementScreen(
@@ -87,7 +87,7 @@ private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
 
     Text(
         text = stringResource(R.string.chat_history_clear),
-        color = LinkBlue,
+        color = Blue60,
         fontSize = 13.sp,
         modifier = Modifier
             .align(Alignment.BottomCenter)
@@ -97,7 +97,7 @@ private fun BoxScope.ClearChatButton(viewModel: ChatManagementViewModel) {
                     title = resources.getString(R.string.chat_history_clear_title),
                     content = resources.getString(R.string.chat_history_clear_content),
                     okText = DesignR.string.action_clear,
-                    okColor = SemanticError,
+                    okColor = Red100,
                     onOk = viewModel::deleteAllSessions
                 )
             }

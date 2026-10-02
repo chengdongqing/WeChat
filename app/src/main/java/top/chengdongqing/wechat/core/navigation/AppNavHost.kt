@@ -3,10 +3,6 @@ package top.chengdongqing.wechat.core.navigation
 import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -40,29 +35,47 @@ import top.chengdongqing.wechat.feature.profile.navigation.meNavEntries
 import top.chengdongqing.wechat.feature.settings.navigation.settingsNavEntries
 
 @Composable
-fun AppNavigation(backStack: NavBackStack<NavKey>) {
-    val goBack: () -> Unit = {
-        backStack.removeLastOrNull()
+fun AppNavHost(
+    backStack: NavBackStack<NavKey>
+) {
+    val goBack: () -> Unit = { backStack.removeLastOrNull() }
+    val appNavigator = remember(backStack) {
+        object : AppNavigator {
+            override val backStack = backStack
+
+            override fun navigateTo(route: ScreenRoute) {
+                backStack.add(route)
+            }
+
+            override fun back() {
+                backStack.removeLastOrNull()
+            }
+
+            override fun clear() {
+                backStack.clear()
+            }
+        }
     }
 
     val context = LocalContext.current
     val callLauncher = remember(context) { AppCallLauncher(context) }
     CompositionLocalProvider(
         LocalContactPickerLauncher provides AppContactPickerLauncher,
-        LocalCallLauncher provides callLauncher
+        LocalCallLauncher provides callLauncher,
+        LocalAppNavigator provides appNavigator
     ) {
         NavDisplay(
             backStack = backStack,
-            onBack = goBack,
+            onBack = appNavigator::back,
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator()
             ),
-            transitionSpec = { createEnterTransition() },
-            popTransitionSpec = { createExitTransition() },
-            predictivePopTransitionSpec = { createExitTransition() },
+            transitionSpec = { NavTransitions.Enter },
+            popTransitionSpec = { NavTransitions.Exit },
+            predictivePopTransitionSpec = { NavTransitions.Exit },
             entryProvider = entryProvider {
-                commonNavEntries(backStack, goBack)
+                commonNavEntries(goBack)
                 chatNavEntries(backStack, goBack)
                 contactsNavEntries(backStack, goBack)
                 meNavEntries(backStack, goBack)
@@ -156,7 +169,7 @@ private class AppCallLauncher(private val context: Context) : CallLauncher {
             pendingCall = id to type
             val specialPermissionsReady =
                 CallNotificationPermissionManager.canUseFullScreenIntent(context) &&
-                    CallNotificationPermissionManager.canDisplayOverOtherApps(context)
+                        CallNotificationPermissionManager.canDisplayOverOtherApps(context)
             if (specialPermissionsReady) {
                 continueCall()
             } else {
@@ -199,29 +212,4 @@ private class AppCallLauncher(private val context: Context) : CallLauncher {
 
         return runtimePermissionLauncher
     }
-
 }
-
-/**
- * 默认动画配置
- */
-private const val TRANSITION_DURATION_MILLISECOND = 300
-private val TRANSITION_ANIMATION_SPEC = tween<IntOffset>(
-    durationMillis = TRANSITION_DURATION_MILLISECOND
-)
-
-private fun createEnterTransition() = slideInHorizontally(
-    initialOffsetX = { it },
-    animationSpec = TRANSITION_ANIMATION_SPEC
-) togetherWith slideOutHorizontally(
-    targetOffsetX = { -it },
-    animationSpec = TRANSITION_ANIMATION_SPEC
-)
-
-private fun createExitTransition() = slideInHorizontally(
-    initialOffsetX = { -it },
-    animationSpec = TRANSITION_ANIMATION_SPEC
-) togetherWith slideOutHorizontally(
-    targetOffsetX = { it },
-    animationSpec = TRANSITION_ANIMATION_SPEC
-)

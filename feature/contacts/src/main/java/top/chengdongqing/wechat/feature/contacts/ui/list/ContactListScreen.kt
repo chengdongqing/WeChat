@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,22 +36,33 @@ import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOver
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.AppLanguage
+import top.chengdongqing.wechat.core.model.ContactItem
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
+import top.chengdongqing.wechat.core.navigation.LocalAppNavigator
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
+fun ContactListRoute(
+    viewModel: ContactListViewModel = hiltViewModel()
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val navigator = LocalAppNavigator.current
+
+    ContactListScreen(
+        state = state,
+        onNavigate = navigator::navigateTo
+    )
+}
+
+@Composable
 fun ContactListScreen(
-    onNewFriends: () -> Unit,
-    onGroups: () -> Unit,
-    onTags: () -> Unit,
-    onDetail: (contactId: String) -> Unit,
-    onProfileEdit: (contactId: String) -> Unit,
-    viewModel: ContactListViewModel = hiltViewModel(),
+    state: ContactListUiState = ContactListUiState(),
+    onNavigate: (ScreenRoute) -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val state by viewModel.state.collectAsStateWithLifecycle()
     val overscrollEffect = rememberBouncedOverscrollEffect()
 
     Box(
@@ -67,9 +79,15 @@ fun ContactListScreen(
             item {
                 TopFunctionList(
                     pendingCount = state.unreadCount,
-                    onNewFriends = onNewFriends,
-                    onGroups = onGroups,
-                    onTags = onTags
+                    onNewFriendsClick = {
+                        onNavigate(ScreenRoute.NewFriends)
+                    },
+                    onGroupsClick = {
+                        onNavigate(ScreenRoute.GroupList)
+                    },
+                    onTagsClick = {
+                        onNavigate(ScreenRoute.ContactTags)
+                    }
                 )
             }
 
@@ -129,7 +147,7 @@ fun ContactListScreen(
                                     note = contact.note,
                                     modifier = Modifier.weContextMenu(
                                         onClick = {
-                                            onDetail(contact.id)
+                                            onNavigate(ScreenRoute.ContactDetail(contact.id))
                                         },
                                         onLongClick = { position ->
                                             if (!contact.isSelf && contact.id != LocalAiAssistant.ID) {
@@ -144,7 +162,7 @@ fun ContactListScreen(
                                 )
 
                                 WeContextMenu(contextMenuState) { _, _ ->
-                                    onProfileEdit(contact.id)
+                                    onNavigate(ScreenRoute.EditContactProfile(contact.id))
                                 }
 
                                 WeDivider(modifier = Modifier.padding(start = 68.dp))
@@ -193,6 +211,26 @@ private fun ContactFooter(count: Int) {
         Text(
             text = pluralStringResource(R.plurals.contacts_count, count, count),
             color = WeTheme.colorScheme.textSecondary
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ContactListPreview() {
+    WeTheme {
+        ContactListScreen(
+            state = ContactListUiState(
+                groups = mapOf(
+                    'A' to listOf(
+                        ContactItem(
+                            id = "1",
+                            displayName = "阿尔法",
+                            nickname = ""
+                        )
+                    )
+                )
+            )
         )
     }
 }

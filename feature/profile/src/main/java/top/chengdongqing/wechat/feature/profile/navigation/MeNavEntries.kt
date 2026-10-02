@@ -4,7 +4,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.edit.EditAvatarScreen
 import top.chengdongqing.wechat.feature.profile.ui.profile.edit.EditGenderScreen
@@ -22,7 +22,7 @@ fun EntryProviderScope<NavKey>.meNavEntries(
     onBack: () -> Unit
 ) {
     // 个人资料页
-    entry<NavigationKey.Profile> {
+    entry<ScreenRoute.Profile> {
         ProfileScreen(
             backStack = backStack,
             onBack = onBack
@@ -30,55 +30,55 @@ fun EntryProviderScope<NavKey>.meNavEntries(
     }
 
     // 二维码页
-    entry<NavigationKey.QrCode> {
+    entry<ScreenRoute.QrCode> {
         WeTheme(isDark = false) {
             QRCodeScreen(
                 onBack = onBack,
                 onContactDetail = { id ->
-                    backStack.add(NavigationKey.ContactDetail(id))
+                    backStack.add(ScreenRoute.ContactDetail(id))
                 },
                 onPlainText = { text ->
-                    backStack.add(NavigationKey.PlainText(text))
+                    backStack.add(ScreenRoute.PlainText(text))
                 },
                 onWebView = { url ->
-                    backStack.add(NavigationKey.WebView(url))
+                    backStack.add(ScreenRoute.WebView(url))
                 }
             )
         }
     }
 
     // 编辑页
-    entry<NavigationKey.EditAvatar> { EditAvatarScreen(onBack) }
-    entry<NavigationKey.EditId> { EditIDScreen(onBack) }
-    entry<NavigationKey.EditName> { EditNameScreen(onBack) }
-    entry<NavigationKey.EditSignature> { EditSignatureScreen(onBack) }
-    entry<NavigationKey.EditGender> { EditGenderScreen(onBack) }
-    entry<NavigationKey.Services> {
+    entry<ScreenRoute.EditAvatar> { EditAvatarScreen(onBack) }
+    entry<ScreenRoute.EditId> { EditIDScreen(onBack) }
+    entry<ScreenRoute.EditName> { EditNameScreen(onBack) }
+    entry<ScreenRoute.EditSignature> { EditSignatureScreen(onBack) }
+    entry<ScreenRoute.EditGender> { EditGenderScreen(onBack) }
+    entry<ScreenRoute.Services> {
         ServicesScreen(
             onBack = onBack,
-            onPaymentCode = { backStack.add(NavigationKey.PaymentCode) },
-            onWallet = { backStack.add(NavigationKey.Wallet) },
-            onBills = { backStack.add(NavigationKey.PaymentBills) }
+            onPaymentCode = { backStack.add(ScreenRoute.Money) },
+            onWallet = { backStack.add(ScreenRoute.Wallet) },
+            onBills = { backStack.add(ScreenRoute.PaymentBills) }
         )
     }
-    entry<NavigationKey.Wallet> {
+    entry<ScreenRoute.Wallet> {
         WalletScreen(
             onBack = onBack,
-            onBalance = { backStack.add(NavigationKey.WalletBalance) },
-            onCards = { backStack.add(NavigationKey.BankCards) },
-            onBills = { backStack.add(NavigationKey.PaymentBills) }
+            onBalance = { backStack.add(ScreenRoute.WalletBalance) },
+            onCards = { backStack.add(ScreenRoute.BankCards) },
+            onBills = { backStack.add(ScreenRoute.PaymentBills) }
         )
     }
-    entry<NavigationKey.WalletBalance> {
+    entry<ScreenRoute.WalletBalance> {
         WalletSubScreen("零钱", "当前余额 ¥0.00，可用于转账和支付。", onBack)
     }
-    entry<NavigationKey.BankCards> {
+    entry<ScreenRoute.BankCards> {
         WalletSubScreen("银行卡", "尚未添加银行卡。", onBack)
     }
-    entry<NavigationKey.PaymentBills> {
+    entry<ScreenRoute.PaymentBills> {
         WalletSubScreen("账单", "暂无支付账单。", onBack)
     }
-    entry<NavigationKey.PaymentCode> {
+    entry<ScreenRoute.Money> {
         PaymentCodeScreen(onBack)
     }
 }

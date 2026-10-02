@@ -41,18 +41,14 @@ dependencies {
     implementation(projects.core.network)
     implementation(projects.core.database)
 
-
-
     implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-
     implementation(libs.serialization.json)
-
+    implementation(libs.bundles.compose)
     implementation(libs.room.runtime)
     implementation(libs.bundles.coil)
     implementation(libs.coil.zoomable)
-
     implementation(libs.pinyin)
 }

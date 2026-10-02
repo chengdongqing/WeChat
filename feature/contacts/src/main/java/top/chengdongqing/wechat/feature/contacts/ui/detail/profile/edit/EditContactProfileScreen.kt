@@ -32,16 +32,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.WeButton
 import top.chengdongqing.wechat.core.designsystem.components.input.WeInput
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
+import top.chengdongqing.wechat.core.designsystem.theme.Blue60
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.contacts.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun EditContactProfileScreen(
@@ -80,7 +80,7 @@ fun EditContactProfileScreen(
                 WeButton(
                     text = stringResource(DesignR.string.action_done),
                     size = ButtonSize.Small,
-                    loading = uiState.isSaving
+                    isLoading = uiState.isSaving
                 ) {
                     viewModel.saveChanges()
                 }
@@ -199,7 +199,7 @@ private fun LinkedRow(
             .fillMaxWidth()
             .onTap { onClick() }
     ) {
-        Text(text = label, color = LinkBlue, fontSize = 16.sp)
+        Text(text = label, color = Blue60, fontSize = 16.sp)
         Icon(
             painter = painterResource(DesignR.drawable.ic_right_outlined),
             contentDescription = null,
@@ -222,13 +222,13 @@ private fun PhotoSection() {
         Icon(
             painter = painterResource(DesignR.drawable.ic_plus_circle_outlined),
             contentDescription = null,
-            tint = LinkBlue,
+            tint = Blue60,
             modifier = Modifier.size(32.dp)
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = stringResource(R.string.contact_profile_edit_add_photo),
-            color = LinkBlue,
+            color = Blue60,
             fontSize = 15.sp
         )
     }

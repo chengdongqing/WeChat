@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.feature.settings.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.settings.ui.SettingsScreen
 import top.chengdongqing.wechat.feature.settings.ui.about.AboutScreen
 import top.chengdongqing.wechat.feature.settings.ui.chat.ChatManagementScreen
@@ -32,14 +32,14 @@ fun EntryProviderScope<NavKey>.settingsNavEntries(
     backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
-    entry<NavigationKey.Settings> { SettingsScreen(backStack, onBack) }
-    entry<NavigationKey.AccountSecuritySettings> { AccountSecurityScreen(backStack, onBack) }
-    entry<NavigationKey.AppLockSettings> { AppLockSettingsScreen(onBack) }
-    entry<NavigationKey.ConnectionModeSettings> { ConnectionModeSettingScreen(onBack) }
-    entry<NavigationKey.ChatSettings> { ChatSettingsScreen(onBack) }
-    entry<NavigationKey.ChatManagement> { ChatManagementScreen(onBack) }
-    entry<NavigationKey.About> { AboutScreen(onBack) }
-    entry<NavigationKey.StorageSettings> { StorageSettingsScreen(onBack) }
+    entry<ScreenRoute.Settings> { SettingsScreen(backStack, onBack) }
+    entry<ScreenRoute.AccountSecuritySettings> { AccountSecurityScreen(backStack, onBack) }
+    entry<ScreenRoute.AppLockSettings> { AppLockSettingsScreen(onBack) }
+    entry<ScreenRoute.ConnectionModeSettings> { ConnectionModeSettingScreen(onBack) }
+    entry<ScreenRoute.ChatSettings> { ChatSettingsScreen(onBack) }
+    entry<ScreenRoute.ChatManagement> { ChatManagementScreen(onBack) }
+    entry<ScreenRoute.About> { AboutScreen(onBack) }
+    entry<ScreenRoute.StorageSettings> { StorageSettingsScreen(onBack) }
 
     notificationNavEntries(backStack, onBack)
     displayNavEntries(backStack, onBack)
@@ -51,34 +51,34 @@ private fun EntryProviderScope<NavKey>.notificationNavEntries(
     backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
-    entry<NavigationKey.NotificationSettings> { NotificationSettingsScreen(backStack, onBack) }
-    entry<NavigationKey.NotificationDisplaySettings> { NotificationDisplaySettingScreen(onBack) }
-    entry<NavigationKey.InChatNotificationSettings> { InChatNotificationSettingsScreen(onBack) }
-    entry<NavigationKey.NotificationSoundSettings> { NotificationSoundSettingScreen(onBack) }
-    entry<NavigationKey.RingtoneSettings> { RingtoneSettingScreen(onBack) }
+    entry<ScreenRoute.NotificationSettings> { NotificationSettingsScreen(backStack, onBack) }
+    entry<ScreenRoute.NotificationDisplaySettings> { NotificationDisplaySettingScreen(onBack) }
+    entry<ScreenRoute.InChatNotificationSettings> { InChatNotificationSettingsScreen(onBack) }
+    entry<ScreenRoute.NotificationSoundSettings> { NotificationSoundSettingScreen(onBack) }
+    entry<ScreenRoute.RingtoneSettings> { RingtoneSettingScreen(onBack) }
 }
 
 private fun EntryProviderScope<NavKey>.displayNavEntries(
     backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
-    entry<NavigationKey.DisplaySettings> { DisplaySettingsScreen(backStack, onBack) }
-    entry<NavigationKey.AppIconSettings> { AppIconSettingScreen(onBack) }
-    entry<NavigationKey.ThemeSettings> { DarkModeSettingScreen(onBack) }
-    entry<NavigationKey.LanguageSettings> { LanguageSettingScreen(onBack) }
-    entry<NavigationKey.FontScaleSettings> { FontScaleSettingScreen(onBack) }
+    entry<ScreenRoute.DisplaySettings> { DisplaySettingsScreen(backStack, onBack) }
+    entry<ScreenRoute.AppIconSettings> { AppIconSettingScreen(onBack) }
+    entry<ScreenRoute.ThemeSettings> { DarkModeSettingScreen(onBack) }
+    entry<ScreenRoute.LanguageSettings> { LanguageSettingScreen(onBack) }
+    entry<ScreenRoute.FontScaleSettings> { FontScaleSettingScreen(onBack) }
 }
 
 private fun EntryProviderScope<NavKey>.privacyNavEntries(
     backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
-    entry<NavigationKey.PrivacySettings> { PrivacySettingsScreen(backStack, onBack) }
-    entry<NavigationKey.AddMeMethodSettings> { AddMeMethodSettingScreen(onBack) }
-    entry<NavigationKey.ContactBlacklist> {
+    entry<ScreenRoute.PrivacySettings> { PrivacySettingsScreen(backStack, onBack) }
+    entry<ScreenRoute.AddMeMethodSettings> { AddMeMethodSettingScreen(onBack) }
+    entry<ScreenRoute.ContactBlacklist> {
         ContactBlacklistScreen(
             onBack = onBack,
-            onContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) }
+            onContactDetail = { backStack.add(ScreenRoute.ContactDetail(it)) }
         )
     }
 }
@@ -87,6 +87,6 @@ private fun EntryProviderScope<NavKey>.moreNavEntries(
     backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
-    entry<NavigationKey.MoreSettings> { MoreSettingsScreen(backStack, onBack) }
-    entry<NavigationKey.SystemPermission> { SystemPermissionSettingsScreen(onBack) }
+    entry<ScreenRoute.MoreSettings> { MoreSettingsScreen(backStack, onBack) }
+    entry<ScreenRoute.SystemPermission> { SystemPermissionSettingsScreen(onBack) }
 }

@@ -2,7 +2,6 @@ package top.chengdongqing.wechat
 
 import android.app.Application
 import android.app.NotificationManager
-import android.content.Context
 import dagger.hilt.android.HiltAndroidApp
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +12,7 @@ import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.file.cache.clearAllCaches
 import top.chengdongqing.wechat.core.network.transfer.TransferSanitizer
 import top.chengdongqing.wechat.core.runtime.IoScope
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltAndroidApp
 class WeChatApplication : Application() {
@@ -46,11 +46,11 @@ class WeChatApplication : Application() {
                 runCatching {
                     chatSessionRepository.cleanupExpiredTemporarySessions()
                         .forEach { sessionId ->
-                            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                            (getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
                                 .cancel(sessionId.hashCode())
                         }
                 }
-                delay(TEMPORARY_CHAT_CLEANUP_INTERVAL_MS)
+                delay(TEMPORARY_CHAT_CLEANUP_INTERVAL_MS.milliseconds)
             }
         }
 

@@ -1,4 +1,4 @@
 <resources>
-    <string name="get_started">开始使用</string>
+    <string name="action_login">登录</string>
     <string name="action_language">语言</string>
 </resources>

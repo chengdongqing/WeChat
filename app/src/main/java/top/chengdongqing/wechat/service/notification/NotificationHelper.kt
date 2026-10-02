@@ -16,7 +16,7 @@ import androidx.core.app.NotificationCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.MainActivity
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.core.network.model.NotificationChannelConfig
 import top.chengdongqing.wechat.core.network.model.NotificationId
 import top.chengdongqing.wechat.service.call.CallNotificationService
@@ -101,12 +101,12 @@ class NotificationHelper @Inject constructor(
 
             if (contactId != null) {
                 // 加好友成功的通知跳转到聊天详情
-                NavigationKey.ChatSession(contactId)
+                ScreenRoute.Chat(contactId)
             } else {
                 // 其余跳转到新的朋友
-                NavigationKey.NewFriends
+                ScreenRoute.NewFriends
             }.also { targetNav ->
-                val navJson = json.encodeToString<NavigationKey>(targetNav)
+                val navJson = json.encodeToString<ScreenRoute>(targetNav)
                 putExtra(MainActivity.EXTRA_NAV, navJson)
             }
         }
@@ -147,8 +147,8 @@ class NotificationHelper @Inject constructor(
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
 
-            val targetNav = NavigationKey.ChatSession(sessionId)
-            val navJson = json.encodeToString<NavigationKey>(targetNav)
+            val targetNav = ScreenRoute.Chat(sessionId)
+            val navJson = json.encodeToString<ScreenRoute>(targetNav)
             putExtra(MainActivity.EXTRA_NAV, navJson)
         }
         val pendingIntent = PendingIntent.getActivity(

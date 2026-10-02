@@ -50,12 +50,11 @@ dependencies {
     implementation(projects.core.location)
     implementation(projects.core.ai)
 
-
     implementation(libs.navigation.runtime)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-
+    implementation(libs.bundles.compose)
     implementation(libs.bundles.coil)
     implementation(libs.serialization.json)
     implementation(libs.room.runtime)

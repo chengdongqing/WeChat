@@ -346,7 +346,7 @@ class MessageRepositoryImpl @Inject constructor(
     override suspend fun markAllAsRead(sessionId: String) {
         database.withWriteTransaction {
             messageDao.markAsReadBySessionId(sessionId)
-            chatSessionRepository.clearUnreadCount(sessionId)
+            chatSessionRepository.markAsRead(sessionId)
         }
     }
 

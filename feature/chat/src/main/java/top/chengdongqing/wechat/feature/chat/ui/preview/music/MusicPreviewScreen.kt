@@ -28,7 +28,7 @@ import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.data.model.MusicTrack
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.White
-import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearance
 import top.chengdongqing.wechat.core.playback.MusicPlayer
 import top.chengdongqing.wechat.core.util.format
 import kotlin.time.Duration.Companion.milliseconds
@@ -75,7 +75,7 @@ fun MusicPreviewScreen(music: MusicTrack, onBack: () -> Unit) {
         onDispose { player.release() }
     }
 
-    StatusBarAppearanceEffect(isDark = false)
+    StatusBarAppearance(isDark = false)
 
     Box {
         MusicBackground(cover)

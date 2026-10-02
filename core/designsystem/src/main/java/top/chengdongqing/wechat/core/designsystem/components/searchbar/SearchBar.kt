@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
+import top.chengdongqing.wechat.core.designsystem.theme.Blue60
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
 @Composable
@@ -110,7 +110,7 @@ fun WeSearchBar(
         if (isFocused) {
             Text(
                 text = stringResource(R.string.action_cancel),
-                color = LinkBlue,
+                color = Blue60,
                 fontSize = 16.sp,
                 modifier = Modifier
                     .onTap {

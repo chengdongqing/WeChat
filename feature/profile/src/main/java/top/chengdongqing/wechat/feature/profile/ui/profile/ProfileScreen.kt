@@ -33,7 +33,7 @@ import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOver
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.labelRes
 import top.chengdongqing.wechat.core.model.UserProfile
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.core.playback.RingtoneSound
 import top.chengdongqing.wechat.feature.profile.R
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -65,25 +65,25 @@ fun ProfileScreen(
                 profile = uiState.profile,
                 ringtone = ringtone,
                 onAvatarEdit = {
-                    backStack.add(NavigationKey.EditAvatar)
+                    backStack.add(ScreenRoute.EditAvatar)
                 },
                 onNameEdit = {
-                    backStack.add(NavigationKey.EditName)
+                    backStack.add(ScreenRoute.EditName)
                 },
                 onGenderEdit = {
-                    backStack.add(NavigationKey.EditGender)
+                    backStack.add(ScreenRoute.EditGender)
                 },
                 onIdView = {
-                    backStack.add(NavigationKey.EditId)
+                    backStack.add(ScreenRoute.EditId)
                 },
                 onQRCode = {
-                    backStack.add(NavigationKey.QrCode)
+                    backStack.add(ScreenRoute.QrCode)
                 },
                 onSignatureEdit = {
-                    backStack.add(NavigationKey.EditSignature)
+                    backStack.add(ScreenRoute.EditSignature)
                 },
                 onRingtoneSetting = {
-                    backStack.add(NavigationKey.RingtoneSettings)
+                    backStack.add(ScreenRoute.RingtoneSettings)
                 }
             )
         }

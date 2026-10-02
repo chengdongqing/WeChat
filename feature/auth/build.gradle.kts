@@ -30,6 +30,8 @@ dependencies {
     implementation(projects.core.mediaUi)
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
+    implementation(projects.core.navigation)
+
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)

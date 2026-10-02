@@ -22,9 +22,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.contacts.R
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun MomentPhotoSection(onClick: () -> Unit) {
@@ -63,7 +63,7 @@ fun MomentPhotoSection(onClick: () -> Unit) {
 @Composable
 private fun MomentPhotoRow() {
     val photoResIds = remember {
-        listOf(DesignR.drawable.img_avatar, DesignR.drawable.img_splash, R.drawable.img_radar_bg)
+        listOf(DesignR.drawable.img_avatar, DesignR.drawable.img_launch, R.drawable.img_radar_bg)
     }
 
     Row(

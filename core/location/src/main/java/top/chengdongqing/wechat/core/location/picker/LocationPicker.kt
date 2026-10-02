@@ -168,7 +168,7 @@ private fun TopBar(
             text = stringResource(DesignR.string.action_done),
             size = ButtonSize.Small,
             enabled = hasSelected,
-            loading = isLoading,
+            isLoading = isLoading,
             onClick = onConfirm
         )
     }

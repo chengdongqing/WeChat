@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -32,20 +33,38 @@ import top.chengdongqing.wechat.core.designsystem.components.informationbar.Info
 import top.chengdongqing.wechat.core.designsystem.components.informationbar.WeInformationBar
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
-import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
+import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.core.model.ChatSession
+import top.chengdongqing.wechat.core.navigation.LocalAppNavigator
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
-fun ChatListScreen(
-    viewModel: ChatListViewModel = hiltViewModel(),
-    onDetail: (sessionId: String) -> Unit
+fun ChatListRoute(
+    viewModel: ChatListViewModel = hiltViewModel()
 ) {
-    val chats by viewModel.chats.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val navigator = LocalAppNavigator.current
 
+    ChatListScreen(
+        state = state,
+        onIntent = viewModel::onIntent,
+        onNavigateToDetail = {
+            navigator.navigateTo(ScreenRoute.Chat(it))
+        }
+    )
+}
+
+@Composable
+fun ChatListScreen(
+    state: ChatListUiState = ChatListUiState(),
+    onIntent: (ChatListUiIntent) -> Unit = {},
+    onNavigateToDetail: (chatId: String) -> Unit = {},
+) {
+    val chats = state.chats
     val contextMenuState = rememberContextMenuState(
         itemWidthDp = when (LocalAppearanceSetting.current.appLanguage) {
             AppLanguage.English -> 160.dp
@@ -58,15 +77,15 @@ fun ChatListScreen(
      * 注册当前是否在聊天列表的状态
      */
     LifecycleResumeEffect(Unit) {
-        viewModel.activeSessionManager.enterList()
+        onIntent(ChatListUiIntent.MarkEnterScreen)
 
         onPauseOrDispose {
-            viewModel.activeSessionManager.leaveList()
+            onIntent(ChatListUiIntent.MarkLeaveScreen)
         }
     }
 
     Column {
-        ConnectionErrorBar(viewModel)
+        ConnectionErrorBar(state.connectionMode)
 
         LazyColumn(
             modifier = Modifier
@@ -83,7 +102,7 @@ fun ChatListScreen(
 
                 ChatListItem(
                     chat = chat,
-                    onDetail = onDetail,
+                    onChatClick = onNavigateToDetail,
                     onShowMenu = { position ->
                         contextMenuState.show(position, menus, chats.indexOf(chat))
                     },
@@ -104,13 +123,13 @@ fun ChatListScreen(
         }
     }
 
-    ChatContextMenuHandler(contextMenuState, chats, viewModel)
+    ChatContextMenuHandler(contextMenuState, chats, onIntent)
 }
 
 @Composable
-private fun ConnectionErrorBar(viewModel: ChatListViewModel) {
-    val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
-
+private fun ConnectionErrorBar(
+    connectionMode: ConnectionMode
+) {
     val errorMessage = when (connectionMode) {
         ConnectionMode.WiFiLan -> stringResource(R.string.msg_wifi_disconnected).takeUnless { rememberWifiConnected() }
         ConnectionMode.WiFiDirect -> stringResource(R.string.msg_wifi_disabled).takeUnless { rememberWifiEnabled() }
@@ -130,7 +149,7 @@ private fun ConnectionErrorBar(viewModel: ChatListViewModel) {
 @Composable
 private fun ChatListItem(
     chat: ChatSession,
-    onDetail: (String) -> Unit,
+    onChatClick: (String) -> Unit,
     onShowMenu: (IntOffset) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -144,7 +163,7 @@ private fun ChatListItem(
                 }
             )
             .weContextMenu(
-                onClick = { onDetail(chat.id) },
+                onClick = { onChatClick(chat.id) },
                 onLongClick = { position -> onShowMenu(position) }
             )
     ) {
@@ -166,7 +185,7 @@ private fun getChatMenuLabels(chat: ChatSession): List<String> {
 private fun ChatContextMenuHandler(
     state: ContextMenuState,
     chats: List<ChatSession>,
-    viewModel: ChatListViewModel
+    onIntent: (ChatListUiIntent) -> Unit
 ) {
     val hideTitle = stringResource(R.string.chat_hide_hint_title)
     val hideContent = stringResource(R.string.chat_hide_hint_content)
@@ -176,20 +195,56 @@ private fun ChatContextMenuHandler(
         val chat = chats.getOrNull(targetIndex) ?: return@WeContextMenu
 
         when (menuIndex) {
-            0 -> viewModel.toggleReadStatus(chat.id, chat.unreadCount > 0)
-            1 -> viewModel.stickToTop(chat.id, chat.isPinned)
+            0 -> {
+                if (chat.unreadCount > 0) {
+                    onIntent(ChatListUiIntent.MarkAsRead(chat.id))
+                } else {
+                    onIntent(ChatListUiIntent.MarkAsUnread(chat.id))
+                }
+            }
+
+            1 -> {
+                if (chat.isPinned) {
+                    onIntent(ChatListUiIntent.RemoveFromTop(chat.id))
+                } else {
+                    onIntent(ChatListUiIntent.PinToTop(chat.id))
+                }
+            }
+
             2 -> DialogManager.show(
                 title = hideTitle,
                 content = hideContent,
                 okText = DesignR.string.action_got_it,
                 onCancel = null
-            ) { viewModel.hideChat(chat.id) }
+            ) {
+                onIntent(ChatListUiIntent.HideChat(chat.id))
+            }
 
             3 -> DialogManager.show(
                 title = deleteHint,
                 okText = DesignR.string.action_delete,
-                okColor = SemanticError
-            ) { viewModel.deleteChat(chat.id) }
+                okColor = Red100
+            ) {
+                onIntent(ChatListUiIntent.DeleteChat(chat.id))
+            }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatListPreview() {
+    WeTheme {
+        ChatListScreen(
+            state = ChatListUiState(
+                chats = listOf(
+                    ChatSession(
+                        id = "1",
+                        contactId = "1",
+                        contactName = "张三"
+                    )
+                )
+            )
+        )
     }
 }

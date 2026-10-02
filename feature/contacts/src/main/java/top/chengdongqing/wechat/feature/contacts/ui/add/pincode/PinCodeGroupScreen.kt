@@ -35,19 +35,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.contacts.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.indication.neon
-import top.chengdongqing.wechat.core.designsystem.theme.BrandPrimary
+import top.chengdongqing.wechat.core.designsystem.theme.Green100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearance
+import top.chengdongqing.wechat.feature.contacts.R
 
 @Composable
 fun PinCodeCreateGroupScreen(onBack: () -> Unit) {
     var inputCode by remember { mutableStateOf("") }
 
-    StatusBarAppearanceEffect(false)
+    StatusBarAppearance(false)
     Scaffold(
         containerColor = Color(0xFF171F1E),
         topBar = {
@@ -102,10 +101,10 @@ private fun DigitCodeInput(code: String) {
                     Text(
                         text = char.toString(),
                         style = TextStyle(
-                            color = BrandPrimary,
+                            color = Green100,
                             fontSize = 42.sp,
                             fontWeight = FontWeight.Thin,
-                            shadow = Shadow(color = BrandPrimary, blurRadius = 12f)
+                            shadow = Shadow(color = Green100, blurRadius = 12f)
                         )
                     )
                 } else {

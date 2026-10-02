@@ -30,30 +30,42 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.NavKey
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeMenuListItem
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.UserProfile
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.LocalAppNavigator
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.profile.R
+import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileUiState
 import top.chengdongqing.wechat.feature.profile.ui.profile.ProfileViewModel
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
-fun MeScreen(
-    backStack: NavBackStack<NavKey>,
+fun MeRoute(
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val navigator = LocalAppNavigator.current
 
+    MeScreen(
+        state = state,
+        onNavigate = navigator::navigateTo
+    )
+}
+
+@Composable
+fun MeScreen(
+    state: ProfileUiState = ProfileUiState(),
+    onNavigate: (ScreenRoute) -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -63,12 +75,12 @@ fun MeScreen(
     ) {
         Column {
             UserInfoSection(
-                profile = uiState.profile,
+                profile = state.profile,
                 onProfile = {
-                    backStack.add(NavigationKey.Profile)
+                    onNavigate(ScreenRoute.Profile)
                 },
                 onQRCode = {
-                    backStack.add(NavigationKey.QrCode)
+                    onNavigate(ScreenRoute.QrCode)
                 }
             )
             StatusSection()
@@ -77,14 +89,14 @@ fun MeScreen(
             label = stringResource(R.string.me_menu_service),
             icon = DesignR.drawable.ic_pay_logo_outlined,
             iconColor = Color(0xFF07C160),
-            onClick = { backStack.add(NavigationKey.Services) }
+            onClick = { onNavigate(ScreenRoute.Services) }
         )
         Column(modifier = Modifier.background(WeTheme.colorScheme.surface)) {
             WeMenuListItem(
                 label = stringResource(R.string.me_menu_favorites),
                 icon = DesignR.drawable.ic_favorites_outlined_colorful,
                 iconColor = Color.Unspecified,
-                onClick = { backStack.add(NavigationKey.Favorites()) }
+                onClick = { onNavigate(ScreenRoute.Favorites()) }
             )
             WeDivider(modifier = Modifier.padding(start = 56.dp))
             WeMenuListItem(
@@ -106,7 +118,7 @@ fun MeScreen(
             icon = DesignR.drawable.ic_settings_outlined,
             iconColor = Color(0xFF2782D7)
         ) {
-            backStack.add(NavigationKey.Settings)
+            onNavigate(ScreenRoute.Settings)
         }
     }
 }
@@ -211,5 +223,13 @@ fun StatusSection() {
                 color = WeTheme.colorScheme.textSecondary
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun MePreview() {
+    WeTheme {
+        MeScreen()
     }
 }

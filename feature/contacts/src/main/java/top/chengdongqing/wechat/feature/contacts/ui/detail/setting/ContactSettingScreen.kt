@@ -22,7 +22,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
-import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
+import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.feature.contacts.R
@@ -163,7 +163,7 @@ private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
         DialogManager.show(
             title = resources.getString(ContactsR.string.contact_delete_title, contact.displayName),
             content = resources.getString(ContactsR.string.contact_delete_content),
-            okColor = SemanticError,
+            okColor = Red100,
             okText = DesignR.string.action_delete,
             onOk = onDelete
         )

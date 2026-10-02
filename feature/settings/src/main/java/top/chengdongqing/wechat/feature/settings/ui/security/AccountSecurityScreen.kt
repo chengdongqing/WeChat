@@ -14,14 +14,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
+import top.chengdongqing.wechat.feature.settings.R
 
 @Composable
 fun AccountSecurityScreen(
@@ -52,7 +51,7 @@ fun AccountSecurityScreen(
                 WeSettingItem(
                     label = stringResource(R.string.settings_app_lock),
                     showDivider = false,
-                    onClick = { backStack.add(NavigationKey.AppLockSettings) }
+                    onClick = { backStack.add(ScreenRoute.AppLockSettings) }
                 ) {
                     WeSettingValue(
                         stringResource(

@@ -15,7 +15,7 @@ import androidx.core.view.WindowInsetsControllerCompat
  * 设置状态栏文字颜色
  */
 @Composable
-fun StatusBarAppearanceEffect(isDark: Boolean = true) {
+fun StatusBarAppearance(isDark: Boolean = true) {
     val view = LocalView.current
     val window = LocalActivity.current?.window ?: return
     val insetsController = remember { WindowCompat.getInsetsController(window, view) }

@@ -37,9 +37,9 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun TopFunctionList(
     pendingCount: Int,
-    onNewFriends: () -> Unit,
-    onGroups: () -> Unit,
-    onTags: () -> Unit
+    onNewFriendsClick: () -> Unit,
+    onGroupsClick: () -> Unit,
+    onTagsClick: () -> Unit
 ) {
     val functions = remember(pendingCount) {
         listOf(
@@ -48,19 +48,19 @@ fun TopFunctionList(
                 icon = DesignR.drawable.ic_add_friends_filled,
                 badge = pendingCount,
                 containerColor = Color(0xFFFA9D3B),
-                onClick = onNewFriends
+                onClick = onNewFriendsClick
             ),
             TopFunction(
                 title = R.string.contacts_menu_group_chat,
                 icon = DesignR.drawable.ic_group_chat_filled,
                 containerColor = Color(0xFF07C160),
-                onClick = onGroups
+                onClick = onGroupsClick
             ),
             TopFunction(
                 title = R.string.contacts_menu_tags,
                 icon = DesignR.drawable.ic_tag_filled,
                 containerColor = Color(0xFF2782D7),
-                onClick = onTags
+                onClick = onTagsClick
             ),
             TopFunction(
                 title = R.string.contacts_menu_official_accounts,

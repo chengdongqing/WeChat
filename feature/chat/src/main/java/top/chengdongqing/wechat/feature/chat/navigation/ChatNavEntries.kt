@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.data.model.ChatHistoryPayload
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.model.MusicTrack
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.group.CreateGroupScreen
 import top.chengdongqing.wechat.feature.chat.ui.group.GroupInfoScreen
@@ -28,12 +28,12 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
-    entry<NavigationKey.GroupChat> {
+    entry<ScreenRoute.GroupChat> {
         if (it.groupId.isBlank()) {
             CreateGroupScreen(
                 onCreated = { groupId ->
                     backStack.removeLastOrNull()
-                    backStack.add(NavigationKey.ChatSession(groupId))
+                    backStack.add(ScreenRoute.Chat(groupId))
                 },
                 onBack = onBack
             )
@@ -42,18 +42,18 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                 ChatSessionScreen(
                     chatId = it.groupId,
                     onBack = onBack,
-                    onInfo = { backStack.add(NavigationKey.GroupInfo(it.groupId)) },
+                    onInfo = { backStack.add(ScreenRoute.GroupInfo(it.groupId)) },
                     onContact = {},
                     onFilePreview = {},
                     onMusicPreview = { _, _ -> },
                     onRequestAddFriend = {},
                     onWebView = {},
                     onFavorites = {
-                        backStack.add(NavigationKey.Favorites(it.groupId))
+                        backStack.add(ScreenRoute.Favorites(it.groupId))
                     },
                     onChatHistory = { history ->
                         backStack.add(
-                            NavigationKey.ChatHistory(
+                            ScreenRoute.ChatHistory(
                                 Json.encodeToString(
                                     ChatHistoryPayload(
                                         history.title,
@@ -64,10 +64,10 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                         )
                     },
                     onLive = { liveId, isHost, hostId ->
-                        backStack.add(NavigationKey.LiveRoom(it.groupId, liveId, isHost, hostId))
+                        backStack.add(ScreenRoute.LiveRoom(it.groupId, liveId, isHost, hostId))
                     },
                     onLiveLocation = {
-                        backStack.add(NavigationKey.LiveLocation(it.groupId))
+                        backStack.add(ScreenRoute.LiveLocation(it.groupId))
                     }
                 )
             }
@@ -75,7 +75,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     }
 
     // 聊天会话页
-    entry<NavigationKey.ChatSession> {
+    entry<ScreenRoute.Chat> {
         val chatId = it.chatId
 
         ChatTheme {
@@ -84,46 +84,46 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
                 onBack = onBack,
                 onInfo = {
                     backStack.add(
-                        if (chatId.startsWith("group_")) NavigationKey.GroupInfo(chatId)
-                        else NavigationKey.ChatInfo(chatId)
+                        if (chatId.startsWith("group_")) ScreenRoute.GroupInfo(chatId)
+                        else ScreenRoute.ChatInfo(chatId)
                     )
                 },
                 onContact = { id ->
-                    backStack.removeIf { key -> key is NavigationKey.ContactDetail }
-                    backStack.add(NavigationKey.ContactDetail(id))
+                    backStack.removeIf { key -> key is ScreenRoute.ContactDetail }
+                    backStack.add(ScreenRoute.ContactDetail(id))
                 },
-                onFilePreview = { id -> backStack.add(NavigationKey.FilePreview(id)) },
+                onFilePreview = { id -> backStack.add(ScreenRoute.FilePreview(id)) },
                 onMusicPreview = { id, name ->
                     backStack.add(
-                        NavigationKey.MusicPreview(
+                        ScreenRoute.MusicPreview(
                             messageId = id,
                             trackName = name
                         )
                     )
                 },
-                onRequestAddFriend = { backStack.add(NavigationKey.RequestAddFriend(chatId)) },
-                onWebView = { url -> backStack.add(NavigationKey.WebView(url)) },
+                onRequestAddFriend = { backStack.add(ScreenRoute.RequestAddFriend(chatId)) },
+                onWebView = { url -> backStack.add(ScreenRoute.WebView(url)) },
                 onFavorites = {
-                    backStack.add(NavigationKey.Favorites(chatId))
+                    backStack.add(ScreenRoute.Favorites(chatId))
                 },
                 onChatHistory = { history ->
                     backStack.add(
-                        NavigationKey.ChatHistory(
+                        ScreenRoute.ChatHistory(
                             Json.encodeToString(ChatHistoryPayload(history.title, history.items))
                         )
                     )
                 },
                 onLive = { liveId, isHost, hostId ->
-                    backStack.add(NavigationKey.LiveRoom(chatId, liveId, isHost, hostId))
+                    backStack.add(ScreenRoute.LiveRoom(chatId, liveId, isHost, hostId))
                 },
                 onLiveLocation = {
-                    backStack.add(NavigationKey.LiveLocation(chatId))
+                    backStack.add(ScreenRoute.LiveLocation(chatId))
                 }
             )
         }
     }
 
-    entry<NavigationKey.LiveRoom> {
+    entry<ScreenRoute.LiveRoom> {
         LiveRoomScreen(
             liveId = it.liveId,
             isHost = it.isHost,
@@ -134,7 +134,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
         )
     }
 
-    entry<NavigationKey.LiveLocation> {
+    entry<ScreenRoute.LiveLocation> {
         LiveLocationScreen(
             onBack = onBack,
             viewModel = hiltViewModel { factory: LiveLocationViewModel.Factory ->
@@ -143,7 +143,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
         )
     }
 
-    entry<NavigationKey.ChatHistory> { key ->
+    entry<ScreenRoute.ChatHistory> { key ->
         val payload = runCatching { Json.decodeFromString<ChatHistoryPayload>(key.payload) }
             .getOrDefault(ChatHistoryPayload("聊天记录", emptyList()))
 
@@ -152,14 +152,14 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
             onBack = onBack,
             onOpenHistory = { history ->
                 backStack.add(
-                    NavigationKey.ChatHistory(
+                    ScreenRoute.ChatHistory(
                         Json.encodeToString(ChatHistoryPayload(history.title, history.items))
                     )
                 )
             },
             onOpenFile = { file ->
                 backStack.add(
-                    NavigationKey.ChatHistoryFile(
+                    ScreenRoute.ChatHistoryFile(
                         path = file.localPath.orEmpty(),
                         filename = file.text,
                         mimeType = file.mimeType ?: "*/*",
@@ -169,7 +169,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
             },
             onOpenMusic = { music ->
                 backStack.add(
-                    NavigationKey.MusicPreview(
+                    ScreenRoute.MusicPreview(
                         messageId = "",
                         trackName = Json.encodeToString(music)
                     )
@@ -178,7 +178,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
         )
     }
 
-    entry<NavigationKey.ChatHistoryFile> { file ->
+    entry<ScreenRoute.ChatHistoryFile> { file ->
         FilePreviewScreen(
             file = MessageContent.File(
                 localPath = file.path,
@@ -191,22 +191,22 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     }
 
     // 聊天信息页
-    entry<NavigationKey.ChatInfo> {
+    entry<ScreenRoute.ChatInfo> {
         val id = it.chatId
 
         ChatInfoScreen(
             onBack = onBack,
             onContact = {
-                backStack.removeIf { key -> key is NavigationKey.ContactDetail }
-                backStack.add(NavigationKey.ContactDetail(id))
+                backStack.removeIf { key -> key is ScreenRoute.ContactDetail }
+                backStack.add(ScreenRoute.ContactDetail(id))
             },
             onRequestAddFriend = {
-                backStack.add(NavigationKey.RequestAddFriend(id))
+                backStack.add(ScreenRoute.RequestAddFriend(id))
             },
             onEndTemporaryChat = {
                 backStack.removeIf { key ->
-                    key is NavigationKey.ChatInfo ||
-                            (key is NavigationKey.ChatSession && key.chatId == id)
+                    key is ScreenRoute.ChatInfo ||
+                            (key is ScreenRoute.Chat && key.chatId == id)
                 }
             },
             viewModel = hiltViewModel { factory: ChatInfoViewModel.Factory ->
@@ -215,15 +215,15 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
         )
     }
 
-    entry<NavigationKey.GroupInfo> {
+    entry<ScreenRoute.GroupInfo> {
         val groupId = it.groupId
         GroupInfoScreen(
             onBack = onBack,
             onExitGroup = {
                 backStack.removeIf { key ->
-                    key is NavigationKey.GroupInfo ||
-                            (key is NavigationKey.GroupChat && key.groupId == groupId) ||
-                            (key is NavigationKey.ChatSession && key.chatId == groupId)
+                    key is ScreenRoute.GroupInfo ||
+                            (key is ScreenRoute.GroupChat && key.groupId == groupId) ||
+                            (key is ScreenRoute.Chat && key.chatId == groupId)
                 }
             },
             viewModel = hiltViewModel { factory: GroupInfoViewModel.Factory ->
@@ -233,7 +233,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     }
 
     // 文件预览页
-    entry<NavigationKey.FilePreview> {
+    entry<ScreenRoute.FilePreview> {
         FilePreviewScreen(
             messageId = it.messageId,
             onBack = onBack
@@ -241,7 +241,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     }
 
     // 音乐预览页
-    entry<NavigationKey.MusicPreview> { key ->
+    entry<ScreenRoute.MusicPreview> { key ->
         val music = runCatching { Json.decodeFromString<MusicTrack>(key.trackName) }
             .recoverCatching { MusicTrack.valueOf(key.trackName) }
             .getOrDefault(MusicTrack.Perfect)

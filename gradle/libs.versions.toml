@@ -132,6 +132,7 @@ room = { id = "androidx.room3", version.ref = "room" }
 compose = [
     "compose-ui",
     "compose-ui-graphics",
+    "compose-ui-tooling",
     "compose-ui-tooling-preview",
     "compose-material3",
     "compose-material3-adaptive",

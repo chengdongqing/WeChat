@@ -60,7 +60,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDial
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastIcon
 import top.chengdongqing.wechat.core.designsystem.components.toast.ToastManager
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
-import top.chengdongqing.wechat.core.designsystem.theme.LinkBlue
+import top.chengdongqing.wechat.core.designsystem.theme.Blue60
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
 import top.chengdongqing.wechat.core.file.createImageUri
@@ -373,7 +373,7 @@ private fun LinkText(text: String, onClick: () -> Unit) {
     Text(
         text = text,
         fontSize = 14.sp,
-        color = LinkBlue,
+        color = Blue60,
         modifier = Modifier.onTap(onClick = onClick)
     )
 }

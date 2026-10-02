@@ -1,16 +1,17 @@
-package top.chengdongqing.wechat.app.shell
+package top.chengdongqing.wechat.home
 
+import androidx.compose.runtime.Immutable
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.bottombar.NavigationTab
 import top.chengdongqing.wechat.R as AppR
 
-enum class MainTab(
+enum class HomeTab(
     override val label: Int,
     override val icon: Int,
     override val selectedIcon: Int
 ) : NavigationTab {
     Chats(
-        label = AppR.string.home_tab_wechat,
+        label = AppR.string.home_tab_chats,
         icon = R.drawable.ic_tab_chats_outlined,
         selectedIcon = R.drawable.ic_tab_chats_filled
     ),
@@ -19,8 +20,8 @@ enum class MainTab(
         icon = R.drawable.ic_tab_contacts_outlined,
         selectedIcon = R.drawable.ic_tab_contacts_filled
     ),
-    Discovery(
-        label = AppR.string.home_tab_discovery,
+    Discover(
+        label = AppR.string.home_tab_discover,
         icon = R.drawable.ic_tab_discover_outlined,
         selectedIcon = R.drawable.ic_tab_discover_filled
     ),
@@ -30,3 +31,9 @@ enum class MainTab(
         selectedIcon = R.drawable.ic_tab_me_filled
     )
 }
+
+@Immutable
+data class HomeUiState(
+    val currentTab: HomeTab = HomeTab.Chats,
+    val unreadMap: Map<HomeTab, Int> = emptyMap()
+)

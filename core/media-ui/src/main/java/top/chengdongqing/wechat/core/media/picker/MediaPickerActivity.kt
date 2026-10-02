@@ -19,7 +19,7 @@ import androidx.core.app.ActivityOptionsCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearanceEffect
+import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearance
 import top.chengdongqing.wechat.core.media.model.MediaItem
 import top.chengdongqing.wechat.core.media.model.VisualMediaType
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
@@ -90,7 +90,7 @@ class MediaPickerActivity : ComponentActivity() {
         }
 
         setContent {
-            StatusBarAppearanceEffect(isDark = false)
+            StatusBarAppearance(isDark = false)
             WeTheme(isDark = true) {
                 WeMediaPicker(
                     type = request.mediaType,

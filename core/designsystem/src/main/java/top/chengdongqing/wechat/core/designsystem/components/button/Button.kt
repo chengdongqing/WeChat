@@ -2,42 +2,42 @@ package top.chengdongqing.wechat.core.designsystem.components.button
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
+import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
+import top.chengdongqing.wechat.core.designsystem.theme.WeColorScheme
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-
-enum class ButtonType {
-    Primary,
-    Danger,
-    Plain
-}
-
-enum class ButtonSize(
-    val padding: PaddingValues,
-    val fontSize: TextUnit,
-    val borderRadius: Dp = 8.dp
-) {
-    Large(PaddingValues(vertical = 12.dp, horizontal = 24.dp), 17.sp),
-    Medium(PaddingValues(vertical = 10.dp, horizontal = 24.dp), 14.sp),
-    Small(PaddingValues(vertical = 6.dp, horizontal = 12.dp), 14.sp, 6.dp)
-}
 
 /**
  * 按钮
@@ -45,10 +45,10 @@ enum class ButtonSize(
  * @param text 按钮文字
  * @param type 类型
  * @param size 大小
- * @param width 宽度
  * @param prefix 前缀
  * @param enabled 是否启用
- * @param loading 是否加载中
+ * @param isLoading 是否加载中
+ * @param colors 颜色配置
  * @param onClick 点击事件
  */
 @Composable
@@ -57,83 +57,248 @@ fun WeButton(
     modifier: Modifier = Modifier,
     type: ButtonType = ButtonType.Primary,
     size: ButtonSize = ButtonSize.Large,
-    width: Dp = 184.dp,
-    prefix: (@Composable () -> Unit)? = null,
+    prefix: (@Composable (contentColor: Color) -> Unit)? = null,
     enabled: Boolean = true,
-    loading: Boolean = false,
+    isLoading: Boolean = false,
+    colors: ButtonColors = ButtonDefaults.buttonColors(type),
     onClick: (() -> Unit)? = null
 ) {
-    val colors = colorSchemeOf(type, enabled)
-    val finalEnabled = enabled && !loading
+    val isClickable = enabled && !isLoading
+    val sizeConfig = ButtonDefaults.sizeConfig(size)
+    val contentColor = colors.currentContentColor(enabled)
+    val containerColor = colors.currentContainerColor(enabled)
 
     Box(
-        Modifier
-            .width(if (size != ButtonSize.Small) width else Dp.Unspecified)
-            .clip(RoundedCornerShape(size.borderRadius))
-            .clickable(enabled = finalEnabled) {
-                onClick?.invoke()
-            }
-            .background(colors.containerColor)
-            .padding(size.padding)
-            .then(modifier),
+        modifier = modifier
+            .height(sizeConfig.height)
+            .defaultMinSize(minWidth = sizeConfig.minWidth)
+            .clip(RoundedCornerShape(sizeConfig.roundedSize))
+            .background(containerColor)
+            .clickable(
+                enabled = isClickable,
+                onClickLabel = text,
+                role = Role.Button,
+                onClick = { onClick?.invoke() }
+            )
+            .padding(horizontal = sizeConfig.horizontalPadding),
         contentAlignment = Alignment.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (loading) {
-                WeLoading(color = colors.contentColor)
-                Spacer(Modifier.width(8.dp))
-            }
-            prefix?.let {
-                it()
-                Spacer(Modifier.width(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(sizeConfig.iconSpacing)
+        ) {
+            if (isLoading) {
+                WeLoading(color = contentColor)
+            } else {
+                prefix?.invoke(contentColor)
             }
 
             Text(
-                text,
-                color = colors.contentColor,
-                fontSize = size.fontSize
+                text = text,
+                color = contentColor,
+                style = sizeConfig.textStyle,
+                maxLines = 1
             )
         }
     }
 }
 
-private data class ButtonColors(
+enum class ButtonType {
+    Primary,
+    Plain,
+    Danger
+}
+
+enum class ButtonSize {
+    Large,
+    Small
+}
+
+@Immutable
+data class ButtonColors(
     val containerColor: Color,
-    val contentColor: Color
+    val contentColor: Color,
+    val disabledContainerColor: Color = containerColor,
+    val disabledContentColor: Color = contentColor
+) {
+    @Composable
+    fun currentContainerColor(enabled: Boolean): Color {
+        return if (enabled) containerColor else disabledContainerColor
+    }
+
+    @Composable
+    fun currentContentColor(enabled: Boolean): Color {
+        return if (enabled) contentColor else disabledContentColor
+    }
+}
+
+@Immutable
+data class ButtonSizeConfig(
+    val height: Dp,
+    val minWidth: Dp,
+    val horizontalPadding: Dp,
+    val textStyle: TextStyle,
+    val iconSpacing: Dp,
+    val loadingSize: Dp,
+    val roundedSize: Dp
 )
 
-@Composable
-private fun colorSchemeOf(type: ButtonType, enabled: Boolean): ButtonColors {
-    val isDarkTheme = LocalAppearanceSetting.current.isDarkTheme
+object ButtonDefaults {
 
-    return when (type) {
-        ButtonType.Primary -> ButtonColors(
-            if (enabled) WeTheme.colorScheme.primary else {
-                if (isDarkTheme) {
-                    Color(0xFF373737)
-                } else {
-                    Color(0xFFDEDEDE)
-                }
-            },
-            if (enabled) Color.White else {
-                if (isDarkTheme) {
-                    Color(0xFFBBBBBB).copy(alpha = 0.4f)
-                } else {
-                    Color(0xFFBBBBBB)
-                }
-            }
-        )
+    /**
+     * 根据 Type 获取 ButtonColors
+     */
+    @Composable
+    fun buttonColors(
+        type: ButtonType,
+        colorScheme: WeColorScheme = WeTheme.colorScheme
+    ): ButtonColors {
+        val isDark = LocalAppearanceSetting.current.isDarkTheme
 
-        ButtonType.Danger -> if (isDarkTheme) {
-            ButtonColors(WeTheme.colorScheme.danger, WeTheme.colorScheme.textPrimary)
-        } else {
-            ButtonColors(Color.Black.copy(0.05f), WeTheme.colorScheme.danger)
+        return when (type) {
+            ButtonType.Primary -> ButtonColors(
+                containerColor = colorScheme.primary,
+                contentColor = Color.White,
+                disabledContainerColor = if (isDark) Color(0xFF373737) else Color(0xFFDEDEDE),
+                disabledContentColor = if (isDark) Color(0xFF6B6B6B) else Color(0xFFBBBBBB)
+            )
+
+            ButtonType.Plain -> ButtonColors(
+                containerColor = if (isDark) Color.White.copy(0.1f) else Color.Black.copy(0.05f),
+                contentColor = colorScheme.textPrimary,
+                disabledContainerColor = if (isDark) Color(0xFF242424) else Color.Black.copy(0.05f),
+                disabledContentColor = if (isDark) Color(0xFF555555) else Color(0xFFC8C8C8)
+            )
+
+            ButtonType.Danger -> ButtonColors(
+                containerColor = colorScheme.surface,
+                contentColor = colorScheme.danger,
+                disabledContainerColor = if (isDark) Color(0xFF242424) else Color(0xFFFAFAFA),
+                disabledContentColor = if (isDark) Color(0xFF5A2A2A) else Color(0xFFFAC8C8)
+            )
         }
+    }
 
-        ButtonType.Plain -> if (isDarkTheme) {
-            ButtonColors(Color.White.copy(0.1f), WeTheme.colorScheme.textPrimary)
-        } else {
-            ButtonColors(Color.Black.copy(0.05f), WeTheme.colorScheme.textPrimary)
+    /**
+     * 根据 Size 获取尺寸规范配置
+     */
+    @Composable
+    fun sizeConfig(size: ButtonSize): ButtonSizeConfig {
+        return when (size) {
+            ButtonSize.Large -> ButtonSizeConfig(
+                height = 48.dp,
+                minWidth = 184.dp,
+                horizontalPadding = 24.dp,
+                textStyle = WeTheme.typography.bodyLarge,
+                iconSpacing = 8.dp,
+                loadingSize = 20.dp,
+                roundedSize = 8.dp
+            )
+
+            ButtonSize.Small -> ButtonSizeConfig(
+                height = 32.dp,
+                minWidth = 0.dp,
+                horizontalPadding = 12.dp,
+                textStyle = WeTheme.typography.bodyMedium,
+                iconSpacing = 4.dp,
+                loadingSize = 14.dp,
+                roundedSize = 6.dp
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun ButtonPreview() {
+    WeTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(WeTheme.colorScheme.background)
+                .statusBarsPadding()
+                .padding(40.dp, 40.dp, 40.dp, 0.dp)
+                .verticalScroll(
+                    state = rememberScrollState(),
+                    overscrollEffect = rememberBouncedOverscrollEffect()
+                ),
+            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            WeButton(
+                text = "主要操作"
+            )
+            WeButton(
+                text = "主要操作",
+                isLoading = true
+            )
+            WeButton(
+                text = "按钮禁用",
+                enabled = false
+            )
+            WeButton(
+                text = "次要操作",
+                type = ButtonType.Plain
+            )
+            WeButton(
+                text = "次要操作",
+                type = ButtonType.Plain,
+                isLoading = true
+            )
+            WeButton(
+                text = "按钮禁用",
+                type = ButtonType.Plain,
+                enabled = false
+            )
+            WeButton(
+                text = "警示操作",
+                type = ButtonType.Danger
+            )
+            WeButton(
+                text = "警示操作",
+                type = ButtonType.Danger,
+                isLoading = true
+            )
+            WeButton(
+                text = "按钮禁用",
+                type = ButtonType.Danger,
+                enabled = false
+            )
+            Row(
+                modifier = Modifier.width(184.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                WeButton(
+                    text = "按钮",
+                    size = ButtonSize.Small
+                )
+                WeButton(
+                    text = "按钮",
+                    type = ButtonType.Plain,
+                    size = ButtonSize.Small
+                )
+                WeButton(
+                    text = "按钮",
+                    type = ButtonType.Danger,
+                    size = ButtonSize.Small
+                )
+            }
+            WeButton(
+                text = "拍照",
+                prefix = { color ->
+                    Icon(
+                        painter = painterResource(R.drawable.ic_camera_filled),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = color
+                    )
+                }
+            )
+            WeButton(
+                text = "宽度拉满",
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

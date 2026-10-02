@@ -41,7 +41,7 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
+import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
@@ -106,7 +106,7 @@ fun ChatInfoScreen(
                             title = resources.getString(R.string.chat_info_ai_unload_model_title),
                             content = resources.getString(R.string.chat_info_ai_unload_model_content),
                             okText = DesignR.string.action_ok,
-                            okColor = SemanticError,
+                            okColor = Red100,
                             onOk = viewModel::unloadModel
                         )
                     }
@@ -176,7 +176,7 @@ fun ChatInfoScreen(
                                 title = resources.getString(R.string.chat_info_end_temporary_title),
                                 content = resources.getString(R.string.chat_info_end_temporary_content),
                                 okText = DesignR.string.action_ok,
-                                okColor = SemanticError,
+                                okColor = Red100,
                                 onOk = { viewModel.endTemporaryChat(onEndTemporaryChat) }
                             )
                         }
@@ -199,7 +199,7 @@ fun ChatInfoScreen(
                             uiState.contactName
                         ),
                         okText = DesignR.string.action_clear,
-                        okColor = SemanticError,
+                        okColor = Red100,
                         onOk = { viewModel.clearMessages() }
                     )
                 }

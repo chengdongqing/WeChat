@@ -91,9 +91,9 @@ fun AvatarSelector(
         WeButton(
             text = stringResource(
                 if (avatarUri != null) {
-                    AuthR.string.setup_avatar_change
+                    AuthR.string.action_avatar_replace
                 } else {
-                    AuthR.string.setup_avatar_set
+                    AuthR.string.action_avatar_set
                 }
             ),
             type = ButtonType.Plain,

@@ -32,8 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonType
@@ -42,6 +40,7 @@ import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManage
 import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.feature.settings.R
 
 @Composable
 fun StorageSettingsScreen(
@@ -308,7 +307,7 @@ private fun StorageCard(
                 text = stringResource(R.string.storage_clean),
                 size = ButtonSize.Small,
                 type = if (emphasized) ButtonType.Primary else ButtonType.Plain,
-                loading = cleaning == category,
+                isLoading = cleaning == category,
                 enabled = bytes > 0,
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {

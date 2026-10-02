@@ -1,4 +1,4 @@
-package top.chengdongqing.wechat.app.shell
+package top.chengdongqing.wechat.home
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -47,22 +47,22 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
-import top.chengdongqing.wechat.core.designsystem.theme.Gray
 import top.chengdongqing.wechat.core.designsystem.theme.LocalAppearanceSetting
+import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.AppLanguage
 import top.chengdongqing.wechat.R as AppR
 
 /**
  * 快捷操作枚举
  */
-enum class QuickAction(
+enum class QuickActionType(
     @get:DrawableRes val icon: Int,
     @get:StringRes val label: Int,
 ) {
     GroupChat(R.drawable.ic_chats_filled, AppR.string.home_action_new_group),
     AddFriend(R.drawable.ic_add_friends_filled, AppR.string.home_action_add_friend),
-    Scan(R.drawable.ic_scan_filled, AppR.string.home_action_scan),
-    Payment(R.drawable.ic_pay_vendor_filled, AppR.string.home_action_payment)
+    ScanCode(R.drawable.ic_scan_filled, AppR.string.home_action_scan),
+    Money(R.drawable.ic_pay_vendor_filled, AppR.string.home_action_money)
 }
 
 @Composable
@@ -71,7 +71,7 @@ fun QuickActionsMenu(
     anchorPosition: Offset,
     anchorSize: IntSize,
     onDismiss: () -> Unit,
-    onAction: (QuickAction) -> Unit
+    onAction: (QuickActionType) -> Unit
 ) {
     val menuWidth = when (LocalAppearanceSetting.current.appLanguage) {
         AppLanguage.English -> 180.dp
@@ -114,10 +114,10 @@ fun QuickActionsMenu(
                     modifier = Modifier
                         .width(menuWidth)
                         .padding(top = 8.dp)
-                        .drawMenuArrow(Gray)
-                        .background(Gray, RoundedCornerShape(4.dp))
+                        .drawMenuArrow(WeTheme.colorScheme.elevatedGrey)
+                        .background(WeTheme.colorScheme.elevatedGrey, RoundedCornerShape(4.dp))
                 ) {
-                    val actions = QuickAction.entries
+                    val actions = QuickActionType.entries
                     actions.forEachIndexed { index, action ->
                         ActionItem(action) {
                             onDismiss()
@@ -138,7 +138,7 @@ fun QuickActionsMenu(
 }
 
 @Composable
-private fun ActionItem(action: QuickAction, onClick: () -> Unit) {
+private fun ActionItem(action: QuickActionType, onClick: () -> Unit) {
     val color = Color.White
 
     Row(

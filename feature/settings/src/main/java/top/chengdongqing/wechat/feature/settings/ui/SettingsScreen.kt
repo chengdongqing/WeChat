@@ -22,8 +22,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
@@ -31,13 +29,15 @@ import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingGroup
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingItem
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeSettingValue
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
-import top.chengdongqing.wechat.core.designsystem.theme.SemanticError
+import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.core.util.appVersionName
 import top.chengdongqing.wechat.core.util.showToast
+import top.chengdongqing.wechat.feature.settings.R
 import top.chengdongqing.wechat.feature.settings.domain.model.labelRes
 import top.chengdongqing.wechat.feature.settings.ui.connection.ConnectionSettingsViewModel
+import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun SettingsScreen(
@@ -71,7 +71,7 @@ fun SettingsScreen(
                     label = stringResource(R.string.settings_account_security),
                     showDivider = false,
                     onClick = {
-                        backStack.add(NavigationKey.AccountSecuritySettings)
+                        backStack.add(ScreenRoute.AccountSecuritySettings)
                     }
                 )
             }
@@ -80,32 +80,32 @@ fun SettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.settings_notifications),
                     onClick = {
-                        backStack.add(NavigationKey.NotificationSettings)
+                        backStack.add(ScreenRoute.NotificationSettings)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.settings_display),
                     onClick = {
-                        backStack.add(NavigationKey.DisplaySettings)
+                        backStack.add(ScreenRoute.DisplaySettings)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.settings_privacy),
                     onClick = {
-                        backStack.add(NavigationKey.PrivacySettings)
+                        backStack.add(ScreenRoute.PrivacySettings)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.settings_storage),
                     onClick = {
-                        backStack.add(NavigationKey.StorageSettings)
+                        backStack.add(ScreenRoute.StorageSettings)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.settings_more),
                     showDivider = false,
                     onClick = {
-                        backStack.add(NavigationKey.MoreSettings)
+                        backStack.add(ScreenRoute.MoreSettings)
                     }
                 )
             }
@@ -114,7 +114,7 @@ fun SettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.settings_connection),
                     onClick = {
-                        backStack.add(NavigationKey.ConnectionModeSettings)
+                        backStack.add(ScreenRoute.ConnectionModeSettings)
                     }
                 ) {
                     WeSettingValue(stringResource(connectionMode.labelRes))
@@ -122,14 +122,14 @@ fun SettingsScreen(
                 WeSettingItem(
                     label = stringResource(R.string.settings_chat),
                     onClick = {
-                        backStack.add(NavigationKey.ChatSettings)
+                        backStack.add(ScreenRoute.ChatSettings)
                     }
                 )
                 WeSettingItem(
                     label = stringResource(R.string.settings_chat_history),
                     showDivider = false,
                     onClick = {
-                        backStack.add(NavigationKey.ChatManagement)
+                        backStack.add(ScreenRoute.ChatManagement)
                     }
                 )
             }
@@ -143,7 +143,7 @@ fun SettingsScreen(
                     label = stringResource(R.string.settings_about),
                     showDivider = false,
                     onClick = {
-                        backStack.add(NavigationKey.About)
+                        backStack.add(ScreenRoute.About)
                     }
                 ) {
                     WeSettingValue("${stringResource(R.string.settings_version)} $versionName")
@@ -169,7 +169,7 @@ private fun LogoutButton(
             result.onSuccess {
                 // 导航到登录页，清除回退栈
                 backStack.clear()
-                backStack.add(NavigationKey.Guide)
+                backStack.add(ScreenRoute.Guide)
             }.onFailure {
                 // 提示失败
                 context.showToast(resources.getString(DesignR.string.msg_process_failed))
@@ -181,7 +181,7 @@ private fun LogoutButton(
         DialogManager.show(
             title = resources.getString(R.string.settings_logout_title),
             content = resources.getString(R.string.settings_logout_content),
-            okColor = SemanticError,
+            okColor = Red100,
             onOk = viewModel::exit
         )
     }

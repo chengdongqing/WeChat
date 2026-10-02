@@ -315,7 +315,7 @@ fun ImageEditor(
                 WeButton(
                     text = if (saving) "处理中..." else "完成",
                     enabled = bitmap != null,
-                    loading = saving,
+                    isLoading = saving,
                     size = ButtonSize.Small
                 ) {
                     flattenThen(onConfirm)

@@ -1,9 +1,11 @@
 package top.chengdongqing.wechat.core.designsystem.components.appbar.topbar
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -12,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsIgnoringVisibility
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.designsystem.R
 import top.chengdongqing.wechat.core.designsystem.components.badge.WeBadge
 import top.chengdongqing.wechat.core.designsystem.components.badge.toBadgeText
+import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 
@@ -43,14 +45,13 @@ fun WeTopAppBar(
     @DrawableRes backIconResId: Int = R.drawable.ic_back_outlined,
     unreadCount: Int = 0,
     backText: String? = null,
+    showDivider: Boolean = false,
     actions: @Composable TopAppBarScope.() -> Unit = {}
 ) {
-    Surface(
-        color = containerColor,
-        modifier = modifier.fillMaxWidth()
-    ) {
+    Column(modifier) {
         Box(
             modifier = Modifier
+                .background(containerColor)
                 .fillMaxWidth()
                 // 使用忽略可见性的稳定 inset。即使媒体页或系统手势临时隐藏状态栏，
                 // 顶栏高度也不会塌缩，退出全屏时不会发生纵向跳动。
@@ -91,6 +92,10 @@ fun WeTopAppBar(
             ) {
                 TopAppBarScopeImpl(contentColor).actions()
             }
+        }
+
+        if (showDivider) {
+            WeDivider()
         }
     }
 }

@@ -5,7 +5,7 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
-import top.chengdongqing.wechat.core.navigation.NavigationKey
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.contacts.ui.add.AddFriendScreen
 import top.chengdongqing.wechat.feature.contacts.ui.add.nfc.NFCAddFriendScreen
 import top.chengdongqing.wechat.feature.contacts.ui.add.pincode.PinCodeCreateGroupScreen
@@ -30,141 +30,141 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
     onBack: () -> Unit
 ) {
     // 添加好友相关
-    entry<NavigationKey.AddFriend> {
+    entry<ScreenRoute.AddFriend> {
         AddFriendScreen(
             onBack = onBack,
-            onNFC = { backStack.add(NavigationKey.NFCAddFriend) },
-            onRadar = { backStack.add(NavigationKey.RadarScanAddFriend) },
-            onGroup = { backStack.add(NavigationKey.PinCodeCreateGroup) },
-            onContactDetail = { backStack.add(NavigationKey.ContactDetail(it)) },
-            onPlainText = { backStack.add(NavigationKey.PlainText(it)) },
-            onWebView = { backStack.add(NavigationKey.WebView(it)) }
+            onNFC = { backStack.add(ScreenRoute.NFCAddFriend) },
+            onRadar = { backStack.add(ScreenRoute.RadarScanAddFriend) },
+            onGroup = { backStack.add(ScreenRoute.PinCodeCreateGroup) },
+            onContactDetail = { backStack.add(ScreenRoute.ContactDetail(it)) },
+            onPlainText = { backStack.add(ScreenRoute.PlainText(it)) },
+            onWebView = { backStack.add(ScreenRoute.WebView(it)) }
         )
     }
-    entry<NavigationKey.NFCAddFriend> {
+    entry<ScreenRoute.NFCAddFriend> {
         NFCAddFriendScreen(
             onBack = onBack,
-            onContact = { backStack.add(NavigationKey.ContactDetail(it)) }
+            onContact = { backStack.add(ScreenRoute.ContactDetail(it)) }
         )
     }
-    entry<NavigationKey.RadarScanAddFriend> {
+    entry<ScreenRoute.RadarScanAddFriend> {
         RadarScanAddFriendScreen(
             onBack = onBack,
-            onContact = { backStack.add(NavigationKey.ContactDetail(it)) }
+            onContact = { backStack.add(ScreenRoute.ContactDetail(it)) }
         )
     }
-    entry<NavigationKey.PinCodeCreateGroup> {
+    entry<ScreenRoute.PinCodeCreateGroup> {
         PinCodeCreateGroupScreen(onBack)
     }
-    entry<NavigationKey.GroupList> {
+    entry<ScreenRoute.GroupList> {
         GroupListScreen(
             onBack = onBack,
-            onOpenGroup = { groupId -> backStack.add(NavigationKey.ChatSession(groupId)) }
+            onOpenGroup = { groupId -> backStack.add(ScreenRoute.Chat(groupId)) }
         )
     }
 
     // 详情与资料
-    entry<NavigationKey.ContactDetail> {
+    entry<ScreenRoute.ContactDetail> {
         val id = it.contactId
 
         ContactDetailScreen(
             onBack = onBack,
             onChat = {
-                backStack.removeIf { key -> key is NavigationKey.ChatSession }
-                backStack.add(NavigationKey.ChatSession(id))
+                backStack.removeIf { key -> key is ScreenRoute.Chat }
+                backStack.add(ScreenRoute.Chat(id))
             },
-            onSetting = { backStack.add(NavigationKey.ContactSetting(id)) },
-            onProfile = { backStack.add(NavigationKey.ContactProfile(id)) },
-            onRequestAdd = { backStack.add(NavigationKey.RequestAddFriend(id)) },
+            onSetting = { backStack.add(ScreenRoute.ContactSetting(id)) },
+            onProfile = { backStack.add(ScreenRoute.ContactProfile(id)) },
+            onRequestAdd = { backStack.add(ScreenRoute.RequestAddFriend(id)) },
             isAiAssistant = id == LocalAiAssistant.ID,
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }
         )
     }
-    entry<NavigationKey.ContactSetting> {
+    entry<ScreenRoute.ContactSetting> {
         val id = it.contactId
 
         ContactSettingScreen(
             onBack = onBack,
             onDelete = {
                 backStack.clear()
-                backStack.add(NavigationKey.Main)
+                backStack.add(ScreenRoute.Home)
             },
-            onContactProfile = { backStack.add(NavigationKey.EditContactProfile(id)) },
+            onContactProfile = { backStack.add(ScreenRoute.EditContactProfile(id)) },
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }
         )
     }
-    entry<NavigationKey.ContactProfile> {
+    entry<ScreenRoute.ContactProfile> {
         val id = it.contactId
 
         ContactProfileScreen(
             onBack = onBack,
-            onEdit = { backStack.add(NavigationKey.EditContactProfile(id)) },
+            onEdit = { backStack.add(ScreenRoute.EditContactProfile(id)) },
             viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
                 factory.create(id)
             }
         )
     }
-    entry<NavigationKey.EditContactProfile> {
+    entry<ScreenRoute.EditContactProfile> {
         EditContactProfileScreen(
             contactId = it.contactId,
             onBack = onBack,
-            onManageTags = { backStack.add(NavigationKey.ManageContactTags(it.contactId)) }
+            onManageTags = { backStack.add(ScreenRoute.ManageContactTags(it.contactId)) }
         )
     }
 
-    entry<NavigationKey.ContactTags> {
+    entry<ScreenRoute.ContactTags> {
         ContactTagsScreen(
             onBack = onBack,
-            onCreate = { backStack.add(NavigationKey.EditContactTag()) },
-            onEdit = { backStack.add(NavigationKey.EditContactTag(it)) }
+            onCreate = { backStack.add(ScreenRoute.EditContactTag()) },
+            onEdit = { backStack.add(ScreenRoute.EditContactTag(it)) }
         )
     }
-    entry<NavigationKey.EditContactTag> {
+    entry<ScreenRoute.EditContactTag> {
         ContactTagEditorScreen(tagId = it.tagId, onBack = onBack)
     }
-    entry<NavigationKey.ManageContactTags> {
+    entry<ScreenRoute.ManageContactTags> {
         val contactId = it.contactId
         ContactTagPickerScreen(
             contactId = contactId,
             onBack = onBack,
-            onCreate = { backStack.add(NavigationKey.EditContactTag()) }
+            onCreate = { backStack.add(ScreenRoute.EditContactTag()) }
         )
     }
 
     // 请求与验证
-    entry<NavigationKey.RequestAddFriend> {
+    entry<ScreenRoute.RequestAddFriend> {
         RequestAddFriendScreen(
             onBack = onBack,
             onSuccess = {
                 backStack.clear()
-                backStack.add(NavigationKey.Main)
+                backStack.add(ScreenRoute.Home)
             },
             viewModel = hiltViewModel { factory: RequestAddFriendViewModel.Factory ->
                 factory.create(it.contactId)
             }
         )
     }
-    entry<NavigationKey.AcceptFriendRequest> {
+    entry<ScreenRoute.AcceptFriendRequest> {
         AcceptFriendRequestScreen(
             onBack = onBack,
             onSuccess = {
                 backStack.clear()
-                backStack.add(NavigationKey.Main)
+                backStack.add(ScreenRoute.Home)
             },
             viewModel = hiltViewModel { factory: AcceptFriendRequestViewModel.Factory ->
                 factory.create(it.requestId)
             }
         )
     }
-    entry<NavigationKey.NewFriends> {
+    entry<ScreenRoute.NewFriends> {
         NewFriendsScreen(
             onBack = onBack,
-            onAdd = { backStack.add(NavigationKey.AddFriend) },
-            onVerify = { backStack.add(NavigationKey.AcceptFriendRequest(it)) }
+            onAdd = { backStack.add(ScreenRoute.AddFriend) },
+            onVerify = { backStack.add(ScreenRoute.AcceptFriendRequest(it)) }
         )
     }
 }

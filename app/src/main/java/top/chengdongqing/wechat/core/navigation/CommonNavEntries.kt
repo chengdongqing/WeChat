@@ -7,88 +7,61 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.navigation3.runtime.EntryProviderScope
-import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.metadata
 import androidx.navigation3.ui.NavDisplay
-import top.chengdongqing.wechat.app.shell.MainShellDestination
-import top.chengdongqing.wechat.feature.auth.ui.LoginScreen
+import top.chengdongqing.wechat.feature.auth.ui.LoginRoute
 import top.chengdongqing.wechat.feature.common.PlainTextScreen
 import top.chengdongqing.wechat.feature.common.WebViewScreen
-import top.chengdongqing.wechat.feature.startup.GuideScreen
-import top.chengdongqing.wechat.feature.startup.SplashScreen
+import top.chengdongqing.wechat.feature.startup.GuideRoute
+import top.chengdongqing.wechat.feature.startup.LaunchRoute
+import top.chengdongqing.wechat.home.HomeRoute
 
 internal fun EntryProviderScope<NavKey>.commonNavEntries(
-    backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
     // 启动页
-    entry<NavigationKey.Splash>(
+    entry<ScreenRoute.Launch>(
         metadata = NavDisplay.transitionSpec {
             EnterTransition.None togetherWith ExitTransition.None
         }
     ) {
-        SplashScreen(
-            onHome = {
-                backStack.clear()
-                backStack.add(NavigationKey.Main)
-            },
-            onWelcome = {
-                backStack.clear()
-                backStack.add(NavigationKey.Guide)
-            }
-        )
+        LaunchRoute()
     }
 
     // 欢迎页
-    entry<NavigationKey.Guide>(
+    entry<ScreenRoute.Guide>(
         metadata = NavDisplay.transitionSpec {
             EnterTransition.None togetherWith ExitTransition.None
         }
     ) {
-        GuideScreen(
-            onSetup = {
-                backStack.add(NavigationKey.Login)
-            },
-            onLanguage = {
-                backStack.add(NavigationKey.LanguageSettings)
-            }
-        )
+        GuideRoute()
     }
 
     // 登录页
-    entry<NavigationKey.Login> {
-        LoginScreen(
-            onBack = onBack,
-            onSetupComplete = {
-                backStack.clear()
-                backStack.add(NavigationKey.Main)
-            }
-        )
+    entry<ScreenRoute.Login> {
+        LoginRoute()
     }
 
     // 应用主框架
-    entry<NavigationKey.Main>(
-        metadata = metadata {
-            put(NavDisplay.TransitionKey) {
-                (fadeIn(animationSpec = tween(300)) +
-                        scaleIn(
-                            initialScale = 0.92f,
-                            animationSpec = tween(300)
-                        )) togetherWith ExitTransition.KeepUntilTransitionsFinished
-            }
+    entry<ScreenRoute.Home>(
+        metadata = NavDisplay.transitionSpec {
+            (fadeIn(animationSpec = tween(300)) +
+                    scaleIn(
+                        initialScale = 0.92f,
+                        animationSpec = tween(300)
+                    )) togetherWith ExitTransition.KeepUntilTransitionsFinished
         }
     ) {
-        MainShellDestination(backStack)
+        HomeRoute()
     }
 
     // 文本预览
-    entry<NavigationKey.PlainText> {
+    entry<ScreenRoute.PlainText> {
         PlainTextScreen(it.text, onBack)
     }
 
     // 网页预览
-    entry<NavigationKey.WebView> {
+    entry<ScreenRoute.WebView> {
         WebViewScreen(it.url, onBack)
     }
 }
