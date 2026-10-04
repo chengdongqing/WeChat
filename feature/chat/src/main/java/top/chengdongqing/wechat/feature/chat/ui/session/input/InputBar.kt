@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.components.button.ButtonSize
@@ -54,8 +55,8 @@ import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.ActionIcon
-import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionUiState
-import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionViewModel
+import top.chengdongqing.wechat.feature.chat.ui.session.ChatUiIntent
+import top.chengdongqing.wechat.feature.chat.ui.session.ChatUiState
 import top.chengdongqing.wechat.feature.chat.ui.session.CircleActionIcon
 import top.chengdongqing.wechat.feature.chat.ui.session.input.music.MusicOverlay
 import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.InputPanelHolder
@@ -74,19 +75,20 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun InputBar(
     controller: InputBarController,
-    viewModel: ChatSessionViewModel,
-    uiState: ChatSessionUiState,
+    events: Flow<MessageUiEvent>,
+    uiState: ChatUiState,
     listState: LazyListState,
+    onIntent: (ChatUiIntent) -> Unit,
     onLaunchCall: (type: CallType) -> Unit,
     onStartLive: () -> Unit,
     onShareLiveLocation: () -> Unit,
     onOpenFavorites: () -> Unit
 ) {
     val state by controller.state.collectAsStateWithLifecycle()
-    val pendingQuote by viewModel.pendingQuote.collectAsStateWithLifecycle()
+    val pendingQuote = uiState.pendingQuote
     val actions = rememberInputBarActions(
         controller = controller,
-        onSendMessage = viewModel::sendMessage,
+        onSendMessage = { onIntent(ChatUiIntent.SendMessage(it)) },
         onLaunchCall = onLaunchCall,
         onStartLive = onStartLive,
         onShareLiveLocation = onShareLiveLocation,
@@ -131,7 +133,7 @@ fun InputBar(
      * 重新编辑消息
      */
     LaunchedEffect(Unit) {
-        viewModel.uiEvent
+        events
             .filterIsInstance<MessageUiEvent.ReeditMessage>()
             .collect { event ->
                 controller.updateText(controller.state.value.inputText + event.text)
@@ -143,7 +145,7 @@ fun InputBar(
             // 退出页面时收起键盘
             controller.dismissAll()
             // 保存草稿消息
-            viewModel.saveDraftMessage(state.inputText)
+            onIntent(ChatUiIntent.SaveDraft(state.inputText))
         }
     }
 
@@ -161,7 +163,7 @@ fun InputBar(
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        text = if (quote.senderId == uiState.myId) "我" else uiState.title,
+                        text = if (quote.senderId == uiState.myUserInfo?.id) "我" else uiState.chatTitle.orEmpty(),
                         color = WeTheme.colorScheme.textSecondary
                     )
                     Text(
@@ -172,7 +174,7 @@ fun InputBar(
                 }
                 ActionIcon(
                     icon = DesignR.drawable.ic_close_outlined,
-                    onClick = viewModel::cancelQuote
+                    onClick = { onIntent(ChatUiIntent.CancelQuote) }
                 )
             }
         }

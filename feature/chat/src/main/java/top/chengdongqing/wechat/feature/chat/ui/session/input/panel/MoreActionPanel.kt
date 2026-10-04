@@ -38,11 +38,11 @@ import top.chengdongqing.wechat.core.designsystem.components.divider.WeDivider
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 
 @Composable
 fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit) {
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
     val isSelf = chatContext?.isSelf == true
     val isGroup = chatContext?.isGroup == true
 

@@ -20,8 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import top.chengdongqing.wechat.core.data.model.ChatHistoryPayload
 import top.chengdongqing.wechat.core.designsystem.components.appbar.bottombar.WeNavigationBottomBar
 import top.chengdongqing.wechat.core.designsystem.components.loading.LoadingDialog
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
@@ -32,7 +30,7 @@ import top.chengdongqing.wechat.core.qrcode.scanner.rememberQrCodeScannerLaunche
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.list.ChatListRoute
 import top.chengdongqing.wechat.feature.chat.ui.list.ChatListScreen
-import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionScreen
+import top.chengdongqing.wechat.feature.chat.ui.session.ChatRoute
 import top.chengdongqing.wechat.feature.contacts.ui.list.ContactListRoute
 import top.chengdongqing.wechat.feature.contacts.ui.list.ContactListScreen
 import top.chengdongqing.wechat.feature.discovery.DiscoverRoute
@@ -187,7 +185,6 @@ private fun AiChat(
 ) {
     val chatId = LocalAiAssistant.ID
     val scope = rememberCoroutineScope()
-    val navigator = LocalAppNavigator.current
 
     BackHandler(containerPagerState.currentPage == 0) {
         scope.launch {
@@ -196,51 +193,14 @@ private fun AiChat(
     }
 
     ChatTheme {
-        ChatSessionScreen(
+        ChatRoute(
             chatId = chatId,
             isSpecialPage = true,
             onBack = {
                 scope.launch {
                     containerPagerState.animateScrollToPage(1)
                 }
-            },
-            onInfo = {
-                navigator.navigateTo(ScreenRoute.ChatInfo(chatId))
-            },
-            onContact = { id ->
-                navigator.backStack.removeIf { key -> key is ScreenRoute.ContactDetail }
-                navigator.navigateTo(ScreenRoute.ContactDetail(id))
-            },
-            onFilePreview = { id ->
-                navigator.navigateTo(ScreenRoute.FilePreview(id))
-            },
-            onMusicPreview = { id, name ->
-                navigator.navigateTo(
-                    ScreenRoute.MusicPreview(
-                        messageId = id,
-                        trackName = name
-                    )
-                )
-            },
-            onRequestAddFriend = { },
-            onWebView = { url -> navigator.navigateTo(ScreenRoute.WebView(url)) },
-            onFavorites = {
-                navigator.navigateTo(ScreenRoute.Favorites(chatId))
-            },
-            onChatHistory = { history ->
-                navigator.navigateTo(
-                    ScreenRoute.ChatHistory(
-                        Json.encodeToString(
-                            ChatHistoryPayload(
-                                history.title,
-                                history.items
-                            )
-                        )
-                    )
-                )
-            },
-            onLive = { _, _, _ -> },
-            onLiveLocation = {}
+            }
         )
     }
 }

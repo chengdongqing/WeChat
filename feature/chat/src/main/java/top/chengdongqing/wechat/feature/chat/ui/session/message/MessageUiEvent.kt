@@ -1,9 +1,8 @@
 package top.chengdongqing.wechat.feature.chat.ui.session.message
 
 import android.net.Uri
-
-import top.chengdongqing.wechat.core.media.model.MediaItem
 import top.chengdongqing.wechat.core.data.model.MessageContent
+import top.chengdongqing.wechat.core.media.model.MediaItem
 import top.chengdongqing.wechat.core.model.CallType
 
 /**
@@ -43,6 +42,9 @@ sealed class MessageUiEvent {
 
     /** 跳转到联系人详情 */
     data class NavigateToContact(val contactId: String) : MessageUiEvent()
+    data object NavigateToRequestAddFriend : MessageUiEvent()
+    data class NavigateToLiveRoom(val liveId: String, val isHost: Boolean, val hostId: String) :
+        MessageUiEvent()
     data object NavigateToLiveLocation : MessageUiEvent()
     data class OpenChatHistory(val content: MessageContent.ChatHistory) : MessageUiEvent()
 }

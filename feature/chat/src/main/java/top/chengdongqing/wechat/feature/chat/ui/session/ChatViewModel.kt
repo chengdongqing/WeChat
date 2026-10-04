@@ -28,10 +28,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -60,8 +61,10 @@ import top.chengdongqing.wechat.core.location.model.LocationPreviewInfo
 import top.chengdongqing.wechat.core.location.preview.previewLocation
 import top.chengdongqing.wechat.core.media.model.MediaItem
 import top.chengdongqing.wechat.core.model.ChatSession
+import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
+import top.chengdongqing.wechat.core.model.UserProfile
 import top.chengdongqing.wechat.core.network.connection.ChatTransportManager
 import top.chengdongqing.wechat.core.network.connection.bluetooth.BluetoothBondManager
 import top.chengdongqing.wechat.core.network.crypto.E2ESessionManager
@@ -92,15 +95,15 @@ import kotlin.time.Duration.Companion.milliseconds
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 import top.chengdongqing.wechat.core.playback.R as PlaybackR
 
-@HiltViewModel(assistedFactory = ChatSessionViewModel.Factory::class)
-class ChatSessionViewModel @AssistedInject constructor(
+@HiltViewModel(assistedFactory = ChatViewModel.Factory::class)
+class ChatViewModel @AssistedInject constructor(
     @Assisted private val chatId: String,
     private val chatSessionRepository: ChatSessionRepository,
     private val messageRepository: MessageRepository,
     private val profileRepository: ProfileRepository,
     private val chatSettingsRepository: ChatSettingsRepository,
     private val contactRepository: ContactRepository,
-    private val groupDao: GroupDao,
+    groupDao: GroupDao,
     private val favoriteDao: FavoriteDao,
     private val addFriendRepository: AddFriendRepository,
     private val publicFileManager: PublicFileManager,
@@ -121,12 +124,10 @@ class ChatSessionViewModel @AssistedInject constructor(
 
     private var aiGenerationJob: Job? = null
     private val _pendingQuote = MutableStateFlow<MessageQuote?>(null)
-    val pendingQuote = _pendingQuote.asStateFlow()
-    val isLocalAiSession: Boolean get() = chatId == LocalAiAssistant.ID
-    val isGroupSession: Boolean get() = chatId.startsWith("group_")
+    private val isLocalAiSession: Boolean get() = chatId == LocalAiAssistant.ID
+    private val isGroupSession: Boolean get() = chatId.startsWith("group_")
     private val _streamingAiMessage = MutableStateFlow<StreamingAiMessage?>(null)
-    val streamingAiMessage = _streamingAiMessage.asStateFlow()
-    val liveLocationRoom = liveLocationRegistry.rooms.map {
+    private val liveLocationRoom = liveLocationRegistry.rooms.map {
         it[liveLocationRegistry.roomIdFor(chatId)]
             ?: LiveLocationRoomState(liveLocationRegistry.roomIdFor(chatId))
     }.stateIn(
@@ -135,45 +136,105 @@ class ChatSessionViewModel @AssistedInject constructor(
         liveLocationRegistry.room(liveLocationRegistry.roomIdFor(chatId))
     )
 
-    fun createLiveLocationMessage() = MessageContent.LiveLocation(
-        roomId = liveLocationRegistry.roomIdFor(chatId),
-        initiatorId = profileRepository.requireUserId()
-    )
-
     @AssistedFactory
     interface Factory {
-        fun create(chatId: String): ChatSessionViewModel
+        fun create(chatId: String): ChatViewModel
     }
 
-    // ── 生命周期 ──────────────────────────────────────────────────────────────
+    fun onIntent(intent: ChatUiIntent) {
+        when (intent) {
+            ChatUiIntent.OnEnter -> onEnterSession()
+            ChatUiIntent.OnLeave -> {
+                onLeaveSession()
+                stopVoice()
+            }
 
-    fun onEnterSession() = activeSessionManager.enter(chatId)
-    fun onLeaveSession() = activeSessionManager.leave()
+            is ChatUiIntent.HandleToolbarAction -> handleToolbarAction(intent.action)
+            is ChatUiIntent.HandleMultiSelectAction -> handleMultiSelectAction(intent.action)
+            is ChatUiIntent.SendMessage -> sendMessage(intent.content)
+            is ChatUiIntent.RetrySend -> retrySend(intent.messageId)
+            is ChatUiIntent.SaveDraft -> saveDraftMessage(intent.text)
+            is ChatUiIntent.ToggleVoicePlay -> toggleVoicePlay(
+                intent.messageId,
+                intent.localPath,
+                intent.durationMs
+            )
 
-    // ── 核心状态 ──────────────────────────────────────────────────────────────
+            is ChatUiIntent.SeekVoice -> seekVoice(intent.messageId, intent.fraction)
+            is ChatUiIntent.ToggleVoiceSpeed -> toggleVoiceSpeed(intent.messageId)
+            ChatUiIntent.ToggleSpeaker -> toggleSpeaker()
+            is ChatUiIntent.SelectMessage -> toggleMessageSelection(intent.messageId)
+            ChatUiIntent.ExitSelectMode -> exitSelectMode()
+            ChatUiIntent.ClearUnread -> clearUnreadState()
+            is ChatUiIntent.MessagesUpdated -> syncMessages(intent.messages)
+            is ChatUiIntent.FinishAiStreamHandoff -> finishAiStreamHandoff(intent.messageId)
+            ChatUiIntent.DismissToolbar -> dismissToolbar()
+            is ChatUiIntent.UpdateTextSelection -> updateTextSelection(intent.selection)
+            is ChatUiIntent.UpdateTextSelectionDragging -> updateTextSelectionDragging(intent.isDragging)
+            is ChatUiIntent.UpdateTextSelectionBounds -> updateTextSelectionBounds(
+                intent.position,
+                intent.height
+            )
 
-    private val _uiState = MutableStateFlow(ChatSessionUiState())
-    val uiState = _uiState.asStateFlow()
+            is ChatUiIntent.QuoteMessage -> quoteMessage(intent.message)
+            is ChatUiIntent.ForwardMessage -> forwardMessage(intent.message)
+            is ChatUiIntent.MessageClicked -> handleMessageClick(intent.message)
+            is ChatUiIntent.MessageLongPressed -> handleMessageLongPress(
+                intent.message,
+                intent.position,
+                intent.height
+            )
 
-    /** UI 事件总线，供 Screen 层响应一次性操作 */
-    private val _uiEvent = MutableSharedFlow<MessageUiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+            is ChatUiIntent.SendEditedImage -> sendEditedImage(intent.uri, intent.targetChatIds)
+            is ChatUiIntent.FavoriteEditedImage -> favoriteEditedImage(intent.uri)
+            is ChatUiIntent.SaveEditedImage -> saveEditedImage(intent.uri)
+            ChatUiIntent.CancelQuote -> cancelQuote()
+            ChatUiIntent.StopVoice -> stopVoice()
+            is ChatUiIntent.CancelTransfer -> cancelTransfer(intent.messageId)
+            is ChatUiIntent.PauseTransfer -> pauseTransfer(intent.messageId)
+            is ChatUiIntent.ResumeTransfer -> resumeTransfer(intent.messageId)
+            is ChatUiIntent.ReeditMessage -> reeditMessage(intent.text)
+            ChatUiIntent.ShareLiveLocation -> {
+                sendMessage(createLiveLocationMessage())
+                emit(MessageUiEvent.NavigateToLiveLocation)
+            }
 
-    /** 当前正在播放语音的消息 ID */
-    private val _playingMessageId = MutableStateFlow<String?>(null)
-    val playingMessageId = _playingMessageId.asStateFlow()
+            is ChatUiIntent.DeleteMessage -> if (intent.messageId != null) deleteMessage(intent.messageId) else deleteSelectedMessages()
+            ChatUiIntent.SaveSelectedFiles -> saveSelectedMessageFiles()
+            is ChatUiIntent.ForwardMessages -> when {
+                intent.messageId != null -> forwardMessage(intent.messageId, intent.targetChatIds)
+                intent.merged -> forwardMergedMessages(intent.targetChatIds)
+                else -> forwardMessages(intent.targetChatIds)
+            }
 
-    private val _voicePlaybackState = MutableStateFlow(VoicePlaybackState())
-    val voicePlaybackState = _voicePlaybackState.asStateFlow()
+            ChatUiIntent.RequestAddFriend -> viewModelScope.launch {
+                prepareRequestAddFriend().onSuccess {
+                    emit(MessageUiEvent.NavigateToRequestAddFriend)
+                }
+            }
 
-    /** 在新协程中发射 UI 事件，省去调用侧的样板代码 */
-    private fun emit(event: MessageUiEvent) {
-        viewModelScope.launch { _uiEvent.emit(event) }
+            ChatUiIntent.StartLive -> {
+                val liveId = randomUUID()
+                sendMessage(
+                    MessageContent.Live(
+                        liveId = liveId,
+                        title = "${uiState.value.chatTitle.orEmpty()}的直播",
+                        hostName = "我",
+                        actorId = uiState.value.myUserInfo?.id
+                    )
+                )
+                emit(
+                    MessageUiEvent.NavigateToLiveRoom(
+                        liveId = liveId,
+                        isHost = true,
+                        hostId = uiState.value.myUserInfo?.id.orEmpty()
+                    )
+                )
+            }
+        }
     }
 
-    // region 消息流
-
-    val messagePagingFlow: Flow<PagingData<ChatMessage>> = messageRepository
+    private val messagePagingFlow: Flow<PagingData<ChatMessage>> = messageRepository
         .pager(
             sessionId = chatId,
             pageSize = 10,
@@ -181,10 +242,134 @@ class ChatSessionViewModel @AssistedInject constructor(
         )
         .cachedIn(viewModelScope)
 
+    private val interactionState = MutableStateFlow(
+        ChatUiState(
+            chatId = chatId,
+            chatType = when {
+                chatId == LocalAiAssistant.ID -> ChatType.Ai
+                chatId.startsWith("group_") -> ChatType.Group
+                else -> ChatType.Single
+            }
+        )
+    )
+
+    private val chatIdentity = combine(
+        contactRepository.observeContact(chatId),
+        profileRepository.observeProfile()
+    ) { contact, profile ->
+        ChatIdentity(
+            peerUserInfo = contact,
+            myUserInfo = profile,
+            isInfoLoaded = true,
+            chatType = when {
+                chatId == LocalAiAssistant.ID -> ChatType.Ai
+                chatId.startsWith("group_") -> ChatType.Group
+                chatId == profile?.id -> ChatType.Self
+                else -> ChatType.Single
+            }
+        )
+    }
+
+    private val groupPresentation = if (isGroupSession) {
+        groupDao.observeById(chatId)
+            .combine(groupDao.observeMembers(chatId)) { group, members ->
+                GroupPresentation(
+                    title = group?.remark?.takeIf(String::isNotBlank)
+                        ?: group?.name.orEmpty(),
+                    members = members.map { MentionMember(it.userId, it.nickname, it.avatarPath) }
+                )
+            }
+    } else {
+        flowOf(null)
+    }
+
+    private val sessionPresentation = chatSessionRepository.observeSession(chatId)
+        .combine(chatSettingsRepository.chatBackground) { session, globalBackground ->
+            session to globalBackground
+        }
+        .combine(localAiEngine.state) { (session, globalBackground), aiState ->
+            ChatSessionPresentation(
+                title = session?.contactName,
+                peerId = session?.contactId,
+                peerAvatar = session?.contactAvatar,
+                isMuted = session?.isMuted ?: false,
+                isTemporary = session?.isTemporary == true,
+                isOnline = if (isLocalAiSession) aiState is LocalAiState.Ready
+                else session?.isOnline ?: false,
+                draftMessage = session?.draftMessage,
+                backgroundPath = session?.backgroundPath ?: globalBackground
+            )
+        }
+
+    private val settingsPresentation = combine(
+        chatSettingsRepository.speakerEnabled,
+        chatSettingsRepository.sendButtonEnabled
+    ) { speakerEnabled, sendButtonEnabled ->
+        ChatSettingsPresentation(speakerEnabled, sendButtonEnabled)
+    }
+
+    private val connectionRequired = chatTransportManager.connectionRequired
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val connectionMode = connectionSettingsRepository.connectionMode
+        .stateIn(viewModelScope, SharingStarted.Eagerly, ConnectionMode.WiFiLan)
+
+    private val isE2EActive = e2eSessionManager.encryptedPeers
+        .map { it.contains(chatId) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    private val unreadCount = chatSessionRepository.observeTotalUnreadCount()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    private val connectionPresentation = combine(
+        connectionMode,
+        connectionRequired,
+        isE2EActive,
+        unreadCount
+    ) { mode, required, isEncrypted, unread ->
+        ChatConnectionPresentation(mode, required, isEncrypted, unread)
+    }
+
+    private val voicePlaybackState = MutableStateFlow(VoicePlaybackState())
+
+    private val basePresentation = combine(
+        chatIdentity,
+        groupPresentation,
+        sessionPresentation
+    ) { identity, group, session ->
+        ChatBasePresentation(
+            chatTitle = when {
+                isLocalAiSession -> localAiAssistantName
+                group != null -> group.title
+                !session.title.isNullOrBlank() -> session.title
+                !identity.peerUserInfo?.displayName.isNullOrBlank() -> identity.peerUserInfo.displayName
+                identity.chatType == ChatType.Self -> identity.myUserInfo?.nickname.orEmpty()
+                else -> ""
+            },
+            peerUserInfo = identity.peerUserInfo,
+            myUserInfo = identity.myUserInfo,
+            isInfoLoaded = identity.isInfoLoaded,
+            chatType = identity.chatType,
+            mentionMembers = group?.members.orEmpty()
+                .filterNot { it.id == identity.myUserInfo?.id },
+            isMuted = session.isMuted,
+            isTemporary = session.isTemporary,
+            isOnline = session.isOnline,
+            draftMessage = session.draftMessage,
+            backgroundImagePath = session.backgroundPath
+        )
+    }
+
+    private val _uiEvent = MutableSharedFlow<MessageUiEvent>()
+    val uiEvent = _uiEvent.asSharedFlow()
+
+    private fun emit(event: MessageUiEvent) {
+        viewModelScope.launch { _uiEvent.emit(event) }
+    }
+
     private val messages = MutableStateFlow(emptyList<ChatMessage>())
 
-    // 同步paging内部已加载的数据
-    fun syncMessages(list: List<ChatMessage>) {
+    private fun syncMessages(list: List<ChatMessage>) {
         messages.update { list }
     }
 
@@ -221,29 +406,8 @@ class ChatSessionViewModel @AssistedInject constructor(
         return MediaState(list = items, messageIds = messageIds, indexMap = indexMap)
     }
 
-    // endregion
-
-    // region 连接 & 加密
-
-    val connectionRequired = chatTransportManager.connectionRequired
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
-
-    val connectionMode = connectionSettingsRepository.connectionMode
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ConnectionMode.WiFiLan)
-
-    val isE2EActive = e2eSessionManager.encryptedPeers
-        .map { it.contains(chatId) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    val unreadCount = chatSessionRepository.observeTotalUnreadCount()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
-
-    fun isConnected(): Boolean = chatTransportManager.isConnected(chatId)
-    suspend fun isBluetoothDeviceSaved() = bluetoothBondManager.hasSaved(chatId)
-
-    // endregion
-
-    // region 工具条
+    private fun isConnected(): Boolean = chatTransportManager.isConnected(chatId)
+    private suspend fun isBluetoothDeviceSaved() = bluetoothBondManager.hasSaved(chatId)
 
     private val toolbarManager = MessageToolbarManager(
         context = context,
@@ -258,27 +422,97 @@ class ChatSessionViewModel @AssistedInject constructor(
         onAddSticker = ::addSticker
     )
 
-    val toolbarState = toolbarManager.state
+    private val toolbarState = toolbarManager.state
 
-    fun handleMessageLongPress(message: ChatMessage, bubblePosition: Offset, bubbleHeight: Float) {
+    private val interactionPresentation = combine(
+        interactionState,
+        _pendingQuote,
+        _streamingAiMessage,
+        toolbarState,
+        liveLocationRoom
+    ) { interaction, quote, streaming, toolbar, liveRoom ->
+        interaction.copy(
+            pendingQuote = quote,
+            streamingAiMessage = streaming,
+            toolbarState = toolbar,
+            liveLocationRoom = liveRoom
+        )
+    }
+
+    val uiState: StateFlow<ChatUiState> = combine(
+        basePresentation,
+        settingsPresentation,
+        connectionPresentation,
+        voicePlaybackState,
+        interactionPresentation
+    ) { base, settings, connection, voice, interaction ->
+        interaction.copy(
+            chatTitle = base.chatTitle,
+            peerUserInfo = base.peerUserInfo,
+            myUserInfo = base.myUserInfo,
+            isInfoLoaded = base.isInfoLoaded,
+            chatType = base.chatType,
+            mentionMembers = base.mentionMembers,
+            isMuted = base.isMuted,
+            isTemporary = base.isTemporary,
+            isOnline = base.isOnline,
+            draftMessage = base.draftMessage,
+            backgroundImagePath = base.backgroundImagePath,
+            isSpeakerOn = settings.speakerEnabled,
+            isSendButtonOn = settings.sendButtonEnabled,
+            isE2EActive = connection.isE2EActive,
+            totalUnreadCount = connection.totalUnreadCount,
+            connectionMode = connection.mode,
+            connectionRequired = connection.required,
+            isConnected = ::isConnected,
+            isBluetoothDeviceBonded = ::isBluetoothDeviceSaved,
+            voicePlaybackState = voice,
+            messagePaging = messagePagingFlow
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = interactionState.value.copy(
+            messagePaging = messagePagingFlow,
+            liveLocationRoom = liveLocationRegistry.room(liveLocationRegistry.roomIdFor(chatId))
+        )
+    )
+
+    private fun createLiveLocationMessage() = MessageContent.LiveLocation(
+        roomId = liveLocationRegistry.roomIdFor(chatId),
+        initiatorId = profileRepository.requireUserId()
+    )
+
+    private fun onEnterSession() {
+        activeSessionManager.enter(chatId)
+        clearUnreadState()
+    }
+
+    private fun onLeaveSession() = activeSessionManager.leave()
+
+    private fun handleMessageLongPress(
+        message: ChatMessage,
+        bubblePosition: Offset,
+        bubbleHeight: Float
+    ) {
         toolbarManager.onLongPress(
             message = message,
             bubblePosition = bubblePosition,
             bubbleHeight = bubbleHeight,
-            isSpeakerOn = _uiState.value.isSpeakerOn
+            isSpeakerOn = uiState.value.isSpeakerOn
         )
     }
 
-    fun handleToolbarAction(action: MessageAction) {
+    private fun handleToolbarAction(action: MessageAction) {
         if (action == MessageAction.Favorite) {
             toolbarManager.state.value.message?.let { favoriteMessages(listOf(it)) }
         }
         toolbarManager.onAction(action)
     }
 
-    fun dismissToolbar() = toolbarManager.dismiss()
+    private fun dismissToolbar() = toolbarManager.dismiss()
 
-    fun quoteMessage(message: ChatMessage) {
+    private fun quoteMessage(message: ChatMessage) {
         _pendingQuote.value = MessageQuote(
             messageId = message.id,
             senderId = message.senderId,
@@ -287,19 +521,19 @@ class ChatSessionViewModel @AssistedInject constructor(
         )
     }
 
-    fun forwardMessage(message: ChatMessage) {
+    private fun forwardMessage(message: ChatMessage) {
         if (!message.content.toMessageType().isForwardable) return
         emit(MessageUiEvent.ForwardMessage(message.id))
     }
 
-    fun forwardMessage(messageId: String, targetChatIds: Set<String>) {
+    private fun forwardMessage(messageId: String, targetChatIds: Set<String>) {
         viewModelScope.launch {
             messageRepository.forwardMessages(setOf(messageId), targetChatIds)
             context.showToast("已发送")
         }
     }
 
-    fun cancelQuote() {
+    private fun cancelQuote() {
         _pendingQuote.value = null
     }
 
@@ -320,57 +554,52 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateTextSelection(selection: TextRange) {
+    private fun updateTextSelection(selection: TextRange) {
         toolbarManager.updateTextSelection(selection)
     }
 
-    fun updateTextSelectionDragging(isDragging: Boolean) {
+    private fun updateTextSelectionDragging(isDragging: Boolean) {
         toolbarManager.updateTextSelectionDragging(isDragging)
     }
 
-    fun updateTextSelectionBounds(position: Offset, height: Float) {
+    private fun updateTextSelectionBounds(position: Offset, height: Float) {
         toolbarManager.updateTextSelectionBounds(position, height)
     }
-
-    // endregion
-
-    // region 语音播放
 
     private val audioPlaybackManager = AudioPlaybackManager(
         context = context,
         scope = viewModelScope,
         soundTipPlayer = soundTipPlayer,
         onPlaybackStateChanged = {
-            _voicePlaybackState.value = it
-            _playingMessageId.value = it.messageId.takeIf { _ -> it.isPlaying }
+            voicePlaybackState.value = it
         },
         onMessagePlayed = ::markAsPlayed
     )
 
-    fun toggleVoicePlay(messageId: String, localPath: String, durationMs: Long) {
+    private fun toggleVoicePlay(messageId: String, localPath: String, durationMs: Long) {
         audioPlaybackManager.togglePlay(
             messageId = messageId,
             localPath = localPath,
             expectedDurationMs = durationMs,
             messages = messages.value.filter { it.content is MessageContent.Voice },
-            isSpeakerOn = _uiState.value.isSpeakerOn
+            isSpeakerOn = uiState.value.isSpeakerOn
         )
     }
 
-    fun stopVoice() {
-        if (_voicePlaybackState.value.messageId != null) audioPlaybackManager.stop()
+    private fun stopVoice() {
+        if (voicePlaybackState.value.messageId != null) audioPlaybackManager.stop()
     }
 
-    fun seekVoice(messageId: String, fraction: Float) {
+    private fun seekVoice(messageId: String, fraction: Float) {
         audioPlaybackManager.seekTo(messageId, fraction)
     }
 
-    fun toggleVoiceSpeed(messageId: String) {
+    private fun toggleVoiceSpeed(messageId: String) {
         audioPlaybackManager.toggleSpeed(messageId)
     }
 
-    fun toggleSpeaker() {
-        val isSpeakerOn = !_uiState.value.isSpeakerOn
+    private fun toggleSpeaker() {
+        val isSpeakerOn = !uiState.value.isSpeakerOn
         audioPlaybackManager.setSpeakerOn(isSpeakerOn)
         viewModelScope.launch {
             chatSettingsRepository.toggleSpeaker(isSpeakerOn)
@@ -385,100 +614,13 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    // endregion
-
-    // region 会话监听
-
-    init {
-        val isLocalAi = chatId == LocalAiAssistant.ID
-
-        if (chatId.startsWith("group_")) {
-            viewModelScope.launch {
-                groupDao.observeById(chatId)
-                    .combine(groupDao.observeMembers(chatId)) { group, members ->
-                        group to members
-                    }
-                    .collect { (group, members) ->
-                        _uiState.update { current ->
-                            current.copy(
-                                title = group?.remark?.takeIf(String::isNotBlank)
-                                    ?: group?.name.orEmpty(),
-                                mentionMembers = members
-                                    .filterNot { it.userId == current.myId }
-                                    .map { MentionMember(it.userId, it.nickname, it.avatarPath) }
-                            )
-                        }
-                    }
-            }
-        }
-        // 联系人 & 个人资料
-        viewModelScope.launch {
-            contactRepository.observeContact(chatId)
-                .combine(profileRepository.observeProfile()) { contact, profile ->
-                    val isSelf = !isLocalAi && chatId == profile?.id
-                    _uiState.value.copy(
-                        title = if (isLocalAi) localAiAssistantName else contact?.displayName
-                            ?: if (isSelf) profile.nickname else _uiState.value.title,
-                        peerId = if (isLocalAi) LocalAiAssistant.ID else contact?.id ?: chatId,
-                        peerAvatar = contact?.avatarPath ?: _uiState.value.peerAvatar,
-                        myId = profile?.id,
-                        myAvatar = profile?.avatarPath,
-                        isSelf = isSelf
-                    )
-                }.collect { _uiState.value = it }
-        }
-
-        // 会话变更 & 聊天背景
-        viewModelScope.launch {
-            chatSessionRepository.observeSession(chatId)
-                .combine(chatSettingsRepository.chatBackground) { session, bg -> session to bg }
-                .collect { (session, bg) ->
-                    _uiState.update { cur ->
-                        cur.copy(
-                            title = if (isLocalAi) localAiAssistantName else session?.contactName?.takeIf {
-                                !chatId.startsWith(
-                                    "group_"
-                                )
-                            }
-                                ?: cur.title,
-                            peerId = session?.contactId ?: cur.peerId,
-                            peerAvatar = session?.contactAvatar ?: cur.peerAvatar,
-                            isSelf = session?.let { it.contactId == cur.myId } ?: cur.isSelf,
-                            isMuted = session?.isMuted ?: cur.isMuted,
-                            isTemporary = session?.isTemporary == true,
-                            isOnline = if (chatId == LocalAiAssistant.ID) {
-                                localAiEngine.state.value is LocalAiState.Ready
-                            } else {
-                                session?.isOnline ?: cur.isOnline
-                            },
-                            draftMessage = session?.draftMessage ?: cur.draftMessage,
-                            backgroundPath = session?.backgroundPath ?: bg
-                        )
-                    }
-                }
-        }
-
-        // 扬声器 & 发送按钮设置
-        viewModelScope.launch {
-            chatSettingsRepository.speakerEnabled
-                .combine(chatSettingsRepository.sendButtonEnabled) { speaker, sendButton -> speaker to sendButton }
-                .collect { (speaker, sendButton) ->
-                    _uiState.update { it.copy(isSpeakerOn = speaker, isSendButtonOn = sendButton) }
-                }
-        }
-    }
-
-    // endregion
-
-    // region 消息操作
-
-    fun clearUnreadState() {
+    private fun clearUnreadState() {
         viewModelScope.launch { messageRepository.markAllAsRead(chatId) }
         (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
             .cancel(chatId.hashCode())
     }
 
-    fun sendMessage(content: MessageContent) {
+    private fun sendMessage(content: MessageContent) {
         viewModelScope.launch {
             if (chatId == LocalAiAssistant.ID && !chatSessionRepository.exists(chatId)) {
                 chatSessionRepository.createSession(
@@ -526,7 +668,7 @@ class ChatSessionViewModel @AssistedInject constructor(
     private fun generateAiReply(prompt: String) {
         aiGenerationJob?.cancel()
         aiGenerationJob = viewModelScope.launch {
-            val receiverId = _uiState.value.myId ?: return@launch
+            val receiverId = uiState.value.myUserInfo?.id ?: return@launch
             val messageId = randomUUID()
             val timestamp = System.currentTimeMillis()
             val response = StringBuffer()
@@ -616,17 +758,17 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun finishAiStreamHandoff(messageId: String) {
+    private fun finishAiStreamHandoff(messageId: String) {
         _streamingAiMessage.update { current ->
             if (current?.id == messageId && !current.isGenerating) null else current
         }
     }
 
-    fun retrySend(messageId: String) {
+    private fun retrySend(messageId: String) {
         viewModelScope.launch { messageRepository.retrySend(messageId) }
     }
 
-    fun saveDraftMessage(draft: String) {
+    private fun saveDraftMessage(draft: String) {
         viewModelScope.launch {
             chatSessionRepository.updateDraft(
                 sessionId = chatId,
@@ -635,19 +777,21 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun deleteMessage(messageId: String) {
+    private fun deleteMessage(messageId: String) {
         viewModelScope.launch { messageRepository.deleteMessage(messageId) }
     }
 
-    fun recallMessage(messageId: String) {
+    private fun recallMessage(messageId: String) {
         viewModelScope.launch {
             messageRepository.recallMessage(messageId).onFailure {
-                context.showToast(it.message ?: context.getString(DesignR.string.msg_process_failed))
+                context.showToast(
+                    it.message ?: context.getString(DesignR.string.msg_process_failed)
+                )
             }
         }
     }
 
-    fun saveFile(message: ChatMessage) {
+    private fun saveFile(message: ChatMessage) {
         val content = message.content
         val file = File(content.getLocalPath() ?: return)
         val filename = if (content is MessageContent.File) content.filename else null
@@ -661,7 +805,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun sendEditedImage(uri: Uri, targetChatIds: Set<String>) {
+    private fun sendEditedImage(uri: Uri, targetChatIds: Set<String>) {
         if (targetChatIds.isEmpty()) return
         viewModelScope.launch {
             val content = persistEditedImage(uri) ?: return@launch
@@ -678,7 +822,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun favoriteEditedImage(uri: Uri) {
+    private fun favoriteEditedImage(uri: Uri) {
         viewModelScope.launch {
             val content = persistEditedImage(uri) ?: return@launch
             val now = System.currentTimeMillis()
@@ -690,7 +834,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                     content = "[图片]",
                     mediaPaths = content.localPath,
                     sourceMessageIds = "",
-                    sourceName = _uiState.value.title,
+                    sourceName = uiState.value.chatTitle.orEmpty(),
                     createdAt = now,
                     updatedAt = now
                 )
@@ -699,7 +843,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun saveEditedImage(uri: Uri) {
+    private fun saveEditedImage(uri: Uri) {
         viewModelScope.launch {
             val saved = publicFileManager.saveMedia(MessageType.Image, uri)
             context.showToast(if (saved != null) "已保存到本地" else "保存失败")
@@ -725,7 +869,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         )
     }
 
-    fun pauseTransfer(messageId: String) {
+    private fun pauseTransfer(messageId: String) {
         viewModelScope.launch {
             messageRepository.pauseTransfer(messageId).onFailure {
                 context.showToast(context.getString(DesignR.string.msg_process_failed))
@@ -733,7 +877,7 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun resumeTransfer(messageId: String) {
+    private fun resumeTransfer(messageId: String) {
         viewModelScope.launch {
             messageRepository.resumeTransfer(messageId).onFailure {
                 context.showToast(context.getString(DesignR.string.msg_process_failed))
@@ -741,17 +885,13 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun cancelTransfer(messageId: String) {
+    private fun cancelTransfer(messageId: String) {
         viewModelScope.launch { messageRepository.cancelTransfer(messageId) }
     }
 
-    fun reeditMessage(text: String) = emit(MessageUiEvent.ReeditMessage(text))
+    private fun reeditMessage(text: String) = emit(MessageUiEvent.ReeditMessage(text))
 
-    // endregion
-
-    // region 消息点击
-
-    fun handleMessageClick(message: ChatMessage) {
+    private fun handleMessageClick(message: ChatMessage) {
         when (val content = message.content) {
             is MessageContent.Image,
             is MessageContent.Video -> if (content.localPath.isNotBlank()) openMediaPreview(message)
@@ -761,6 +901,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                 content.localPath,
                 content.duration
             )
+
             is MessageContent.File -> emit(MessageUiEvent.PreviewFile(message.id))
             is MessageContent.Music -> emit(
                 MessageUiEvent.PreviewMusic(message.id, Json.encodeToString(content.music))
@@ -773,6 +914,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                     emit(MessageUiEvent.NavigateToLiveLocation)
                 }
             }
+
             is MessageContent.ContactCard -> viewModelScope.launch {
                 val userId = content.userId
                 prepareRequestAddFriend(userId = userId, fromContactCard = true)
@@ -809,22 +951,21 @@ class ChatSessionViewModel @AssistedInject constructor(
         )
     }
 
-    // endregion
-
-    // region 多选操作
-
-    fun isMessageSelected(messageId: String) = messageId in _uiState.value.selectedMessageIds
-
-    fun enterSelectMode(messageId: String) {
-        _uiState.update { it.copy(isSelectMode = true, selectedMessageIds = setOf(messageId)) }
+    private fun enterSelectMode(messageId: String) {
+        interactionState.update {
+            it.copy(
+                isSelectMode = true,
+                selectedMessageIds = setOf(messageId)
+            )
+        }
     }
 
-    fun exitSelectMode() {
-        _uiState.update { it.copy(isSelectMode = false, selectedMessageIds = emptySet()) }
+    private fun exitSelectMode() {
+        interactionState.update { it.copy(isSelectMode = false, selectedMessageIds = emptySet()) }
     }
 
-    fun toggleMessageSelection(messageId: String) {
-        _uiState.update { state ->
+    private fun toggleMessageSelection(messageId: String) {
+        interactionState.update { state ->
             val newIds = if (messageId in state.selectedMessageIds) {
                 state.selectedMessageIds - messageId
             } else {
@@ -834,14 +975,14 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun deleteSelectedMessages() {
-        val ids = _uiState.value.selectedMessageIds
+    private fun deleteSelectedMessages() {
+        val ids = uiState.value.selectedMessageIds
         viewModelScope.launch { messageRepository.deleteMessages(ids, chatId) }
         exitSelectMode()
     }
 
-    fun saveSelectedMessageFiles() {
-        val ids = _uiState.value.selectedMessageIds
+    private fun saveSelectedMessageFiles() {
+        val ids = uiState.value.selectedMessageIds
         exitSelectMode()
 
         viewModelScope.launch {
@@ -853,7 +994,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                 return@launch
             }
 
-            _uiState.update { it.copy(isFullscreenLoading = true) }
+            interactionState.update { it.copy(isFullscreenLoading = true) }
 
             val results = contents.map { content ->
                 val localPath = checkNotNull(content.getLocalPath())
@@ -870,7 +1011,7 @@ class ChatSessionViewModel @AssistedInject constructor(
             val successCount = results.count { it != null }
             val failCount = results.size - successCount
 
-            _uiState.update { it.copy(isFullscreenLoading = false) }
+            interactionState.update { it.copy(isFullscreenLoading = false) }
             context.showToast(
                 when {
                     failCount == 0 -> "已保存 $successCount 个文件"
@@ -881,8 +1022,8 @@ class ChatSessionViewModel @AssistedInject constructor(
         }
     }
 
-    fun forwardMessages(targetChatIds: Set<String>) {
-        val ids = _uiState.value.selectedMessageIds
+    private fun forwardMessages(targetChatIds: Set<String>) {
+        val ids = uiState.value.selectedMessageIds
         if (ids.isEmpty()) return
         viewModelScope.launch {
             messageRepository.forwardMessages(ids, targetChatIds)
@@ -891,30 +1032,30 @@ class ChatSessionViewModel @AssistedInject constructor(
         exitSelectMode()
     }
 
-    fun forwardMergedMessages(targetChatIds: Set<String>) {
-        val ids = _uiState.value.selectedMessageIds
+    private fun forwardMergedMessages(targetChatIds: Set<String>) {
+        val ids = uiState.value.selectedMessageIds
         if (ids.isEmpty()) return
-        val title = "${_uiState.value.title}的聊天记录"
+        val title = "${uiState.value.chatTitle.orEmpty()}的聊天记录"
         viewModelScope.launch {
             messageRepository.forwardMergedMessages(
                 ids = ids,
                 targetChatIds = targetChatIds,
                 historyTitle = title,
                 myName = "我",
-                peerName = _uiState.value.title
+                peerName = uiState.value.chatTitle.orEmpty()
             )
             context.showToast("已发送")
         }
         exitSelectMode()
     }
 
-    fun handleMultiSelectAction(action: MultiMessageAction) {
+    private fun handleMultiSelectAction(action: MultiMessageAction) {
         when (action) {
             MultiMessageAction.Forward -> emit(MessageUiEvent.ForwardMessage())
             MultiMessageAction.Delete -> emit(MessageUiEvent.ShowDeleteConfirm())
             MultiMessageAction.Download -> emit(MessageUiEvent.ShowDownloadConfirm)
             MultiMessageAction.Favorite -> viewModelScope.launch {
-                val messages = _uiState.value.selectedMessageIds.mapNotNull {
+                val messages = uiState.value.selectedMessageIds.mapNotNull {
                     messageRepository.getMessage(it)
                 }
                 favoriteMessages(messages)
@@ -938,7 +1079,7 @@ class ChatSessionViewModel @AssistedInject constructor(
                     mediaPaths = messages.mapNotNull { it.content.getLocalPath() }
                         .joinToString("\n"),
                     sourceMessageIds = messages.joinToString(",") { it.id },
-                    sourceName = _uiState.value.title,
+                    sourceName = uiState.value.chatTitle.orEmpty(),
                     createdAt = now,
                     updatedAt = now
                 )
@@ -963,35 +1104,27 @@ class ChatSessionViewModel @AssistedInject constructor(
         else -> quotePreview()
     }
 
-    // endregion
-
-    // region 跳转联系人
-
-    /**
-     * 跳转到联系人详情前的准备工作：
-     * - 若对方是自己或已是好友，直接返回成功，跳转到联系人详情；
-     * - 否则预拉取对方资料，供「申请添加好友」页使用。
-     */
-    suspend fun prepareRequestAddFriend(
+    private suspend fun prepareRequestAddFriend(
         userId: String = chatId,
         fromContactCard: Boolean = false
     ): Result<Unit> {
-        if (fromContactCard && (userId == _uiState.value.myId || contactRepository.exists(userId))) {
+        if (fromContactCard && (userId == uiState.value.myUserInfo?.id || contactRepository.exists(
+                userId
+            ))
+        ) {
             return Result.success(Unit)
         }
 
-        _uiState.update { it.copy(isFullscreenLoading = true) }
+        interactionState.update { it.copy(isFullscreenLoading = true) }
         return runCatching {
             if (addFriendRepository.fetchProfile(userId) == null) {
                 context.showToast(context.getString(DesignR.string.add_contact_fetch_profile_failed))
                 error("failed to fetch profile for $userId")
             }
         }.also {
-            _uiState.update { it.copy(isFullscreenLoading = false) }
+            interactionState.update { it.copy(isFullscreenLoading = false) }
         }
     }
-
-    // endregion
 
     override fun onCleared() {
         aiGenerationJob?.cancel()
@@ -1013,3 +1146,52 @@ data class StreamingAiMessage(
 )
 
 private const val AI_STREAM_PERSIST_INTERVAL_MS = 400L
+
+private data class ChatIdentity(
+    val peerUserInfo: Contact?,
+    val myUserInfo: UserProfile?,
+    val isInfoLoaded: Boolean,
+    val chatType: ChatType
+)
+
+private data class GroupPresentation(
+    val title: String,
+    val members: List<MentionMember>
+)
+
+private data class ChatSessionPresentation(
+    val title: String?,
+    val peerId: String?,
+    val peerAvatar: String?,
+    val isMuted: Boolean,
+    val isTemporary: Boolean,
+    val isOnline: Boolean,
+    val draftMessage: String?,
+    val backgroundPath: String?
+)
+
+private data class ChatSettingsPresentation(
+    val speakerEnabled: Boolean,
+    val sendButtonEnabled: Boolean
+)
+
+private data class ChatConnectionPresentation(
+    val mode: ConnectionMode,
+    val required: top.chengdongqing.wechat.core.network.connection.ConnectionRequiredEvent?,
+    val isE2EActive: Boolean,
+    val totalUnreadCount: Int
+)
+
+private data class ChatBasePresentation(
+    val chatTitle: String,
+    val peerUserInfo: Contact?,
+    val myUserInfo: UserProfile?,
+    val isInfoLoaded: Boolean,
+    val chatType: ChatType,
+    val mentionMembers: List<MentionMember>,
+    val isMuted: Boolean,
+    val isTemporary: Boolean,
+    val isOnline: Boolean,
+    val draftMessage: String?,
+    val backgroundImagePath: String?
+)

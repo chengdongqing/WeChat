@@ -43,7 +43,7 @@ import top.chengdongqing.wechat.core.designsystem.components.chat.WeMessageText
 import top.chengdongqing.wechat.core.designsystem.text.parseRichText
 import top.chengdongqing.wechat.core.designsystem.text.rememberEmojiInlineContent
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 import kotlin.math.roundToInt
 
 /**
@@ -60,7 +60,7 @@ fun TextContent(
     onSelectionBoundsChange: (Offset, Float) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
     val content = message.content as MessageContent.Text
 
     /* 解析富文本（URL、电话高亮+点击） */

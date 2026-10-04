@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -23,55 +22,56 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
-fun ChatSessionTopBar(
-    viewModel: ChatSessionViewModel,
-    uiState: ChatSessionUiState,
+fun ChatTopBar(
+    uiState: ChatUiState,
+    onIntent: (ChatUiIntent) -> Unit,
+    onNavigate: (ScreenRoute) -> Unit,
     backIconResId: Int,
-    onBack: () -> Unit,
-    onInfo: () -> Unit
+    onBack: () -> Unit
 ) {
     val isSelectMode = uiState.isSelectMode
-    val unreadCount by viewModel.unreadCount.collectAsStateWithLifecycle()
 
     WeTopAppBar(
         titleContent = {
-            ChatSessionTitle(viewModel, uiState)
+            ChatTitle(uiState)
         },
         backIconResId = backIconResId,
         backText = if (isSelectMode) stringResource(DesignR.string.action_cancel) else null,
         onBack = {
             if (isSelectMode) {
-                viewModel.exitSelectMode()
+                onIntent(ChatUiIntent.ExitSelectMode)
             } else {
                 onBack()
             }
         },
-        unreadCount = unreadCount
+        unreadCount = uiState.totalUnreadCount
     ) {
         if (!isSelectMode) {
             IconButton(
                 icon = DesignR.drawable.ic_more_outlined,
                 description = stringResource(DesignR.string.action_more)
             ) {
-                onInfo()
+                val route = if (uiState.chatType == ChatType.Group) {
+                    ScreenRoute.GroupInfo(uiState.chatId)
+                } else {
+                    ScreenRoute.ChatInfo(uiState.chatId)
+                }
+                onNavigate(route)
             }
         }
     }
 }
 
 @Composable
-private fun ChatSessionTitle(
-    viewModel: ChatSessionViewModel,
-    uiState: ChatSessionUiState,
-) {
-    val isE2EActive by viewModel.isE2EActive.collectAsStateWithLifecycle()
+private fun ChatTitle(uiState: ChatUiState) {
+    val isE2EActive = uiState.isE2EActive
     val statusColor = if (uiState.isOnline) {
         WeTheme.colorScheme.primary
     } else {
@@ -85,7 +85,7 @@ private fun ChatSessionTitle(
         }
     )
     val title = when {
-        !uiState.isSelectMode -> uiState.title
+        !uiState.isSelectMode -> uiState.chatTitle.orEmpty()
         uiState.selectedCount > 0 -> stringResource(
             R.string.chat_selected_count,
             uiState.selectedCount
@@ -143,7 +143,7 @@ private fun ChatSessionTitle(
                     tint = WeTheme.colorScheme.textSecondary
                 )
             }
-            if (uiState.isSelf == false) {
+            if (uiState.chatType != ChatType.Self) {
                 // 加密锁图标
                 if (isE2EActive) {
                     Icon(

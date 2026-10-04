@@ -48,6 +48,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -59,7 +60,12 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
+import top.chengdongqing.wechat.core.data.model.ChatHistoryPayload
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.ConnectionMode
 import top.chengdongqing.wechat.core.data.model.MessageContent
@@ -79,9 +85,10 @@ import top.chengdongqing.wechat.core.media.preview.WeMediaPreview
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageSendStatus
+import top.chengdongqing.wechat.core.navigation.LocalAppNavigator
 import top.chengdongqing.wechat.core.navigation.LocalCallLauncher
 import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
-import top.chengdongqing.wechat.core.util.randomUUID
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.BombMessageEffect
@@ -102,24 +109,103 @@ import top.chengdongqing.wechat.feature.chat.ui.session.util.MessageDataScrollEf
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
-fun ChatSessionScreen(
+fun ChatRoute(
     chatId: String,
     isSpecialPage: Boolean = false,
-    onBack: () -> Unit,
-    onInfo: () -> Unit,
-    onContact: (id: String) -> Unit,
-    onFilePreview: (messageId: String) -> Unit,
-    onMusicPreview: (messageId: String, trackName: String) -> Unit,
-    onRequestAddFriend: () -> Unit,
-    onWebView: (url: String) -> Unit,
-    onLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
-    onLiveLocation: () -> Unit,
-    onFavorites: () -> Unit,
-    onChatHistory: (MessageContent.ChatHistory) -> Unit,
-    viewModel: ChatSessionViewModel = hiltViewModel { factory: ChatSessionViewModel.Factory ->
+    onBack: (() -> Unit)? = null,
+    viewModel: ChatViewModel = hiltViewModel { factory: ChatViewModel.Factory ->
         factory.create(chatId)
     }
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val navigator = LocalAppNavigator.current
+    val handleBack = onBack ?: { navigator.back() }
+    val navigationEvents = remember(viewModel) {
+        viewModel.uiEvent.filter(MessageUiEvent::isNavigationEffect)
+    }
+    val screenEvents = remember(viewModel) {
+        viewModel.uiEvent.filter { event -> !event.isNavigationEffect() }
+    }
+
+    LifecycleResumeEffect(chatId) {
+        viewModel.onIntent(ChatUiIntent.OnEnter)
+
+        onPauseOrDispose {
+            viewModel.onIntent(ChatUiIntent.OnLeave)
+        }
+    }
+
+    LaunchedEffect(viewModel, navigator, chatId) {
+        navigationEvents.collect { event ->
+            when (event) {
+                is MessageUiEvent.NavigateToContact -> {
+                    navigator.backStack.removeIf { it is ScreenRoute.ContactDetail }
+                    navigator.navigateTo(ScreenRoute.ContactDetail(event.contactId))
+                }
+
+                is MessageUiEvent.PreviewFile -> navigator.navigateTo(ScreenRoute.FilePreview(event.messageId))
+                is MessageUiEvent.PreviewMusic -> navigator.navigateTo(
+                    ScreenRoute.MusicPreview(
+                        messageId = event.messageId,
+                        trackName = event.trackName
+                    )
+                )
+
+                MessageUiEvent.NavigateToRequestAddFriend -> navigator.navigateTo(
+                    ScreenRoute.RequestAddFriend(chatId)
+                )
+
+                is MessageUiEvent.NavigateToLiveRoom -> navigator.navigateTo(
+                    ScreenRoute.LiveRoom(chatId, event.liveId, event.isHost, event.hostId)
+                )
+
+                MessageUiEvent.NavigateToLiveLocation -> navigator.navigateTo(
+                    ScreenRoute.LiveLocation(
+                        chatId
+                    )
+                )
+
+                is MessageUiEvent.OpenChatHistory -> navigator.navigateTo(
+                    ScreenRoute.ChatHistory(
+                        Json.encodeToString(
+                            ChatHistoryPayload(
+                                event.content.title,
+                                event.content.items
+                            )
+                        )
+                    )
+                )
+
+                else -> Unit
+            }
+        }
+    }
+
+    ChatScreen(
+        state = state,
+        events = screenEvents,
+        onIntent = viewModel::onIntent,
+        isSpecialPage = isSpecialPage,
+        onBack = handleBack,
+        onNavigate = { route ->
+            if (route is ScreenRoute.ContactDetail) {
+                navigator.backStack.removeIf { it is ScreenRoute.ContactDetail }
+            }
+            navigator.navigateTo(route)
+        }
+    )
+}
+
+@Composable
+fun ChatScreen(
+    state: ChatUiState,
+    events: Flow<MessageUiEvent> = emptyFlow(),
+    onIntent: (ChatUiIntent) -> Unit = {},
+    isSpecialPage: Boolean = false,
+    onBack: () -> Unit = {},
+    onNavigate: (ScreenRoute) -> Unit = {}
+) {
+    val chatId = state.chatId
     val expandedMediaAlbums = remember(chatId) { mutableStateListOf<String>() }
     var mediaPreview by remember { mutableStateOf<ChatMediaPreviewState?>(null) }
     var editingImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -130,7 +216,6 @@ fun ChatSessionScreen(
         if (!mediaPreviewClosing) {
             mediaPreviewClosing = true
             scope.launch {
-                // 先让视频 Surface 被封面替换并至少完成一次绘制，再触发共享元素退出。
                 withFrameNanos { }
                 withFrameNanos { }
                 mediaPreview = null
@@ -138,11 +223,10 @@ fun ChatSessionScreen(
             }
         }
     }
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val streamingAiMessage by viewModel.streamingAiMessage.collectAsStateWithLifecycle()
-    val lazyMessageItems = viewModel.messagePagingFlow.collectAsLazyPagingItems()
-    val toolbarState by viewModel.toolbarState.collectAsStateWithLifecycle()
-    val liveLocationRoom by viewModel.liveLocationRoom.collectAsStateWithLifecycle()
+    val streamingAiMessage = state.streamingAiMessage
+    val lazyMessageItems = state.messagePaging.collectAsLazyPagingItems()
+    val toolbarState = state.toolbarState
+    val liveLocationRoom = state.liveLocationRoom
     val selectingTextMessageId = toolbarState.message
         ?.takeIf { toolbarState.visible && it.content is MessageContent.Text }
         ?.id
@@ -157,26 +241,23 @@ fun ChatSessionScreen(
     val sendEditedImageToContacts =
         LocalContactPickerLauncher.current.rememberLauncher { contacts ->
             editedImageUri?.let {
-                viewModel.sendEditedImage(
-                    it,
-                    contacts.map { contact -> contact.id }.toSet()
+                onIntent(
+                    ChatUiIntent.SendEditedImage(
+                        it,
+                        contacts.map { contact -> contact.id }.toSet()
+                    )
                 )
             }
             editedImageUri = null
         }
-    val chatContext = rememberChatSessionContext(
-        viewModel = viewModel,
-        uiState = uiState,
-        onContact = { isPeer ->
-            onContact(if (isPeer) uiState.peerId!! else uiState.myId!!)
-        },
-        onRequestAddFriend = onRequestAddFriend,
-        onWebView = onWebView,
-        onLive = onLive
+    val chatContext = rememberChatContext(
+        uiState = state,
+        onIntent = onIntent,
+        onNavigate = onNavigate
     )
 
     val focusRequester = remember { NativeFocusRequester() }
-    val controller = rememberInputBarController(focusRequester, uiState.isSendButtonOn)
+    val controller = rememberInputBarController(focusRequester, state.isSendButtonOn)
 
     KeyboardScrollEffect(listState, lazyMessageItems.itemCount)
     MessageDataScrollEffect(
@@ -184,19 +265,11 @@ fun ChatSessionScreen(
         messages = lazyMessageItems.itemSnapshotList.items,
         transientMessageId = streamingAiMessage?.id
     )
-    LifecycleResumeEffect(chatId) {
-        viewModel.onEnterSession()
-        viewModel.clearUnreadState()
-        onPauseOrDispose {
-            viewModel.onLeaveSession()
-            viewModel.stopVoice()
-        }
-    }
 
     val initialMessagesLoaded = lazyMessageItems.loadState.refresh is LoadState.NotLoading
     LaunchedEffect(lazyMessageItems.itemSnapshotList, initialMessagesLoaded) {
         val messages = lazyMessageItems.itemSnapshotList.items
-        viewModel.syncMessages(messages)
+        onIntent(ChatUiIntent.MessagesUpdated(messages))
         if (!messageSnapshotInitialized) {
             knownMessageIds += messages.map { it.id }
             messageSnapshotInitialized = initialMessagesLoaded
@@ -221,29 +294,26 @@ fun ChatSessionScreen(
                 .let { it as? MessageContent.Text }
                 ?.text
             if (persistedText == streaming.text) {
-                viewModel.finishAiStreamHandoff(streaming.id)
+                onIntent(ChatUiIntent.FinishAiStreamHandoff(streaming.id))
             }
         }
     }
 
-    PeerConnectionOverlay(chatId, uiState, viewModel)
-    ChatSessionUiEventHandler(
-        viewModel = viewModel,
+    PeerConnectionOverlay(chatId, state)
+    ChatUiEffectHandler(
+        events = events,
+        uiState = state,
+        onIntent = onIntent,
         launchCall = launchCall,
-        onContact = onContact,
-        onFilePreview = onFilePreview,
-        onMusicPreview = onMusicPreview,
-        onLiveLocation = onLiveLocation,
         onPreviewMedia = {
             mediaPreviewClosing = false
             mediaPreview = it
         },
-        onEditImage = { editingImageUri = it },
-        onOpenChatHistory = onChatHistory
+        onEditImage = { editingImageUri = it }
     )
 
     CompositionLocalProvider(
-        LocalChatSessionContext provides chatContext,
+        LocalChatContext provides chatContext,
         LocalExpandedMediaAlbums provides expandedMediaAlbums
     ) {
         SharedTransitionLayout {
@@ -268,7 +338,7 @@ fun ChatSessionScreen(
                                             )
                                             val up = waitForUpOrCancellation(PointerEventPass.Final)
                                             if (up != null) {
-                                                viewModel.dismissToolbar()
+                                                onIntent(ChatUiIntent.DismissToolbar)
                                             }
                                         }
                                     }
@@ -277,7 +347,7 @@ fun ChatSessionScreen(
                                 }
                             )
                         ) {
-                            uiState.backgroundPath?.let {
+                            state.backgroundImagePath?.let {
                                 AsyncImage(
                                     model = it,
                                     contentDescription = null,
@@ -289,9 +359,10 @@ fun ChatSessionScreen(
                             Scaffold(
                                 topBar = {
                                     Column {
-                                        ChatSessionTopBar(
-                                            viewModel = viewModel,
-                                            uiState = uiState,
+                                        ChatTopBar(
+                                            uiState = state,
+                                            onIntent = onIntent,
+                                            onNavigate = onNavigate,
                                             backIconResId = if (isSpecialPage) {
                                                 DesignR.drawable.ic_close_outlined
                                             } else {
@@ -303,7 +374,6 @@ fun ChatSessionScreen(
                                                 }
                                                 onBack()
                                             },
-                                            onInfo = onInfo
                                         )
                                         if (liveLocationRoom.isActive) {
                                             LiveLocationPinnedEntry(
@@ -315,65 +385,66 @@ fun ChatSessionScreen(
                                                         )
 
                                                     liveLocationRoom.participants.containsKey(
-                                                        uiState.myId
+                                                        state.myUserInfo?.id
                                                     ) ->
                                                         stringResource(R.string.live_location_me_sharing)
 
                                                     else -> stringResource(
                                                         R.string.live_location_peer_sharing,
-                                                        uiState.title
+                                                        state.chatTitle.orEmpty()
                                                     )
                                                 },
                                                 avatar = if (
                                                     liveLocationRoom.participants.containsKey(
-                                                        uiState.myId
+                                                        state.myUserInfo?.id
                                                     )
-                                                ) uiState.myAvatar else uiState.peerAvatar,
-                                                onClick = onLiveLocation
+                                                ) state.myUserInfo?.avatarPath else state.peerUserInfo?.avatarPath,
+                                                onClick = {
+                                                    onNavigate(
+                                                        ScreenRoute.LiveLocation(
+                                                            chatId
+                                                        )
+                                                    )
+                                                }
                                             )
                                         }
                                     }
                                 },
                                 bottomBar = {
-                                    if (!uiState.isSelectMode) {
+                                    if (!state.isSelectMode) {
                                         InputBar(
                                             controller,
-                                            viewModel,
-                                            uiState,
+                                            events,
+                                            state,
                                             listState,
+                                            onIntent,
                                             launchCall,
-                                            onStartLive = {
-                                                val liveId = randomUUID()
-                                                viewModel.sendMessage(
-                                                    MessageContent.Live(
-                                                        liveId = liveId,
-                                                        title = "${uiState.title}的直播",
-                                                        hostName = "我",
-                                                        actorId = uiState.myId
+                                            onStartLive = { onIntent(ChatUiIntent.StartLive) },
+                                            onShareLiveLocation = { onIntent(ChatUiIntent.ShareLiveLocation) },
+                                            onOpenFavorites = {
+                                                onNavigate(
+                                                    ScreenRoute.Favorites(
+                                                        chatId
                                                     )
                                                 )
-                                                onLive(
-                                                    liveId,
-                                                    true,
-                                                    uiState.myId.orEmpty()
-                                                )
-                                            },
-                                            onShareLiveLocation = {
-                                                viewModel.sendMessage(viewModel.createLiveLocationMessage())
-                                                onLiveLocation()
-                                            },
-                                            onOpenFavorites = onFavorites
+                                            }
                                         )
                                     } else {
                                         MultiSelectBottomBar(
-                                            enabled = uiState.selectedCount > 0,
-                                            onActionClick = viewModel::handleMultiSelectAction,
-                                            onExitSelectMode = viewModel::exitSelectMode
+                                            enabled = state.selectedCount > 0,
+                                            onActionClick = {
+                                                onIntent(
+                                                    ChatUiIntent.HandleMultiSelectAction(
+                                                        it
+                                                    )
+                                                )
+                                            },
+                                            onExitSelectMode = { onIntent(ChatUiIntent.ExitSelectMode) }
                                         )
                                     }
                                 },
                                 containerColor =
-                                    if (uiState.backgroundPath == null) {
+                                    if (state.backgroundImagePath == null) {
                                         WeTheme.colorScheme.background
                                     } else {
                                         Color.Unspecified
@@ -382,12 +453,12 @@ fun ChatSessionScreen(
                                 ChatMessageList(
                                     lazyMessageItems,
                                     streamingAiMessage,
-                                    uiState,
+                                    state,
                                     toolbarState,
-                                    viewModel,
                                     listState,
                                     innerPadding,
-                                    bombProgress
+                                    bombProgress,
+                                    onIntent
                                 )
                             }
 
@@ -399,8 +470,8 @@ fun ChatSessionScreen(
                                 bubbleHeight = toolbarState.bubbleHeight,
                                 isTextMessage =
                                     toolbarState.message?.content is MessageContent.Text,
-                                onActionClick = viewModel::handleToolbarAction,
-                                onDismiss = viewModel::dismissToolbar
+                                onActionClick = { onIntent(ChatUiIntent.HandleToolbarAction(it)) },
+                                onDismiss = { onIntent(ChatUiIntent.DismissToolbar) }
                             )
 
                             BombMessageEffect(
@@ -450,12 +521,12 @@ fun ChatSessionScreen(
                         when (index) {
                             0 -> sendEditedImageToContacts(99)
                             1 -> {
-                                viewModel.favoriteEditedImage(uri)
+                                onIntent(ChatUiIntent.FavoriteEditedImage(uri))
                                 editedImageUri = null
                             }
 
                             2 -> {
-                                viewModel.saveEditedImage(uri)
+                                onIntent(ChatUiIntent.SaveEditedImage(uri))
                                 editedImageUri = null
                             }
                         }
@@ -465,7 +536,21 @@ fun ChatSessionScreen(
         )
     }
 
-    LoadingDialog(uiState.isFullscreenLoading)
+    LoadingDialog(state.isFullscreenLoading)
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChatScreenPreview() {
+    WeTheme {
+        ChatScreen(
+            state = ChatUiState(
+                chatId = "preview",
+                chatTitle = "微信好友",
+                isOnline = true
+            )
+        )
+    }
 }
 
 @Composable
@@ -508,25 +593,27 @@ private fun LiveLocationPinnedEntry(
 @Composable
 private fun PeerConnectionOverlay(
     chatId: String,
-    uiState: ChatSessionUiState,
-    viewModel: ChatSessionViewModel
+    uiState: ChatUiState
 ) {
-    val connectionRequired by viewModel.connectionRequired.collectAsStateWithLifecycle()
-    val connectionMode by viewModel.connectionMode.collectAsStateWithLifecycle()
     var showOverlay by remember { mutableStateOf(false) }
     val closeOverlay = { showOverlay = false }
 
-    LaunchedEffect(connectionRequired, connectionMode, uiState.isSelf) {
-        if (viewModel.isLocalAiSession || uiState.isSelf == null || uiState.isSelf) {
+    LaunchedEffect(
+        uiState.connectionRequired,
+        uiState.connectionMode,
+        uiState.chatType,
+        uiState.isInfoLoaded
+    ) {
+        if (uiState.chatType == ChatType.Ai || !uiState.isInfoLoaded || uiState.chatType == ChatType.Self) {
             return@LaunchedEffect
         }
 
         val shouldShow = when {
-            connectionRequired != null -> true
+            uiState.connectionRequired != null -> true
             // 蓝牙设备若已保存，发送时自动连接，无需弹窗
-            connectionMode == ConnectionMode.Bluetooth && !viewModel.isBluetoothDeviceSaved() -> false
+            uiState.connectionMode == ConnectionMode.Bluetooth && !uiState.isBluetoothDeviceBonded() -> false
             // Wi-Fi Direct 每次都需要重新连接
-            connectionMode == ConnectionMode.WiFiDirect && !viewModel.isConnected() -> true
+            uiState.connectionMode == ConnectionMode.WiFiDirect && !uiState.isConnected() -> true
             else -> false
         }
         if (shouldShow) {
@@ -543,7 +630,7 @@ private fun PeerConnectionOverlay(
     PeerDeviceOverlay(
         visible = showOverlay,
         userId = chatId,
-        mode = connectionMode,
+        mode = uiState.connectionMode,
         onConnected = closeOverlay,
         onDismiss = closeOverlay
     )
@@ -553,16 +640,13 @@ private fun PeerConnectionOverlay(
  * UI 事件处理
  */
 @Composable
-private fun ChatSessionUiEventHandler(
-    viewModel: ChatSessionViewModel,
+private fun ChatUiEffectHandler(
+    events: Flow<MessageUiEvent>,
+    uiState: ChatUiState,
+    onIntent: (ChatUiIntent) -> Unit,
     launchCall: (CallType) -> Unit,
-    onContact: (String) -> Unit,
-    onFilePreview: (String) -> Unit,
-    onMusicPreview: (String, String) -> Unit,
-    onLiveLocation: () -> Unit,
     onPreviewMedia: (ChatMediaPreviewState) -> Unit,
     onEditImage: (Uri) -> Unit,
-    onOpenChatHistory: (MessageContent.ChatHistory) -> Unit,
 ) {
     val resources = LocalResources.current
     var useMergedForward by remember { mutableStateOf(false) }
@@ -571,33 +655,30 @@ private fun ChatSessionUiEventHandler(
         DialogManager.show(resources.getString(R.string.msg_confirm_forward, contacts.size)) {
             val ids = contacts.map { it.id }.toSet()
             val messageId = singleForwardMessageId
-            if (messageId != null) viewModel.forwardMessage(messageId, ids)
-            else if (useMergedForward) viewModel.forwardMergedMessages(ids)
-            else viewModel.forwardMessages(ids)
+            onIntent(ChatUiIntent.ForwardMessages(ids, messageId, useMergedForward))
             singleForwardMessageId = null
         }
     }
 
     LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
+        events.collect { event ->
             when (event) {
                 is MessageUiEvent.ShowDeleteConfirm -> DialogManager.show(
                     title = resources.getString(R.string.msg_confirm_delete),
                     okText = DesignR.string.action_delete,
                     okColor = Red100
                 ) {
-                    if (event.messageId != null) viewModel.deleteMessage(event.messageId)
-                    else viewModel.deleteSelectedMessages()
+                    onIntent(ChatUiIntent.DeleteMessage(event.messageId))
                 }
 
                 is MessageUiEvent.ShowDownloadConfirm -> DialogManager.show(
                     title = resources.getString(R.string.msg_confirm_save),
                     okText = DesignR.string.action_save
-                ) { viewModel.saveSelectedMessageFiles() }
+                ) { onIntent(ChatUiIntent.SaveSelectedFiles) }
 
                 is MessageUiEvent.ForwardMessage -> {
                     singleForwardMessageId = event.messageId
-                    if (event.messageId == null && viewModel.uiState.value.selectedCount > 1) {
+                    if (event.messageId == null && uiState.selectedCount > 1) {
                         ActionSheetManager.show(
                             options = listOf(
                                 ActionSheetItem(R.string.message_forward_separate),
@@ -613,12 +694,6 @@ private fun ChatSessionUiEventHandler(
                     }
                 }
 
-                is MessageUiEvent.PreviewFile -> onFilePreview(event.messageId)
-                is MessageUiEvent.PreviewMusic -> onMusicPreview(
-                    event.messageId,
-                    event.trackName
-                )
-
                 is MessageUiEvent.PreviewMedia -> onPreviewMedia(
                     ChatMediaPreviewState(
                         medias = event.medias,
@@ -630,9 +705,6 @@ private fun ChatSessionUiEventHandler(
                 is MessageUiEvent.EditImage -> onEditImage(event.uri)
 
                 is MessageUiEvent.LaunchCall -> launchCall(event.callType)
-                is MessageUiEvent.NavigateToContact -> onContact(event.contactId)
-                MessageUiEvent.NavigateToLiveLocation -> onLiveLocation()
-                is MessageUiEvent.OpenChatHistory -> onOpenChatHistory(event.content)
                 else -> {}
             }
         }
@@ -645,6 +717,18 @@ private data class ChatMediaPreviewState(
     val initialIndex: Int
 )
 
+private fun MessageUiEvent.isNavigationEffect(): Boolean = when (this) {
+    is MessageUiEvent.NavigateToContact,
+    MessageUiEvent.NavigateToRequestAddFriend,
+    is MessageUiEvent.NavigateToLiveRoom,
+    MessageUiEvent.NavigateToLiveLocation,
+    is MessageUiEvent.PreviewFile,
+    is MessageUiEvent.PreviewMusic,
+    is MessageUiEvent.OpenChatHistory -> true
+
+    else -> false
+}
+
 /**
  * 消息列表
  */
@@ -652,12 +736,12 @@ private data class ChatMediaPreviewState(
 private fun ChatMessageList(
     lazyMessageItems: LazyPagingItems<ChatMessage>,
     streamingAiMessage: StreamingAiMessage?,
-    uiState: ChatSessionUiState,
+    uiState: ChatUiState,
     toolbarState: MessageToolbarState,
-    viewModel: ChatSessionViewModel,
     listState: LazyListState,
     innerPadding: PaddingValues,
-    bombProgress: Float
+    bombProgress: Float,
+    onIntent: (ChatUiIntent) -> Unit
 ) {
     val overscrollEffect = rememberBouncedOverscrollEffect()
     val scope = rememberCoroutineScope()
@@ -683,11 +767,11 @@ private fun ChatMessageList(
                 contentType = streamingAiMessage
             ) {
                 MessageItem(
-                    message = streamingAiMessage.toChatMessage(uiState.peerId.orEmpty()),
-                    peerAvatar = if (viewModel.isLocalAiSession) {
+                    message = streamingAiMessage.toChatMessage(uiState.peerUserInfo?.id.orEmpty()),
+                    peerAvatar = if (uiState.chatType == ChatType.Ai) {
                         DesignR.drawable.img_logo
-                    } else uiState.peerAvatar,
-                    myAvatar = uiState.myAvatar,
+                    } else uiState.peerUserInfo?.avatarPath,
+                    myAvatar = uiState.myUserInfo?.avatarPath,
                     isSelectMode = false,
                     isMessageSelected = false,
                     onMessageClick = {},
@@ -722,15 +806,13 @@ private fun ChatMessageList(
                 MessageItem(
                     message = displayMessage,
                     albumMessages = albumMessages,
-                    onAlbumMediaClick = viewModel::handleMessageClick,
-                    peerAvatar = if (viewModel.isLocalAiSession) {
+                    onAlbumMediaClick = { onIntent(ChatUiIntent.MessageClicked(it)) },
+                    peerAvatar = if (uiState.chatType == ChatType.Ai) {
                         DesignR.drawable.img_logo
-                    } else uiState.peerAvatar,
-                    myAvatar = uiState.myAvatar,
+                    } else uiState.peerUserInfo?.avatarPath,
+                    myAvatar = uiState.myUserInfo?.avatarPath,
                     isSelectMode = uiState.isSelectMode,
-                    isMessageSelected = uiState.isSelectMode && viewModel.isMessageSelected(
-                        displayMessage.id
-                    ),
+                    isMessageSelected = displayMessage.id in uiState.selectedMessageIds,
                     isToolbarHighlighted = toolbarState.visible &&
                             toolbarState.message?.id == displayMessage.id,
                     shakeOffsetX = shake.x,
@@ -740,13 +822,26 @@ private fun ChatMessageList(
                     textSelection = toolbarState.textSelection.takeIf {
                         toolbarState.visible && toolbarState.message?.id == displayMessage.id
                     },
-                    onTextSelectionChange = viewModel::updateTextSelection,
-                    onTextSelectionDragChange = viewModel::updateTextSelectionDragging,
-                    onTextSelectionBoundsChange = viewModel::updateTextSelectionBounds,
+                    onTextSelectionChange = { onIntent(ChatUiIntent.UpdateTextSelection(it)) },
+                    onTextSelectionDragChange = {
+                        onIntent(
+                            ChatUiIntent.UpdateTextSelectionDragging(
+                                it
+                            )
+                        )
+                    },
+                    onTextSelectionBoundsChange = { pos, height ->
+                        onIntent(
+                            ChatUiIntent.UpdateTextSelectionBounds(
+                                pos,
+                                height
+                            )
+                        )
+                    },
                     quoteSenderName = displayMessage.quote?.let { quote ->
                         when (quote.senderId) {
-                            uiState.myId -> "我"
-                            uiState.peerId -> uiState.title
+                            uiState.myUserInfo?.id -> "我"
+                            uiState.peerUserInfo?.id -> uiState.chatTitle.orEmpty()
                             else -> quote.senderId
                         }
                     }.orEmpty(),
@@ -757,14 +852,18 @@ private fun ChatMessageList(
                             scope.launch { listState.animateScrollToItem(targetIndex) }
                         }
                     },
-                    onSwipeLeft = { viewModel.quoteMessage(displayMessage) },
-                    onSwipeRight = { viewModel.forwardMessage(displayMessage) },
+                    onSwipeLeft = { onIntent(ChatUiIntent.QuoteMessage(displayMessage)) },
+                    onSwipeRight = { onIntent(ChatUiIntent.ForwardMessage(displayMessage)) },
                     onMessageClick = {
-                        if (!uiState.isSelectMode) viewModel.handleMessageClick(displayMessage)
-                        else viewModel.toggleMessageSelection(displayMessage.id)
+                        if (!uiState.isSelectMode) onIntent(
+                            ChatUiIntent.MessageClicked(
+                                displayMessage
+                            )
+                        )
+                        else onIntent(ChatUiIntent.SelectMessage(displayMessage.id))
                     },
                     onMessageLongPress = { pos, height ->
-                        viewModel.handleMessageLongPress(displayMessage, pos, height)
+                        onIntent(ChatUiIntent.MessageLongPressed(displayMessage, pos, height))
                     }
                 )
                 TimeDivider(
@@ -810,10 +909,6 @@ private fun ChatMessage.festiveEffectType(): FestiveEffectType? {
     }
 }
 
-/**
- * 微信式特效只响应单个特效表情。同一条消息包含多个特效标记时整体静默，
- * 避免多个全屏动画竞争或连续轰炸。
- */
 private fun ChatMessage.singleSpecialEffectToken(): String? {
     val text = (content as? MessageContent.Text)?.text ?: return null
     var found: String? = null

@@ -29,7 +29,7 @@ import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.components.progress.WeCircleProgress
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.MessageSendStatus
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
@@ -80,7 +80,7 @@ fun FileContent(message: ChatMessage) {
 
 @Composable
 fun ControlWithProgress(message: ChatMessage) {
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
     val isPaused = message.sendStatus is MessageSendStatus.Paused
 
     val icon = if (isPaused) DesignR.drawable.ic_play_filled else DesignR.drawable.ic_pause_filled

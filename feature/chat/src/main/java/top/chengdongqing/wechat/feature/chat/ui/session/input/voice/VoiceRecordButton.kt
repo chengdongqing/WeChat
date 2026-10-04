@@ -36,7 +36,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.R
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 
 /**
  * 语音录制按钮
@@ -55,7 +55,7 @@ fun VoiceRecordButton(
     maxDuration: Long = 60000,
     viewModel: VoiceViewModel = hiltViewModel()
 ) {
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
     val context = LocalContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()

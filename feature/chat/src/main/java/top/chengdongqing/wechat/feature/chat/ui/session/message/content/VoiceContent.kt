@@ -40,14 +40,14 @@ import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.designsystem.window.rememberScreenFractionWidth
 import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun VoiceContent(message: ChatMessage) {
     val isFromMe = message.isFromMe
     val content = message.content as MessageContent.Voice
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
 
     // 根据时长计算气泡宽度
     val currentFraction = remember(content.duration) {
@@ -58,9 +58,10 @@ fun VoiceContent(message: ChatMessage) {
     val targetWidth = rememberScreenFractionWidth(currentFraction)
 
     // 是否播放中
-    val isPlaying by remember(message.id, chatContext?.playingMessageId) {
+    val isPlaying by remember(message.id, chatContext?.voicePlaybackState) {
+        val playBackState = chatContext?.voicePlaybackState
         derivedStateOf {
-            chatContext?.playingMessageId == message.id
+            playBackState?.messageId == message.id && playBackState.isPlaying
         }
     }
     val playbackState = chatContext?.voicePlaybackState

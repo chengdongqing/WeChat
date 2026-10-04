@@ -3,6 +3,7 @@ package top.chengdongqing.wechat.feature.chat.ui.session.input
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalResources
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import kotlinx.coroutines.delay
@@ -22,12 +23,6 @@ import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberMe
 import top.chengdongqing.wechat.feature.chat.ui.session.input.handler.rememberMediaLaunchers
 import kotlin.time.Duration.Companion.milliseconds
 
-/**
- * 输入栏 Actions 组装入口
- *
- * 将所有 handler / launcher / controller 编排成 [InputBarActions]，
- * 调用方（InputBar）只需拿到这一个对象，不感知内部依赖。
- */
 @Composable
 fun rememberInputBarActions(
     controller: InputBarController,
@@ -37,6 +32,10 @@ fun rememberInputBarActions(
     onShareLiveLocation: () -> Unit,
     onOpenFavorites: () -> Unit
 ): InputBarActions {
+    if (LocalInspectionMode.current) {
+        return remember(controller) { InputBarActions() }
+    }
+
     val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val privateFileManager = hiltViewModel<InputBarViewModel>().privateFileManager

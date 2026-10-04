@@ -70,9 +70,11 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun MusicOverlay(
     state: InputBarState,
-    actions: InputBarActions,
-    libraryViewModel: MusicLibraryViewModel = hiltViewModel()
+    actions: InputBarActions
 ) {
+    if (!state.isMusicOpen) return
+
+    val libraryViewModel: MusicLibraryViewModel = hiltViewModel()
     val onDismiss = actions.onToggleMusic
     val context = LocalContext.current
 

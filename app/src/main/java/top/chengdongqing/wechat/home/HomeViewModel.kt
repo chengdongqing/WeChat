@@ -22,7 +22,7 @@ class HomeViewModel @Inject constructor(
 
     private val _currentTab = MutableStateFlow(HomeTab.Chats)
 
-    private val _unreadMapFlow: Flow<Map<HomeTab, Int>> = combine(
+    private val _unreadMap: Flow<Map<HomeTab, Int>> = combine(
         chatSessionRepository.observeTotalUnreadCount(),
         friendRequestRepository.observeUnreadCount()
     ) { chatUnread, contactUnread ->
@@ -36,7 +36,7 @@ class HomeViewModel @Inject constructor(
 
     val uiState: StateFlow<HomeUiState> = combine(
         _currentTab,
-        _unreadMapFlow
+        _unreadMap
     ) { currentTab, unreadMap ->
         HomeUiState(currentTab, unreadMap)
     }.stateIn(

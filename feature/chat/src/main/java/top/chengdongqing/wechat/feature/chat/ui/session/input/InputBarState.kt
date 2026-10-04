@@ -4,9 +4,6 @@ import androidx.compose.runtime.Stable
 import top.chengdongqing.wechat.core.designsystem.model.Emoji
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
 
-/**
- * 输入栏UI状态
- */
 @Stable
 data class InputBarState(
     val inputText: String = "",

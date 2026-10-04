@@ -49,7 +49,7 @@ import top.chengdongqing.wechat.core.designsystem.components.loading.WeLoading
 import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.MessageSendStatus
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 /**
@@ -82,7 +82,7 @@ fun MessageItem(
 ) {
     val isFromMe = message.isFromMe
     val content = message.content
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
 
     var bubblePosition by remember { mutableStateOf(Offset.Zero) }
     var bubbleHeight by remember { mutableFloatStateOf(0f) }
@@ -304,7 +304,7 @@ fun MessageItem(
  */
 @Composable
 private fun Avatar(model: Any?, isPeer: Boolean) {
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
 
     AsyncImage(
         model = model,

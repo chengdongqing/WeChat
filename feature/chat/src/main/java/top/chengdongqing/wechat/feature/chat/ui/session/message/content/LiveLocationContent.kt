@@ -16,13 +16,13 @@ import androidx.compose.ui.unit.dp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.feature.chat.R
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun LiveLocationContent(message: ChatMessage) {
     val content = message.content as MessageContent.LiveLocation
-    val active = LocalChatSessionContext.current?.activeLiveLocationRoomId == content.roomId
+    val active = LocalChatContext.current?.activeLiveLocationRoomId == content.roomId
     Row(
         modifier = Modifier
             .width(210.dp)

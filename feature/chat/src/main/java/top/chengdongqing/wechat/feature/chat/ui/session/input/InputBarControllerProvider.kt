@@ -10,33 +10,39 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import kotlinx.serialization.json.Json
 import top.chengdongqing.wechat.core.designsystem.components.emojitextfield.NativeFocusRequester
 import top.chengdongqing.wechat.feature.chat.data.store.RecentEmojisStore
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
 import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.RecentEmojisViewModel
 
-/**
- * 创建并记住 [InputBarController]，包含完整的键盘监听和返回键处理逻辑。
- */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun rememberInputBarController(
     focusRequester: NativeFocusRequester,
     isSendButtonOn: Boolean = true,
-    recentEmojisStore: RecentEmojisStore = hiltViewModel<RecentEmojisViewModel>().store
+    recentEmojisStore: RecentEmojisStore? = null
 ): InputBarController {
     val scope = rememberCoroutineScope()
     val isImeVisible = WindowInsets.isImeVisible
     val keyboardController = LocalSoftwareKeyboardController.current
+    val appContext = LocalContext.current.applicationContext
+    val resolvedRecentEmojisStore = recentEmojisStore ?: if (LocalInspectionMode.current) {
+        remember(appContext) { RecentEmojisStore(Json.Default, appContext) }
+    } else {
+        hiltViewModel<RecentEmojisViewModel>().store
+    }
 
     // 创建控制器
     val controller = remember(focusRequester, isSendButtonOn) {
         InputBarController(
             focusRequester = focusRequester,
             keyboardController = keyboardController,
-            recentEmojisStore = recentEmojisStore,
+            recentEmojisStore = resolvedRecentEmojisStore,
             isSendButtonOn = isSendButtonOn,
             scope = scope
         )

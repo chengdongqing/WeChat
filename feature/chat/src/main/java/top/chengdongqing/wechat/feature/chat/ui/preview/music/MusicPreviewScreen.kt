@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
 import top.chengdongqing.wechat.core.data.model.MusicTrack
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
+import top.chengdongqing.wechat.core.designsystem.theme.Black
 import top.chengdongqing.wechat.core.designsystem.theme.White
 import top.chengdongqing.wechat.core.designsystem.window.StatusBarAppearance
 import top.chengdongqing.wechat.core.playback.MusicPlayer
@@ -56,7 +58,7 @@ fun MusicPreviewScreen(music: MusicTrack, onBack: () -> Unit) {
 
     // 准备音频
     LaunchedEffect(music) {
-        delay(300)
+        delay(300.milliseconds)
         player.setMetadata(music.title, music.artist, cover)
         music.audioPath?.let(player::prepare) ?: player.prepare(music.audioRes)
         player.play()
@@ -66,7 +68,7 @@ fun MusicPreviewScreen(music: MusicTrack, onBack: () -> Unit) {
     LaunchedEffect(player.isPlaying) {
         while (player.isPlaying) {
             player.updateProgress()
-            delay(200)
+            delay(200.milliseconds)
         }
     }
 
@@ -77,7 +79,7 @@ fun MusicPreviewScreen(music: MusicTrack, onBack: () -> Unit) {
 
     StatusBarAppearance(isDark = false)
 
-    Box {
+    Box(Modifier.background(Black)) {
         MusicBackground(cover)
 
         Scaffold(

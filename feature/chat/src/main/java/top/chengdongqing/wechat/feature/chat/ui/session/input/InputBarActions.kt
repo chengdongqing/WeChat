@@ -9,7 +9,6 @@ import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.MoreAction
  * 输入栏所有操作契约
  */
 data class InputBarActions(
-    // -------- 文本 --------
     /** 输入内容变更 */
     val onTextChange: (String) -> Unit = {},
     /** 输入框行数变更 */
@@ -23,7 +22,6 @@ data class InputBarActions(
     /** 切换全屏输入 */
     val onToggleExpand: () -> Unit = {},
 
-    // -------- 模式切换 --------
     /** 切换到指定 mode */
     val onSwitchMode: (InputMode) -> Unit = {},
     /** 切换到语音模式 */
@@ -31,7 +29,6 @@ data class InputBarActions(
     /** 切换回文字模式（含自动弹出键盘） */
     val onSwitchToText: () -> Unit = {},
 
-    // -------- 媒体 / 更多 --------
     /** 更多面板操作分发 */
     val onMoreAction: (action: MoreAction, isLongClick: Boolean) -> Unit = { _, _ -> },
     /** 语音转文字结果回填 */
@@ -41,7 +38,6 @@ data class InputBarActions(
     /** 消息发送 */
     val onSendMessage: (MessageContent) -> Unit = {},
 
-    // -------- 透传 --------
     /** 发起通话 */
     val onLaunchCall: (CallType) -> Unit = {}
 )

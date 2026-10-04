@@ -24,13 +24,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
 fun LiveContent(message: ChatMessage) {
     val content = message.content as MessageContent.Live
-    val context = LocalChatSessionContext.current
+    val context = LocalChatContext.current
     if (content.status != "live" && content.status != "ended") {
         val label = when (content.status) {
             "joined" -> "${content.hostName}进入了直播间"
@@ -41,13 +41,15 @@ fun LiveContent(message: ChatMessage) {
             label,
             color = Color.White.copy(alpha = .7f),
             fontSize = 13.sp,
-            modifier = Modifier.background(Color(0x55000000), RoundedCornerShape(5.dp))
+            modifier = Modifier
+                .background(Color(0x55000000), RoundedCornerShape(5.dp))
                 .padding(horizontal = 10.dp, vertical = 6.dp)
         )
         return
     }
     Column(
-        Modifier.width(235.dp)
+        Modifier
+            .width(235.dp)
             .background(Color(0xFF242424), RoundedCornerShape(8.dp))
             .clickable(enabled = content.status == "live") {
                 context?.onLive(
@@ -58,7 +60,10 @@ fun LiveContent(message: ChatMessage) {
             }
     ) {
         Box(
-            Modifier.fillMaxWidth().height(112.dp).background(Color(0xFF343434)),
+            Modifier
+                .fillMaxWidth()
+                .height(112.dp)
+                .background(Color(0xFF343434)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -71,7 +76,9 @@ fun LiveContent(message: ChatMessage) {
                 if (content.status == "live") "直播中" else "直播已结束",
                 color = Color.White,
                 fontSize = 12.sp,
-                modifier = Modifier.align(Alignment.TopStart).padding(10.dp)
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(10.dp)
                     .background(Color(0xFFE94343), RoundedCornerShape(3.dp))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             )

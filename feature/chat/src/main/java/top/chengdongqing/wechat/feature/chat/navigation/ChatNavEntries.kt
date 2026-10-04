@@ -22,7 +22,7 @@ import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationViewModel
 import top.chengdongqing.wechat.feature.chat.ui.preview.chathistory.ChatHistoryScreen
 import top.chengdongqing.wechat.feature.chat.ui.preview.file.FilePreviewScreen
 import top.chengdongqing.wechat.feature.chat.ui.preview.music.MusicPreviewScreen
-import top.chengdongqing.wechat.feature.chat.ui.session.ChatSessionScreen
+import top.chengdongqing.wechat.feature.chat.ui.session.ChatRoute
 
 fun EntryProviderScope<NavKey>.chatNavEntries(
     backStack: NavBackStack<NavKey>,
@@ -39,37 +39,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
             )
         } else {
             ChatTheme {
-                ChatSessionScreen(
-                    chatId = it.groupId,
-                    onBack = onBack,
-                    onInfo = { backStack.add(ScreenRoute.GroupInfo(it.groupId)) },
-                    onContact = {},
-                    onFilePreview = {},
-                    onMusicPreview = { _, _ -> },
-                    onRequestAddFriend = {},
-                    onWebView = {},
-                    onFavorites = {
-                        backStack.add(ScreenRoute.Favorites(it.groupId))
-                    },
-                    onChatHistory = { history ->
-                        backStack.add(
-                            ScreenRoute.ChatHistory(
-                                Json.encodeToString(
-                                    ChatHistoryPayload(
-                                        history.title,
-                                        history.items
-                                    )
-                                )
-                            )
-                        )
-                    },
-                    onLive = { liveId, isHost, hostId ->
-                        backStack.add(ScreenRoute.LiveRoom(it.groupId, liveId, isHost, hostId))
-                    },
-                    onLiveLocation = {
-                        backStack.add(ScreenRoute.LiveLocation(it.groupId))
-                    }
-                )
+                ChatRoute(it.groupId)
             }
         }
     }
@@ -79,47 +49,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
         val chatId = it.chatId
 
         ChatTheme {
-            ChatSessionScreen(
-                chatId = chatId,
-                onBack = onBack,
-                onInfo = {
-                    backStack.add(
-                        if (chatId.startsWith("group_")) ScreenRoute.GroupInfo(chatId)
-                        else ScreenRoute.ChatInfo(chatId)
-                    )
-                },
-                onContact = { id ->
-                    backStack.removeIf { key -> key is ScreenRoute.ContactDetail }
-                    backStack.add(ScreenRoute.ContactDetail(id))
-                },
-                onFilePreview = { id -> backStack.add(ScreenRoute.FilePreview(id)) },
-                onMusicPreview = { id, name ->
-                    backStack.add(
-                        ScreenRoute.MusicPreview(
-                            messageId = id,
-                            trackName = name
-                        )
-                    )
-                },
-                onRequestAddFriend = { backStack.add(ScreenRoute.RequestAddFriend(chatId)) },
-                onWebView = { url -> backStack.add(ScreenRoute.WebView(url)) },
-                onFavorites = {
-                    backStack.add(ScreenRoute.Favorites(chatId))
-                },
-                onChatHistory = { history ->
-                    backStack.add(
-                        ScreenRoute.ChatHistory(
-                            Json.encodeToString(ChatHistoryPayload(history.title, history.items))
-                        )
-                    )
-                },
-                onLive = { liveId, isHost, hostId ->
-                    backStack.add(ScreenRoute.LiveRoom(chatId, liveId, isHost, hostId))
-                },
-                onLiveLocation = {
-                    backStack.add(ScreenRoute.LiveLocation(chatId))
-                }
-            )
+            ChatRoute(chatId)
         }
     }
 

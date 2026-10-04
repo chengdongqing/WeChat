@@ -25,7 +25,7 @@ import top.chengdongqing.wechat.core.media.picker.MediaPickerRequest
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.R
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.MoreAction
 import java.io.File
 import top.chengdongqing.wechat.feature.chat.R as ChatR
@@ -86,7 +86,7 @@ fun rememberActionHandler(
 ): ActionHandler {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
     val isSelf = chatContext?.isSelf == true
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 

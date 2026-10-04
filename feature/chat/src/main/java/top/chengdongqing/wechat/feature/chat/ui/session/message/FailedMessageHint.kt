@@ -23,7 +23,7 @@ import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.designsystem.ui.messageRes
 import top.chengdongqing.wechat.core.model.SendError
 import top.chengdongqing.wechat.feature.chat.R
-import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatSessionContext
+import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 
 /**
  * 失败消息提示
@@ -45,7 +45,7 @@ fun FailedMessageHint(message: ChatMessage) {
 @Composable
 private fun rememberHintText(message: ChatMessage): AnnotatedString {
     val resources = LocalResources.current
-    val chatContext = LocalChatSessionContext.current
+    val chatContext = LocalChatContext.current
     val textColor = WeTheme.colorScheme.textSecondary
     val linkStyles = rememberLinkStyles()
     val error = message.error
