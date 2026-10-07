@@ -49,7 +49,6 @@ fun ContactDetailScreen(
                 is NavigationEvent.NavigateToProfile -> onProfile()
                 is NavigationEvent.ShowMoreOptions -> onSetting()
                 is NavigationEvent.NavigateToRequestAdd -> onRequestAdd()
-                else -> {}
             }
         }
     }

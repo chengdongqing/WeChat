@@ -130,7 +130,6 @@ class ContactRepositoryImpl @Inject constructor(
     override suspend fun deleteContact(userId: String) {
         val contact = contactDao.getById(userId) ?: return
 
-        // 会话删除包含独立的资源清理，不应嵌套在联系人数据库事务中。
         chatSessionRepository.deleteSession(userId)
         database.withWriteTransaction {
             chatSessionDao.deleteById(userId)

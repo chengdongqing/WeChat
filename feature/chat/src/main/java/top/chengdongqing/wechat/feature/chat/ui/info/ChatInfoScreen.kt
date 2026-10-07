@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +50,7 @@ import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.model.Contact
 import top.chengdongqing.wechat.core.navigation.LocalAppNavigator
 import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.chat.R
@@ -65,9 +67,9 @@ fun ChatInfoRoute(
         factory.create(chatId)
     }
 ) {
-    val navigator = LocalAppNavigator.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val navigator = LocalAppNavigator.current
 
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -114,6 +116,7 @@ fun ChatInfoScreen(
             onIntent(ChatInfoUiIntent.ImportLocalAiModel(it))
         }
     }
+    val contact = state.contact
 
     Scaffold(
         topBar = {
@@ -134,14 +137,14 @@ fun ChatInfoScreen(
                 .padding(innerPadding),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ContactListBar(
-                name = state.contactName,
-                avatarPath = state.contactAvatar,
-                isAiAssistant = state.isAiAssistant,
-                onContact = onNavigateToContact
-            )
+            contact?.let {
+                ContactListBar(
+                    contacts = remember(contact) { listOf(contact) },
+                    onNavigateToContact = onNavigateToContact
+                )
+            }
 
-            if (state.isAiAssistant) {
+            if (contact?.isAI == true) {
                 LocalAiModelSettings(
                     state = state.localAiState,
                     modelSizeBytes = state.modelSizeBytes,
@@ -214,13 +217,11 @@ fun ChatInfoScreen(
                             WeSettingValue(formatTemporaryExpiry(it))
                         }
                     }
-                    if (!state.isFriend) {
-                        WeSettingItem(
-                            label = stringResource(R.string.chat_info_promote_temporary),
-                            description = stringResource(R.string.chat_info_promote_temporary_description),
-                            onClick = onRequestAddFriend
-                        )
-                    }
+                    WeSettingItem(
+                        label = stringResource(R.string.chat_info_promote_temporary),
+                        description = stringResource(R.string.chat_info_promote_temporary_description),
+                        onClick = onRequestAddFriend
+                    )
                     WeSettingItem(
                         label = stringResource(R.string.chat_info_end_temporary),
                         showDivider = false,
@@ -251,7 +252,7 @@ fun ChatInfoScreen(
                     DialogManager.show(
                         title = resources.getString(
                             R.string.chat_info_clear_title,
-                            state.contactName
+                            contact?.displayName
                         ),
                         okText = DesignR.string.action_clear,
                         okColor = Red100,
@@ -399,10 +400,8 @@ private fun ggufFileTypeLabel(type: Int): String = when (type) {
 
 @Composable
 private fun ContactListBar(
-    name: String,
-    avatarPath: String?,
-    isAiAssistant: Boolean,
-    onContact: () -> Unit
+    contacts: List<Contact>,
+    onNavigateToContact: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -411,31 +410,33 @@ private fun ContactListBar(
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .widthIn(max = 80.dp)
-                .onTap { onContact() },
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AsyncImage(
-                model = if (isAiAssistant) DesignR.drawable.img_logo else avatarPath,
-                error = painterResource(DesignR.drawable.img_avatar_placeholder),
-                contentDescription = null,
+        contacts.forEach { contact ->
+            Column(
                 modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(6.dp))
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = name,
-                fontSize = 13.sp,
-                color = WeTheme.colorScheme.textSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+                    .widthIn(max = 80.dp)
+                    .onTap { onNavigateToContact() },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                AsyncImage(
+                    model = if (contact.isAI) DesignR.drawable.img_logo else contact.avatarPath,
+                    error = painterResource(DesignR.drawable.img_avatar_placeholder),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = contact.displayName,
+                    fontSize = 13.sp,
+                    color = WeTheme.colorScheme.textSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
 
-        if (!isAiAssistant) {
+        if (!contacts.first().isAI) {
             DashedAddButton(
                 modifier = Modifier.size(64.dp),
                 cornerRadius = 6.dp,

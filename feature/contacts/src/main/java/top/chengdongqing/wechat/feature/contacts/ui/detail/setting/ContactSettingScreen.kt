@@ -13,8 +13,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.dialog.DialogManager
 import top.chengdongqing.wechat.core.designsystem.components.menu.WeDangerButton
@@ -25,38 +30,63 @@ import top.chengdongqing.wechat.core.designsystem.components.switch.WeSwitch
 import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.core.model.Contact
+import top.chengdongqing.wechat.core.model.ContactRelation
+import top.chengdongqing.wechat.core.navigation.LocalAppNavigator
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.contacts.R
-import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailViewModel
-import top.chengdongqing.wechat.feature.contacts.ui.detail.NavigationEvent
 import top.chengdongqing.wechat.feature.contacts.ui.picker.ContactPickerRequest
 import top.chengdongqing.wechat.feature.contacts.ui.picker.rememberContactPickerLauncher
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 import top.chengdongqing.wechat.feature.contacts.R as ContactsR
 
 @Composable
-fun ContactSettingScreen(
-    onBack: () -> Unit,
-    onDelete: () -> Unit,
-    onContactProfile: () -> Unit,
-    viewModel: ContactDetailViewModel
+fun ContactSettingRoute(
+    contactId: String,
+    viewModel: ContactSettingViewModel = hiltViewModel { factory: ContactSettingViewModel.Factory ->
+        factory.create(contactId)
+    }
 ) {
-    val contact by viewModel.contact.collectAsStateWithLifecycle()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val navigator = LocalAppNavigator.current
 
-    // 处理导航事件
-    LaunchedEffect(Unit) {
-        viewModel.navigationEvent.collect { event ->
-            when (event) {
-                is NavigationEvent.ContactDeleted -> onDelete()
-                else -> {}
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEvent.collect { event ->
+                when (event) {
+                    is ContactSettingUiEvent.OnContactDeleted -> {
+                        navigator.clear()
+                        navigator.navigateTo(ScreenRoute.Home)
+                    }
+                }
             }
         }
     }
+
+    ContactSettingScreen(
+        state = state,
+        onIntent = { intent ->
+            when (intent) {
+                is ContactSettingUiIntent.Back -> navigator.back()
+                is ContactSettingUiIntent.NavigateTo -> navigator.navigateTo(intent.route)
+                else -> viewModel.onIntent(intent)
+            }
+        }
+    )
+}
+
+@Composable
+fun ContactSettingScreen(
+    state: ContactSettingUiState = ContactSettingUiState(),
+    onIntent: (ContactSettingUiIntent) -> Unit = {},
+) {
+    val contact = state.contact
 
     Scaffold(
         topBar = {
             WeTopAppBar(
                 title = stringResource(R.string.contact_settings_title),
-                onBack = onBack
+                onBack = { onIntent(ContactSettingUiIntent.Back) }
             )
         },
         containerColor = WeTheme.colorScheme.background
@@ -71,8 +101,7 @@ fun ContactSettingScreen(
             contact?.let {
                 ContactSettingContent(
                     contact = it,
-                    viewModel = viewModel,
-                    onContactProfile = onContactProfile
+                    onIntent = onIntent,
                 )
             }
         }
@@ -82,8 +111,7 @@ fun ContactSettingScreen(
 @Composable
 private fun ContactSettingContent(
     contact: Contact,
-    viewModel: ContactDetailViewModel,
-    onContactProfile: () -> Unit
+    onIntent: (ContactSettingUiIntent) -> Unit,
 ) {
     val resources = LocalResources.current
     val contactPicker = rememberContactPickerLauncher { contacts ->
@@ -91,14 +119,16 @@ private fun ContactSettingContent(
             title = resources.getString(ContactsR.string.msg_confirm_send),
             okText = DesignR.string.action_send
         ) {
-            viewModel.sendContactCard(contacts.first().id)
+            onIntent(ContactSettingUiIntent.ShareContact(contacts.first().id))
         }
     }
 
     WeSettingGroup {
         WeSettingItem(
             label = stringResource(R.string.contact_settings_profile),
-            onClick = onContactProfile
+            onClick = {
+                onIntent(ContactSettingUiIntent.NavigateTo(ScreenRoute.EditContactProfile(contact.id)))
+            }
         ) {
             WeSettingValue(contact.displayName)
         }
@@ -128,7 +158,7 @@ private fun ContactSettingContent(
             showDivider = false
         ) {
             WeSwitch(checked = contact.isStarred) {
-                viewModel.toggleStar()
+                onIntent(ContactSettingUiIntent.ToggleStar)
             }
         }
     }
@@ -138,7 +168,7 @@ private fun ContactSettingContent(
             showArrow = false
         ) {
             WeSwitch(checked = contact.isBlocked) {
-                viewModel.toggleBlock()
+                onIntent(ContactSettingUiIntent.ToggleBlock)
             }
         }
         WeSettingItem(
@@ -150,7 +180,7 @@ private fun ContactSettingContent(
 
     if (contact.isFriend) {
         DeleteButton(contact) {
-            viewModel.deleteContact()
+            onIntent(ContactSettingUiIntent.DeleteContact)
         }
     }
 }
@@ -173,4 +203,20 @@ private fun DeleteButton(contact: Contact, onDelete: () -> Unit) {
         label = stringResource(DesignR.string.action_delete),
         onClick = showDialog
     )
+}
+
+@Preview
+@Composable
+private fun ContactSettingPreview() {
+    WeTheme {
+        ContactSettingScreen(
+            state = ContactSettingUiState(
+                contact = Contact(
+                    id = "wxid_1212",
+                    nickname = "海盐芝士不加糖",
+                    relation = ContactRelation.Friend,
+                )
+            )
+        )
+    }
 }

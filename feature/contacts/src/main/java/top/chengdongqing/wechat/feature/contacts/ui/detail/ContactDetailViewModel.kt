@@ -18,30 +18,22 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import top.chengdongqing.wechat.core.data.handler.FileHandler
 import top.chengdongqing.wechat.core.data.repository.AddFriendRepository
 import top.chengdongqing.wechat.core.data.repository.ContactRepository
-import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.data.repository.TemporaryChatRepository
-import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.Contact
-import top.chengdongqing.wechat.core.model.ContactRelation
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.toContact
-import top.chengdongqing.wechat.core.model.toResult
-import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @HiltViewModel(assistedFactory = ContactDetailViewModel.Factory::class)
 class ContactDetailViewModel @AssistedInject constructor(
     @Assisted private val contactId: String,
-    private val contactRepository: ContactRepository,
+    contactRepository: ContactRepository,
     private val addFriendRepository: AddFriendRepository,
     private val temporaryChatRepository: TemporaryChatRepository,
-    private val messageRepository: MessageRepository,
-    private val privateFileManager: PrivateFileManager,
     profileRepository: ProfileRepository,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -71,7 +63,7 @@ class ContactDetailViewModel @AssistedInject constructor(
                 signature = context.getString(DesignR.string.local_ai_assistant_signature)
             )
             // 朋友（从数据库）
-            contact != null -> contact.copy(relation = ContactRelation.Friend)
+            contact != null -> contact
             // 陌生人（从缓存）
             else -> addFriendRepository.getContactFromCache(contactId)
         }
@@ -144,69 +136,6 @@ class ContactDetailViewModel @AssistedInject constructor(
                 }
             }
     }
-
-    /**
-     * 拉黑/取消拉黑联系人
-     */
-    fun toggleBlock() {
-        viewModelScope.launch {
-            contactRepository.updateContact(
-                contact.value?.id ?: return@launch
-            ) { contact ->
-                contact.copy(isBlocked = !contact.isBlocked)
-            }
-        }
-    }
-
-    /**
-     * 删除联系人
-     */
-    fun deleteContact() {
-        viewModelScope.launch {
-            try {
-                contactRepository.deleteContact(contactId)
-                _navigationEvent.emit(NavigationEvent.ContactDeleted)
-            } catch (_: Exception) {
-                _uiState.update { it.copy(error = "删除联系人失败") }
-            }
-        }
-    }
-
-    /**
-     * 发送联系人名片消息
-     */
-    fun sendContactCard(targetContactId: String) {
-        val handler = FileHandler(privateFileManager) {
-            viewModelScope.launch {
-                messageRepository.sendMessage(
-                    sessionId = targetContactId,
-                    receiverId = targetContactId,
-                    content = it
-                ).onSuccess {
-                    context.showToast("已发送")
-                }
-            }
-        }
-
-        contact.value?.let {
-            viewModelScope.launch {
-                handler.handleContactSelection(it.toResult())
-            }
-        }
-    }
-
-    /**
-     * 开/关星标
-     */
-    fun toggleStar() {
-        viewModelScope.launch {
-            contactRepository.updateContact(
-                contact.value?.id ?: return@launch
-            ) { contact ->
-                contact.copy(isStarred = !contact.isStarred)
-            }
-        }
-    }
 }
 
 data class ContactDetailUiState(
@@ -220,7 +149,6 @@ sealed class NavigationEvent {
     data object NavigateToProfile : NavigationEvent()
     data object NavigateToRequestAdd : NavigationEvent()
     data object ShowMoreOptions : NavigationEvent()
-    data object ContactDeleted : NavigationEvent()
 }
 
 sealed class ContactAction {

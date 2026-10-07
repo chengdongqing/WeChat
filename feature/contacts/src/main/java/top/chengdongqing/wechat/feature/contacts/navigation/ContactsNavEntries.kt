@@ -14,7 +14,7 @@ import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailScreen
 import top.chengdongqing.wechat.feature.contacts.ui.detail.ContactDetailViewModel
 import top.chengdongqing.wechat.feature.contacts.ui.detail.profile.ContactProfileScreen
 import top.chengdongqing.wechat.feature.contacts.ui.detail.profile.edit.EditContactProfileScreen
-import top.chengdongqing.wechat.feature.contacts.ui.detail.setting.ContactSettingScreen
+import top.chengdongqing.wechat.feature.contacts.ui.detail.setting.ContactSettingRoute
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.NewFriendsScreen
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.RequestAddFriendScreen
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.RequestAddFriendViewModel
@@ -76,19 +76,7 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
         )
     }
     entry<ScreenRoute.ContactSetting> {
-        val id = it.contactId
-
-        ContactSettingScreen(
-            onBack = onBack,
-            onDelete = {
-                backStack.clear()
-                backStack.add(ScreenRoute.Home)
-            },
-            onContactProfile = { backStack.add(ScreenRoute.EditContactProfile(id)) },
-            viewModel = hiltViewModel { factory: ContactDetailViewModel.Factory ->
-                factory.create(id)
-            }
-        )
+        ContactSettingRoute(it.contactId)
     }
     entry<ScreenRoute.ContactProfile> {
         val id = it.contactId

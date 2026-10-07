@@ -125,16 +125,13 @@ class ChatInfoViewModel @AssistedInject constructor(
         }
 
         ChatInfoUiState(
-            contactName = finalContact?.displayName ?: session.contactName,
-            contactAvatar = finalContact?.avatarPath ?: session.contactAvatar,
+            contact = finalContact,
             isMuted = session.isMuted,
             isPinned = session.isPinned,
             isBottomed = session.isBottomed,
             backgroundPath = session.backgroundPath,
             isTemporary = session.isTemporary,
             expiresAt = session.expiresAt,
-            isFriend = contact != null,
-            isAiAssistant = isAi,
             localAiState = localAiState,
             modelSizeBytes = localAiEngine.modelSizeBytes,
             modelInfo = localAiEngine.modelInfo

@@ -2,6 +2,7 @@ package top.chengdongqing.wechat.feature.contacts.data.mapper
 
 import top.chengdongqing.wechat.core.database.entity.ContactEntity
 import top.chengdongqing.wechat.core.model.Contact
+import top.chengdongqing.wechat.core.model.ContactRelation
 
 fun ContactEntity.toDomain(): Contact = Contact(
     id = id,
@@ -11,6 +12,7 @@ fun ContactEntity.toDomain(): Contact = Contact(
     gender = gender,
     remarkName = remarkName,
     note = note,
+    relation = ContactRelation.Friend,
     source = source,
     isBlocked = isBlocked,
     isStarred = isStarred,
