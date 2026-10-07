@@ -15,7 +15,7 @@ import top.chengdongqing.wechat.core.runtime.IoScope
 import kotlin.time.Duration.Companion.milliseconds
 
 @HiltAndroidApp
-class WeChatApplication : Application() {
+class WeChatApp : Application() {
 
     @Inject
     @IoScope

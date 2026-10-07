@@ -55,6 +55,7 @@ sealed interface ChatUiIntent {
     data class UpdateTextSelectionDragging(val isDragging: Boolean) : ChatUiIntent
     data class UpdateTextSelectionBounds(val position: Offset, val height: Float) : ChatUiIntent
     data class QuoteMessage(val message: ChatMessage) : ChatUiIntent
+    data object CancelQuote : ChatUiIntent
     data class ForwardMessage(val message: ChatMessage) : ChatUiIntent
     data class MessageClicked(val message: ChatMessage) : ChatUiIntent
     data class MessageLongPressed(
@@ -80,7 +81,5 @@ sealed interface ChatUiIntent {
         val merged: Boolean = false
     ) : ChatUiIntent
 
-    data object CancelQuote : ChatUiIntent
     data object RequestAddFriend : ChatUiIntent
-    data object StartLive : ChatUiIntent
 }

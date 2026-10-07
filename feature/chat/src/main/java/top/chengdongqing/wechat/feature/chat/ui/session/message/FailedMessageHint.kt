@@ -80,7 +80,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                     label to LinkAnnotation.Clickable(
                         tag = "retry",
                         styles = linkStyles,
-                        linkInteractionListener = { chatContext?.onRetrySend(message.id) }
+                        linkInteractionListener = { chatContext.onRetrySend(message.id) }
                     )
                 }
 
@@ -88,7 +88,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                     resources.getString(R.string.chat_action_send_verify) to LinkAnnotation.Clickable(
                         tag = "verify",
                         styles = linkStyles,
-                        linkInteractionListener = { chatContext?.onRequestAddFriend() }
+                        linkInteractionListener = { chatContext.onRequestAddFriend() }
                     )
                 }
 
@@ -104,7 +104,7 @@ private fun rememberHintText(message: ChatMessage): AnnotatedString {
                     resources.getString(R.string.chat_action_reedit) to LinkAnnotation.Clickable(
                         tag = "reedit",
                         styles = linkStyles,
-                        linkInteractionListener = { chatContext?.onReeditMessage((message.content as MessageContent.Text).text) }
+                        linkInteractionListener = { chatContext.onReeditMessage((message.content as MessageContent.Text).text) }
                     )
                 }
 

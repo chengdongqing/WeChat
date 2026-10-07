@@ -15,7 +15,6 @@ import top.chengdongqing.wechat.core.database.dao.ContactDao
 import top.chengdongqing.wechat.core.database.dao.ContactTagDao
 import top.chengdongqing.wechat.core.database.dao.FavoriteDao
 import top.chengdongqing.wechat.core.database.dao.FriendRequestDao
-import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.dao.MediaAssetReferenceDao
 import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
@@ -54,9 +53,6 @@ object DatabaseModule {
     @Provides
     fun provideMediaAssetReferenceDao(database: WeDatabase): MediaAssetReferenceDao =
         database.mediaAssetReferenceDao()
-
-    @Provides
-    fun provideGroupDao(database: WeDatabase): GroupDao = database.groupDao()
 
     @Provides
     fun provideContactTagDao(database: WeDatabase): ContactTagDao = database.contactTagDao()

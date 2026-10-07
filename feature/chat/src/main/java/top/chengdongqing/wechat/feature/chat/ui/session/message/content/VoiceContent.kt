@@ -58,14 +58,14 @@ fun VoiceContent(message: ChatMessage) {
     val targetWidth = rememberScreenFractionWidth(currentFraction)
 
     // 是否播放中
-    val isPlaying by remember(message.id, chatContext?.voicePlaybackState) {
-        val playBackState = chatContext?.voicePlaybackState
+    val isPlaying by remember(message.id, chatContext.voicePlaybackState) {
+        val playBackState = chatContext.voicePlaybackState
         derivedStateOf {
-            playBackState?.messageId == message.id && playBackState.isPlaying
+            playBackState.messageId == message.id && playBackState.isPlaying
         }
     }
-    val playbackState = chatContext?.voicePlaybackState
-    val isCurrent = playbackState?.messageId == message.id
+    val playbackState = chatContext.voicePlaybackState
+    val isCurrent = playbackState.messageId == message.id
     val playbackProgress = if (isCurrent) playbackState.progress.coerceIn(0f, 1f) else 0f
     val isFast = isCurrent && playbackState.speed == 1.5f
 

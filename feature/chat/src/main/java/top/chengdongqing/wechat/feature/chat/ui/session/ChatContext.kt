@@ -11,8 +11,7 @@ import top.chengdongqing.wechat.feature.chat.ui.session.util.VoicePlaybackState
  */
 data class ChatContext(
     val title: String,
-    val isSelf: Boolean,
-    val isGroup: Boolean,
+    val chatType: ChatType,
     val voicePlaybackState: VoicePlaybackState,
     val onVoiceSeek: (String, Float) -> Unit,
     val onVoiceSpeedToggle: (String) -> Unit,
@@ -21,7 +20,6 @@ data class ChatContext(
     val onRequestAddFriend: () -> Unit,
     val onContact: (isPeer: Boolean) -> Unit,
     val onWebView: (url: String) -> Unit,
-    val onLive: (liveId: String, isHost: Boolean, hostId: String) -> Unit,
     val activeLiveLocationRoomId: String?,
     val onCancelTransfer: (messageId: String) -> Unit,
     val onPauseTransfer: (messageId: String) -> Unit,
@@ -29,7 +27,9 @@ data class ChatContext(
     val onReeditMessage: (text: String) -> Unit
 )
 
-val LocalChatContext = compositionLocalOf<ChatContext?> { null }
+val LocalChatContext = compositionLocalOf<ChatContext> {
+    error("ChatContext not provided!")
+}
 
 /**
  * 创建聊天会话上下文
@@ -55,8 +55,7 @@ fun rememberChatContext(
     ) {
         ChatContext(
             title = uiState.chatTitle.orEmpty(),
-            isSelf = uiState.chatType == ChatType.Self,
-            isGroup = uiState.chatType == ChatType.Group,
+            chatType = uiState.chatType,
             voicePlaybackState = voicePlaybackState,
             onVoiceSeek = { messageId, fraction ->
                 onIntent(
@@ -79,9 +78,6 @@ fun rememberChatContext(
                 onNavigate(ScreenRoute.ContactDetail(contactId))
             },
             onWebView = { onNavigate(ScreenRoute.WebView(it)) },
-            onLive = { liveId, isHost, hostId ->
-                onNavigate(ScreenRoute.LiveRoom(uiState.chatId, liveId, isHost, hostId))
-            },
             activeLiveLocationRoomId = liveLocationRoom.roomId.takeIf {
                 liveLocationRoom.isActive
             },

@@ -8,9 +8,9 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 /**
  * 更多操作枚举
  */
-enum class MoreAction(
+enum class ChatMoreAction(
     @get:StringRes val labelRes: Int,
-    @get:DrawableRes val icon: Int
+    @get:DrawableRes val iconRes: Int
 ) {
     Album(R.string.chat_action_album, DesignR.drawable.ic_album_filled),
     Camera(R.string.chat_action_camera, DesignR.drawable.ic_camera_filled),
@@ -23,5 +23,4 @@ enum class MoreAction(
     File(R.string.chat_action_file, DesignR.drawable.ic_folder_filled),
     App(R.string.chat_action_app, DesignR.drawable.ic_apk_filled),
     Music(R.string.chat_action_music, DesignR.drawable.ic_music_filled),
-    Live(R.string.chat_action_live, DesignR.drawable.ic_video_filled);
 }

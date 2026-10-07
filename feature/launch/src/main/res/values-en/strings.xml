@@ -1,4 +1,4 @@
 <resources>
-    <string name="action_login">Login</string>
+    <string name="action_login">Log In</string>
     <string name="action_language">Language</string>
 </resources>

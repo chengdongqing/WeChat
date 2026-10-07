@@ -28,7 +28,6 @@ fun rememberInputBarActions(
     controller: InputBarController,
     onSendMessage: (MessageContent) -> Unit,
     onLaunchCall: (CallType) -> Unit,
-    onStartLive: () -> Unit,
     onShareLiveLocation: () -> Unit,
     onOpenFavorites: () -> Unit
 ): InputBarActions {
@@ -68,7 +67,6 @@ fun rememberInputBarActions(
         onShareLiveLocation = onShareLiveLocation,
         onLaunchCall = onLaunchCall,
         onSelectMusic = controller::toggleMusic,
-        onStartLive = onStartLive,
         onOpenFavorites = onOpenFavorites,
         onSendMessage = onSendMessage
     )

@@ -10,15 +10,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.data.model.ChatMessage
 import top.chengdongqing.wechat.core.data.model.MessageContent
-import top.chengdongqing.wechat.core.designsystem.R as DesignR
-import top.chengdongqing.wechat.core.playback.R as PlaybackR
-import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.core.network.audio.ChatOpusFileWriter
 import top.chengdongqing.wechat.core.playback.SoundTipPlayer
 import top.chengdongqing.wechat.core.playback.VoicePlayer
 import top.chengdongqing.wechat.feature.chat.ui.session.input.voice.AudioFocusManager
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
+import top.chengdongqing.wechat.core.playback.R as PlaybackR
 
 /**
  * 音频播放管理器 - 封装所有音频播放相关逻辑

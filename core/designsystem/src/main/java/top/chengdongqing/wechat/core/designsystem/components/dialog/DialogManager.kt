@@ -59,7 +59,7 @@ fun WeDialogHost() {
     val state = rememberDialogState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             DialogManager.requests.collect { request ->
                 state.show(

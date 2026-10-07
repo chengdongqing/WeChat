@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,9 +29,14 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import coil3.compose.AsyncImage
 import top.chengdongqing.wechat.core.designsystem.components.appbar.topbar.WeTopAppBar
 import top.chengdongqing.wechat.core.designsystem.components.button.DashedAddButton
@@ -43,6 +49,8 @@ import top.chengdongqing.wechat.core.designsystem.modifier.onTap
 import top.chengdongqing.wechat.core.designsystem.overscroll.rememberBouncedOverscrollEffect
 import top.chengdongqing.wechat.core.designsystem.theme.Red100
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
+import top.chengdongqing.wechat.core.navigation.LocalAppNavigator
+import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
@@ -51,19 +59,60 @@ import top.chengdongqing.wechat.feature.common.background.ChatBackgroundSetting
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
 
 @Composable
-fun ChatInfoScreen(
-    onBack: () -> Unit,
-    onContact: () -> Unit,
-    onRequestAddFriend: () -> Unit,
-    onEndTemporaryChat: () -> Unit,
-    viewModel: ChatInfoViewModel
+fun ChatInfoRoute(
+    chatId: String,
+    viewModel: ChatInfoViewModel = hiltViewModel { factory: ChatInfoViewModel.Factory ->
+        factory.create(chatId)
+    }
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val navigator = LocalAppNavigator.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.uiEvent.collect { event ->
+                when (event) {
+                    ChatInfoUiEvent.OnTemporaryChatEnd -> {
+                        navigator.backStack.removeIf { key ->
+                            key is ScreenRoute.ChatInfo ||
+                                    (key is ScreenRoute.Chat && key.chatId == chatId)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    ChatInfoScreen(
+        state = state,
+        onIntent = viewModel::onIntent,
+        onBack = navigator::back,
+        onNavigateToContact = {
+            navigator.backStack.removeIf { key -> key is ScreenRoute.ContactDetail }
+            navigator.navigateTo(ScreenRoute.ContactDetail(chatId))
+        },
+        onRequestAddFriend = {
+            navigator.navigateTo(ScreenRoute.RequestAddFriend(chatId))
+        }
+    )
+}
+
+@Composable
+fun ChatInfoScreen(
+    state: ChatInfoUiState = ChatInfoUiState(),
+    onIntent: (ChatInfoUiIntent) -> Unit = {},
+    onBack: () -> Unit = {},
+    onNavigateToContact: () -> Unit = {},
+    onRequestAddFriend: () -> Unit = {},
+) {
     val resources = LocalResources.current
     val selectAiModel = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
-        uri?.let(viewModel::importLocalAiModel)
+        uri?.let {
+            onIntent(ChatInfoUiIntent.ImportLocalAiModel(it))
+        }
     }
 
     Scaffold(
@@ -86,28 +135,32 @@ fun ChatInfoScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             ContactListBar(
-                name = uiState.contactName,
-                avatarPath = uiState.contactAvatar,
-                isAiAssistant = uiState.isAiAssistant,
-                onContact = onContact
+                name = state.contactName,
+                avatarPath = state.contactAvatar,
+                isAiAssistant = state.isAiAssistant,
+                onContact = onNavigateToContact
             )
 
-            if (uiState.isAiAssistant) {
+            if (state.isAiAssistant) {
                 LocalAiModelSettings(
-                    state = uiState.localAiState,
-                    modelSizeBytes = uiState.modelSizeBytes,
-                    modelInfo = uiState.modelInfo,
+                    state = state.localAiState,
+                    modelSizeBytes = state.modelSizeBytes,
+                    modelInfo = state.modelInfo,
                     onSelectModel = {
                         selectAiModel.launch(arrayOf("application/octet-stream", "*/*"))
                     },
-                    onCancelLoading = viewModel::cancelModelLoading,
+                    onCancelLoading = {
+                        onIntent(ChatInfoUiIntent.CancelModelLoading)
+                    },
                     onUnloadModel = {
                         DialogManager.show(
                             title = resources.getString(R.string.chat_info_ai_unload_model_title),
                             content = resources.getString(R.string.chat_info_ai_unload_model_content),
                             okText = DesignR.string.action_ok,
                             okColor = Red100,
-                            onOk = viewModel::unloadModel
+                            onOk = {
+                                onIntent(ChatInfoUiIntent.UnloadModel)
+                            }
                         )
                     }
                 )
@@ -122,24 +175,24 @@ fun ChatInfoScreen(
                     label = stringResource(R.string.chat_info_mute),
                     showArrow = false
                 ) {
-                    WeSwitch(checked = uiState.isMuted) {
-                        viewModel.toggleMuted()
+                    WeSwitch(checked = state.isMuted) {
+                        onIntent(ChatInfoUiIntent.ToggleMuted)
                     }
                 }
                 WeSettingItem(
                     label = stringResource(R.string.chat_info_pin),
                     showArrow = false
                 ) {
-                    WeSwitch(checked = uiState.isPinned) {
-                        viewModel.togglePinned()
+                    WeSwitch(checked = state.isPinned) {
+                        onIntent(ChatInfoUiIntent.TogglePinned)
                     }
                 }
                 WeSettingItem(
                     label = stringResource(R.string.chat_info_bottom),
                     showArrow = false
                 ) {
-                    WeSwitch(checked = uiState.isBottomed) {
-                        viewModel.toggleBottomed()
+                    WeSwitch(checked = state.isBottomed) {
+                        onIntent(ChatInfoUiIntent.ToggleBottomed)
                     }
                 }
                 WeSettingItem(
@@ -150,18 +203,18 @@ fun ChatInfoScreen(
                     WeSwitch()
                 }
             }
-            if (uiState.isTemporary) {
+            if (state.isTemporary) {
                 WeSettingGroup {
                     WeSettingItem(
                         label = stringResource(R.string.chat_info_temporary),
                         description = stringResource(R.string.chat_info_temporary_idle_description),
                         showArrow = false
                     ) {
-                        uiState.expiresAt?.let {
+                        state.expiresAt?.let {
                             WeSettingValue(formatTemporaryExpiry(it))
                         }
                     }
-                    if (!uiState.isFriend) {
+                    if (!state.isFriend) {
                         WeSettingItem(
                             label = stringResource(R.string.chat_info_promote_temporary),
                             description = stringResource(R.string.chat_info_promote_temporary_description),
@@ -177,7 +230,9 @@ fun ChatInfoScreen(
                                 content = resources.getString(R.string.chat_info_end_temporary_content),
                                 okText = DesignR.string.action_ok,
                                 okColor = Red100,
-                                onOk = { viewModel.endTemporaryChat(onEndTemporaryChat) }
+                                onOk = {
+                                    onIntent(ChatInfoUiIntent.EndTemporaryChat)
+                                }
                             )
                         }
                     )
@@ -185,9 +240,9 @@ fun ChatInfoScreen(
             }
             ChatBackgroundSetting(
                 label = stringResource(R.string.chat_info_background_setting),
-                value = uiState.backgroundPath,
+                value = state.backgroundPath,
             ) {
-                viewModel.updateBackground(it)
+                onIntent(ChatInfoUiIntent.UpdateBackground(it))
             }
             WeSettingItem(
                 label = stringResource(R.string.chat_info_clear),
@@ -196,11 +251,13 @@ fun ChatInfoScreen(
                     DialogManager.show(
                         title = resources.getString(
                             R.string.chat_info_clear_title,
-                            uiState.contactName
+                            state.contactName
                         ),
                         okText = DesignR.string.action_clear,
                         okColor = Red100,
-                        onOk = { viewModel.clearMessages() }
+                        onOk = {
+                            onIntent(ChatInfoUiIntent.ClearChatHistory)
+                        }
                     )
                 }
             )
@@ -232,7 +289,11 @@ private fun LocalAiModelSettings(
     }
     val status = when (state) {
         LocalAiState.NoModel -> stringResource(R.string.chat_info_ai_status_not_selected)
-        is LocalAiState.Importing -> stringResource(R.string.chat_info_ai_status_importing, state.progressBytes / 1024 / 1024)
+        is LocalAiState.Importing -> stringResource(
+            R.string.chat_info_ai_status_importing,
+            state.progressBytes / 1024 / 1024
+        )
+
         LocalAiState.Loading -> stringResource(R.string.chat_info_ai_status_loading)
         LocalAiState.Cancelling -> stringResource(R.string.chat_info_ai_status_cancelling)
         is LocalAiState.Ready -> stringResource(R.string.chat_info_ai_status_loaded)
@@ -266,17 +327,26 @@ private fun LocalAiModelSettings(
                 )
             }
             modelInfo?.architecture?.let { architecture ->
-                WeSettingItem(stringResource(R.string.chat_info_ai_model_architecture), showArrow = false) {
+                WeSettingItem(
+                    stringResource(R.string.chat_info_ai_model_architecture),
+                    showArrow = false
+                ) {
                     WeSettingValue(architecture)
                 }
             }
             modelInfo?.parameterCount?.let { count ->
-                WeSettingItem(stringResource(R.string.chat_info_ai_parameter_count), showArrow = false) {
+                WeSettingItem(
+                    stringResource(R.string.chat_info_ai_parameter_count),
+                    showArrow = false
+                ) {
                     WeSettingValue(formatParameterCount(count))
                 }
             }
             modelInfo?.contextLength?.let { length ->
-                WeSettingItem(stringResource(R.string.chat_info_ai_context_length), showArrow = false) {
+                WeSettingItem(
+                    stringResource(R.string.chat_info_ai_context_length),
+                    showArrow = false
+                ) {
                     WeSettingValue(stringResource(R.string.chat_info_ai_token_count, length))
                 }
             }
@@ -372,5 +442,13 @@ private fun ContactListBar(
                 color = Color.Gray
             ) {}
         }
+    }
+}
+
+@Preview
+@Composable
+private fun ChatInfoPreview() {
+    WeTheme {
+        ChatInfoScreen()
     }
 }

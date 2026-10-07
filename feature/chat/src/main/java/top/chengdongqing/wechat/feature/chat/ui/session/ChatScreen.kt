@@ -52,8 +52,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -91,6 +94,7 @@ import top.chengdongqing.wechat.core.navigation.LocalContactPickerLauncher
 import top.chengdongqing.wechat.core.navigation.ScreenRoute
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.data.mapper.toMessageType
+import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.BombMessageEffect
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveEffectEvent
 import top.chengdongqing.wechat.feature.chat.ui.session.effect.FestiveEffectType
@@ -155,14 +159,8 @@ fun ChatRoute(
                     ScreenRoute.RequestAddFriend(chatId)
                 )
 
-                is MessageUiEvent.NavigateToLiveRoom -> navigator.navigateTo(
-                    ScreenRoute.LiveRoom(chatId, event.liveId, event.isHost, event.hostId)
-                )
-
                 MessageUiEvent.NavigateToLiveLocation -> navigator.navigateTo(
-                    ScreenRoute.LiveLocation(
-                        chatId
-                    )
+                    ScreenRoute.LiveLocation(chatId)
                 )
 
                 is MessageUiEvent.OpenChatHistory -> navigator.navigateTo(
@@ -312,228 +310,230 @@ fun ChatScreen(
         onEditImage = { editingImageUri = it }
     )
 
-    CompositionLocalProvider(
-        LocalChatContext provides chatContext,
-        LocalExpandedMediaAlbums provides expandedMediaAlbums
-    ) {
-        SharedTransitionLayout {
-            AnimatedContent(
-                targetState = mediaPreview,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "chat-media-preview"
-            ) { preview ->
-                CompositionLocalProvider(
-                    LocalMediaSharedTransitionScope provides this@SharedTransitionLayout,
-                    LocalMediaAnimatedVisibilityScope provides this@AnimatedContent
-                ) {
-                    if (preview == null) {
-                        Box(
-                            modifier = Modifier.then(
-                                if (selectingTextMessageId != null) {
-                                    Modifier.pointerInput(selectingTextMessageId) {
-                                        awaitEachGesture {
-                                            awaitFirstDown(
-                                                requireUnconsumed = false,
-                                                pass = PointerEventPass.Final
-                                            )
-                                            val up = waitForUpOrCancellation(PointerEventPass.Final)
-                                            if (up != null) {
-                                                onIntent(ChatUiIntent.DismissToolbar)
+    ChatTheme {
+        CompositionLocalProvider(
+            LocalChatContext provides chatContext,
+            LocalExpandedMediaAlbums provides expandedMediaAlbums
+        ) {
+            SharedTransitionLayout {
+                AnimatedContent(
+                    targetState = mediaPreview,
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "chat-media-preview"
+                ) { preview ->
+                    CompositionLocalProvider(
+                        LocalMediaSharedTransitionScope provides this@SharedTransitionLayout,
+                        LocalMediaAnimatedVisibilityScope provides this@AnimatedContent
+                    ) {
+                        if (preview == null) {
+                            Box(
+                                modifier = Modifier.then(
+                                    if (selectingTextMessageId != null) {
+                                        Modifier.pointerInput(selectingTextMessageId) {
+                                            awaitEachGesture {
+                                                awaitFirstDown(
+                                                    requireUnconsumed = false,
+                                                    pass = PointerEventPass.Final
+                                                )
+                                                val up =
+                                                    waitForUpOrCancellation(PointerEventPass.Final)
+                                                if (up != null) {
+                                                    onIntent(ChatUiIntent.DismissToolbar)
+                                                }
                                             }
                                         }
+                                    } else {
+                                        Modifier
                                     }
-                                } else {
-                                    Modifier
-                                }
-                            )
-                        ) {
-                            state.backgroundImagePath?.let {
-                                AsyncImage(
-                                    model = it,
-                                    contentDescription = null,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
                                 )
-                            }
+                            ) {
+                                state.backgroundImagePath?.let {
+                                    AsyncImage(
+                                        model = it,
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
 
-                            Scaffold(
-                                topBar = {
-                                    Column {
-                                        ChatTopBar(
-                                            uiState = state,
-                                            onIntent = onIntent,
-                                            onNavigate = onNavigate,
-                                            backIconResId = if (isSpecialPage) {
-                                                DesignR.drawable.ic_close_outlined
-                                            } else {
-                                                DesignR.drawable.ic_back_outlined
-                                            },
-                                            onBack = {
-                                                if (isSpecialPage) {
-                                                    controller.dismissAll()
-                                                }
-                                                onBack()
-                                            },
-                                        )
-                                        if (liveLocationRoom.isActive) {
-                                            LiveLocationPinnedEntry(
-                                                text = when {
-                                                    liveLocationRoom.participants.size > 1 ->
-                                                        stringResource(
-                                                            R.string.live_location_people,
-                                                            liveLocationRoom.participants.size
-                                                        )
-
-                                                    liveLocationRoom.participants.containsKey(
-                                                        state.myUserInfo?.id
-                                                    ) ->
-                                                        stringResource(R.string.live_location_me_sharing)
-
-                                                    else -> stringResource(
-                                                        R.string.live_location_peer_sharing,
-                                                        state.chatTitle.orEmpty()
-                                                    )
+                                Scaffold(
+                                    topBar = {
+                                        Column {
+                                            ChatTopBar(
+                                                uiState = state,
+                                                onIntent = onIntent,
+                                                onNavigate = onNavigate,
+                                                backIconResId = if (isSpecialPage) {
+                                                    DesignR.drawable.ic_close_outlined
+                                                } else {
+                                                    DesignR.drawable.ic_back_outlined
                                                 },
-                                                avatar = if (
-                                                    liveLocationRoom.participants.containsKey(
-                                                        state.myUserInfo?.id
-                                                    )
-                                                ) state.myUserInfo?.avatarPath else state.peerUserInfo?.avatarPath,
-                                                onClick = {
+                                                onBack = {
+                                                    if (isSpecialPage) {
+                                                        controller.dismissAll()
+                                                    }
+                                                    onBack()
+                                                },
+                                            )
+                                            if (liveLocationRoom.isActive) {
+                                                LiveLocationPinnedEntry(
+                                                    text = when {
+                                                        liveLocationRoom.participants.size > 1 ->
+                                                            stringResource(
+                                                                R.string.live_location_people,
+                                                                liveLocationRoom.participants.size
+                                                            )
+
+                                                        liveLocationRoom.participants.containsKey(
+                                                            state.myUserInfo?.id
+                                                        ) ->
+                                                            stringResource(R.string.live_location_me_sharing)
+
+                                                        else -> stringResource(
+                                                            R.string.live_location_peer_sharing,
+                                                            state.chatTitle.orEmpty()
+                                                        )
+                                                    },
+                                                    avatar = if (
+                                                        liveLocationRoom.participants.containsKey(
+                                                            state.myUserInfo?.id
+                                                        )
+                                                    ) state.myUserInfo?.avatarPath else state.peerUserInfo?.avatarPath,
+                                                    onClick = {
+                                                        onNavigate(
+                                                            ScreenRoute.LiveLocation(
+                                                                chatId
+                                                            )
+                                                        )
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    },
+                                    bottomBar = {
+                                        if (!state.isSelectMode) {
+                                            InputBar(
+                                                controller,
+                                                events,
+                                                state,
+                                                listState,
+                                                onIntent,
+                                                onLaunchCall = launchCall,
+                                                onShareLiveLocation = { onIntent(ChatUiIntent.ShareLiveLocation) },
+                                                onOpenFavorites = {
                                                     onNavigate(
-                                                        ScreenRoute.LiveLocation(
+                                                        ScreenRoute.Favorites(
                                                             chatId
                                                         )
                                                     )
                                                 }
                                             )
+                                        } else {
+                                            MultiSelectBottomBar(
+                                                enabled = state.selectedCount > 0,
+                                                onActionClick = {
+                                                    onIntent(
+                                                        ChatUiIntent.HandleMultiSelectAction(
+                                                            it
+                                                        )
+                                                    )
+                                                },
+                                                onExitSelectMode = { onIntent(ChatUiIntent.ExitSelectMode) }
+                                            )
                                         }
-                                    }
-                                },
-                                bottomBar = {
-                                    if (!state.isSelectMode) {
-                                        InputBar(
-                                            controller,
-                                            events,
-                                            state,
-                                            listState,
-                                            onIntent,
-                                            launchCall,
-                                            onStartLive = { onIntent(ChatUiIntent.StartLive) },
-                                            onShareLiveLocation = { onIntent(ChatUiIntent.ShareLiveLocation) },
-                                            onOpenFavorites = {
-                                                onNavigate(
-                                                    ScreenRoute.Favorites(
-                                                        chatId
-                                                    )
-                                                )
-                                            }
-                                        )
-                                    } else {
-                                        MultiSelectBottomBar(
-                                            enabled = state.selectedCount > 0,
-                                            onActionClick = {
-                                                onIntent(
-                                                    ChatUiIntent.HandleMultiSelectAction(
-                                                        it
-                                                    )
-                                                )
-                                            },
-                                            onExitSelectMode = { onIntent(ChatUiIntent.ExitSelectMode) }
-                                        )
-                                    }
-                                },
-                                containerColor =
-                                    if (state.backgroundImagePath == null) {
-                                        WeTheme.colorScheme.background
-                                    } else {
-                                        Color.Unspecified
-                                    }
-                            ) { innerPadding ->
-                                ChatMessageList(
-                                    lazyMessageItems,
-                                    streamingAiMessage,
-                                    state,
-                                    toolbarState,
-                                    listState,
-                                    innerPadding,
-                                    bombProgress,
-                                    onIntent
+                                    },
+                                    containerColor =
+                                        if (state.backgroundImagePath == null) {
+                                            WeTheme.colorScheme.background
+                                        } else {
+                                            Color.Unspecified
+                                        }
+                                ) { innerPadding ->
+                                    ChatMessageList(
+                                        lazyMessageItems,
+                                        streamingAiMessage,
+                                        state,
+                                        toolbarState,
+                                        listState,
+                                        innerPadding,
+                                        bombProgress,
+                                        onIntent
+                                    )
+                                }
+
+                                MessageToolbar(
+                                    visible = toolbarState.visible,
+                                    temporarilyHidden = toolbarState.isTextSelectionDragging,
+                                    actions = toolbarState.actions,
+                                    bubblePosition = toolbarState.bubblePosition,
+                                    bubbleHeight = toolbarState.bubbleHeight,
+                                    isTextMessage =
+                                        toolbarState.message?.content is MessageContent.Text,
+                                    onActionClick = { onIntent(ChatUiIntent.HandleToolbarAction(it)) },
+                                    onDismiss = { onIntent(ChatUiIntent.DismissToolbar) }
+                                )
+
+                                BombMessageEffect(
+                                    trigger = bombTrigger,
+                                    onProgress = { bombProgress = it },
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                                FestiveMessageEffect(
+                                    event = festiveEvent,
+                                    modifier = Modifier.fillMaxSize()
                                 )
                             }
-
-                            MessageToolbar(
-                                visible = toolbarState.visible,
-                                temporarilyHidden = toolbarState.isTextSelectionDragging,
-                                actions = toolbarState.actions,
-                                bubblePosition = toolbarState.bubblePosition,
-                                bubbleHeight = toolbarState.bubbleHeight,
-                                isTextMessage =
-                                    toolbarState.message?.content is MessageContent.Text,
-                                onActionClick = { onIntent(ChatUiIntent.HandleToolbarAction(it)) },
-                                onDismiss = { onIntent(ChatUiIntent.DismissToolbar) }
-                            )
-
-                            BombMessageEffect(
-                                trigger = bombTrigger,
-                                onProgress = { bombProgress = it },
-                                modifier = Modifier.fillMaxSize()
-                            )
-                            FestiveMessageEffect(
-                                event = festiveEvent,
-                                modifier = Modifier.fillMaxSize()
+                        } else {
+                            BackHandler { closeMediaPreview() }
+                            WeMediaPreview(
+                                medias = preview.medias,
+                                current = preview.initialIndex,
+                                interactiveContentEnabled = !mediaPreviewClosing,
+                                interactiveContentDelayMillis = 320L,
+                                pageModifier = { index ->
+                                    Modifier.mediaSharedElement(preview.messageIds[index])
+                                },
+                                onDismiss = closeMediaPreview
                             )
                         }
-                    } else {
-                        BackHandler { closeMediaPreview() }
-                        WeMediaPreview(
-                            medias = preview.medias,
-                            current = preview.initialIndex,
-                            interactiveContentEnabled = !mediaPreviewClosing,
-                            interactiveContentDelayMillis = 320L,
-                            pageModifier = { index ->
-                                Modifier.mediaSharedElement(preview.messageIds[index])
-                            },
-                            onDismiss = closeMediaPreview
-                        )
                     }
                 }
             }
         }
-    }
 
-    editingImageUri?.let { sourceUri ->
-        ImageEditor(
-            sourceUri = sourceUri,
-            onCancel = { editingImageUri = null },
-            onConfirm = { resultUri ->
-                editingImageUri = null
-                editedImageUri = resultUri
+        editingImageUri?.let { sourceUri ->
+            ImageEditor(
+                sourceUri = sourceUri,
+                onCancel = { editingImageUri = null },
+                onConfirm = { resultUri ->
+                    editingImageUri = null
+                    editedImageUri = resultUri
 
-                ActionSheetManager.show(
-                    options = listOf(
-                        ActionSheetItem(R.string.edited_image_send_to_friend),
-                        ActionSheetItem(R.string.edited_image_favorite),
-                        ActionSheetItem(R.string.edited_image_save)
-                    ),
-                    onAction = { index ->
-                        val uri = editedImageUri ?: return@show
-                        when (index) {
-                            0 -> sendEditedImageToContacts(99)
-                            1 -> {
-                                onIntent(ChatUiIntent.FavoriteEditedImage(uri))
-                                editedImageUri = null
-                            }
+                    ActionSheetManager.show(
+                        options = listOf(
+                            ActionSheetItem(R.string.edited_image_send_to_friend),
+                            ActionSheetItem(R.string.edited_image_favorite),
+                            ActionSheetItem(R.string.edited_image_save)
+                        ),
+                        onAction = { index ->
+                            val uri = editedImageUri ?: return@show
+                            when (index) {
+                                0 -> sendEditedImageToContacts(99)
+                                1 -> {
+                                    onIntent(ChatUiIntent.FavoriteEditedImage(uri))
+                                    editedImageUri = null
+                                }
 
-                            2 -> {
-                                onIntent(ChatUiIntent.SaveEditedImage(uri))
-                                editedImageUri = null
+                                2 -> {
+                                    onIntent(ChatUiIntent.SaveEditedImage(uri))
+                                    editedImageUri = null
+                                }
                             }
                         }
-                    }
-                )
-            }
-        )
+                    )
+                }
+            )
+        }
     }
 
     LoadingDialog(state.isFullscreenLoading)
@@ -649,6 +649,7 @@ private fun ChatUiEffectHandler(
     onEditImage: (Uri) -> Unit,
 ) {
     val resources = LocalResources.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var useMergedForward by remember { mutableStateOf(false) }
     var singleForwardMessageId by remember { mutableStateOf<String?>(null) }
     val pickContact = LocalContactPickerLauncher.current.rememberLauncher { contacts ->
@@ -660,52 +661,54 @@ private fun ChatUiEffectHandler(
         }
     }
 
-    LaunchedEffect(Unit) {
-        events.collect { event ->
-            when (event) {
-                is MessageUiEvent.ShowDeleteConfirm -> DialogManager.show(
-                    title = resources.getString(R.string.msg_confirm_delete),
-                    okText = DesignR.string.action_delete,
-                    okColor = Red100
-                ) {
-                    onIntent(ChatUiIntent.DeleteMessage(event.messageId))
-                }
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            events.collect { event ->
+                when (event) {
+                    is MessageUiEvent.ShowDeleteConfirm -> DialogManager.show(
+                        title = resources.getString(R.string.msg_confirm_delete),
+                        okText = DesignR.string.action_delete,
+                        okColor = Red100
+                    ) {
+                        onIntent(ChatUiIntent.DeleteMessage(event.messageId))
+                    }
 
-                is MessageUiEvent.ShowDownloadConfirm -> DialogManager.show(
-                    title = resources.getString(R.string.msg_confirm_save),
-                    okText = DesignR.string.action_save
-                ) { onIntent(ChatUiIntent.SaveSelectedFiles) }
+                    is MessageUiEvent.ShowDownloadConfirm -> DialogManager.show(
+                        title = resources.getString(R.string.msg_confirm_save),
+                        okText = DesignR.string.action_save
+                    ) { onIntent(ChatUiIntent.SaveSelectedFiles) }
 
-                is MessageUiEvent.ForwardMessage -> {
-                    singleForwardMessageId = event.messageId
-                    if (event.messageId == null && uiState.selectedCount > 1) {
-                        ActionSheetManager.show(
-                            options = listOf(
-                                ActionSheetItem(R.string.message_forward_separate),
-                                ActionSheetItem(R.string.message_forward_merged)
-                            )
-                        ) { index ->
-                            useMergedForward = index == 1
+                    is MessageUiEvent.ForwardMessage -> {
+                        singleForwardMessageId = event.messageId
+                        if (event.messageId == null && uiState.selectedCount > 1) {
+                            ActionSheetManager.show(
+                                options = listOf(
+                                    ActionSheetItem(R.string.message_forward_separate),
+                                    ActionSheetItem(R.string.message_forward_merged)
+                                )
+                            ) { index ->
+                                useMergedForward = index == 1
+                                pickContact(99)
+                            }
+                        } else {
+                            useMergedForward = false
                             pickContact(99)
                         }
-                    } else {
-                        useMergedForward = false
-                        pickContact(99)
                     }
-                }
 
-                is MessageUiEvent.PreviewMedia -> onPreviewMedia(
-                    ChatMediaPreviewState(
-                        medias = event.medias,
-                        messageIds = event.messageIds,
-                        initialIndex = event.initialIndex
+                    is MessageUiEvent.PreviewMedia -> onPreviewMedia(
+                        ChatMediaPreviewState(
+                            medias = event.medias,
+                            messageIds = event.messageIds,
+                            initialIndex = event.initialIndex
+                        )
                     )
-                )
 
-                is MessageUiEvent.EditImage -> onEditImage(event.uri)
+                    is MessageUiEvent.EditImage -> onEditImage(event.uri)
 
-                is MessageUiEvent.LaunchCall -> launchCall(event.callType)
-                else -> {}
+                    is MessageUiEvent.LaunchCall -> launchCall(event.callType)
+                    else -> {}
+                }
             }
         }
     }
@@ -720,7 +723,6 @@ private data class ChatMediaPreviewState(
 private fun MessageUiEvent.isNavigationEffect(): Boolean = when (this) {
     is MessageUiEvent.NavigateToContact,
     MessageUiEvent.NavigateToRequestAddFriend,
-    is MessageUiEvent.NavigateToLiveRoom,
     MessageUiEvent.NavigateToLiveLocation,
     is MessageUiEvent.PreviewFile,
     is MessageUiEvent.PreviewMusic,

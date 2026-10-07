@@ -53,23 +53,6 @@ sealed interface ScreenRoute : NavKey {
     data class LiveLocation(val chatId: String) : ScreenRoute
 
     @Serializable
-    data class GroupChat(val groupId: String) : ScreenRoute
-
-    @Serializable
-    data class GroupInfo(val groupId: String) : ScreenRoute
-
-    @Serializable
-    data object GroupList : ScreenRoute
-
-    @Serializable
-    data class LiveRoom(
-        val groupId: String,
-        val liveId: String,
-        val isHost: Boolean,
-        val hostId: String
-    ) : ScreenRoute
-
-    @Serializable
     data object Moments : ScreenRoute
 
     @Serializable

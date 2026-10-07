@@ -41,17 +41,14 @@ import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
 
 @Composable
-fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit) {
+fun MoreActionPanel(onAction: (action: ChatMoreAction, isLongClick: Boolean) -> Unit) {
     val chatContext = LocalChatContext.current
-    val isSelf = chatContext?.isSelf == true
-    val isGroup = chatContext?.isGroup == true
 
-    val pages = remember(isSelf, isGroup) {
-        MoreAction.entries
+    val pages = remember(chatContext.chatType) {
+        ChatMoreAction.entries
             .filter { action ->
-                // 如果是自己，则过滤掉视频通话
-                !(isSelf && action == MoreAction.VideoCall) &&
-                    (isGroup || action != MoreAction.Live)
+                // 如果是自己，则过滤掉通话
+                !(action == ChatMoreAction.VideoCall && chatContext.chatType.isSelfOrAi)
             }
             .chunked(ActionsPerPage)
     }
@@ -93,8 +90,8 @@ fun MoreActionPanel(onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
 @Composable
 @OptIn(ExperimentalGridApi::class)
 private fun MorePanelGrid(
-    items: List<MoreAction>,
-    onAction: (action: MoreAction, isLongClick: Boolean) -> Unit
+    items: List<ChatMoreAction>,
+    onAction: (action: ChatMoreAction, isLongClick: Boolean) -> Unit
 ) {
     Grid(
         modifier = Modifier
@@ -120,7 +117,7 @@ private fun MorePanelGrid(
 
 @Composable
 private fun MorePanelItem(
-    item: MoreAction,
+    item: ChatMoreAction,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
@@ -140,7 +137,7 @@ private fun MorePanelItem(
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(item.icon),
+                painter = painterResource(item.iconRes),
                 contentDescription = null,
                 modifier = Modifier.size(30.dp),
                 tint = WeTheme.colorScheme.textPrimary

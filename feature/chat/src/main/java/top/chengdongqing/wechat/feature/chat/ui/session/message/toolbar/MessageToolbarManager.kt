@@ -238,7 +238,6 @@ class MessageToolbarManager(
                 is MessageContent.ContactCard,
                 is MessageContent.Music,
                 is MessageContent.LiveLocation,
-                is MessageContent.Live,
                 is MessageContent.ChatHistory -> {
                     add(MessageAction.Forward)
                     add(MessageAction.Quote)
@@ -259,7 +258,6 @@ class MessageToolbarManager(
                 }
 
                 is MessageContent.Video,
-                is MessageContent.Location,
                 is MessageContent.File -> {
                     add(MessageAction.Forward)
                     add(MessageAction.Favorite)
@@ -274,7 +272,20 @@ class MessageToolbarManager(
                     add(MessageAction.Download)
                 }
 
-                else -> {}
+                is MessageContent.Location -> {
+                    add(MessageAction.Forward)
+                    add(MessageAction.Favorite)
+                    add(MessageAction.Quote)
+                    if (message.isProgressing) {
+                        add(MessageAction.Cancel)
+                    } else {
+                        add(deleteOrRecall)
+                    }
+                    add(MessageAction.MultiSelect)
+                    add(MessageAction.Remind)
+                }
+
+                else -> Unit
             }
         }
     }

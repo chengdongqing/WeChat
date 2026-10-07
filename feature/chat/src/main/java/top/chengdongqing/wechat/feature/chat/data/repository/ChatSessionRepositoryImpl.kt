@@ -135,8 +135,8 @@ class ChatSessionRepositoryImpl @Inject constructor(
                 isTemporary = expiresAt != null,
                 expiresAt = expiresAt,
                 temporaryPeerPublicKey = if (expiresAt == null) null else session.temporaryPeerPublicKey,
-                isPinned = if (expiresAt != null) false else session.isPinned,
-                isBottomed = if (expiresAt != null) false else session.isBottomed
+                isPinned = expiresAt == null && session.isPinned,
+                isBottomed = expiresAt == null && session.isBottomed
             )
         }
         sessionCache.remove(sessionId)

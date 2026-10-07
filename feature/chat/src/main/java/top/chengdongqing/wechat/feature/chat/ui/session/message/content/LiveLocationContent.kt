@@ -22,7 +22,8 @@ import top.chengdongqing.wechat.core.designsystem.R as DesignR
 @Composable
 fun LiveLocationContent(message: ChatMessage) {
     val content = message.content as MessageContent.LiveLocation
-    val active = LocalChatContext.current?.activeLiveLocationRoomId == content.roomId
+    val active = LocalChatContext.current.activeLiveLocationRoomId == content.roomId
+
     Row(
         modifier = Modifier
             .width(210.dp)

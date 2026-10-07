@@ -57,7 +57,7 @@ fun LoginRoute(
     val lifecycleOwner = LocalLifecycleOwner.current
     val navigator = LocalAppNavigator.current
 
-    LaunchedEffect(viewModel.uiEvent, lifecycleOwner) {
+    LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             viewModel.uiEvent.collect { event ->
                 when (event) {

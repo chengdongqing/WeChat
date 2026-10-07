@@ -2,7 +2,6 @@ package top.chengdongqing.wechat.feature.chat.ui.session.input
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,32 +15,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -80,7 +69,6 @@ fun InputBar(
     listState: LazyListState,
     onIntent: (ChatUiIntent) -> Unit,
     onLaunchCall: (type: CallType) -> Unit,
-    onStartLive: () -> Unit,
     onShareLiveLocation: () -> Unit,
     onOpenFavorites: () -> Unit
 ) {
@@ -90,24 +78,12 @@ fun InputBar(
         controller = controller,
         onSendMessage = { onIntent(ChatUiIntent.SendMessage(it)) },
         onLaunchCall = onLaunchCall,
-        onStartLive = onStartLive,
         onShareLiveLocation = onShareLiveLocation,
         onOpenFavorites = onOpenFavorites
     )
-    var showMentionPicker by remember { mutableStateOf(false) }
-    val inputActions = remember(actions, state.inputText, uiState.mentionMembers) {
+    val inputActions = remember(actions, state.inputText) {
         actions.copy(
-            onTextChange = { newText ->
-                val oldText = controller.state.value.inputText
-                controller.updateText(newText)
-                if (
-                    uiState.mentionMembers.isNotEmpty() &&
-                    newText.length > oldText.length &&
-                    newText.endsWith("@")
-                ) {
-                    showMentionPicker = true
-                }
-            }
+            onTextChange = controller::updateText
         )
     }
 
@@ -192,63 +168,6 @@ fun InputBar(
 
     InputOverlay(state, inputActions)
     MusicOverlay(state, actions)
-
-    if (showMentionPicker) {
-        AlertDialog(
-            onDismissRequest = { showMentionPicker = false },
-            title = { Text("选择提醒的人") },
-            text = {
-                LazyColumn {
-                    item {
-                        MentionPickerItem("所有人", null) {
-                            controller.insertMention("所有人")
-                            showMentionPicker = false
-                        }
-                    }
-                    items(uiState.mentionMembers, key = { it.id }) { member ->
-                        MentionPickerItem(member.name, member.avatarPath) {
-                            controller.insertMention(member.name)
-                            showMentionPicker = false
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showMentionPicker = false }) { Text("取消") }
-            }
-        )
-    }
-}
-
-private fun InputBarController.insertMention(name: String) {
-    val current = state.value.inputText
-    val atIndex = current.lastIndexOf('@')
-    updateText(
-        if (atIndex >= 0) current.substring(0, atIndex) + "@$name "
-        else "$current@$name "
-    )
-    focusRequester.requestFocus()
-}
-
-@Composable
-private fun MentionPickerItem(name: String, avatarPath: String?, onClick: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 9.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            model = avatarPath,
-            error = painterResource(DesignR.drawable.img_avatar_placeholder),
-            contentDescription = null,
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(4.dp))
-        )
-        Text(name, modifier = Modifier.padding(start = 12.dp))
-    }
 }
 
 @Composable

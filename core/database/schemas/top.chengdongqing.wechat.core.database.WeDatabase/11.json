@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 11,
-    "identityHash": "99eec7af71c300378c858e558771848d",
+    "identityHash": "636e4ce16e95ad7b1f8f7c817fdab4a1",
     "entities": [
       {
         "tableName": "friend_requests",
@@ -642,174 +642,6 @@
         }
       },
       {
-        "tableName": "groups",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `ownerId` TEXT NOT NULL, `avatarPath` TEXT, `announcement` TEXT, `remark` TEXT, `savedToContacts` INTEGER NOT NULL, `showMemberNicknames` INTEGER NOT NULL, `isFolded` INTEGER NOT NULL, `memberVersion` INTEGER NOT NULL, `meshEnabled` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "name",
-            "columnName": "name",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "ownerId",
-            "columnName": "ownerId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "avatarPath",
-            "columnName": "avatarPath",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "announcement",
-            "columnName": "announcement",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "remark",
-            "columnName": "remark",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "savedToContacts",
-            "columnName": "savedToContacts",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "showMemberNicknames",
-            "columnName": "showMemberNicknames",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "isFolded",
-            "columnName": "isFolded",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "memberVersion",
-            "columnName": "memberVersion",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "meshEnabled",
-            "columnName": "meshEnabled",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "audit.createdAt",
-            "columnName": "createdAt",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "audit.updatedAt",
-            "columnName": "updatedAt",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "id"
-          ]
-        }
-      },
-      {
-        "tableName": "group_members",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`groupId` TEXT NOT NULL, `userId` TEXT NOT NULL, `nickname` TEXT NOT NULL, `avatarPath` TEXT, `role` TEXT NOT NULL, `joinedAt` INTEGER NOT NULL, PRIMARY KEY(`groupId`, `userId`), FOREIGN KEY(`groupId`) REFERENCES `groups`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
-        "fields": [
-          {
-            "fieldPath": "groupId",
-            "columnName": "groupId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "userId",
-            "columnName": "userId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "nickname",
-            "columnName": "nickname",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "avatarPath",
-            "columnName": "avatarPath",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "role",
-            "columnName": "role",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "joinedAt",
-            "columnName": "joinedAt",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "groupId",
-            "userId"
-          ]
-        },
-        "indices": [
-          {
-            "name": "index_group_members_groupId",
-            "unique": false,
-            "columnNames": [
-              "groupId"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_group_members_groupId` ON `${TABLE_NAME}` (`groupId`)"
-          },
-          {
-            "name": "index_group_members_userId",
-            "unique": false,
-            "columnNames": [
-              "userId"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_group_members_userId` ON `${TABLE_NAME}` (`userId`)"
-          }
-        ],
-        "foreignKeys": [
-          {
-            "table": "groups",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "groupId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          }
-        ]
-      },
-      {
         "tableName": "contact_tags",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
@@ -1079,7 +911,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '99eec7af71c300378c858e558771848d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '636e4ce16e95ad7b1f8f7c817fdab4a1')"
     ]
   }
 }

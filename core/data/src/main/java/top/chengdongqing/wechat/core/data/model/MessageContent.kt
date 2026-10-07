@@ -93,21 +93,13 @@ sealed class MessageContent(
 
     data class Music(val music: MusicTrack) : MessageContent(showBubbleArrow = false)
 
-    data class Live(
-        val liveId: String,
-        val title: String,
-        val hostName: String,
-        val status: String = "live",
-        val actorId: String? = null,
-        val targetId: String? = null,
-        val payload: String? = null
-    ) : MessageContent(showBubbleArrow = false, isSameBackground = true)
-
-    /** 多条消息合并后的聊天记录。条目是发送时的快照，不依赖原会话继续存在。 */
+    /**
+     * 多条消息合并后的聊天记录。条目是发送时的快照，不依赖原会话继续存在。
+     */
     data class ChatHistory(
         val title: String,
         val items: List<ChatHistoryItem>,
-        /** 附件归档文件；正文 JSON 与附件分开，归档通过现有媒体分片协议传输。 */
+        // 附件归档文件
         val archivePath: String? = null
     ) : MessageContent(isSameBackground = true)
 }

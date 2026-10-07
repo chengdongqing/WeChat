@@ -36,7 +36,6 @@ data class ChatUiState(
     val draftMessage: String? = null,
     val isSelectMode: Boolean = false,
     val selectedMessageIds: Set<String> = emptySet(),
-    val mentionMembers: List<MentionMember> = emptyList(),
     val totalUnreadCount: Int = 0,
     val connectionMode: ConnectionMode = ConnectionMode.WiFiLan,
     val connectionRequired: ConnectionRequiredEvent? = null,
@@ -53,10 +52,15 @@ data class ChatUiState(
         get() = selectedMessageIds.size
 }
 
-enum class ChatType { Single, Group, Self, Ai }
+enum class ChatType {
+    Single, Group, Self, Ai;
 
-data class MentionMember(
-    val id: String,
-    val name: String,
-    val avatarPath: String?
-)
+    val isSelf: Boolean
+        get() = this == Self
+
+    val isAi: Boolean
+        get() = this == Ai
+
+    val isSelfOrAi: Boolean
+        get() = isSelf || isAi
+}

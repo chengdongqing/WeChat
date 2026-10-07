@@ -20,7 +20,6 @@ import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.Reques
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.request.RequestAddFriendViewModel
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.verify.AcceptFriendRequestScreen
 import top.chengdongqing.wechat.feature.contacts.ui.friendrequest.verify.AcceptFriendRequestViewModel
-import top.chengdongqing.wechat.feature.contacts.ui.group.GroupListScreen
 import top.chengdongqing.wechat.feature.contacts.ui.tags.ContactTagEditorScreen
 import top.chengdongqing.wechat.feature.contacts.ui.tags.ContactTagPickerScreen
 import top.chengdongqing.wechat.feature.contacts.ui.tags.ContactTagsScreen
@@ -55,12 +54,6 @@ fun EntryProviderScope<NavKey>.contactsNavEntries(
     }
     entry<ScreenRoute.PinCodeCreateGroup> {
         PinCodeCreateGroupScreen(onBack)
-    }
-    entry<ScreenRoute.GroupList> {
-        GroupListScreen(
-            onBack = onBack,
-            onOpenGroup = { groupId -> backStack.add(ScreenRoute.Chat(groupId)) }
-        )
     }
 
     // 详情与资料

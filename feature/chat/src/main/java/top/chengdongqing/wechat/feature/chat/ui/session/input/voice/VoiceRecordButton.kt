@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import top.chengdongqing.wechat.core.designsystem.theme.WeTheme
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 语音录制按钮
@@ -76,7 +77,7 @@ fun VoiceRecordButton(
         if (isRecording) {
             recordDuration = 0L
             while (isRecording) {
-                delay(50)
+                delay(50.milliseconds)
                 recordDuration += 50
                 audioAmplitude = audioRecorder.getAmplitude()
 
@@ -111,7 +112,7 @@ fun VoiceRecordButton(
                         // 申请焦点，暂停其他App的音频播放
                         focusManager.requestFocus()
                         // 停止当前播放的语音
-                        chatContext?.onVoiceStop?.invoke()
+                        chatContext.onVoiceStop()
 
                         startRecording(audioRecorder) { success ->
                             if (success) {
@@ -251,7 +252,7 @@ private suspend fun handleDragEnd(
                 // 时间太短
                 audioRecorder.cancelRecording()
                 onStateChange(RecordState.TooShort)
-                delay(1200)
+                delay(1200.milliseconds)
                 onStateChange(RecordState.Idle)
             } else {
                 // 正常发送

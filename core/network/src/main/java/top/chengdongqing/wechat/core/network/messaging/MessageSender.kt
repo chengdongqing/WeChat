@@ -22,7 +22,6 @@ import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
 import top.chengdongqing.wechat.core.database.dao.ConnectionInfoDao
-import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
@@ -53,6 +52,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 消息发送器
@@ -63,7 +63,6 @@ class MessageSender @Inject constructor(
     private val transport: ChatTransportManager,
     private val connectionInfoDao: ConnectionInfoDao,
     private val messageDao: MessageDao,
-    private val groupDao: GroupDao,
     private val chatSessionDao: ChatSessionDao,
     private val wifiLockManager: WiFiLockManager,
     private val transferManager: TransferManager,
@@ -96,7 +95,7 @@ class MessageSender @Inject constructor(
         if (!retrySchedulerStarted.compareAndSet(false, true)) return
         scope.launch {
             while (isActive) {
-                delay(RETRY_POLL_INTERVAL_MS)
+                delay(RETRY_POLL_INTERVAL_MS.milliseconds)
                 val now = System.currentTimeMillis()
                 messageDao.failExhaustedAckWaits(now, MAX_TOTAL_ATTEMPTS)
                 val due = messageDao.getDueOutgoing(
@@ -147,9 +146,6 @@ class MessageSender @Inject constructor(
 
     private suspend fun resend(message: MessageEntity): Result<Unit> = runCatching {
         when {
-            groupDao.getById(message.sessionId) != null && message.localPath == null ->
-                sendGroupTextMessage(message).getOrThrow()
-
             message.localPath != null -> {
                 val file = File(message.localPath!!)
                 require(file.exists()) { "待发送文件不存在" }
@@ -195,42 +191,6 @@ class MessageSender @Inject constructor(
                 handleSendError(message.id, message.receiverId, e)
                 throw e
             }
-    }
-
-    suspend fun sendGroupTextMessage(message: MessageEntity): Result<Unit> {
-        markAttemptStarted(message.id)
-        val group = groupDao.getById(message.sessionId)
-            ?: return Result.failure(IllegalStateException("群聊不存在"))
-        val unsigned = ChatProtocol.GroupTextMessage(
-            messageId = message.id,
-            senderId = message.senderId,
-            signature = "",
-            timestamp = message.timestamp,
-            groupId = group.id,
-            memberVersion = group.memberVersion,
-            messageType = message.contentType,
-            content = message.content,
-            quote = message.toQuote()
-        )
-        val protocol = unsigned.copy(
-            signature = packetSigner.sign(unsigned, keyStoreManager.getPrivateKey())
-        )
-        val packet = Packet(PacketType.TEXT, serializeChatProtocol(protocol))
-        val targets = groupDao.getMembers(group.id)
-            .map { it.userId }
-            .filter { it != myUserId }
-
-        val results = targets.map { target -> transport.send(target, packet) }
-        val delivered = results.count { it.isSuccess }
-        return if (delivered > 0 || targets.isEmpty()) {
-            updateStatus(message.id, message.sessionId)
-            Result.success(Unit)
-        } else {
-            val error = results.firstNotNullOfOrNull { it.exceptionOrNull() }
-                ?: IllegalStateException("没有可达的群成员")
-            handleSendError(message.id, message.sessionId, error)
-            Result.failure(error)
-        }
     }
 
     /**

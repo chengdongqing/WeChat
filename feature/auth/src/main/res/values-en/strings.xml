@@ -1,5 +1,5 @@
 <resources>
-    <string name="login_title">Login</string>
+    <string name="login_title">Log In</string>
     <string name="form_username_label">Name</string>
     <string name="form_username_placeholder">Enter your name</string>
     <string name="form_username_hint">Pick a name friends will remember.</string>

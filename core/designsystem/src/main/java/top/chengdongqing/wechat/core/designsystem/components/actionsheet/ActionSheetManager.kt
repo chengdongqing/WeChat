@@ -44,7 +44,7 @@ fun WeActionSheetHost() {
     val state = rememberActionSheetState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) { // 只让处于前台的Activity处理事件
             ActionSheetManager.requests.collect { request ->
                 state.show(

@@ -26,7 +26,7 @@ import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ui.session.LocalChatContext
-import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.MoreAction
+import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.ChatMoreAction
 import java.io.File
 import top.chengdongqing.wechat.feature.chat.R as ChatR
 
@@ -42,24 +42,22 @@ class ActionHandler(
     private val onApk: () -> Unit,
     private val onContactCard: () -> Unit,
     private val onMusic: () -> Unit,
-    private val onLive: () -> Unit,
     private val onTransfer: () -> Unit,
     private val onFavorite: () -> Unit
 ) {
     /** 统一入口，按 action 路由 */
-    fun handleAction(action: MoreAction, isLongClick: Boolean) {
+    fun handleAction(action: ChatMoreAction, isLongClick: Boolean) {
         when (action) {
-            MoreAction.Album -> onAlbum(isLongClick)
-            MoreAction.Camera -> onCamera(isLongClick)
-            MoreAction.VideoCall -> onVideoCall()
-            MoreAction.Location -> onLocation()
-            MoreAction.File -> onFile()
-            MoreAction.ContactCard -> onContactCard()
-            MoreAction.App -> onApk()
-            MoreAction.Music -> onMusic()
-            MoreAction.Live -> onLive()
-            MoreAction.Transfer -> onTransfer()
-            MoreAction.Favorite -> onFavorite()
+            ChatMoreAction.Album -> onAlbum(isLongClick)
+            ChatMoreAction.Camera -> onCamera(isLongClick)
+            ChatMoreAction.VideoCall -> onVideoCall()
+            ChatMoreAction.Location -> onLocation()
+            ChatMoreAction.File -> onFile()
+            ChatMoreAction.ContactCard -> onContactCard()
+            ChatMoreAction.App -> onApk()
+            ChatMoreAction.Music -> onMusic()
+            ChatMoreAction.Transfer -> onTransfer()
+            ChatMoreAction.Favorite -> onFavorite()
             else -> Unit
         }
     }
@@ -80,19 +78,21 @@ fun rememberActionHandler(
     onShareLiveLocation: () -> Unit,
     onLaunchCall: (CallType) -> Unit,
     onSelectMusic: () -> Unit,
-    onStartLive: () -> Unit,
     onOpenFavorites: () -> Unit,
     onSendMessage: (MessageContent) -> Unit
 ): ActionHandler {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val chatContext = LocalChatContext.current
-    val isSelf = chatContext?.isSelf == true
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
     // 动态生成位置选项
-    val locationOptions = remember(isSelf) {
-        if (isSelf) listOf(LocationOptions[0]) else LocationOptions
+    val locationOptions = remember(chatContext.chatType) {
+        if (chatContext.chatType.isSelfOrAi) {
+            LocationOptions.take(1)
+        } else {
+            LocationOptions
+        }
     }
 
     /**
@@ -115,7 +115,7 @@ fun rememberActionHandler(
         }
     }
 
-    return remember(mediaLaunchers, fileLauncher, isSelf) {
+    return remember(mediaLaunchers, fileLauncher, locationOptions) {
         ActionHandler(
             onAlbum = { isLongClick ->
                 if (isLongClick) {
@@ -176,7 +176,6 @@ fun rememberActionHandler(
             onFile = onOpenFilePicker,
             onApk = fileLauncher.pickApk,
             onMusic = onSelectMusic,
-            onLive = onStartLive,
             onContactCard = pickContact,
             onTransfer = {
                 scope.launch {

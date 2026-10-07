@@ -94,14 +94,14 @@ fun MessageItem(
     val swipeThreshold = with(LocalDensity.current) { 64.dp.toPx() }
     val maxSwipeOffset = with(LocalDensity.current) { 88.dp.toPx() }
     val isVoiceSeeking = content is MessageContent.Voice &&
-            chatContext?.voicePlaybackState?.messageId == message.id
+            chatContext.voicePlaybackState.messageId == message.id
     val swipeDragState = rememberDraggableState { delta ->
         swipeOffsetX = (swipeOffsetX + delta).coerceIn(-maxSwipeOffset, maxSwipeOffset)
     }
     val voiceDragState = rememberDraggableState { delta ->
         if (content is MessageContent.Voice && bubbleWidth > 0f) {
             voiceDragFraction = (voiceDragFraction + delta / bubbleWidth).coerceIn(0f, 1f)
-            chatContext?.onVoiceSeek(message.id, voiceDragFraction)
+            chatContext.onVoiceSeek(message.id, voiceDragFraction)
         }
     }
 
@@ -184,7 +184,7 @@ fun MessageItem(
                                         onClick = onMessageClick,
                                         onDoubleClick = {
                                             if (content is MessageContent.Voice) {
-                                                chatContext?.onVoiceSpeedToggle(message.id)
+                                                chatContext.onVoiceSpeedToggle(message.id)
                                             }
                                         },
                                         onLongClick = {
@@ -216,13 +216,12 @@ fun MessageItem(
                                             Modifier.draggable(
                                                 state = voiceDragState,
                                                 orientation = Orientation.Horizontal,
-                                                enabled = chatContext?.voicePlaybackState?.messageId == message.id,
+                                                enabled = chatContext.voicePlaybackState.messageId == message.id,
                                                 onDragStarted = {
                                                     voiceDragFraction = chatContext
-                                                        ?.voicePlaybackState
-                                                        ?.progress
-                                                        ?.coerceIn(0f, 1f)
-                                                        ?: 0f
+                                                        .voicePlaybackState
+                                                        .progress
+                                                        .coerceIn(0f, 1f)
                                                 }
                                             )
                                         } else {
@@ -314,7 +313,7 @@ private fun Avatar(model: Any?, isPeer: Boolean) {
             .size(40.dp)
             .clip(RoundedCornerShape(4.dp))
             .onTap {
-                chatContext?.onContact(isPeer)
+                chatContext.onContact(isPeer)
             })
 }
 

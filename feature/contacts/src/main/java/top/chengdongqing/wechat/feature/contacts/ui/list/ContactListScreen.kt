@@ -82,9 +82,7 @@ fun ContactListScreen(
                     onNewFriendsClick = {
                         onNavigate(ScreenRoute.NewFriends)
                     },
-                    onGroupsClick = {
-                        onNavigate(ScreenRoute.GroupList)
-                    },
+                    onGroupsClick = {},
                     onTagsClick = {
                         onNavigate(ScreenRoute.ContactTags)
                     }

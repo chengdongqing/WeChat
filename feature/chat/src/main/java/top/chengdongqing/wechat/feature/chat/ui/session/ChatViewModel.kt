@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -51,7 +50,6 @@ import top.chengdongqing.wechat.core.data.repository.ContactRepository
 import top.chengdongqing.wechat.core.data.repository.MessageRepository
 import top.chengdongqing.wechat.core.data.repository.ProfileRepository
 import top.chengdongqing.wechat.core.database.dao.FavoriteDao
-import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.entity.FavoriteEntity
 import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.file.PublicFileManager
@@ -103,7 +101,6 @@ class ChatViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
     private val chatSettingsRepository: ChatSettingsRepository,
     private val contactRepository: ContactRepository,
-    groupDao: GroupDao,
     private val favoriteDao: FavoriteDao,
     private val addFriendRepository: AddFriendRepository,
     private val publicFileManager: PublicFileManager,
@@ -125,7 +122,6 @@ class ChatViewModel @AssistedInject constructor(
     private var aiGenerationJob: Job? = null
     private val _pendingQuote = MutableStateFlow<MessageQuote?>(null)
     private val isLocalAiSession: Boolean get() = chatId == LocalAiAssistant.ID
-    private val isGroupSession: Boolean get() = chatId.startsWith("group_")
     private val _streamingAiMessage = MutableStateFlow<StreamingAiMessage?>(null)
     private val liveLocationRoom = liveLocationRegistry.rooms.map {
         it[liveLocationRegistry.roomIdFor(chatId)]
@@ -212,25 +208,6 @@ class ChatViewModel @AssistedInject constructor(
                     emit(MessageUiEvent.NavigateToRequestAddFriend)
                 }
             }
-
-            ChatUiIntent.StartLive -> {
-                val liveId = randomUUID()
-                sendMessage(
-                    MessageContent.Live(
-                        liveId = liveId,
-                        title = "${uiState.value.chatTitle.orEmpty()}的直播",
-                        hostName = "我",
-                        actorId = uiState.value.myUserInfo?.id
-                    )
-                )
-                emit(
-                    MessageUiEvent.NavigateToLiveRoom(
-                        liveId = liveId,
-                        isHost = true,
-                        hostId = uiState.value.myUserInfo?.id.orEmpty()
-                    )
-                )
-            }
         }
     }
 
@@ -268,19 +245,6 @@ class ChatViewModel @AssistedInject constructor(
                 else -> ChatType.Single
             }
         )
-    }
-
-    private val groupPresentation = if (isGroupSession) {
-        groupDao.observeById(chatId)
-            .combine(groupDao.observeMembers(chatId)) { group, members ->
-                GroupPresentation(
-                    title = group?.remark?.takeIf(String::isNotBlank)
-                        ?: group?.name.orEmpty(),
-                    members = members.map { MentionMember(it.userId, it.nickname, it.avatarPath) }
-                )
-            }
-    } else {
-        flowOf(null)
     }
 
     private val sessionPresentation = chatSessionRepository.observeSession(chatId)
@@ -334,13 +298,11 @@ class ChatViewModel @AssistedInject constructor(
 
     private val basePresentation = combine(
         chatIdentity,
-        groupPresentation,
         sessionPresentation
-    ) { identity, group, session ->
+    ) { identity, session ->
         ChatBasePresentation(
             chatTitle = when {
                 isLocalAiSession -> localAiAssistantName
-                group != null -> group.title
                 !session.title.isNullOrBlank() -> session.title
                 !identity.peerUserInfo?.displayName.isNullOrBlank() -> identity.peerUserInfo.displayName
                 identity.chatType == ChatType.Self -> identity.myUserInfo?.nickname.orEmpty()
@@ -350,8 +312,6 @@ class ChatViewModel @AssistedInject constructor(
             myUserInfo = identity.myUserInfo,
             isInfoLoaded = identity.isInfoLoaded,
             chatType = identity.chatType,
-            mentionMembers = group?.members.orEmpty()
-                .filterNot { it.id == identity.myUserInfo?.id },
             isMuted = session.isMuted,
             isTemporary = session.isTemporary,
             isOnline = session.isOnline,
@@ -452,7 +412,6 @@ class ChatViewModel @AssistedInject constructor(
             myUserInfo = base.myUserInfo,
             isInfoLoaded = base.isInfoLoaded,
             chatType = base.chatType,
-            mentionMembers = base.mentionMembers,
             isMuted = base.isMuted,
             isTemporary = base.isTemporary,
             isOnline = base.isOnline,
@@ -661,7 +620,6 @@ class ChatViewModel @AssistedInject constructor(
         is MessageContent.File -> "[文件] $filename"
         is MessageContent.ContactCard -> "[名片] $nickname"
         is MessageContent.Music -> "[音乐] ${music.title}"
-        is MessageContent.Live -> "[直播] $title"
         is MessageContent.ChatHistory -> "[聊天记录] $title"
     }
 
@@ -1154,11 +1112,6 @@ private data class ChatIdentity(
     val chatType: ChatType
 )
 
-private data class GroupPresentation(
-    val title: String,
-    val members: List<MentionMember>
-)
-
 private data class ChatSessionPresentation(
     val title: String?,
     val peerId: String?,
@@ -1188,7 +1141,6 @@ private data class ChatBasePresentation(
     val myUserInfo: UserProfile?,
     val isInfoLoaded: Boolean,
     val chatType: ChatType,
-    val mentionMembers: List<MentionMember>,
     val isMuted: Boolean,
     val isTemporary: Boolean,
     val isOnline: Boolean,

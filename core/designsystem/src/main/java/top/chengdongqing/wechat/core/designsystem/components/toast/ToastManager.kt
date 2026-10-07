@@ -55,7 +55,7 @@ fun WeToastHost() {
     val state = rememberToastState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             ToastManager.events.collect { event ->
                 when (event) {

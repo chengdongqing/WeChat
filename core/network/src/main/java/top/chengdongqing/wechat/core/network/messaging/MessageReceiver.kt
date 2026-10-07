@@ -45,7 +45,6 @@ import javax.inject.Singleton
 class MessageReceiver @Inject constructor(
     private val transport: ChatTransportManager,
     private val messageDispatcher: MessageDispatcher,
-    private val meshGroupRouter: MeshGroupRouter,
     private val permissionChecker: MessagePermissionChecker,
     private val messageSender: MessageSender,
     private val profileRepository: ProfileRepository,
@@ -160,9 +159,6 @@ class MessageReceiver @Inject constructor(
             !permissionChecker.checkAndReply(userId, protocol) -> return
         }
 
-        if (protocol is ChatProtocol.GroupTextMessage) {
-            meshGroupRouter.relay(protocol, receivedFrom = userId)
-        }
         // 将消息分发下去
         messageDispatcher.dispatch(protocol)
     }

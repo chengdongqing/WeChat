@@ -158,21 +158,6 @@ private fun MessageEntity.toMessageContent(json: Json): MessageContent {
             )
         }
 
-        MessageType.Live -> {
-            val live = runCatching {
-                json.decodeFromString<LiveContent>(content)
-            }.getOrElse { LiveContent() }
-            MessageContent.Live(
-                liveId = live.liveId,
-                title = live.title,
-                hostName = live.hostName,
-                status = live.status,
-                actorId = live.actorId,
-                targetId = live.targetId,
-                payload = live.payload
-            )
-        }
-
         MessageType.VoiceCall,
         MessageType.VideoCall ->
             MessageContent.Call(
@@ -323,21 +308,6 @@ fun MessageContent.toEntity(
                 fileSize = content.music.size.takeIf { it > 0 }
             )
 
-        is MessageContent.Live ->
-            base(
-                contentValue = json.encodeToString(
-                    LiveContent(
-                        liveId = content.liveId,
-                        title = content.title,
-                        hostName = content.hostName,
-                        status = content.status,
-                        actorId = content.actorId,
-                        targetId = content.targetId,
-                        payload = content.payload
-                    )
-                )
-            )
-
         is MessageContent.ChatHistory ->
             base(
                 contentValue = CHAT_HISTORY_PREFIX + json.encodeToString(content.itemsWithTitle()),
@@ -369,7 +339,6 @@ fun MessageContent.toMessageType(): MessageType = when (this) {
     is MessageContent.Call -> if (type.isVideoCall) MessageType.VideoCall else MessageType.VoiceCall
     is MessageContent.ContactCard -> MessageType.ContactCard
     is MessageContent.Music -> MessageType.Music
-    is MessageContent.Live -> MessageType.Live
     is MessageContent.ChatHistory -> MessageType.ChatHistory
     is MessageContent.Media -> MessageType.Image
 }

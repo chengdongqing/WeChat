@@ -12,8 +12,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,29 +31,8 @@ import top.chengdongqing.wechat.core.util.showToast
 import top.chengdongqing.wechat.feature.chat.R
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiEngine
 import top.chengdongqing.wechat.feature.chat.ai.LocalAiError
-import top.chengdongqing.wechat.feature.chat.ai.LocalAiModelInfo
-import top.chengdongqing.wechat.feature.chat.ai.LocalAiState
 import top.chengdongqing.wechat.feature.chat.ai.getLocalAiErrorMessage
 import top.chengdongqing.wechat.core.designsystem.R as DesignR
-
-data class ChatInfoUiState(
-    /** 联系人信息 */
-    val contactName: String = "",
-    val contactAvatar: String? = null,
-
-    /** 会话设置 */
-    val isMuted: Boolean = false,
-    val isPinned: Boolean = false,
-    val isBottomed: Boolean = false,
-    val backgroundPath: String? = null,
-    val isTemporary: Boolean = false,
-    val expiresAt: Long? = null,
-    val isFriend: Boolean = false,
-    val isAiAssistant: Boolean = false,
-    val localAiState: LocalAiState = LocalAiState.NoModel,
-    val modelSizeBytes: Long? = null,
-    val modelInfo: LocalAiModelInfo? = null
-)
 
 @HiltViewModel(assistedFactory = ChatInfoViewModel.Factory::class)
 class ChatInfoViewModel @AssistedInject constructor(
@@ -63,7 +44,6 @@ class ChatInfoViewModel @AssistedInject constructor(
     private val localAiEngine: LocalAiEngine,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
-    private var modelImportJob: Job? = null
 
     @AssistedFactory
     interface Factory {
@@ -74,11 +54,19 @@ class ChatInfoViewModel @AssistedInject constructor(
         private const val TAG = "ChatInfoVM"
     }
 
+    private var modelImportJob: Job? = null
+
+    private val _uiEvent = Channel<ChatInfoUiEvent>(Channel.BUFFERED)
+    val uiEvent = _uiEvent.receiveAsFlow()
+
     init {
         ensureSessionExists()
         promoteWhenFriendAdded()
     }
 
+    /**
+     * 添加为好友后去掉临时会话标识
+     */
     private fun promoteWhenFriendAdded() {
         viewModelScope.launch(Dispatchers.IO) {
             contactRepository.observeContact(chatId).collect { contact ->
@@ -89,6 +77,9 @@ class ChatInfoViewModel @AssistedInject constructor(
         }
     }
 
+    /**
+     * 在没有创建会话记录时自动创建会话
+     */
     private fun ensureSessionExists() {
         viewModelScope.launch(Dispatchers.IO) {
             val existSession = chatSessionRepository.exists(chatId)
@@ -129,6 +120,7 @@ class ChatInfoViewModel @AssistedInject constructor(
                 name = context.getString(DesignR.string.local_ai_assistant_name),
                 signature = context.getString(DesignR.string.local_ai_assistant_signature)
             )
+
             else -> contact
         }
 
@@ -153,35 +145,49 @@ class ChatInfoViewModel @AssistedInject constructor(
         initialValue = ChatInfoUiState()
     )
 
-    fun toggleMuted() {
+    fun onIntent(intent: ChatInfoUiIntent) {
+        when (intent) {
+            is ChatInfoUiIntent.ToggleMuted -> toggleMuted()
+            is ChatInfoUiIntent.TogglePinned -> togglePinned()
+            is ChatInfoUiIntent.ToggleBottomed -> toggleBottomed()
+            is ChatInfoUiIntent.ClearChatHistory -> clearChatHistory()
+            is ChatInfoUiIntent.EndTemporaryChat -> endTemporaryChat()
+            is ChatInfoUiIntent.UpdateBackground -> updateBackground(intent.uri)
+            is ChatInfoUiIntent.ImportLocalAiModel -> importLocalAiModel(intent.uri)
+            is ChatInfoUiIntent.CancelModelLoading -> cancelModelLoading()
+            is ChatInfoUiIntent.UnloadModel -> unloadModel()
+        }
+    }
+
+    private fun toggleMuted() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.toggleMute(chatId, !uiState.value.isMuted)
         }
     }
 
-    fun togglePinned() {
+    private fun togglePinned() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.togglePin(chatId, !uiState.value.isPinned)
         }
     }
 
-    fun toggleBottomed() {
+    private fun toggleBottomed() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.toggleBottom(chatId, !uiState.value.isBottomed)
         }
     }
 
-    fun endTemporaryChat(onComplete: () -> Unit) {
+    private fun endTemporaryChat() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.deleteSession(chatId, shouldHide = true)
             withContext(Dispatchers.Main) {
                 context.showToast("临时聊天已结束")
-                onComplete()
+                _uiEvent.send(ChatInfoUiEvent.OnTemporaryChatEnd)
             }
         }
     }
 
-    fun updateBackground(uri: Uri?) {
+    private fun updateBackground(uri: Uri?) {
         viewModelScope.launch {
             try {
                 val oldPath = uiState.value.backgroundPath
@@ -205,13 +211,13 @@ class ChatInfoViewModel @AssistedInject constructor(
         }
     }
 
-    fun clearMessages() {
+    private fun clearChatHistory() {
         viewModelScope.launch(Dispatchers.IO) {
             chatSessionRepository.deleteSession(chatId, false)
         }
     }
 
-    fun importLocalAiModel(uri: Uri) {
+    private fun importLocalAiModel(uri: Uri) {
         modelImportJob?.cancel()
         modelImportJob = viewModelScope.launch {
             runCatching { localAiEngine.importModel(uri) }
@@ -225,7 +231,7 @@ class ChatInfoViewModel @AssistedInject constructor(
         }
     }
 
-    fun cancelModelLoading() {
+    private fun cancelModelLoading() {
         modelImportJob?.cancel()
         viewModelScope.launch {
             localAiEngine.cancelLoading()
@@ -233,7 +239,7 @@ class ChatInfoViewModel @AssistedInject constructor(
         }
     }
 
-    fun unloadModel() {
+    private fun unloadModel() {
         viewModelScope.launch {
             localAiEngine.unloadModel()
             context.showToast("模型已卸载")

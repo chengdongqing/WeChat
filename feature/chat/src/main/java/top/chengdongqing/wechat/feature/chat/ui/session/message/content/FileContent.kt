@@ -91,9 +91,9 @@ fun ControlWithProgress(message: ChatMessage) {
             .clip(CircleShape)
             .clickable {
                 if (isPaused) {
-                    chatContext?.onResumeTransfer(message.id)
+                    chatContext.onResumeTransfer(message.id)
                 } else {
-                    chatContext?.onPauseTransfer(message.id)
+                    chatContext.onPauseTransfer(message.id)
                 }
             },
         contentAlignment = Alignment.Center

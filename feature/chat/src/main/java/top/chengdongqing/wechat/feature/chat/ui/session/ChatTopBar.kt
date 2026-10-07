@@ -58,12 +58,7 @@ fun ChatTopBar(
                 icon = DesignR.drawable.ic_more_outlined,
                 description = stringResource(DesignR.string.action_more)
             ) {
-                val route = if (uiState.chatType == ChatType.Group) {
-                    ScreenRoute.GroupInfo(uiState.chatId)
-                } else {
-                    ScreenRoute.ChatInfo(uiState.chatId)
-                }
-                onNavigate(route)
+                onNavigate(ScreenRoute.ChatInfo(uiState.chatId))
             }
         }
     }

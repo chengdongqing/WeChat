@@ -9,14 +9,7 @@ import top.chengdongqing.wechat.core.data.model.ChatHistoryPayload
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.data.model.MusicTrack
 import top.chengdongqing.wechat.core.navigation.ScreenRoute
-import top.chengdongqing.wechat.feature.chat.theme.ChatTheme
-import top.chengdongqing.wechat.feature.chat.ui.group.CreateGroupScreen
-import top.chengdongqing.wechat.feature.chat.ui.group.GroupInfoScreen
-import top.chengdongqing.wechat.feature.chat.ui.group.GroupInfoViewModel
-import top.chengdongqing.wechat.feature.chat.ui.info.ChatInfoScreen
-import top.chengdongqing.wechat.feature.chat.ui.info.ChatInfoViewModel
-import top.chengdongqing.wechat.feature.chat.ui.live.LiveRoomScreen
-import top.chengdongqing.wechat.feature.chat.ui.live.LiveRoomViewModel
+import top.chengdongqing.wechat.feature.chat.ui.info.ChatInfoRoute
 import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationScreen
 import top.chengdongqing.wechat.feature.chat.ui.location.LiveLocationViewModel
 import top.chengdongqing.wechat.feature.chat.ui.preview.chathistory.ChatHistoryScreen
@@ -28,42 +21,14 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
     backStack: NavBackStack<NavKey>,
     onBack: () -> Unit
 ) {
-    entry<ScreenRoute.GroupChat> {
-        if (it.groupId.isBlank()) {
-            CreateGroupScreen(
-                onCreated = { groupId ->
-                    backStack.removeLastOrNull()
-                    backStack.add(ScreenRoute.Chat(groupId))
-                },
-                onBack = onBack
-            )
-        } else {
-            ChatTheme {
-                ChatRoute(it.groupId)
-            }
-        }
-    }
-
     // 聊天会话页
     entry<ScreenRoute.Chat> {
         val chatId = it.chatId
 
-        ChatTheme {
-            ChatRoute(chatId)
-        }
+        ChatRoute(chatId)
     }
 
-    entry<ScreenRoute.LiveRoom> {
-        LiveRoomScreen(
-            liveId = it.liveId,
-            isHost = it.isHost,
-            onBack = onBack,
-            viewModel = hiltViewModel { factory: LiveRoomViewModel.Factory ->
-                factory.create(it.groupId, it.liveId, it.hostId)
-            }
-        )
-    }
-
+    // 实时位置页
     entry<ScreenRoute.LiveLocation> {
         LiveLocationScreen(
             onBack = onBack,
@@ -73,6 +38,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
         )
     }
 
+    // 聊天历史预览页
     entry<ScreenRoute.ChatHistory> { key ->
         val payload = runCatching { Json.decodeFromString<ChatHistoryPayload>(key.payload) }
             .getOrDefault(ChatHistoryPayload("聊天记录", emptyList()))
@@ -122,44 +88,7 @@ fun EntryProviderScope<NavKey>.chatNavEntries(
 
     // 聊天信息页
     entry<ScreenRoute.ChatInfo> {
-        val id = it.chatId
-
-        ChatInfoScreen(
-            onBack = onBack,
-            onContact = {
-                backStack.removeIf { key -> key is ScreenRoute.ContactDetail }
-                backStack.add(ScreenRoute.ContactDetail(id))
-            },
-            onRequestAddFriend = {
-                backStack.add(ScreenRoute.RequestAddFriend(id))
-            },
-            onEndTemporaryChat = {
-                backStack.removeIf { key ->
-                    key is ScreenRoute.ChatInfo ||
-                            (key is ScreenRoute.Chat && key.chatId == id)
-                }
-            },
-            viewModel = hiltViewModel { factory: ChatInfoViewModel.Factory ->
-                factory.create(id)
-            }
-        )
-    }
-
-    entry<ScreenRoute.GroupInfo> {
-        val groupId = it.groupId
-        GroupInfoScreen(
-            onBack = onBack,
-            onExitGroup = {
-                backStack.removeIf { key ->
-                    key is ScreenRoute.GroupInfo ||
-                            (key is ScreenRoute.GroupChat && key.groupId == groupId) ||
-                            (key is ScreenRoute.Chat && key.chatId == groupId)
-                }
-            },
-            viewModel = hiltViewModel { factory: GroupInfoViewModel.Factory ->
-                factory.create(groupId)
-            }
-        )
+        ChatInfoRoute(it.chatId)
     }
 
     // 文件预览页

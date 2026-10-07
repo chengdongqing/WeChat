@@ -3,7 +3,7 @@ package top.chengdongqing.wechat.feature.chat.ui.session.input
 import top.chengdongqing.wechat.core.data.model.MessageContent
 import top.chengdongqing.wechat.core.model.CallType
 import top.chengdongqing.wechat.feature.chat.domain.model.InputMode
-import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.MoreAction
+import top.chengdongqing.wechat.feature.chat.ui.session.input.panel.ChatMoreAction
 
 /**
  * 输入栏所有操作契约
@@ -30,7 +30,7 @@ data class InputBarActions(
     val onSwitchToText: () -> Unit = {},
 
     /** 更多面板操作分发 */
-    val onMoreAction: (action: MoreAction, isLongClick: Boolean) -> Unit = { _, _ -> },
+    val onMoreAction: (action: ChatMoreAction, isLongClick: Boolean) -> Unit = { _, _ -> },
     /** 语音转文字结果回填 */
     val onSpeechResult: (text: String) -> Unit = {},
     /** 切换音乐选择弹窗的显示 */

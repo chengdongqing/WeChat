@@ -43,8 +43,6 @@ sealed class MessageUiEvent {
     /** 跳转到联系人详情 */
     data class NavigateToContact(val contactId: String) : MessageUiEvent()
     data object NavigateToRequestAddFriend : MessageUiEvent()
-    data class NavigateToLiveRoom(val liveId: String, val isHost: Boolean, val hostId: String) :
-        MessageUiEvent()
     data object NavigateToLiveLocation : MessageUiEvent()
     data class OpenChatHistory(val content: MessageContent.ChatHistory) : MessageUiEvent()
 }

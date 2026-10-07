@@ -34,13 +34,11 @@ import top.chengdongqing.wechat.core.data.storage.AssetOwnerType
 import top.chengdongqing.wechat.core.data.storage.AssetReferenceManager
 import top.chengdongqing.wechat.core.database.WeDatabase
 import top.chengdongqing.wechat.core.database.dao.ChatSessionDao
-import top.chengdongqing.wechat.core.database.dao.GroupDao
 import top.chengdongqing.wechat.core.database.dao.MediaFileDao
 import top.chengdongqing.wechat.core.database.dao.MessageDao
 import top.chengdongqing.wechat.core.database.entity.MessageEntity
 import top.chengdongqing.wechat.core.database.entity.peerId
 import top.chengdongqing.wechat.core.datetime.isWithinSeconds
-import top.chengdongqing.wechat.core.file.PrivateFileManager
 import top.chengdongqing.wechat.core.model.LocalAiAssistant
 import top.chengdongqing.wechat.core.model.MessageType
 import top.chengdongqing.wechat.core.model.SendError
@@ -66,7 +64,6 @@ class MessageRepositoryImpl @Inject constructor(
     private val database: WeDatabase,
     private val messageDao: MessageDao,
     private val mediaFileDao: MediaFileDao,
-    private val groupDao: GroupDao,
     private val chatSessionDao: ChatSessionDao,
     private val chatSessionRepository: ChatSessionRepository,
     private val activeSessionManager: ActiveSessionManager,
@@ -74,7 +71,6 @@ class MessageRepositoryImpl @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val chatSessionUpdater: ChatSessionUpdater,
     private val assetReferenceManager: AssetReferenceManager,
-    private val privateFileManager: PrivateFileManager,
     private val transferManager: TransferManager,
     private val chunkStorageManager: ChunkStorageManager,
     private val notificationSettingsRepository: NotificationSettingsRepository,
@@ -111,26 +107,6 @@ class MessageRepositoryImpl @Inject constructor(
 
     override suspend fun getMessage(messageId: String): ChatMessage? {
         return messageDao.getById(messageId)?.toDomain(json)
-    }
-
-    override suspend fun updateLiveStatus(
-        sessionId: String,
-        liveId: String,
-        status: String
-    ) {
-        messageDao.getBySessionAndType(sessionId, MessageType.Live).forEach { entity ->
-            val live = entity.toDomain(json).content as? MessageContent.Live ?: return@forEach
-            if (live.liveId != liveId) return@forEach
-            val updatedContent = live.copy(status = status).toEntity(
-                messageId = entity.id,
-                sessionId = entity.sessionId,
-                senderId = entity.senderId,
-                receiverId = entity.receiverId,
-                timestamp = entity.timestamp,
-                json = json
-            ).content
-            messageDao.update(entity.copy(content = updatedContent))
-        }
     }
 
     override suspend fun sendMessage(
@@ -220,15 +196,6 @@ class MessageRepositoryImpl @Inject constructor(
      * 异步发送消息
      */
     private suspend fun sendMessageAsync(message: MessageEntity) {
-        if (groupDao.getById(message.sessionId) != null) {
-            if (message.localPath == null) {
-                messageSender.sendGroupTextMessage(message)
-            } else {
-                // 群媒体分片将在后续协议版本中做逐成员传输；先明确失败，避免误发给群 ID。
-                throw UnsupportedOperationException("群聊暂不支持媒体消息")
-            }
-            return
-        }
         when (message.contentType) {
             MessageType.Text -> messageSender.sendTextMessage(message)
 
@@ -501,8 +468,8 @@ class MessageRepositoryImpl @Inject constructor(
 
     /** 在消息入库前完成 checksum 去重，避免临时归档先被注册成另一份资源。 */
     private suspend fun createDeduplicatedHistoryArchive(
-        items: List<top.chengdongqing.wechat.core.data.model.ChatHistoryItem>
-    ): Pair<List<top.chengdongqing.wechat.core.data.model.ChatHistoryItem>, String?> {
+        items: List<ChatHistoryItem>
+    ): Pair<List<ChatHistoryItem>, String?> {
         val archive = newChatHistoryArchiveFile()
         val archivedItems = createChatHistoryArchive(items, archive)
         if (archive.length() <= 22L) {
@@ -656,7 +623,6 @@ private fun MessageContent.toHistoryItem(senderName: String, timestamp: Long): C
         is MessageContent.LiveLocation -> "location" to "[位置共享]"
         is MessageContent.ContactCard -> "contact" to "[名片] $nickname"
         is MessageContent.Music -> "music" to "[音乐] ${music.name}"
-        is MessageContent.Live -> "live" to "[直播] $title"
         is MessageContent.Call -> "call" to "[通话]"
         is MessageContent.ChatHistory -> "history" to title
         is MessageContent.Media -> "image" to "[图片]"

@@ -14,6 +14,7 @@ import top.chengdongqing.wechat.core.network.model.PacketType
 import top.chengdongqing.wechat.core.runtime.IoScope
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
 
 data class LiveLocationParticipant(
     val userId: String,
@@ -61,7 +62,7 @@ class LiveLocationSessionRegistry @Inject constructor(
         }
         scope.launch {
             while (true) {
-                delay(2_000)
+                delay(2_000.milliseconds)
                 expireStaleParticipants()
             }
         }
